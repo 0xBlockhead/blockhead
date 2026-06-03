@@ -21,19 +21,14 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/bridge/route/[routeId]/step/[stepIndex]',
-			{
-				routeId: encodeURIComponent(stringify(entityId.$route)),
-				stepIndex: String(entityId.index),
-			},
-		),
+		href = resolve(`/bridge/route/${encodeURIComponent(stringify(entityId.$route))}/step/${String(entityId.index)}`),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -42,16 +37,13 @@
 			entityId: EntityId<typeof schema, EntityType.BridgeRouteStep>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const step = useEntity(
 		EntityType.BridgeRouteStep,
@@ -278,7 +270,7 @@
 								{#if step.$fromToken}
 									<EvmCoinInstanceView
 										entityId={step.$fromToken[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryDetails}
+										layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}
 									/>
@@ -299,7 +291,7 @@
 								{#if step.$toToken}
 									<EvmCoinInstanceView
 										entityId={step.$toToken[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryDetails}
+										layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}
 									/>

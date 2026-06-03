@@ -17,7 +17,7 @@ const githubFilecoinFipProposalRows = async (
 ) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	return data.flatMap((githubContent) => {
-		const proposalNumberRaw = regex('^fip-(?<proposalNumber>\\d+)\\.md$').exec(githubContent.name)?.groups?.proposalNumber
+		const proposalNumberRaw = regex('^fip-(?<proposalNumber>\\d+)\\.md$').exec(githubContent.name)?.groups.proposalNumber
 		return githubContent.type !== 'file' || proposalNumberRaw == null ?
 			[]
 		:
@@ -47,10 +47,10 @@ export default {
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
 				return {
-					documentCategory: frontmatter.type?.trim() === '' ? null : frontmatter.type?.trim() ?? null,
-					documentTitle: frontmatter.title?.trim() === '' ? null : frontmatter.title?.trim() ?? null,
-					documentStatus: frontmatter.status?.trim() === '' ? null : frontmatter.status?.trim() ?? null,
-					documentBody: body.length > 0 ? body : null,
+					documentCategory: frontmatter.type.trim() || undefined,
+					documentTitle: frontmatter.title.trim() || undefined,
+					documentStatus: frontmatter.status.trim() || undefined,
+					documentBody: body.length > 0 ? body : undefined,
 				}
 			},
 		}),

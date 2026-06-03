@@ -11,6 +11,7 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/EvmNetwork.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.LiquidityPool,
@@ -29,12 +30,18 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: '$quoteToken',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'fee',
@@ -65,6 +72,9 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LiquidityPool_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: '$$blocks',
@@ -95,12 +105,18 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'quoteTokenSymbol',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'baseTokenDecimals',
@@ -119,78 +135,117 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string | number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'totalValueLockedUSD',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string | number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'marketCapUsd',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'fdvUsd',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'pairCreatedAtMs',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'dexscreenerLabels',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'dexId',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'dexscreenerPairUrl',
 			type: EntityFieldType.Primitive,
 			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'baseTokenPriceUsd',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'baseTokenPriceQuote',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'priceChangePercent24h',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'transactionBuys24h',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 		{
 			name: 'transactionSells24h',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Dexscreener_OpenApi,
+			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

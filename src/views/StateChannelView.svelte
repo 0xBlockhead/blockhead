@@ -14,15 +14,17 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve('/channel/[channelId]', {
-			channelId: entityId.id,
-		}),
+		href = resolve(
+			'/(assets)/(channels)/channel/[channelId]',
+			{ channelId: entityId.id },
+			),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -31,16 +33,13 @@
 			entityId: EntityId<typeof schema, EntityType.StateChannel>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const stateChannel = useEntity(
 		EntityType.StateChannel,
@@ -150,7 +149,9 @@
 						{/if}
 					</span>
 				{:else}
+					{#if Value}
 					{@render Value()}
+				{/if}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -282,11 +283,11 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
-									<EvmNetworkView
-										entityId={stateChannel.$network[EntityMetaKey.Id]}
+									{#if stateChannel.$network !== undefined}
+										<EvmNetworkView
+											entityId={stateChannel.$network[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
-										open={false}
+											open={false}
 									/>
 								{/if}
 							{/snippet}
@@ -326,7 +327,7 @@
 								{#if stateChannel.$room?.[EntityMetaKey.Id].id !== undefined}
 									<BlockheadRoomView
 										entityId={stateChannel.$room[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryDetails}
+									layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}
 									/>

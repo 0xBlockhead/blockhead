@@ -200,8 +200,8 @@ export const installBoundaryProbe = (page: Page) => (
 			if (ariaLabel)
 				return ariaLabel.slice(0, 500)
 			return (
-				element.textContent?.replace(/\s+/g, ' ').trim().slice(0, 500)
-				?? ''
+				element.textContent.replace(/\s+/g, ' ').trim().slice(0, 500)
+
 			)
 		}
 
@@ -358,8 +358,8 @@ export const snapshotBoundaryMain = (page: Page) => (
 			if (ariaLabel)
 				return ariaLabel.slice(0, 500)
 			return (
-				element.textContent?.replace(/\s+/g, ' ').trim().slice(0, 500)
-				?? ''
+				element.textContent.replace(/\s+/g, ' ').trim().slice(0, 500)
+
 			)
 		}
 
@@ -396,7 +396,7 @@ export const snapshotBoundaryMain = (page: Page) => (
 		const contentMarkerCount = main.querySelectorAll(
 			'section, dl, ul, ol, [data-card], h1, h2, h3, table, pre, canvas',
 		).length
-		const textLength = main.textContent?.replace(/\s+/g, ' ').trim().length ?? 0
+		const textLength = main.textContent.replace(/\s+/g, ' ').trim().length
 
 		const empty = (
 			failed.length === 0
@@ -1126,7 +1126,7 @@ export const publicJsonRpcHttpUrlForChainE2e = async (chainId: number) => {
 	if (chain == null) return null
 	for (const entry of chain.rpc ?? []) {
 		const raw = typeof entry === 'string' ? entry : entry.url
-		const url = raw?.trim()
+			const url = raw.trim()
 		if (url && url.startsWith('http')) return url
 	}
 	return null
@@ -1194,7 +1194,7 @@ export const preflightPublicJsonRpcEthBlockNumber = (
 			)
 			if (!res.ok) return { ok: false, status: res.status }
 			const j: { result?: string, error?: { message?: string } } = await res.json()
-			const hex = j?.result
+			const hex = j.result
 			if (typeof hex !== 'string' || !hex.startsWith('0x')) return { ok: false, status: res.status, error: j.error?.message }
 			return { ok: true, blockNumberHex: hex }
 		} catch (e) {

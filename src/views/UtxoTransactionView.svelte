@@ -8,6 +8,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -24,10 +26,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const transaction = useEntity(
 		EntityType.UtxoTransaction,
@@ -64,7 +62,12 @@
 <EntityView
 	entityType={EntityType.UtxoTransaction}
 	{entityId}
-	href={`/network/${entityId.$network.networkSlug}/transactions/${entityId.txId}`}
+	href={
+		'networkSlug' in entityId.$network ?
+			`/network/${entityId.$network.networkSlug}/transactions/${entityId.txId}`
+		:
+			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/transactions/${entityId.txId}`
+	}
 	title={entityId.txId}
 	bind:open
 	{...EntityViewProps}

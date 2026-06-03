@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -20,9 +21,13 @@
 		href = entityId.variant === 'trending' ?
 			resolve('/farcaster/feed/trending')
 		: entityId.variant === 'byUser' ?
-			resolve(`/farcaster/feed/user/${String(entityId.fid)}`)
+			resolve('/(social)/(farcaster)/farcaster/feed/user/[userId]', {
+				userId: String(entityId.fid),
+	})
 		: entityId.variant === 'byChannel' ?
-			resolve(`/farcaster/feed/channel/${encodeURIComponent(entityId.channelId)}`)
+			resolve('/(social)/(farcaster)/farcaster/feed/channel/[channelId]', {
+				channelId: entityId.channelId,
+	})
 		:
 			resolve('/farcaster/feed'),
 				limit = 50,
@@ -41,9 +46,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { mountEntityResolveLive } from '$/lib/db/resolveLive.svelte.ts'
 
 	mountEntityResolveLive({
@@ -160,44 +162,44 @@
 	})}
 		{@const feedDetailKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${feedDetailKey}:carousel-feed`}
-				sectionIdPrefix={feedDetailKey}
-				sections={[
-					{ id: 'feed-record', label: 'Record' },
-					{ id: 'feed-entries', label: 'Casts' },
-				]}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Feed
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${feedDetailKey}:carousel-feed`}
+			sectionIdPrefix={feedDetailKey}
+			sections={[
+				{ id: 'feed-record', label: 'Record' },
+				{ id: 'feed-entries', label: 'Casts' },
+			]}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Feed
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionFeedRecord({ id, label })}
-				{/snippet}
+			{#snippet SectionFeedRecord({ id, label })}
+			{/snippet}
 
-				{#snippet SectionFeedEntries({ id, label })}
-					<FarcasterCastsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/farcaster/feed')}
-						entityFieldReference={{
-							entityType: EntityType.FarcasterFeed,
-							entityId,
-							fieldName: '$$entries',
-						}}
-						id={`${feedDetailKey}:entries`}
-						{limit}
-						title="Feed"
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionFeedEntries({ id, label })}
+				<FarcasterCastsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/farcaster/feed')}
+					entityFieldReference={{
+						entityType: EntityType.FarcasterFeed,
+						entityId,
+						fieldName: '$$entries',
+					}}
+					id={`${feedDetailKey}:entries`}
+					{limit}
+					title="Feed"
+				/>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

@@ -11,6 +11,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -28,6 +30,7 @@
 			id?: string
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -36,9 +39,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -97,8 +97,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(row) => stringify(farcasterChannel.result[EntityMetaKey.Id])}
-				getSortValue={(row) => farcasterChannel.result[EntityMetaKey.Id].id}
+				getKey={(channel) => stringify(channel.result[EntityMetaKey.Id])}
+				getSortValue={(channel) => channel.result[EntityMetaKey.Id].id}
 				placeholderText="Loading Farcaster channels (channel id / slug)…"
 				resource={channels}
 			>

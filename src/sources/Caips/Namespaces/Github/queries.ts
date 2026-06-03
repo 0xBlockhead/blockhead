@@ -19,7 +19,7 @@ export const getContentsUrl = () => (
 
 export const getContents = (): Promise<CaipNamespacesGithubContents> => getJson<CaipNamespacesGithubContents>({
 	url: getContentsUrl(),
-	origins: Caips.origins ?? [],
+	origins: Caips.origins,
 })
 
 export const getProfileUrl = (namespace: string) => (

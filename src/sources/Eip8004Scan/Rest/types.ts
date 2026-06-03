@@ -2,6 +2,9 @@ export type Eip8004ScanAgentListItem = {
 	token_id: string
 	chain_id: number
 	contract_address: string
+	agent_id?: string | null
+	agent_wallet?: string | null
+	owner_address?: string | null
 	name?: string | null
 	description?: string | null
 	image_url?: string | null
@@ -42,12 +45,15 @@ export type Eip8004ScanAgentDetailResponse = {
 
 export type NormalizedEip8004ScanAgent = {
 	chainId: number
-	identityId: string
+	tokenId: string
 	contractAddress: `0x${string}`
+	agentId?: string
+	agentWallet?: `0x${string}`
+	ownerAddress?: `0x${string}`
 }
 
 export type NormalizedEip8004ScanAgentDetail = NormalizedEip8004ScanAgent & {
-	registrationUri: string
+	agentUri: string
 	fetchedAt: number
 	name?: string
 	description?: string

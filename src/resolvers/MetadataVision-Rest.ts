@@ -1,4 +1,5 @@
 import { mediaFromUrl } from '$/lib/media.ts'
+import { optionalNonemptyString } from '$/lib/string.ts'
 import { defineEntityResolver } from '$/resolvers/$resolvers.ts'
 import { schema } from '$/schema/index.ts'
 import type { EntityFieldValues } from '$/schema/$schema.ts'
@@ -6,10 +7,6 @@ import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const optionalTrimmed = (value: string | null | undefined) => {
-	const t = value?.trim() ?? ''
-	return t === '' ? undefined : t
-}
 
 export default {
 	source: Source.MetadataVision_Rest,
@@ -21,11 +18,11 @@ export default {
 				const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
 				try {
 					const wire = await getOpenGraphWireForPublicHttpUrl(entityId.url)
-					const title = optionalTrimmed(wire.title)
-					const description = optionalTrimmed(wire.description)
-					const publisher = optionalTrimmed(wire.publisher ?? wire.author)
-					const imageUrl = optionalTrimmed(wire.image)
-					const logoUrl = optionalTrimmed(wire.logo)
+					const title = optionalNonemptyString(wire.title)
+					const description = optionalNonemptyString(wire.description)
+					const publisher = optionalNonemptyString(wire.publisher ?? wire.author)
+					const imageUrl = optionalNonemptyString(wire.image)
+					const logoUrl = optionalNonemptyString(wire.logo)
 					const imageMedia = (
 						imageUrl == null ?
 							undefined

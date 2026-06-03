@@ -3,18 +3,21 @@
 	import { useLiveQuery } from '@tanstack/svelte-db'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 
 	// Functions
 	const bigintSafeReplacer = (_key: string, value: JsonValue) => (
-		typeof value === 'bigint' ? value.toString()
-		:
-			value
+		typeof value === 'bigint' ? value.toString() : value
 	)
 
 
-	// State
+	// Context
+	import {
+		entityCollectionByEntityType,
+		entityFieldCollections,
+	} from '$/routes/+layout.svelte'
+
+
 	const entityQueryByEntityType = Object.fromEntries(
 		schema.map((entityDefinition) => [
 			entityDefinition.entityType,
@@ -47,11 +50,6 @@
 
 	// Components
 	import NumberValue from '$/views/NumberValue.svelte'
-
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
 </script>
 
 

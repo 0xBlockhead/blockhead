@@ -7,7 +7,7 @@ export const getDexscreenerJson = async <_Response>(
 ): Promise<_Response> => {
 	const href = `${baseUrl}${pathAndQuery}`
 	const response = await corsFetch(href, {
-		origins: Dexscreener.origins ?? [],
+		origins: Dexscreener.origins,
 		init: {
 			headers: {
 				Accept: 'application/json',

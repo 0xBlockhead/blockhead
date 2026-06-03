@@ -11,7 +11,7 @@ export const lifiRestFetch = (
 	const root = options?.baseUrl ?? baseUrl
 	const url = path.startsWith('http') ? path : `${root}${path}`
 	return corsFetch(url, {
-		origins: Lifi.origins ?? [],
+		origins: Lifi.origins,
 		init: {
 			...init,
 			headers: {

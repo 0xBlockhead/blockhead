@@ -1,9 +1,9 @@
 <script module lang="ts">
 	export enum EntityLayout {
-		/** Kind prefix + identity (`#snippet Title`); default card / prose inline. */
-		Title = 'Title',
 		/** Value-only identity (`#snippet Value`); use when a parent `<dt>` already names the kind. */
 		Value = 'Value',
+		/** Kind prefix + identity (`#snippet Title`); default card / prose inline. */
+		Title = 'Title',
 		/** Collapsible card: summary row; details when open. */
 		SummaryDetails = 'SummaryDetails',
 		/** Alias for nested list rows that pass `open={false}` on the summary card. */
@@ -40,7 +40,6 @@
 	const onNestedCollapsibleClose = getOnNestedCollapsibleClose()
 
 
-	// State
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
@@ -50,6 +49,7 @@
 		showTypeAnnotation?: boolean
 	}
 
+	// State
 	let {
 		entityType,
 		entityId,
@@ -61,6 +61,7 @@
 		idDragPlainText,
 
 		layout = EntityLayout.SummaryDetails,
+		collapsible = true,
 		showTypeAnnotation = !(isInsideEntityList ?? false),
 
 		open = $bindable(
@@ -90,6 +91,7 @@
 
 			open?: boolean
 			ontoggle?: (e: Event) => void
+			collapsible?: boolean
 
 			Icon?: Snippet
 			/** Value-only identity; used when `layout` is `EntityLayout.Value`. */
@@ -110,8 +112,6 @@
 		} & EntityViewLayoutProps,
 		SvelteHTMLElements['article']
 	> = $props()
-
-
 
 	const entityTitle = $derived(
 		title ?? entityDefinitionByType[entityType].label,
@@ -205,12 +205,14 @@
 					{:else}
 						{entityTitle}
 					{/if}
-				{:else if Title}
-					{@render Title()}
-				{:else if Value}
-					{@render Value()}
-				{:else}
-					{entityTitle}
+				{:else if layout === EntityLayout.Title}
+					{#if Title}
+						{@render Title()}
+					{:else if entityTitle}
+						{entityTitle}
+					{:else if Value}
+						{@render Value()}
+					{/if}
 				{/if}
 			{/snippet}
 		</EntityIdComponent>
@@ -267,21 +269,22 @@
 			{/if}
 		{/snippet}
 
-			<Collapsible
-				bind:open
-				{ontoggle}
-				onclose={() => {
-					if (!isInsidePage)
-						onNestedCollapsibleClose?.(stringify(entityId))
-				}}
-				data-column-item="flexible"
-				data-card
-				{...CollapsibleProps}
-				Annotation={showTypeAnnotation ? Annotation : undefined}
-			>
-			{#snippet Summary({ open: _summaryOpen })}
+		<Collapsible
+			bind:open
+			canToggle={collapsible}
+			{ontoggle}
+			onclose={() => {
+				if (!isInsidePage)
+					onNestedCollapsibleClose?.(stringify(entityId))
+			}}
+			data-column-item="flexible"
+			data-card
+			{...CollapsibleProps}
+			Annotation={showTypeAnnotation ? Annotation : undefined}
+		>
+			{#snippet Summary({ open })}
 				{@render CardSummaryHeader({
-					summaryOpen: _summaryOpen ?? false,
+					summaryOpen: open ?? false,
 					showCollapsedContent: true,
 				})}
 			{/snippet}

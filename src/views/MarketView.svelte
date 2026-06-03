@@ -12,12 +12,14 @@
 	} from '$/constants/Market.ts'
 
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -40,6 +42,7 @@
 			entityId: EntityId<typeof schema, EntityType.Market>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -50,8 +53,21 @@
 	> = $props()
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	// Functions
+	const marketAssetSymbol = (
+		leg: typeof entityId.$base,
+	) => (
+		leg.kind === MarketAssetKind.Coin ?
+			leg.$coin.coinId
+		: leg.kind === MarketAssetKind.CoinInstance ?
+			leg.$coinInstance.type === CoinInstanceType.NativeCurrency ?
+				'native'
+		:
+				'erc20'
+		:
+			leg.$currency.iso4217
+	)
+
 
 	const market = useEntity(
 		EntityType.Market,
@@ -64,44 +80,25 @@
 					[...marketDerivativeObservationSources]
 			),
 			...(open && entityId.marketKind !== MarketKind.Spot && {
-				$$derivativeTimestamps: {
-					$: [
-						...marketDerivativeObservationSources,
-					],
-					$limit: 64,
-				},
-				fundingRate: {},
-				openInterestUsd: {},
-				indexBasisPercent: {},
-				expiredAtMs: {},
-				derivativeLastTradedAtMs: {},
-			}),
-		},
-	)
-
-
-	// Functions
-	const marketAssetSymbol = (
-		leg: typeof entityId.$base,
-	) => (
-		leg.kind === MarketAssetKind.Coin ?
-			leg.$coin.coinId
-		: leg.kind === MarketAssetKind.CoinInstance ?
-			`instance-${stringify(leg.$coinInstance).slice(0, 12)}`
-		:
-			leg.$currency.iso4217
-	)
+					$$derivativeTimestamps: {
+						$: [
+							...marketDerivativeObservationSources,
+						],
+						$limit: 64,
+					},
+				}),
+			},
+		)
 
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 	import CoinView from '$/views/CoinView.svelte'
-	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 	import CurrencyView from '$/views/CurrencyView.svelte'
+	import Market_Derivative_TimestampView from '$/views/Market_Derivative_TimestampView.svelte'
 	import MarketOhlcHub from '$/views/MarketOhlcHub.svelte'
 	import Market_Derivative_TimestampsView from '$/views/Market_Derivative_TimestampsView.svelte'
 	import MarketPricesView from '$/views/MarketPricesView.svelte'
@@ -114,6 +111,7 @@
 	{entityId}
 	href={href}
 	{open}
+	{collapsible}
 	{...EntityViewProps}
 	title={(
 		entityId.marketKind === MarketKind.Spot ?
@@ -133,72 +131,50 @@
 				<dd>
 					<MarketVenueView
 						entityId={entityId.$marketVenue}
-						layout={EntityLayout.SummaryDetails}
-						open={true}
+						layout={EntityLayout.Value}
 						showTypeAnnotation={false}
 					/>
 				</dd>
 			</div>
-			{#if entityId.marketKind !== MarketKind.Spot}
-				<ResourceBoundary resource={market}>
-					{#if market.fundingRate != null}
-						<div>
-							<dt>Funding rate</dt>
-							<dd>{market.fundingRate}%</dd>
-						</div>
-					{/if}
-					{#if market.openInterestUsd != null}
-						<div>
-							<dt>Open interest</dt>
-							<dd>
-								<CurrencyAmount
-									currency="USD"
-									scale={1}
-									value={market.openInterestUsd}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if market.indexBasisPercent != null}
-						<div>
-							<dt>Index basis</dt>
-							<dd>{market.indexBasisPercent}%</dd>
-						</div>
-					{/if}
-					{#if entityId.marketKind === MarketKind.Futures && market.expiredAtMs != null}
-						<div>
-							<dt>Expires</dt>
-							<dd>
-								<Timestamp
-									timestamp={market.expiredAtMs}
-								/>
-							</dd>
-						</div>
-					{/if}
-				</ResourceBoundary>
-			{/if}
+				{#if entityId.marketKind !== MarketKind.Spot}
+					<ResourceBoundary resource={market}>
+						{#snippet children(market)}
+							{@const derivativeTimestamp = market.$$derivativeTimestamps?.at(0)}
+							{#if derivativeTimestamp != null}
+								<div>
+									<dt>Latest derivative observation</dt>
+									<dd>
+										<Market_Derivative_TimestampView
+											entityId={derivativeTimestamp[EntityMetaKey.Id]}
+											layout={EntityLayout.Value}
+											open={false}
+											showTypeAnnotation={false}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/if}
 			<div>
 				<dt>Base</dt>
 				<dd>
 					{#if entityId.$base.kind === MarketAssetKind.Coin}
 						<CoinView
 							entityId={entityId.$base.$coin}
-							layout={EntityLayout.Summary}
-							open={false}
+							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
 						/>
 					{:else if entityId.$base.kind === MarketAssetKind.CoinInstance}
 						<EvmCoinInstanceView
 							entityId={entityId.$base.$coinInstance}
-							layout={EntityLayout.Summary}
-							open={false}
+							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
 						/>
 					{:else}
 						<CurrencyView
 							entityId={entityId.$base.$currency}
-							layout={EntityLayout.Summary}
-							open={false}
+							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
 						/>
 					{/if}
@@ -210,22 +186,19 @@
 					{#if entityId.$quote.kind === MarketAssetKind.Coin}
 						<CoinView
 							entityId={entityId.$quote.$coin}
-							layout={EntityLayout.Summary}
-							open={false}
+							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
 						/>
 					{:else if entityId.$quote.kind === MarketAssetKind.CoinInstance}
 						<EvmCoinInstanceView
 							entityId={entityId.$quote.$coinInstance}
-							layout={EntityLayout.Summary}
-							open={false}
+							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
 						/>
 					{:else}
 						<CurrencyView
 							entityId={entityId.$quote.$currency}
-							layout={EntityLayout.Summary}
-							open={false}
+							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
 						/>
 					{/if}

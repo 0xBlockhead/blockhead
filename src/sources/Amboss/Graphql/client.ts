@@ -34,7 +34,7 @@ export const queryAmboss = async <
 	variables?: _Variables,
 ): Promise<_Result> => {
 	const out = await getJson<AmbossGqlResponse<_Result>>(graphqlUrl, {
-		origins: Amboss.origins ?? [],
+		origins: Amboss.origins,
 		init: {
 			method: 'POST',
 			headers: {

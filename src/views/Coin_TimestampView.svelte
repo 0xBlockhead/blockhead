@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,19 +10,16 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(assets)/(coins)/coin/[coinId]/timestamp/[timestampMs]',
-			{
+		href = resolve('/(assets)/(coins)/coin/[coinId]', {
 				coinId: entityId.$coin.coinId,
-				timestampMs: String(entityId.timestampMs),
-			},
-		),
+		}),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -31,30 +28,14 @@
 			entityId: EntityId<typeof schema, EntityType.Coin_Timestamp>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'href'
 			| 'layout'
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// Functions
-	const resolvedHref = (
-		href
-		?? resolve(
-			'/(assets)/(coins)/coin/[coinId]',
-			{
-				coinId: entityId.$coin.coinId,
-			},
-		)
-	)
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const coinTimestamp = useEntity(
 		EntityType.Coin_Timestamp,
@@ -123,7 +104,28 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			resource={coinTimestamp}
+			placeholderText="Loading snapshot…"
+		>
+			{#snippet children(coinTimestamp)}
+				{#if coinTimestamp.marketCap !== undefined}
+					<CurrencyAmount
+						currency="USD"
+						value={coinTimestamp.marketCap}
+					/>
+				{:else if coinTimestamp.change24hPercent != null && Number.isFinite(coinTimestamp.change24hPercent)}
+					<NumberValue
+						value={coinTimestamp.change24hPercent}
+						options={{ maximumFractionDigits: 2, signDisplay: 'exceptZero' }}
+					/>%
+				{:else}
+					<span>
+						{entityId.$coin.coinId}
+					</span>
+				{/if}
+	{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -212,10 +214,5 @@
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
 	{/snippet}
 </EntityView>

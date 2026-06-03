@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -38,10 +39,6 @@
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const repost = useEntity(
 		EntityType.NostrRepost,
@@ -114,7 +111,9 @@
 						format={TruncatedValueFormat.Visual}
 					/>
 				{:else}
+					{#if Value}
 					{@render Value()}
+				{/if}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

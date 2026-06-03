@@ -141,56 +141,6 @@ const moneroTransactionFields = (
 	}),
 })
 
-const moneroNetworkTimestampFields = (info: MoneroRpcInfo) => ({
-	height: BigInt(info.height),
-	targetHeight: BigInt(info.target_height),
-	topBlockHash: info.top_block_hash,
-	difficulty: BigInt(info.difficulty),
-	...(info.wide_difficulty != null && {
-		wideDifficulty: BigInt(info.wide_difficulty),
-	}),
-	cumulativeDifficulty: BigInt(info.cumulative_difficulty),
-	...(info.wide_cumulative_difficulty != null && {
-		wideCumulativeDifficulty: BigInt(info.wide_cumulative_difficulty),
-	}),
-	...(info.block_size_limit != null && {
-		blockSizeLimit: info.block_size_limit,
-	}),
-	...(info.block_size_median != null && {
-		blockSizeMedian: info.block_size_median,
-	}),
-	...(info.block_weight_limit != null && {
-		blockWeightLimit: info.block_weight_limit,
-	}),
-	...(info.block_weight_median != null && {
-		blockWeightMedian: info.block_weight_median,
-	}),
-	...(info.database_size != null && {
-		databaseSize: info.database_size,
-	}),
-	...(info.free_space != null && {
-		freeSpace: info.free_space,
-	}),
-	greyPeerlistSize: info.grey_peerlist_size,
-	whitePeerlistSize: info.white_peerlist_size,
-	incomingConnections: info.incoming_connections_count,
-	outgoingConnections: info.outgoing_connections_count,
-	txCount: BigInt(info.tx_count),
-	txPoolSize: info.tx_pool_size,
-	altBlocksCount: info.alt_blocks_count,
-	targetSeconds: info.target,
-	...(info.rpc_connections_count != null && {
-		rpcConnections: info.rpc_connections_count,
-	}),
-	mainnet: info.mainnet,
-	nettype: info.nettype,
-	offline: info.offline,
-	synchronized: info.synchronized,
-	wasBootstrapEverUsed: info.was_bootstrap_ever_used,
-	version: info.version,
-	status: info.status,
-})
-
 const getMoneroTransaction = async (entityId: {
 	$network: NetworkId
 	txHash: string
@@ -200,7 +150,7 @@ const getMoneroTransaction = async (entityId: {
 	const transaction = (await getTransactions({
 		rpcUrl: moneroDaemonDefaultRpcUrl,
 		txHashes: [entityId.txHash],
-	})).txs[0]
+	})).txs.at(0)
 	if (transaction == null) {
 		throw new Error(`MoneroDaemonRpc_JsonRpc: transaction not found for hash ${entityId.txHash}`)
 	}
@@ -219,7 +169,7 @@ export default {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
 					},
-					rpcEndpoints: moneroMainnetRpcEndpoints,
+					rpcEndpoints: [...moneroMainnetRpcEndpoints],
 				}
 			},
 		}),
@@ -360,7 +310,53 @@ export default {
 							$network: entityId,
 							timestampMs: Date.now(),
 						},
-						...moneroNetworkTimestampFields(info),
+						height: BigInt(info.height),
+						targetHeight: BigInt(info.target_height),
+						topBlockHash: info.top_block_hash,
+						difficulty: BigInt(info.difficulty),
+						...(info.wide_difficulty != null && {
+							wideDifficulty: BigInt(info.wide_difficulty),
+						}),
+						cumulativeDifficulty: BigInt(info.cumulative_difficulty),
+						...(info.wide_cumulative_difficulty != null && {
+							wideCumulativeDifficulty: BigInt(info.wide_cumulative_difficulty),
+						}),
+						...(info.block_size_limit != null && {
+							blockSizeLimit: info.block_size_limit,
+						}),
+						...(info.block_size_median != null && {
+							blockSizeMedian: info.block_size_median,
+						}),
+						...(info.block_weight_limit != null && {
+							blockWeightLimit: info.block_weight_limit,
+						}),
+						...(info.block_weight_median != null && {
+							blockWeightMedian: info.block_weight_median,
+						}),
+						...(info.database_size != null && {
+							databaseSize: info.database_size,
+						}),
+						...(info.free_space != null && {
+							freeSpace: info.free_space,
+						}),
+						greyPeerlistSize: info.grey_peerlist_size,
+						whitePeerlistSize: info.white_peerlist_size,
+						incomingConnections: info.incoming_connections_count,
+						outgoingConnections: info.outgoing_connections_count,
+						txCount: BigInt(info.tx_count),
+						txPoolSize: info.tx_pool_size,
+						altBlocksCount: info.alt_blocks_count,
+						targetSeconds: info.target,
+						...(info.rpc_connections_count != null && {
+							rpcConnections: info.rpc_connections_count,
+						}),
+						mainnet: info.mainnet,
+						nettype: info.nettype,
+						offline: info.offline,
+						synchronized: info.synchronized,
+						wasBootstrapEverUsed: info.was_bootstrap_ever_used,
+						version: info.version,
+						status: info.status,
 					},
 				]
 			},

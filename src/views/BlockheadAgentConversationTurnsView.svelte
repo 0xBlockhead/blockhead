@@ -11,6 +11,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -28,6 +30,7 @@
 			id?: string
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -36,9 +39,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 

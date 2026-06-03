@@ -9,6 +9,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -30,16 +31,13 @@
 			entityId: EntityId<typeof schema, EntityType.NostrRelay>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const relay = useEntity(
 		EntityType.NostrRelay,
@@ -56,6 +54,12 @@
 			isPaid: {},
 			limit: {},
 		},
+	)
+
+
+	// (Derived)
+	const relayRow = $derived(
+		relay.ready ? relay.current : undefined,
 	)
 
 
@@ -90,7 +94,9 @@
 				{#if relay.name}
 					{relay.name}
 				{:else}
+					{#if Value}
 					{@render Value()}
+				{/if}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -125,7 +131,7 @@
 		<dl data-column-item="center">
 				{#if (
 				open
-				&& relay.software
+				&& relayRow?.software
 			)}
 				<div>
 					<dt>Software</dt>
@@ -144,7 +150,7 @@
 
 			{#if (
 				open
-				&& relay.version
+				&& relayRow?.version
 			)}
 				<div>
 					<dt>Version</dt>
@@ -163,7 +169,7 @@
 
 			{#if (
 				open
-				&& relay.supportedNipCount != null
+				&& relayRow?.supportedNipCount != null
 			)}
 				<div>
 					<dt>Supported NIPs</dt>
@@ -182,7 +188,7 @@
 
 			{#if (
 				open
-				&& relay.isPaid != null
+				&& relayRow?.isPaid != null
 			)}
 				<div>
 					<dt>Paid relay</dt>
@@ -201,7 +207,7 @@
 
 			{#if (
 				open
-				&& relay.limit != null
+				&& relayRow?.limit != null
 			)}
 				<div>
 					<dt>Event limit</dt>

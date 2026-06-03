@@ -28,7 +28,7 @@ const zebraJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: Zebra.origins ?? [],
+		origins: Zebra.origins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,

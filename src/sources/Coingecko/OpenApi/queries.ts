@@ -8,6 +8,7 @@ import { stringify } from 'devalue'
 
 import { throwHttpError } from '$/lib/http.ts'
 import type { CoinId } from '$/constants/Coin.ts'
+import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { MarketAssetKind, coingeckoOhlcDayWindowLengths } from '$/constants/Market.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -114,12 +115,11 @@ export const getCoinOhlc = async ({
 	coingeckoId: string
 	vsCurrency: string
 	days: number
-}): Promise<CoingeckoOpenApiCoinsOhlc> => {
+}): Promise<OhlcCandle[]> => {
 	if (coingeckoId.trim() === '') return []
 
-	const daysParam = coingeckoOpenApiOhlcDaysByWindow[
-		days as keyof typeof coingeckoOpenApiOhlcDaysByWindow
-	]
+	const daysParam = Object.entries(coingeckoOpenApiOhlcDaysByWindow)
+		.find(([windowDays]) => Number(windowDays) === days)?.[1]
 	if (daysParam == null) return []
 
 	const searchParams = new URLSearchParams()
@@ -134,8 +134,19 @@ export const getCoinOhlc = async ({
 	if (response.status === 404) return []
 	if (!response.ok) await throwHttpError(`CoinGecko OpenApi /coins/${coingeckoId}/ohlc`, response)
 
-	return response.json<CoingeckoOpenApiCoinsOhlc>()
-}
+	return (
+		(await response.json<CoingeckoOpenApiCoinsOhlc>())
+			.map(([timestampMs, open, high, low, close]): OhlcCandle => (
+				[
+					timestampMs,
+					open,
+					high,
+						low,
+						close,
+					]
+				))
+		)
+	}
 
 
 /** `GET /coins/{id}/tickers` — venue spot books. @see https://docs.coingecko.com/reference/coins-id-tickers */

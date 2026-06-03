@@ -44,9 +44,9 @@ export default {
 					const nativeCurrency = chain?.nativeCurrency
 					if (chain == null || nativeCurrency == null) throw new Error('Allium_Rest: native coin chain not in chainlist')
 
-					const symbol = nativeCurrency.symbol.trim().toUpperCase()
-					const coinId = coinBySymbol[symbol]?.id ?? CoinId.Unknown
-					const nativeCurrencyName = nativeCurrency.name.trim()
+					const symbol = nativeCurrency.symbol.toUpperCase()
+					const coinId = Object.hasOwn(coinBySymbol, symbol) ? coinBySymbol[symbol].id : CoinId.Unknown
+					const nativeCurrencyName = nativeCurrency.name
 
 					return {
 						coinId,
@@ -76,23 +76,24 @@ export default {
 
 				if (token == null) throw new Error('Allium_Rest: token not returned for address')
 
-				const symbol = token.info?.symbol?.trim().toUpperCase()
-				const coinId = (
-					symbol != null && symbol !== '' ?
-						coinBySymbol[symbol]?.id ?? CoinId.Unknown
-					:
-						CoinId.Unknown
-				)
+					const symbol = token.info?.symbol.trim().toUpperCase()
+					const coinId = (
+						symbol != null && symbol !== '' && Object.hasOwn(coinBySymbol, symbol) ?
+							coinBySymbol[symbol].id
+						:
+							CoinId.Unknown
+					)
+					const fallbackSymbol = Object.hasOwn(coinById, coinId) ? coinById[coinId].symbol : entityId.$contract.address
 
-				return {
-					coinId,
-					symbol: symbol ?? coinById[coinId]?.symbol ?? entityId.$contract.address,
-					...(token.info?.name != null && token.info.name.trim() !== '' && {
-							name: token.info.name.trim(),
-						}),
+					return {
+						coinId,
+						symbol: symbol ?? fallbackSymbol,
+						...(token.info != null && token.info.name !== '' && {
+								name: token.info.name,
+							}),
 					...(token.decimals != null && {
-							decimals: token.decimals,
-						}),
+						decimals: token.decimals,
+					}),
 					caip19: caip19Erc20(
 						Number(entityId.$network.caip2.reference),
 						entityId.$contract.address,
@@ -132,30 +133,27 @@ export default {
 							&& (
 								entityId.$coinInstance.type === CoinInstanceType.NativeCurrency ?
 									candidate.token.type === 'native'
-								: entityId.$coinInstance.type === CoinInstanceType.Erc20Token ?
+								:
 									candidate.token.type === 'evm_erc20'
 									&& candidate.token.address.toLowerCase()
 										=== entityId.$coinInstance.$contract.address.toLowerCase()
-								:
-									false
 							)
 						))
-				)
+					)
 				const token = walletTokenBalance?.token
 				if (
 					walletTokenBalance == null
 					|| token == null
 					|| walletTokenBalance.raw_balance == null && walletTokenBalance.raw_balance_str == null
 					|| token.info == null
-					|| token.info.symbol == null
-					|| token.info.symbol.trim() === ''
+					|| token.info.symbol === ''
 					|| token.decimals == null
 				) throw new Error('Allium_Rest: wallet token balance incomplete')
 
 				const balance = BigInt(walletTokenBalance.raw_balance_str ?? String(walletTokenBalance.raw_balance ?? 0))
 
 				return {
-					symbol: token.info.symbol.trim().toUpperCase(),
+					symbol: token.info.symbol.toUpperCase(),
 					decimals: token.decimals,
 					balance,
 					...(token.price != null
@@ -210,29 +208,31 @@ export default {
 									},
 								} satisfies { [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }]
 							:
-								balanceRow.token?.type === 'evm_erc20'
-								&& Hex.isHex(balanceRow.token.address)
-								&& Hex.size(balanceRow.token.address) === 20 ?
-								((address) => (
-									address == null ?
-										[]
-									:
-										[{
-											[EntityMetaKey.Id]: {
-												$actor: entityId.$actor,
-												$coinInstance: {
-													$network: entityId.$network,
-													type: CoinInstanceType.Erc20Token,
-													$contract: {
+								(
+									balanceRow.token?.type === 'evm_erc20'
+									&& Hex.isHex(balanceRow.token.address)
+									&& Hex.size(balanceRow.token.address) === 20
+								) ?
+									((address) => (
+										address == null ?
+											[]
+										:
+											[{
+												[EntityMetaKey.Id]: {
+													$actor: entityId.$actor,
+													$coinInstance: {
 														$network: entityId.$network,
-														address,
+														type: CoinInstanceType.Erc20Token,
+														$contract: {
+															$network: entityId.$network,
+															address,
+														},
 													},
 												},
-											},
-										} satisfies { [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }]
-								))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
-							:
-								[]
+											} satisfies { [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }]
+									))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
+								:
+									[]
 						))
 				)
 			},
@@ -279,29 +279,31 @@ export default {
 											},
 										} satisfies { [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }]
 									:
-										balanceRow.token?.type === 'evm_erc20'
-										&& Hex.isHex(balanceRow.token.address)
-										&& Hex.size(balanceRow.token.address) === 20 ?
-										((address) => (
-											address == null ?
-												[]
-											:
-												[{
-													[EntityMetaKey.Id]: {
-														$actor: { address: actor.address as `0x${string}` },
-														$coinInstance: {
-															$network: networkId,
-															type: CoinInstanceType.Erc20Token,
-															$contract: {
+										(
+											balanceRow.token?.type === 'evm_erc20'
+											&& Hex.isHex(balanceRow.token.address)
+											&& Hex.size(balanceRow.token.address) === 20
+										) ?
+											((address) => (
+												address == null ?
+													[]
+												:
+													[{
+														[EntityMetaKey.Id]: {
+															$actor: { address: actor.address as `0x${string}` },
+															$coinInstance: {
 																$network: networkId,
-																address,
+																type: CoinInstanceType.Erc20Token,
+																$contract: {
+																	$network: networkId,
+																	address,
+																},
 															},
 														},
-													},
-												} satisfies { [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }]
-										))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
-									:
-										[]
+													} satisfies { [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }]
+											))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
+										:
+											[]
 								)),
 						)
 					}

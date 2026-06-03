@@ -11,31 +11,28 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
+		children,
 		entityId,
-		href = resolve(
-			'/bridge/route/[routeId]',
-			{ routeId: encodeURIComponent(stringify(entityId)) },
-		),
+		href = resolve(`/bridge/route/${encodeURIComponent(stringify(entityId))}`),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
+			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BridgeRoute>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const bridgeRoute = useEntity(
 		EntityType.BridgeRoute,
@@ -180,7 +177,12 @@
 					<dd>
 						<EvmNetworkAccountView
 							entityId={{
-								$network: { chainId: entityId.fromChainId },
+								$network: {
+									caip2: {
+										namespace: 'eip155',
+										reference: String(entityId.fromChainId),
+									},
+								},
 								$actor: { address: entityId.fromAddress },
 							}}
 							layout={EntityLayout.Value}

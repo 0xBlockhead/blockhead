@@ -12,6 +12,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -25,6 +27,7 @@
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmTopic>
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			id: string
 		},
 		Pick<
@@ -34,9 +37,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -87,8 +87,9 @@
 			)}
 			{@const topics = derive(
 				parent,
-				(parent) => (
-					parent[entityFieldReference.fieldName] ?? []
+				(parent): Entity<typeof schema, EntityType.EvmTopic>[] => (
+					parent[entityFieldReference.fieldName]
+					?? []
 				),
 			)}
 			<EntitiesList

@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -8,7 +8,6 @@
 	import { entityResolversByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Context
@@ -18,8 +17,8 @@
 	// State
 	let {
 		entityId,
-		href = resolve('/pool/[chainId]/[poolId]', {
-			chainId: String(evmChainIdFromNetworkId(entityId.$network)),
+		href = resolve('/(assets)/(pools)/pool/[chainId]/[poolId]', {
+			chainId: String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)),
 			poolId: entityId.id,
 		}),
 		open = $bindable(true),
@@ -37,8 +36,7 @@
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const pool = useEntity(
@@ -86,7 +84,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -111,7 +108,9 @@
 
 	{#snippet Title()}
 		<span data-text="muted">
+			{#if Value}
 			{@render Value()}
+					{/if}
 		</span>
 	{/snippet}
 
@@ -137,7 +136,7 @@
 							<dd>
 								<EvmContractView
 									entityId={pool.$baseToken[EntityMetaKey.Id]}
-									layout={EntityLayout.SummaryDetails}
+									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
 								/>
@@ -150,11 +149,23 @@
 							<dd>
 								<EvmContractView
 									entityId={pool.$quoteToken[EntityMetaKey.Id]}
-									layout={EntityLayout.SummaryDetails}
+									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
 								/>
 							</dd>
+						</div>
+					{/if}
+					{#if pool.baseTokenSymbol !== undefined}
+						<div>
+							<dt>Base token symbol</dt>
+							<dd>{pool.baseTokenSymbol}</dd>
+						</div>
+					{/if}
+					{#if pool.quoteTokenSymbol !== undefined}
+						<div>
+							<dt>Quote token symbol</dt>
+							<dd>{pool.quoteTokenSymbol}</dd>
 						</div>
 					{/if}
 					{#if (
@@ -184,7 +195,7 @@
 							<dd>
 								<EvmContractView
 									entityId={pool.$hooks[EntityMetaKey.Id]}
-									layout={EntityLayout.SummaryDetails}
+									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
 								/>

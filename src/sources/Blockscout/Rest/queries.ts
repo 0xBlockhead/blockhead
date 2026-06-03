@@ -150,7 +150,7 @@ export const getStats = async ({
 		const url = new URL(explorerOrigin)
 		url.pathname = `${url.pathname.replace(/\/$/, '')}${restPath}/stats`
 		const res = await corsFetch(url.toString(), {
-			origins: Blockscout.origins ?? [],
+			origins: Blockscout.origins,
 			init: { headers: { accept: 'application/json' } },
 		})
 		if (!res.ok) return null
@@ -171,16 +171,11 @@ export const getBlockByNumber = async ({
 	explorerOrigin: string
 	blockNumber: bigint
 }): Promise<RpcBlockHeader | null> => {
-	if (blockNumber == null || typeof blockNumber !== 'bigint') {
-		return null
-	}
 	const wire = await getJson<BlockscoutBlock | null>({
 		explorerOrigin,
 		path: `/blocks/${blockNumber}`,
 	})
-	return wire != null ? blockscoutBlockWireAsRpcBlockHeader(wire)
-	:
-		null
+	return wire != null ? blockscoutBlockWireAsRpcBlockHeader(wire) : null
 }
 
 export const getBlocks = async ({
@@ -211,9 +206,6 @@ export const getBlockTransactions = async ({
 	limit: number
 }): Promise<RpcTransaction[]> => {
 	if (limit <= 0) return []
-	if (blockNumber == null || typeof blockNumber !== 'bigint') {
-		return []
-	}
 	const wire = await getJson<BlockscoutPaginated<BlockscoutTransaction>>({
 		explorerOrigin,
 		path: `/blocks/${blockNumber}/transactions`,
@@ -235,9 +227,7 @@ export const getTransactionByHash = async ({
 		explorerOrigin,
 		path: `/transactions/${txHash}`,
 	})
-	return wire != null ? blockscoutTransactionWireAsRpcTransaction(wire)
-	:
-		null
+	return wire != null ? blockscoutTransactionWireAsRpcTransaction(wire) : null
 }
 
 export const getTransactions = async ({
@@ -358,7 +348,7 @@ export const getAddressTokenTransfers = async ({
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-	return wire.items ?? []
+	return wire.items
 }
 
 /** REST v2 **`GET /transactions/{txHash}/token-transfers`** — paginated **`items`**. */
@@ -381,7 +371,7 @@ export const getTransactionTokenTransfers = async ({
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-	return wire.items ?? []
+	return wire.items
 }
 
 /** REST v2 **`GET /transactions/{txHash}/internal-transactions`** — paginated **`items`**. */
@@ -404,7 +394,7 @@ export const getTransactionInternalTransactions = async ({
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-	return wire.items ?? []
+	return wire.items
 }
 
 /** REST v2 **`GET /addresses/{address}/internal-transactions`** — paginated **`items`**. */
@@ -430,7 +420,7 @@ export const getAddressInternalTransactions = async ({
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-	return wire.items ?? []
+	return wire.items
 }
 
 export const getTransactionLogs = async ({
@@ -514,7 +504,7 @@ const blockscoutLegacyAbiFromWire = (
 	}
 	if (wire.status !== '1' || !Array.isArray(wire.result)) return null
 	const row = wire.result[0]
-	const abi = row?.ABI
+	const abi = row.ABI
 	return typeof abi === 'string' && abi.trim() ? abi : null
 }
 
@@ -674,7 +664,7 @@ const getBlockscoutErc4337TopRegistryList = async ({
 		},
 	})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
-	return raw.items ?? []
+	return raw.items
 }
 
 const getBlockscoutErc4337RegistryDetail = async ({
@@ -714,7 +704,7 @@ export const getUserOperationsPage = async ({
 		},
 	})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
-	return raw.items ?? []
+	return raw.items
 }
 
 export const getUserOperationsByTransaction = async ({
@@ -739,7 +729,7 @@ export const getUserOperationsByTransaction = async ({
 		},
 	})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
-	const items = raw.items ?? []
+	const items = raw.items
 	if (items.length === 0) {
 		throw new Error(`Blockscout_Rest: no user operations for transaction ${txHash}`)
 	}

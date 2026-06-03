@@ -42,7 +42,7 @@ export const getOpenGraphWireForPublicHttpUrl = async (
 	publicHttpUrl: string,
 ): Promise<MetadataVisionOpenGraphData> => {
 	const requestUrl = `${metadataVisionOrigin}/${publicHttpUrl}`
-	const json = await getJson(requestUrl, { origins: MetadataVision.origins ?? [] })
+	const json = await getJson(requestUrl, { origins: MetadataVision.origins  })
 	const parsed = metadataVisionResponse(json)
 	if (parsed instanceof type.errors) {
 		throw new Error(`MetadataVision_Rest: unexpected JSON for ${requestUrl}`)

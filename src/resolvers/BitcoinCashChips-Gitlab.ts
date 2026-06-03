@@ -10,7 +10,7 @@ import { Source } from '$/sources/$Source.ts'
 import type { BitcoinCashChipsGitlabTree } from '$/sources/BitcoinCashChips/Gitlab/types.ts'
 
 const chipMetadataValue = (text: string, key: string) => (
-	new RegExp(`^>\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim() ?? null
+	new RegExp(`^>\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
 
 const chipRowsByNumber = async (tree: BitcoinCashChipsGitlabTree) => {
@@ -66,12 +66,11 @@ export default {
 					getTree,
 				} = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
 				const chip = (await chipRowsByNumber(await singleFlight(getTree)()))[entityId.number]
-				if (chip == null) throw new Error(`BitcoinCashChips_Gitlab: CHIP not found ${String(entityId.number)}`)
 				const text = await singleFlight(getChipMarkdownText)({ path: chip.path })
 				if (text.trim() === '') throw new Error('BitcoinCashChips_Gitlab: empty proposal text')
 				return {
 					documentCategory: chipMetadataValue(text, 'Type'),
-					documentTitle: chipMetadataValue(text, 'Title') ?? /^#\s+(.+)$/m.exec(text)?.[1]?.trim() ?? null,
+					documentTitle: chipMetadataValue(text, 'Title') ?? /^#\s+(.+)$/m.exec(text)?.[1]?.trim(),
 					documentStatus: chipMetadataValue(text, 'Status'),
 					documentBody: text,
 				}

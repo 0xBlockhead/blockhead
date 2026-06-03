@@ -7,12 +7,12 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,15 +35,12 @@
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -58,7 +55,8 @@
 	entityType={EntityType.EvmTransaction}
 	{title}
 	bind:open
-	{collapsible}	{...EntitiesListProps}
+	{collapsible}
+		{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -109,7 +107,7 @@
 							entityFieldReference.entityType === EntityType.EvmBlock ?
 								100
 							:
-							entityFieldReference.entityType === EntityType.ActorNetwork ?
+								entityFieldReference.entityType === EntityType.EvmNetworkAccount ?
 								32
 							:
 								8,
@@ -149,30 +147,24 @@
 						<!-- href override: tx detail under block route, not network /transactions/tx -->
 						<EvmTransactionView
 							entityId={t}
-							href={resolve(
-								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]',
-								{
-										...caip2RouteParamsFromNetworkId(entityFieldReference.entityId.$network),
-										blockNumber: String(
-											entityFieldReference.entityId.blockNumber,
-										),
+							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]', {
+									caip2Namespace: entityFieldReference.entityId.$network.caip2.namespace,
+									caip2Reference: entityFieldReference.entityId.$network.caip2.reference,
+									blockNumber: String(entityFieldReference.entityId.blockNumber),
 										transactionId: t.txHash,
-								},
-							)}
+								})}
 							layout={EntityLayout.Summary}
 							open={false}
 							collapsible={false}
 							showTypeAnnotation={false}
-							showListInputSelector
 						/>
-					{:else if entityFieldReference.entityType === EntityType.EvmNetwork || entityFieldReference.entityType === EntityType.ActorNetwork || entityFieldReference.entityType === EntityType.EvmNetworkAccount}
+						{:else if entityFieldReference.entityType === EntityType.EvmNetwork || entityFieldReference.entityType === EntityType.EvmNetworkAccount}
 						<EvmTransactionView
 							entityId={t}
 							layout={EntityLayout.Summary}
 							open={false}
 							collapsible={false}
 							showTypeAnnotation={false}
-							showListInputSelector
 						/>
 					{/if}
 				{/snippet}

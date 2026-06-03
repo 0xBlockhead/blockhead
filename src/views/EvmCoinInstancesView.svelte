@@ -16,9 +16,7 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
-
-
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		title = 'Deployments',
@@ -32,6 +30,7 @@
 		{
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			id: string
 			representationFilter?: CoinInstanceRepresentation
 			entityFieldReference: EntityFieldReference<
@@ -46,9 +45,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -63,7 +59,7 @@
 	<EntitiesList
 		{...EntitiesListProps}
 		bind:open
-		{collapsible}
+	{collapsible}
 		entityType={EntityType.EvmCoinInstance}
 		{id}
 		{title}
@@ -151,7 +147,6 @@
 						{@const coinInstanceId = item.value[EntityMetaKey.Id]}
 						<EvmCoinInstanceView
 							entityId={coinInstanceId}
-							id={stringify(coinInstanceId)}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

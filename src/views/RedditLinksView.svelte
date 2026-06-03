@@ -10,6 +10,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -18,6 +20,7 @@
 		open = $bindable(true),
 		collapsible = true,
 		CollapsibleProps = {},
+		href,
 		title = 'Submissions'
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditLink>
@@ -25,13 +28,11 @@
 		limit?: number
 		open?: boolean
 		collapsible?: boolean
+		href?: ComponentProps<typeof EntitiesList>['href']
 		title?: string
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -49,6 +50,7 @@
 	{title}
 	bind:open
 	{collapsible}
+	{href}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -107,8 +109,8 @@
 				open={true}
 				resource={links}
 				placeholderText="Loading submissions…"
-				getKey={(row) => redditLink.fullname}
-				getSortValue={(row) => redditLink.sortKey}
+				getKey={(link) => link.fullname}
+				getSortValue={(link) => link.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

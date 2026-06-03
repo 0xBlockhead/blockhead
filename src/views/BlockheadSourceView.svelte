@@ -1,10 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -36,30 +35,14 @@
 	> = $props()
 
 
-	// Functions
-	const entityId = (
+	// (Derived)
+	const entityId = $derived(
 		{ id: sourceId } satisfies EntityId<typeof schema, EntityType.BlockheadSource>
 	)
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const source = useEntity(
-		EntityType.BlockheadSource,
-		entityId,
-		{
-			$: [
-				Source.Local_Internal,
-			],
-		},
-	)
-
-
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -88,10 +71,5 @@
 		<p>
 			This is an application-layer data endpoint, not a browser wallet identity or an ephemeral debug session.
 		</p>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
 	{/snippet}
 </EntityView>

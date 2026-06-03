@@ -10,6 +10,7 @@
 	import { Source } from '$/sources/$Source.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
+	// State
 	let {
 		entityFieldReference,
 		title = 'Nodes',

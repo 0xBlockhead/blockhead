@@ -7,7 +7,6 @@
 	// State
 	let { children } = $props()
 
-
 	const postId = $derived(
 		page.params.postId ?? '',
 	)

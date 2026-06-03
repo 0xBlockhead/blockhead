@@ -18,6 +18,6 @@ export const nostrBandGet = async <T>(
 ): Promise<T> => (
 	getJson<T>(
 		`${nostrBandApiBaseUrl}${path.startsWith('/') ? path : `/${path}`}${toQuery(params ?? {})}`,
-		{ origins: NostrBand.origins ?? [] },
+		{ origins: NostrBand.origins  },
 	)
 )

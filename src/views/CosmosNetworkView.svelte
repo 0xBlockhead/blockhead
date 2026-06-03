@@ -9,6 +9,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -21,10 +23,6 @@
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.Network,
@@ -58,6 +56,8 @@
 		},
 	)
 
+
+	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -118,17 +118,18 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={cosmosNetwork}>
-						{#snippet children(cosmosNetwork)}
-							{#if cosmosNetwork.$$blocks.at(0) != null}
-								<div>
-									<dt>Head block</dt>
-									<dd id="network-summary-head-block">
-										<CosmosBlockView
-											entityId={cosmosNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
-											layout={EntityLayout.Value}
-										/>
-									</dd>
+						<ResourceBoundary resource={cosmosNetwork}>
+							{#snippet children(cosmosNetwork)}
+								{@const block = cosmosNetwork.$$blocks?.at(0)}
+								{#if block != null}
+									<div>
+										<dt>Head block</dt>
+										<dd id="network-summary-head-block">
+											<CosmosBlockView
+												entityId={block[EntityMetaKey.Id]}
+												layout={EntityLayout.Value}
+											/>
+										</dd>
 								</div>
 							{/if}
 						{/snippet}
@@ -139,79 +140,79 @@
 						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 					</div>
 
-					{#if network.$$nativeAssets.length > 0}
-						<div>
-							<dt>Native asset</dt>
-							<dd>{network.$$nativeAssets.length}</dd>
-						</div>
-					{/if}
-				</dl>
+						{#if (network.$$nativeAssets?.length ?? 0) > 0}
+							<div>
+								<dt>Native asset</dt>
+								<dd>{network.$$nativeAssets?.length ?? 0}</dd>
+							</div>
+						{/if}
+					</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details()}
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-cosmos`}
-				sectionIdPrefix={networkIdKey}
-				sections={[
-					{ id: 'cosmos-blocks', label: 'Blocks' },
-					{ id: 'cosmos-snapshots', label: 'Network snapshots' },
-					{ id: 'cosmos-endpoints', label: 'Endpoints' },
-				]}
-				data-card
-				class="network-view-collapsible-execution"
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Execution</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-cosmos`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'cosmos-blocks', label: 'Blocks' },
+				{ id: 'cosmos-snapshots', label: 'Network snapshots' },
+				{ id: 'cosmos-endpoints', label: 'Endpoints' },
+			]}
+			data-card
+			class="network-view-collapsible-execution"
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Execution</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionCosmosBlocks({ id, label }: { id: string, label: string })}
-					<CosmosBlocksView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.CosmosNetwork,
-							entityId,
-							fieldName: '$$blocks',
-						}}
-						href={href == null ? '' : `${href}/blocks`}
-						id={`${id}-list`}
-						title={label}
-					/>
-				{/snippet}
+			{#snippet SectionCosmosBlocks({ id, label }: { id: string, label: string })}
+				<CosmosBlocksView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.CosmosNetwork,
+						entityId,
+						fieldName: '$$blocks',
+					}}
+					href={href == null ? '' : `${href}/blocks`}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
 
-				{#snippet SectionCosmosSnapshots({ id, label }: { id: string, label: string })}
-					<CosmosNetwork_TimestampsView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.CosmosNetwork,
-							entityId,
-							fieldName: '$$timestamps',
-						}}
-						id={`${id}-list`}
-						title={label}
-					/>
-				{/snippet}
+			{#snippet SectionCosmosSnapshots({ id, label }: { id: string, label: string })}
+				<CosmosNetwork_TimestampsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.CosmosNetwork,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
 
-				{#snippet SectionCosmosEndpoints({ id, label }: { id: string, label: string })}
-					<NetworkTransportEndpointsView
-						CollapsibleProps={{ canToggle: false }}
-						endpointFieldNames={['restEndpoints']}
-						emptyText="No REST endpoints listed for this network yet."
-						fieldSources={[
-							Source.CosmosSdk_Rest,
-							Source.CometBft_Rest,
-						]}
-						id={`${id}-list`}
-						listEntityType={EntityType.CosmosNetwork}
-						parentEntityId={entityId}
-						parentEntityType={EntityType.CosmosNetwork}
-						title={label}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionCosmosEndpoints({ id, label }: { id: string, label: string })}
+				<NetworkTransportEndpointsView
+					CollapsibleProps={{ canToggle: false }}
+					endpointFieldNames={['restEndpoints']}
+					emptyText="No REST endpoints listed for this network yet."
+					fieldSources={[
+						Source.CosmosSdk_Rest,
+						Source.CometBft_Rest,
+					]}
+					id={`${id}-list`}
+					listEntityType={EntityType.CosmosNetwork}
+					parentEntityId={entityId}
+					parentEntityType={EntityType.CosmosNetwork}
+					title={label}
+				/>
+			{/snippet}
+	</CollapsibleTabs>
 
 		<CollapsibleTabs
 			id={`${networkIdKey}:carousel-consensus`}
@@ -315,7 +316,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -335,7 +335,6 @@
 						Source.CosmosChainRegistry_Github,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>

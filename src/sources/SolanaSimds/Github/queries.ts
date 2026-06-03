@@ -18,7 +18,7 @@ export const getProposalContents = () => (
 			pathInRepo: 'proposals',
 			ref,
 		}),
-		{ origins: SolanaSimds.origins ?? [] },
+		{ origins: SolanaSimds.origins  },
 	)
 )
 
@@ -30,7 +30,7 @@ export const getProposalMarkdownText = ({ number }: { number: number }) => (
 			ref,
 			pathInRepo: `proposals/${number.toString().padStart(4, '0')}-simd-process.md`,
 		}),
-		{ origins: SolanaSimds.origins ?? [] },
+		{ origins: SolanaSimds.origins  },
 	).catch(() => (
 		getProposalContents()
 			.then((entries) => {
@@ -41,7 +41,7 @@ export const getProposalMarkdownText = ({ number }: { number: number }) => (
 				if (entry?.download_url == null) {
 					throw new Error(`SolanaSimds_Github: proposal ${number} not found`)
 				}
-				return getText(entry.download_url, { origins: SolanaSimds.origins ?? [] })
+				return getText(entry.download_url, { origins: SolanaSimds.origins  })
 			})
 	))
 )

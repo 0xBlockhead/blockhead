@@ -10,12 +10,13 @@
 	import type { MarketKind } from '$/constants/Market.ts'
 	import { marketCatalogFieldSources } from '$/constants/Market.ts'
 	import type { MarketVenueId } from '$/constants/MarketVenue.ts'
-	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		title = 'Markets',
@@ -29,21 +30,19 @@
 		{
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Market>
 			filterMarketVenueId?: MarketVenueId
 			filterMarketKind?: MarketKind
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -127,8 +126,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.Market}
-				getKey={(row) => stringify(market[EntityMetaKey.Id])}
-				getSortValue={(row) => stringify(market[EntityMetaKey.Id])}
+				getKey={(row) => stringify(row[EntityMetaKey.Id])}
+				getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
 				open={true}
 				resource={markets}
 				{title}

@@ -8,6 +8,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -24,10 +26,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const block = useEntity(
 		EntityType.CosmosBlock,
@@ -57,7 +55,12 @@
 <EntityView
 	entityType={EntityType.CosmosBlock}
 	{entityId}
-	href={`/network/${entityId.$network.networkSlug}/blocks/${entityId.height.toString()}`}
+	href={
+		'networkSlug' in entityId.$network ?
+			`/network/${entityId.$network.networkSlug}/blocks/${entityId.height.toString()}`
+		:
+			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/blocks/${entityId.height.toString()}`
+	}
 	title={`Block #${entityId.height.toString()}`}
 	idDragPlainText={entityId.height.toString()}
 	bind:open
@@ -73,7 +76,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Block </span>
+			{#if Value}
 			{@render Value()}
+					{/if}
 		</span>
 	{/snippet}
 

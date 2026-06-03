@@ -39,7 +39,7 @@ export default {
 					restBaseUrl: filfoxMainnetRestBaseUrl,
 					height: entityId.height,
 				})
-				const firstBlock = tipset.blocks[0]
+				const firstBlock = tipset.blocks.at(0)
 				const block = (
 					firstBlock == null ?
 						undefined
@@ -206,8 +206,6 @@ export default {
 	],
 
 	entityFieldResolvers: [
-
-
 
 
 		defineEntityFieldResolver({

@@ -1,7 +1,4 @@
-import {
-	evmChainIdFromCaip2RouteParams,
-	networkIdFromCaip2RouteParams,
-} from '$/lib/caip.ts'
+import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 
 import { error } from '@sveltejs/kit'
 
@@ -15,7 +12,7 @@ export const load: PageLoad = ({ params }) => {
 	if (!Number.isInteger(blobIndex) || blobIndex < 0) {
 		error(404, 'Invalid blob index')
 	}
-	const chainId = evmChainIdFromCaip2RouteParams(params)
+	const chainId = evmChainIdFromCaip2(`${params.caip2Namespace}:${params.caip2Reference}`)
 	if (!Number.isFinite(chainId)) {
 		error(404, 'Invalid network')
 	}
@@ -25,7 +22,7 @@ export const load: PageLoad = ({ params }) => {
 	}
 	return {
 		entityId: {
-			$network: networkIdFromCaip2RouteParams(params),
+			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			txHash,
 			blobIndex,
 		},

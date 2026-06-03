@@ -44,15 +44,15 @@ const solanaTransactionFields = (
 	...((feePayer) => (
 		feePayer == null ?
 			{}
-		:
-			{
-			$feePayer: {
-				[EntityMetaKey.Id]: {
-					$network: network,
-					pubkey: feePayer.pubkey,
-				},
-			},
-		}
+			:
+				{
+					$feePayer: {
+						[EntityMetaKey.Id]: {
+							$network: network,
+							pubkey: feePayer.pubkey,
+						},
+					},
+				}
 	))(transaction.transaction.message.accountKeys.find((accountKey) => accountKey.signer)),
 	...(transaction.meta != null && {
 		feeLamports: BigInt(transaction.meta.fee),
@@ -192,15 +192,16 @@ export default {
 						timestampMs: block.blockTime * 1000,
 					}),
 					transactionCount: block.transactions.length,
-					$$transactions: block.transactions.flatMap((transaction) => (
-						transaction.transaction.signatures[0] == null ?
+					$$transactions: block.transactions.flatMap((transaction) => {
+						const signature = transaction.transaction.signatures.at(0)
+						return signature == null ?
 							[]
 						:
 							[
 							{
 								[EntityMetaKey.Id]: {
 									$network: entityId.$network,
-									signature: transaction.transaction.signatures[0],
+									signature,
 								},
 								...solanaTransactionFields(
 									entityId.$network,
@@ -209,7 +210,7 @@ export default {
 								),
 							},
 						]
-					)),
+					}),
 				}
 			},
 		}),
@@ -439,7 +440,8 @@ export default {
 				}))
 				return (await getBlocks({
 					rpcUrl: solanaMainnetRpcUrl,
-					startSlot: endSlot > BigInt(limit - 1) ? endSlot - BigInt(limit - 1)
+					startSlot: endSlot > BigInt(limit - 1) ?
+						endSlot - BigInt(limit - 1)
 					:
 						0n,
 					endSlot,
@@ -502,15 +504,16 @@ export default {
 					)
 				)
 					.flatMap(({ block, slot }) => (
-						block?.transactions.flatMap((transaction) => (
-							transaction.transaction.signatures[0] == null ?
+							block?.transactions.flatMap((transaction) => {
+								const signature = transaction.transaction.signatures.at(0)
+								return signature == null ?
 								[]
 							:
 								[
 								{
 									[EntityMetaKey.Id]: {
 										$network: entityId,
-										signature: transaction.transaction.signatures[0],
+											signature,
 									},
 									...solanaTransactionFields(
 										entityId,
@@ -519,7 +522,7 @@ export default {
 									),
 								},
 							]
-						)) ?? []
+							}) ?? []
 					))
 					.slice(0, limit)
 			},
@@ -536,15 +539,16 @@ export default {
 					slot: entityId.slot,
 				})
 				if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${entityId.slot.toString()}`)
-				return block.transactions.flatMap((transaction) => (
-					transaction.transaction.signatures[0] == null ?
+					return block.transactions.flatMap((transaction) => {
+						const signature = transaction.transaction.signatures.at(0)
+						return signature == null ?
 						[]
 					:
 						[
 						{
 							[EntityMetaKey.Id]: {
 								$network: entityId.$network,
-								signature: transaction.transaction.signatures[0],
+									signature,
 							},
 							...solanaTransactionFields(
 								entityId.$network,
@@ -553,7 +557,7 @@ export default {
 							),
 						},
 					]
-				))
+					})
 			},
 		}),
 

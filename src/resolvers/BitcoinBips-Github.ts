@@ -9,7 +9,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const bipMetadataValue = (text: string, key: string) => (
-	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim() ?? null
+	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
 
 const githubBipProposalIndexRows = async (
@@ -23,7 +23,7 @@ const githubBipProposalIndexRows = async (
 		.flatMap((githubContent) => {
 			const proposalNumberRaw = (
 				githubContent.type === 'file' ?
-					regex('^bip-(?<proposalNumber>\\d{4})\\.mediawiki$').exec(githubContent.name)?.groups?.proposalNumber
+					regex('^bip-(?<proposalNumber>\\d{4})\\.mediawiki$').exec(githubContent.name)?.groups.proposalNumber
 				:
 					null
 			)

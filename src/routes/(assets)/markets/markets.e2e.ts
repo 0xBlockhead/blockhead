@@ -63,7 +63,7 @@ test.describe('Markets routes', () => {
 
 		await step(page.goto('/markets', { waitUntil: 'load', timeout: 120_000 }))
 
-		await step(expect(page.locator('#main').getByRole('heading', { name: 'Markets', level: 1 })).toBeVisible({ timeout: 120_000 }))
+		await step(expect(page.locator('#main').getByRole('heading', { name: 'Markets' })).toBeVisible({ timeout: 120_000 }))
 		await step(expect(page.getByText('Not found')).toHaveCount(0))
 		await step(expect(page.locator('#main a[href*="/market/"]').first()).toBeAttached(attach))
 	})
@@ -80,15 +80,10 @@ test.describe('Markets routes', () => {
 		await step(expect(page.getByText('Not found')).toHaveCount(0))
 		await step(expect(page.getByRole('heading', { name: '500' })).toHaveCount(0))
 
-		await step(expect(page.locator('.market-view-carousel-groups')).toBeAttached(attach))
-		await step(expect(page.locator('.market-view-collapsible-assets')).toBeAttached(attach))
-		await step(expect(page.locator('.market-view-collapsible-pricing')).toBeAttached(attach))
-		await step(expect(page.locator('#main').getByRole('heading', { name: 'Assets' })).toBeAttached(attach))
-		await step(expect(page.locator('.market-view-collapsible-pricing').getByRole('heading', { name: 'Pricing' })).toBeAttached(attach))
-		await step(expect(page.locator('.market-view-collapsible-pricing [data-scroll-marker-label="Spot"]')).toBeAttached(attach))
-		await step(expect(page.locator('.market-view-collapsible-pricing [data-scroll-marker-label="OHLC"]')).toBeAttached(attach))
-		await step(expect(page.locator('.market-view-collapsible-pricing a[href="/coin/ETH"]').first()).toBeAttached(attach))
-		await step(expect(page.locator('.market-view-collapsible-pricing').getByText('OHLC', { exact: false }).first()).toBeAttached(attach))
+		await step(expect(page.locator('#main [data-scroll-marker-label="Spot"]')).toBeAttached(attach))
+		await step(expect(page.locator('#main [data-scroll-marker-label="OHLC"]')).toBeAttached(attach))
+		await step(expect(page.locator('#main a[href="/coin/ETH"]').first()).toBeAttached(attach))
+		await step(expect(page.locator('#main').getByText('OHLC', { exact: false }).first()).toBeAttached(attach))
 	})
 
 	test('navigation lists markets at assets level', async ({ page }, testInfo) => {

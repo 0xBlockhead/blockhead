@@ -34,7 +34,6 @@
 	})
 
 
-	// State
 	import { formatRelativeTime, TIMESTAMP_RECENT_MAX_MS } from '$/lib/time.ts'
 
 	let now = $state(

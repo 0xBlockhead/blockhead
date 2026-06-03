@@ -58,25 +58,21 @@
 
 
 	const format = $derived(
-		isFullMedia(media)
-			? size === 'original'
-				? media.original
-				:
-					size === 'high'
-					? media.high
-					:
-						size === 'medium'
-						? media.medium
-						:
-							size === 'low'
-							? media.low
-							:
-								size === 'thumbnail'
-								? media.thumbnail
-								:
-									media.original
+		isFullMedia(media) ?
+			size === 'original' ?
+				media.original
+			: size === 'high' ?
+				media.high
+			: size === 'medium' ?
+				media.medium
+			: size === 'low' ?
+				media.low
+			: size === 'thumbnail' ?
+				media.thumbnail
 			:
-				undefined
+				media.original
+		:
+			undefined
 	)
 
 	const url = $derived(
@@ -87,16 +83,16 @@
 			&& 'url' in media
 			&& typeof media.url === 'string'
 				? media.url
-				:
-					undefined
+			:
+				undefined
 		)
 	)
 
 	const mediaType = $derived(
-		isFullMedia(media)
-			? media.type
-			:
-				inferTypeFromUrl(url)
+		isFullMedia(media) ?
+			media.type
+		:
+			inferTypeFromUrl(url)
 	)
 </script>
 
@@ -126,10 +122,10 @@
 				width={format?.width}
 				height={format?.height}
 				controls
-				preload={loading === 'eager'
-					? 'auto'
-					:
-						'metadata'}
+				preload={loading === 'eager' ?
+					'auto'
+				:
+					'metadata'}
 			>
 				{alt}
 			</video>
@@ -139,10 +135,10 @@
 			<audio
 				src={url}
 				controls
-				preload={loading === 'eager'
-					? 'auto'
-					:
-						'metadata'}
+				preload={loading === 'eager' ?
+					'auto'
+				:
+					'metadata'}
 			>
 				{alt}
 			</audio>

@@ -57,7 +57,7 @@ export const getBlockscoutLegacyJson = async <T>({
 		query,
 	})
 	const res = await corsFetch(url, {
-		origins: Blockscout.origins ?? [],
+		origins: Blockscout.origins,
 		init: { headers: { accept: 'application/json' } },
 	})
 	await throwIfHttpNotOk(res, url)
@@ -75,7 +75,7 @@ export const postBlockscoutEthRpc = async <T>({
 }): Promise<T | null> => {
 	const url = blockscoutEthRpcUrl(explorerOrigin)
 	const res = await corsFetch(url, {
-		origins: Blockscout.origins ?? [],
+		origins: Blockscout.origins,
 		init: {
 			method: 'POST',
 			headers: {
@@ -114,7 +114,7 @@ export const getJson = async <T>({
 		searchParams,
 	})
 	const res = await corsFetch(url, {
-		origins: Blockscout.origins ?? [],
+		origins: Blockscout.origins,
 		init: { headers: { accept: 'application/json' } },
 	})
 	await throwIfHttpNotOk(res, url)

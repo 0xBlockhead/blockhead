@@ -1,5 +1,8 @@
 import { type } from 'arktype'
-import { MarketTimeIntervalUnit } from '$/constants/Market.ts'
+import {
+	MarketTimeIntervalUnit,
+	marketOhlcCandleSources,
+} from '$/constants/Market.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -34,11 +37,7 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Constants_Internal,
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.Defillama_OpenApi,
-				Source.Coinpaprika_OpenApi,
-				Source.CoinMarketCap_Rest,
+				...marketOhlcCandleSources,
 			],
 		},
 		{
@@ -46,24 +45,28 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [...marketOhlcCandleSources],
 		},
 		{
 			name: 'high',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [...marketOhlcCandleSources],
 		},
 		{
 			name: 'low',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [...marketOhlcCandleSources],
 		},
 		{
 			name: 'close',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [...marketOhlcCandleSources],
 		},
 		{
 			name: 'volume',
@@ -76,6 +79,10 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Coinpaprika_OpenApi,
+				Source.CoinMarketCap_Rest,
+			],
 		},
 		{
 			name: 'tradeCount',

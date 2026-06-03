@@ -17,7 +17,7 @@ export const xApiV2Get = async <T>(
 	path: `/${string}`,
 ): Promise<T> => (
 	getJson<T>(`${xApiV2Base}${path}`, {
-		origins: X.origins ?? [],
+		origins: X.origins,
 		init: { headers: xBearerHeader(publicEnv) },
 	})
 )

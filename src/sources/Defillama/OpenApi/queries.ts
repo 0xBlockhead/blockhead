@@ -6,6 +6,7 @@
  */
 
 import { iconsOrigin } from '$/sources/Defillama/Rest/constants.ts'
+import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { getChartJson, getCurrentPricesJson } from '$/sources/Defillama/OpenApi/client.ts'
 import type {
 	DefillamaChartPricePoint,
@@ -92,7 +93,7 @@ export const getChartOhlcRows = async ({
 	llamaCoinId: string
 	days: number
 	searchWidth?: string
-}): Promise<number[][]> => {
+}): Promise<OhlcCandle[]> => {
 	const response = await getChartJson({
 		coins: [llamaCoinId],
 		period: '1D',
@@ -120,7 +121,15 @@ export const getChartOhlcRows = async ({
 					)
 					const high = Math.max(open, close)
 					const low = Math.min(open, close)
-					return [[tMs, open, high, low, close]]
+						return [
+							[
+								tMs,
+								open,
+								high,
+								low,
+								close,
+							],
+						]
 				})()
 		))
 	)

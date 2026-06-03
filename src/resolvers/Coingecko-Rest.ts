@@ -61,10 +61,10 @@ export default {
 				const logoMedia = mediaFromUrl(logoUrl, MediaType.Image)
 
 				const md = coin.market_data
-				const coinName = coin.name.trim()
+				const coinName = coin.name
 
 				return {
-					symbol: coinById[entityId.coinId]?.symbol ?? coin.symbol.trim().toUpperCase(),
+					symbol: coinById[entityId.coinId].symbol,
 					...(coinName !== '' && { name: coinName }),
 					...(decimals != null && { decimals }),
 					...(logoMedia != null && { $logo: logoMedia }),
@@ -109,7 +109,7 @@ export default {
 						))
 					if (chain == null) throw new Error('Coingecko_Rest: native coin chain not in chainlist')
 
-					const symbol = chain.nativeCurrency.symbol.trim().toUpperCase()
+					const symbol = chain.nativeCurrency.symbol.toUpperCase()
 					const nativeCurrency = {
 						coinId: knownCoinIds.find((candidateCoinId) => candidateCoinId === symbol) ?? CoinId.Unknown,
 						name: chain.nativeCurrency.name,
@@ -117,7 +117,7 @@ export default {
 						decimals: chain.nativeCurrency.decimals,
 						slip44: chain.slip44,
 					}
-					const nativeCurrencyName = nativeCurrency.name.trim()
+					const nativeCurrencyName = nativeCurrency.name
 					return {
 						coinId: nativeCurrency.coinId,
 						...(nativeCurrencyName !== '' && { name: nativeCurrencyName }),
@@ -159,11 +159,11 @@ export default {
 				)
 				const iconUrl = pickCoingeckoCoinImageUrl(coin)
 				const iconMedia = mediaFromUrl(iconUrl, MediaType.Image)
-				const coinName = coin.name.trim()
+				const coinName = coin.name
 
 				return {
 					coinId,
-					symbol: coin.symbol.trim().toUpperCase(),
+					symbol: coin.symbol.toUpperCase(),
 					...(coinName !== '' && { name: coinName }),
 					...(decimals != null && { decimals }),
 					caip19,
@@ -211,7 +211,7 @@ export default {
 				if (entityId.timestampMs !== timestampMs) {
 					throw new Error('Coingecko_Rest: Market_Timestamp id does not match spot clock')
 				}
-				const eth = coin.platforms?.ethereum?.trim()
+				const eth = coin.platforms?.ethereum
 				const caip19 = (
 					eth != null && /^0x[a-fA-F0-9]{40}$/.test(eth) ?
 						caip19Erc20(1, eth.toLowerCase() as `0x${string}`)
@@ -224,7 +224,7 @@ export default {
 				return {
 					price: BigInt(Math.round(usd * 1e8)),
 					transport: 'coingecko-coins-id-market-data-usd-1e8',
-					...(coingeckoId !== undefined && { providerAssetId: coingeckoId }),
+					providerAssetId: coingeckoId,
 					...(caip19 && { caip19 }),
 				}
 			},
@@ -291,7 +291,7 @@ export default {
 					markets
 						.flatMap((coinMarket) => {
 							const coinId = coinIdByWireId[coinMarket.id]
-							if (coinId == null || coinById[coinId] == null) return []
+							if (coinId == null) return []
 							const rank = coinMarket.market_cap_rank
 							const cap = coinMarket.market_cap
 							return [
@@ -542,7 +542,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Market,
-			fieldName: '$$baseCoin',
+			fieldName: '$baseCoin',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
 				entityId.$base.kind === MarketAssetKind.Coin ?
 					{
@@ -658,7 +658,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
@@ -668,7 +668,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,

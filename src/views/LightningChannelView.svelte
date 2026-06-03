@@ -9,6 +9,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -25,10 +27,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const channel = useEntity(
 		EntityType.LightningChannel,
@@ -66,7 +64,12 @@
 <EntityView
 	entityType={EntityType.LightningChannel}
 	{entityId}
-	href={`/network/${entityId.$network.networkSlug}/channels/${entityId.channelId}`}
+	href={
+		'networkSlug' in entityId.$network ?
+			`/network/${entityId.$network.networkSlug}/channels/${entityId.channelId}`
+		:
+			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/channels/${entityId.channelId}`
+	}
 	title={entityId.channelId}
 	bind:open
 	{...EntityViewProps}
@@ -89,7 +92,7 @@
 			resource={channel}
 			placeholderText="Loading channel…"
 		>
-			{#snippet children(row)}
+			{#snippet children(lightningChannel)}
 				<dl>
 					{#if lightningChannel.shortChannelId != null}
 						<div>

@@ -9,6 +9,7 @@ import type {
 	NearRpcBlock,
 	NearRpcChunk,
 	NearRpcGasPrice,
+	NearRpcReceipt,
 	NearRpcStatus,
 	NearRpcTransactionStatus,
 	NearRpcValidators,
@@ -35,7 +36,7 @@ const nearJsonRpc = async <_Result>({
 	params: JsonValue
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: NearRpc.origins ?? [],
+		origins: NearRpc.origins,
 		init: {
 			method: 'POST',
 			headers: {
@@ -73,9 +74,7 @@ export const getBlock = ({
 				}
 			:
 				{
-					block_id: typeof blockId === 'bigint' ? Number(blockId)
-					:
-						blockId,
+					block_id: typeof blockId === 'bigint' ? Number(blockId) : blockId,
 				}
 		),
 	})
@@ -117,6 +116,22 @@ export const getTxStatus = ({
 			tx_hash: txHash,
 			sender_account_id: senderAccountId,
 			wait_until: 'FINAL',
+		},
+	})
+)
+
+export const getReceipt = ({
+	rpcUrl,
+	receiptId,
+}: {
+	rpcUrl: string
+	receiptId: string
+}) => (
+	nearJsonRpc<NearRpcReceipt>({
+		rpcUrl,
+		method: 'EXPERIMENTAL_receipt',
+		params: {
+			receipt_id: receiptId,
 		},
 	})
 )

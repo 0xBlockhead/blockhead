@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -28,6 +29,7 @@
 			entityId: EntityId<typeof schema, EntityType.BlockheadRoom>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -35,10 +37,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const room = useEntity(
 		EntityType.BlockheadRoom,

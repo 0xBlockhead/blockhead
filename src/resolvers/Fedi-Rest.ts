@@ -5,7 +5,9 @@ import {
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
+import { optionalNonemptyString } from '$/lib/string.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { optionalTimestampMs } from '$/lib/time.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { EntityFieldValues } from '$/schema/$schema.ts'
@@ -18,24 +20,11 @@ import type {
 	MastodonApiV1Status,
 } from '$/sources/Mastodon/Rest/types.ts'
 
-const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() || undefined
-)
-
-const optionalFiniteNumber = (value: number | undefined) => (
-	value != null && Number.isFinite(value) ? value : undefined
-)
-
-const optionalTimestampMs = (value: string | undefined) => (
-	((parsed) => (
-		Number.isFinite(parsed) ? parsed : undefined
-	))(Date.parse(value ?? ''))
-)
 
 const mastodonLocalAccountId = (
 	account: MastodonApiV1Account | null | undefined,
 ) => (
-	optionalTrimmedString(account?.acct)
+	optionalNonemptyString(account?.acct)
 	?? (
 		account?.id != null ?
 			String(account.id)
@@ -57,8 +46,8 @@ const mediaUrlFromMastodonAttachment = (
 	attachment: MastodonApiV1MediaAttachment,
 ) => {
 	const wireType = attachment.type
-	const url = optionalTrimmedString(attachment.url)
-	const previewUrl = optionalTrimmedString(attachment.preview_url)
+	const url = optionalNonemptyString(attachment.url)
+	const previewUrl = optionalNonemptyString(attachment.preview_url)
 	return (
 		wireType === 'video' || wireType === 'gifv' || wireType === 'audio' ?
 			url
@@ -81,50 +70,42 @@ const mediaEntitiesFromMastodonAttachments = (
 	})
 )
 
-const activityPubNoteTimestampFieldsFromMastodonStatus = (
-	status: MastodonApiV1Status,
-) => ({
-	favouriteCount: optionalFiniteNumber(status.favourites_count),
-	reblogCount: optionalFiniteNumber(status.reblogs_count),
-	replyCount: optionalFiniteNumber(status.replies_count),
-})
-
 const activityPubNoteFieldsFromMastodonStatus = (
 	status: MastodonApiV1Status,
 	instanceOrigin: string,
 ): Partial<EntityFieldValues<typeof schema, EntityType.ActivityPubNote>> => {
 	const createdAt = Date.parse(status.created_at ?? '')
-	const editedAt = optionalTimestampMs(
-		status.edited_at ?? undefined,
+	const editedAt = optionalTimestampMs(status.edited_at ?? undefined)
+	const content = optionalNonemptyString(status.content)
+	const language = optionalNonemptyString(status.language ?? undefined)
+	const spoilerText = optionalNonemptyString(status.spoiler_text)
+	const statusUrl = optionalNonemptyString(status.url)
+	const activityStreamsUri = optionalNonemptyString(status.uri)
+	const visibility = (
+		status.visibility === 'public' ?
+			'public' as const
+		: status.visibility === 'unlisted' ?
+			'unlisted' as const
+		: status.visibility === 'private' ?
+			'private' as const
+		: status.visibility === 'direct' ?
+			'direct' as const
+		:
+			undefined
 	)
 	return {
-		content: optionalTrimmedString(status.content),
+		...(content != null && { content }),
 		...(Number.isFinite(createdAt) && { createdAt }),
 		...(editedAt != null && { editedAt }),
-		...activityPubNoteTimestampFieldsFromMastodonStatus(status),
-		visibility: (
-				status.visibility === 'public' ?
-					'public' as const
-				: status.visibility === 'unlisted' ?
-					'unlisted' as const
-				: status.visibility === 'private' ?
-					'private' as const
-				: status.visibility === 'direct' ?
-					'direct' as const
-				:
-					undefined
-			),
+		...(status.favourites_count != null && { favouriteCount: status.favourites_count }),
+		...(status.reblogs_count != null && { reblogCount: status.reblogs_count }),
+		...(status.replies_count != null && { replyCount: status.replies_count }),
+		...(visibility != null && { visibility }),
 		...(status.sensitive != null && { sensitive: status.sensitive }),
-		...(optionalTrimmedString(status.language ?? undefined) != null && {
-			language: optionalTrimmedString(status.language ?? undefined),
-		}),
-		spoilerText: optionalTrimmedString(status.spoiler_text),
-		...(optionalTrimmedString(status.url) != null && {
-			statusUrl: optionalTrimmedString(status.url),
-		}),
-		...(optionalTrimmedString(status.uri) != null && {
-			activityStreamsUri: optionalTrimmedString(status.uri),
-		}),
+		...(language != null && { language }),
+		...(spoilerText != null && { spoilerText }),
+		...(statusUrl != null && { statusUrl }),
+		...(activityStreamsUri != null && { activityStreamsUri }),
 		$$media: mediaEntitiesFromMastodonAttachments(status.media_attachments),
 		$author: (
 			(() => {
@@ -164,14 +145,6 @@ const activityPubNoteFieldsFromMastodonStatus = (
 	}
 }
 
-const activityPubActorTimestampFieldsFromMastodonAccount = (
-	account: MastodonApiV1Account,
-) => ({
-	followersCount: optionalFiniteNumber(account.followers_count),
-	followingCount: optionalFiniteNumber(account.following_count),
-	statusesCount: optionalFiniteNumber(account.statuses_count),
-})
-
 const activityPubActorFieldsFromMastodonAccount = (
 	account: MastodonApiV1Account,
 	instanceOrigin: string,
@@ -179,47 +152,51 @@ const activityPubActorFieldsFromMastodonAccount = (
 		value: string | null | undefined,
 		options?: { siteOrigin?: string },
 	) => string | undefined,
-) => ({
-	username: optionalTrimmedString(account.username),
-	acct: optionalTrimmedString(account.acct),
-	displayName: optionalTrimmedString(account.display_name),
-	note: optionalTrimmedString(account.note),
-	...((
-		iconMedia,
-	) => (
-		iconMedia != null && {
-			$icon: iconMedia,
-		}
-	))(mediaFromUrl(resolveAvatarUrl(account.avatar, { siteOrigin: instanceOrigin }), MediaType.Image)),
-	...((
-		headerMedia,
-	) => (
-		headerMedia != null && {
-			$headerImage: headerMedia,
-		}
-	))(mediaFromUrl(resolveAvatarUrl(account.header, { siteOrigin: instanceOrigin }), MediaType.Image)),
-	...(optionalTrimmedString(account.url) != null && {
-		profileUrl: optionalTrimmedString(account.url),
-	}),
-	...(optionalTrimmedString(account.uri) != null && {
-		activityStreamsUri: optionalTrimmedString(account.uri),
-	}),
-	...(optionalTrimmedString(account.website ?? undefined) != null && {
-		website: optionalTrimmedString(account.website ?? undefined),
-	}),
-	...activityPubActorTimestampFieldsFromMastodonAccount(account),
-	...(account.bot != null && { bot: account.bot }),
-	...(account.locked != null && { locked: account.locked }),
-	...(optionalTimestampMs(account.created_at) != null && {
-		createdAt: optionalTimestampMs(account.created_at),
-	}),
-})
+) => {
+	const username = optionalNonemptyString(account.username)
+	const acct = optionalNonemptyString(account.acct)
+	const displayName = optionalNonemptyString(account.display_name)
+	const note = optionalNonemptyString(account.note)
+	const profileUrl = optionalNonemptyString(account.url)
+	const activityStreamsUri = optionalNonemptyString(account.uri)
+	const website = optionalNonemptyString(account.website ?? undefined)
+	const createdAt = optionalTimestampMs(account.created_at)
+	return {
+		...(username != null && { username }),
+		...(acct != null && { acct }),
+		...(displayName != null && { displayName }),
+		...(note != null && { note }),
+		...((
+			iconMedia,
+		) => (
+			iconMedia != null && {
+				$icon: iconMedia,
+			}
+		))(mediaFromUrl(resolveAvatarUrl(account.avatar, { siteOrigin: instanceOrigin }), MediaType.Image)),
+		...((
+			headerMedia,
+		) => (
+			headerMedia != null && {
+				$headerImage: headerMedia,
+			}
+		))(mediaFromUrl(resolveAvatarUrl(account.header, { siteOrigin: instanceOrigin }), MediaType.Image)),
+		...(profileUrl != null && { profileUrl }),
+		...(activityStreamsUri != null && { activityStreamsUri }),
+		...(website != null && { website }),
+		...(account.followers_count != null && { followersCount: account.followers_count }),
+		...(account.following_count != null && { followingCount: account.following_count }),
+		...(account.statuses_count != null && { statusesCount: account.statuses_count }),
+		...(account.bot != null && { bot: account.bot }),
+		...(account.locked != null && { locked: account.locked }),
+		...(createdAt != null && { createdAt }),
+	}
+}
 
 const fediAvatarUrl = (
 	value: string | null | undefined,
 	options?: { siteOrigin?: string },
 ) => {
-	const raw = value?.trim() ?? ''
+	const raw = value ?? ''
 	if (raw.length === 0) return undefined
 	const withOrigin = (
 		raw.startsWith('/') && options?.siteOrigin != null ?
@@ -241,7 +218,6 @@ export default {
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
 				const a = await singleFlight(getAccount)(publicEnv, entityId.localAccountId)
-				if (a == null) throw new Error('Fedi_Rest: account not found')
 				return activityPubActorFieldsFromMastodonAccount(
 					a,
 					entityId.instanceOrigin,
@@ -260,7 +236,6 @@ export default {
 				} = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
 				const s = await singleFlight(getStatus)(publicEnv, entityId.localStatusId)
-				if (s == null) throw new Error('Fedi_Rest: status not found')
 				return activityPubNoteFieldsFromMastodonStatus(s, entityId.instanceOrigin)
 			},
 		}),
@@ -272,8 +247,11 @@ export default {
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.$actor.instanceOrigin)
 				const account = await singleFlight(getAccount)(publicEnv, entityId.$actor.localAccountId)
-				if (account == null) throw new Error('Fedi_Rest: account not found')
-				return activityPubActorTimestampFieldsFromMastodonAccount(account)
+				return {
+					...(account.followers_count != null && { followersCount: account.followers_count }),
+					...(account.following_count != null && { followingCount: account.following_count }),
+					...(account.statuses_count != null && { statusesCount: account.statuses_count }),
+				}
 			},
 		}),
 
@@ -287,8 +265,11 @@ export default {
 				} = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.$note.instanceOrigin)
 				const status = await singleFlight(getStatus)(publicEnv, entityId.$note.localStatusId)
-				if (status == null) throw new Error('Fedi_Rest: status not found')
-				return activityPubNoteTimestampFieldsFromMastodonStatus(status)
+				return {
+					...(status.favourites_count != null && { favouriteCount: status.favourites_count }),
+					...(status.reblogs_count != null && { reblogCount: status.reblogs_count }),
+					...(status.replies_count != null && { replyCount: status.replies_count }),
+				}
 			},
 		}),
 	],
@@ -301,8 +282,7 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const { getInstance } = await import('$/sources/Fedi/Rest/queries.ts')
 				const instance = await singleFlight(getInstance)(publicEnv)
-				if (instance == null) throw new Error('Fedi_Rest: instance not found')
-				return optionalTrimmedString(instance.title)
+				return optionalNonemptyString(instance.title)
 			},
 		}),
 
@@ -313,10 +293,9 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const { getInstance } = await import('$/sources/Fedi/Rest/queries.ts')
 				const instance = await singleFlight(getInstance)(publicEnv)
-				if (instance == null) throw new Error('Fedi_Rest: instance not found')
 				return (
-					optionalTrimmedString(instance.description)
-					?? optionalTrimmedString(instance.short_description)
+					optionalNonemptyString(instance.description)
+					?? optionalNonemptyString(instance.short_description)
 				)
 			},
 		}),
@@ -328,8 +307,7 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const { getInstance } = await import('$/sources/Fedi/Rest/queries.ts')
 				const instance = await singleFlight(getInstance)(publicEnv)
-				if (instance == null) throw new Error('Fedi_Rest: instance not found')
-				return optionalTrimmedString(instance.version)
+				return optionalNonemptyString(instance.version)
 			},
 		}),
 
@@ -392,14 +370,15 @@ export default {
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
 				const account = await singleFlight(getAccount)(publicEnv, entityId.localAccountId)
-				if (account == null) throw new Error('Fedi_Rest: account not found')
 				return [
 					{
 						[EntityMetaKey.Id]: {
 							$actor: entityId,
 							timestampMs: Date.now(),
 						},
-						...activityPubActorTimestampFieldsFromMastodonAccount(account),
+						...(account.followers_count != null && { followersCount: account.followers_count }),
+						...(account.following_count != null && { followingCount: account.following_count }),
+						...(account.statuses_count != null && { statusesCount: account.statuses_count }),
 					},
 				]
 			},
@@ -443,14 +422,15 @@ export default {
 				} = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
 				const status = await singleFlight(getStatus)(publicEnv, entityId.localStatusId)
-				if (status == null) throw new Error('Fedi_Rest: status not found')
 				return [
 					{
 						[EntityMetaKey.Id]: {
 							$note: entityId,
 							timestampMs: Date.now(),
 						},
-						...activityPubNoteTimestampFieldsFromMastodonStatus(status),
+						...(status.favourites_count != null && { favouriteCount: status.favourites_count }),
+						...(status.reblogs_count != null && { reblogCount: status.reblogs_count }),
+						...(status.replies_count != null && { replyCount: status.replies_count }),
 					},
 				]
 			},

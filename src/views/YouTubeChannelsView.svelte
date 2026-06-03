@@ -12,6 +12,7 @@
 
 
 	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -25,18 +26,18 @@
 		),
 		collapsible = true,
 		CollapsibleProps = {},
+		href,
 		title = 'Channels',
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.YouTubeChannel>
 			id: string
 		open?: boolean
+		collapsible?: boolean
+		href?: ComponentProps<typeof EntitiesList>['href']
 		title?: string
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -54,6 +55,7 @@
 	{title}
 	bind:open
 	{collapsible}
+	{href}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -110,8 +112,8 @@
 				{title}
 				resource={channels}
 				placeholderText="Loading channels…"
-				getKey={(row) => stringify(youTubeChannel.entityId)}
-				getSortValue={(row) => youTubeChannel.entityId.channelId}
+				getKey={(channel) => stringify(channel.entityId)}
+				getSortValue={(channel) => channel.entityId.channelId}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

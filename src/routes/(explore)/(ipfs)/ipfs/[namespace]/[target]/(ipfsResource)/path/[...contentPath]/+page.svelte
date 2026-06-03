@@ -4,7 +4,7 @@
 		params,
 	} = $props()
 
-
+	import { ipfsResourceAddressFromRouteParams } from '$/lib/ipfs.ts'
 
 	const entityId = $derived(
 		ipfsResourceAddressFromRouteParams({
@@ -18,14 +18,10 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import IpfsResourceView from '$/views/IpfsResourceView.svelte'
-
-
-	// State
-	import { ipfsResourceAddressFromRouteParams, ipfsResourceHref } from '$/lib/ipfs.ts'
 </script>
 
 
-{#if entityId !== undefined}
+{#if entityId !== null}
 	<Page>
 		<IpfsResourceView
 			{entityId}

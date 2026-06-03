@@ -1,12 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import {
-		caip2RouteParamsFromNetworkId,
-		evmChainIdFromNetworkId,
-	} from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -23,8 +16,8 @@
 	let {
 		entityId,
 		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-			{ ...caip2RouteParamsFromNetworkId(entityId.$network) },
+			'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]',
+			{ ...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference } },
 		),
 		layout,
 		open = $bindable(true),
@@ -42,8 +35,7 @@
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkGasEstimateTimestamp = useEntity(
@@ -106,7 +98,7 @@
 					gwei slow
 				{:else}
 					<span>
-						chain {String(evmChainIdFromNetworkId(entityId.$network))}
+						chain {String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}
 					</span>
 				{/if}
 			{/snippet}
@@ -146,15 +138,17 @@
 						<ResourceBoundary
 							resource={networkGasEstimateTimestamp}
 							placeholderText="Loading gas estimate…"
-						>
-							{#snippet children(networkGasEstimateTimestamp)}
-								<NumberValue
-									value={networkGasEstimateTimestamp.slowGwei}
-									options={{ maximumFractionDigits: 4 }}
-								/>
-								gwei
-							{/snippet}
-						</ResourceBoundary>
+							>
+								{#snippet children(networkGasEstimateTimestamp)}
+									{#if networkGasEstimateTimestamp.slowGwei !== undefined}
+										<NumberValue
+											value={networkGasEstimateTimestamp.slowGwei}
+											options={{ maximumFractionDigits: 4 }}
+										/>
+										gwei
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
@@ -169,15 +163,17 @@
 						<ResourceBoundary
 							resource={networkGasEstimateTimestamp}
 							placeholderText="Loading gas estimate…"
-						>
-							{#snippet children(networkGasEstimateTimestamp)}
-								<NumberValue
-									value={networkGasEstimateTimestamp.averageGwei}
-									options={{ maximumFractionDigits: 4 }}
-								/>
-								gwei
-							{/snippet}
-						</ResourceBoundary>
+							>
+								{#snippet children(networkGasEstimateTimestamp)}
+									{#if networkGasEstimateTimestamp.averageGwei !== undefined}
+										<NumberValue
+											value={networkGasEstimateTimestamp.averageGwei}
+											options={{ maximumFractionDigits: 4 }}
+										/>
+										gwei
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
@@ -192,15 +188,17 @@
 						<ResourceBoundary
 							resource={networkGasEstimateTimestamp}
 							placeholderText="Loading gas estimate…"
-						>
-							{#snippet children(networkGasEstimateTimestamp)}
-								<NumberValue
-									value={networkGasEstimateTimestamp.fastGwei}
-									options={{ maximumFractionDigits: 4 }}
-								/>
-								gwei
-							{/snippet}
-						</ResourceBoundary>
+							>
+								{#snippet children(networkGasEstimateTimestamp)}
+									{#if networkGasEstimateTimestamp.fastGwei !== undefined}
+										<NumberValue
+											value={networkGasEstimateTimestamp.fastGwei}
+											options={{ maximumFractionDigits: 4 }}
+										/>
+										gwei
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}

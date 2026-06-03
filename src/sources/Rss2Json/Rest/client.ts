@@ -9,7 +9,7 @@ export const rss2JsonGet = async (
 	getJson<Rss2JsonResponse>(
 		`${rss2JsonOrigin}${path.startsWith('/') ? path : `/${path}`}`,
 		{
-			origins: Rss2Json.origins ?? [],
+			origins: Rss2Json.origins,
 		},
 	)
 )

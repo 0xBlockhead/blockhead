@@ -5,10 +5,6 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import {
-		caip2RouteParamsFromNetworkId,
-		evmChainIdFromNetworkId,
-	} from '$/lib/caip.ts'
 
 
 	// Context
@@ -19,7 +15,7 @@
 	let {
 			entityId,
 			href = resolve('/~/(accounts)/accounts/(transactions)/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]', {
-				chainId: String(evmChainIdFromNetworkId(entityId.$sourceTx.$network)),
+				chainId: String(evmChainIdFromCaip2(`${entityId.$sourceTx.$network.caip2.namespace}:${entityId.$sourceTx.$network.caip2.reference}`)),
 				address: entityId.$account.address,
 				sourceTxHash: entityId.$sourceTx.txHash,
 				createdAt: String(entityId.createdAt),
@@ -39,6 +35,8 @@
 			| 'layout'
 		>
 	> = $props()
+
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 
 
 	// Components
@@ -99,9 +97,9 @@
 						<EvmTransactionView
 							entityId={entityId.$sourceTx}
 							href={resolve(
-								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
+								'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 								{
-										...caip2RouteParamsFromNetworkId(entityId.$sourceTx.$network),
+										...{ caip2Namespace: entityId.$sourceTx.$network.caip2.namespace, caip2Reference: entityId.$sourceTx.$network.caip2.reference },
 										transactionId: entityId.$sourceTx.txHash,
 								},
 							)}

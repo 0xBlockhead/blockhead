@@ -21,12 +21,11 @@
 			entityId: EntityId<typeof schema, EntityType.IpfsResource>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
 
-
-	// State
 	import { ipfsResourceCanonicalUri, ipfsResourceHref } from '$/lib/ipfs.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -346,70 +345,70 @@
 	})}
 		{@const detailKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${detailKey}:carousel-ipfs-resource`}
-				sectionIdPrefix={detailKey}
-				sections={[
-					{ id: 'ipfs-record', label: 'Record' },
-					...(_open && entityId.namespace === 'ipfs' ? [{ id: 'ipfs-cid', label: 'Encodings' }] : []),
-					...(_open ? [{ id: 'ipfs-preview', label: 'Preview' }] : []),
-				]}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Resource
-						</HeadingComponent>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									IPFS names content by content identifiers (CIDs); browsers usually load bytes through an HTTP gateway.
-								</p>
-								<p>
-									The alternate CID encodings below are the same logical content in forms other tools expect.
-								</p>
-							{/snippet}
-							<abbr
-								class="entity-heading-tip"
-								aria-label="IPFS resource notes"
-							>ⓘ</abbr>
-						</Tooltip>
-					</header>
-				{/snippet}
-
-				{#snippet SectionIpfsRecord()}
-				{/snippet}
-
-				{#snippet SectionIpfsCid()}
-					<IpfsCidAlternateEncodings
-						contentPath={entityId.contentPath}
-						target={entityId.target}
-					/>
-				{/snippet}
-
-				{#snippet SectionIpfsPreview()}
-					<ResourceBoundary
-						resource={ipfs}
-					>
-						{#snippet children(ipfs)}
-							<FileDetails
-								contentSize={ipfs.contentLength}
-								contentType={ipfs.contentType}
-								displayType={ipfs.displayType}
-								extension={ipfs.extension}
-								fileName={ipfs.fileName}
-								src={ipfs.gatewayUrl}
-								text={ipfs.text}
-							/>
+			id={`${detailKey}:carousel-ipfs-resource`}
+			sectionIdPrefix={detailKey}
+			sections={[
+				{ id: 'ipfs-record', label: 'Record' },
+				...(_open && entityId.namespace === 'ipfs' ? [{ id: 'ipfs-cid', label: 'Encodings' }] : []),
+				...(_open ? [{ id: 'ipfs-preview', label: 'Preview' }] : []),
+			]}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Resource
+					</HeadingComponent>
+					<Tooltip contentProps={{ side: 'top' }}>
+						{#snippet Content()}
+							<p>
+								IPFS names content by content identifiers (CIDs); browsers usually load bytes through an HTTP gateway.
+							</p>
+							<p>
+								The alternate CID encodings below are the same logical content in forms other tools expect.
+							</p>
 						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-		</CollapsibleTabs>
+						<abbr
+							class="entity-heading-tip"
+							aria-label="IPFS resource notes"
+						>ⓘ</abbr>
+					</Tooltip>
+				</header>
+			{/snippet}
+
+			{#snippet SectionIpfsRecord()}
+			{/snippet}
+
+			{#snippet SectionIpfsCid()}
+				<IpfsCidAlternateEncodings
+					contentPath={entityId.contentPath}
+					target={entityId.target}
+				/>
+			{/snippet}
+
+			{#snippet SectionIpfsPreview()}
+				<ResourceBoundary
+					resource={ipfs}
+				>
+					{#snippet children(ipfs)}
+						<FileDetails
+							contentSize={ipfs.contentLength}
+							contentType={ipfs.contentType}
+							displayType={ipfs.displayType}
+							extension={ipfs.extension}
+							fileName={ipfs.fileName}
+							src={ipfs.gatewayUrl}
+							text={ipfs.text}
+						/>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+	</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

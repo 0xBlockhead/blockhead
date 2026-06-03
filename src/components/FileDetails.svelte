@@ -38,7 +38,6 @@
 	}
 
 
-	// State
 	import type { IpfsDisplayType } from '$/lib/contentType.ts'
 	import { formatByteCount } from '$/lib/bytes.ts'
 
@@ -58,22 +57,6 @@
 	const mediaType = $derived(
 		contentType?.split(/;\s*/)[0],
 	)
-
-	const prettyText = $derived.by(() => {
-		if (text === undefined) return undefined
-		if (displayType !== 'json') return text
-
-		try {
-			return JSON.stringify(
-				JSON.parse(text),
-				null,
-				2,
-			)
-		} catch {
-			return text
-		}
-	})
-
 
 	// Components
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -131,7 +114,20 @@
 
 	<div class="file-preview">
 		{#if displayType === 'text' || displayType === 'json' || displayType === 'xml'}
-			<pre>{prettyText}</pre>
+			<pre>{(() => {
+				if (text === undefined) return undefined
+				if (displayType !== 'json') return text
+
+				try {
+					return JSON.stringify(
+						JSON.parse(text),
+						null,
+						2,
+					)
+				} catch {
+					return text
+				}
+			})()}</pre>
 		{:else if displayType === 'iframe' && src !== undefined}
 			<iframe
 				{src}

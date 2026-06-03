@@ -7,6 +7,8 @@
 	import { schema } from '$/schema/index.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -23,10 +25,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const nearAccount = useEntity(
 		EntityType.NearAccount,

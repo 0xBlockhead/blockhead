@@ -12,6 +12,8 @@
 
 
 	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -49,11 +51,6 @@
 			| 'Value'
 		>
 	> = $props()
-
-
-		// State
-		import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-		import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const comment = useEntity(
 		EntityType.YouTubeComment,
@@ -325,7 +322,8 @@
 						return youTubeComments.map((reply) => reply[EntityMetaKey.Id])
 					},
 				)}
-				{#if repliesParent.$parentComment === undefined}
+				{@const repliesParentRow = repliesParent.ready ? repliesParent.current : undefined}
+				{#if repliesParentRow?.$parentComment === undefined}
 					<EntitiesList
 						entityType={EntityType.YouTubeComment}
 						href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
@@ -334,8 +332,8 @@
 						})}
 						id={`${idKey}:replies`}
 						title={(
-							repliesParent.replyCount != null ?
-								`Replies (${String(repliesParent.replyCount)})`
+							repliesParentRow?.replyCount != null ?
+								`Replies (${String(repliesParentRow.replyCount)})`
 							:
 								'Replies'
 						)}
@@ -352,22 +350,22 @@
 								})}
 								id={`${idKey}:replies-items`}
 								title={(
-									repliesParent.replyCount != null ?
-										`Replies (${String(repliesParent.replyCount)})`
+									repliesParentRow?.replyCount != null ?
+										`Replies (${String(repliesParentRow.replyCount)})`
 									:
 										'Replies'
 								)}
 								resource={replies}
 								placeholderText="Loading replies…"
 								getKey={(row) => stringify(row)}
-								getSortValue={(row) => youTubeComment.commentId}
+								getSortValue={(youTubeComment) => youTubeComment.commentId}
 								placeholderKeys={new SvelteSet<string>()}
 								open={true}
 							>
 								{#snippet Empty()}
 									<p data-text="muted">
 										{(
-											repliesParent.replyCount === 0 ?
+											repliesParentRow?.replyCount === 0 ?
 												'No replies yet.'
 											:
 												'Replies could not be loaded.'
@@ -397,14 +395,14 @@
 				{/if}
 
 				<YouTubeComment_TimestampsView
-						entityFieldReference={{
+					entityFieldReference={{
 							entityType: EntityType.YouTubeComment,
 							entityId,
 							fieldName: '$$timestamps',
-						}}
-						href={href}
-						id={`${idKey}:metric-snapshots`}
-						title="Metric snapshots"
+					}}
+					href={href}
+					id={`${idKey}:metric-snapshots`}
+					title="Metric snapshots"
 					/>
 			{/if}
 

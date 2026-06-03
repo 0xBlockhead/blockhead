@@ -19,6 +19,6 @@ export const youtubeApiV3Get = async <T>(
 			...params,
 		}).toString()
 	)}`, {
-		origins: Youtube.origins ?? [],
+		origins: Youtube.origins,
 	})
 }

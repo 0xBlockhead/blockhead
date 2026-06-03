@@ -9,7 +9,7 @@ export const rssFetchFeed = async (feedUrl: string) => (
 		await getText(
 			normalizeRssFeedUrl(feedUrl),
 			{
-				origins: Rss.origins ?? [],
+				origins: Rss.origins,
 			},
 		),
 	) satisfies ParsedRssFeed

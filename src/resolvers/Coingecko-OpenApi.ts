@@ -75,38 +75,18 @@ const coingeckoOpenApiDerivativeTickerForMarket = async (
 	return ticker
 }
 
-const derivativeTimestampFieldsFromTicker = (
-	ticker: Awaited<ReturnType<typeof coingeckoOpenApiDerivativeTickerForMarket>>,
-) => ({
-	...(ticker.funding_rate != null && { fundingRate: ticker.funding_rate }),
-	...(ticker.open_interest_usd != null && {
-		openInterestUsd: BigInt(Math.round(ticker.open_interest_usd)),
-	}),
-	...(ticker.index_basis_percentage != null && {
-		indexBasisPercent: ticker.index_basis_percentage,
-	}),
-	...(ticker.expired_at != null && ticker.expired_at !== '' && {
-		expiredAtMs: Date.parse(ticker.expired_at),
-	}),
-	...(ticker.last_traded != null && {
-		lastTradedAtMs: ticker.last_traded * 1000,
-	}),
-	providerAssetId: ticker.symbol ?? null,
-	transport: 'Coingecko OpenAPI',
-})
-
 /** Spot + OHLC via checked-in `coingecko-demo.json` (`GET /coins/{id}`, `/coins/{id}/ohlc`). */
 export default {
 	source: Source.Coingecko_OpenApi,
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.Market,
+			entityType: EntityType.Market_Derivative_Timestamp,
 			resolve: async (entityId, context) => {
-				if (entityId.marketKind === MarketKind.Spot) {
-					return {}
+				if (entityId.$market.marketKind === MarketKind.Spot) {
+					throw new Error('Coingecko_OpenApi: Market_Derivative_Timestamp is derivative-only')
 				}
-				const ticker = await coingeckoOpenApiDerivativeTickerForMarket(entityId, context)
+				const ticker = await coingeckoOpenApiDerivativeTickerForMarket(entityId.$market, context)
 				return {
 					...(ticker.funding_rate != null && { fundingRate: ticker.funding_rate }),
 					...(ticker.open_interest_usd != null && {
@@ -119,21 +99,11 @@ export default {
 						expiredAtMs: Date.parse(ticker.expired_at),
 					}),
 					...(ticker.last_traded != null && {
-						derivativeLastTradedAtMs: ticker.last_traded * 1000,
+						lastTradedAtMs: ticker.last_traded * 1000,
 					}),
+					providerAssetId: ticker.symbol ?? null,
+					transport: 'Coingecko OpenAPI',
 				}
-			},
-		}),
-
-		defineEntityResolver({
-			entityType: EntityType.Market_Derivative_Timestamp,
-			resolve: async (entityId, context) => {
-				if (entityId.$market.marketKind === MarketKind.Spot) {
-					throw new Error('Coingecko_OpenApi: Market_Derivative_Timestamp is derivative-only')
-				}
-				return derivativeTimestampFieldsFromTicker(
-					await coingeckoOpenApiDerivativeTickerForMarket(entityId.$market, context),
-				)
 			},
 		}),
 
@@ -169,7 +139,7 @@ export default {
 				return {
 					price: BigInt(Math.round(spot.usd * 1e8)),
 					transport: 'coingecko-openapi-coins-id-market-data-usd-1e8',
-					...(coingeckoId !== undefined && { providerAssetId: coingeckoId }),
+					providerAssetId: coingeckoId,
 				}
 			},
 		}),
@@ -249,7 +219,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Market_Derivative_Timestamp,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId) => ({
 				[EntityMetaKey.Id]: entityId.$market,
 			}),
@@ -412,7 +382,6 @@ export default {
 				const coinId = entityId.$base.$coin.coinId
 				if (idByCoinId[coinId] == null) throw new Error('Coingecko_OpenApi: OHLC coin not mapped')
 				const coingeckoId = idByCoinId[coinId]
-				if (coingeckoId == null) throw new Error('Coingecko_OpenApi: OHLC coin not mapped')
 				const lim = resolverLoadSubsetRowLimit(context)
 				const candles = []
 				for (const value of coingeckoOhlcDayWindowLengths) {
@@ -512,7 +481,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
@@ -522,7 +491,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,

@@ -4,20 +4,23 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+
 	import {
 		MarketAssetKind,
 		marketCatalogFieldSources,
 		marketSpotPriceSources,
 	} from '$/constants/Market.ts'
+
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		title = 'Spot quote index',
@@ -30,20 +33,18 @@
 		{
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			limit?: number
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.MarketPrice>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -86,9 +87,7 @@
 						...marketCatalogFieldSources,
 					],
 					[entityFieldReference.fieldName]: {
-						$: marketSpotPriceSources.filter((source) => (
-							source !== Source.Constants_Internal
-						)),
+						$: marketSpotPriceSources,
 						$limit: limit,
 					},
 				},
@@ -103,7 +102,7 @@
 						Object.values(
 							Object.groupBy(
 								marketPrices,
-								(price) => price[EntityMetaKey.IdKey],
+								(price) => stringify(price[EntityMetaKey.Id]),
 							),
 						)
 							.flatMap((group) => (
@@ -123,11 +122,11 @@
 				showSummary={false}
 				entityType={EntityType.MarketPrice}
 				getKey={(row) => stringify(
-					marketPrice.value[EntityMetaKey.Id],
+					row.value[EntityMetaKey.Id],
 				)}
 				getSortValue={(row) => (
-					marketPrice.value[EntityMetaKey.Id].$market.$base.kind === MarketAssetKind.Coin ?
-						marketPrice.value[EntityMetaKey.Id].$market.$base.$coin.coinId
+					row.value[EntityMetaKey.Id].$market.$base.kind === MarketAssetKind.Coin ?
+						row.value[EntityMetaKey.Id].$market.$base.$coin.coinId
 					:
 						''
 				)}

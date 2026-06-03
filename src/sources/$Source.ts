@@ -57,7 +57,6 @@ export enum Source {
 	Ipfs_Rest = 'Ipfs_Rest',
 	L2Beat_Rest = 'L2Beat_Rest',
 	Lens_Graphql = 'Lens_Graphql',
-	Hey_Graphql = 'Hey_Graphql',
 	Lifi_Rest = 'Lifi_Rest',
 	LitecoinCore_JsonRpc = 'LitecoinCore_JsonRpc',
 	LitecoinLips_Github = 'LitecoinLips_Github',

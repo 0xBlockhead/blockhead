@@ -2064,7 +2064,8 @@ export const decimalsByCoinId: Partial<Record<CoinId, number>> = Object.fromEntr
 export const coingeckoCatalogCoinIds: readonly CoinId[] = catalog.flatMap((entry) => (
 	entry.wireId == null ?
 		[]
-:	[entry.coinId]
+			:
+		[entry.coinId]
 ))
 
 

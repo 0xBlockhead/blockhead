@@ -9,6 +9,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -25,10 +27,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const block = useEntity(
 		EntityType.PolkadotBlock,
@@ -60,7 +58,12 @@
 <EntityView
 	entityType={EntityType.PolkadotBlock}
 	{entityId}
-	href={`/network/${entityId.$network.networkSlug}/blocks/${entityId.blockNumber.toString()}`}
+	href={
+		'networkSlug' in entityId.$network ?
+			`/network/${entityId.$network.networkSlug}/blocks/${entityId.blockNumber.toString()}`
+		:
+			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/blocks/${entityId.blockNumber.toString()}`
+	}
 	title={`Block #${entityId.blockNumber.toString()}`}
 	idDragPlainText={entityId.blockNumber.toString()}
 	bind:open
@@ -76,7 +79,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Block </span>
+			{#if Value}
 			{@render Value()}
+					{/if}
 		</span>
 	{/snippet}
 
@@ -105,19 +110,19 @@
 						</div>
 					{/if}
 
-					{#if block.$$extrinsics.length > 0}
-						<div>
-							<dt>Extrinsics</dt>
-							<dd><NumberValue value={block.$$extrinsics.length} /></dd>
-						</div>
-					{/if}
+						{#if (block.$$extrinsics?.length ?? 0) > 0}
+							<div>
+								<dt>Extrinsics</dt>
+								<dd><NumberValue value={block.$$extrinsics?.length ?? 0} /></dd>
+							</div>
+						{/if}
 
-					{#if block.$$events.length > 0}
-						<div>
-							<dt>Events</dt>
-							<dd><NumberValue value={block.$$events.length} /></dd>
-						</div>
-					{/if}
+						{#if (block.$$events?.length ?? 0) > 0}
+							<div>
+								<dt>Events</dt>
+								<dd><NumberValue value={block.$$events?.length ?? 0} /></dd>
+							</div>
+						{/if}
 
 					{#if open && block.$parent != null}
 						<div>

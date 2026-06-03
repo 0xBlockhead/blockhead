@@ -1,34 +1,22 @@
 <script lang="ts">
-	// Types/constants
-	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
-
-
 	// State
 	let {
 		params,
 	} = $props()
 
-	const pairId = $derived.by(() => (
-		hexLowerOfByteSize(decodeURIComponent(params.vaultId).trim(), 20)
-		?? decodeURIComponent(params.vaultId).trim()
-	))
-
-
+	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 	// Components
 	import Page from '$/components/Page.svelte'
 	import VaultView from '$/views/VaultView.svelte'
-
-
-	// State
-	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 </script>
 
 
 <Page>
 	<VaultView
 		entityId={{
-			$network: networkIdFromEvmChainId(Number(params.chainId)),
-			id: pairId,
+			$network: { caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } },
+			id: hexLowerOfByteSize(decodeURIComponent(params.vaultId).trim(), 20)
+				?? decodeURIComponent(params.vaultId).trim(),
 		}}
 	/>
 </Page>

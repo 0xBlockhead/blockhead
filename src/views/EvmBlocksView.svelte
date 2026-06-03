@@ -11,6 +11,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -34,9 +36,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -70,14 +69,9 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const network = useEntity(
-				EntityType.EvmNetwork,
+				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				{
-					blockHeight: {
-						$: [
-							Source.Voltaire_JsonRpc,
-						],
-					},
 					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Voltaire_JsonRpc,
@@ -100,9 +94,9 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => evmBlock[EntityMetaKey.Id].blockNumber}
+					getKey={(row) => String(row[EntityMetaKey.Id].blockNumber)}
 					getSortValue={(row) => (
-						-Number(evmBlock[EntityMetaKey.Id].blockNumber)
+						-Number(row[EntityMetaKey.Id].blockNumber)
 					)}
 					placeholderText="Loading execution blocks…"
 					resource={blocks}

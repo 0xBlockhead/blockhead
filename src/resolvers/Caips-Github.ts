@@ -18,10 +18,12 @@ const githubCaipProposalIndexRows = async (
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	const markdownFiles = data.filter((githubContent) => githubContent.type === 'file' && githubContent.name.endsWith('.md'))
 	return markdownFiles.flatMap((markdownFile) => {
-		const caipNumberRaw = regex('^caip-(?<caipNumber>\\d+)\\.md$').exec(markdownFile.name)?.groups?.caipNumber
-		const caipNumber = caipNumberRaw != null ? parseInt(caipNumberRaw, 10)
+		const caipNumberRaw = regex('^caip-(?<caipNumber>\\d+)\\.md$').exec(markdownFile.name)?.groups.caipNumber
+		const caipNumber = caipNumberRaw != null ?
+			parseInt(caipNumberRaw, 10)
 		:
 			null
+
 		return caipNumber == null ?
 			[]
 		:
@@ -55,22 +57,10 @@ export default {
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
 				return {
-					documentCategory: (
-						((docCategory) => (
-							docCategory != null && docCategory !== '' ? docCategory : null
-						))(frontmatter.type?.trim())
-					),
-					documentTitle: (
-						((docTitle) => (
-							docTitle != null && docTitle !== '' ? docTitle : null
-						))(frontmatter.title?.trim())
-					),
-					documentStatus: (
-						((docStatus) => (
-							docStatus != null && docStatus !== '' ? docStatus : null
-						))(frontmatter.status?.trim())
-					),
-					documentBody: body.length > 0 ? body : null,
+					documentCategory: frontmatter.type.trim() || undefined,
+					documentTitle: frontmatter.title.trim() || undefined,
+					documentStatus: frontmatter.status.trim() || undefined,
+					documentBody: body.length > 0 ? body : undefined,
 				}
 			},
 		}),

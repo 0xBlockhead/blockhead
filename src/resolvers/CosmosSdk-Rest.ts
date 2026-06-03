@@ -274,7 +274,7 @@ export default {
 						restBaseUrl: cosmosHubRestBaseUrl,
 						txHash: entityId.$transaction.txHash,
 					}),
-				)[entityId.messageIndex]
+				).at(entityId.messageIndex)
 				if (cosmosMessage == null) throw new Error(`CosmosSdk_Rest: message not found for ${entityId.$transaction.txHash}:${entityId.messageIndex}`)
 				return cosmosMessage
 			},
@@ -442,10 +442,6 @@ export default {
 				)
 			},
 		}),
-
-
-
-
 
 
 		defineEntityFieldResolver({

@@ -8,6 +8,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EvmAbi } from '$/schema/$EvmAbi.ts'
 import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -95,7 +96,7 @@ export default {
 		{
 			name: 'abi',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: EvmAbi,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Sourcify_Rest,

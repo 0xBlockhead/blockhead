@@ -90,7 +90,6 @@ export const etherscanV2GetJson = async <T>({
 	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
 	options?: { apiKey?: string }
 }): Promise<T | null> => {
-	if (supportedByChainId[chainId] !== true) return null
 	const search = new URLSearchParams()
 	search.set('chainid', String(chainId))
 	for (const [key, value] of Object.entries(query)) {

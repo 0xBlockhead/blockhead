@@ -8,6 +8,8 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -28,10 +30,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const builder = useEntity(
 		EntityType.MevBuilder,
 		entityId,
@@ -48,6 +46,8 @@
 		),
 	)
 
+
+	// (Derived)
 	const title = $derived(
 		titleProp
 		?? `MEV builder ${entityId.builderPubkey}`

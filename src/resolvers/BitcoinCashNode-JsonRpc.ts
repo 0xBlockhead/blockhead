@@ -34,7 +34,7 @@ const getOutput = async (entityId: {
 		rpcUrl: bitcoinCashNodeDefaultLocalRpcUrl,
 		txId: entityId.$transaction.txId,
 	})
-	const output = transaction.vout[entityId.outputIndex]
+	const output = transaction.vout.at(entityId.outputIndex)
 	if (output == null) throw new Error(`BitcoinCashNode_JsonRpc: output not found for ${entityId.$transaction.txId}:${String(entityId.outputIndex)}`)
 	return output
 }

@@ -3,11 +3,6 @@
 	import type { PageProps } from './$types.ts'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
-	// State
 	let { data }: PageProps = $props()
 
 

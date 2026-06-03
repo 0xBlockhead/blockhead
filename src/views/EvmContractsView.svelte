@@ -13,6 +13,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -43,9 +44,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -107,8 +105,8 @@
 					href={EntitiesListProps.href}
 					{title}
 					open={true}
-					getKey={(row) => stringify(evmContract[EntityMetaKey.Id])}
-					getSortValue={(row) => BigInt(evmContract[EntityMetaKey.Id].address)}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortValue={(row) => row[EntityMetaKey.Id].address}
 					placeholderText="Loading verified contracts…"
 					resource={contracts}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}

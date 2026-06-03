@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,6 +15,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -25,10 +27,6 @@
 		Form: Snippet
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const swarm = useEntity(
 		EntityType.SwarmResource,
@@ -52,6 +50,7 @@
 	)
 
 
+	// (Derived)
 	const swarmChromeKey = $derived(
 		stringify(entityId),
 	)
@@ -70,7 +69,7 @@
 
 
 <EntityView
-	layout={EntityLayout.Details}
+	layout={EntityLayout.SummaryDetails}
 	entityType={EntityType.SwarmResource}
 	{entityId}
 	title={getResourceCanonicalUri(entityId)}
@@ -87,7 +86,7 @@
 
 	{#snippet Content()}
 		{#if true}
-			{#snippet SwarmChromeContentTypeRow(swarm)}
+			{#snippet SwarmChromeContentTypeRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
 				{#if swarm.contentType !== undefined}
 					<TruncatedValue
 						value={swarm.contentType}
@@ -110,217 +109,217 @@
 
 	{#snippet Details({ open })}
 		<CollapsibleTabs
-				id={`${swarmChromeKey}:carousel-browser`}
-				sectionIdPrefix={swarmChromeKey}
-				sections={[
-					{ id: 'swarm-browser-form', label: 'Reference & path' },
-					{ id: 'swarm-browser-note', label: 'Current resource' },
-					{ id: 'swarm-metadata', label: 'Metadata' },
-					{ id: 'swarm-content', label: 'Content' },
-				]}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Browse
-						</HeadingComponent>
+			id={`${swarmChromeKey}:carousel-browser`}
+			sectionIdPrefix={swarmChromeKey}
+			sections={[
+				{ id: 'swarm-browser-form', label: 'Reference & path' },
+				{ id: 'swarm-browser-note', label: 'Current resource' },
+				{ id: 'swarm-metadata', label: 'Metadata' },
+				{ id: 'swarm-content', label: 'Content' },
+			]}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Browse
+					</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionSwarmBrowserForm()}
+				<section
+					class="swarm-browser"
+					data-column
+				>
+					{@render Form()}
+				</section>
+			{/snippet}
+
+			{#snippet SectionSwarmBrowserNote()}
+				<section
+					class="swarm-browser-note"
+					data-card
+					data-column
+				>
+					<header data-row="wrap align-center gap-2">
+						<h2>Browse Swarm</h2>
+						<Tooltip
+							content="You are viewing one BZZ reference; the canonical URI and gateway link below resolve to the same logical object."
+							contentProps={{ side: 'top' }}
+						>
+							<abbr
+								class="entity-heading-tip"
+								aria-label="Canonical URI and gateway"
+							>ⓘ</abbr>
+						</Tooltip>
 					</header>
-				{/snippet}
 
-				{#snippet SectionSwarmBrowserForm()}
-					<section
-						class="swarm-browser"
-						data-column
-					>
-						{@render Form()}
-					</section>
-				{/snippet}
+					<p>
+						<code>
+							<TruncatedValue
+								value={getResourceCanonicalUri(entityId)}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</code>
+					</p>
+				</section>
+			{/snippet}
 
-				{#snippet SectionSwarmBrowserNote()}
-					<section
-						class="swarm-browser-note"
-						data-card
-						data-column
-					>
-						<header data-row="wrap align-center gap-2">
-							<h2>Browse Swarm</h2>
-							<Tooltip
-								content="You are viewing one BZZ reference; the canonical URI and gateway link below resolve to the same logical object."
-								contentProps={{ side: 'top' }}
-							>
-								<abbr
-									class="entity-heading-tip"
-									aria-label="Canonical URI and gateway"
-								>ⓘ</abbr>
-							</Tooltip>
-						</header>
+			{#snippet SectionSwarmMetadata()}
+				<section
+					data-card
+					data-column
+				>
+					<header data-row="wrap align-center gap-2">
+						<h2>Metadata</h2>
+					</header>
 
-						<p>
-							<code>
-								<TruncatedValue
-									value={getResourceCanonicalUri(entityId)}
-									format={TruncatedValueFormat.Visual}
-								/>
-							</code>
-						</p>
-					</section>
-				{/snippet}
-
-				{#snippet SectionSwarmMetadata()}
-					<section
-						data-card
-						data-column
-					>
-						<header data-row="wrap align-center gap-2">
-							<h2>Metadata</h2>
-						</header>
-
-						{#snippet SwarmChromeMetadataBody(swarm)}
-							<div>
-								{#if swarm.canonicalUri !== undefined}
-									<div>
-										<dt>Canonical URI</dt>
-										<dd>
-											<TruncatedValue
-												value={swarm.canonicalUri}
-												format={TruncatedValueFormat.Visual}
-											/>
-										</dd>
-									</div>
-								{/if}
-
-								{#if swarm.gatewayOrigin !== undefined}
-									<div>
-										<dt>Gateway origin</dt>
-										<dd>
-											<TruncatedValue
-												value={swarm.gatewayOrigin}
-												format={TruncatedValueFormat.Visual}
-											/>
-										</dd>
-									</div>
-								{/if}
-
-								{#if swarm.gatewayUrl !== undefined}
-									<div>
-										<dt>Gateway URL</dt>
-										<dd>
-											<a
-												href={swarm.gatewayUrl}
-												target="_blank"
-												rel="noreferrer noopener"
-											>
-												<TruncatedValue
-													value={swarm.gatewayUrl}
-													format={TruncatedValueFormat.Visual}
-												/>
-											</a>
-										</dd>
-									</div>
-								{/if}
-
-								{#if swarm.contentLength !== undefined}
-									<div>
-										<dt>Content length</dt>
-										<dd>
-											<NumberValue
-												value={swarm.contentLength}
-												options={{ maximumFractionDigits: 0 }}
-											/>
-											{' '}
-											bytes
-										</dd>
-									</div>
-								{/if}
-
-								{#if swarm.fileName !== undefined}
-									<div>
-										<dt>File name</dt>
-										<dd>
-											<TruncatedValue
-												value={swarm.fileName}
-												format={TruncatedValueFormat.Visual}
-											/>
-										</dd>
-									</div>
-								{/if}
-
-								{#if swarm.extension !== undefined}
-									<div>
-										<dt>Extension</dt>
-										<dd>.{swarm.extension}</dd>
-									</div>
-								{/if}
-
-								{#if swarm.contentType !== undefined}
-									<div>
-										<dt>Content type</dt>
-										<dd>
-											<TruncatedValue
-												value={swarm.contentType}
-												format={TruncatedValueFormat.Visual}
-											/>
-											{#if swarm.isContentTypeInferred}
-												{' '}
-												<span data-text="muted">(inferred)</span>
-											{/if}
-										</dd>
-									</div>
-								{/if}
-
-								{#if swarm.displayType !== undefined}
-									<div>
-										<dt>Display type</dt>
-										<dd>{swarm.displayType}</dd>
-									</div>
-								{/if}
-							</div>
-						{/snippet}
-
-						<ResourceBoundary
-							children={SwarmChromeMetadataBody}
-							placeholderText="Loading metadata…"
-							resource={swarm}
-						/>
-					</section>
-				{/snippet}
-
-				{#snippet SectionSwarmContent()}
-					<section
-						data-card
-						data-column
-					>
-						<header data-row="wrap align-center gap-2">
-							<h2>Content</h2>
-						</header>
-
-						{#snippet SwarmChromeTextBody(swarm)}
-							{#if swarm.text !== undefined}
-								<pre>{swarm.text}</pre>
-							{:else if swarm.$media?.[EntityMetaKey.Id].url !== undefined}
-								<Media
-									media={{ url: swarm.$media[EntityMetaKey.Id].url }}
-									alt={swarm.fileName ?? ''}
-								/>
-							{:else}
-								<p data-text="muted">No text or media preview available.</p>
+					{#snippet SwarmChromeMetadataBody(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
+						<div>
+							{#if swarm.canonicalUri !== undefined}
+								<div>
+									<dt>Canonical URI</dt>
+									<dd>
+										<TruncatedValue
+											value={swarm.canonicalUri}
+											format={TruncatedValueFormat.Visual}
+										/>
+									</dd>
+								</div>
 							{/if}
-						{/snippet}
 
-						<ResourceBoundary
-							children={SwarmChromeTextBody}
-							placeholderText="Loading content…"
-							resource={swarm}
-						/>
-					</section>
-				{/snippet}
-		</CollapsibleTabs>
+							{#if swarm.gatewayOrigin !== undefined}
+								<div>
+									<dt>Gateway origin</dt>
+									<dd>
+										<TruncatedValue
+											value={swarm.gatewayOrigin}
+											format={TruncatedValueFormat.Visual}
+										/>
+									</dd>
+								</div>
+							{/if}
+
+							{#if swarm.gatewayUrl !== undefined}
+								<div>
+									<dt>Gateway URL</dt>
+									<dd>
+										<a
+											href={swarm.gatewayUrl}
+											target="_blank"
+											rel="noreferrer noopener"
+										>
+											<TruncatedValue
+												value={swarm.gatewayUrl}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</a>
+									</dd>
+								</div>
+							{/if}
+
+							{#if swarm.contentLength !== undefined}
+								<div>
+									<dt>Content length</dt>
+									<dd>
+										<NumberValue
+											value={swarm.contentLength}
+											options={{ maximumFractionDigits: 0 }}
+										/>
+										{' '}
+										bytes
+									</dd>
+								</div>
+							{/if}
+
+							{#if swarm.fileName !== undefined}
+								<div>
+									<dt>File name</dt>
+									<dd>
+										<TruncatedValue
+											value={swarm.fileName}
+											format={TruncatedValueFormat.Visual}
+										/>
+									</dd>
+								</div>
+							{/if}
+
+							{#if swarm.extension !== undefined}
+								<div>
+									<dt>Extension</dt>
+									<dd>.{swarm.extension}</dd>
+								</div>
+							{/if}
+
+							{#if swarm.contentType !== undefined}
+								<div>
+									<dt>Content type</dt>
+									<dd>
+										<TruncatedValue
+											value={swarm.contentType}
+											format={TruncatedValueFormat.Visual}
+										/>
+										{#if swarm.isContentTypeInferred}
+											{' '}
+											<span data-text="muted">(inferred)</span>
+										{/if}
+									</dd>
+								</div>
+							{/if}
+
+							{#if swarm.displayType !== undefined}
+								<div>
+									<dt>Display type</dt>
+									<dd>{swarm.displayType}</dd>
+								</div>
+							{/if}
+						</div>
+					{/snippet}
+
+					<ResourceBoundary
+						children={SwarmChromeMetadataBody}
+						placeholderText="Loading metadata…"
+						resource={swarm}
+					/>
+				</section>
+			{/snippet}
+
+			{#snippet SectionSwarmContent()}
+				<section
+					data-card
+					data-column
+				>
+					<header data-row="wrap align-center gap-2">
+						<h2>Content</h2>
+					</header>
+
+					{#snippet SwarmChromeTextBody(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
+						{#if swarm.text !== undefined}
+							<pre>{swarm.text}</pre>
+						{:else if swarm.$media?.[EntityMetaKey.Id].url !== undefined}
+							<Media
+								media={{ url: swarm.$media[EntityMetaKey.Id].url }}
+								alt={swarm.fileName ?? ''}
+							/>
+						{:else}
+							<p data-text="muted">No text or media preview available.</p>
+						{/if}
+					{/snippet}
+
+					<ResourceBoundary
+						children={SwarmChromeTextBody}
+						placeholderText="Loading content…"
+						resource={swarm}
+					/>
+				</section>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>
 

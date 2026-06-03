@@ -20,7 +20,7 @@ const tronSolidityNodePost = async <_Result>({
 	body: JsonValue
 }) => {
 	const response = await corsFetch(`${base(restBaseUrl)}/${path}`, {
-		origins: TronSolidityNode.origins ?? [],
+		origins: TronSolidityNode.origins,
 		init: {
 			method: 'POST',
 			headers: {

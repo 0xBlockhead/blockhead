@@ -163,7 +163,7 @@ export default {
 						blockNumber: entityId.$block.blockNumber,
 					}),
 				})
-				if (block.block.extrinsics[entityId.extrinsicIndex] == null) {
+				if (block.block.extrinsics.at(entityId.extrinsicIndex) == null) {
 					throw new Error(`Polkadot_JsonRpc: extrinsic not found for ${entityId.$block.blockNumber.toString()}:${entityId.extrinsicIndex}`)
 				}
 				return {}

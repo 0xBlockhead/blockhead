@@ -1,10 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { caip2Key } from '$/lib/caip.ts'
 
 
-	// State
 	let { data }: PageProps = $props()
 
 
@@ -24,7 +22,7 @@
 		<dl data-column-item="center">
 			<div>
 				<dt>Network</dt>
-				<dd>{caip2Key(data.entityId.$network.caip2)}</dd>
+				<dd>{`${data.entityId.$network.caip2.namespace}:${data.entityId.$network.caip2.reference}`}</dd>
 			</div>
 
 			<div>

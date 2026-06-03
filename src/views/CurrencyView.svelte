@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -15,16 +15,16 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-		'/(assets)/(currencies)/currency/[iso4217]',
-		{ iso4217: entityId.iso4217 },
-	),
+		href = resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+			iso4217: entityId.iso4217,
+			}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -42,10 +42,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const currency = useEntity(
 		EntityType.Currency,
 		entityId,
@@ -54,6 +50,7 @@
 				Source.Constants_Internal,
 			],
 			name: {},
+				symbol: {},
 			$$timestamps: {
 				$: [
 					Source.Constants_Internal,
@@ -62,7 +59,6 @@
 				marketCap: {},
 			},
 			...(open && {
-				symbol: {},
 				minorUnitExponent: {},
 			}),
 		},
@@ -88,7 +84,7 @@
 	entityType={EntityType.Currency}
 	{entityId}
 	href={href}
-	title={currency.name ?? entityId.iso4217}
+	title={entityId.iso4217}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -178,81 +174,80 @@
 					$currency: { iso4217: entityId.iso4217 },
 					timestampMs: currencyCatalogSnapshotTimestampMs,
 				}}
-				id={`${idPrefix}:catalog-snapshot`}
 				layout={EntityLayout.Title}
 				open={false}
 			/>
 		</section>
 
 		<CollapsibleTabs
-				id={`${idPrefix}:carousel-markets`}
-				sectionIdPrefix={idPrefix}
-				sections={[
-					{ id: 'markets-as-base', label: 'Base' },
-					{ id: 'markets-as-quote', label: 'Quote' },
-				]}
-				class="currency-view-collapsible-markets"
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Markets
-						</HeadingComponent>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									Markets where this currency is the base or quote leg. Open a row for spot quotes and OHLC on the market page.
-								</p>
-							{/snippet}
-							<abbr
-								class="entity-heading-tip"
-								aria-label="Markets and pricing"
-							>ⓘ</abbr>
-						</Tooltip>
-					</header>
-				{/snippet}
+			id={`${idPrefix}:carousel-markets`}
+			sectionIdPrefix={idPrefix}
+			sections={[
+				{ id: 'markets-as-base', label: 'Base' },
+				{ id: 'markets-as-quote', label: 'Quote' },
+			]}
+			class="currency-view-collapsible-markets"
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Markets
+					</HeadingComponent>
+					<Tooltip contentProps={{ side: 'top' }}>
+						{#snippet Content()}
+							<p>
+								Markets where this currency is the base or quote leg. Open a row for spot quotes and OHLC on the market page.
+							</p>
+						{/snippet}
+						<abbr
+							class="entity-heading-tip"
+							aria-label="Markets and pricing"
+						>ⓘ</abbr>
+					</Tooltip>
+				</header>
+			{/snippet}
 
-				{#snippet SectionMarketsAsBase({ id, label })}
-					{#if entityId.iso4217 === Iso4217.USD}
-						<p data-text="muted">
-							<a href={resolve('/markets')}>All catalog markets</a>
-							— spot indices quote in USD.
-						</p>
-					{:else}
-						<MarketsView
-							CollapsibleProps={{ canToggle: false }}
-							href={resolve('/markets')}
-							entityFieldReference={{
-								entityType: EntityType.Currency,
-								entityId,
-								fieldName: '$$marketsWithCurrencyAsBase',
-							}}
-							{id}
-							title="Base"
-						/>
-					{/if}
-				{/snippet}
-
-				{#snippet SectionMarketsAsQuote({ id, label })}
+			{#snippet SectionMarketsAsBase({ id, label })}
+				{#if entityId.iso4217 === Iso4217.USD}
+					<p data-text="muted">
+						<a href={resolve('/markets')}>All catalog markets</a>
+						— spot indices quote in USD.
+					</p>
+				{:else}
 					<MarketsView
 						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/markets')}
+						href="/markets"
 						entityFieldReference={{
 							entityType: EntityType.Currency,
 							entityId,
-							fieldName: '$$marketsWithCurrencyAsQuote',
+							fieldName: '$$marketsWithCurrencyAsBase',
 						}}
 						{id}
-						title="Quote"
+						title="Base"
 					/>
-				{/snippet}
-		</CollapsibleTabs>
+				{/if}
+			{/snippet}
+
+			{#snippet SectionMarketsAsQuote({ id, label })}
+				<MarketsView
+					CollapsibleProps={{ canToggle: false }}
+					href="/markets"
+					entityFieldReference={{
+						entityType: EntityType.Currency,
+						entityId,
+						fieldName: '$$marketsWithCurrencyAsQuote',
+					}}
+					{id}
+					title="Quote"
+				/>
+			{/snippet}
+	</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

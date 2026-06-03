@@ -5,7 +5,6 @@ import {
 	compileSingleRowExpression,
 	extractFieldPath,
 	type Collection,
-	type OrderByCallback,
 	type Source,
 } from '@tanstack/svelte-db'
 
@@ -24,12 +23,12 @@ type OrderByOptions = {
 	locale?: string
 }
 
-export type OrderByStep<_Context> = readonly [
-	orderBy: OrderByCallback<any>,
+export type OrderByStep<_FieldRow> = readonly [
+	orderBy: (context: { fieldRow: _FieldRow }) => unknown,
 	options?: OrderByDirection | OrderByOptions,
 ]
 
-export type DeclarativeOrderBy<_Context> = readonly OrderByStep<_Context>[]
+export type DeclarativeOrderBy<_FieldRow> = readonly OrderByStep<_FieldRow>[]
 
 type BuilderWithInternalQuery = InstanceType<typeof BaseQueryBuilder> & {
 	_getQuery(): { orderBy?: IR.OrderBy },
@@ -47,9 +46,9 @@ export const foldOrderBySteps = <
 			step[1] === undefined ?
 				acc.orderBy(step[0])
 			:
-				acc.orderBy(step[0], step[1] as any)
+				acc.orderBy(step[0], step[1])
 		),
-		qb as any,
+		qb,
 	) as unknown as QB
 )
 
@@ -57,7 +56,7 @@ export const foldOrderBySteps = <
 export const orderByIrFromSteps = (
 	from: Source,
 	steps: DeclarativeOrderBy<any>,
-): IR.OrderBy => {
+) => {
 	let qb = new BaseQueryBuilder().from(from) as unknown as BuilderWithInternalQuery
 	qb = foldOrderBySteps(qb, steps)
 	return qb._getQuery().orderBy ?? []
@@ -75,11 +74,11 @@ export const fingerprintOrderByIr = (
 			:
 				[
 					path,
-					clause.compareOptions.direction,
-					clause.compareOptions.nulls,
-					clause.compareOptions.stringSort,
-	'locale' in clause.compareOptions ? clause.compareOptions.locale : undefined,
-				]
+						clause.compareOptions.direction,
+						clause.compareOptions.nulls,
+						clause.compareOptions.stringSort,
+						'locale' in clause.compareOptions ? clause.compareOptions.locale : undefined,
+					]
 		)
 	})
 )
@@ -91,7 +90,7 @@ export const sortedWithOrderBySteps = <T>(
 	collectionForCompare: Collection<any>,
 	items: readonly T[],
 	toSortRow: (item: T) => Record<string, unknown>,
-): T[] => {
+) => {
 	const orderBy = orderByIrFromSteps(from, steps)
 	if (orderBy.length === 0) {
 		return [...items]

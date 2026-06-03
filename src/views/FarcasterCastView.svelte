@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,10 +39,6 @@
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const cast = useEntity(
 		EntityType.FarcasterCast,
@@ -192,7 +189,7 @@
 		</p>
 	{/snippet}
 
-		{#snippet Content({})}
+	{#snippet Content({})}
 		<dl>
 			<div>
 				<dt>Text</dt>
@@ -208,16 +205,16 @@
 								&& variant === 'feed'
 							)}
 								<p>
-								<TruncatedValue
-								value={flatText}
-								startLength={120}
-								endLength={48}
-								format={TruncatedValueFormat.Abbr}
-								/>
-							</p>
+									<TruncatedValue
+										value={flatText}
+										startLength={120}
+										endLength={48}
+										format={TruncatedValueFormat.Abbr}
+									/>
+								</p>
 							{:else if flatText !== ''}
 								<p>
-								{cast.text ?? ''}
+									{cast.text ?? ''}
 								</p>
 							{/if}
 						{/snippet}
@@ -296,11 +293,11 @@
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
-				</div>
+			</div>
 
-				{#if open}
-					<div>
-						<dt>Parent cast</dt>
+			{#if open}
+				<div>
+					<dt>Parent cast</dt>
 					<dd>
 						<ResourceBoundary
 							resource={cast}
@@ -327,13 +324,13 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+					</dd>
+				</div>
+			{/if}
 
-				{#if open}
-					<div>
-						<dt>Parent URL</dt>
+			{#if open}
+				<div>
+					<dt>Parent URL</dt>
 					<dd>
 						<ResourceBoundary
 							resource={cast}
@@ -345,13 +342,13 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+					</dd>
+				</div>
+			{/if}
 
-				{#if open}
-					<div>
-						<dt>Mentions</dt>
+			{#if open}
+				<div>
+					<dt>Mentions</dt>
 					<dd>
 						<ResourceBoundary
 							resource={cast}
@@ -376,13 +373,13 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+					</dd>
+				</div>
+			{/if}
 
-				{#if open}
-					<div>
-						<dt>Thread hash</dt>
+			{#if open}
+				<div>
+					<dt>Thread hash</dt>
 					<dd>
 						<ResourceBoundary
 							resource={cast}
@@ -423,63 +420,63 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+					</dd>
+				</div>
+			{/if}
 		</dl>
 	{/snippet}
 
-		{#snippet Details({
-			open: _open,
-		})}
-			{@const castDetailKey = stringify(entityId)}
-			<CollapsibleTabs
-					id={`${castDetailKey}:carousel-cast`}
-					sectionIdPrefix={castDetailKey}
-					sections={(
-						children ?
-							collapsibleTabsSections([
-									{ id: 'cast-record', label: 'Record' },
-									{ id: 'cast-more', label: 'More' },
-									{ id: 'metric-snapshots', label: 'Metrics' },
-								])
-							:
-								collapsibleTabsSections([
-									{ id: 'cast-record', label: 'Record' },
-									{ id: 'cast-thread', label: 'Thread' },
-									{ id: 'cast-media', label: 'Embeds' },
-									{ id: 'metric-snapshots', label: 'Metrics' },
-								])
-						)}
-					data-card
+	{#snippet Details({
+		open: _open,
+	})}
+		{@const castDetailKey = stringify(entityId)}
+		<CollapsibleTabs
+			id={`${castDetailKey}:carousel-cast`}
+			sectionIdPrefix={castDetailKey}
+			sections={(
+				children ?
+					collapsibleTabsSections([
+						{ id: 'cast-record', label: 'Record' },
+						{ id: 'cast-more', label: 'More' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])
+				:
+					collapsibleTabsSections([
+						{ id: 'cast-record', label: 'Record' },
+						{ id: 'cast-thread', label: 'Thread' },
+						{ id: 'cast-media', label: 'Embeds' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])
+			)}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
 				>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Cast
-						</HeadingComponent>
-					</header>
-				{/snippet}
+					<HeadingComponent>
+						Cast
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionCastRecord()}
-				{/snippet}
+			{#snippet SectionCastRecord()}
+			{/snippet}
 
-				{#snippet SectionCastMore()}
-					{#if children}
-						{@render children()}
-					{/if}
-				{/snippet}
+			{#snippet SectionCastMore()}
+				{#if children}
+					{@render children()}
+				{/if}
+			{/snippet}
 
-				{#snippet SectionCastThread()}
-					{#if !children}
-						<ResourceBoundary
-							resource={cast}
-								placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+			{#snippet SectionCastThread()}
+				{#if !children}
+					<ResourceBoundary
+						resource={cast}
+						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
 							{#snippet children(cast)}
 								{@const authorId = cast.$author?.[EntityMetaKey.Id]}
@@ -593,172 +590,172 @@
 					{/if}
 				{/snippet}
 
-					{#snippet SectionCastMedia()}
-						{#if !children && open}
-						<ResourceBoundary
-							resource={cast}
-							placeholderText="Loading cast mentions, channel ids & embeds…"
-						>
-							{#snippet children(cast)}
+			{#snippet SectionCastMedia()}
+				{#if !children && open}
+				<ResourceBoundary
+					resource={cast}
+					placeholderText="Loading cast mentions, channel ids & embeds…"
+				>
+					{#snippet children(cast)}
+						<section data-column>
+							{#if cast.mentionedProfileFids !== undefined && cast.mentionedProfileFids.length}
 								<section data-column>
-									{#if cast.mentionedProfileFids !== undefined && cast.mentionedProfileFids.length}
-										<section data-column>
-											<h3>Mentioned profiles (FID)</h3>
-											<ul data-row="wrap gap-2">
-												{#each cast.mentionedProfileFids as mentionFid (String(mentionFid))}
-													<li>
-														<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-															userId: String(mentionFid),
-														})}>
-															FID {String(mentionFid)}
-														</a>
-													</li>
-												{/each}
-											</ul>
-										</section>
-									{/if}
-
-									{#if cast.mentionedChannelIds !== undefined && cast.mentionedChannelIds.length}
-										<section data-column>
-											<h3>Mentioned channels</h3>
-											<ul data-row="wrap gap-2">
-												{#each cast.mentionedChannelIds as mentionChId (mentionChId)}
-													<li>
-														<a href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
-															channelId: mentionChId,
-														})}>
-															/{mentionChId}
-														</a>
-													</li>
-												{/each}
-											</ul>
-										</section>
-									{/if}
-
-									{#if cast.$$embeds?.length}
-										<section data-column>
-											<h3>Embeds</h3>
-											<ul data-column>
-												{#each cast.$$embeds as embed, embedIndex (String(embedIndex))}
-													{@const og = (
-														embed.$icon === undefined ?
-															undefined
-														:
-															embed.$icon[EntityMetaKey.Id].url
-													)}
-													{@const embeddedCastId = (
-														embed.$embeddedCast === undefined ?
-															undefined
-														:
-															embed.$embeddedCast[EntityMetaKey.Id]
-													)}
-													<li data-column>
-														{#if og !== undefined}
-															<p>
-																<a
-																	href={embed.url ?? og}
-																	rel="noreferrer"
-																>
-																	<img
-																		src={og}
-																		alt=""
-																		loading="lazy"
-																	/>
-																</a>
-															</p>
-														{/if}
-
-														{#if embed.title !== undefined}
-															<p>
-																<strong>{embed.title}</strong>
-															</p>
-														{/if}
-
-														{#if embed.description !== undefined}
-															<p data-text="muted">
-																{embed.description}
-															</p>
-														{/if}
-
-														{#if embed.url !== undefined}
-															<p>
-																<a
-																	href={embed.url}
-																	rel="noreferrer"
-																>{embed.url}</a>
-															</p>
-														{/if}
-
-														{#if embed.quotedPreviewText !== undefined}
-															<blockquote>
-																<p>
-																	{embed.quotedPreviewText}
-																</p>
-															</blockquote>
-														{/if}
-
-														{#if embeddedCastId !== undefined}
-															<p>
-																<a href={resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-																	fid: String(embeddedCastId.fid),
-																	hash: embeddedCastId.hash,
-																})}>
-																	Quoted cast · FID {String(embeddedCastId.fid)} ·{' '}
-																	<TruncatedValue
-																		value={embeddedCastId.hash}
-																		startLength={8}
-																		endLength={6}
-																		format={TruncatedValueFormat.Visual}
-																	/>
-																</a>
-															</p>
-														{/if}
-													</li>
-												{/each}
-											</ul>
-										</section>
-									{/if}
-
-									{#if (
-										!(cast.mentionedProfileFids?.length)
-										&& !(cast.mentionedChannelIds?.length)
-										&& !cast.$$embeds?.length
-									)}
-										<div data-row="wrap align-center gap-2">
-											<p data-text="muted">
-												No mentions or embeds.
-											</p>
-											<Tooltip contentProps={{ side: 'top' }}>
-												{#snippet Content()}
-													<p>
-														Mentioned profiles, channels, and cast embeds appear when the provider returns them for this cast.
-													</p>
-												{/snippet}
-												<abbr
-													class="entity-heading-tip"
-													aria-label="Mentions and embeds"
-												>ⓘ</abbr>
-											</Tooltip>
-										</div>
-									{/if}
+									<h3>Mentioned profiles (FID)</h3>
+									<ul data-row="wrap gap-2">
+										{#each cast.mentionedProfileFids as mentionFid (String(mentionFid))}
+											<li>
+												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+													userId: String(mentionFid),
+												})}>
+													FID {String(mentionFid)}
+												</a>
+											</li>
+										{/each}
+									</ul>
 								</section>
-							{/snippet}
-							</ResourceBoundary>
-						{/if}
-					{/snippet}
+							{/if}
 
-					{#snippet SectionMetricSnapshots()}
-						<FarcasterCast_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.FarcasterCast,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${castDetailKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
+							{#if cast.mentionedChannelIds !== undefined && cast.mentionedChannelIds.length}
+								<section data-column>
+									<h3>Mentioned channels</h3>
+									<ul data-row="wrap gap-2">
+										{#each cast.mentionedChannelIds as mentionChId (mentionChId)}
+											<li>
+												<a href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
+													channelId: mentionChId,
+												})}>
+													/{mentionChId}
+												</a>
+											</li>
+										{/each}
+									</ul>
+								</section>
+							{/if}
+
+							{#if cast.$$embeds?.length}
+								<section data-column>
+									<h3>Embeds</h3>
+									<ul data-column>
+										{#each cast.$$embeds as embed, embedIndex (String(embedIndex))}
+											{@const og = (
+												embed.$icon === undefined ?
+													undefined
+												:
+													embed.$icon[EntityMetaKey.Id].url
+											)}
+											{@const embeddedCastId = (
+												embed.$embeddedCast === undefined ?
+													undefined
+												:
+													embed.$embeddedCast[EntityMetaKey.Id]
+											)}
+											<li data-column>
+												{#if og !== undefined}
+													<p>
+														<a
+															href={embed.url ?? og}
+															rel="noreferrer"
+														>
+															<img
+																src={og}
+																alt=""
+																loading="lazy"
+															/>
+														</a>
+													</p>
+												{/if}
+
+												{#if embed.title !== undefined}
+													<p>
+														<strong>{embed.title}</strong>
+													</p>
+												{/if}
+
+												{#if embed.description !== undefined}
+													<p data-text="muted">
+														{embed.description}
+													</p>
+												{/if}
+
+												{#if embed.url !== undefined}
+													<p>
+														<a
+															href={embed.url}
+															rel="noreferrer"
+														>{embed.url}</a>
+													</p>
+												{/if}
+
+												{#if embed.quotedPreviewText !== undefined}
+													<blockquote>
+														<p>
+															{embed.quotedPreviewText}
+														</p>
+													</blockquote>
+												{/if}
+
+												{#if embeddedCastId !== undefined}
+													<p>
+														<a href={resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
+															fid: String(embeddedCastId.fid),
+															hash: embeddedCastId.hash,
+														})}>
+															Quoted cast · FID {String(embeddedCastId.fid)} ·{' '}
+															<TruncatedValue
+																value={embeddedCastId.hash}
+																startLength={8}
+																endLength={6}
+																format={TruncatedValueFormat.Visual}
+															/>
+														</a>
+													</p>
+												{/if}
+											</li>
+										{/each}
+									</ul>
+								</section>
+							{/if}
+
+							{#if (
+								!(cast.mentionedProfileFids?.length)
+								&& !(cast.mentionedChannelIds?.length)
+								&& !cast.$$embeds?.length
+							)}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No mentions or embeds.
+									</p>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Mentioned profiles, channels, and cast embeds appear when the provider returns them for this cast.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Mentions and embeds"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							{/if}
+						</section>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+			{#snippet SectionMetricSnapshots()}
+				<FarcasterCast_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.FarcasterCast,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${castDetailKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
 			</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

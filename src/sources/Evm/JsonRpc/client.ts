@@ -30,7 +30,7 @@ export const jsonRpc = async <_Result>({
 	params: JsonValue[]
 }): Promise<_Result> => {
 	const rpcOrigin = new URL(rpcUrl).origin
-	const executionRpcOrigins = Voltaire.origins ?? []
+	const executionRpcOrigins = Voltaire.origins
 	const knownExecutionRpc = executionRpcOrigins.some((entry) => entry.origin === rpcOrigin)
 	const response = await corsFetch(rpcUrl, {
 		...(knownExecutionRpc ?
@@ -67,7 +67,7 @@ export const jsonRpcUrlWithTransportForChain = async (
 	chainlistRpcs?: ChainlistRpcsJsonChain[],
 ): Promise<{ rpcUrl: string; transportType: TransportType } | undefined> => {
 	const executionEndpointList = executionEndpointsByChainId[chainId] ?? []
-	const defaultExecutionEndpoint = executionEndpointList[0]
+	const defaultExecutionEndpoint = executionEndpointList.at(0)
 	if (defaultExecutionEndpoint != null) {
 		return {
 			rpcUrl: defaultExecutionEndpoint.url,
@@ -96,7 +96,7 @@ export const jsonRpcUrlWithTransportForChain = async (
 				typeof entry === 'string' ?
 					entry.trim()
 				:
-					entry.url?.trim()
+					entry.url.trim()
 			))
 			.filter((url): url is string => Boolean(url))
 			.find((url) => (

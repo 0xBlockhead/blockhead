@@ -13,14 +13,6 @@
 	let { params } = $props()
 
 
-	const userFeedId: EntityId<typeof schema, EntityType.FarcasterFeed> = $derived(
-		{
-			variant: 'byUser',
-			fid: Number(params.userId),
-		},
-	)
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
@@ -38,7 +30,10 @@
 			href={resolve(`/farcaster/feed/user/${params.userId}`)}
 			entityFieldReference={{
 				entityType: EntityType.FarcasterFeed,
-				entityId: userFeedId,
+				entityId: {
+					variant: 'byUser',
+					fid: Number(params.userId),
+				},
 				fieldName: '$$entries',
 			}}
 			id="casts"

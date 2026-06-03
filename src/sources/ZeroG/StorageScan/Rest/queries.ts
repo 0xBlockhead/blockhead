@@ -37,7 +37,7 @@ const getStorageScanData = async <_Data>({
 			path,
 			searchParams,
 		}),
-		{ origins: ZeroG.origins ?? [] },
+		{ origins: ZeroG.origins  },
 	)
 	if (response.code !== 0) throw new Error(`ZeroGStorageScan_Rest: ${response.message}`)
 	return response.data

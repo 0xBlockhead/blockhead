@@ -12,6 +12,7 @@
 
 
 	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -26,19 +27,19 @@
 		),
 		collapsible = true,
 		CollapsibleProps = {},
+		href,
 		title = 'Playlists',
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.YouTubePlaylist>
 			id: string
 		limit?: number
 		open?: boolean
+		collapsible?: boolean
+		href?: ComponentProps<typeof EntitiesList>['href']
 		title?: string
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -57,6 +58,7 @@
 	{title}
 	bind:open
 	{collapsible}
+	{href}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -80,31 +82,31 @@
 				entityFieldReference.entityId,
 				(
 					entityFieldReference.entityType === EntityType.YouTubeNetwork ?
-						{
-							$: [
-								Source.Constants_Internal,
-								Source.Youtube_Rest,
-							],
-							[entityFieldReference.fieldName]: {
+							{
 								$: [
 									Source.Constants_Internal,
 									Source.Youtube_Rest,
 								],
-								limit,
+								$$youtubePlaylists: {
+									$: [
+										Source.Constants_Internal,
+										Source.Youtube_Rest,
+								],
+								$limit: limit,
 							},
 						}
 					:
-						{
-							$: [
-								Source.Youtube_Rest,
-								Source.Piped_Rest,
-							],
-							[entityFieldReference.fieldName]: {
+							{
 								$: [
 									Source.Youtube_Rest,
 									Source.Piped_Rest,
 								],
-								limit,
+								$$playlists: {
+									$: [
+										Source.Youtube_Rest,
+										Source.Piped_Rest,
+								],
+								$limit: limit,
 							},
 						}
 				),
@@ -118,7 +120,7 @@
 					return (
 						youTubePlaylists.map((playlist) => ({
 							entityId: playlist[EntityMetaKey.Id],
-							sortKey: playlist[EntityMetaKey.IdKey],
+							sortKey: stringify(playlist[EntityMetaKey.Id]),
 						}))
 					)
 				},
@@ -131,8 +133,8 @@
 				{title}
 				resource={playlists}
 				placeholderText="Loading playlists…"
-				getKey={(row) => stringify(youTubePlaylist.entityId)}
-				getSortValue={(row) => youTubePlaylist.sortKey}
+				getKey={(playlist) => stringify(playlist.entityId)}
+				getSortValue={(playlist) => playlist.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

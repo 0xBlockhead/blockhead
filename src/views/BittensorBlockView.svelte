@@ -9,6 +9,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -25,10 +27,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const block = useEntity(
 		EntityType.BittensorBlock,
@@ -73,7 +71,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Block </span>
+			{#if Value}
 			{@render Value()}
+					{/if}
 		</span>
 	{/snippet}
 

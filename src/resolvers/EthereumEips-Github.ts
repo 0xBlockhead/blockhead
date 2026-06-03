@@ -49,11 +49,14 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 	for (const { category: cat, data } of byLedger) {
 		for (const githubContent of data) {
 			if (githubContent.type !== 'file' || !githubContent.name.endsWith('.md')) continue
-				const proposalNumberRaw = regex('^(?:eip|erc)-(?<proposalNumber>\\d+)\\.md$').exec(githubContent.name)?.groups?.proposalNumber
-				const proposalNumber = proposalNumberRaw != null ? parseInt(proposalNumberRaw, 10)
+				const proposalNumberRaw = regex('^(?:eip|erc)-(?<proposalNumber>\\d+)\\.md$').exec(githubContent.name)?.groups.proposalNumber
+				const proposalNumber = proposalNumberRaw != null ?
+					parseInt(proposalNumberRaw, 10)
 				:
 					null
+
 				if (proposalNumber == null) continue
+
 				specificationProposals.push({
 					[EntityMetaKey.Id]: {
 						realm: SpecificationRealm.Ethereum,
@@ -92,22 +95,10 @@ export default {
 				const body = stripFrontmatter(text)
 				const fm = parseFrontmatter(text)
 				return {
-					documentCategory: (
-						((docCategory) => (
-							docCategory != null && docCategory !== '' ? docCategory : null
-						))(fm.category?.trim())
-					),
-					documentTitle: (
-						((docTitle) => (
-							docTitle != null && docTitle !== '' ? docTitle : null
-						))(fm.title?.trim())
-					),
-					documentStatus: (
-						((docStatus) => (
-							docStatus != null && docStatus !== '' ? docStatus : null
-						))(fm.status?.trim())
-					),
-					documentBody: body.length > 0 ? body : null,
+					documentCategory: fm.category.trim() || undefined,
+					documentTitle: fm.title.trim() || undefined,
+					documentStatus: fm.status.trim() || undefined,
+					documentBody: body.length > 0 ? body : undefined,
 				}
 			},
 		}),

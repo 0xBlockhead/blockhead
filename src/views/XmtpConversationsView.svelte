@@ -13,6 +13,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -31,34 +33,12 @@
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'body'
-			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'Empty'
-			| 'getKey'
-			| 'getSortValue'
-			| 'HeadingProps'
-			| 'href'
-			| 'id'
-			| 'Item'
-			| 'ItemPlaceholder'
-			| 'items'
-			| 'layout'
-			| 'limit'
-			| 'panelStyle'
-			| 'placeholderKeys'
-			| 'placeholderText'
-			| 'resource'
-			| 'showSummary'
-			| 'TypeAnnotationTooltip'
-			| 'UnorderedListProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -105,8 +85,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(row) => stringify(xmtpConversation.value[EntityMetaKey.Id])}
-				getSortValue={(row) => xmtpConversation.value[EntityMetaKey.Id].id}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => row.value[EntityMetaKey.Id].id}
 				resource={conversations}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}

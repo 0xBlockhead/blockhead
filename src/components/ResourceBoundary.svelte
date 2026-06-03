@@ -37,14 +37,13 @@
 		]>
 		placeholderText?: string
 		resource:
-			| QueryLike<Data>
-			| RemoteResource<Data>
+			| QueryLike<Data> & { readonly [Symbol.toStringTag]?: string }
+			| RemoteResource<Data> & { readonly [Symbol.toStringTag]?: string }
 		boundaryKey?: string
 		layout?: Layout
 	} = $props()
 
-
-	const resource = (
+	const resource = $derived(
 		resourceRaw[Symbol.toStringTag] === 'RemoteResource' ?
 			toQueryResourceFromRemote(() => resourceRaw as RemoteResource<Data>)
 		:

@@ -12,6 +12,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -30,34 +32,12 @@
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'body'
-			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'Empty'
-			| 'getKey'
-			| 'getSortValue'
-			| 'HeadingProps'
-			| 'href'
-			| 'id'
-			| 'Item'
-			| 'ItemPlaceholder'
-			| 'items'
-			| 'layout'
-			| 'limit'
-			| 'panelStyle'
-			| 'placeholderKeys'
-			| 'placeholderText'
-			| 'resource'
-			| 'showSummary'
-			| 'TypeAnnotationTooltip'
-			| 'UnorderedListProps'
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'

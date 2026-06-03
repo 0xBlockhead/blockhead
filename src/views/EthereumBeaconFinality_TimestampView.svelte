@@ -1,12 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import {
-		caip2RouteParamsFromNetworkId,
-		evmChainIdFromNetworkId,
-	} from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -15,17 +8,10 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-			{ ...caip2RouteParamsFromNetworkId(entityId.$network) },
-		),
+		href = `/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`,
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
@@ -42,8 +28,7 @@
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkBeaconFinalityTimestamp = useEntity(
@@ -109,7 +94,7 @@
 					justified
 				{:else}
 					<span>
-						chain {String(evmChainIdFromNetworkId(entityId.$network))}
+						chain {String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}
 					</span>
 				{/if}
 			{/snippet}
@@ -117,7 +102,38 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			resource={networkBeaconFinalityTimestamp}
+			placeholderText="Loading finality…"
+		>
+			{#snippet children(networkBeaconFinalityTimestamp)}
+				{#if networkBeaconFinalityTimestamp.finalizedCheckpointEpoch !== undefined}
+					<BeaconEpochView
+						entityId={{
+							$network: entityId.$network,
+							epoch: networkBeaconFinalityTimestamp.finalizedCheckpointEpoch,
+						}}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+					finalized
+				{:else if networkBeaconFinalityTimestamp.currentJustifiedCheckpointEpoch !== undefined}
+					<BeaconEpochView
+						entityId={{
+							$network: entityId.$network,
+							epoch: networkBeaconFinalityTimestamp.currentJustifiedCheckpointEpoch,
+						}}
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+					justified
+				{:else}
+					<span>
+						chain {String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -146,7 +162,7 @@
 						<dd data-row="wrap align-start gap-2">
 							<BeaconEpochView
 								entityId={{
-									$network: networkIdFromEvmChainId(evmChainIdFromNetworkId(entityId.$network)),
+									$network: entityId.$network,
 									epoch: networkBeaconFinalityTimestamp.currentJustifiedCheckpointEpoch,
 								}}
 								layout={EntityLayout.Title}
@@ -163,7 +179,7 @@
 						<dd data-row="wrap align-start gap-2">
 							<BeaconEpochView
 								entityId={{
-									$network: networkIdFromEvmChainId(evmChainIdFromNetworkId(entityId.$network)),
+									$network: entityId.$network,
 									epoch: networkBeaconFinalityTimestamp.finalizedCheckpointEpoch,
 								}}
 								layout={EntityLayout.Title}
@@ -180,7 +196,7 @@
 						<dd data-row="wrap align-start gap-2">
 							<BeaconEpochView
 								entityId={{
-									$network: networkIdFromEvmChainId(evmChainIdFromNetworkId(entityId.$network)),
+									$network: entityId.$network,
 									epoch: networkBeaconFinalityTimestamp.previousJustifiedCheckpointEpoch,
 								}}
 								layout={EntityLayout.Title}

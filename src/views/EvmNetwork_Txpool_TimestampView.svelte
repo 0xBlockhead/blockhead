@@ -1,13 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import {
-		caip2RouteParamsFromNetworkId,
-		evmChainIdFromNetworkId,
-	} from '$/lib/caip.ts'
-
-
-	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -22,10 +15,10 @@
 	// State
 	let {
 		entityId,
-		href = resolve(
-		'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-		{ ...caip2RouteParamsFromNetworkId(entityId.$network) },
-	),
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]', {
+			caip2Namespace: entityId.$network.caip2.namespace,
+			caip2Reference: entityId.$network.caip2.reference,
+		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
@@ -38,12 +31,11 @@
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'href'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkTxpoolTimestamp = useEntity(
@@ -90,7 +82,7 @@
 					queued
 				{:else}
 					<span>
-						chain {String(evmChainIdFromNetworkId(entityId.$network))}
+						chain {String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}
 					</span>
 				{/if}
 			{/snippet}
@@ -98,7 +90,24 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			resource={networkTxpoolTimestamp}
+			placeholderText="Loading mempool…"
+		>
+			{#snippet children(networkTxpoolTimestamp)}
+				{#if networkTxpoolTimestamp.pendingCount !== undefined}
+					<NumberValue value={networkTxpoolTimestamp.pendingCount} />
+					pending
+				{:else if networkTxpoolTimestamp.queuedCount !== undefined}
+					<NumberValue value={networkTxpoolTimestamp.queuedCount} />
+					queued
+				{:else}
+					<span>
+						chain {String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}
+					</span>
+				{/if}
+	{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -153,8 +162,5 @@
 					</div>
 				{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

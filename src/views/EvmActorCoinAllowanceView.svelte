@@ -8,7 +8,6 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 
 
@@ -17,14 +16,12 @@
 
 
 	// State
-	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const
-
 	let {
 		entityId,
 		href = resolve(
 			'/~/(accounts)/accounts/(allowances)/allowance/[chainId]/[owner]/[coin]/[spender]',
 			{
-				chainId: String(evmChainIdFromNetworkId(entityId.$actorCoin.$coinInstance.$network)),
+				chainId: String(evmChainIdFromCaip2(`${entityId.$actorCoin.$coinInstance.$network.caip2.namespace}:${entityId.$actorCoin.$coinInstance.$network.caip2.reference}`)),
 				owner: entityId.$actorCoin.$actor.address,
 				coin: (
 					entityId.$actorCoin.$coinInstance.type === CoinInstanceType.Erc20Token ?
@@ -43,6 +40,7 @@
 			entityId: EntityId<typeof schema, EntityType.EvmActorCoinAllowance>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -50,9 +48,10 @@
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const
 
 	const allowanceAnchorKey = stringify(entityId)
 
@@ -63,9 +62,7 @@
 			$: [Source.Voltaire_JsonRpc],
 			allowance: {},
 			lastChecked: {},
-			...(open ? { $spenderContract: {} }
-			:
-				{}),
+			...(open ? { $spenderContract: {} } : {}),
 		},
 	)
 
@@ -97,9 +94,7 @@
 			placeholderText="Loading allowance…"
 		>
 			{#snippet children(allowance)}
-				{allowance.allowance !== undefined ? String(allowance.allowance)
-				:
-					'Allowance'}
+				{allowance.allowance !== undefined ? String(allowance.allowance) : 'Allowance'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -110,14 +105,12 @@
 			placeholderText="Loading allowance…"
 		>
 			{#snippet children(allowance)}
-				{allowance.allowance !== undefined ? String(allowance.allowance)
-				:
-					'Allowance'}
+				{allowance.allowance !== undefined ? String(allowance.allowance) : 'Allowance'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({})}
+	{#snippet Content({ open })}
 		<dl data-column-item="center">
 			<div>
 				<dt>Owner</dt>
@@ -149,7 +142,7 @@
 					{:else if entityId.$actorCoin.$coinInstance.type === CoinInstanceType.Erc20Token}
 						<EvmContractView
 							entityId={entityId.$actorCoin.$coinInstance.$contract}
-							layout={EntityLayout.SummaryDetails}
+							layout={EntityLayout.Value}
 							open={false}
 							showTypeAnnotation={false}
 						/>
@@ -159,7 +152,7 @@
 				</dd>
 			</div>
 
-			{#if contentOpen}
+			{#if open}
 				<div>
 					<dt>Allowance</dt>
 					<dd>
@@ -177,7 +170,7 @@
 				</div>
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				<div>
 					<dt>Last checked</dt>
 					<dd>
@@ -195,7 +188,7 @@
 				</div>
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				<div>
 					<dt>Spender contract</dt>
 					<dd>
@@ -207,7 +200,7 @@
 								{#if allowance.$spenderContract?.[EntityMetaKey.Id]}
 									<EvmContractView
 										entityId={allowance.$spenderContract[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryDetails}
+										layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}
 									/>
@@ -228,56 +221,56 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${allowanceAnchorKey}:carousel-related`}
-				sectionIdPrefix={allowanceAnchorKey}
-				sections={[
-					{ id: 'allowance-overview', label: 'Overview' },
-				]}
-				data-card
-			>
-				{#snippet Summary({ open: _relatedSummaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Allowance detail
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${allowanceAnchorKey}:carousel-related`}
+			sectionIdPrefix={allowanceAnchorKey}
+			sections={[
+				{ id: 'allowance-overview', label: 'Overview' },
+			]}
+			data-card
+		>
+			{#snippet Summary({ open: _relatedSummaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Allowance detail
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionAllowanceOverview({ id, label })}
-					<ResourceBoundary
-						resource={allowance}
-						placeholderText="Loading allowance…"
-					>
-						{#snippet children(allowance)}
-							{#if (
-								allowance.allowance == null
-								&& allowance.lastChecked == null
-							)}
-								<div data-row="wrap align-center gap-2">
-									<p data-text="muted">
-										Allowance not yet resolved. Check the token-spender pair on-chain via execution RPC.
-									</p>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
-											<p>
-												ERC-20 allowance is read by calling <code>allowance(owner, spender)</code>
-												on the token contract. The spender address must be known; explorers do not index historical Approval events.
-											</p>
-										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="ERC-20 allowance"
-										>ⓘ</abbr>
-									</Tooltip>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+			{#snippet SectionAllowanceOverview({ id, label })}
+				<ResourceBoundary
+					resource={allowance}
+					placeholderText="Loading allowance…"
+				>
+					{#snippet children(allowance)}
+						{#if (
+							allowance.allowance == null
+							&& allowance.lastChecked == null
+						)}
+							<div data-row="wrap align-center gap-2">
+								<p data-text="muted">
+									Allowance not yet resolved. Check the token-spender pair on-chain via execution RPC.
+								</p>
+								<Tooltip contentProps={{ side: 'top' }}>
+									{#snippet Content()}
+										<p>
+											ERC-20 allowance is read by calling <code>allowance(owner, spender)</code>
+											on the token contract. The spender address must be known; explorers do not index historical Approval events.
+										</p>
+									{/snippet}
+									<abbr
+										class="entity-heading-tip"
+										aria-label="ERC-20 allowance"
+									>ⓘ</abbr>
+								</Tooltip>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-				{/snippet}
-		</CollapsibleTabs>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

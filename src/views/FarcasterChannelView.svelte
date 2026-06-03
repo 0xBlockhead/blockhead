@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -33,10 +34,6 @@
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const channel = useEntity(
 		EntityType.FarcasterChannel,
@@ -394,40 +391,40 @@
 		</dl>
 	{/snippet}
 
-		{#snippet Details({
-			open: _open,
-		})}
-			{@const channelDetailKey = stringify(entityId)}
-			<CollapsibleTabs
-					id={`${channelDetailKey}:carousel-channel`}
-					sectionIdPrefix={channelDetailKey}
-					sections={collapsibleTabsSections([
-							{ id: 'channel-record', label: 'Record' },
-							{ id: 'channel-banner', label: 'Banner' },
-							{ id: 'metric-snapshots', label: 'Metrics' },
-						])}
-					data-card
+	{#snippet Details({
+		open: _open,
+	})}
+		{@const channelDetailKey = stringify(entityId)}
+		<CollapsibleTabs
+			id={`${channelDetailKey}:carousel-channel`}
+			sectionIdPrefix={channelDetailKey}
+			sections={collapsibleTabsSections([
+				{ id: 'channel-record', label: 'Record' },
+				{ id: 'channel-banner', label: 'Banner' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
 				>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Channel
-						</HeadingComponent>
-					</header>
-				{/snippet}
+					<HeadingComponent>
+						Channel
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionChannelRecord()}
-				{/snippet}
+			{#snippet SectionChannelRecord()}
+			{/snippet}
 
-					{#snippet SectionChannelBanner()}
-						<ResourceBoundary
-						resource={channel}
-						placeholderText="Loading Farcaster channel banner…"
+			{#snippet SectionChannelBanner()}
+				<ResourceBoundary
+					resource={channel}
+					placeholderText="Loading Farcaster channel banner…"
 					>
 						{#snippet children(channel)}
 							<section data-column>
@@ -445,21 +442,21 @@
 								{/if}
 							</section>
 						{/snippet}
-						</ResourceBoundary>
-					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<FarcasterChannel_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.FarcasterChannel,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${channelDetailKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
+			{#snippet SectionMetricSnapshots()}
+				<FarcasterChannel_TimestampsView
+					entityFieldReference={{
+							entityType: EntityType.FarcasterChannel,
+							entityId,
+							fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${channelDetailKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
 			</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

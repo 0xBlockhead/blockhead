@@ -7,61 +7,64 @@ type LastInUnion<_U> = (
 )
 
 type UnionMemberCount<_U, _Acc extends 0[] = []> = (
-	[_U] extends [never]
-		? _Acc['length']
-		:
-			UnionMemberCount<
+	[_U] extends [never] ?
+		_Acc['length']
+	:
+		UnionMemberCount<
 			Exclude<_U, LastInUnion<_U>>,
 			[..._Acc, 0]
 		>
 )
 
 type StringValueOfEachUnionMember<_U> = (
-	_U extends _U
-		? `${_U & string}`
-		:
-			never
+	_U extends _U ?
+		`${_U & string}`
+	:
+		never
 )
 
 type TupleSourceUnion<_Union extends PropertyKey> = (
-	[Extract<_Union, string>] extends [never]
-		? _Union
-		:
-			StringValueOfEachUnionMember<Extract<_Union, string>>
+	[Extract<_Union, string>] extends [never] ?
+		_Union
+	:
+		StringValueOfEachUnionMember<Extract<_Union, string>>
 )
 
 type PermutationTuple<
 	_Union extends PropertyKey,
 	_First = _Union,
 > = (
-	[_Union] extends [never]
-		? readonly []
-		:
-			_First extends _First
-			? readonly [_First, ...PermutationTuple<Exclude<_Union, _First>>]
-			:
-				never
+	[_Union] extends [never] ?
+		readonly []
+	: _First extends _First ?
+		readonly [_First, ...PermutationTuple<Exclude<_Union, _First>>]
+	:
+		never
 )
 
 type TupleOfIdRecords<
 	_Tuple extends readonly PropertyKey[],
 	_Key extends PropertyKey,
 > = (
-	_Tuple extends readonly [infer _Head, ...infer _Rest]
-		? _Head extends PropertyKey
-			? readonly [Record<_Key, _Head>, ...TupleOfIdRecords<_Rest, _Key>]
-			:
-				never
-		:
-			readonly []
+	_Tuple extends readonly [
+		infer _Head extends PropertyKey,
+		...infer _Rest extends readonly PropertyKey[],
+	] ?
+		readonly [Record<_Key, _Head>, ...TupleOfIdRecords<_Rest, _Key>]
+	:
+		readonly []
 )
 
 export type ArrayOfUniqueThings<
 	_Union extends PropertyKey,
 	_Key extends PropertyKey = 'id',
 > = (
-	UnionMemberCount<_Union> extends 1 | 2 | 3 | 4
-		? TupleOfIdRecords<PermutationTuple<TupleSourceUnion<_Union>>, _Key>
+	UnionMemberCount<_Union> extends 1 | 2 | 3 | 4 ?
+		TupleSourceUnion<_Union> extends infer _TupleUnion extends PropertyKey ?
+			// @ts-expect-error bounded permutation type exceeds TypeScript comparison depth for generic source unions.
+			TupleOfIdRecords<PermutationTuple<_TupleUnion>, _Key>
 		:
 			never
+	:
+		never
 )

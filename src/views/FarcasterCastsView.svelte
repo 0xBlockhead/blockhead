@@ -11,6 +11,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -22,14 +24,18 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<
+			entityFieldReference: Extract<
+				EntityFieldReference<
 				typeof schema,
 				EntityType.FarcasterCast
+				>,
+				{ entityType: EntityType.FarcasterFeed }
 			>
 			id?: string
 			title?: string
 			limit?: number
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -38,9 +44,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -107,8 +110,8 @@
 				href={EntitiesListProps.href}
 				{title}
 				open={true}
-				getKey={(row) => stringify(farcasterCast.result[EntityMetaKey.Id])}
-				getSortValue={(row) => stringify(farcasterCast.result[EntityMetaKey.Id])}
+				getKey={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Id])}
+				getSortValue={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Id])}
 				placeholderText="Loading feed casts (Farcaster FID + cast hash)…"
 				resource={casts}
 			>

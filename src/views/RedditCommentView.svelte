@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,10 +36,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const comment = useEntity(
 		EntityType.RedditComment,
@@ -231,58 +228,58 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				sectionIdPrefix={idKey}
-					sections={collapsibleTabsSections([
-						{ id: 'comment-details', label: 'Metadata' },
-						{ id: 'comment-replies', label: 'Replies' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				id={`${idKey}:carousel-comment`}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Comment & replies
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			sectionIdPrefix={idKey}
+				sections={collapsibleTabsSections([
+					{ id: 'comment-details', label: 'Metadata' },
+					{ id: 'comment-replies', label: 'Replies' },
+					{ id: 'metric-snapshots', label: 'Metrics' },
+				])}
+			id={`${idKey}:carousel-comment`}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Comment & replies
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionCommentDetails()}
-				{/snippet}
+			{#snippet SectionCommentDetails()}
+			{/snippet}
 
-					{#snippet SectionCommentReplies()}
-						<RedditCommentsView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.RedditComment,
-							entityId,
-							fieldName: '$$replies',
-						}}
-						id={`${idKey}:reddit-replies`}
-						sortMode="createdAtAsc"
-						title="Replies"
-						/>
-					{/snippet}
+			{#snippet SectionCommentReplies()}
+				<RedditCommentsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.RedditComment,
+						entityId,
+						fieldName: '$$replies',
+					}}
+					id={`${idKey}:reddit-replies`}
+				sortMode="createdAtAsc"
+					title="Replies"
+				/>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<RedditComment_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.RedditComment,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${idKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
-			</CollapsibleTabs>
+			{#snippet SectionMetricSnapshots()}
+				<RedditComment_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.RedditComment,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${idKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 
 		{/snippet}
 	</EntityView>

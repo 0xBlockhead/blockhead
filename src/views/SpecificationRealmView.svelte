@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -31,10 +32,6 @@
 		never
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const realm = useEntity(
 		EntityType.SpecificationRealm,
 		entityId,
@@ -48,13 +45,21 @@
 	)
 
 
+	// (Derived)
+	const realmRow = $derived(
+		realm.ready ?
+			realm.current
+			:
+			undefined,
+	)
+
 	const href = $derived(
 		hrefProp ?? (
-			realm.slug != null ?
+			realmRow?.slug != null ?
 				resolve(
-					'/proposals/[specificationRealmSlug]',
+					'/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
 					{
-						specificationRealmSlug: realm.slug,
+						specificationRealmSlug: realmRow.slug,
 					},
 				)
 			:
@@ -75,7 +80,7 @@
 	entityType={EntityType.SpecificationRealm}
 	{entityId}
 	{href}
-	title={realm.label ?? String(entityId.realm)}
+	title={realmRow?.label ?? String(entityId.realm)}
 	{layout}
 	bind:open
 	{...EntityViewProps}

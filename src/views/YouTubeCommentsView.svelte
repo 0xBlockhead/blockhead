@@ -13,6 +13,7 @@
 
 
 	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -35,34 +36,15 @@
 			limit?: number
 			open?: boolean
 			title?: string
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'body'
-			| 'collapsible'
-			| 'CollapsibleProps'
-			| 'Empty'
-			| 'getKey'
-			| 'getSortValue'
-			| 'HeadingProps'
 			| 'href'
-			| 'Item'
-			| 'ItemPlaceholder'
-			| 'items'
-			| 'layout'
-			| 'panelStyle'
-			| 'placeholderKeys'
-			| 'placeholderText'
-			| 'resource'
-			| 'showSummary'
-			| 'TypeAnnotationTooltip'
-			| 'UnorderedListProps'
+			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -131,9 +113,7 @@
 				resource={comments}
 				placeholderText="Loading comment thread…"
 				getKey={(row) => stringify(row)}
-				getSortValue={(row) => (
-					`${String(-(youTubeComment.publishedAtMs ?? 0)).padStart(20, '0')}\0${youTubeComment.commentId}`
-				)}
+				getSortValue={(row) => row.commentId}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

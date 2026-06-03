@@ -27,7 +27,7 @@ export async function snapchainGet<T>(
 	for (const endpoint of nodeEndpoints) {
 		try {
 			return await getJson<T>(`${endpoint.url}${path}${toQueryString(params)}`, {
-				origins: Snapchain.origins ?? [],
+				origins: Snapchain.origins,
 			})
 		} catch (error) {
 			lastError = (

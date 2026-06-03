@@ -134,9 +134,6 @@ export default {
 						rpcUrl: lotusRpcUrl,
 						tipsetKey: head.Cids,
 					}),
-					head.Blocks[0]?.Miner == null ?
-						undefined
-					:
 						getMinerPower({
 							rpcUrl: lotusRpcUrl,
 							minerAddress: head.Blocks[0].Miner,
@@ -147,7 +144,7 @@ export default {
 					headHeight: BigInt(head.Height),
 					headTipsetKey: tipsetKey(head.Cids),
 					headBlockCount: head.Blocks.length,
-					headTimestampMs: head.Blocks[0]?.Timestamp == null ? undefined : head.Blocks[0].Timestamp * 1000,
+					headTimestampMs: head.Blocks[0].Timestamp * 1000,
 					networkVersion,
 					lotusVersion: lotusVersion.Version,
 					lotusAgent: lotusVersion.Agent,
@@ -172,7 +169,7 @@ export default {
 					height: entityId.height,
 				})
 				return {
-					...(entityId.height > 0n && tipset.Blocks[0]?.Parents != null && {
+					...(entityId.height > 0n && {
 						$parent: {
 							[EntityMetaKey.Id]: {
 								$network: entityId.$network,
@@ -182,7 +179,7 @@ export default {
 						},
 						parentWeight: BigInt(tipset.Blocks[0].ParentWeight),
 					}),
-					timestampMs: tipset.Blocks[0]?.Timestamp == null ? undefined : tipset.Blocks[0].Timestamp * 1000,
+					timestampMs: tipset.Blocks[0].Timestamp * 1000,
 					$$blocks: blockRows(
 						entityId.$network,
 						tipset,
@@ -221,8 +218,8 @@ export default {
 			entityType: EntityType.FilecoinActor,
 			resolve: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
-				const { stateGetActor } = await import('$/sources/Lotus/JsonRpc/queries.ts')
-				const actor = await stateGetActor({
+				const { getActor } = await import('$/sources/Lotus/JsonRpc/queries.ts')
+				const actor = await getActor({
 					rpcUrl: lotusRpcUrl,
 					address: entityId.address,
 				})
@@ -264,7 +261,7 @@ export default {
 						height: BigInt(head.Height),
 						tipsetKey: tipsetKey(head.Cids),
 					},
-					timestampMs: head.Blocks[0]?.Timestamp == null ? undefined : head.Blocks[0].Timestamp * 1000,
+					timestampMs: head.Blocks[0].Timestamp * 1000,
 					$$blocks: blockRows(
 						entityId,
 						head,
@@ -333,7 +330,7 @@ export default {
 							height: BigInt(tipset.Height),
 							tipsetKey: tipsetKey(tipset.Cids),
 						},
-						timestampMs: tipset.Blocks[0]?.Timestamp == null ? undefined : tipset.Blocks[0].Timestamp * 1000,
+						timestampMs: tipset.Blocks[0].Timestamp * 1000,
 						$$blocks: blockRows(
 							entityId,
 							tipset,

@@ -1,28 +1,39 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
-		getResourceHref,
 		getResourceCanonicalUri,
+		normalizeReference,
 	} from '$/sources/Swarm/Rest/queries.ts'
 
 	import { stringify } from 'devalue'
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 			entityId,
-			href = resolve(getResourceHref(entityId)),
+			href = (
+				entityId.contentPath.replace(/^\/+|\/+$/g, '') === '' ?
+					resolve('/(explore)/(swarm)/swarm/[reference]', {
+						reference: normalizeReference(entityId.reference),
+					})
+				:
+					resolve('/(explore)/(swarm)/swarm/[reference]/(swarmResource)/path/[...contentPath]', {
+						reference: normalizeReference(entityId.reference),
+						contentPath: entityId.contentPath.replace(/^\/+|\/+$/g, ''),
+					})
+			),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -31,13 +42,10 @@
 			entityId: EntityId<typeof schema, EntityType.SwarmResource>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const swarm = useEntity(
 		EntityType.SwarmResource,
@@ -62,7 +70,7 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import FileDetails from '$/components/FileDetails.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
@@ -113,13 +121,13 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({})}
+	{#snippet Content({ open })}
 		<dl data-column-item="center">
 			<div>
 				<dt>Content type</dt>
 				<dd>
 					{#if true}
-						{#snippet SwarmContentTypeRow(swarm)}
+						{#snippet SwarmContentTypeRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
 							{#if swarm.contentType !== undefined}
 								<TruncatedValue
 									value={swarm.contentType}
@@ -141,12 +149,12 @@
 				</dd>
 			</div>
 
-			{#if contentOpen}
+			{#if open}
 				<div>
 					<dt>Canonical URI</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmCanonicalUriRow(swarm)}
+							{#snippet SwarmCanonicalUriRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
 								<TruncatedValue
 									value={swarm.canonicalUri}
 									format={TruncatedValueFormat.Visual}
@@ -165,7 +173,7 @@
 					<dt>Gateway</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmGatewayOriginRow(swarm)}
+							{#snippet SwarmGatewayOriginRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
 								<TruncatedValue
 									value={swarm.gatewayOrigin}
 									format={TruncatedValueFormat.Visual}
@@ -184,7 +192,7 @@
 					<dt>Gateway URL</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmGatewayUrlRow(swarm)}
+							{#snippet SwarmGatewayUrlRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
 								<a
 									href={swarm.gatewayUrl}
 									target="_blank"
@@ -209,7 +217,7 @@
 					<dt>Content length</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmContentLengthRow(swarm)}
+							{#snippet SwarmContentLengthRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
 								{#if swarm.contentLength !== undefined}
 									<NumberValue
 										value={swarm.contentLength}
@@ -232,7 +240,7 @@
 					<dt>File name</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmFileNameRow(swarm)}
+							{#snippet SwarmFileNameRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
 								{#if swarm.fileName !== undefined}
 									<TruncatedValue
 										value={swarm.fileName}
@@ -253,7 +261,7 @@
 					<dt>Extension</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmExtensionRow(swarm)}
+							{#snippet SwarmExtensionRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
 								{#if swarm.extension !== undefined}
 									.{swarm.extension}
 								{/if}
@@ -271,7 +279,7 @@
 					<dt>Display type</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmDisplayTypeRow(swarm)}
+							{#snippet SwarmDisplayTypeRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
 								{swarm.displayType}
 							{/snippet}
 
@@ -291,53 +299,63 @@
 	})}
 		{@const detailKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${detailKey}:carousel-swarm-resource`}
-				sectionIdPrefix={detailKey}
-				sections={[
-					{ id: 'swarm-browse', label: 'Browse' },
-					{ id: 'swarm-record', label: 'Record' },
-					...(_open ? [{ id: 'swarm-preview', label: 'Preview' }] : []),
-				]}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Resource
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${detailKey}:carousel-swarm-resource`}
+			sectionIdPrefix={detailKey}
+			sections={collapsibleTabsSections(
+				_open ?
+					[
+						{ id: 'swarm-browse', label: 'Browse' },
+						{ id: 'swarm-record', label: 'Record' },
+						{ id: 'swarm-preview', label: 'Preview' },
+					]
+				:
+					[
+						{ id: 'swarm-browse', label: 'Browse' },
+						{ id: 'swarm-record', label: 'Record' },
+					],
+			)}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Resource
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionSwarmBrowse()}
-					<SwarmBrowseForm {entityId} />
-				{/snippet}
+			{#snippet SectionSwarmBrowse()}
+				<SwarmBrowseForm {entityId} />
+			{/snippet}
 
-				{#snippet SectionSwarmRecord()}
-				{/snippet}
+			{#snippet SectionSwarmRecord()}
+			{/snippet}
 
-				{#snippet SectionSwarmPreview()}
-					{#snippet SwarmPreviewBody(swarm)}
-						<FileDetails
-							contentSize={swarm.contentLength}
-							contentType={swarm.contentType}
-							displayType={swarm.displayType}
-							extension={swarm.extension}
-							fileName={swarm.fileName}
-							src={swarm.gatewayUrl}
-							text={swarm.text}
-						/>
-					{/snippet}
-
-					<ResourceBoundary
-						children={SwarmPreviewBody}
-						resource={swarm}
+			{#snippet SectionSwarmPreview()}
+				{#snippet SwarmPreviewBody(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
+					{#if swarm.displayType !== undefined}
+					<FileDetails
+						contentSize={swarm.contentLength}
+						contentType={swarm.contentType}
+						displayType={swarm.displayType}
+						extension={swarm.extension}
+						fileName={swarm.fileName}
+						src={swarm.gatewayUrl}
+						text={swarm.text}
 					/>
+					{/if}
 				{/snippet}
+
+				<ResourceBoundary
+					children={SwarmPreviewBody}
+					resource={swarm}
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 
 	{/snippet}

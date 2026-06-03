@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -13,19 +9,11 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
-
-
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/bridge/[bridgeId]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
-				bridgeId: entityId.bridgeId,
-			},
-		),
+		href = entityId.url,
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -34,16 +22,13 @@
 			entityId: EntityId<typeof schema, EntityType.EvmNetworkBridge>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const bridge = useEntity(
 		EntityType.EvmNetworkBridge,
@@ -72,18 +57,18 @@
 	{entityId}
 	href={href}
 	bind:open
-	title={`Execution bridge Chain ${String(entityId.$fromNetwork.chainId)} → Chain ${String(entityId.$toNetwork.chainId)}`}
+	title={`Execution bridge ${entityId.$fromNetwork.caip2.namespace}:${entityId.$fromNetwork.caip2.reference} → ${entityId.$toNetwork.caip2.namespace}:${entityId.$toNetwork.caip2.reference}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{entityId.bridgeId}
+			{entityId.url}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<span>
-			Execution bridge Chain {String(entityId.$fromNetwork.chainId)} → Chain {String(entityId.$toNetwork.chainId)}
+			Execution bridge {entityId.$fromNetwork.caip2.namespace}:{entityId.$fromNetwork.caip2.reference} → {entityId.$toNetwork.caip2.namespace}:{entityId.$toNetwork.caip2.reference}
 		</span>
 	{/snippet}
 
@@ -92,13 +77,13 @@
 			<div>
 				<dt>From</dt>
 				<dd>
-					Chain {String(entityId.$fromNetwork.chainId)}
+					{entityId.$fromNetwork.caip2.namespace}:{entityId.$fromNetwork.caip2.reference}
 				</dd>
 			</div>
 			<div>
 				<dt>To</dt>
 				<dd>
-					Chain {String(entityId.$toNetwork.chainId)}
+					{entityId.$toNetwork.caip2.namespace}:{entityId.$toNetwork.caip2.reference}
 				</dd>
 			</div>
 			<div>
@@ -127,8 +112,5 @@
 				</ResourceBoundary>
 			{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

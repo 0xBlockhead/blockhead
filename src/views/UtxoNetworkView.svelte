@@ -9,6 +9,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -21,10 +23,6 @@
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.Network,
@@ -64,6 +62,8 @@
 		},
 	)
 
+
+	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -120,46 +120,49 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary resource={utxoNetwork}>
-			{#snippet children(utxoNetwork)}
-				<dl class="network-summary-head" data-column-item="center">
-					{#if utxoNetwork.$$blocks.at(0) != null}
-						<div>
-							<dt>Head block</dt>
-							<dd id="network-summary-head-block">
-								<UtxoBlockView
-									entityId={utxoNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
+			<ResourceBoundary resource={utxoNetwork}>
+				{#snippet children(utxoNetwork)}
+					{@const block = utxoNetwork.$$blocks?.at(0)}
+					{@const timestamp = utxoNetwork.$$timestamps?.at(0)}
+					<dl class="network-summary-head" data-column-item="center">
+						{#if block != null}
+							<div>
+								<dt>Head block</dt>
+								<dd id="network-summary-head-block">
+									<UtxoBlockView
+										entityId={block[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+									/>
+								</dd>
+							</div>
+						{/if}
 
-					{#if utxoNetwork.$$timestamps.at(0)?.suggestedTransactionFeePerByteSats != null}
-						<div>
-							<dt>Suggested fee</dt>
-							<dd><NumberValue value={utxoNetwork.$$timestamps.at(0).suggestedTransactionFeePerByteSats} /> sat/vB</dd>
-						</div>
-					{/if}
-				</dl>
+						{#if timestamp?.suggestedTransactionFeePerByteSats != null}
+							<div>
+								<dt>Suggested fee</dt>
+								<dd><NumberValue value={timestamp.suggestedTransactionFeePerByteSats} /> sat/vB</dd>
+							</div>
+						{/if}
+					</dl>
 			{/snippet}
 		</ResourceBoundary>
 
-		<ResourceBoundary resource={network}>
-			{#snippet children(network)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
-					</div>
-
-					{#if network.$$nativeAssets.length > 0}
+			<ResourceBoundary resource={network}>
+				{#snippet children(network)}
+					{@const nativeAssetCount = network.$$nativeAssets?.length ?? 0}
+					<dl data-column-item="center">
 						<div>
-							<dt>Native asset</dt>
-							<dd>{network.$$nativeAssets.length}</dd>
+							<dt>Environment</dt>
+							<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 						</div>
-					{/if}
-				</dl>
+
+						{#if nativeAssetCount > 0}
+							<div>
+								<dt>Native asset</dt>
+								<dd>{nativeAssetCount}</dd>
+							</div>
+						{/if}
+					</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -290,7 +293,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -309,7 +311,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>

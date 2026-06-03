@@ -8,6 +8,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -24,10 +26,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const htlc = useEntity(
 		EntityType.LightningHtlc,
@@ -69,7 +67,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>HTLC </span>
+			{#if Value}
 			{@render Value()}
+					{/if}
 		</span>
 	{/snippet}
 
@@ -80,40 +80,40 @@
 		>
 			{#snippet children(row)}
 				<dl>
-					{#if lightningHtlc.direction != null}
+					{#if row.direction != null}
 						<div>
 							<dt>Direction</dt>
-							<dd>{lightningHtlc.direction}</dd>
+							<dd>{row.direction}</dd>
 						</div>
 					{/if}
 
-					{#if lightningHtlc.amountMsat != null}
+					{#if row.amountMsat != null}
 						<div>
 							<dt>Amount</dt>
-							<dd>{lightningHtlc.amountMsat.toString()} msat</dd>
+							<dd>{row.amountMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if lightningHtlc.expiryHeight != null}
+					{#if row.expiryHeight != null}
 						<div>
 							<dt>Expiry height</dt>
-							<dd>{lightningHtlc.expiryHeight.toString()}</dd>
+							<dd>{row.expiryHeight.toString()}</dd>
 						</div>
 					{/if}
 
-					{#if lightningHtlc.state != null}
+					{#if row.state != null}
 						<div>
 							<dt>State</dt>
-							<dd>{lightningHtlc.state}</dd>
+							<dd>{row.state}</dd>
 						</div>
 					{/if}
 
-					{#if lightningHtlc.hashLock != null}
+					{#if row.hashLock != null}
 						<div>
 							<dt>Hash lock</dt>
 							<dd>
 								<TruncatedValue
-									value={lightningHtlc.hashLock}
+									value={row.hashLock}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

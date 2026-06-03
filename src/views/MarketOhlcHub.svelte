@@ -43,7 +43,6 @@
 		candlesListTitle?: string
 	} = $props()
 
-
 	const timeIntervalLabel = $derived(
 		timeInterval.unit === MarketTimeIntervalUnit.Day ?
 			`${String(timeInterval.value)}d`

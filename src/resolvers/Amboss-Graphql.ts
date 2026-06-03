@@ -29,7 +29,7 @@ export default {
 				const node = await getNode({ publicKey: entityId.publicKey })
 				const graphNode = node.graph_info.node
 				const channels = node.graph_info.channels
-				const primaryAddress = graphNode?.addresses?.[0]
+				const primaryAddress = graphNode?.addresses[0]
 
 				return {
 					alias: graphNode?.alias ?? undefined,
@@ -55,7 +55,7 @@ export default {
 					countryCode: primaryAddress?.ip_info?.country_code ?? undefined,
 					city: primaryAddress?.ip_info?.city ?? undefined,
 					networkAddresses: (
-						graphNode?.addresses?.map((address) => address.addr) ?? []
+						graphNode?.addresses.map((address) => address.addr) ?? []
 					),
 				}
 			},
@@ -71,7 +71,7 @@ export default {
 
 				return {
 					[EntityMetaKey.Id]: {
-						$network: lightningNetwork,
+						$network: lightningNetworkId,
 						channelId: edge.long_channel_id,
 					},
 					shortChannelId: edge.short_channel_id,
@@ -93,7 +93,7 @@ export default {
 					...(edgeInfo?.node1_pub != null && {
 						$node0: {
 							[EntityMetaKey.Id]: {
-								$network: lightningNetwork,
+								$network: lightningNetworkId,
 								publicKey: edgeInfo.node1_pub,
 							},
 						},
@@ -101,7 +101,7 @@ export default {
 					...(edgeInfo?.node2_pub != null && {
 						$node1: {
 							[EntityMetaKey.Id]: {
-								$network: lightningNetwork,
+								$network: lightningNetworkId,
 								publicKey: edgeInfo.node2_pub,
 							},
 						},
@@ -126,7 +126,7 @@ export default {
 					.slice(0, resolverLoadSubsetRowLimit(context))
 					.map((publicKey) => ({
 						[EntityMetaKey.Id]: {
-							$network: lightningNetwork,
+							$network: lightningNetworkId,
 							publicKey,
 						},
 					}))

@@ -5,7 +5,6 @@
 	import { schema } from '$/schema/index.ts'
 
 
-	// State
 	const entityQueryByEntityType = Object.fromEntries(
 		schema.map((entityDefinition) => [
 			entityDefinition.entityType,
@@ -104,7 +103,8 @@
 									<li>
 										<pre data-card>{JSON.stringify(
 											item.entity,
-											(_key, inner) => (typeof inner === 'bigint' ? inner.toString()
+											(_key, inner) => (typeof inner === 'bigint' ?
+												inner.toString()
 											:
 												inner),
 											2,
@@ -155,7 +155,8 @@
 											<li>
 												<pre data-card>{JSON.stringify(
 													item.entityField,
-													(_key, inner) => (typeof inner === 'bigint' ? inner.toString()
+													(_key, inner) => (typeof inner === 'bigint' ?
+														inner.toString()
 													:
 														inner),
 													2,

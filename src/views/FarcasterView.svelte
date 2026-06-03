@@ -10,16 +10,14 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/farcaster',
-			entityId,
-		),
+		href = resolve('/farcaster'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -36,15 +34,9 @@
 		>
 	> = $props()
 
-
-	// Functions
 	const trendingFeed: EntityId<typeof schema, EntityType.FarcasterFeed> = {
 		variant: 'trending',
 	}
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.FarcasterNetwork,
@@ -187,140 +179,140 @@
 	})}
 		{@const networkIdKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-discovery`}
-				sectionIdPrefix={networkIdKey}
-				sections={collapsibleTabsSections([
-					{ id: 'feeds', label: 'Feeds' },
-					{ id: 'trending', label: 'Trending casts' },
-				])}
-				data-card
-			>
-				{#snippet Summary({ open: _open })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Discovery
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-discovery`}
+			sectionIdPrefix={networkIdKey}
+			sections={collapsibleTabsSections([
+				{ id: 'feeds', label: 'Feeds' },
+				{ id: 'trending', label: 'Trending casts' },
+			])}
+			data-card
+		>
+			{#snippet Summary({ open: _open })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Discovery
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionFeeds({ id, label })}
-					<FarcasterFeedsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/farcaster/feed')}
-						entityFieldReference={{
-							entityType: EntityType.FarcasterNetwork,
-							entityId: { scope: 'FarcasterNetwork' },
-							fieldName: '$$feeds',
-						}}
-						id="feed-index"
-						limit={36}
-						open={_open}
-					/>
-				{/snippet}
+			{#snippet SectionFeeds({ id, label })}
+				<FarcasterFeedsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/farcaster/feed')}
+					entityFieldReference={{
+						entityType: EntityType.FarcasterNetwork,
+						entityId: { scope: 'FarcasterNetwork' },
+						fieldName: '$$feeds',
+					}}
+					id="feed-index"
+					limit={36}
+					open={_open}
+				/>
+			{/snippet}
 
-				{#snippet SectionTrending({ id, label })}
-					<FarcasterCastsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/farcaster/feed/trending')}
-						entityFieldReference={{
-							entityType: EntityType.FarcasterFeed,
-							entityId: trendingFeed,
-							fieldName: '$$entries',
-						}}
-						id="casts"
-						limit={25}
-						open={_open}
-						title="Trending casts"
-					/>
-				{/snippet}
+			{#snippet SectionTrending({ id, label })}
+				<FarcasterCastsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/farcaster/feed/trending')}
+					entityFieldReference={{
+						entityType: EntityType.FarcasterFeed,
+						entityId: trendingFeed,
+						fieldName: '$$entries',
+					}}
+					id="casts"
+					limit={25}
+					open={_open}
+					title="Trending casts"
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-community`}
-				sectionIdPrefix={networkIdKey}
-				sections={collapsibleTabsSections([
-					{ id: 'channels', label: 'Channels' },
-					{ id: 'users', label: 'Users' },
-				])}
-				data-card
-				scrollContainerProps={entityViewDetailCarouselScrollProps}
-			>
-				{#snippet Summary({ open: _open })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Community
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-community`}
+			sectionIdPrefix={networkIdKey}
+			sections={collapsibleTabsSections([
+				{ id: 'channels', label: 'Channels' },
+				{ id: 'users', label: 'Users' },
+			])}
+			data-card
+			scrollContainerProps={entityViewDetailCarouselScrollProps}
+		>
+			{#snippet Summary({ open: _open })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Community
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionChannels({ id, label })}
-					<FarcasterChannelsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/farcaster/channels')}
-						entityFieldReference={{
-							entityType: EntityType.FarcasterNetwork,
-							entityId,
-							fieldName: '$$channels',
-						}}
-						id="channels"
-						open={_open}
-					/>
-				{/snippet}
+			{#snippet SectionChannels({ id, label })}
+				<FarcasterChannelsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/farcaster/channels')}
+					entityFieldReference={{
+						entityType: EntityType.FarcasterNetwork,
+						entityId,
+						fieldName: '$$channels',
+					}}
+					id="channels"
+					open={_open}
+				/>
+			{/snippet}
 
-				{#snippet SectionUsers({ id, label })}
-					<FarcasterUsersView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/farcaster/users')}
-						entityFieldReference={{
-							entityType: EntityType.FarcasterNetwork,
-							entityId,
-							fieldName: '$$users',
-						}}
-						id="users"
-						open={_open}
-					/>
-				{/snippet}
+			{#snippet SectionUsers({ id, label })}
+				<FarcasterUsersView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/farcaster/users')}
+					entityFieldReference={{
+						entityType: EntityType.FarcasterNetwork,
+						entityId,
+						fieldName: '$$users',
+					}}
+					id="users"
+					open={_open}
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-accounts`}
-				sectionIdPrefix={networkIdKey}
-				sections={collapsibleTabsSections([
-					{ id: 'accounts', label: 'Connected accounts' },
-				])}
-				data-card
-				scrollContainerProps={entityViewDetailCarouselScrollProps}
-			>
-				{#snippet Summary({ open: _open })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Accounts
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-accounts`}
+			sectionIdPrefix={networkIdKey}
+			sections={collapsibleTabsSections([
+				{ id: 'accounts', label: 'Connected accounts' },
+			])}
+			data-card
+			scrollContainerProps={entityViewDetailCarouselScrollProps}
+		>
+			{#snippet Summary({ open: _open })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Accounts
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionAccounts({ id, label })}
-					<BlockheadFarcasterAccountConnectionsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/farcaster/accounts')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$blockheadFarcasterAccountConnections',
-						}}
-						id="accounts"
-						open={_open}
-					/>
-				{/snippet}
+			{#snippet SectionAccounts({ id, label })}
+				<BlockheadFarcasterAccountConnectionsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/farcaster/accounts')}
+					entityFieldReference={{
+						entityType: EntityType._Global,
+						entityId: { scope: '$$blockheadFarcasterAccountConnections' },
+						fieldName: '$$blockheadFarcasterAccountConnections',
+					}}
+					id="accounts"
+					open={_open}
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 
 	{/snippet}

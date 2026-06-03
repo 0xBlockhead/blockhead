@@ -28,7 +28,7 @@ export const getPosts = async (uris: string[]) => (
 		`${bskySocialXrpcBase}/app.bsky.feed.getPosts?${(
 			new URLSearchParams(uris.map((u) => ['uris', u])).toString()
 		)}`,
-		{ origins: AtprotoBskySocial.origins ?? [] },
+		{ origins: AtprotoBskySocial.origins  },
 	)
 )
 
@@ -68,7 +68,7 @@ export const getAuthorFeed = async ({
 		{
 				actor,
 				limit,
-				includePins: includePins == null ? undefined : String(includePins),
+				includePins: String(includePins),
 				cursor: cursor == null || cursor === '' ? undefined : cursor,
 			},
 	)

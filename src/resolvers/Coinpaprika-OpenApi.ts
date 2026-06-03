@@ -54,8 +54,8 @@ export default {
 
 				const decimals = decimalsByCoinId[entityId.coinId]
 				const logoMedia = mediaFromUrl(coin.logo, MediaType.Image)
-				const coinName = coin.name?.trim() ?? ''
-				const coinSymbol = coin.symbol?.trim() ?? ''
+				const coinName = coin.name ?? ''
+				const coinSymbol = coin.symbol ?? ''
 
 				return {
 					...(coinName !== '' && { name: coinName }),
@@ -92,7 +92,7 @@ export default {
 					publicEnv,
 					coinpaprikaId,
 				})
-				const price = ticker.quotes?.USD?.price
+				const price = ticker.quotes?.USD.price
 				const updatedAtMs = (
 					ticker.last_updated == null || ticker.last_updated === '' ?
 						NaN
@@ -109,9 +109,9 @@ export default {
 				}
 
 				return {
-					price: BigInt(Math.round((price ?? 0) * 1e8)),
+					price: BigInt(Math.round((price ) * 1e8)),
 					transport: 'coinpaprika-usd-1e8',
-					...(coinpaprikaId !== undefined && { providerAssetId: coinpaprikaId }),
+					providerAssetId: coinpaprikaId,
 				}
 			},
 		}),
@@ -384,7 +384,6 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
 				const ohlcDayWindows = getOhlcDayWindowValues(publicEnv)
 				const coinpaprikaId = idByCoinId[coinId]
-				if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: OHLC coin not mapped')
 				const lim = resolverLoadSubsetRowLimit(context)
 				const candles = []
 				for (const value of ohlcDayWindows) {
@@ -463,7 +462,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
@@ -473,7 +472,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,

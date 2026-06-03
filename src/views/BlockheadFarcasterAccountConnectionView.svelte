@@ -12,6 +12,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -30,6 +31,7 @@
 			entityId: EntityId<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -37,10 +39,6 @@
 			| 'title'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const connection = useEntity(
 		EntityType.BlockheadFarcasterAccountConnection,
@@ -66,6 +64,11 @@
 		},
 	)
 
+
+	// (Derived)
+	const connectionRow = $derived(
+		connection.ready ? connection.current : undefined,
+	)
 
 	const connectionIdKey = $derived(
 		stringify(entityId),
@@ -190,7 +193,7 @@
 		<dl data-column-item="center">
 			{#if (
 				open
-				&& connection.custody
+				&& connectionRow?.custody
 			)}
 				<div>
 					<dt>Custody</dt>
@@ -213,7 +216,7 @@
 
 			{#if (
 				open
-				&& connection.signedAt !== undefined
+				&& connectionRow?.signedAt !== undefined
 			)}
 				<div>
 						<dt>Signed at</dt>
@@ -239,36 +242,38 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				sectionIdPrefix={connectionIdKey}
-				sections={[
-					{ id: 'feed', label: 'Farcaster feed' },
-				]}
-				id={`${connectionIdKey}:carousel-feed`}
-				data-card
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Farcaster feed</HeadingComponent>
-					</header>
-				{/snippet}
+			sectionIdPrefix={connectionIdKey}
+			sections={[
+				{ id: 'feed', label: 'Farcaster feed' },
+			]}
+			id={`${connectionIdKey}:carousel-feed`}
+			data-card
+		>
+			{#snippet Summary({ open: _isOpen })}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Farcaster feed</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionFeed({ id: _feedId, label: _feedLabel })}
-					<FarcasterCastsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve(`/farcaster/feed/user/${String(entityId.fid)}`)}
-						entityFieldReference={{
-							entityType: EntityType.FarcasterFeed,
-							entityId: {
-								variant: 'byUser',
-								fid: entityId.fid,
-							},
-							fieldName: '$$entries',
-						}}
-						id={`${connectionIdKey}:feed-blockheadFarcasterAccountConnections`}
-						title="Farcaster feed"
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionFeed({ id: _feedId, label: _feedLabel })}
+				<FarcasterCastsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/(social)/(farcaster)/farcaster/feed/user/[userId]', {
+						userId: String(entityId.fid),
+					})}
+					entityFieldReference={{
+						entityType: EntityType.FarcasterFeed,
+						entityId: {
+							variant: 'byUser',
+							fid: entityId.fid,
+						},
+						fieldName: '$$entries',
+					}}
+					id={`${connectionIdKey}:feed-blockheadFarcasterAccountConnections`}
+					title="Farcaster feed"
+				/>
+			{/snippet}
+	</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

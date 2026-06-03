@@ -12,6 +12,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -23,18 +25,17 @@
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmSelector>
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -115,7 +116,6 @@
 						entityId={item.value[EntityMetaKey.Id]}
 						layout={EntityLayout.Summary}
 						open={false}
-						collapsible={false}
 						showTypeAnnotation={false}
 					/>
 				{/snippet}

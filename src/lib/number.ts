@@ -75,14 +75,18 @@ export function formatValue(
 			},
 		)
 
-		return toParts === true ?
+		return (
+			toParts === true ?
 				formatter.formatToParts(value)
 			:
 				formatter.format(value)
+		)
 	} catch {
-		return toParts === true ?
-				[{ type: 'integer' as const, value: value?.toString() ?? '0' }]
+		return (
+			toParts === true ?
+				[{ type: 'integer' as const, value: value.toString()  }]
 			:
-				value?.toString() ?? '0'
+				value.toString()
+		)
 	}
 }

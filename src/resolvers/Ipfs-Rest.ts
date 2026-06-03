@@ -16,9 +16,6 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.IpfsResource,
 			resolve: async (entityId) => {
-				if (entityId.namespace !== 'ipfs' && entityId.namespace !== 'ipns') {
-					throw new Error(`Ipfs_Rest: unsupported namespace ${entityId.namespace}`)
-				}
 				const { fetchBrowseResult } = await import('$/sources/Ipfs/Rest/queries.ts')
 				const browseResult = await fetchBrowseResult({
 					namespace: entityId.namespace,

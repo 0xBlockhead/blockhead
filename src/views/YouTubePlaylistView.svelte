@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -34,10 +35,6 @@
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const playlist = useEntity(
 		EntityType.YouTubePlaylist,
@@ -195,52 +192,52 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-videos`}
-				sectionIdPrefix={idKey}
-					sections={collapsibleTabsSections([
-						{ id: 'videos', label: 'Videos' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Playlist items
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${idKey}:carousel-videos`}
+			sectionIdPrefix={idKey}
+			sections={collapsibleTabsSections([
+				{ id: 'videos', label: 'Videos' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Playlist items
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-					{#snippet SectionVideos()}
-						<YouTubeVideosView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.YouTubePlaylist,
-							entityId,
-							fieldName: '$$videos',
-						}}
-						id={`${idKey}:youtube-videos`}
-						open={_open}
-						/>
-					{/snippet}
+			{#snippet SectionVideos()}
+				<YouTubeVideosView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.YouTubePlaylist,
+						entityId,
+						fieldName: '$$videos',
+					}}
+					id={`${idKey}:youtube-videos`}
+					open={_open}
+				/>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<YouTubePlaylist_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.YouTubePlaylist,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${idKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
+			{#snippet SectionMetricSnapshots()}
+				<YouTubePlaylist_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.YouTubePlaylist,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${idKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
 			</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

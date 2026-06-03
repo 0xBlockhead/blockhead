@@ -11,6 +11,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -23,18 +25,16 @@
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BlockheadPanelTree>
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -89,8 +89,8 @@
 				entityType={EntityType.BlockheadPanelTree}
 				{title}
 				open={true}
-				getKey={(row) => stringify(blockheadPanelTree[EntityMetaKey.Id])}
-				getSortValue={(row) => blockheadPanelTree[EntityMetaKey.Id].id}
+				getKey={(panelTree) => stringify(panelTree[EntityMetaKey.Id])}
+				getSortValue={(panelTree) => panelTree[EntityMetaKey.Id].id}
 				resource={panelTrees}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>

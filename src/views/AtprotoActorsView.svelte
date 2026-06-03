@@ -2,6 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,6 +12,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -28,35 +31,15 @@
 			id: string
 			open?: boolean
 			title?: string
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'body'
-			| 'collapsible'
-			| 'CollapsibleProps'
-			| 'Empty'
-			| 'getKey'
-			| 'getSortValue'
-			| 'HeadingProps'
-			| 'Item'
-			| 'ItemPlaceholder'
-			| 'items'
-			| 'layout'
-			| 'limit'
-			| 'panelStyle'
-			| 'placeholderKeys'
-			| 'placeholderText'
-			| 'resource'
-			| 'showSummary'
-			| 'TypeAnnotationTooltip'
-			| 'UnorderedListProps',
 			| 'href'
+			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -105,9 +88,16 @@
 			)}
 			{@const actors = derive(
 				atprotoNetwork,
-				(atprotoNetwork) => (
+					(atprotoNetwork) => {
+						const atprotoActors: Entity<typeof schema, EntityType.AtprotoActor>[] = (
 					atprotoNetwork.$$atprotoActors ?? []
-				),
+						)
+						return (
+							atprotoActors.map((value) => ({
+								value,
+							}))
+						)
+					},
 			)}
 			{#key stringify(entityFieldReference.entityId)}
 				<EntitiesList
@@ -117,8 +107,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(atprotoActor[EntityMetaKey.Id])}
-					getSortValue={(row) => atprotoActor[EntityMetaKey.Id].did}
+						getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+						getSortValue={(row) => row.value[EntityMetaKey.Id].did}
 					placeholderText="Loading DID directory…"
 					resource={actors}
 				>
@@ -129,7 +119,7 @@
 					{/snippet}
 
 					{#snippet Item({ item })}
-						{@const actorId = item[EntityMetaKey.Id]}
+						{@const actorId = item.value[EntityMetaKey.Id]}
 						<AtprotoActorView
 							entityId={{ did: actorId.did }}
 							layout={EntityLayout.Summary}

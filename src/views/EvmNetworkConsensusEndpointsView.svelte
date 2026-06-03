@@ -7,9 +7,10 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -31,14 +32,12 @@
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -75,23 +74,15 @@
 					?? []
 				),
 			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.Url}
-				id={`${id}-items`}
-				href={href}
-				getKey={(endpoint) => endpoint.restBaseUrl}
-				open={true}
-				resource={endpoints}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				<ResourceBoundary
+					resource={endpoints}
+					placeholderText="Loading consensus endpoints…"
 			>
-				{#snippet Empty()}
-					<p data-text="muted">{emptyText}</p>
-				{/snippet}
-
-				{#snippet Item({ item: endpoint })}
+					{#snippet children(endpoints)}
+						{#if endpoints.length}
+							<ul data-column="gap-2">
+								{#each endpoints as endpoint (endpoint.restBaseUrl)}
+									<li>
 					<dl data-column-item="center">
 						<div>
 							<dt>REST base</dt>
@@ -103,8 +94,14 @@
 							<dd>{consensusProtocolByProtocol[endpoint.consensusProtocol].label}</dd>
 						</div>
 					</dl>
+									</li>
+								{/each}
+							</ul>
+						{:else}
+					<p data-text="muted">{emptyText}</p>
+		{/if}
 				{/snippet}
-			</EntitiesList>
+				</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

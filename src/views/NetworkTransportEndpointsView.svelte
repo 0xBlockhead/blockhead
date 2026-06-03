@@ -1,7 +1,4 @@
-<script
-	lang="ts"
-	generics="_ParentEntityType extends EntityType"
->
+<script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { Entity, EntityId } from '$/schema/$schema.ts'
@@ -11,14 +8,26 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-
 	type NetworkTransportEndpoint = {
 		url: string
 		transportType: string
 		providerName?: string
 	}
 
+	type NetworkTransportEndpointEntityType =
+		| EntityType.CosmosNetwork
+		| EntityType.FilecoinNetwork
+		| EntityType.HyperliquidNetwork
+		| EntityType.MoneroNetwork
+		| EntityType.NearNetwork
+		| EntityType.PolkadotNetwork
+		| EntityType.SolanaNetwork
+		| EntityType.TronNetwork
+		| EntityType.ZeroGNetwork
 
+
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		parentEntityType,
@@ -34,9 +43,9 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			parentEntityType: _ParentEntityType
-			parentEntityId: EntityId<typeof schema, _ParentEntityType>
-			endpointFieldNames: readonly (keyof Entity<typeof schema, _ParentEntityType> & string)[]
+			parentEntityType: NetworkTransportEndpointEntityType
+			parentEntityId: EntityId<typeof schema, NetworkTransportEndpointEntityType>
+			endpointFieldNames: readonly (keyof Entity<typeof schema, NetworkTransportEndpointEntityType> & string)[]
 			fieldSources: readonly Source[]
 			listEntityType: EntityType
 			emptyText?: string
@@ -48,9 +57,6 @@
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 

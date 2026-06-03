@@ -55,7 +55,7 @@ export default {
 					}),
 					timestampMs: block.time * 1000,
 					merkleRoot: block.merkleroot,
-					nonce: BigInt(block.nonce),
+					nonce: block.nonce,
 					difficulty: block.difficulty,
 					...(block.size != null && {
 						sizeBytes: block.size,

@@ -9,6 +9,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -25,10 +27,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const tipset = useEntity(
 		EntityType.FilecoinTipset,
@@ -73,7 +71,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Tipset </span>
+			{#if Value}
 			{@render Value()}
+					{/if}
 		</span>
 	{/snippet}
 
@@ -95,18 +95,19 @@
 						<dd>{entityId.tipsetKey}</dd>
 					</div>
 
-					{#if tipset.$$blocks.length > 0}
-						<div>
-							<dt>Blocks</dt>
-							<dd><NumberValue value={tipset.$$blocks.length} /></dd>
-						</div>
-					{/if}
+						{#if (tipset.$$blocks?.length ?? 0) > 0}
+							<div>
+								<dt>Blocks</dt>
+								<dd><NumberValue value={tipset.$$blocks?.length ?? 0} /></dd>
+							</div>
+						{/if}
 
 					{#if open && tipset.$parent != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
-								<FilecoinTipsetView
+								<EntityView
+									entityType={EntityType.FilecoinTipset}
 									entityId={tipset.$parent[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}

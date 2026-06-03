@@ -29,7 +29,7 @@ const storageNodeJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: ZeroG.origins ?? [],
+		origins: ZeroG.origins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,

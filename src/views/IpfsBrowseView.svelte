@@ -13,30 +13,6 @@
 	} = $props()
 
 
-	// State
-	import {
-		ipfsResourceAddressFromInput,
-		ipfsResourceCanonicalUri,
-		ipfsResourceHref,
-	} from '$/lib/ipfs.ts'
-
-	const onsubmit = async (event: SubmitEvent) => {
-		event.preventDefault()
-		if (!(event.currentTarget instanceof HTMLFormElement)) return
-
-		const formData = new FormData(event.currentTarget)
-		const next = ipfsResourceAddressFromInput({
-			targetInput: String(formData.get('target') ?? ''),
-			contentPathInput: String(formData.get('path') ?? ''),
-		})
-		if (next == null) return
-
-		window.location.assign(ipfsResourceHref(next))
-	}
-
-
-	// Components
-
 	// Functions
 	const sample = ({
 		label,
@@ -74,6 +50,27 @@
 		window.open(href, '_blank', 'noopener,noreferrer')
 	}
 
+
+	import {
+		ipfsResourceAddressFromInput,
+		ipfsResourceCanonicalUri,
+		ipfsResourceHref,
+	} from '$/lib/ipfs.ts'
+
+	const onsubmit = async (event: SubmitEvent) => {
+		event.preventDefault()
+		if (!(event.currentTarget instanceof HTMLFormElement)) return
+
+		const formData = new FormData(event.currentTarget)
+		const next = ipfsResourceAddressFromInput({
+			targetInput: String(formData.get('target') ?? ''),
+			contentPathInput: String(formData.get('path') ?? ''),
+		})
+		if (next == null) return
+
+		window.location.assign(ipfsResourceHref(next))
+	}
+
 	const samples = [
 		sample({
 			label: 'Wikipedia article via CID path gateway example',
@@ -103,6 +100,7 @@
 
 
 	// Components
+	import IpfsBrowseEntityChrome from '$/views/IpfsBrowseEntityChrome.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 </script>

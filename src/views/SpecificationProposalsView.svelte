@@ -14,6 +14,8 @@
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		title = 'Proposals',
@@ -24,6 +26,7 @@
 		filterRealm,
 		id,
 		href = '',
+		collapsible = true,
 
 		...EntitiesListProps
 	}: WithRest<
@@ -35,34 +38,14 @@
 			filterRealm?: SpecificationRealm
 			id: string
 			href?: string
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'Empty'
-			| 'getKey'
-			| 'getSortValue'
-			| 'HeadingProps'
-			| 'href'
-			| 'id'
-			| 'Item'
-			| 'ItemPlaceholder'
-			| 'layout'
-			| 'limit'
-			| 'panelStyle'
-			| 'placeholderKeys'
-			| 'placeholderText'
-			| 'resource'
-			| 'showSummary'
-			| 'TypeAnnotationTooltip'
-			| 'UnorderedListProps'
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const specificationProposalSources = [
@@ -83,6 +66,8 @@
 		Source.ZcashZips_Github,
 	]
 
+
+	// (Derived)
 	const effectiveFilterRealm = $derived(
 		filterRealm ?? (
 			entityFieldReference.entityType === EntityType.SpecificationProposalKind ?
@@ -141,6 +126,7 @@
 			specificationProposalSources,
 	)
 
+
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -155,6 +141,7 @@
 	bind:open
 	{id}
 	href={href}
+	{collapsible}
 	layout={EntitiesListLayout.Default}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -205,8 +192,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(row) => stringify(specificationProposal.result[EntityMetaKey.Id])}
-				getSortValue={(row) => specificationProposal.result[EntityMetaKey.Id].number}
+				getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+				getSortValue={(row) => row.result[EntityMetaKey.Id].number}
 				placeholderKeys={new SvelteSet<string | number>()}
 				resource={proposals}
 				open={true}

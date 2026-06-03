@@ -65,7 +65,6 @@ export enum SourceProvider {
 	Ipfs = 'Ipfs',
 	L2Beat = 'L2Beat',
 	Lens = 'Lens',
-	Hey = 'Hey',
 	Lifi = 'Lifi',
 	LitecoinCore = 'LitecoinCore',
 	LitecoinLips = 'LitecoinLips',

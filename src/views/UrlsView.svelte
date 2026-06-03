@@ -12,6 +12,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -20,6 +22,7 @@
 		emptyText = 'No URLs in this urls yet.',
 		open = $bindable(true),
 		id,
+		limit,
 		href = '',
 		...EntitiesListProps
 	}: WithRest<
@@ -30,38 +33,17 @@
 			emptyText?: string
 			open?: boolean
 			id: string
+			limit?: number
 			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'body'
-			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'Empty'
-			| 'getKey'
-			| 'getSortValue'
-			| 'HeadingProps'
-			| 'href'
-			| 'id'
-			| 'Item'
-			| 'ItemPlaceholder'
-			| 'items'
-			| 'layout'
-			| 'limit'
-			| 'panelStyle'
-			| 'placeholderKeys'
-			| 'placeholderText'
-			| 'resource'
-			| 'showSummary'
-			| 'TypeAnnotationTooltip'
-			| 'UnorderedListProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -94,6 +76,7 @@
 		{
 			[entityFieldReference.fieldName]: {
 				$: fieldSources,
+				$limit: limit,
 			},
 		},
 	)}
@@ -107,7 +90,7 @@
 			for (const url of urls) {
 				const key = url[EntityMetaKey.Id].url
 				if (byUrl.has(key)) continue
-				byUrl.set(key, row)
+					byUrl.set(key, url)
 			}
 			return (
 				[...byUrl.values()]

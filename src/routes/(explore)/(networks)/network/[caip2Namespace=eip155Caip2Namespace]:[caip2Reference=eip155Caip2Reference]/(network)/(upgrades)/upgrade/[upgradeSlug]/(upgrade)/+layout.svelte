@@ -1,14 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import {
-		evmChainIdFromCaip2RouteParams,
-		evmChainIdFromNetworkId,
-		networkIdFromCaip2RouteParams,
-	} from '$/lib/caip.ts'
-
-
-	// Types/constants
-	import {
 		ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug,
 		networkUpgrades,
 	} from '$/constants/EthereumNetworkUpgrades.ts'
@@ -27,16 +19,16 @@
 		params,
 	} = $props()
 
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 
-	// State
-	const chainId = $derived(evmChainIdFromCaip2RouteParams(params))
+	const chainId = $derived(evmChainIdFromCaip2(`${params.caip2Namespace}:${params.caip2Reference}`))
 
 	const resolvedUpgradeId = $derived(
 		(() => {
 			const segment = params.upgradeSlug
 			const direct = networkUpgrades.find((networkUpgrade) => {
 				const id = networkUpgrade[EntityMetaKey.Id]
-				if (evmChainIdFromNetworkId(id.$network) !== chainId) return false
+				if (evmChainIdFromCaip2(`${id.$network.caip2.namespace}:${id.$network.caip2.reference}`) !== chainId) return false
 				const slugRaw = networkUpgrade.slug
 				const slug = (
 					typeof slugRaw === 'string' && slugRaw.length > 0 ?
@@ -73,7 +65,7 @@
 				if (aliasRow != null) {
 					return (
 						networkUpgrades.find((networkUpgrade) => (
-							evmChainIdFromNetworkId(networkUpgrade[EntityMetaKey.Id].$network) === chainId
+							evmChainIdFromCaip2(`${networkUpgrade[EntityMetaKey.Id].$network.caip2.namespace}:${networkUpgrade[EntityMetaKey.Id].$network.caip2.reference}`) === chainId
 							&& networkUpgrade[EntityMetaKey.Id].upgradeId === aliasRow.umbrellaUpgradeId
 						))
 						?.[EntityMetaKey.Id].upgradeId
@@ -98,7 +90,7 @@
 
 <ParentPageCollapsible
 	href={resolve(
-		'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]',
+			'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]',
 		{
 			caip2Namespace: params.caip2Namespace,
 			caip2Reference: params.caip2Reference,
@@ -106,14 +98,14 @@
 		},
 	)}
 	id={stringify({
-		$network: networkIdFromCaip2RouteParams(params),
+		$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 		upgradeId: resolvedUpgradeId,
 	})}
 >
 	{#snippet Summary({ open: _open })}
 		<NetworkUpgradeView
 			entityId={{
-				$network: networkIdFromCaip2RouteParams(params),
+				$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 				upgradeId: resolvedUpgradeId,
 			}}
 			layout={EntityLayout.SummaryInline}

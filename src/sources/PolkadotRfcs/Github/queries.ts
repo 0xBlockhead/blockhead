@@ -22,7 +22,7 @@ export const getContents = async (): Promise<PolkadotRfcsGithubContents> => {
 			pathInRepo: polkadotRfcsGithubRepo.path,
 			ref: polkadotRfcsGithubRepo.ref,
 		}),
-		origins: PolkadotRfcs.origins ?? [],
+		origins: PolkadotRfcs.origins,
 	})
 	if (!response.ok) await throwHttpError('PolkadotRfcs GitHub contents', response)
 	return response.json<PolkadotRfcsGithubContents>()
@@ -36,6 +36,6 @@ export const getMarkdownText = ({ number }: { number: number }) => (
 			ref: polkadotRfcsGithubRepo.ref,
 			pathInRepo: `${polkadotRfcsGithubRepo.path}/${number.toString().padStart(4, '0')}.md`,
 		}),
-		origins: PolkadotRfcs.origins ?? [],
+		origins: PolkadotRfcs.origins,
 	})
 )

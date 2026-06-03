@@ -12,6 +12,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -34,20 +35,17 @@
 			id: string
 			limit?: number
 			open?: boolean
+			collapsible?: boolean
 			fieldOpen?: boolean
 			title?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -110,28 +108,28 @@
 								}
 						)
 					: entityFieldReference.entityType === EntityType.NostrProfile ?
-						{
-							$: [
-								Source.NostrBand_Rest,
-								Source.Primal_Rest,
-							],
-							[entityFieldReference.fieldName]: {
+							{
 								$: [
 									Source.NostrBand_Rest,
 									Source.Primal_Rest,
 								],
+								$$notes: {
+									$: [
+										Source.NostrBand_Rest,
+										Source.Primal_Rest,
+								],
 							},
 						}
 					:
-						{
-							$: [
-								Source.NostrBand_Rest,
-								Source.Primal_Rest,
-							],
-							[entityFieldReference.fieldName]: {
+							{
 								$: [
 									Source.NostrBand_Rest,
 									Source.Primal_Rest,
+								],
+								$$replies: {
+									$: [
+										Source.NostrBand_Rest,
+										Source.Primal_Rest,
 								],
 							},
 						}
@@ -145,7 +143,7 @@
 							[
 								...(parent.$$nostrNotes ?? []),
 								...(parent.$$nostrProfiles ?? [])
-									.flatMap((profile) => profile.$$notes ?? []),
+									.flatMap((profile: Entity<typeof schema, EntityType.NostrProfile>) => profile.$$notes ?? []),
 							]
 						:
 							(parent[entityFieldReference.fieldName] ?? [])
@@ -160,9 +158,9 @@
 					entityType={EntityType.NostrNote}
 					id={`${id}-items`}
 					{title}
-					getKey={(row) => nostrNote[EntityMetaKey.Id].eventId}
+					getKey={(row) => row[EntityMetaKey.Id].eventId}
 					getSortValue={(row) => (
-						`${String(-(nostrNote.createdAt ?? 0)).padStart(20, '0')}\0${nostrNote[EntityMetaKey.Id].eventId}`
+						`${String(-(row.createdAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].eventId}`
 					)}
 					placeholderText={`Loading ${title.toLowerCase()}…`}
 					resource={notes}
@@ -176,7 +174,7 @@
 					{#snippet Item({ item })}
 						<NostrNoteView
 							entityId={{ eventId: item[EntityMetaKey.Id].eventId }}
-							href={resolve('/nostr/note/[eventId]', {
+							href={resolve('/(social)/(nostr)/nostr/note/[eventId]', {
 								eventId: item[EntityMetaKey.Id].eventId,
 							})}
 							layout={EntityLayout.SummaryDetails}

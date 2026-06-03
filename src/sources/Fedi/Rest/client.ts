@@ -31,7 +31,7 @@ export const fediGet = async <T>(
 	search?: Record<string, string | undefined>,
 ) => (
 	getJson<T>(`${fediApiBase}${path}${qs(search ?? {})}`, {
-		origins: Fedi.origins ?? [],
+		origins: Fedi.origins,
 		init: { headers: authHeaders(publicEnv) },
 	})
 )

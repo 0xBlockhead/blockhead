@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Iso4217 } from '$/constants/Currency.ts'
@@ -12,18 +12,16 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(assets)/(markets)/market/[marketKey]',
-			{
-				marketKey: encodeURIComponent(stringify(entityId.$market)),
-			},
-		),
+		href = resolve('/(assets)/(markets)/market/[marketKey]', {
+			marketKey: stringify(entityId.$market),
+			}),
 		layout,
 		open = $bindable(true),
 		collapsible = true,
@@ -34,6 +32,7 @@
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -41,10 +40,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const marketTimestamp = useEntity(
 		EntityType.Market_Timestamp,
@@ -115,7 +110,27 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			placeholderText="Loading quote…"
+			resource={marketTimestamp}
+		>
+			{#snippet children(marketTimestamp)}
+				{#if marketTimestamp.price !== undefined}
+					<CurrencyAmount
+						currency={entityId.$market.$quote.kind === MarketAssetKind.Currency ?
+							entityId.$market.$quote.$currency.iso4217
+						:
+							Iso4217.USD}
+							showDecimalPlaces={6}
+							value={marketTimestamp.price}
+					/>
+				{:else}
+					<Timestamp
+						timestamp={entityId.timestampMs}
+					/>
+				{/if}
+	{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -241,8 +256,5 @@
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

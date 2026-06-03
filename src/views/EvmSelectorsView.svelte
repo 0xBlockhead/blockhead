@@ -12,6 +12,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -24,6 +26,7 @@
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmSelector>
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 			id: string
 		},
@@ -34,9 +37,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -95,8 +95,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => evmSelector[EntityMetaKey.Id].hex}
-					getSortValue={(row) => evmSelector[EntityMetaKey.Id].hex}
+					getKey={(evmSelector) => evmSelector[EntityMetaKey.Id].hex}
+					getSortValue={(evmSelector) => evmSelector[EntityMetaKey.Id].hex}
 					placeholderText="Loading 4-byte selectors…"
 					resource={selectors}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}

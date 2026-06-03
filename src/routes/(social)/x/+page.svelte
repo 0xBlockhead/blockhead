@@ -6,9 +6,5 @@
 
 
 <Page>
-	<XView
-		entityId={{
-			scope: 'XNetwork',
-		}}
-	/>
+	<XView />
 </Page>

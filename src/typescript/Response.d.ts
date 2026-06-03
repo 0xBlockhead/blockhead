@@ -1,6 +1,6 @@
 declare global {
 	interface Body {
-		json<T = any>(): Promise<T>
+		json<_Type = any>(): Promise<_Type>
 	}
 }
 

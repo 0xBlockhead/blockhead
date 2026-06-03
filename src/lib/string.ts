@@ -3,6 +3,10 @@ export type Match = {
 	end: number
 }
 
+export const optionalNonemptyString = (value: string | undefined | null) => (
+	value == null || value === '' ? undefined : value
+)
+
 /**
  * Fuzzy subsequence match: query characters must appear in order in text (case-insensitive).
  * Returns non-overlapping spans for the matched segments.
@@ -16,7 +20,7 @@ export function fuzzyMatch(text: string, query: string) {
 	for (let qi = 0; qi < q.length; qi++) {
 		const pos = lower.indexOf(q[qi], ti)
 		if (pos === -1) return spans
-		const last = spans[spans.length - 1]
+		const last = spans.at(-1)
 		if (last && pos === last.end) last.end = pos + 1
 		else spans.push({ start: pos, end: pos + 1 })
 		ti = pos + 1

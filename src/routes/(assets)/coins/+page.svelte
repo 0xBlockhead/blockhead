@@ -18,10 +18,11 @@
 		href={resolve('/coins')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: {},
+			entityId: { scope: '$$coins' },
 			fieldName: '$$coins',
 		}}
 		id="coins"
 		limit={120}
+		marketsOpen
 	/>
 </Page>

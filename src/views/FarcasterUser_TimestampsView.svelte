@@ -8,6 +8,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -23,9 +25,6 @@
 		open?: boolean
 	} = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -84,6 +83,7 @@
 				id={`${id}-items`}
 				href={href}
 				open={true}
+				resource={farcasterUserTimestamps}
 			>
 				{#snippet Item({ item })}
 					<FarcasterUser_TimestampView

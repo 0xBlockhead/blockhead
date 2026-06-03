@@ -10,18 +10,16 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(assets)/(markets)/market/[marketKey]',
-			{
-				marketKey: encodeURIComponent(stringify(entityId.$market)),
-			},
-		),
+		href = resolve('/(assets)/(markets)/market/[marketKey]', {
+			marketKey: stringify(entityId.$market),
+		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
@@ -38,10 +36,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const derivativeTimestamp = useEntity(
 		EntityType.Market_Derivative_Timestamp,
@@ -98,7 +92,20 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			placeholderText="Loading derivative observation…"
+			resource={derivativeTimestamp}
+		>
+			{#snippet children(derivativeTimestamp)}
+				{#if derivativeTimestamp.fundingRate !== undefined}
+					{String(derivativeTimestamp.fundingRate)}%
+				{:else}
+					<Timestamp
+						timestamp={entityId.timestampMs}
+					/>
+				{/if}
+	{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -203,8 +210,5 @@
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

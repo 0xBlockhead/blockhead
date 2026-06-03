@@ -9,6 +9,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -21,10 +23,6 @@
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.NearNetwork,
@@ -57,6 +55,8 @@
 		},
 	)
 
+
+	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -105,18 +105,19 @@
 	{/snippet}
 
 	{#snippet Content({ open })}
-		<ResourceBoundary resource={network}>
-			{#snippet children(network)}
-				<dl class="network-summary-head" data-column-item="center">
-					{#if network.$$blocks.at(0) != null}
-						<div>
-							<dt>Head block</dt>
-							<dd id="network-summary-head-block">
-								<NearBlockView
-									entityId={network.$$blocks.at(0)[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
+			<ResourceBoundary resource={network}>
+				{#snippet children(network)}
+					{@const block = network.$$blocks?.at(0)}
+					<dl class="network-summary-head" data-column-item="center">
+						{#if block != null}
+							<div>
+								<dt>Head block</dt>
+								<dd id="network-summary-head-block">
+									<NearBlockView
+										entityId={block[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+									/>
+								</dd>
 						</div>
 					{/if}
 
@@ -132,15 +133,16 @@
 						</div>
 					{/if}
 
-					<ResourceBoundary resource={baseNetwork}>
-						{#snippet children(baseNetwork)}
-							{#if baseNetwork.$$nativeAssets.length > 0}
-								<div>
-									<dt>Native asset</dt>
-									<dd>{baseNetwork.$$nativeAssets.length}</dd>
-								</div>
-							{/if}
-						{/snippet}
+						<ResourceBoundary resource={baseNetwork}>
+							{#snippet children(baseNetwork)}
+								{@const nativeAssetCount = baseNetwork.$$nativeAssets?.length ?? 0}
+								{#if nativeAssetCount > 0}
+									<div>
+										<dt>Native asset</dt>
+										<dd>{nativeAssetCount}</dd>
+									</div>
+								{/if}
+							{/snippet}
 					</ResourceBoundary>
 				</dl>
 			{/snippet}
@@ -290,7 +292,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -309,7 +310,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>

@@ -4,10 +4,6 @@
 		params,
 	} = $props()
 
-	const entityId = $derived(
-		{ id: decodeURIComponent(params.postId) },
-	)
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -17,7 +13,7 @@
 
 <Page>
 	<LensPostView
-		{entityId}
+		entityId={{ id: decodeURIComponent(params.postId) }}
 	>
 	</LensPostView>
 </Page>

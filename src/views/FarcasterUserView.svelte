@@ -5,6 +5,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
@@ -12,6 +13,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -42,9 +44,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	const farcasterUser = useEntity(
@@ -241,16 +240,16 @@
 									<ul data-column="gap-2">
 										{#each farcasterUser.$$verifiedAddresses as verification (stringify(verification[EntityMetaKey.Id]))}
 											<li>
-												{#if verification[EntityMetaKey.Id].protocol === 'ethereum'}
-													<EvmAccountView
-														entityId={{
-															address: verification[EntityMetaKey.Id].address,
-														}}
-														href={resolve('/account/[address]', {
-															address: verification[EntityMetaKey.Id].address,
+													{#if verification[EntityMetaKey.Id].protocol === 'ethereum'}
+														<EvmAccountView
+															entityId={{
+																address: EvmAddress.assert(verification[EntityMetaKey.Id].address),
+															}}
+															href={resolve('/account/[address]', {
+																address: verification[EntityMetaKey.Id].address,
 														})}
 														layout={EntityLayout.Title}
-														open={false}
+															open={false}
 													/>
 												{:else}
 													<span data-text="mono muted">
@@ -311,127 +310,127 @@
 		</dl>
 	{/snippet}
 
-		{#snippet Details({
-			open: _open,
-		})}
-			<CollapsibleTabs
-					id={`farcaster-user:${String(entityId.fid)}:carousel`}
-					sectionIdPrefix={`farcaster-user:${String(entityId.fid)}`}
-					sections={collapsibleTabsSections([
-							{ id: 'record', label: 'Record' },
-							{ id: 'overview', label: 'Profile' },
-							{ id: 'casts', label: 'Casts' },
-							{ id: 'metric-snapshots', label: 'Metrics' },
-						])}
-					data-card
+	{#snippet Details({
+		open: _open,
+	})}
+		<CollapsibleTabs
+			id={`farcaster-user:${String(entityId.fid)}:carousel`}
+			sectionIdPrefix={`farcaster-user:${String(entityId.fid)}`}
+			sections={collapsibleTabsSections([
+				{ id: 'record', label: 'Record' },
+				{ id: 'overview', label: 'Profile' },
+				{ id: 'casts', label: 'Casts' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
 				>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Profile
-						</HeadingComponent>
-					</header>
-				{/snippet}
+					<HeadingComponent>
+						Profile
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionRecord()}
-				{/snippet}
+			{#snippet SectionRecord()}
+			{/snippet}
 
-				{#snippet SectionOverview()}
-					<ResourceBoundary
-						resource={farcasterUser}
-						placeholderText="Loading Farcaster profile (FID)…"
-					>
-						{#snippet children(farcasterUser)}
-							<section data-column>
-								<h3>Farcaster profile</h3>
-							</section>
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-
-					{#snippet SectionCasts()}
-						<EntitiesList
-							entityType={EntityType.FarcasterCast}
-							href={resolve('/farcaster/feed')}
-							id={`farcaster-user:${String(entityId.fid)}:casts-farcasterUsers`}
-							title="Casts"
-							bind:open
-							collapsible={false}
-						>
-							{#snippet body()}
-								{#if open}
-									{@const farcasterUserCasts = useEntity(
-										EntityType.FarcasterUser,
-										entityId,
-										{
-											$$casts: {},
-										},
-									)}
-									{@const casts = derive(
-										farcasterUserCasts,
-										(farcasterUserCasts) => (
-											[...(farcasterUserCasts.$$casts ?? [])].map((result) => ({
-												result,
-											}))
-										),
-									)}
-									<EntitiesList
-										collapsible={false}
-										showSummary={false}
-										entityType={EntityType.FarcasterCast}
-										href={resolve('/farcaster/feed')}
-										id={`farcaster-user:${String(entityId.fid)}:casts-farcasterUsers-items`}
-										placeholderText="Loading casts (Farcaster FID + cast hash)…"
-										resource={casts}
-										title="Casts"
-										getKey={(row) => stringify(farcasterUser.result[EntityMetaKey.Id])}
-										getSortValue={(row) => (
-											[...stringify(farcasterUser.result[EntityMetaKey.Id])].map((character) => (
-												String.fromCharCode(0xffff - character.charCodeAt(0))
-											)).join('')
-										)}
-										open={true}
-									>
-										{#snippet Empty()}
-											<p data-text="muted">
-												No casts yet.
-											</p>
-										{/snippet}
-
-										{#snippet Item({ item })}
-											{@const castId = item.result[EntityMetaKey.Id]}
-											<FarcasterCastView
-												entityId={{
-													fid: castId.fid,
-													hash: castId.hash,
-												}}
-												layout={EntityLayout.Summary}
-												variant="feed"
-											/>
-										{/snippet}
-									</EntitiesList>
-								{/if}
-							{/snippet}
-						</EntitiesList>
+			{#snippet SectionOverview()}
+				<ResourceBoundary
+					resource={farcasterUser}
+					placeholderText="Loading Farcaster profile (FID)…"
+				>
+					{#snippet children(farcasterUser)}
+						<section data-column>
+							<h3>Farcaster profile</h3>
+						</section>
 					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<FarcasterUser_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.FarcasterUser,
+			{#snippet SectionCasts()}
+				<EntitiesList
+					entityType={EntityType.FarcasterCast}
+					href={resolve('/farcaster/feed')}
+					id={`farcaster-user:${String(entityId.fid)}:casts-farcasterUsers`}
+					title="Casts"
+					bind:open
+					collapsible={false}
+				>
+					{#snippet body()}
+						{#if open}
+							{@const farcasterUserCasts = useEntity(
+								EntityType.FarcasterUser,
 								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`farcaster-user:${String(entityId.fid)}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
+								{
+									$$casts: {},
+								},
+							)}
+							{@const casts = derive(
+								farcasterUserCasts,
+								(farcasterUserCasts) => (
+									[...(farcasterUserCasts.$$casts ?? [])].map((result) => ({
+										result,
+									}))
+								),
+							)}
+							<EntitiesList
+								collapsible={false}
+								showSummary={false}
+								entityType={EntityType.FarcasterCast}
+								href={resolve('/farcaster/feed')}
+								id={`farcaster-user:${String(entityId.fid)}:casts-farcasterUsers-items`}
+								placeholderText="Loading casts (Farcaster FID + cast hash)…"
+								resource={casts}
+								title="Casts"
+								getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+								getSortValue={(row) => (
+									[...stringify(row.result[EntityMetaKey.Id])].map((character) => (
+										String.fromCharCode(0xffff - character.charCodeAt(0))
+									)).join('')
+								)}
+								open={true}
+							>
+								{#snippet Empty()}
+									<p data-text="muted">
+										No casts yet.
+									</p>
+								{/snippet}
+
+								{#snippet Item({ item })}
+									{@const castId = item.result[EntityMetaKey.Id]}
+									<FarcasterCastView
+										entityId={{
+											fid: castId.fid,
+											hash: castId.hash,
+										}}
+										layout={EntityLayout.Summary}
+										variant="feed"
+									/>
+								{/snippet}
+							</EntitiesList>
+						{/if}
 					{/snippet}
+				</EntitiesList>
+			{/snippet}
+
+			{#snippet SectionMetricSnapshots()}
+				<FarcasterUser_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.FarcasterUser,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`farcaster-user:${String(entityId.fid)}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
 			</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

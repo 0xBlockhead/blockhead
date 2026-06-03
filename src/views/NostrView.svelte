@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -17,11 +18,8 @@
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/nostr',
-			entityId,
-		),
-					open = $bindable(
+		href = resolve('/nostr'),
+		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
@@ -35,10 +33,6 @@
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.NostrNetwork,
@@ -127,8 +121,8 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-			resource={network}
-			placeholderText="Loading Nostr hub directory…"
+				resource={network}
+				placeholderText="Loading Nostr hub directory…"
 			>
 			{#snippet children(network)}
 				{#if network.registryLabel}
@@ -136,7 +130,7 @@
 						<dt>Registry</dt>
 						<dd>{network.registryLabel}</dd>
 					</div>
-					{:else if network.protocolName}
+				{:else if network.protocolName}
 					<div>
 						<dt>Protocol</dt>
 						<dd>{network.protocolName}</dd>
@@ -205,131 +199,131 @@
 			{/snippet}
 		</ResourceBoundary>
 	</dl>
-{/snippet}
+	{/snippet}
 
 	{#snippet Details({
 		open: _open,
 	})}
 		{@const networkIdKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-feed`}
-				sectionIdPrefix={networkIdKey}
-				sections={collapsibleTabsSections([
-					{ id: 'notes', label: 'Recent notes' },
-					{ id: 'reposts', label: 'Reposts' },
-					{ id: 'articles', label: 'Articles' },
-				])}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Feed
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-feed`}
+			sectionIdPrefix={networkIdKey}
+			sections={collapsibleTabsSections([
+				{ id: 'notes', label: 'Recent notes' },
+				{ id: 'reposts', label: 'Reposts' },
+				{ id: 'articles', label: 'Articles' },
+			])}
+			data-card
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Feed
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionNotes()}
-					<NostrNotesView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/nostr/notes')}
-						entityFieldReference={{
-							entityType: EntityType.NostrNetwork,
-							entityId,
-							fieldName: '$$nostrNotes',
-						}}
-						fieldOpen={_open}
-						id={`${networkIdKey}:notes`}
-						limit={25}
-						open={_open}
-						title="Recent notes"
-					/>
-				{/snippet}
+			{#snippet SectionNotes()}
+				<NostrNotesView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/nostr/notes')}
+					entityFieldReference={{
+						entityType: EntityType.NostrNetwork,
+						entityId,
+						fieldName: '$$nostrNotes',
+					}}
+					fieldOpen={_open}
+					id={`${networkIdKey}:notes`}
+					limit={25}
+					open={_open}
+					title="Recent notes"
+				/>
+			{/snippet}
 
-				{#snippet SectionReposts()}
-					<NostrRepostsView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.NostrNetwork,
-							entityId,
-							fieldName: '$$nostrReposts',
-						}}
-						fieldOpen={_open}
-						id={`${networkIdKey}:reposts`}
-						limit={25}
-						open={_open}
-						title="Recent reposts"
-					/>
-				{/snippet}
+			{#snippet SectionReposts()}
+				<NostrRepostsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.NostrNetwork,
+						entityId,
+						fieldName: '$$nostrReposts',
+					}}
+					fieldOpen={_open}
+					id={`${networkIdKey}:reposts`}
+					limit={25}
+					open={_open}
+					title="Recent reposts"
+				/>
+			{/snippet}
 
-				{#snippet SectionArticles()}
-					<NostrArticlesView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.NostrNetwork,
-							entityId,
-							fieldName: '$$nostrArticles',
-						}}
-						fieldOpen={_open}
-						id={`${networkIdKey}:articles`}
-						limit={25}
-						open={_open}
-						title="Recent articles"
-					/>
-				{/snippet}
+			{#snippet SectionArticles()}
+				<NostrArticlesView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.NostrNetwork,
+						entityId,
+						fieldName: '$$nostrArticles',
+					}}
+					fieldOpen={_open}
+					id={`${networkIdKey}:articles`}
+					limit={25}
+					open={_open}
+					title="Recent articles"
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-directory`}
-				sectionIdPrefix={networkIdKey}
-				sections={collapsibleTabsSections([
-					{ id: 'profiles', label: 'Profiles' },
-					{ id: 'relays', label: 'Relays' },
-				])}
-				data-card
-				scrollContainerProps={entityViewDetailCarouselScrollProps}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Directory
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-directory`}
+			sectionIdPrefix={networkIdKey}
+			sections={collapsibleTabsSections([
+				{ id: 'profiles', label: 'Profiles' },
+				{ id: 'relays', label: 'Relays' },
+			])}
+			data-card
+			scrollContainerProps={entityViewDetailCarouselScrollProps}
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Directory
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionProfiles()}
-					<NostrProfilesView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/nostr/profiles')}
-						entityFieldReference={{
-							entityType: EntityType.NostrNetwork,
-							entityId,
-							fieldName: '$$nostrProfiles',
-						}}
-						id={`${networkIdKey}:profiles`}
-						open={true}
-					/>
-				{/snippet}
+			{#snippet SectionProfiles()}
+				<NostrProfilesView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/nostr/profiles')}
+					entityFieldReference={{
+						entityType: EntityType.NostrNetwork,
+						entityId,
+						fieldName: '$$nostrProfiles',
+					}}
+					id={`${networkIdKey}:profiles`}
+					open={true}
+				/>
+			{/snippet}
 
-				{#snippet SectionRelays()}
-					<NostrRelaysView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/nostr/relays')}
-						entityFieldReference={{
-							entityType: EntityType.NostrNetwork,
-							entityId,
-							fieldName: '$$nostrRelays',
-						}}
-						id={`${networkIdKey}:relays`}
-						open={true}
-					/>
-				{/snippet}
+			{#snippet SectionRelays()}
+				<NostrRelaysView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/nostr/relays')}
+					entityFieldReference={{
+						entityType: EntityType.NostrNetwork,
+						entityId,
+						fieldName: '$$nostrRelays',
+					}}
+					id={`${networkIdKey}:relays`}
+					open={true}
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 
 	{/snippet}

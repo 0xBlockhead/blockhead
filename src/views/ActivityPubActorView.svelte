@@ -36,8 +36,6 @@
 		>
 	> = $props()
 
-
-	// State
 	import { htmlToPlainText } from '$/lib/html.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -317,88 +315,88 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-activity`}
-				sectionIdPrefix={idKey}
-					sections={collapsibleTabsSections([
-						{ id: 'mastodon-profile', label: 'Profile' },
-						{ id: 'activity-statuses', label: 'Outbox' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				data-card
+			id={`${idKey}:carousel-activity`}
+			sectionIdPrefix={idKey}
+				sections={collapsibleTabsSections([
+					{ id: 'mastodon-profile', label: 'Profile' },
+					{ id: 'activity-statuses', label: 'Outbox' },
+					{ id: 'metric-snapshots', label: 'Metrics' },
+				])}
+			data-card
+		>
+			{#snippet Summary({ open: _activitySummaryOpen })}
+			<header
+				data-row-item="flexible"
+				data-row="wrap gap-4"
 			>
-					{#snippet Summary({ open: _activitySummaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Mastodon actor & outbox
-						</HeadingComponent>
-					</header>
-				{/snippet}
+				<HeadingComponent>
+					Mastodon actor & outbox
+				</HeadingComponent>
+			</header>
+		{/snippet}
 
-				{#snippet SectionMastodonProfile()}
-					<ResourceBoundary
-						resource={actor}
-						placeholderText="Loading Mastodon profile…"
-					>
-						{#snippet children(actor)}
-							{@const mastodonProfileUnset = (
-								actor.acct == null
-								&& actor.displayName == null
-								&& actor.username == null
-								&& actor.note == null
-							)}
-							{#if mastodonProfileUnset}
-								<div data-row="wrap align-center gap-2">
-									<p data-text="muted">
-										No profile fields yet.
-									</p>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
-											<p>
-												Handle, display name, and bio load from the configured Mastodon instance when the account is reachable.
-											</p>
-										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="Profile fields"
-										>ⓘ</abbr>
-									</Tooltip>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-
-					{#snippet SectionActivityStatuses()}
-						<ActivityPubNotesView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.ActivityPubActor,
-							entityId,
-							fieldName: '$$notes',
-						}}
-						fieldOpen={_open}
-						id={`${idKey}:activity-notes-activityPubActors`}
-						orderByCreatedAt="desc"
-						placeholderText="Loading Mastodon outbox statuses…"
-						title="Outbox"
-						/>
+			{#snippet SectionMastodonProfile()}
+				<ResourceBoundary
+					resource={actor}
+					placeholderText="Loading Mastodon profile…"
+				>
+					{#snippet children(actor)}
+						{@const mastodonProfileUnset = (
+							actor.acct == null
+							&& actor.displayName == null
+							&& actor.username == null
+							&& actor.note == null
+						)}
+						{#if mastodonProfileUnset}
+							<div data-row="wrap align-center gap-2">
+								<p data-text="muted">
+									No profile fields yet.
+								</p>
+								<Tooltip contentProps={{ side: 'top' }}>
+									{#snippet Content()}
+										<p>
+											Handle, display name, and bio load from the configured Mastodon instance when the account is reachable.
+										</p>
+									{/snippet}
+									<abbr
+										class="entity-heading-tip"
+										aria-label="Profile fields"
+									>ⓘ</abbr>
+								</Tooltip>
+							</div>
+						{/if}
 					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<ActivityPubActor_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.ActivityPubActor,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${idKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
-			</CollapsibleTabs>
+			{#snippet SectionActivityStatuses()}
+				<ActivityPubNotesView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.ActivityPubActor,
+						entityId,
+						fieldName: '$$notes',
+					}}
+					fieldOpen={_open}
+					id={`${idKey}:activity-notes-activityPubActors`}
+				orderByCreatedAt="desc"
+					placeholderText="Loading Mastodon outbox statuses…"
+					title="Outbox"
+				/>
+			{/snippet}
+
+			{#snippet SectionMetricSnapshots()}
+				<ActivityPubActor_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.ActivityPubActor,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${idKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

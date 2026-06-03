@@ -22,7 +22,7 @@ export const getContents = async (): Promise<NearNepsGithubContents> => {
 			pathInRepo: nearNepsGithubRepo.path,
 			ref: nearNepsGithubRepo.ref,
 		}),
-		origins: NearNeps.origins ?? [],
+		origins: NearNeps.origins,
 	})
 	if (!response.ok) await throwHttpError('NearNeps GitHub contents', response)
 	return response.json<NearNepsGithubContents>()
@@ -36,6 +36,6 @@ export const getMarkdownText = ({ number }: { number: number }) => (
 			ref: nearNepsGithubRepo.ref,
 			pathInRepo: `${nearNepsGithubRepo.path}/nep-${number.toString().padStart(4, '0')}.md`,
 		}),
-		origins: NearNeps.origins ?? [],
+		origins: NearNeps.origins,
 	})
 )

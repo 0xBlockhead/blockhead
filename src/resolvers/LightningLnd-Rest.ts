@@ -52,7 +52,7 @@ const channelPointParts = (channelPoint: string) => {
 	const [fundingTransactionId, outputIndex] = channelPoint.split(':')
 	return {
 		fundingTransactionId,
-		fundingOutputIndex: outputIndex == null ? undefined : Number(outputIndex),
+		fundingOutputIndex: Number(outputIndex),
 	}
 }
 
@@ -103,21 +103,21 @@ const channelFieldsFromLndChannel = (
 	localPublicKey?: string,
 ) => ({
 	[EntityMetaKey.Id]: {
-		$network: lightningNetwork,
+		$network: lightningNetworkId,
 		channelId: channel.chan_id,
 	},
 	status: channelStatusFromLndChannel(channel),
 	...(localPublicKey != null && {
 		$node0: {
 			[EntityMetaKey.Id]: {
-				$network: lightningNetwork,
+				$network: lightningNetworkId,
 				publicKey: localPublicKey,
 			},
 		},
 	}),
 	$node1: {
 		[EntityMetaKey.Id]: {
-			$network: lightningNetwork,
+			$network: lightningNetworkId,
 			publicKey: channel.remote_pubkey,
 		},
 	},
@@ -137,7 +137,7 @@ const invoicePaymentHash = (invoice: LndInvoice): string | undefined => (
 
 const invoiceFieldsFromLndInvoice = (invoice: LndInvoice) => ({
 	[EntityMetaKey.Id]: {
-		$network: lightningNetwork,
+		$network: lightningNetworkId,
 		paymentHash: invoicePaymentHash(invoice) ?? '',
 	},
 	paymentRequest: invoice.payment_request,
@@ -155,7 +155,7 @@ const invoiceFieldsFromLndInvoice = (invoice: LndInvoice) => ({
 
 const paymentFieldsFromLndPayment = (payment: LndPayment) => ({
 	[EntityMetaKey.Id]: {
-		$network: lightningNetwork,
+		$network: lightningNetworkId,
 		paymentHash: payment.payment_hash,
 	},
 	paymentRequest: payment.payment_request,
@@ -178,7 +178,7 @@ const htlcFieldsFromLndHtlc = (
 ) => ({
 	[EntityMetaKey.Id]: {
 		$channel: {
-			$network: lightningNetwork,
+			$network: lightningNetworkId,
 			channelId: channel.chan_id,
 		},
 		htlcIndex,
@@ -301,7 +301,7 @@ export default {
 				if (channel == null) {
 					throw new Error(`LightningLnd_Rest: channel not found ${entityId.$channel.channelId}`)
 				}
-				const htlc = (channel.pending_htlcs ?? [])[entityId.htlcIndex]
+				const htlc = (channel.pending_htlcs ?? []).at(entityId.htlcIndex)
 				if (htlc == null) {
 					throw new Error(`LightningLnd_Rest: HTLC not found ${entityId.$channel.channelId}:${entityId.htlcIndex}`)
 				}
@@ -320,7 +320,7 @@ export default {
 				return [
 					{
 						[EntityMetaKey.Id]: {
-							$network: lightningNetwork,
+							$network: lightningNetworkId,
 							publicKey: info.identity_pubkey,
 						},
 						alias: info.alias,

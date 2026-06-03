@@ -22,7 +22,7 @@ export const getContents = async (): Promise<LitecoinLipsGithubContents> => {
 			pathInRepo: litecoinLipsGithubRepo.path,
 			ref: litecoinLipsGithubRepo.ref,
 		}),
-		origins: LitecoinLips.origins ?? [],
+		origins: LitecoinLips.origins,
 	})
 	if (!response.ok) await throwHttpError('LitecoinLips GitHub contents', response)
 	return response.json<LitecoinLipsGithubContents>()
@@ -36,6 +36,6 @@ export const getMediaWikiText = ({ number }: { number: number }) => (
 			ref: litecoinLipsGithubRepo.ref,
 			pathInRepo: `lip-${number.toString().padStart(4, '0')}.mediawiki`,
 		}),
-		origins: LitecoinLips.origins ?? [],
+		origins: LitecoinLips.origins,
 	})
 )

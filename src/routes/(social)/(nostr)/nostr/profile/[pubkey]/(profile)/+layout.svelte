@@ -7,7 +7,6 @@
 	// State
 	let { children } = $props()
 
-
 	const pubkey = $derived(
 		page.params.pubkey ?? '',
 	)

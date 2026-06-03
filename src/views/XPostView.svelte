@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -34,10 +35,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const post = useEntity(
 		EntityType.XPost,
@@ -155,8 +152,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({})}
-		{#if contentOpen}
+	{#snippet Content({ open })}
+		{#if open}
 			<ResourceBoundary
 				resource={post}
 				placeholderText="Loading X post…"
@@ -195,7 +192,7 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			{#if contentOpen}
+			{#if open}
 				<ResourceBoundary
 					resource={post}
 					placeholderText="Loading X post…"
@@ -296,127 +293,127 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				sectionIdPrefix={`x-post:${entityId.id}`}
-					sections={collapsibleTabsSections([
-						{ id: 'author', label: 'Author' },
-						{ id: 'thread', label: 'Thread' },
-						{ id: 'media', label: 'Media' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				id={`x-post:${entityId.id}:carousel`}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Post details
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			sectionIdPrefix={`x-post:${entityId.id}`}
+				sections={collapsibleTabsSections([
+					{ id: 'author', label: 'Author' },
+					{ id: 'thread', label: 'Thread' },
+					{ id: 'media', label: 'Media' },
+					{ id: 'metric-snapshots', label: 'Metrics' },
+				])}
+			id={`x-post:${entityId.id}:carousel`}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Post details
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionAuthor()}
+			{#snippet SectionAuthor()}
+				<ResourceBoundary
+					resource={post}
+					placeholderText="Loading X post…"
+				>
+					{#snippet children(post)}
+						{#if post.$author}
+							<XUserView
+								entityId={post.$author[EntityMetaKey.Id]}
+								layout={EntityLayout.Summary}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionThread()}
+				{#if _open}
 					<ResourceBoundary
 						resource={post}
 						placeholderText="Loading X post…"
 					>
 						{#snippet children(post)}
-							{#if post.$author}
-								<XUserView
-									entityId={post.$author[EntityMetaKey.Id]}
-									layout={EntityLayout.Summary}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-
-				{#snippet SectionThread()}
-					{#if _open}
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								<div>
-									{#if post.$replyToPost}
-										<div>
-											<strong>Reply to:</strong>
-											<svelte:self
-												entityId={post.$replyToPost[EntityMetaKey.Id]}
-												layout={EntityLayout.Value}
-												open={false}
-											/>
-										</div>
-									{/if}
-
-									{#if post.$quotedPost}
-										<div>
-											<strong>Quoted post:</strong>
-											<svelte:self
-												entityId={post.$quotedPost[EntityMetaKey.Id]}
-												layout={EntityLayout.Value}
-												open={false}
-											/>
-										</div>
-									{/if}
-
-									{#if (
-										post.$replyToPost == null
-										&& post.$quotedPost == null
-									)}
-										<p data-text="muted">
-											No reply or quote references on this post.
-										</p>
-									{/if}
-								</div>
-							{/snippet}
-						</ResourceBoundary>
-					{/if}
-				{/snippet}
-
-					{#snippet SectionMedia()}
-						{#if _open}
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								{#if (post.$$media?.length ?? 0) > 0}
-									<div data-column="gap-3">
-										{#each post.$$media ?? [] as media (media[EntityMetaKey.Id].url)}
-											<Media
-												alt=""
-												media={{ url: media[EntityMetaKey.Id].url }}
-											/>
-										{/each}
+							<div>
+								{#if post.$replyToPost}
+									<div>
+										<strong>Reply to:</strong>
+										<svelte:self
+											entityId={post.$replyToPost[EntityMetaKey.Id]}
+											layout={EntityLayout.Value}
+											open={false}
+										/>
 									</div>
-								{:else}
+								{/if}
+
+								{#if post.$quotedPost}
+									<div>
+										<strong>Quoted post:</strong>
+										<svelte:self
+											entityId={post.$quotedPost[EntityMetaKey.Id]}
+											layout={EntityLayout.Value}
+											open={false}
+										/>
+									</div>
+								{/if}
+
+								{#if (
+									post.$replyToPost == null
+									&& post.$quotedPost == null
+								)}
 									<p data-text="muted">
-										No media attachments on this post.
+										No reply or quote references on this post.
 									</p>
 								{/if}
-							{/snippet}
-							</ResourceBoundary>
+							</div>
+						{/snippet}
+					</ResourceBoundary>
+				{/if}
+			{/snippet}
+
+			{#snippet SectionMedia()}
+				{#if _open}
+				<ResourceBoundary
+					resource={post}
+					placeholderText="Loading X post…"
+				>
+					{#snippet children(post)}
+						{#if (post.$$media?.length ?? 0) > 0}
+							<div data-column="gap-3">
+								{#each post.$$media ?? [] as media (media[EntityMetaKey.Id].url)}
+									<Media
+										alt=""
+										media={{ url: media[EntityMetaKey.Id].url }}
+									/>
+								{/each}
+							</div>
+						{:else}
+							<p data-text="muted">
+								No media attachments on this post.
+							</p>
 						{/if}
 					{/snippet}
+					</ResourceBoundary>
+				{/if}
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<XPost_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.XPost,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`x-post:${entityId.id}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
-			</CollapsibleTabs>
+			{#snippet SectionMetricSnapshots()}
+				<XPost_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.XPost,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`x-post:${entityId.id}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

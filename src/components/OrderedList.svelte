@@ -172,9 +172,10 @@
 			const ca = ta[1]
 			const cb = tb[1]
 			return (
-				ca < cb ? -1
-				:
-					ca > cb ? 1
+				ca < cb ?
+					-1
+				: ca > cb ?
+					1
 				:
 					0
 			)
@@ -191,9 +192,7 @@
 	)
 	const keyForGapNumeric = (k: OrderedListKey): number | undefined => (
 		typeof k === 'number' ?
-			(Number.isFinite(k) ? Math.trunc(k)
-			:
-				undefined)
+			(Number.isFinite(k) ? Math.trunc(k) : undefined)
 		: typeof k === 'bigint' ?
 			(() => {
 				const n = Number(k)
@@ -313,7 +312,7 @@
 		getSortKeyOption?.(item) ?? getKey(item)
 	)
 
-	// State
+
 	let listEl: HTMLOListElement | undefined = $state()
 	let virtualMeasureWidth = $state(0)
 	let virtualScrollTop = $state(0)
@@ -346,35 +345,6 @@
 			.filter((n): n is number => n !== undefined),
 	)
 	const scopeRanges = $derived(mergeRanges(placeholderRanges))
-	const gapRanges = $derived.by(() => {
-		const out: [number, number][] = []
-		for (const [rLo, rHi] of scopeRanges)
-			out.push(...gapsInRange(rLo, rHi, sortedKeys))
-		return out
-	})
-	const summaryTotal = $derived.by(() => {
-		let n = 0
-		for (const [lo, hi] of scopeRanges) n += hi - lo + 1
-		return n > 0 ? n : undefined
-	})
-	const itemRows = $derived(
-		sortedItems.map(
-			(item): Row => ({
-				type: OrderedListRowType.Item,
-				key: getKey(item),
-				sortKey: itemSortKey(item),
-				item,
-			}),
-		),
-	)
-	const rangeRows = $derived(
-		gapRanges.map(
-			([lo, hi]): Row => ({
-				type: OrderedListRowType.Range,
-				range: [lo, hi],
-			}),
-		),
-	)
 	const orderKeyRow = (row: Row): OrderedListKey => (
 		isItemRow(row) ?
 			row.sortKey
@@ -383,13 +353,34 @@
 		:
 			0
 	)
-	const allRows = $derived.by((): Row[] => (
-		[...itemRows, ...rangeRows].sort((a, b) => {
-			const c = compareOrderedListKeys(orderKeyRow(a), orderKeyRow(b))
-			return sortDirection === SortDirection.Desc ? -c : c
-		})
-	))
-	const virtualRows = $derived.by((): Row[] => (
+	const allRows = $derived(
+		[
+			...sortedItems.map(
+				(item): Row => ({
+					type: OrderedListRowType.Item,
+					key: getKey(item),
+					sortKey: itemSortKey(item),
+					item,
+				}),
+			),
+			...scopeRanges.flatMap(
+				([rLo, rHi]) =>
+					gapsInRange(rLo, rHi, sortedKeys)
+						.map(
+							([lo, hi]): Row => ({
+								type: OrderedListRowType.Range,
+								range: [lo, hi],
+							}),
+						)
+			),
+		]
+			.sort((a, b) => {
+				const c = compareOrderedListKeys(orderKeyRow(a), orderKeyRow(b))
+				return sortDirection === SortDirection.Desc ? -c : c
+			})
+	)
+
+	const virtualRows = $derived(
 		[
 			...allRows,
 			...(
@@ -405,11 +396,11 @@
 					[]
 			),
 		]
-	))
-	const isEmpty = $derived(allRows.length === 0)
-	const rowLimit = $derived(
-		limit ?? (onLoadMorePlaceholders ? 200 : 100),
 	)
+	const rowLimit = $derived(
+		limit ?? (onLoadMorePlaceholders ? 200 : 100)
+	)
+
 	const nextRenderState = $derived.by(getNextRenderState)
 	const nextRenderFingerprint = $derived(
 		getRenderFingerprint(nextRenderState)
@@ -421,12 +412,6 @@
 	)
 	const renderHasVirtual = $derived(
 		committedRenderState.hasVirtual
-	)
-	const renderIsEmpty = $derived(
-		committedRenderState.empty
-	)
-	const renderManyItems = $derived(
-		committedRenderState.manyItems
 	)
 	const viewTransitionRunner = createSerialViewTransitionRunner()
 	const virtualRange = $derived(
@@ -473,9 +458,21 @@
 	)
 
 	$effect(() => {
+		const totalScopeRangeCount = scopeRanges.reduce(
+			(total, [lo, hi]) => (
+				total + hi - lo + 1
+			),
+			0,
+		)
+
 		summary = {
 			loaded: sortedItems.length,
-			total: summaryTotal,
+			total: (
+				totalScopeRangeCount > 0 ?
+					totalScopeRangeCount
+				:
+					undefined
+			),
 		}
 	})
 	$effect(() => {
@@ -688,13 +685,13 @@
 {/snippet}
 
 
-{#if renderIsEmpty && Empty}
+{#if committedRenderState.empty && Empty}
 	{@render Empty()}
 {:else}
 	<ol
 		bind:this={listEl}
 		class="list anchor-{scrollPosition.toLowerCase()}"
-		class:many-items={renderManyItems}
+		class:many-items={committedRenderState.manyItems}
 		class:virtual={renderHasVirtual}
 		data-row={orientation === ListOrientation.Row ? '' : undefined}
 		data-column={orientation === ListOrientation.Column ? '' : undefined}

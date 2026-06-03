@@ -12,7 +12,6 @@
 		params,
 	} = $props()
 
-
 	const entityId = $derived(
 		{ did: decodeURIComponent(params.did) },
 	)

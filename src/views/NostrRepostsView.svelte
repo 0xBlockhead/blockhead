@@ -12,6 +12,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -34,20 +35,17 @@
 			id: string
 			limit?: number
 			open?: boolean
+			collapsible?: boolean
 			fieldOpen?: boolean
 			title?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -110,15 +108,15 @@
 								}
 						)
 					:
-						{
-							$: [
-								Source.NostrBand_Rest,
-								Source.Primal_Rest,
-							],
-							[entityFieldReference.fieldName]: {
+							{
 								$: [
 									Source.NostrBand_Rest,
 									Source.Primal_Rest,
+								],
+								$$reposts: {
+									$: [
+										Source.NostrBand_Rest,
+										Source.Primal_Rest,
 								],
 							},
 						}
@@ -132,7 +130,7 @@
 							[
 								...(parent.$$nostrReposts ?? []),
 								...(parent.$$nostrProfiles ?? [])
-									.flatMap((profile) => profile.$$reposts ?? []),
+									.flatMap((profile: Entity<typeof schema, EntityType.NostrProfile>) => profile.$$reposts ?? []),
 							]
 						:
 							(parent[entityFieldReference.fieldName] ?? [])
@@ -147,9 +145,9 @@
 					entityType={EntityType.NostrRepost}
 					id={`${id}-items`}
 					{title}
-					getKey={(row) => nostrRepost[EntityMetaKey.Id].eventId}
+					getKey={(row) => row[EntityMetaKey.Id].eventId}
 					getSortValue={(row) => (
-						`${String(-(nostrRepost.createdAt ?? 0)).padStart(20, '0')}\0${nostrRepost[EntityMetaKey.Id].eventId}`
+						`${String(-(row.createdAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].eventId}`
 					)}
 					placeholderText={`Loading ${title.toLowerCase()}…`}
 					resource={reposts}

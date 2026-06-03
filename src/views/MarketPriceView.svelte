@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { ComponentProps } from 'svelte'
+	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 
 	import {
@@ -12,9 +12,9 @@
 
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 
 
@@ -25,24 +25,22 @@
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(assets)/(markets)/market/[marketKey]',
-			{
-				marketKey: encodeURIComponent(stringify(entityId.$market)),
-			},
-		),
+		href = resolve('/(assets)/(markets)/market/[marketKey]', {
+			marketKey: stringify(entityId.$market),
+		}),
+		layout = EntityLayout.SummaryDetails,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.MarketPrice>
 			href?: string
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
 			| 'id'
-			| 'layout'
 		>
 	> = $props()
 
@@ -54,13 +52,16 @@
 		leg.kind === MarketAssetKind.Coin ?
 			leg.$coin.coinId
 		: leg.kind === MarketAssetKind.CoinInstance ?
-			`instance-${stringify(leg.$coinInstance).slice(0, 12)}`
+			leg.$coinInstance.type === CoinInstanceType.NativeCurrency ?
+				'native'
+		:
+				'erc20'
 		:
 			leg.$currency.iso4217
 	)
 
 
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const marketPrice = useEntity(
@@ -78,6 +79,7 @@
 				Source.Blockscout_Rest,
 			],
 			$parentMarket: {},
+			...((open || layout === EntityLayout.Value) && {
 			$$quotes: {
 				$: [
 					Source.Blockscout_Rest,
@@ -90,10 +92,12 @@
 				],
 				$limit: 32,
 			},
+			}),
 		},
 	)
 
 
+	// (Derived)
 	const marketIdLabel = $derived(
 		entityId.$market.marketKind === MarketKind.Spot ?
 			`${entityId.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$market.$base)}-${marketAssetSymbol(entityId.$market.$quote)}`
@@ -107,6 +111,7 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
+	import MarketView from '$/views/MarketView.svelte'
 	import Market_TimestampView from '$/views/Market_TimestampView.svelte'
 	import Market_TimestampsView from '$/views/Market_TimestampsView.svelte'
 </script>
@@ -116,6 +121,7 @@
 	entityType={EntityType.MarketPrice}
 	{entityId}
 	href={href}
+	{layout}
 	{open}
 	title={marketIdLabel}
 	{...EntityViewProps}
@@ -129,8 +135,8 @@
 				{@const headQuoteId = (
 					(marketPrice.$$quotes ?? [])
 						.toSorted((
-							leftQuote,
-							rightQuote,
+							leftQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
+							rightQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
 						) => (
 							rightQuote[EntityMetaKey.Id].timestampMs
 								- leftQuote[EntityMetaKey.Id].timestampMs
@@ -150,7 +156,7 @@
 							entityId.feedKey != null && entityId.feedKey !== '' ?
 								entityId.feedKey
 							: entityId.$network != null ?
-								`Chain ${String(evmChainIdFromNetworkId(entityId.$network))}`
+								`Chain ${String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}`
 							:
 								'Quote stream'
 						)}
@@ -177,8 +183,8 @@
 								{@const headQuoteId = (
 								(marketPrice.$$quotes ?? [])
 									.toSorted((
-										leftQuote,
-										rightQuote,
+										leftQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
+										rightQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
 									) => (
 										rightQuote[EntityMetaKey.Id].timestampMs
 											- leftQuote[EntityMetaKey.Id].timestampMs
@@ -215,6 +221,25 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<div>
+				<dt>Parent market</dt>
+				<dd>
+					<ResourceBoundary
+						resource={marketPrice}
+						placeholderText="Loading market…"
+					>
+						{#snippet children(marketPrice)}
+							<MarketView
+								entityId={marketPrice.$parentMarket?.[EntityMetaKey.Id] ?? entityId.$market}
+								layout={EntityLayout.Title}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 	{/snippet}
 
@@ -222,7 +247,7 @@
 		open: _open,
 	})}
 		<Market_TimestampsView
-			href={resolve('/markets')}
+			href="/markets"
 			collapsible={false}
 			entityFieldReference={{
 				entityType: EntityType.MarketPrice,

@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -37,17 +38,12 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const lensPost = useEntity(
 		EntityType.LensPost,
 		entityId,
 		{
 			$: [
 				Source.Lens_Graphql,
-				Source.Hey_Graphql,
 			],
 			text: {},
 			timestamp: {},
@@ -62,7 +58,6 @@
 			$$timestamps: {
 				$: [
 					Source.Lens_Graphql,
-					Source.Hey_Graphql,
 				],
 				$limit: 1,
 			},
@@ -199,8 +194,8 @@
 							<dd>
 							<svelte:self
 									entityId={lensPost.$repostOf[EntityMetaKey.Id]}
-									layout={EntityLayout.SummaryDetails}
-									open={true}
+									layout={EntityLayout.Value}
+								open={true}
 									showTypeAnnotation={false}
 								/>
 							</dd>
@@ -213,8 +208,8 @@
 							<dd>
 							<svelte:self
 									entityId={lensPost.$quoteOf[EntityMetaKey.Id]}
-									layout={EntityLayout.SummaryDetails}
-									open={false}
+									layout={EntityLayout.Value}
+								open={false}
 									showTypeAnnotation={false}
 								/>
 							</dd>
@@ -228,7 +223,7 @@
 							<svelte:self
 									entityId={lensPost.$commentOn[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
-									open={false}
+								open={false}
 								/>
 							</dd>
 						</div>
@@ -288,91 +283,91 @@
 	})}
 		{@const postDetailKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${postDetailKey}:carousel-lens-post`}
-				sectionIdPrefix={postDetailKey}
-				sections={(
-					routeChildren ?
-							collapsibleTabsSections([
-								{ id: 'lens-post-text', label: 'Text' },
-								{ id: 'lens-post-comments', label: 'Comments' },
-								{ id: 'lens-post-record', label: 'Record' },
-								{ id: 'metric-snapshots', label: 'Metrics' },
-								{ id: 'lens-post-more', label: 'More' },
-							])
-					:
-							collapsibleTabsSections([
-								{ id: 'lens-post-text', label: 'Text' },
-								{ id: 'lens-post-comments', label: 'Comments' },
-								{ id: 'lens-post-record', label: 'Record' },
-								{ id: 'metric-snapshots', label: 'Metrics' },
-							])
-					)}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Lens publication
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${postDetailKey}:carousel-lens-post`}
+			sectionIdPrefix={postDetailKey}
+			sections={(
+				routeChildren ?
+						collapsibleTabsSections([
+							{ id: 'lens-post-text', label: 'Text' },
+							{ id: 'lens-post-comments', label: 'Comments' },
+							{ id: 'lens-post-record', label: 'Record' },
+							{ id: 'metric-snapshots', label: 'Metrics' },
+							{ id: 'lens-post-more', label: 'More' },
+						])
+				:
+						collapsibleTabsSections([
+							{ id: 'lens-post-text', label: 'Text' },
+							{ id: 'lens-post-comments', label: 'Comments' },
+							{ id: 'lens-post-record', label: 'Record' },
+							{ id: 'metric-snapshots', label: 'Metrics' },
+						])
+				)}
+			data-card
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Lens publication
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionLensPostText()}
-					<ResourceBoundary
-						resource={lensPost}
-						placeholderText="Loading Lens publication…"
-					>
-						{#snippet children(lensPost)}
-							{#if lensPost.text}
-								<p>{lensPost.text}</p>
-							{:else}
-								<p data-text="muted">
-									No text yet.
-								</p>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-
-				{#snippet SectionLensPostComments()}
-					<LensCommentsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/lens')}
-						entityFieldReference={{
-							entityType: EntityType.LensPost,
-							entityId,
-							fieldName: '$$comments',
-						}}
-						id={`${postDetailKey}:comments`}
-						open={true}
-						title="Comments"
-					/>
-				{/snippet}
-
-					{#snippet SectionLensPostRecord()}
+			{#snippet SectionLensPostText()}
+				<ResourceBoundary
+					resource={lensPost}
+					placeholderText="Loading Lens publication…"
+				>
+					{#snippet children(lensPost)}
+						{#if lensPost.text}
+							<p>{lensPost.text}</p>
+						{:else}
+							<p data-text="muted">
+								No text yet.
+							</p>
+						{/if}
 					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<LensPost_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.LensPost,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${postDetailKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
+			{#snippet SectionLensPostComments()}
+				<LensCommentsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/lens')}
+					entityFieldReference={{
+						entityType: EntityType.LensPost,
+						entityId,
+						fieldName: '$$comments',
+					}}
+					id={`${postDetailKey}:comments`}
+					open={true}
+					title="Comments"
+				/>
+			{/snippet}
 
-					{#snippet SectionLensPostMore()}
-						{#if routeChildren}
-						{@render routeChildren()}
-					{/if}
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionLensPostRecord()}
+			{/snippet}
+
+			{#snippet SectionMetricSnapshots()}
+				<LensPost_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.LensPost,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${postDetailKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
+
+			{#snippet SectionLensPostMore()}
+				{#if routeChildren}
+				{@render routeChildren()}
+			{/if}
+		{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

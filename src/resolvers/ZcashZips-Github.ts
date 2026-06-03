@@ -9,7 +9,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const zipMetadataValue = (text: string, key: string) => (
-	new RegExp(`^:${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim() ?? null
+	new RegExp(`^:${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
 
 const githubZipProposalIndexRows = async (
@@ -23,7 +23,7 @@ const githubZipProposalIndexRows = async (
 		.flatMap((githubContent) => {
 			const proposalNumberRaw = (
 				githubContent.type === 'file' ?
-					regex('^zip-(?<proposalNumber>\\d{4})\\.rst$').exec(githubContent.name)?.groups?.proposalNumber
+					regex('^zip-(?<proposalNumber>\\d{4})\\.rst$').exec(githubContent.name)?.groups.proposalNumber
 				:
 					null
 			)

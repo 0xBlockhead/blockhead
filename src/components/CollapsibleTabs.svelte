@@ -23,16 +23,6 @@
 		Sections extends readonly CollapsibleTabsSectionRow[],
 	> = Sections[number]['id']
 
-	export type CollapsibleTabsLiteralSections<
-		Sections extends readonly CollapsibleTabsSectionRow[],
-	> = (
-		string extends CollapsibleTabsSectionIds<Sections> ?
-			never
-		:
-			Sections
-	)
-
-
 	type KebabToPascalCase<Segment extends string> = (
 		Segment extends `${infer Head}-${infer Tail}` ?
 			`${Capitalize<Head>}${KebabToPascalCase<Tail>}`
@@ -52,7 +42,7 @@
 		Sections extends readonly CollapsibleTabsSectionRow[],
 	> = {
 		sectionIdPrefix: string
-		sections: CollapsibleTabsLiteralSections<Sections>
+		sections: Sections
 
 		Summary?: Snippet<[context: {
 			open?: boolean,
@@ -87,8 +77,6 @@
 	): `Section${string}` => (
 		`Section${kebabToPascalCase(sectionId)}`
 	)
-
-
 </script>
 
 

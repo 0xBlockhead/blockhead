@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import { stringify } from 'devalue'
 
 
@@ -19,7 +15,7 @@
 
 	const epochEntityId = $derived(
 		{
-			$network: networkIdFromCaip2RouteParams(params),
+			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			epoch: Number(params.epochNumber),
 		},
 	)
@@ -37,7 +33,7 @@
 
 <ParentPageCollapsible
 	href={resolve(
-		'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(beacon-epochs)/epoch/[epochNumber]',
+		'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(beacon-epochs)/epoch/[epochNumber]',
 		params,
 	)}
 	id={stringify(epochEntityId)}

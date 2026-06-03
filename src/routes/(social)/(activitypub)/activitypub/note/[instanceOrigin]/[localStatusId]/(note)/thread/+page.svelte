@@ -8,11 +8,6 @@
 		params,
 	} = $props()
 
-	const entityId = $derived({
-		instanceOrigin: decodeURIComponent(params.instanceOrigin),
-		localStatusId: decodeURIComponent(params.localStatusId),
-	})
-
 
 	// Components
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
@@ -26,7 +21,10 @@
 		href={resolve('/activitypub/notes')}
 		entityFieldReference={{
 			entityType: EntityType.ActivityPubNote,
-			entityId,
+			({
+		instanceOrigin: decodeURIComponent(params.instanceOrigin),
+		localStatusId: decodeURIComponent(params.localStatusId),
+	}),
 			fieldName: '$$thread',
 		}}
 		id="activitypub-note-thread"

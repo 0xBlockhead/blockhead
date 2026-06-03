@@ -25,7 +25,7 @@ export async function duneFetch<T>(
 ): Promise<T> {
 	const url = `${baseUrl}${path}`
 	const res = await corsFetch(url, {
-		origins: Dune.origins ?? [],
+		origins: Dune.origins,
 		init: {
 			...init,
 			headers: { ...duneRequestHeaders(publicEnv), ...init?.headers },

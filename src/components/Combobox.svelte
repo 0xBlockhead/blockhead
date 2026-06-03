@@ -3,8 +3,8 @@
 	generics="_Item"
 >
 	// Types/constants
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { Snippet } from 'svelte'
+	import type { SvelteHTMLElements } from 'svelte/elements'
 	import { stringify } from 'devalue'
 
 
@@ -55,7 +55,7 @@
 		inputValue?: string
 		onInputBlur?: () => void
 		onInputKeydown?: (e: KeyboardEvent) => void
-		Input?: Snippet<[props: Record<string, JsonValue>]>
+		Input?: Snippet<[props: SvelteHTMLElements['input']]>
 	} = $props()
 
 	const normalizedItems = $derived(
@@ -63,9 +63,7 @@
 			item,
 			id: getItemId(item),
 			label: getItemLabel(item) ?? '',
-			disabled: getItemDisabled ? getItemDisabled(item)
-			:
-				false,
+			disabled: getItemDisabled ? getItemDisabled(item) : false,
 		})),
 	)
 	const normalizedGroups = $derived(
@@ -85,9 +83,7 @@
 					item,
 					id: getItemId(item),
 					label: getItemLabel(item) ?? '',
-					disabled: getItemDisabled ? getItemDisabled(item)
-					:
-						false,
+					disabled: getItemDisabled ? getItemDisabled(item) : false,
 				})),
 			}))
 		:
@@ -95,7 +91,6 @@
 	)
 
 
-	// State
 	let isFocused = $state(
 		false
 	)
@@ -108,28 +103,10 @@
 		const singleValue = value ?? undefined
 		const nextValue = (
 			normalizedItems.find((item) => item.id === (singleValue ? getItemId(singleValue) : ''))?.label ??
-			(singleValue ? getItemLabel(singleValue)
-			:
-				'')
+			(singleValue ? getItemLabel(singleValue) : '')
 		)
 		if (inputValue !== nextValue) inputValue = nextValue
 	})
-	const rootItems = $derived(
-		normalizedItems.map((item) => ({
-			value: item.id,
-			label: item.label,
-			disabled: item.disabled,
-		})),
-	)
-	const filteredItems = $derived(
-		inputValue === '' ?
-			normalizedItems
-		:
-			normalizedItems.filter((item) => (
-				item.label.toLowerCase().includes(inputValue.toLowerCase())
-				),
-			),
-	)
 	const filteredGroups = $derived(
 		normalizedGroups.length > 0 ?
 			normalizedGroups
@@ -161,7 +138,6 @@
 
 	// Components
 	import { Combobox } from 'bits-ui'
-
 </script>
 
 
@@ -172,15 +148,20 @@
 	bind:value={
 		() => {
 			const singleValue = value ?? undefined
-			return singleValue ? getItemId(singleValue)
-			:
-				''
+			return singleValue ? getItemId(singleValue) : ''
 		},
 		(_value) => setValue(_value)
 	}
 	{disabled}
 	{name}
-	items={rootItems}
+	items={
+		normalizedItems
+			.map((item) => ({
+				value: item.id,
+				label: item.label,
+				disabled: item.disabled,
+			}))
+	}
 	{inputValue}
 >
 	{#if children}
@@ -200,7 +181,7 @@
 				aria-label={ariaLabel}
 				{placeholder}
 			>
-				{#snippet child()}
+				{#snippet child({ props })}
 					{@const mergedProps = {
 						...props,
 						onfocus: () => {
@@ -252,7 +233,7 @@
 										label={item.label}
 										disabled={item.disabled}
 									>
-										{#snippet children()}
+											{#snippet children({ selected })}
 											<span data-row="start gap-1">
 												<span data-row-item="flexible">
 													{#if Before}
@@ -282,13 +263,19 @@
 							</Combobox.Group>
 						{/each}
 					{:else}
-						{#each filteredItems as item (item.id)}
+						{#each (inputValue === '' ?
+							normalizedItems
+						:
+							normalizedItems.filter((item) => (
+								item.label.toLowerCase().includes(inputValue.toLowerCase())
+							))
+						) as item (item.id)}
 							<Combobox.Item
 								value={item.id}
 								label={item.label}
 								disabled={item.disabled}
 							>
-								{#snippet children()}
+									{#snippet children({ selected })}
 									<span data-row="start gap-1">
 										<span data-row-item="flexible">
 											{#if Before}

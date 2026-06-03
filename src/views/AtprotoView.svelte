@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -18,10 +19,7 @@
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/atproto',
-			entityId,
-		),
+		href = resolve('/atproto'),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -38,10 +36,6 @@
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const atprotoNetwork = useEntity(
 		EntityType.AtprotoNetwork,
@@ -69,6 +63,7 @@
 	)
 
 
+	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -184,74 +179,74 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-registry`}
-				sectionIdPrefix={networkIdKey}
-				sections={[
-					{ id: 'registry-actors', label: 'Accounts' },
-					{ id: 'registry-posts', label: 'Recent posts' },
-					{ id: 'examples-atprotoNetworks', label: 'Example routes' },
-				]}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Directory & examples
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-registry`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'registry-actors', label: 'Accounts' },
+				{ id: 'registry-posts', label: 'Recent posts' },
+				{ id: 'examples-atprotoNetworks', label: 'Example routes' },
+			]}
+			data-card
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Directory & examples
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionRegistryActors({ id: _id, label: _label })}
-					<AtprotoActorsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/atproto/actors')}
-						entityFieldReference={{
-							entityType: EntityType.AtprotoNetwork,
-							entityId,
-							fieldName: '$$atprotoActors',
-						}}
-						id={`${networkIdKey}:actors`}
-						open={_open}
-					/>
-				{/snippet}
+			{#snippet SectionRegistryActors({ id: _id, label: _label })}
+				<AtprotoActorsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/atproto/actors')}
+					entityFieldReference={{
+						entityType: EntityType.AtprotoNetwork,
+						entityId,
+						fieldName: '$$atprotoActors',
+					}}
+					id={`${networkIdKey}:actors`}
+					open={_open}
+				/>
+			{/snippet}
 
-				{#snippet SectionRegistryPosts({ id: _id, label: _label })}
-					<AtprotoPostsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/atproto/posts')}
-						entityFieldReference={{
-							entityType: EntityType.AtprotoNetwork,
-							entityId,
-							fieldName: '$$atprotoPosts',
-						}}
-						fieldOpen={_open}
-						id={`${networkIdKey}:posts`}
-						open={_open}
-						title="Recent posts"
-					/>
-				{/snippet}
+			{#snippet SectionRegistryPosts({ id: _id, label: _label })}
+				<AtprotoPostsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/atproto/posts')}
+					entityFieldReference={{
+						entityType: EntityType.AtprotoNetwork,
+						entityId,
+						fieldName: '$$atprotoPosts',
+					}}
+					fieldOpen={_open}
+					id={`${networkIdKey}:posts`}
+					open={_open}
+					title="Recent posts"
+				/>
+			{/snippet}
 
-				{#snippet SectionExamplesList({ id: _id, label: _label })}
-					<ul>
-						<li>
-							<a href={resolve('/(social)/(atproto)/atproto/actor/[did]', {
-								did: encodeURIComponent(atprotoProbeDid),
-							})}>
-								Actor example
-							</a>
-						</li>
-						<li>
-							<a href={resolve('/(social)/(atproto)/atproto/post/[uri]', {
-								uri: encodeURIComponent(atprotoProbePostUri),
-							})}>
-								Post example
-							</a>
-						</li>
-					</ul>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionExamplesList({ id: _id, label: _label })}
+				<ul>
+					<li>
+						<a href={resolve('/(social)/(atproto)/atproto/actor/[did]', {
+							did: encodeURIComponent(atprotoProbeDid),
+						})}>
+							Actor example
+						</a>
+					</li>
+					<li>
+						<a href={resolve('/(social)/(atproto)/atproto/post/[uri]', {
+							uri: encodeURIComponent(atprotoProbePostUri),
+						})}>
+							Post example
+						</a>
+					</li>
+				</ul>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

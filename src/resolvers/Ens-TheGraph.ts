@@ -68,7 +68,7 @@ export default {
 			resolve: async (entityId, context) => {
 				const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.TheGraph_Graphql)
-				const normalizedName = ensToString(ensNormalizeNode(entityId.name.trim()))
+				const normalizedName = ensToString(ensNormalizeNode(entityId.name))
 				const matchingEnsDomain = (
 					await singleFlight(getName)({
 						publicEnv,
@@ -136,9 +136,7 @@ export default {
 					}),
 					...(parentEnsNameEntity != null && { $parent: parentEnsNameEntity }),
 					...(subdomainEnsNameEntities.length > 0 && { $$subdomains: subdomainEnsNameEntities }),
-					...(matchingEnsDomain.subdomainCount != null && {
 						subdomainCount: matchingEnsDomain.subdomainCount,
-					}),
 					...(subgraphResolvedActor != null && { $subgraphResolvedActor: subgraphResolvedActor }),
 					...(subgraphOwnerActor != null && { $subgraphOwnerActor: subgraphOwnerActor }),
 					...(registrantActor != null && { $registrantActor: registrantActor }),
@@ -150,7 +148,6 @@ export default {
 					...(matchingEnsDomain.resolver?.texts != null
 						&& matchingEnsDomain.resolver.texts.length > 0 && {
 						resolverTextKeys: matchingEnsDomain.resolver.texts
-							.filter((value) => value != null)
 							.map(String),
 					}),
 					...(matchingEnsDomain.resolver?.coinTypes != null

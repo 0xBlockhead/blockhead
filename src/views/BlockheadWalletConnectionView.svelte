@@ -7,11 +7,11 @@
 	import { blockheadWalletConnectionStatusByStatus } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -24,10 +24,7 @@
 		error,
 		onRemove,
 		entityId,
-		href = resolve(
-			'/~/(accounts)/accounts/(connections)/connection/[connectionId]',
-			{ connectionId: entityId.id },
-		),
+		href = resolve(`/~/accounts/connections/connection/${encodeURIComponent(entityId.$wallet.rdns)}`),
 		title,
 		open = $bindable(true),
 		collapsible = true,
@@ -44,13 +41,10 @@
 			href?: string
 			title: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const walletConnection = useEntity(
 		EntityType.BlockheadWalletConnection,
@@ -70,6 +64,7 @@
 	)
 
 
+	// (Derived)
 	const walletConnectionKey = $derived(
 		stringify(entityId),
 	)
@@ -107,7 +102,7 @@
 
 	{#snippet Value()}
 		<span>
-			{entityId.id}
+			{entityId.$wallet.rdns}
 		</span>
 	{/snippet}
 
@@ -141,7 +136,7 @@
 						{#if chainId !== null}
 							<EvmNetworkAccountView
 								entityId={{
-									$network: networkIdFromEvmChainId(chainId),
+									$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 									$actor: {
 										address: accounts[0],
 									},
@@ -212,66 +207,66 @@
 		{/if}
 
 		<CollapsibleTabs
-				id={`${walletConnectionKey}:carousel-wallet`}
-				sectionIdPrefix={walletConnectionKey}
-				sections={[
-					{ id: 'wallet-accounts', label: 'Accounts' },
-					{ id: 'wallet-actions', label: 'Actions' },
-				]}
-				data-card
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>
-							Wallet connection
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${walletConnectionKey}:carousel-wallet`}
+			sectionIdPrefix={walletConnectionKey}
+			sections={[
+				{ id: 'wallet-accounts', label: 'Accounts' },
+				{ id: 'wallet-actions', label: 'Actions' },
+			]}
+			data-card
+		>
+			{#snippet Summary({ open: _isOpen })}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>
+						Wallet connection
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionWalletAccounts()}
-					{#if accounts.length}
-						<ul
-							data-column="gap-1"
-							data-blockheadWalletConnections="unstyled"
-						>
-							{#each accounts as address (address)}
-								<li>
-									{#if chainId !== null}
-										<EvmNetworkAccountView
-											entityId={{
-												$network: networkIdFromEvmChainId(chainId),
-												$actor: { address },
-											}}
-										/>
-									{:else}
-										<EvmAccountView
-											entityId={{ address }}
-											href={resolve('/account/[address]', {
-												address: address,
-											})}
-										/>
-									{/if}
-								</li>
-							{/each}
-						</ul>
-					{:else}
-						<p data-text="muted">
-							No accounts are connected to this wallet yet.
-						</p>
-					{/if}
-				{/snippet}
+			{#snippet SectionWalletAccounts()}
+				{#if accounts.length}
+					<ul
+						data-column="gap-1"
+						data-blockheadWalletConnections="unstyled"
+					>
+						{#each accounts as address (address)}
+							<li>
+								{#if chainId !== null}
+									<EvmNetworkAccountView
+										entityId={{
+											$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
+											$actor: { address },
+										}}
+									/>
+								{:else}
+									<EvmAccountView
+										entityId={{ address }}
+										href={resolve('/account/[address]', {
+											address: address,
+										})}
+									/>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				{:else}
+					<p data-text="muted">
+						No accounts are connected to this wallet yet.
+					</p>
+				{/if}
+			{/snippet}
 
-				{#snippet SectionWalletActions()}
-					<div data-row>
-						<button
-							type="button"
-							onclick={onRemove}
-						>
-							Remove
-						</button>
-					</div>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionWalletActions()}
+				<div data-row>
+					<button
+						type="button"
+						onclick={onRemove}
+					>
+						Remove
+					</button>
+				</div>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>
 

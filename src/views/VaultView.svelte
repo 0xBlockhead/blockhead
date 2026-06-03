@@ -5,7 +5,6 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Context
@@ -18,7 +17,7 @@
 		href = resolve(
 			'/(assets)/(vaults)/vault/[chainId]/[vaultId]',
 			{
-				chainId: String(evmChainIdFromNetworkId(entityId.$network)),
+				chainId: String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)),
 				vaultId: entityId.id,
 			},
 		),
@@ -36,9 +35,10 @@
 		>
 	> = $props()
 
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
+
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
@@ -56,12 +56,5 @@
 			value={entityId.id}
 			format={TruncatedValueFormat.Visual}
 		/>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

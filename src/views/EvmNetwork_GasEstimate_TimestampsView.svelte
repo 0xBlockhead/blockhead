@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
@@ -12,10 +8,10 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -42,9 +38,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -113,16 +106,17 @@
 				id={`${id}-items`}
 				href={href}
 				open={true}
+				resource={gasEstimateTimestamps}
 			>
 				{#snippet Item({ item })}
 					{@const row = item.value}
+					{@const rowId = row[EntityMetaKey.Id]}
 					<EvmNetwork_GasEstimate_TimestampView
-						entityId={gasEstimateTimestamp[EntityMetaKey.Id]}
-						href={resolve(
-							'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-							{ ...caip2RouteParamsFromNetworkId(gasEstimateTimestamp[EntityMetaKey.Id].$network) },
-						)}
-						id={stringify(gasEstimateTimestamp[EntityMetaKey.Id])}
+						entityId={rowId}
+						href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]', {
+							caip2Namespace: rowId.$network.caip2.namespace,
+							caip2Reference: rowId.$network.caip2.reference,
+						})}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

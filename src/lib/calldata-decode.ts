@@ -8,6 +8,7 @@ import { keccak256String, toHex } from '@tevm/voltaire/Hash'
 import { fromBytes, toBytes } from '@tevm/voltaire/Hex'
 
 import type { DecodedCalldata, DecodedParam } from '$/typescript/DecodedCalldata.ts'
+import type { EvmAbiEntry } from '$/schema/$EvmAbi.ts'
 
 /** Compute 4-byte function selector from full signature string (e.g. "transfer(address,uint256)"). */
 export const functionSelectorFromSignature = (signature: string): `0x${string}` | null => {
@@ -82,9 +83,12 @@ export const decodeEventDataWithSignature = (
 ): DecodedCalldata | null => {
 	const parsed = parseEventSignature(signature)
 	if (!parsed) return null
-	const raw = topicAndDataHex.startsWith('0x') ? topicAndDataHex.slice(2)
-	:
-		topicAndDataHex
+	const raw = (
+		topicAndDataHex.startsWith('0x') ?
+			topicAndDataHex.slice(2)
+		:
+			topicAndDataHex
+	)
 	const dataStart = 64 + parsed.indexedTypes.length * 64
 	const minDataLen = parsed.nonIndexedTypes.length * 64
 	if (raw.length < dataStart + minDataLen) return null
@@ -157,6 +161,28 @@ const abiEventSignatureFromAbiEntry = (entry: {
 )
 
 /** Try each ABI `event` entry on verified contract JSON until one decodes the log. */
+export const decodeLogWithContractAbi = (
+	abi: readonly EvmAbiEntry[],
+	topics: readonly string[],
+	data: string,
+): { signature: string, decoded: DecodedCalldata } | null => {
+	if (topics.length === 0 || topics[0] == null || topics[0] === '' || data === '') return null
+
+	for (const entry of abi) {
+		if (entry.type !== 'event' || entry.name == null) continue
+
+		const signature = abiEventSignatureFromAbiEntry({
+			name: entry.name,
+			inputs: entry.inputs,
+		})
+		const decoded = decodeLogWithSignature(signature, topics, data)
+		if (decoded) return { signature, decoded }
+	}
+
+	return null
+}
+
+/** Try each ABI `event` entry on verified contract JSON until one decodes the log. */
 export const decodeLogWithContractAbiJson = (
 	abiJson: string,
 	topics: readonly string[],
@@ -197,9 +223,12 @@ export const decodeCalldataWithSignature = (
 ): DecodedCalldata | null => {
 	const parsed = parseFunctionSignature(signature)
 	if (!parsed) return null
-	const raw = calldataHex.startsWith('0x') ? calldataHex.slice(2)
-	:
-		calldataHex
+	const raw = (
+		calldataHex.startsWith('0x') ?
+			calldataHex.slice(2)
+		:
+			calldataHex
+	)
 	if (raw.length < 8) return null
 	const expectedSelector = functionSelectorFromSignature(signature)
 	if (
@@ -261,9 +290,12 @@ export const formatDecodedParamValue = (type: string, value: unknown): string =>
 
 /** Split hex calldata into display lines: selector (8 hex chars) then 32-byte (64 hex) chunks. */
 export const formatHexCalldataLines = (hex: string): string[] => {
-	const raw = hex.startsWith('0x') ? hex.slice(2)
-	:
-		hex
+	const raw = (
+		hex.startsWith('0x') ?
+			hex.slice(2)
+		:
+			hex
+	)
 	if (raw.length === 0) return ['0x']
 	const lines: string[] = []
 	if (raw.length <= 8)

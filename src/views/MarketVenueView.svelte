@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -9,18 +9,16 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(assets)/(marketVenues)/market-venue/[marketVenueId]',
-			{
+		href = resolve('/(assets)/(marketVenues)/market-venue/[marketVenueId=marketVenueId]', {
 				marketVenueId: entityId.marketVenueId,
-			},
-		),
+		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -37,10 +35,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const marketVenue = useEntity(
 		EntityType.MarketVenue,
 		entityId,
@@ -54,7 +48,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MarketsView from '$/views/MarketsView.svelte'
@@ -65,7 +58,7 @@
 	entityType={EntityType.MarketVenue}
 	{entityId}
 	href={href}
-	title={marketVenue.label ?? entityId.marketVenueId}
+	title={entityId.marketVenueId}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -82,9 +75,36 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open })}
+	{#snippet Content({})}
+		<ResourceBoundary
+			resource={marketVenue}
+			placeholderText="Loading market venue…"
+		>
+			{#snippet children(marketVenue)}
+				<dl data-column-item="center">
+					<div>
+						<dt>Venue id</dt>
+						<dd>
+							<code>{entityId.marketVenueId}</code>
+						</dd>
+					</div>
+
+					<div>
+						<dt>Label</dt>
+						<dd>
+				{marketVenue.label ?? entityId.marketVenueId}
+						</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
 		<MarketsView
-			href={resolve('/markets')}
+			href="/markets"
 			entityFieldReference={{
 				entityType: EntityType.MarketVenue,
 				entityId,

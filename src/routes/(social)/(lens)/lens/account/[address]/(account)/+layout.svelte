@@ -12,7 +12,6 @@
 	// State
 	let { children } = $props()
 
-
 	const address = $derived(
 		page.params.address ?? '',
 	)

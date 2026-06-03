@@ -115,22 +115,10 @@ export const getCastByUsernameAndHashPrefix = async ({
 )
 
 /**
- * `GET /v2/all-channels` (paginated page)
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-all-channels
- */
-export const fetchAllChannels = getAllChannelsPage
-
-/**
- * `GET /v1/channel`
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-a-channel
- */
-export const fetchChannel = getChannel
-
-/**
  * `GET /v1/channel-followers`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-channel-followers
  */
-export const fetchChannelFollowers = ({
+export const getChannelFollowersPage = ({
 	channelId,
 	cursor,
 	limit,
@@ -150,7 +138,7 @@ export const fetchChannelFollowers = ({
  * `GET /v1/user-following-channels`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-channels-a-user-is-following
  */
-export const fetchUserFollowingChannels = ({
+export const getUserFollowingChannelsPage = ({
 	fid,
 	cursor,
 	limit,
@@ -189,7 +177,7 @@ export const getChannelFollowersCount = async ({
 }) => (
 	countRowsAcrossFarcasterPages({
 		loadPage: (cursor) => (
-			fetchChannelFollowers({
+			getChannelFollowersPage({
 				channelId,
 				cursor,
 				limit: 100,
@@ -208,7 +196,7 @@ export const getChannelMembersCount = async ({
 }) => (
 	countRowsAcrossFarcasterPages({
 		loadPage: (cursor) => (
-			fetchChannelMembers({
+			getChannelMembersPage({
 				channelId,
 				cursor,
 				limit: 100,
@@ -227,7 +215,7 @@ export const getUserFollowingChannelsCount = async ({
 }) => (
 	countRowsAcrossFarcasterPages({
 		loadPage: (cursor) => (
-			fetchUserFollowingChannels({
+			getUserFollowingChannelsPage({
 				fid,
 				cursor,
 				limit: 100,
@@ -243,7 +231,7 @@ export const getUserFollowingChannelsCount = async ({
  * `GET /v1/user-channel`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-user-following-channel-status
  */
-export const fetchUserChannelFollowStatus = ({
+export const getUserChannelFollowStatus = ({
 	fid,
 	channelId,
 }: {
@@ -259,7 +247,7 @@ export const fetchUserChannelFollowStatus = ({
  * `GET /fc/channel-members`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-channel-members
  */
-export const fetchChannelMembers = ({
+export const getChannelMembersPage = ({
 	channelId,
 	fid,
 	cursor,
@@ -281,7 +269,7 @@ export const fetchChannelMembers = ({
  * `GET /fc/channel-invites`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-channel-invites
  */
-export const fetchChannelInvites = ({
+export const getChannelInvitesPage = ({
 	channelId,
 	fid,
 	cursor,
@@ -309,7 +297,7 @@ export const fetchChannelInvites = ({
  * `GET /fc/moderated-casts`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-cast-moderation-actions
  */
-export const fetchModeratedCasts = ({
+export const getModeratedCastsPage = ({
 	channelId,
 	cursor,
 	limit,
@@ -334,7 +322,7 @@ export const fetchModeratedCasts = ({
  * `GET /fc/channel-restricted-users`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-channel-restricted-users
  */
-export const fetchChannelRestrictedUsers = ({
+export const getChannelRestrictedUsersPage = ({
 	channelId,
 	fid,
 	cursor,
@@ -356,7 +344,7 @@ export const fetchChannelRestrictedUsers = ({
  * `GET /fc/channel-bans`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-channel-banned-users
  */
-export const fetchChannelBannedUsers = ({
+export const getChannelBannedUsersPage = ({
 	channelId,
 	fid,
 	cursor,
@@ -378,7 +366,7 @@ export const fetchChannelBannedUsers = ({
  * `GET /v2/discover-actions`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-farcaster-actions
  */
-export const fetchDiscoverActions = ({
+export const getDiscoverActionsPage = ({
 	list,
 	cursor,
 	limit,
@@ -405,7 +393,7 @@ export const fetchDiscoverActions = ({
  * `GET /fc/blocked-users`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-blocked-users
  */
-export const fetchBlockedUsers = ({
+export const getBlockedUsersPage = ({
 	blockerFid,
 	cursor,
 	limit,
@@ -425,7 +413,7 @@ export const fetchBlockedUsers = ({
  * `GET /fc/account-verifications`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-account-verifications
  */
-export const fetchAccountVerifications = ({
+export const getAccountVerificationsPage = ({
 	fid,
 	platform,
 	cursor,
@@ -453,7 +441,7 @@ export const fetchAccountVerifications = ({
  * `GET /v1/creator-rewards-winner-history`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-creator-reward-winners
  */
-export const fetchCreatorRewardsWinnerHistory = ({
+export const getCreatorRewardsWinnerHistoryPage = ({
 	periodsAgo,
 	cursor,
 	limit,
@@ -484,7 +472,7 @@ export const fetchCreatorRewardsWinnerHistory = ({
  * `GET /v1/developer-rewards-winner-history`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-developer-reward-winners
  */
-export const fetchDeveloperRewardsWinnerHistory = ({
+export const getDeveloperRewardsWinnerHistoryPage = ({
 	periodsAgo,
 	cursor,
 	limit,
@@ -516,7 +504,7 @@ export const fetchDeveloperRewardsWinnerHistory = ({
  * `GET /fc/primary-address`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-user-primary-address
  */
-export const fetchPrimaryAddress = ({
+export const getPrimaryAddressResponse = ({
 	fid,
 	protocol,
 }: {
@@ -538,7 +526,7 @@ export const fetchPrimaryAddress = ({
  * `GET /fc/primary-addresses`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-multiple-user-primary-addresses
  */
-export const fetchPrimaryAddresses = ({
+export const getPrimaryAddresses = ({
 	fids,
 	protocol,
 }: {
@@ -559,7 +547,7 @@ export const fetchPrimaryAddresses = ({
  * `GET /fc/starter-pack-members`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-starter-pack-members
  */
-export const fetchStarterPackMembers = ({
+export const getStarterPackMembersPage = ({
 	id,
 	cursor,
 	limit,

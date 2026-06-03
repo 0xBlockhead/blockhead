@@ -8,6 +8,7 @@
 		params,
 	} = $props()
 
+	import { isMarketEntityId } from '$/lib/isMarketEntityId.ts'
 
 	const route = $derived.by(() => {
 		const raw = params.marketKey ?? ''
@@ -45,10 +46,6 @@
 			return raw
 		}
 	}
-
-
-	// State
-	import { isMarketEntityId } from '$/lib/isMarketEntityId.ts'
 </script>
 
 

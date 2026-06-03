@@ -7,7 +7,6 @@
 	// State
 	let { children } = $props()
 
-
 	const channelId = $derived(
 		page.params.channelId ?? '',
 	)

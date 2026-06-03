@@ -2,12 +2,14 @@ import { stringify } from 'devalue'
 
 import { CoinId } from '$/constants/Coin.ts'
 import { ConsensusMechanismId } from '$/constants/ConsensusMechanism.ts'
-import { Iso4217 } from '$/constants/Currency.ts'
+import { currencyCatalogSnapshotTimestampMs, Iso4217 } from '$/constants/Currency.ts'
 import { ExecutionEnvironmentId } from '$/constants/ExecutionEnvironment.ts'
-import { MarketAssetKind, MarketKind, MarketTimeIntervalUnit } from '$/constants/Market.ts'
+import { catalogCoinUsdMarketIdByCoinId } from '$/constants/MarketCatalog.ts'
+import { MarketTimeIntervalUnit } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
 import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationProposal.ts'
+import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { EntityId } from '$/schema/$schema.ts'
@@ -22,23 +24,23 @@ import { Source } from '$/sources/$Source.ts'
 /**
  * Probe hex: canonical lowercase `0x` + digits (`$ZeroExHex` / `EvmAddress`). No strip/re-prefix.
  */
-const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
+export const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
 
-const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const
+export const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const
 
 export const SAMPLE_TX_HASH = (
 	'0xdacd6abf5b2814b28c68c59981f269c615796e7f0cba2009f4bf5edfdd9595ab' as const
 )
 
-const ERC4337_SMART_ACCOUNT_ADDRESS = '0x0000000000001d8a2e7bf6bc369525a2654aa298' as const
+export const ERC4337_SMART_ACCOUNT_ADDRESS = '0x0000000000001d8a2e7bf6bc369525a2654aa298' as const
 
-const ERC4337_BUNDLER_ADDRESS = '0xf0ac778fb2e56bab4edd7f25c2ed2f333d165b8d' as const
+export const ERC4337_BUNDLER_ADDRESS = '0xf0ac778fb2e56bab4edd7f25c2ed2f333d165b8d' as const
 
-const ERC4337_PAYMASTER_ADDRESS = '0x6599bba2a055f3c769cba1a2d462a75429bd7bf7' as const
+export const ERC4337_PAYMASTER_ADDRESS = '0x6599bba2a055f3c769cba1a2d462a75429bd7bf7' as const
 
-const ERC4337_ACCOUNT_FACTORY_ADDRESS = '0xcad776fce9c3b3db6724aeb4c7fa2f5f3c088253' as const
+export const ERC4337_ACCOUNT_FACTORY_ADDRESS = '0xcad776fce9c3b3db6724aeb4c7fa2f5f3c088253' as const
 
-const SAMPLE_USER_OPERATION_HASH = (
+export const SAMPLE_USER_OPERATION_HASH = (
 	'0xca87534346367dbf4ff6675627a3e43635db5a36bd8ef99ffcd20a63d1555ef5' as const
 )
 
@@ -53,19 +55,19 @@ const NOSTR_PROBE_PUBKEY = (
 
 export { NOSTR_PROBE_PUBKEY }
 
-const NOSTR_PROBE_RELAY_URL = 'wss://relay.damus.io' as const
+export const NOSTR_PROBE_RELAY_URL = 'wss://relay.damus.io' as const
 
-const NOSTR_PROBE_REPOST_EVENT_ID = `${'b'.repeat(64)}` as const
+export const NOSTR_PROBE_REPOST_EVENT_ID = `${'b'.repeat(64)}` as const
 
-const NOSTR_PROBE_REACTION_EVENT_ID = `${'c'.repeat(64)}` as const
+export const NOSTR_PROBE_REACTION_EVENT_ID = `${'c'.repeat(64)}` as const
 
-const NOSTR_PROBE_ARTICLE_IDENTIFIER = 'e2e-probe-article' as const
+export const NOSTR_PROBE_ARTICLE_IDENTIFIER = 'e2e-probe-article' as const
 
-const YOUTUBE_PROBE_PLAYLIST_ID = 'UU_x5XG1OV2P6uZZ5FSM9Ttw' as const
+export const YOUTUBE_PROBE_PLAYLIST_ID = 'UU_x5XG1OV2P6uZZ5FSM9Ttw' as const
 
-const YOUTUBE_PROBE_VIDEO_ID = 'jNQXAC9IVRw' as const
+export const YOUTUBE_PROBE_VIDEO_ID = 'jNQXAC9IVRw' as const
 
-const YOUTUBE_PROBE_COMMENT_ID = 'e2e-probe-comment' as const
+export const YOUTUBE_PROBE_COMMENT_ID = 'e2e-probe-comment' as const
 
 /** EVM explorer routes for e2e smoke / boundary (see also `routeViewSmokePaths`). */
 export const e2eEvmExplorerRoutePaths = {
@@ -117,15 +119,7 @@ const TRANSFER_TOPIC = (
 	'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' as const
 )
 
-export const ethUsdCatalogMarket = {
-	$base: { kind: MarketAssetKind.Coin, $coin: { coinId: CoinId.ETH } },
-	$quote: {
-		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: Iso4217.USD },
-	},
-	$marketVenue: { marketVenueId: MarketVenueId.Binance },
-	marketKind: MarketKind.Spot,
-} as const
+export const ethUsdCatalogMarket = catalogCoinUsdMarketIdByCoinId[CoinId.ETH]
 
 const mainnetChainId = 1
 
@@ -134,100 +128,112 @@ const mainnet = {
 		namespace: 'eip155',
 		reference: '1',
 	},
-}
+} as const
 
 const bitcoin = {
 	caip2: {
 		namespace: 'bip122',
 		reference: '000000000019d6689c085ae165831e93',
 	},
-}
+} as const
 
 const lightning = {
 	networkSlug: 'lightning',
-}
+} as const
 
 const zcash = {
 	caip2: {
 		namespace: 'bip122',
 		reference: '00040fe8ec8471911baa1db1266ea15',
 	},
-}
+} as const
 
 const filecoin = {
 	caip2: {
 		namespace: 'fil',
 		reference: 'f',
 	},
-}
+} as const
 
 const solana = {
 	caip2: {
 		namespace: 'solana',
 		reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 	},
-}
+} as const
 
 const cosmos = {
 	caip2: {
 		namespace: 'cosmos',
 		reference: 'cosmoshub-4',
 	},
-}
+} as const
 
 const polkadot = {
 	caip2: {
 		namespace: 'polkadot',
 		reference: '91b171bb158e2d3848fa23a9f1c25182',
 	},
-}
+} as const
 
 const hyperliquid = {
 	networkSlug: 'hyperliquid',
-}
+} as const
+
+const bittensor = {
+	networkSlug: 'bittensor',
+} as const
 
 const logos = {
 	networkSlug: 'logos-testnet',
-}
+} as const
 
 const quilibrium = {
 	networkSlug: 'quilibrium',
-}
+} as const
 
 const near = {
 	networkSlug: 'near',
-}
+} as const
+
+const tron = {
+	networkSlug: 'tron',
+} as const
 
 const monero = {
 	caip2: {
 		namespace: 'monero',
 		reference: '418015bb9ae982a1975da7d79277c270',
 	},
-}
+} as const
 
 const litecoin = {
 	caip2: {
 		namespace: 'bip122',
 		reference: '12a765e31ffd4059bada1e25190f6e98',
 	},
-}
+} as const
 
 const dogecoin = {
 	caip2: {
 		namespace: 'bip122',
 		reference: '1a91e3dace36e2be3bf030a65679fe82',
 	},
-}
+} as const
 
 const bitcoinCash = {
 	caip2: {
 		namespace: 'bip122',
 		reference: '000000000000000000651ef99cb9fcbe',
 	},
-}
+} as const
 
 const zeroG = {
 	networkSlug: '0g',
+} as const
+
+type ProbeEntityIdByType = {
+	[_EntityType in EntityType]?: EntityId<typeof schema, _EntityType>
 }
 
 const actorMainnetVitalik = {
@@ -267,8 +273,8 @@ const bridgeRouteEthMainnetToOptimism = {
 /**
  * Probe entity ids for `entityResolvers` smoke shapes; must match each type’s Arktype `id`.
  */
-export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof schema, EntityType>>> = {
-	[EntityType._Global]: {},
+export const probeEntityIdByType: ProbeEntityIdByType = {
+	[EntityType._Global]: { scope: 'global' },
 
 	[EntityType.ActivityPubActor]: {
 		instanceOrigin: 'https://mastodon.social',
@@ -299,10 +305,20 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 
 	[EntityType.EvmNetworkAccount]: evmNetworkAccountMainnetUsdc,
 
-	[EntityType.AtprotoActor]: { did: 'did:plc:z72i7hdynmk6x22kvon7fdpk' },
+	[EntityType.AtprotoActor]: { did: atprotoProbeDid },
+	[EntityType.AtprotoActor_Timestamp]: {
+		$actor: { did: atprotoProbeDid },
+		timestampMs: 0,
+	},
 	[EntityType.AtprotoNetwork]: { scope: 'AtprotoNetwork' },
 	[EntityType.AtprotoPost]: {
-		uri: 'at://did:plc:z72i7hdynmk6x22kvon7fdpk/app.bsky.feed.post/3juzh037csq2b',
+		uri: atprotoProbePostUri,
+	},
+	[EntityType.AtprotoPost_Timestamp]: {
+		$post: {
+			uri: atprotoProbePostUri,
+		},
+		timestampMs: 0,
 	},
 
 	[EntityType.BeaconEpoch]: { $network: mainnet, epoch: 300_000 },
@@ -310,6 +326,59 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.BeaconValidator]: {
 		$network: mainnet,
 		validatorIndex: 0,
+	},
+	[EntityType.BeaconCommittee]: {
+		$network: mainnet,
+		slot: 9_500_000,
+		index: 0,
+	},
+	[EntityType.BeaconSyncCommittee]: {
+		$network: mainnet,
+		period: 0,
+	},
+	[EntityType.BeaconAttestation]: {
+		$network: mainnet,
+		slot: 9_500_000,
+		index: 0,
+	},
+	[EntityType.BeaconWithdrawal]: {
+		$network: mainnet,
+		slot: 9_500_000,
+		index: 0,
+	},
+	[EntityType.BeaconSlashing]: {
+		$network: mainnet,
+		slot: 9_500_000,
+		kind: 'attester',
+		index: 0,
+	},
+
+	[EntityType.BittensorNetwork]: bittensor,
+	[EntityType.BittensorNetwork_Timestamp]: {
+		$network: bittensor,
+		timestampMs: 0,
+	},
+	[EntityType.BittensorBlock]: {
+		$network: bittensor,
+		blockNumber: 1_000_000n,
+	},
+	[EntityType.BittensorSubnet]: {
+		$network: bittensor,
+		netuid: 1,
+	},
+	[EntityType.BittensorMetagraph_Timestamp]: {
+		$subnet: {
+			$network: bittensor,
+			netuid: 1,
+		},
+		timestampMs: 0,
+	},
+	[EntityType.BittensorNeuron]: {
+		$subnet: {
+			$network: bittensor,
+			netuid: 1,
+		},
+		uid: 0,
 	},
 
 	[EntityType.BlockheadFarcasterAccountConnection]: { fid: 3 },
@@ -430,6 +499,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.EvmTokenTransfer]: {
 		$network: mainnet,
 		txHash: SAMPLE_TOKEN_TRANSFER_TX,
+		logIndex: 0,
 		transferIndex: 0,
 	},
 	[EntityType.EvmInternalTransfer]: {
@@ -443,10 +513,22 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	},
 
 	[EntityType.FarcasterCast]: { fid: 3, hash: CAST_HASH_32 },
+	[EntityType.FarcasterCast_Timestamp]: {
+		$cast: { fid: 3, hash: CAST_HASH_32 },
+		timestampMs: 1_700_000_000_000,
+	},
 	[EntityType.FarcasterChannel]: { id: 'memes' },
+	[EntityType.FarcasterChannel_Timestamp]: {
+		$channel: { id: 'memes' },
+		timestampMs: 1_700_000_000_000,
+	},
 	[EntityType.FarcasterFeed]: { variant: 'trending' },
 	[EntityType.FarcasterNetwork]: { scope: 'FarcasterNetwork' },
 	[EntityType.FarcasterUser]: { fid: 3 },
+	[EntityType.FarcasterUser_Timestamp]: {
+		$user: { fid: 3 },
+		timestampMs: 1_700_000_000_000,
+	},
 	[EntityType.FarcasterVerifiedAddress]: {
 		fid: 3,
 		protocol: 'ethereum',
@@ -473,16 +555,24 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		$network: mainnet,
 		id: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
 	},
+	[EntityType.LiquidityPool_Timestamp]: {
+		$liquidityPool: {
+			$network: mainnet,
+		id: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+		},
+		timestampMs: 1_700_000_000_000,
+	},
 
 	[EntityType.Url]: {
 		url: 'https://example.com/',
 	},
 
-	[EntityType.Eip8004Service]: {
-		$network: {
-			chainId: 56,
+	[EntityType.EvmNft]: {
+	$contract: {
+			$network: { caip2: { namespace: 'eip155', reference: '56' } },
+			address: '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432',
 		},
-		identityId: '104776',
+		tokenId: '104776',
 	},
 
 	[EntityType.Vault]: {
@@ -501,6 +591,10 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	},
 	[EntityType.MarketVenue]: { marketVenueId: MarketVenueId.Binance },
 	[EntityType.Currency]: { iso4217: Iso4217.USD },
+	[EntityType.Currency_Timestamp]: {
+		$currency: { iso4217: Iso4217.USD },
+		timestampMs: currencyCatalogSnapshotTimestampMs,
+	},
 	[EntityType.Market_Timestamp]: {
 		$market: ethUsdCatalogMarket,
 		timestampMs: 0,
@@ -509,8 +603,12 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.EvmNetwork]: mainnet,
 	[EntityType.EvmNetworkBridge]: {
 		$fromNetwork: mainnet,
-		$toNetwork: { chainId: 10 },
+		$toNetwork: { caip2: { namespace: 'eip155', reference: '10' } },
 		url: 'https://bridge.example',
+	},
+	[EntityType.EvmRollup]: {
+		$network: { caip2: { namespace: 'eip155', reference: '10' } },
+		projectId: 'optimism',
 	},
 	[EntityType.EthereumNetworkUpgrade]: {
 		$network: mainnet,
@@ -532,12 +630,20 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		$network: mainnet,
 		timestampMs: 0,
 	},
+	[EntityType.MevRelay]: {
+		$network: mainnet,
+		host: 'relay.ultrasound.money',
+	},
 	[EntityType.MevRelay_ProposerPayloadDelivered]: {
 		$network: mainnet,
 		relayHost: 'relay.ultrasound.money',
 		slot: 9_500_000,
 		blockHash: `0x${'0'.repeat(64)}`,
 	} as const,
+	[EntityType.MevBuilder]: {
+		$network: mainnet,
+		builderPubkey: `0x${'0'.repeat(96)}`,
+	},
 	[EntityType.EthereumExecutionUpgrade]: {
 		$network: mainnet,
 		upgradeId: 'Homestead',
@@ -558,13 +664,22 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 
 	[EntityType.Network]: bitcoin,
 	[EntityType.AssetInstance]: {
-		$network: cosmos,
-		kind: AssetInstanceKind.Denom,
-		assetKey: 'uatom',
+		$network: bitcoin,
+		kind: AssetInstanceKind.Native,
+		assetKey: CoinId.BTC,
 	},
 	[EntityType.NetworkUpgrade]: {
 		$network: bitcoin,
 		upgradeId: 'taproot',
+	},
+	[EntityType.UtxoNetwork]: bitcoin,
+	[EntityType.UtxoNetwork_Timestamp]: {
+		$network: bitcoin,
+		timestampMs: 0,
+	},
+	[EntityType.UtxoAddress]: {
+		$network: bitcoin,
+		address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
 	},
 	[EntityType.UtxoBlock]: {
 		$network: bitcoin,
@@ -601,6 +716,11 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		actionKind: ZcashShieldedActionKind.Action,
 		actionIndex: 0,
 	},
+	[EntityType.FilecoinNetwork]: filecoin,
+	[EntityType.FilecoinNetwork_Timestamp]: {
+		$network: filecoin,
+		timestampMs: 1_700_000_000_000,
+	},
 	[EntityType.FilecoinTipset]: {
 		$network: filecoin,
 		height: 4_000_000n,
@@ -628,6 +748,11 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 			minerAddress: 'f01234',
 		},
 		sectorNumber: 1n,
+	},
+	[EntityType.SolanaNetwork]: solana,
+	[EntityType.SolanaNetwork_Timestamp]: {
+		$network: solana,
+		timestampMs: 1_700_000_000_000,
 	},
 	[EntityType.SolanaBlock]: {
 		$network: solana,
@@ -659,6 +784,45 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.SolanaValidator]: {
 		$network: solana,
 		votePubkey: 'Vote111111111111111111111111111111111111111',
+	},
+	[EntityType.TronNetwork]: tron,
+	[EntityType.TronNetwork_Timestamp]: {
+		$network: tron,
+		timestampMs: 1_700_000_000_000,
+	},
+	[EntityType.TronBlock]: {
+		$network: tron,
+		height: 60_000_000n,
+	},
+	[EntityType.TronTransaction]: {
+		$network: tron,
+		transactionId: 'e2e-probe-tron-transaction',
+	},
+	[EntityType.TronAccount]: {
+		$network: tron,
+		address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
+	},
+	[EntityType.TronWitness]: {
+		$network: tron,
+		address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
+	},
+	[EntityType.TronContract]: {
+		$network: tron,
+		address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
+	},
+	[EntityType.TronToken]: {
+		$network: tron,
+		tokenId: 'e2e-probe-tron-token',
+	},
+	[EntityType.TronTokenTransfer]: {
+		$network: tron,
+		transactionId: 'e2e-probe-tron-transaction',
+		transferIndex: 0,
+	},
+	[EntityType.CosmosNetwork]: cosmos,
+	[EntityType.CosmosNetwork_Timestamp]: {
+		$network: cosmos,
+		timestampMs: 1_700_000_000_000,
 	},
 	[EntityType.CosmosBlock]: {
 		$network: cosmos,
@@ -699,6 +863,11 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		$network: cosmos,
 		proposalId: '1',
 	},
+	[EntityType.PolkadotNetwork]: polkadot,
+	[EntityType.PolkadotNetwork_Timestamp]: {
+		$network: polkadot,
+		timestampMs: 1_700_000_000_000,
+	},
 	[EntityType.PolkadotBlock]: {
 		$network: polkadot,
 		blockNumber: 20_000_000n,
@@ -733,6 +902,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		$network: polkadot,
 		referendumId: '1',
 	},
+	[EntityType.HyperliquidNetwork]: hyperliquid,
 	[EntityType.HyperliquidBlock]: {
 		$network: hyperliquid,
 		height: 1n,
@@ -769,6 +939,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		$network: logos,
 		transactionHash: 'e2e-probe-logos-transaction',
 	},
+	[EntityType.QuilibriumNetwork]: quilibrium,
 	[EntityType.QuilibriumFrame]: {
 		$network: quilibrium,
 		frameNumber: 1n,
@@ -790,6 +961,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		$network: quilibrium,
 		transactionHash: 'e2e-probe-quilibrium-transaction',
 	},
+	[EntityType.NearNetwork]: near,
 	[EntityType.NearBlock]: {
 		$network: near,
 		height: 100_000_000n,
@@ -842,6 +1014,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		$network: near,
 		accountId: 'e2e-probe-near-validator',
 	},
+	[EntityType.MoneroNetwork]: monero,
 	[EntityType.MoneroBlock]: {
 		$network: monero,
 		height: 3_000_000n,
@@ -1030,6 +1203,11 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		categoryId: 'e2e-probe-cashtoken-category',
 		registryUrl: 'https://example.com/bcmr.json',
 	},
+	[EntityType.ZeroGNetwork]: zeroG,
+	[EntityType.ZeroGNetwork_Timestamp]: {
+		$network: zeroG,
+		timestampMs: 1_700_000_000_000,
+	},
 	[EntityType.ZeroGConsensusNetwork]: {
 		$network: zeroG,
 		consensusNetworkId: '0g-chain',
@@ -1128,9 +1306,21 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.SpecificationRealm]: { realm: SpecificationRealm.Ethereum },
 
 	[EntityType.RedditComment]: { fullname: 't1_carprdq' },
+	[EntityType.RedditComment_Timestamp]: {
+		$comment: { fullname: 't1_carprdq' },
+		timestampMs: 1_700_000_000_000,
+	},
 	[EntityType.RedditLink]: { fullname: 't3_1h7t8a' },
+	[EntityType.RedditLink_Timestamp]: {
+		$link: { fullname: 't3_1h7t8a' },
+		timestampMs: 1_700_000_000_000,
+	},
 	[EntityType.RedditNetwork]: { scope: 'RedditNetwork' },
 	[EntityType.RedditSubreddit]: { name: 'ethereum' },
+	[EntityType.RedditSubreddit_Timestamp]: {
+		$subreddit: { name: 'ethereum' },
+		timestampMs: 1_700_000_000_000,
+	},
 
 	[EntityType.RssNetwork]: { scope: 'RssNetwork' },
 	[EntityType.RssFeed]: { feedUrl: 'https://blog.svelte.dev/feed.xml' },
@@ -1150,7 +1340,15 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.XmtpConversation]: { id: 'e2e-probe-conversation' },
 	[EntityType.XmtpNetwork]: { scope: 'XmtpNetwork' },
 	[EntityType.XPost]: { id: '1855943488122347520' },
+	[EntityType.XPost_Timestamp]: {
+		$post: { id: '1855943488122347520' },
+		timestampMs: 1_700_000_000_000,
+	},
 	[EntityType.XUser]: { id: '12' },
+	[EntityType.XUser_Timestamp]: {
+		$user: { id: '12' },
+		timestampMs: 1_700_000_000_000,
+	},
 
 	[EntityType.YouTubeNetwork]: { scope: 'YouTubeNetwork' },
 	[EntityType.YouTubeChannel]: { channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw' },
@@ -1210,7 +1408,6 @@ export const envGatedProbeSources = new Set<Source>([
 	Source.Etherscan_Rest,
 	Source.Fedi_Rest,
 	Source.Lens_Graphql,
-	Source.Hey_Graphql,
 	Source.LightningLnd_Rest,
 	Source.Mastodon_Rest,
 	Source.Neynar_Rest,
@@ -1311,6 +1508,16 @@ export const isExpectedAssertLoadedResolverProbeFailure = (
 )
 
 
+const probeEntityIdForType = (
+	entityType: EntityType,
+): EntityId<typeof schema, EntityType> => {
+	const entityId = probeEntityIdByType[entityType]
+	if (entityId === undefined) {
+		throw new Error(`Missing probeEntityIdByType[${entityType}]`)
+	}
+	return entityId
+}
+
 export const resolveProbeEntityId = async (
 	entityType: EntityType,
 ): Promise<EntityId<typeof schema, EntityType>> => {
@@ -1346,19 +1553,15 @@ export const resolveProbeEntityId = async (
 		}
 	}
 
-	const entityId = probeEntityIdByType[entityType]
-	if (entityId === undefined) {
-		throw new Error(`Missing probeEntityIdByType[${entityType}]`)
-	}
-	return entityId
+	return probeEntityIdForType(entityType)
 }
 
 
 export const parentEntityIdForFieldResolver = (
 	entityType: EntityType,
-) => (
+): EntityId<typeof schema, EntityType> => (
 	entityType === EntityType._Global ?
-		{}
+		{ scope: 'global' }
 	: entityType === EntityType.Network ?
 		bitcoin
 	: entityType === EntityType.EvmNetwork ?
@@ -1373,15 +1576,15 @@ export const parentEntityIdForFieldResolver = (
 			blockNumber: 18_000_000n,
 		})
 	: entityType === EntityType.AtprotoActor ?
-		{ did: 'did:plc:z72i7hdynmk6x22kvon7fdpk' }
+		{ did: atprotoProbeDid }
 	: entityType === EntityType.AtprotoPost ?
-		probeEntityIdByType[EntityType.AtprotoPost]
+		probeEntityIdForType(EntityType.AtprotoPost)
 	: entityType === EntityType.ActivityPubNetwork ?
 		{ scope: 'ActivityPubNetwork' }
 	: entityType === EntityType.ActivityPubActor ?
-		probeEntityIdByType[EntityType.ActivityPubActor]
+		probeEntityIdForType(EntityType.ActivityPubActor)
 	: entityType === EntityType.ActivityPubNote ?
-		probeEntityIdByType[EntityType.ActivityPubNote]
+		probeEntityIdForType(EntityType.ActivityPubNote)
 	: entityType === EntityType.AtprotoNetwork ?
 		{ scope: 'AtprotoNetwork' }
 	: entityType === EntityType.LensNetwork ?
@@ -1391,15 +1594,15 @@ export const parentEntityIdForFieldResolver = (
 	: entityType === EntityType.RssNetwork ?
 		{ scope: 'RssNetwork' }
 	: entityType === EntityType.RssFeed ?
-		probeEntityIdByType[EntityType.RssFeed]
+		probeEntityIdForType(EntityType.RssFeed)
 	: entityType === EntityType.RedditSubreddit ?
-		probeEntityIdByType[EntityType.RedditSubreddit]
+		probeEntityIdForType(EntityType.RedditSubreddit)
 	: entityType === EntityType.RedditLink ?
-		probeEntityIdByType[EntityType.RedditLink]
+		probeEntityIdForType(EntityType.RedditLink)
 	: entityType === EntityType.LensAccount ?
-		probeEntityIdByType[EntityType.LensAccount]
+		probeEntityIdForType(EntityType.LensAccount)
 	: entityType === EntityType.XUser ?
-		probeEntityIdByType[EntityType.XUser]
+		probeEntityIdForType(EntityType.XUser)
 	: entityType === EntityType.NostrNetwork ?
 		{ scope: 'NostrNetwork' }
 	: entityType === EntityType.YouTubeNetwork ?
@@ -1433,17 +1636,11 @@ export const parentEntityIdForFieldResolver = (
 	: entityType === EntityType.LightningNetwork ?
 		{ $network: lightning }
 	: entityType === EntityType.LightningNode ?
-		probeEntityIdByType[EntityType.LightningNode]
+		probeEntityIdForType(EntityType.LightningNode)
 	: entityType === EntityType.LightningChannel ?
-		probeEntityIdByType[EntityType.LightningChannel]
+		probeEntityIdForType(EntityType.LightningChannel)
 	:
-		probeEntityIdByType[entityType] ?? (
-			(() => {
-				throw new Error(
-					`assert-loaded-resolvers: add parentEntityIdForFieldResolver / probeEntityIdByType for ${entityType}`,
-				)
-			})()
-		)
+		probeEntityIdForType(entityType)
 )
 
 

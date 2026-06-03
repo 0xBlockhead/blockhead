@@ -10,6 +10,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -26,6 +28,7 @@
 			>
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			id?: string
 		},
 		Pick<
@@ -35,9 +38,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -91,8 +91,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BlockheadFarcasterAccountConnection}
-				getKey={(row) => String(blockheadFarcasterAccountConnection[EntityMetaKey.Id].fid)}
-				getSortValue={(row) => blockheadFarcasterAccountConnection[EntityMetaKey.Id].fid}
+				getKey={(blockheadFarcasterAccountConnection) => String(blockheadFarcasterAccountConnection[EntityMetaKey.Id].fid)}
+				getSortValue={(blockheadFarcasterAccountConnection) => blockheadFarcasterAccountConnection[EntityMetaKey.Id].fid}
 				{title}
 				open={true}
 				resource={connections}

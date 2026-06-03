@@ -1,10 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -13,6 +9,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -28,10 +25,6 @@
 		open?: boolean
 		CollapsibleProps?: ComponentProps<typeof EvmInternalTransfersView>['CollapsibleProps']
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const evmTransaction = useEntity(
 		EntityType.EvmTransaction,
@@ -112,13 +105,10 @@
 
 			<EvmInternalTransfersView
 				{CollapsibleProps}
-				href={resolve(
-					'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
-					{
-					...caip2RouteParamsFromNetworkId(entityId.$network),
+				href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+					...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
 					transactionId: entityId.txHash,
-					},
-		)}
+					})}
 				entityFieldReference={{
 					entityType: EntityType.EvmTransaction,
 					entityId,
@@ -130,13 +120,10 @@
 			/>
 			<EvmTokenTransfersView
 				{CollapsibleProps}
-				href={resolve(
-					'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
-					{
-					...caip2RouteParamsFromNetworkId(entityId.$network),
+				href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+					...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
 					transactionId: entityId.txHash,
-					},
-		)}
+					})}
 				entityFieldReference={{
 					entityType: EntityType.EvmTransaction,
 					entityId,
@@ -148,4 +135,3 @@
 		{/snippet}
 	</ResourceBoundary>
 </section>
-

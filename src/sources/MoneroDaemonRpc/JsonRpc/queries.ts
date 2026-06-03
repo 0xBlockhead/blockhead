@@ -39,7 +39,7 @@ const moneroJsonRpc = async <_Result>({
 	params: JsonValue
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: MoneroDaemonRpc.origins ?? [],
+		origins: MoneroDaemonRpc.origins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,
@@ -83,7 +83,7 @@ export const getTransactions = ({
 }) => {
 	const transactionsUrl = new URL('get_transactions', rpcUrl).toString()
 	return corsFetch(transactionsUrl, {
-		origins: MoneroDaemonRpc.origins ?? [],
+		origins: MoneroDaemonRpc.origins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,

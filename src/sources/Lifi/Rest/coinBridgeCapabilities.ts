@@ -21,16 +21,9 @@ export const fetchCoinBridgeCapabilityRowsForCoin = async (
 	lifiTools: LifiToolsResponse,
 ) => {
 	const instanceRows = await fetchCoinInstanceStubsForCoin(coinId, coingeckoPublicEnv)
-	if (instanceRows.length === 0) {
-		throw new Error(`Lifi_Rest: no Coingecko coin instances for ${coinId}`)
-	}
 
 	const { bridges } = lifiTools
-	const rows = coinBridgeCapabilityEntityRowsFromInstancesAndTools(instanceRows, bridges)
-	if (rows.length === 0) {
-		throw new Error(`Lifi_Rest: LiFi tools catalog produced no bridge capabilities for ${coinId}`)
-	}
-	return rows
+	return coinBridgeCapabilityEntityRowsFromInstancesAndTools(instanceRows, bridges)
 }
 
 export const filterCoinBridgeCapabilityRowsForInstance = (
@@ -45,8 +38,5 @@ export const filterCoinBridgeCapabilityRowsForInstance = (
 		:
 			stringify(row[EntityMetaKey.Id].$toInstance) === instanceKey
 	))
-	if (filtered.length === 0) {
-		throw new Error(`Lifi_Rest: no ${direction} bridge capabilities for coin instance ${instanceKey}`)
-	}
 	return filtered
 }

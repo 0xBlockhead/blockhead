@@ -22,7 +22,7 @@ const parsePayloadValueWei = (payload: ProposerPayloadDelivered): bigint | undef
 	const raw = payload.value
 	if (raw == null) return undefined
 	try {
-		return BigInt(String(raw).trim())
+		return BigInt(String(raw))
 	} catch {
 		return undefined
 	}
@@ -32,7 +32,7 @@ const parsePayloadBlockNumber = (payload: ProposerPayloadDelivered): bigint | un
 	const raw = payload.block_number ?? payload.blockNumber
 	if (raw == null) return undefined
 	try {
-		const trimmed = String(raw).trim()
+		const trimmed = String(raw)
 		return BigInt(trimmed.startsWith('0x') || trimmed.startsWith('0X') ? trimmed : trimmed)
 	} catch {
 		return undefined
@@ -54,7 +54,7 @@ export default {
 				})
 				const payload = deliveredPayloads.find((deliveredPayload) => {
 					const slot = parsePayloadSlot(deliveredPayload)
-					const bh = payload.block_hash ?? payload.blockHash
+					const bh = deliveredPayload.block_hash ?? deliveredPayload.blockHash
 					if (slot !== entityId.slot || bh == null) return false
 					const normalized = hexLowerOfByteSize(bh, 32)
 					return normalized === wantHash

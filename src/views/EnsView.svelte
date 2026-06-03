@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntityId } from '$/schema/$schema.ts'
 
 	import {
 		ensCoinTypeLabelByKey,
@@ -14,7 +14,6 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
@@ -28,9 +27,7 @@
 	// State
 	let {
 		entityId,
-		href = resolve('/ens/name/[ensName]', {
-			ensName: entityId.name,
-		}),
+		href = `/ens/name/${encodeURIComponent(entityId.name)}`,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -47,8 +44,6 @@
 		>
 	> = $props()
 
-
-	// State
 	import {
 		decodeEnsContentHash,
 		ensContentHashBrowseHref,
@@ -88,7 +83,7 @@
 				$parent: {},
 				$$subdomains: {},
 				coinAddresses: {},
-				resolverAbiJson: {},
+				resolverAbi: {},
 				resolverTextKeys: {},
 				resolverCoinTypes: {},
 				ttl: {},
@@ -105,6 +100,7 @@
 	)
 
 
+	// (Derived)
 	const ensNameIdKey = $derived(
 		stringify(entityId),
 	)
@@ -124,6 +120,7 @@
 	import NumberValue from '$/views/NumberValue.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import EvmAbiView from '$/views/EvmAbiView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EnsNameTextRecordsView from '$/views/EnsNameTextRecordsView.svelte'
 </script>
@@ -135,7 +132,6 @@
 	href={href}
 	{layout}
 	bind:open
-	summaryUsesHeading={true}
 	title={entityId.name}
 	{...EntityViewProps}
 >
@@ -168,7 +164,9 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<span data-text="font-monospace">
+			{entityId.name}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -196,8 +194,7 @@
 									href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
 										ensName: entityId.name,
 									})}
-									layout={EntityLayout.Summary}
-									open={false}
+									layout={EntityLayout.Value}
 									showTypeAnnotation={false}
 								/>
 							{/if}
@@ -348,11 +345,10 @@
 								{#if ens.$ownerActor !== undefined}
 									<EvmNetworkAccountView
 										entityId={{
-											$network: networkIdFromEvmChainId(ensEthereumChainId),
+											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
 											$actor: ens.$ownerActor[EntityMetaKey.Id],
 										}}
-										layout={EntityLayout.Summary}
-										open={false}
+										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
 								{/if}
@@ -472,9 +468,9 @@
 								ensName: entityId.name,
 							})}
 							id={`${id}-list`}
-							items={ens.$$subdomains.map((sub) => sub[EntityMetaKey.Id])}
-							title="Subdomains"
-						>
+								items={(ens.$$subdomains ?? []).map((subdomain: Entity<typeof schema, EntityType.EnsName>) => subdomain[EntityMetaKey.Id])}
+								title="Subdomains"
+							>
 							{#snippet Item({ item })}
 								<a
 									data-link
@@ -489,26 +485,27 @@
 
 				{#snippet SectionRegistrationParent({ id, label })}
 					{#if ens.$parent !== undefined}
+						{@const parentId = ens.$parent[EntityMetaKey.Id]}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-								ensName: entityId.name,
-							})}
+							ensName: entityId.name,
+						})}
 							id={`${id}-list`}
 							title="Parent name"
-						>
+					>
 							{#snippet body({ open: _bodyOpen })}
 								<a
 									data-link
 									href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-										ensName: ens.$parent[EntityMetaKey.Id].name,
+										ensName: parentId.name,
 									})}
-								>{ens.$parent[EntityMetaKey.Id].name}</a>
+								>{parentId.name}</a>
 							{/snippet}
 						</EntitiesList>
 					{/if}
-				{/snippet}
+			{/snippet}
 
 				{#snippet SectionRegistrationAccounts({ id, label })}
 					<div data-column-item="center">
@@ -518,10 +515,10 @@
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
-											$network: networkIdFromEvmChainId(ensEthereumChainId),
+											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
 											$actor: ens.$ownerActor[EntityMetaKey.Id],
 										}}
-										layout={EntityLayout.Summary}
+										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
 								</dd>
@@ -534,10 +531,10 @@
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
-											$network: networkIdFromEvmChainId(ensEthereumChainId),
+											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
 											$actor: ens.$subgraphOwnerActor[EntityMetaKey.Id],
 										}}
-										layout={EntityLayout.Summary}
+										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
 								</dd>
@@ -550,10 +547,10 @@
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
-											$network: networkIdFromEvmChainId(ensEthereumChainId),
+											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
 											$actor: ens.$registrantActor[EntityMetaKey.Id],
 										}}
-										layout={EntityLayout.Summary}
+										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
 								</dd>
@@ -566,10 +563,10 @@
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
-											$network: networkIdFromEvmChainId(ensEthereumChainId),
+											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
 											$actor: ens.$wrappedOwnerActor[EntityMetaKey.Id],
 										}}
-										layout={EntityLayout.Summary}
+										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
 								</dd>
@@ -699,7 +696,7 @@
 				sections={[
 					{ id: 'records-text', label: 'Text records' },
 					...(ens.contentHash != null && ens.contentHash !== '' ? [{ id: 'records-content-hash', label: 'Content hash' }] : []),
-					...(ens.resolverAbiJson != null && ens.resolverAbiJson !== '' ? [{ id: 'records-abi', label: 'Resolver ABI' }] : []),
+					...(ens.resolverAbi?.length ? [{ id: 'records-abi', label: 'Resolver ABI' }] : []),
 					...(ens.coinAddresses !== undefined && Object.keys(ens.coinAddresses).length > 0 ? [{ id: 'records-coins', label: 'Coin addresses' }] : []),
 					...((ens.resolverTextKeys ?? []).length || (ens.resolverCoinTypes ?? []).length ? [{ id: 'records-indexer', label: 'Indexer' }] : []),
 				]}
@@ -771,7 +768,7 @@
 				{/snippet}
 
 				{#snippet SectionRecordsAbi({ id, label })}
-					{#if ens.resolverAbiJson != null && ens.resolverAbiJson !== ''}
+					{#if ens.resolverAbi?.length}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
@@ -783,16 +780,11 @@
 						>
 							{#snippet body({ open: _bodyOpen })}
 								<div data-column-item="center">
-									<div>
-										<dt>ABI</dt>
-										<dd>
-											<TruncatedValue
-												value={ens.resolverAbiJson}
-												format={TruncatedValueFormat.Visual}
+									<EvmAbiView
+										abi={ens.resolverAbi}
+										emptyText="Resolver ABI record has no JSON ABI entries."
 											/>
-										</dd>
 									</div>
-								</div>
 							{/snippet}
 						</EntitiesList>
 					{/if}
@@ -800,6 +792,7 @@
 
 				{#snippet SectionRecordsCoins({ id, label })}
 					{#if ens.coinAddresses !== undefined && Object.keys(ens.coinAddresses).length > 0}
+						{@const coinAddresses = ens.coinAddresses}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
@@ -811,27 +804,30 @@
 						>
 							{#snippet body({ open: _bodyOpen })}
 								<div data-column-item="center">
-									{#each Object.entries(ens.coinAddresses) as [coinType, addr] (coinType)}
-										<div>
-											<dt>{(
-												coinType in ensCoinTypeLabelByKey ?
-													ensCoinTypeLabelByKey[coinType].label
-												:
-													`Coin type ${coinType}`
-											)}</dt>
-											<dd>
-												<TruncatedValue
-													value={addr}
-													format={TruncatedValueFormat.Visual}
-												/>
-											</dd>
-										</div>
+									{#each Object.keys(coinAddresses) as coinType (coinType)}
+										{@const coinAddress = coinAddresses[coinType]}
+										{#if coinAddress !== undefined}
+											<div>
+												<dt>{(
+													coinType in ensCoinTypeLabelByKey ?
+														ensCoinTypeLabelByKey[coinType].label
+													:
+														`Coin type ${coinType}`
+												)}</dt>
+												<dd>
+													<TruncatedValue
+														value={coinAddress}
+														format={TruncatedValueFormat.Visual}
+													/>
+												</dd>
+											</div>
+										{/if}
 									{/each}
 								</div>
 							{/snippet}
 						</EntitiesList>
-					{/if}
-				{/snippet}
+				{/if}
+			{/snippet}
 
 				{#snippet SectionRecordsIndexer({ id, label })}
 					{#if (ens.resolverTextKeys ?? []).length || (ens.resolverCoinTypes ?? []).length}
@@ -856,7 +852,7 @@
 										<div>
 											<dt>Coin types</dt>
 											<dd data-text="muted">
-												{(ens.resolverCoinTypes ?? []).map((coinType) => (
+												{(ens.resolverCoinTypes ?? []).map((coinType: string) => (
 													coinType in ensCoinTypeLabelByKey ?
 														ensCoinTypeLabelByKey[coinType].label
 													:

@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -32,10 +33,6 @@
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const activityPubNetwork = useEntity(
 		EntityType.ActivityPubNetwork,
@@ -81,6 +78,7 @@
 	)
 
 
+	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -221,55 +219,55 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-public`}
-				sectionIdPrefix={networkIdKey}
-				sections={[
-					{ id: 'public-actors', label: 'Actors' },
-					{ id: 'public-notes', label: 'Public timeline' },
-				]}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Mastodon directory
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-public`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'public-actors', label: 'Actors' },
+				{ id: 'public-notes', label: 'Public timeline' },
+			]}
+			data-card
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Mastodon directory
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionPublicActors({ id: _id, label: _label })}
-					<ActivityPubActorsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/activitypub/actors')}
-						entityFieldReference={{
-							entityType: EntityType.ActivityPubNetwork,
-							entityId,
-							fieldName: '$$activityPubActors',
-						}}
-						id={`${networkIdKey}:actors`}
-						open={_open}
-					/>
-				{/snippet}
+			{#snippet SectionPublicActors({ id: _id, label: _label })}
+				<ActivityPubActorsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/activitypub/actors')}
+					entityFieldReference={{
+						entityType: EntityType.ActivityPubNetwork,
+						entityId,
+						fieldName: '$$activityPubActors',
+					}}
+					id={`${networkIdKey}:actors`}
+					open={_open}
+				/>
+			{/snippet}
 
-				{#snippet SectionPublicNotes({ id: _id, label: _label })}
-					<ActivityPubNotesView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/activitypub/notes')}
-						entityFieldReference={{
-							entityType: EntityType.ActivityPubNetwork,
-							entityId,
-							fieldName: '$$activityPubNotes',
-						}}
-						fieldOpen={_open}
-						id={`${networkIdKey}:notes`}
-						orderByCreatedAt="desc"
-						placeholderText="Loading federation statuses…"
-						title="Public timeline"
-					/>
-				{/snippet}
+			{#snippet SectionPublicNotes({ id: _id, label: _label })}
+				<ActivityPubNotesView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/activitypub/notes')}
+					entityFieldReference={{
+						entityType: EntityType.ActivityPubNetwork,
+						entityId,
+						fieldName: '$$activityPubNotes',
+					}}
+					fieldOpen={_open}
+					id={`${networkIdKey}:notes`}
+					orderByCreatedAt="desc"
+					placeholderText="Loading federation statuses…"
+					title="Public timeline"
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

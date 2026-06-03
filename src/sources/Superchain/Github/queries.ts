@@ -17,7 +17,7 @@ const splitIdentifier = (identifier: string): {
 	const [namespace, slug] = identifier.split('/')
 	return {
 		namespace,
-		slug: slug ?? '',
+		slug: slug,
 	}
 }
 
@@ -34,10 +34,10 @@ const resolveParentChainId = (
 ): number | undefined => {
 	const parentChain = chain.parent?.chain
 	if (parentChain == null || parentChain.length === 0) return undefined
-	const fromNamedNetwork = networkChainIdBySuperchainIdentifier[parentChain]
-	if (fromNamedNetwork != null) return fromNamedNetwork
+	const fromNamedNetwork = new Map(Object.entries(networkChainIdBySuperchainIdentifier)).get(parentChain)
 	const parentChainAsNumber = Number(parentChain)
 	if (Number.isFinite(parentChainAsNumber) && parentChainAsNumber > 0) return parentChainAsNumber
+	if (fromNamedNetwork != null) return fromNamedNetwork
 	const { namespace } = splitIdentifier(chain.identifier)
 	const bySameNamespace = chainByIdentifier.get(`${namespace}/${parentChain}`)?.chainId
 	if (bySameNamespace != null) return bySameNamespace
@@ -77,4 +77,3 @@ export const fetchNetworks = async (): Promise<SuperchainNetwork[]> => {
 		.map((chain) => toSuperchainNetwork(chain, chainByIdentifier))
 		.toSorted((leftChain, rightChain) => leftChain.chainId - rightChain.chainId)
 }
-

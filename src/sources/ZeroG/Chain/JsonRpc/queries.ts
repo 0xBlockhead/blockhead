@@ -36,7 +36,7 @@ const zeroGJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(getMainnetRpcUrl, {
-		origins: ZeroG.origins ?? [],
+		origins: ZeroG.origins,
 		init: {
 			method: 'POST',
 			headers: {

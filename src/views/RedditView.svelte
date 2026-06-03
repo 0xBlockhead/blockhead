@@ -10,17 +10,15 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/reddit',
-			entityId,
-		),
-					open = $bindable(true),
+		href = resolve('/reddit'),
+		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
@@ -32,10 +30,6 @@
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkIdKey = stringify(entityId)
 
@@ -180,55 +174,55 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				sectionIdPrefix={networkIdKey}
-				sections={[
-					{ id: 'subreddits', label: 'Subreddits' },
-					{ id: 'links', label: 'Popular submissions' },
-				]}
-				id={`${networkIdKey}:registry`}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Popular index
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'subreddits', label: 'Subreddits' },
+				{ id: 'links', label: 'Popular submissions' },
+			]}
+			id={`${networkIdKey}:registry`}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Popular index
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionSubreddits({ id, label })}
-					<RedditSubredditsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/reddit/subreddits')}
-						entityFieldReference={{
-							entityType: EntityType.RedditNetwork,
-							entityId,
-							fieldName: '$$redditSubreddits',
-						}}
-						id={`${networkIdKey}:subreddits-redditNetworks`}
-						open={_open}
-					/>
-				{/snippet}
+			{#snippet SectionSubreddits({ id, label })}
+				<RedditSubredditsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/reddit/subreddits')}
+					entityFieldReference={{
+						entityType: EntityType.RedditNetwork,
+						entityId,
+						fieldName: '$$redditSubreddits',
+					}}
+					id={`${networkIdKey}:subreddits-redditNetworks`}
+					open={_open}
+				/>
+			{/snippet}
 
-				{#snippet SectionLinks({ id, label })}
-					<RedditLinksView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/reddit/links')}
-						entityFieldReference={{
-							entityType: EntityType.RedditNetwork,
-							entityId,
-							fieldName: '$$redditLinks',
-						}}
-						id={`${networkIdKey}:links-redditNetworks`}
-						open={_open}
-						title="Popular submissions"
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionLinks({ id, label })}
+				<RedditLinksView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/reddit/links')}
+					entityFieldReference={{
+						entityType: EntityType.RedditNetwork,
+						entityId,
+						fieldName: '$$redditLinks',
+					}}
+					id={`${networkIdKey}:links-redditNetworks`}
+					open={_open}
+					title="Popular submissions"
+				/>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

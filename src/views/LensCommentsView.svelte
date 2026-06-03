@@ -13,6 +13,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -30,10 +31,14 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LensPost>
+			entityFieldReference: Extract<
+				EntityFieldReference<typeof schema, EntityType.LensPost>,
+				{ entityType: EntityType.LensPost }
+			>
 			id?: string
 			limit?: number
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 		},
 		Pick<
@@ -43,9 +48,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -70,7 +72,7 @@
 			Comments are child publications linked through <code>$$comments</code> on the parent post; each row is a <code>LensPost</code> with <code>$commentOn</code> pointing at the parent id.
 		</p>
 		<p>
-			The thread lensPosts resolves via Lens Protocol (GraphQL) and Hey (Lens GraphQL)—not Reddit, Farcaster, or XMTP message models.
+			The thread lensPosts resolves via Lens Protocol GraphQL endpoints—not Reddit, Farcaster, or XMTP message models.
 		</p>
 	{/snippet}
 
@@ -88,14 +90,12 @@
 				{
 					$: [
 						Source.Lens_Graphql,
-						Source.Hey_Graphql,
 					],
 					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Lens_Graphql,
-							Source.Hey_Graphql,
 						],
-						limit,
+						$limit: limit,
 					},
 				},
 			)}
@@ -121,9 +121,9 @@
 				entityType={EntityType.LensPost}
 				id={`${id}-items`}
 				{title}
-				getKey={(row) => stringify(lensPost.result[EntityMetaKey.Id])}
+				getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
 				getSortValue={(row) => (
-					String(lensPost.feedIndex).padStart(6, '0')
+					String(row.feedIndex).padStart(6, '0')
 				)}
 				placeholderText="Loading Lens comments…"
 				resource={comments}

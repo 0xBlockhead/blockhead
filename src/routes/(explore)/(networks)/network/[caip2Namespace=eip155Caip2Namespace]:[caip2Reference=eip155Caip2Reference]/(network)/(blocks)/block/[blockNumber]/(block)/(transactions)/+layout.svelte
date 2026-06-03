@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import { stringify } from 'devalue'
 
 
@@ -29,7 +25,7 @@
 		`/network//block/${params.blockNumber}/transactions`,
 	)}
 	id={stringify({
-		$network: networkIdFromCaip2RouteParams(params),
+		$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 		blockNumber: BigInt(params.blockNumber),
 		scope: 'transactions',
 	})}

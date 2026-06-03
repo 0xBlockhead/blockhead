@@ -66,7 +66,7 @@ export default {
 					}),
 					timestampMs: block.time * 1000,
 					merkleRoot: block.merkleroot,
-					nonce: BigInt(block.nonce),
+					nonce: block.nonce,
 					difficulty: block.difficulty,
 					...(block.size != null && {
 						sizeBytes: block.size,
@@ -124,7 +124,7 @@ export default {
 					...(input.scriptSig != null && {
 						scriptSigAsm: input.scriptSig.asm,
 					}),
-					sequence: BigInt(input.sequence),
+					sequence: input.sequence,
 					...(input.txinwitness != null && {
 						witness: input.txinwitness,
 					}),
@@ -223,7 +223,7 @@ export default {
 						...(input.scriptSig != null && {
 							scriptSigAsm: input.scriptSig.asm,
 						}),
-						sequence: BigInt(input.sequence),
+						sequence: input.sequence,
 						...(input.txinwitness != null && {
 							witness: input.txinwitness,
 						}),

@@ -65,7 +65,7 @@ export type MempoolSpaceLightningChannel = {
 	transaction_vout?: number | null
 	closing_transaction_id?: string | null
 	closing_fee?: number | string | null
-	closing_reason?: string | null
+	closing_reason?: number | string | null
 	closing_date?: string | null
 	updated_at?: string | null
 	created?: string | null

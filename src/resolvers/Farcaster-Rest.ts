@@ -6,6 +6,7 @@ import {
 } from '$/resolvers/$resolvers.ts'
 import { farcasterNetworkFieldValues, farcasterPlaceholderIconUrlFragments } from '$/constants/Social/Farcaster.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
+import { optionalNonemptyString } from '$/lib/string.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
@@ -13,12 +14,9 @@ import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const optionalTrimmedString = (value: string | undefined | null) => (
-	value?.trim() || undefined
-)
 
 const normalizeMediaUrl = (value: string | null | undefined): string | undefined => {
-	const raw = value?.trim() ?? ''
+	const raw = value ?? ''
 	if (raw.length === 0) return undefined
 	if (farcasterPlaceholderIconUrlFragments.some((fragment) => raw.toLowerCase().includes(fragment))) return undefined
 	return resolveMediaUrlTransport(raw)?.url
@@ -37,53 +35,51 @@ export default {
 					fid: entityId.fid,
 					protocol: 'solana',
 				})
-				const ethTrimmed = optionalTrimmedString(ethRaw ?? undefined)
+				const ethAddress = optionalNonemptyString(ethRaw ?? undefined)
 				const ethParsed = (
-					ethTrimmed == null ?
+					ethAddress == null ?
 						arktype.errors
 					:
-						EvmAddress(ethTrimmed)
+						EvmAddress(ethAddress)
 				)
-				const solTrimmed = optionalTrimmedString(solRaw ?? undefined)
+				const solAddress = optionalNonemptyString(solRaw ?? undefined)
 				const verifiedAddresses = [
-					...(ethTrimmed == null ?
+					...(ethAddress == null ?
 						[]
 					:
 						[{
 								[EntityMetaKey.Id]: {
 									fid: entityId.fid,
 									protocol: 'ethereum' as const,
-									address: ethTrimmed,
+									address: ethAddress,
 								},
 							$user: {
 								[EntityMetaKey.Id]: entityId,
 							},
 								protocol: 'ethereum' as const,
-								address: ethTrimmed,
+								address: ethAddress,
 							}]),
-					...(solTrimmed == null ?
+						...(solAddress == null ?
 						[]
 					:
 						[{
 								[EntityMetaKey.Id]: {
 									fid: entityId.fid,
 									protocol: 'solana' as const,
-									address: solTrimmed,
+									address: solAddress,
 								},
 							$user: {
 								[EntityMetaKey.Id]: entityId,
 							},
 								protocol: 'solana' as const,
-								address: solTrimmed,
+								address: solAddress,
 						}]),
 				]
 				if (verifiedAddresses.length === 0) {
 					throw new Error('Farcaster_Rest: verified address not found')
 				}
 				return {
-						...(ethParsed instanceof arktype.errors ? {}
-						:
-							{ primaryEvmAddress: EvmAddress.assert(ethTrimmed) }),
+						...(ethParsed instanceof arktype.errors ? {} : { primaryEvmAddress: EvmAddress.assert(ethAddress) }),
 					$$verifiedAddresses: verifiedAddresses,
 				}
 			},
@@ -93,29 +89,52 @@ export default {
 			entityType: EntityType.FarcasterChannel,
 			resolve: async (entityId) => {
 				const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
-				const trimmedNonEmptyString = (value: string | undefined) => (
-					value?.trim() || undefined
-				)
 				const channel = await singleFlight(getChannel)(entityId.id)
 				if (channel == null) throw new Error('Farcaster_Rest: channel not found')
+				const name = optionalNonemptyString(channel.name) ?? channel.id
+				const url = optionalNonemptyString(channel.url)
+				const description = optionalNonemptyString(channel.description)
+				const imageUrl = normalizeMediaUrl(optionalNonemptyString(channel.imageUrl))
+				const headerImageUrl = normalizeMediaUrl(optionalNonemptyString(channel.headerImageUrl))
+				const pinnedCastHash = optionalNonemptyString(channel.pinnedCastHash)
+				const externalLinkTitle = optionalNonemptyString(channel.externalLink?.title)
+				const externalLinkUrl = optionalNonemptyString(channel.externalLink?.url)
+				const createdAt = (
+					channel.createdAt != null && Number.isFinite(channel.createdAt) ?
+						channel.createdAt >= 1e12 ?
+							channel.createdAt
+						:
+							channel.createdAt * 1000
+					:
+						undefined
+				)
+				const followedAt = (
+					channel.followedAt != null && Number.isFinite(channel.followedAt) ?
+						channel.followedAt >= 1e12 ?
+							channel.followedAt
+						:
+							channel.followedAt * 1000
+					:
+						undefined
+				)
 				return {
-					name: trimmedNonEmptyString(channel.name) ?? channel.id,
-					url: trimmedNonEmptyString(channel.url),
-					description: trimmedNonEmptyString(channel.description),
+					name,
+					...(url != null && { url }),
+					...(description != null && { description }),
 					...((
 						iconMedia,
 					) => (
 						iconMedia != null && {
 							$icon: iconMedia,
 						}
-					))(mediaFromUrl(normalizeMediaUrl(trimmedNonEmptyString(channel.imageUrl)), MediaType.Image)),
+					))(mediaFromUrl(imageUrl, MediaType.Image)),
 					...((
-						iconMedia,
+						headerMedia,
 					) => (
-						iconMedia != null && {
-							$headerImage: iconMedia,
+						headerMedia != null && {
+							$headerImage: headerMedia,
 						}
-					))(mediaFromUrl(normalizeMediaUrl(trimmedNonEmptyString(channel.headerImageUrl)), MediaType.Image)),
+					))(mediaFromUrl(headerImageUrl, MediaType.Image)),
 					$lead: (
 						channel.leadFid == null ?
 							undefined
@@ -132,38 +151,19 @@ export default {
 								[EntityMetaKey.Id]: { fid: channel.moderatorFids[0] },
 							}
 					),
-					$$moderators: (channel.moderatorFids ?? []).flatMap((moderatorFid) => (
-						moderatorFid == null ?
-							[]
-						:
-							[{
+					$$moderators: (channel.moderatorFids ?? []).map((moderatorFid) => (
+						{
 								[EntityMetaKey.Id]: { fid: moderatorFid },
-							}]
+							}
 					)),
-					createdAt: (
-						channel.createdAt != null && Number.isFinite(channel.createdAt) ?
-							channel.createdAt >= 1e12 ?
-								channel.createdAt
-							:
-								channel.createdAt * 1000
-						:
-							undefined
-					),
-					followerCount: channel.followerCount,
-					memberCount: channel.memberCount,
-					pinnedCastHash: trimmedNonEmptyString(channel.pinnedCastHash),
-					publicCasting: channel.publicCasting,
-					externalLinkTitle: trimmedNonEmptyString(channel.externalLink?.title),
-					externalLinkUrl: trimmedNonEmptyString(channel.externalLink?.url),
-					followedAt: (
-						channel.followedAt != null && Number.isFinite(channel.followedAt) ?
-							channel.followedAt >= 1e12 ?
-								channel.followedAt
-							:
-								channel.followedAt * 1000
-						:
-							undefined
-					),
+					...(createdAt != null && { createdAt }),
+					...(channel.followerCount != null && { followerCount: channel.followerCount }),
+					...(channel.memberCount != null && { memberCount: channel.memberCount }),
+					...(pinnedCastHash != null && { pinnedCastHash }),
+					...(channel.publicCasting != null && { publicCasting: channel.publicCasting }),
+					...(externalLinkTitle != null && { externalLinkTitle }),
+					...(externalLinkUrl != null && { externalLinkUrl }),
+					...(followedAt != null && { followedAt }),
 				}
 			},
 		}),

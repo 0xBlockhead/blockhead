@@ -5,14 +5,12 @@ import {
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { optionalNonemptyString } from '$/lib/string.ts'
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() || undefined
-)
 
 export default {
 	source: Source.Rss2Json_Rest,
@@ -31,22 +29,17 @@ export default {
 				)
 				const feed = response.feed
 				if (feed == null) throw new Error('Rss2Json_Rest: feed not found')
+				const title = optionalNonemptyString(feed.title)
+				const description = optionalNonemptyString(feed.description)
+				const link = optionalNonemptyString(feed.link)
+				const siteUrl = optionalNonemptyString(feed.url)
+				const imageUrl = optionalNonemptyString(feed.image)
 				return {
-					...(optionalTrimmedString(feed.title) != null && {
-						title: optionalTrimmedString(feed.title),
-					}),
-					...(optionalTrimmedString(feed.description) != null && {
-						description: optionalTrimmedString(feed.description),
-					}),
-					...(optionalTrimmedString(feed.link) != null && {
-						link: optionalTrimmedString(feed.link),
-					}),
-					...(optionalTrimmedString(feed.url) != null && {
-						siteUrl: optionalTrimmedString(feed.url),
-					}),
-					...(optionalTrimmedString(feed.image) != null && {
-						imageUrl: optionalTrimmedString(feed.image),
-					}),
+					...(title != null && { title }),
+					...(description != null && { description }),
+					...(link != null && { link }),
+					...(siteUrl != null && { siteUrl }),
+					...(imageUrl != null && { imageUrl }),
 				}
 			},
 		}),
@@ -67,31 +60,24 @@ export default {
 					rssItemGuidFromParts(candidate.guid, candidate.link, candidate.title) === entityId.guid
 				))
 				if (feedItem == null) throw new Error('Rss2Json_Rest: feed item not found')
+				const title = optionalNonemptyString(feedItem.title)
+				const link = optionalNonemptyString(feedItem.link)
+				const description = optionalNonemptyString(feedItem.description)
+				const content = optionalNonemptyString(feedItem.content)
+				const author = optionalNonemptyString(feedItem.author)
+				const publishedAt = rssPublishedAtMs(feedItem.pubDate)
+				const enclosureUrl = optionalNonemptyString(feedItem.enclosure?.[0]?.url)
 				return {
-					...(optionalTrimmedString(feedItem.title) != null && {
-						title: optionalTrimmedString(feedItem.title),
-					}),
-					...(optionalTrimmedString(feedItem.link) != null && {
-						link: optionalTrimmedString(feedItem.link),
-					}),
-					...(optionalTrimmedString(feedItem.description) != null && {
-						description: optionalTrimmedString(feedItem.description),
-					}),
-					...(optionalTrimmedString(feedItem.content) != null && {
-						content: optionalTrimmedString(feedItem.content),
-					}),
-					...(optionalTrimmedString(feedItem.author) != null && {
-						author: optionalTrimmedString(feedItem.author),
-					}),
-					...(rssPublishedAtMs(feedItem.pubDate) != null && {
-						publishedAt: rssPublishedAtMs(feedItem.pubDate),
-					}),
+					...(title != null && { title }),
+					...(link != null && { link }),
+					...(description != null && { description }),
+					...(content != null && { content }),
+					...(author != null && { author }),
+					...(publishedAt != null && { publishedAt }),
 					...(feedItem.categories != null && feedItem.categories.length > 0 && {
 						categories: feedItem.categories,
 					}),
-					...(optionalTrimmedString(feedItem.enclosure?.[0]?.url) != null && {
-						enclosureUrl: optionalTrimmedString(feedItem.enclosure?.[0]?.url),
-					}),
+					...(enclosureUrl != null && { enclosureUrl }),
 					$feed: {
 						[EntityMetaKey.Id]: { feedUrl },
 					},

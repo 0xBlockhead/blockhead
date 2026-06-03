@@ -3,10 +3,10 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Context
@@ -16,8 +16,8 @@
 	// State
 	let {
 		entityId,
-		href = resolve('/pool/[chainId]/[poolId]', {
-			chainId: String(evmChainIdFromNetworkId(entityId.$liquidityPool.$network)),
+		href = resolve('/(assets)/(pools)/pool/[chainId]/[poolId]', {
+			chainId: String(evmChainIdFromCaip2(`${entityId.$liquidityPool.$network.caip2.namespace}:${entityId.$liquidityPool.$network.caip2.reference}`)),
 			poolId: entityId.$liquidityPool.id,
 		}),
 		layout,
@@ -37,8 +37,7 @@
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const poolTimestamp = useEntity(
@@ -48,6 +47,7 @@
 			$: [
 				Source.Dexscreener_OpenApi,
 			],
+			$parentLiquidityPool: {},
 			priceUsd: {},
 			priceNative: {},
 			liquidityUsd: {},
@@ -66,6 +66,7 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
 </script>
 
 
@@ -95,10 +96,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			A timestamped liquidity pool market observation: latest price, volume, liquidity, transaction counts, market cap, and provider provenance.
@@ -117,6 +114,17 @@
 						<dd>
 							<Timestamp
 								timestamp={entityId.timestampMs}
+							/>
+						</dd>
+					</div>
+
+					<div>
+						<dt>Pool</dt>
+						<dd>
+							<LiquidityPoolView
+								entityId={poolTimestamp.$parentLiquidityPool?.[EntityMetaKey.Id] ?? entityId.$liquidityPool}
+								layout={EntityLayout.Title}
+								open={false}
 							/>
 						</dd>
 					</div>
@@ -222,6 +230,4 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open })}
-	{/snippet}
 </EntityView>

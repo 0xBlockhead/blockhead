@@ -12,6 +12,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -34,9 +36,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -69,13 +68,6 @@
 				parentEntityType,
 				entityFieldReference.entityId,
 				{
-					...(parentEntityType === EntityType.EvmNetwork && {
-						blockHeight: {
-							$: [
-								Source.Voltaire_JsonRpc,
-							],
-						},
-					}),
 					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Blockscout_Rest,

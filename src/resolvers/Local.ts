@@ -4,11 +4,6 @@ import {
 	resolverLoadSubsetRowLimit,
 	type ResolverLoadSubset,
 } from '$/resolvers/$resolvers.ts'
-import {
-	coinInstanceIdForNormalizedStateChannelRow,
-	findNormalizedBridgeTransactionRow,
-	readNormalizedLocalInternal,
-} from '$/sources/Local/Internal/catalog.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
@@ -23,6 +18,22 @@ const sliceNormalizedRowsForSubset = <_Row>(
 	normalizedCatalogRows.slice(0, resolverLoadSubsetRowLimit(context))
 )
 
+const readNormalizedLocalInternal = async () => (
+	(await import('$/sources/Local/Internal/catalog.ts')).readNormalizedLocalInternal()
+)
+
+const findNormalizedBridgeTransactionRow = async (
+	...args: Parameters<typeof import('$/sources/Local/Internal/catalog.ts').findNormalizedBridgeTransactionRow>
+			) => (
+	(await import('$/sources/Local/Internal/catalog.ts')).findNormalizedBridgeTransactionRow(...args)
+)
+
+const coinInstanceIdForNormalizedStateChannelRow = async (
+	...args: Parameters<typeof import('$/sources/Local/Internal/catalog.ts').coinInstanceIdForNormalizedStateChannelRow>
+			) => (
+	(await import('$/sources/Local/Internal/catalog.ts')).coinInstanceIdForNormalizedStateChannelRow(...args)
+)
+
 export default {
 	source: Source.Local_Internal,
 
@@ -35,8 +46,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BridgeTransaction,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
-				if (findNormalizedBridgeTransactionRow(catalog, entityId) == null) {
+				const catalog = await readNormalizedLocalInternal()
+				if (await findNormalizedBridgeTransactionRow(catalog, entityId) == null) {
 					throw new Error('Local_Internal: BridgeTransaction not present in local catalog')
 				}
 				return {}
@@ -46,10 +57,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.XmtpConversation,
 			resolve: async (entityId) => {
-				const trimmedId = entityId.id.trim()
-				if (trimmedId === '') throw new Error('Local_Internal: XMTP conversation id is empty')
-				const catalog = readNormalizedLocalInternal()
-				const xmtpConversation = catalog.xmtpConversations.find((candidate) => candidate.id === trimmedId)
+				const conversationId = entityId.id
+				if (conversationId === '') throw new Error('Local_Internal: XMTP conversation id is empty')
+				const catalog = await readNormalizedLocalInternal()
+				const xmtpConversation = catalog.xmtpConversations.find((candidate) => candidate.id === conversationId)
 				if (xmtpConversation == null) {
 					throw new Error('Local_Internal: XmtpConversation not present in local catalog')
 				}
@@ -65,7 +76,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BlockheadSource,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				if (!catalog.blockheadSources.some((blockheadSource) => blockheadSource.id === entityId.id)) {
 					throw new Error('Local_Internal: BlockheadSource not present in local catalog')
 				}
@@ -76,7 +87,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BlockheadPanelTree,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				if (!catalog.blockheadPanelTrees.some((blockheadPanelTree) => blockheadPanelTree.id === entityId.id)) {
 					throw new Error('Local_Internal: BlockheadPanelTree not present in local catalog')
 				}
@@ -87,7 +98,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BlockheadRoom,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				const blockheadRoom = catalog.blockheadRooms.find((candidate) => candidate.id === entityId.id)
 				if (blockheadRoom == null) throw new Error('Local_Internal: BlockheadRoom not present in local catalog')
 				return {
@@ -101,7 +112,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BlockheadSession,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				const blockheadSession = catalog.blockheadSessions.find((candidate) => candidate.id === entityId.id)
 				if (blockheadSession == null) throw new Error('Local_Internal: BlockheadSession not present in local catalog')
 				return {
@@ -118,7 +129,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BlockheadRoomPeer,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				const blockheadRoomPeer = catalog.blockheadRoomPeers.find((candidate) => candidate.id === entityId.id)
 				if (blockheadRoomPeer == null) throw new Error('Local_Internal: BlockheadRoomPeer not present in local catalog')
 				return {
@@ -137,7 +148,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BlockheadSharedAddress,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				const blockheadSharedAddress = catalog.blockheadSharedAddresses.find((candidate) => candidate.id === entityId.id)
 				if (blockheadSharedAddress == null) {
 					throw new Error('Local_Internal: BlockheadSharedAddress not present in local catalog')
@@ -156,10 +167,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.StateChannel,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === entityId.id)
 					if (stateChannel == null) throw new Error('Local_Internal: StateChannel not present in local catalog')
-					const assetId = coinInstanceIdForNormalizedStateChannelRow(stateChannel)
+					const assetId = await coinInstanceIdForNormalizedStateChannelRow(stateChannel)
 					return {
 							$network: { [EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannel.chainId) } } },
 						$participant0: { [EntityMetaKey.Id]: { address: EvmAddress.assert(stateChannel.participant0) } },
@@ -180,7 +191,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.StateChannelDeposit,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => candidate.id === entityId.id)
 				if (stateChannelDeposit == null) {
 					throw new Error('Local_Internal: StateChannelDeposit not present in local catalog')
@@ -199,7 +210,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.StateChannelTransfer,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				const stateChannelTransfer = catalog.stateChannelTransfers.find((candidate) => candidate.id === entityId.id)
 				if (stateChannelTransfer == null) {
 					throw new Error('Local_Internal: StateChannelTransfer not present in local catalog')
@@ -219,7 +230,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.StateChannelState,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				const stateChannelState = catalog.stateChannelStates.find((candidate) => candidate.id === entityId.id)
 				if (stateChannelState == null) {
 					throw new Error('Local_Internal: StateChannelState not present in local catalog')
@@ -244,7 +255,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BlockheadAgentConversation,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				const blockheadAgentConversation = catalog.blockheadAgentConversations.find((candidate) => candidate.id === entityId.id)
 				if (blockheadAgentConversation == null) {
 					throw new Error('Local_Internal: BlockheadAgentConversation not present in local catalog')
@@ -264,7 +275,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BlockheadAgentConversationTurn,
 			resolve: async (entityId) => {
-				const catalog = readNormalizedLocalInternal()
+				const catalog = await readNormalizedLocalInternal()
 				const blockheadAgentConversationTurn = catalog.blockheadAgentConversationTurns.find((candidate) => candidate.id === entityId.id)
 				if (blockheadAgentConversationTurn == null) {
 					throw new Error('Local_Internal: BlockheadAgentConversationTurn not present in local catalog')
@@ -296,7 +307,7 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$actors',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
-					sliceNormalizedRowsForSubset(readNormalizedLocalInternal().actors, context)
+					sliceNormalizedRowsForSubset((await readNormalizedLocalInternal()).actors, context)
 						.map((actor) => ({
 							[EntityMetaKey.Id]: { address: EvmAddress.assert(actor.address) },
 						}))
@@ -308,7 +319,7 @@ export default {
 			fieldName: '$$xmtpConversations',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().xmtpConversations,
+					(await readNormalizedLocalInternal()).xmtpConversations,
 					context,
 				)
 					.map((xmtpConversation) => ({
@@ -322,7 +333,7 @@ export default {
 			fieldName: '$$xmtpConversations',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType.XmtpNetwork>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().xmtpConversations,
+					(await readNormalizedLocalInternal()).xmtpConversations,
 					context,
 				)
 					.map((xmtpConversation) => ({
@@ -336,7 +347,7 @@ export default {
 			fieldName: '$$blockheadSources',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().blockheadSources,
+					(await readNormalizedLocalInternal()).blockheadSources,
 					context,
 				)
 					.map((blockheadSource) => ({
@@ -350,7 +361,7 @@ export default {
 			fieldName: '$$blockheadSessions',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().blockheadSessions,
+					(await readNormalizedLocalInternal()).blockheadSessions,
 					context,
 				)
 					.map((blockheadSession) => ({
@@ -364,7 +375,7 @@ export default {
 			fieldName: '$$blockheadPanelTrees',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().blockheadPanelTrees,
+					(await readNormalizedLocalInternal()).blockheadPanelTrees,
 					context,
 				)
 					.map((blockheadPanelTree) => ({
@@ -378,7 +389,7 @@ export default {
 			fieldName: '$$blockheadFarcasterAccountConnections',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().blockheadFarcasterAccountConnections,
+					(await readNormalizedLocalInternal()).blockheadFarcasterAccountConnections,
 					context,
 				)
 					.map((blockheadFarcasterAccountConnection) => ({
@@ -392,7 +403,7 @@ export default {
 			fieldName: '$$blockheadAgentConversations',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().blockheadAgentConversations,
+					(await readNormalizedLocalInternal()).blockheadAgentConversations,
 					context,
 				)
 					.map((blockheadAgentConversation) => ({
@@ -409,7 +420,7 @@ export default {
 				context,
 			) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().blockheadAgentConversationTurns
+					(await readNormalizedLocalInternal()).blockheadAgentConversationTurns
 						.filter((conversationTurn) => conversationTurn.conversationId === scopedEntityId.id),
 					context,
 				)
@@ -424,7 +435,7 @@ export default {
 			fieldName: '$$bridgeTransactions',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().bridgeTransactions,
+					(await readNormalizedLocalInternal()).bridgeTransactions,
 					context,
 				)
 						.map((bridgeTransaction) => ({
@@ -445,7 +456,7 @@ export default {
 			fieldName: '$$peers',
 			resolve: async (entityId, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().blockheadRoomPeers.filter((roomPeer) => (
+					(await readNormalizedLocalInternal()).blockheadRoomPeers.filter((roomPeer) => (
 						roomPeer.roomId === entityId.id
 					)),
 					context,
@@ -461,7 +472,7 @@ export default {
 			fieldName: '$$blockheadRoomPeers',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().blockheadRoomPeers,
+					(await readNormalizedLocalInternal()).blockheadRoomPeers,
 					context,
 				)
 					.map((blockheadRoomPeer) => ({
@@ -475,7 +486,7 @@ export default {
 			fieldName: '$$blockheadRooms',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().blockheadRooms,
+					(await readNormalizedLocalInternal()).blockheadRooms,
 					context,
 				)
 					.map((blockheadRoom) => ({
@@ -489,7 +500,7 @@ export default {
 			fieldName: '$$stateChannels',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().stateChannels,
+					(await readNormalizedLocalInternal()).stateChannels,
 					context,
 				)
 					.map((stateChannel) => ({
@@ -506,7 +517,7 @@ export default {
 				context,
 			) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().stateChannelTransfers
+					(await readNormalizedLocalInternal()).stateChannelTransfers
 						.filter((stateChannelTransfer) => stateChannelTransfer.channelId === scopedEntityId.id),
 					context,
 				)
@@ -524,7 +535,7 @@ export default {
 				context,
 			) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().stateChannelStates
+					(await readNormalizedLocalInternal()).stateChannelStates
 						.filter((stateChannelState) => stateChannelState.channelId === scopedEntityId.id),
 					context,
 				)
@@ -542,7 +553,7 @@ export default {
 				context,
 			) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().stateChannelDeposits
+					(await readNormalizedLocalInternal()).stateChannelDeposits
 						.filter((stateChannelDeposit) => stateChannelDeposit.channelId === scopedEntityId.id),
 					context,
 				)
@@ -557,7 +568,7 @@ export default {
 			fieldName: '$$blockheadSharedAddresses',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().blockheadSharedAddresses,
+					(await readNormalizedLocalInternal()).blockheadSharedAddresses,
 					context,
 				)
 					.map((blockheadSharedAddress) => ({
@@ -571,7 +582,7 @@ export default {
 			fieldName: '$$evmSelectors',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().evmSelectors,
+					(await readNormalizedLocalInternal()).evmSelectors,
 					context,
 				)
 					.map((evmSelector) => ({
@@ -585,7 +596,7 @@ export default {
 			fieldName: '$$evmTopics',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().evmTopics,
+					(await readNormalizedLocalInternal()).evmTopics,
 					context,
 				)
 					.map((evmTopic) => ({
@@ -599,7 +610,7 @@ export default {
 			fieldName: '$$evmErrors',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
-					readNormalizedLocalInternal().evmErrors,
+					(await readNormalizedLocalInternal()).evmErrors,
 					context,
 				)
 					.map((evmError) => ({

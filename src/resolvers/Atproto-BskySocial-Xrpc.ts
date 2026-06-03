@@ -5,69 +5,14 @@ import {
 } from '$/resolvers/$resolvers.ts'
 import { atprotoNetworkSeedActors } from '$/constants/Social/Atproto.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { optionalNonemptyString } from '$/lib/string.ts'
+import { optionalTimestampMs } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type {
-	BskyAppViewPostView,
-	BskyAppViewProfile,
-} from '$/sources/AtprotoBsky/Rest/types.ts'
 
-const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() || undefined
-)
-
-const optionalFiniteNumber = (value: number | undefined) => (
-	value != null && Number.isFinite(value) ? value : undefined
-)
-
-const optionalTimestampMs = (value: string | undefined) => (
-	((parsed) => (
-		Number.isFinite(parsed) ? parsed : undefined
-	))(Date.parse(value ?? ''))
-)
-
-const mapBskyProfileTimestampFields = (profile: BskyAppViewProfile) => ({
-	followersCount: optionalFiniteNumber(profile.followersCount),
-	followsCount: optionalFiniteNumber(profile.followsCount),
-	postsCount: optionalFiniteNumber(profile.postsCount),
-})
-
-const mapBskyPostTimestampFields = (p: BskyAppViewPostView) => ({
-	likeCount: optionalFiniteNumber(p.likeCount),
-	repostCount: optionalFiniteNumber(p.repostCount),
-	replyCount: optionalFiniteNumber(p.replyCount),
-	quoteCount: optionalFiniteNumber(p.quoteCount),
-})
-
-const mapBskyPostView = (p: BskyAppViewPostView) => {
-	const rec = p.record
-	const createdAt = Date.parse(rec?.createdAt ?? '')
-	const authorDid = optionalTrimmedString(p.author?.did)
-	if (authorDid == null) throw new Error('Atproto_BskySocial_Xrpc: post author did missing')
-	const parentUri = optionalTrimmedString(rec?.reply?.parent?.uri)
-	const rootUri = optionalTrimmedString(rec?.reply?.root?.uri)
-	const selfLabelValues = (
-		rec?.labels?.values
-			?.map((labelValue) => optionalTrimmedString(labelValue.val))
-			.filter((value): value is string => value != null)
-	)
-	return {
-		$author: { [EntityMetaKey.Id]: { did: authorDid } },
-		text: optionalTrimmedString(rec?.text),
-		...(Number.isFinite(createdAt) && { createdAt }),
-		...(optionalTimestampMs(p.indexedAt) != null && {
-			indexedAt: optionalTimestampMs(p.indexedAt),
-		}),
-		...mapBskyPostTimestampFields(p),
-		...(rec?.langs != null && rec.langs.length > 0 && { langs: rec.langs }),
-		...(selfLabelValues != null && selfLabelValues.length > 0 && { selfLabelValues }),
-		...(parentUri != null && { $parent: { [EntityMetaKey.Id]: { uri: parentUri } } }),
-		...(rootUri != null && { $root: { [EntityMetaKey.Id]: { uri: rootUri } } }),
-	}
-}
 
 export default {
 	source: Source.Atproto_BskySocial_Xrpc,
@@ -78,10 +23,12 @@ export default {
 			resolve: async (entityId) => {
 				const { getProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const profile = await singleFlight(getProfile)(entityId.did)
-				if (profile == null) throw new Error('Atproto_BskySocial_Xrpc: profile missing')
+				const displayName = optionalNonemptyString(profile.displayName)
+				const description = optionalNonemptyString(profile.description)
+				const indexedAt = optionalTimestampMs(profile.indexedAt)
 				return {
-					displayName: optionalTrimmedString(profile.displayName),
-					handle: optionalTrimmedString(profile.handle),
+					...(displayName != null && { displayName }),
+					handle: profile.handle,
 					...((
 						iconMedia,
 					) => (
@@ -96,11 +43,11 @@ export default {
 							$banner: bannerMedia,
 						}
 					))(mediaFromUrl(profile.banner, MediaType.Image)),
-					...mapBskyProfileTimestampFields(profile),
-					...(optionalTimestampMs(profile.indexedAt) != null && {
-						indexedAt: optionalTimestampMs(profile.indexedAt),
-					}),
-					description: optionalTrimmedString(profile.description),
+					...(profile.followersCount != null && { followersCount: profile.followersCount }),
+					...(profile.followsCount != null && { followsCount: profile.followsCount }),
+					...(profile.postsCount != null && { postsCount: profile.postsCount }),
+					...(indexedAt != null && { indexedAt }),
+					...(description != null && { description }),
 				}
 			},
 		}),
@@ -109,9 +56,33 @@ export default {
 			entityType: EntityType.AtprotoPost,
 			resolve: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const p = (await singleFlight(getPosts)([entityId.uri])).posts?.[0]
-				if (p == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
-				return mapBskyPostView(p)
+				const postView = (await singleFlight(getPosts)([entityId.uri])).posts[0]
+				if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
+				const atprotoRecord = postView.record
+				const createdAt = Date.parse(atprotoRecord.createdAt)
+				const parentUri = optionalNonemptyString(atprotoRecord.reply?.parent?.uri)
+				const rootUri = optionalNonemptyString(atprotoRecord.reply?.root?.uri)
+				const text = optionalNonemptyString(atprotoRecord.text)
+				const indexedAt = optionalTimestampMs(postView.indexedAt)
+				const selfLabelValues = (
+					atprotoRecord.labels?.values
+						?.map((labelValue) => optionalNonemptyString(labelValue.val))
+						.filter((value): value is string => value != null)
+				)
+				return {
+					$author: { [EntityMetaKey.Id]: { did: postView.author.did } },
+					...(text != null && { text }),
+					...(Number.isFinite(createdAt) && { createdAt }),
+					...(indexedAt != null && { indexedAt }),
+					...(postView.likeCount != null && { likeCount: postView.likeCount }),
+					...(postView.repostCount != null && { repostCount: postView.repostCount }),
+					...(postView.replyCount != null && { replyCount: postView.replyCount }),
+					...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
+					...(atprotoRecord.langs != null && atprotoRecord.langs.length > 0 && { langs: atprotoRecord.langs }),
+					...(selfLabelValues != null && selfLabelValues.length > 0 && { selfLabelValues }),
+					...(parentUri != null && { $parent: { [EntityMetaKey.Id]: { uri: parentUri } } }),
+					...(rootUri != null && { $root: { [EntityMetaKey.Id]: { uri: rootUri } } }),
+				}
 			},
 		}),
 
@@ -120,8 +91,11 @@ export default {
 			resolve: async (entityId) => {
 				const { getProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const profile = await singleFlight(getProfile)(entityId.$actor.did)
-				if (profile == null) throw new Error('Atproto_BskySocial_Xrpc: profile missing')
-				return mapBskyProfileTimestampFields(profile)
+				return {
+					...(profile.followersCount != null && { followersCount: profile.followersCount }),
+					...(profile.followsCount != null && { followsCount: profile.followsCount }),
+					...(profile.postsCount != null && { postsCount: profile.postsCount }),
+				}
 			},
 		}),
 
@@ -129,9 +103,14 @@ export default {
 			entityType: EntityType.AtprotoPost_Timestamp,
 			resolve: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const p = (await singleFlight(getPosts)([entityId.$post.uri])).posts?.[0]
-				if (p == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
-				return mapBskyPostTimestampFields(p)
+				const postView = (await singleFlight(getPosts)([entityId.$post.uri])).posts[0]
+				if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
+				return {
+					...(postView.likeCount != null && { likeCount: postView.likeCount }),
+					...(postView.repostCount != null && { repostCount: postView.repostCount }),
+					...(postView.replyCount != null && { replyCount: postView.replyCount }),
+					...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
+				}
 			},
 		}),
 	],
@@ -152,7 +131,7 @@ export default {
 						q: 'bsky',
 					})).actors ?? [])
 						.flatMap((actor) => {
-							const did = optionalTrimmedString(actor.did)
+							const did = optionalNonemptyString(actor.did)
 							return did == null ?
 								[]
 							:
@@ -177,14 +156,15 @@ export default {
 			resolve: async (entityId) => {
 				const { getProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const profile = await singleFlight(getProfile)(entityId.did)
-				if (profile == null) throw new Error('Atproto_BskySocial_Xrpc: profile missing')
 				return [
 					{
 						[EntityMetaKey.Id]: {
 							$actor: entityId,
 							timestampMs: Date.now(),
 						},
-						...mapBskyProfileTimestampFields(profile),
+						...(profile.followersCount != null && { followersCount: profile.followersCount }),
+						...(profile.followsCount != null && { followsCount: profile.followsCount }),
+						...(profile.postsCount != null && { postsCount: profile.postsCount }),
 					},
 				]
 			},
@@ -196,7 +176,7 @@ export default {
 			resolve: async (entityId, context) => {
 				const { getAuthorFeed } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				const { feed = [] } = await singleFlight(getAuthorFeed)({
+				const { feed } = await singleFlight(getAuthorFeed)({
 					actor: entityId.did,
 					limit,
 					includePins: true,
@@ -204,11 +184,8 @@ export default {
 				return (
 					feed
 						.flatMap((feedItem) => {
-							const authorDid = optionalTrimmedString(feedItem.post?.author?.did)
-							if (authorDid !== entityId.did) return []
-							const uri = optionalTrimmedString(feedItem.post?.uri)
-							if (uri == null) return []
-							return [{ [EntityMetaKey.Id]: { uri } }]
+							if (feedItem.post.author.did !== entityId.did) return []
+							return [{ [EntityMetaKey.Id]: { uri: feedItem.post.uri } }]
 						})
 				)
 			},
@@ -219,15 +196,18 @@ export default {
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const p = (await singleFlight(getPosts)([entityId.uri])).posts?.[0]
-				if (p == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
+				const postView = (await singleFlight(getPosts)([entityId.uri])).posts[0]
+				if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
 				return [
 					{
 						[EntityMetaKey.Id]: {
 							$post: entityId,
 							timestampMs: Date.now(),
 						},
-						...mapBskyPostTimestampFields(p),
+						...(postView.likeCount != null && { likeCount: postView.likeCount }),
+						...(postView.repostCount != null && { repostCount: postView.repostCount }),
+						...(postView.replyCount != null && { replyCount: postView.replyCount }),
+						...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
 					},
 				]
 			},
@@ -240,13 +220,14 @@ export default {
 				const { getPostThread } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const { thread } = await singleFlight(getPostThread)(entityId.uri)
-				if (thread == null || optionalTrimmedString(thread.post?.uri) == null) {
+				const threadPostUri = optionalNonemptyString(thread?.post?.uri)
+				if (thread == null || threadPostUri == null) {
 					throw new Error(`Atproto_BskySocial_Xrpc: post thread not found for ${entityId.uri}`)
 				}
 				const ancestors: { [EntityMetaKey.Id]: { uri: string } }[] = []
-				let parent = thread?.parent
+				let parent = thread.parent
 				while (parent != null) {
-					const uri = optionalTrimmedString(parent.post?.uri)
+					const uri = optionalNonemptyString(parent.post?.uri)
 					if (uri == null) break
 					if (uri !== entityId.uri) {
 						ancestors.unshift({ [EntityMetaKey.Id]: { uri } })
@@ -256,11 +237,11 @@ export default {
 				const descendants: { [EntityMetaKey.Id]: { uri: string } }[] = []
 				const walkReplies = (node: NonNullable<typeof thread>) => {
 					for (const reply of node.replies ?? []) {
-						const uri = optionalTrimmedString(reply?.post?.uri)
+						const uri = optionalNonemptyString(reply.post?.uri)
 						if (uri != null && uri !== entityId.uri) {
 							descendants.push({ [EntityMetaKey.Id]: { uri } })
 						}
-						if (optionalTrimmedString(reply?.post?.uri) != null) walkReplies(reply)
+						if (uri != null) walkReplies(reply)
 					}
 				}
 				walkReplies(thread)

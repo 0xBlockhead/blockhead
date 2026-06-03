@@ -134,11 +134,12 @@
 
 - Prefer `??` over `||`
 - Prefer `.` over `?.`, and `?.` over `object && object.value`
+	- Ban `?.` when the receiver is typed non-nullish and `.` is equivalent; keep `?.` only for nullish-capable receivers
 - Prefer `T[]` over `Array<T>`
 - Prefer `[...array1, ...array2]` over `array1.concat(array2)`
 - Conditional spread in object literals: Prefer `...(condition && { … })` over `...(condition ? { … } : {})` when the alternate branch would be `{}`. (Array literals still need `(condition ? […] : [])` or similar: spreading a falsy value into an array is not valid.)
 - Prefer single expressions and inline logic
-- Declare intermediate variables and functions ONLY if referenced more than once, otherwise inline
+- Declare intermediate variables and functions ONLY if referenced more than once, otherwise inline. Do not replace a one-use local with a one-use helper; keep the expression at the call site unless it names a real domain concept used in multiple places.
 - Single-statement `if` blocks: no braces; statement on the next line, indented with a tab. If another statement follows at the same indent level, separate with a blank line.
 	```ts
 	if (condition)
@@ -164,7 +165,8 @@
 - When refactoring, strip as many type assertions and annotations as you can while keeping things type safe. Prefer to reuse / derive from existing / package-provided types instead of duplicating.
 - oxlint (`pnpm run lint`; Tasks):
 	- `.oxlintrc.json` holds rules, `overrides`, and `ignorePatterns`
-	— When something fails lint, treat that file as the contract, and use this order of operations:
+	- `typescript/no-unnecessary-condition` bans `?.` / `??` / conditions when types prove the fallback or guard cannot run. Fix those by replacing `?.` with `.`, removing unnecessary fallbacks, or correcting the receiver type upstream.
+	- When something fails lint, treat that file as the contract, and use this order of operations:
 		- Fix the underlying types (models, generics, function signatures) before reaching for assertions, `unknown`, or suppressions.
 		- Prefer `overrides` scoped to a whole file or a small, stable glob when the exception is architectural (generated or hand-written “edge” modules that always need different rules), not for ad hoc escapes scattered across the tree.
 		- Use `oxlint-disable-next-line` on the narrowest span with a one-line reason a reviewer can verify; if the same reason keeps reappearing, replace repeated disables with a scoped override or a proper type refactor.
@@ -175,6 +177,7 @@
 ## Constants (`src/constants/**`)
 
 - No exported functions; only row arrays and lookup maps. Build maps with module-local code at load time; use logic outside `constants/` at call sites.
+- Unexported module-local helpers used only while assembling those rows and lookups are fine. Normalize checked-in wire/catalog units into schema field shapes here (e.g. seconds vs milliseconds on activation timestamps), not in resolvers or `src/lib/**`. Do not add runtime enrichment, network fetches, caches, or resolver-like denormalization to constants; checked-in catalog rows are the snapshot.
 - One canonical `as const` row array per catalog (`as const satisfies …` on the array). Lookups in `// Lookups` are derived from that array (`Object.fromEntries`, group-by)—do not maintain a second copy of the same data.
 - Name source arrays with the plain plural domain noun and lookup maps as `singularByKey` or `singularBy<Field>`; do not use generic suffixes like `Rows`, `Entries`, `Fields`, or `Bags`.
 - Lookup values must be catalog or domain rows (or arrays of them): `currencyByIso4217`, `coinById`, enum-label rows (`networkEnvironmentByEnvironment`), grouped catalog ids (`catalogCoinUsdMarketIdByCoinId`, `catalogMarketsWithCoinAsQuoteByQuoteCoinId`). Do not prebuild schema field shapes in constants (entity ids, market asset legs, `{ $currency, timestampMs }` maps)—inline those at resolvers/views from the catalog key you already have.
@@ -186,7 +189,8 @@
 
 ## Library helpers (`src/lib/**`)
 
-- DO NOT add to `src/lib` unless explicitly asked or you are at least 90% confident the helper is genuinely cross-domain, reusable, and simpler than inlining. Keep provider/source-specific logic under `src/sources/**`, and keep trivial wrappers inlined locally.
+- DO NOT add to `src/lib` unless explicitly asked or you are at least 90% confident the helper is genuinely cross-domain, reusable, and simpler than inlining. Keep provider/source-specific logic under `src/sources/**`, and keep trivial wrappers inlined locally. A helper that only wraps resolver mapping, optional field omission, catalog joins, row enrichment, dedupe, or one-off denormalization is not cross-domain.
+- Do not put resolver-shaped pipelines here: async “enrichment” of catalog rows, provider fetches to backfill missing static metadata, module-level caches keyed by entity ids, or `Promise.all` helpers that walk list rows to derive fields that could have been built with the catalog. Prefer fixing `src/constants/**` row construction; real upstream I/O stays in `src/sources/**`.
 
 
 ## Svelte (`*.svelte`, `*.svelte.ts`)
@@ -322,7 +326,6 @@
 	bind:value={
 		() => getterExpression,
 		(_value) => {
-			
 		}
 	}
 	```
@@ -479,6 +482,34 @@ Transport folders continue to hold network code (`queries.ts`, optional `client.
 
 - **`queries.ts` export naming:** Exports must start with a verb (usually `get`, `fetch`, `list`, `search`, `query`, `collect`, `stream`, `normalize`, `parse`, `iterate`, `lookup`, `count`, `narrow`, `debug`, `subscribe`). Do **not** include the source or transport name as a namespace-style prefix — the import path already provides that context (e.g. write `getProfile`, not `bskyGetProfile`; write `getCoin`, not `getCoingeckoCoin`; write `getBlockByNumber`, not `getBlockByNumberBlockscout` or `ethGetBlockByNumber`).
 
+### Source client freshness audits
+
+Use this when asked to verify that `src/sources/**` generated or manually implemented clients are current and correctly wired.
+
+- Generated clients:
+	- Re-run the documented generic sync command, not one-off download aliases: `pnpm run sources:openapi` and/or `pnpm run sources:graphql`.
+	- If an all-source sync fails after some providers succeed, retry with the documented single-provider/module form (`pnpm run sources:openapi -- <Provider>`, `pnpm run sources:graphql -- <SourceModule>`) to separate transient network failures from dead URLs.
+	- If sync fails because of sandboxed networking or `tsx` IPC, rerun the same documented command with approval instead of replacing it with an ad hoc downloader.
+	- Treat successful downloads as remote URL validation; if a remote URL fails, check the provider’s current official docs before changing manifests.
+	- Keep generated artifacts checked in (`schema.graphql`, `graphql-env.d.ts`, OpenAPI schema file, `openapi.d.ts`). Do not hand-edit generated files except to intentionally fix generator output.
+	- After regeneration, verify every generated transport folder still has its manifest, checked-in schema, generated type output, `client.ts`, `queries.ts`, and `index.ts` (plus `types.ts` for OpenAPI wire aliases).
+	- When generated output changes dramatically, inspect whether the manifest is now hitting a broader schema source (for example live GraphQL introspection instead of a small hand-exported SDL) and verify downstream query documents still compile.
+- Manual clients:
+	- Check current official provider docs for base URL, path prefixes, auth header/query shape, required headers, CORS/proxy reality, pagination limits, and response envelopes before making code changes.
+	- Prefer official docs, OpenAPI specs, provider GitHub docs, or machine-readable docs (`llms.txt`, OpenAPI, GraphQL introspection) over third-party examples.
+	- Update constants/client code only for documented drift; keep provider-specific transport behavior in `src/sources/**` and avoid new wrapper layers.
+	- If a provider has no stable official public API documentation for the endpoint in use, say that explicitly in the handoff and avoid speculative rewrites.
+- Resolver wiring:
+	- Trace every downstream resolver that imports the touched `queries.ts` and confirm it loads source modules with inline `await import(...)`, threads `sourcePublicEnv(context, Source...)` when required, and maps wire data into schema-shaped fields/refs.
+	- Validate entity ids, timestamp clocks, market/chain predicates, and optional-vs-required schema fields at resolver boundaries. Resolver output should be schema-shaped, not provider-shaped.
+	- When a generated GraphQL client has a colocated `graphql-env.d.ts`, its `queries.ts` must import `graphql` from the same folder’s `client.ts`; do not reuse a neighboring provider’s gql.tada instance even if schemas currently match.
+- Selective checks:
+	- Run `pnpm run lint` after each meaningful batch.
+	- Run targeted unit tests for touched source/resolver areas when present (for example `pnpm exec vitest run src/sources/Blockscout/Rest/constants.spec.ts --project=server`).
+	- Use `pnpm run check` or `pnpm exec tsc --noEmit --project tsconfig.json --pretty false` as broader gates when feasible, but if the tree has pre-existing unrelated failures, record the first unrelated failure area and continue with focused source/resolver checks.
+	- For live-data resolver validation, prefer existing probe harnesses/routes where available instead of adding broad new tests; keep probes scoped to providers/files touched.
+	- In the final handoff, list generated sync commands run, official docs/classes of docs checked for manual clients, focused tests run, and any broader checks blocked by unrelated existing failures.
+
 ### OpenAPI schema codegen (`scripts/openapi-source.ts`)
 
 Use this when a transport lives under `src/sources/<Provider>/OpenApi/` and you want checked-in schema plus generated TypeScript types for paths and components.
@@ -520,7 +551,7 @@ Replication checklist:
 
 ### GraphQL schema codegen (`scripts/graphql-source.ts`)
 
-Use this when a transport uses gql.tada against a GraphQL schema checked in next to the manifest (subgraphs and other APIs where SDL is the source of truth). The runner downloads SDL and generates the introspection module gql.tada expects.
+Use this when a transport uses gql.tada against a GraphQL schema checked in next to the manifest (subgraphs and other APIs where SDL is the source of truth, or live GraphQL endpoints that support introspection). The runner downloads SDL or, when `schemaUrl` ends with `/graphql`, POSTs an introspection query, writes SDL to `schemaFile`, and generates the introspection module gql.tada expects.
 
 Tooling: `@gql.tada/cli-utils` `generateOutput`. The script builds a temporary directory, writes a combined SDL file (main `schemaFile` body plus optional `patchFile` body, separated by a blank line), and writes a temporary `tsconfig.json` that extends the repo root `tsconfig.json` with `compilerOptions.plugins` containing one object: `name` `gql.tada/ts-plugin`, `schema` pointing at that combined SDL file, and `tadaOutputLocation` set to the manifest’s `outputFile`. `generateOutput({ output, tsconfig })` writes `outputFile` (convention: `./graphql-env.d.ts` beside the manifest). The temp directory is always removed afterward. `package.json` maps `sources:graphql` to `pnpm exec tsx scripts/graphql-source.ts`; dependencies include `gql.tada` and `graphql`, and the devDependency `@gql.tada/cli-utils` supplies `generateOutput`.
 
@@ -583,12 +614,14 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 	- `resolve(...)` returns schema-shaped field data, not raw wire payloads.
 	- Keep resolver modules shaped around resolver entries, not shared mapper layers. Put source-to-schema mapping inline in the relevant `resolve(...)` body unless a helper is clearly justified and explicitly approved.
 	- Prefer resolver bodies that visibly read as: validate supported scope, call the owning source query, return schema-shaped fields. Avoid wrapping / unwrapping / grouping / ungrouping indirection unless it is genuine domain normalization or shared transport behavior.
+	- Trust generated/manual wire types, parser output, schema `ZeroOrOne`, and catalog types. Keep field omission and simple normalization at the return object: `...(value != null && { field: value })`. Avoid generic `optional*`, `finite*`, or runtime validation helpers around already typed values, and avoid calling the same parser/normalizer twice inside one spread.
 - Do not add trivial id/entity constructor helpers (e.g. `fooEntityRef`, `barFromWireId`) that only wrap `{ [EntityMetaKey.Id]: { … } }` or a one-line null check. Inline those at the call site in `resolve` / field resolvers.
-	- Shared transport behavior belongs in `src/sources/**`; `src/lib/**` is only for cross-domain helpers that clear the 90% confidence bar.
-	- Do not use `typeof` / `Array.isArray` / similar runtime shape checks on provider wire data when generated or hand-written **wire types** already define the field (gql.tada fragments, OpenAPI components, `types.ts` aliases). Prefer null/empty checks, optional chaining, and domain validators (`hexLowerOfByteSize`, ArkType at boundaries). Same bar as **Linting and quality → Runtime shape guards**; `typeof` remains for environment probes (`window`, `document`, `globalThis`) and genuinely untyped scalars (e.g. GraphQL `BigInt` as `unknown` until normalized with `BigInt(String(value))`, not `typeof value === 'string'`).
-	- One resolver should make one primary upstream source request whenever feasible.
-	- Do not create resolver waterfalls. If a second request enriches only a specific field, move that work to a field resolver or the owning `sources/**/queries.ts` function.
-	- Do not call another resolver's `resolve(...)`. If two resolvers need the same provider data, both should call the appropriate source query, or the shared transport logic belongs in `src/sources/**`.
+- Shared transport behavior belongs in `src/sources/**`; `src/lib/**` is only for cross-domain helpers that clear the 90% confidence bar.
+- Do not use `typeof` / `Array.isArray` / similar runtime shape checks on provider wire data when generated or hand-written **wire types** already define the field (gql.tada fragments, OpenAPI components, `types.ts` aliases). Prefer null/empty checks, optional chaining, and domain validators (`hexLowerOfByteSize`, ArkType at boundaries). Same bar as **Linting and quality → Runtime shape guards**; `typeof` remains for environment probes (`window`, `document`, `globalThis`) and genuinely untyped scalars (e.g. GraphQL `BigInt` as `unknown` until normalized with `BigInt(String(value))`, not `typeof value === 'string'`).
+- One resolver should make one primary upstream source request whenever feasible.
+- Do not create resolver waterfalls. If a second request enriches only a specific field, move that work to a field resolver or the owning `sources/**/queries.ts` function.
+- Do not call another resolver's `resolve(...)`. If two resolvers need the same provider data, both should call the appropriate source query, or the shared transport logic belongs in `src/sources/**`.
+- **`Source.Constants_Internal`:** Checked-in catalogs in `src/constants/**` are the snapshot. Load them with inline `await import(...)` and return lookup hits; throw when the id is missing. Small synchronous joins from other catalog lookup maps are OK when a schema row is a view over linked catalog rows, but keep that logic visible in the specific resolver body or build it into the canonical catalog row. Do not add RPC or other remote fetches to fill gaps in static catalog fields at resolve time. Do not extract catalog resolve/enrich/denormalize layers into `src/lib/**` or module-scope helpers, and avoid `Promise.all` over catalog lists only to backfill static fields—build those fields when the catalog rows are constructed.
 - Entity vs field resolvers:
 	- Entity resolvers own full entity mapping.
 	- Entity field resolvers that return many entities should normally return entity IDs / references, not fully mapped child entities.

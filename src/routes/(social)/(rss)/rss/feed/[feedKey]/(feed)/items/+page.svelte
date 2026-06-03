@@ -5,12 +5,10 @@
 
 	// Context
 	import { resolve } from '$app/paths'
+	import { page } from '$app/state'
 
 
-	// State
-	let {
-		data,
-	} = $props()
+	// (Derived)
 
 
 	// Components
@@ -24,7 +22,9 @@
 		href={resolve('/rss/items')}
 		entityFieldReference={{
 			entityType: EntityType.RssFeed,
-			entityId: data.entityId,
+			({
+		feedUrl: decodeURIComponent(page.params.feedKey ?? '').trim(),
+	}),
 			fieldName: '$$items',
 		}}
 		id="rss-feed-items"

@@ -22,7 +22,7 @@ export const getBlock = ({
 }) => (
 	getJson<TronScanBlocks>(
 		`${base(restBaseUrl)}/api/block?number=${height.toString()}&limit=1`,
-		{ origins: TronScan.origins ?? [] },
+		{ origins: TronScan.origins  },
 	)
 )
 
@@ -35,7 +35,7 @@ export const getAccount = ({
 }) => (
 	getJson<TronScanAccount>(
 		`${base(restBaseUrl)}/api/accountv2?address=${address}`,
-		{ origins: TronScan.origins ?? [] },
+		{ origins: TronScan.origins  },
 	)
 )
 
@@ -50,7 +50,7 @@ export const getAccountTokens = ({
 }) => (
 	getJson<TronScanAccountTokens>(
 		`${base(restBaseUrl)}/api/account/tokens?address=${address}&start=0&limit=${limit.toString()}&hidden=1&show=3`,
-		{ origins: TronScan.origins ?? [] },
+		{ origins: TronScan.origins  },
 	)
 )
 
@@ -63,7 +63,7 @@ export const getTransaction = ({
 }) => (
 	getJson<TronScanTransactionDetail>(
 		`${base(restBaseUrl)}/api/transaction-info?hash=${transactionId}`,
-		{ origins: TronScan.origins ?? [] },
+		{ origins: TronScan.origins  },
 	)
 )
 
@@ -76,7 +76,7 @@ export const getContract = ({
 }) => (
 	getJson<TronScanContractDetail>(
 		`${base(restBaseUrl)}/api/contract?contract=${address}`,
-		{ origins: TronScan.origins ?? [] },
+		{ origins: TronScan.origins  },
 	)
 )
 
@@ -89,7 +89,7 @@ export const getTokenOverview = ({
 }) => (
 	getJson<TronScanTokenOverview>(
 		`${base(restBaseUrl)}/api/tokens/overview?start=0&limit=1&verifier=all&showAll=1&field=&token=${tokenId}`,
-		{ origins: TronScan.origins ?? [] },
+		{ origins: TronScan.origins  },
 	)
 )
 
@@ -102,7 +102,7 @@ export const getTrc10Token = ({
 }) => (
 	getJson<TronScanTrc10Tokens>(
 		`${base(restBaseUrl)}/api/token?id=${tokenId}&showAll=1&limit=1`,
-		{ origins: TronScan.origins ?? [] },
+		{ origins: TronScan.origins  },
 	)
 )
 
@@ -117,6 +117,6 @@ export const getTrc20Transfers = ({
 }) => (
 	getJson<TronScanTrc20Transfers>(
 		`${base(restBaseUrl)}/api/token_trc20/transfers?hash=${transactionId}&limit=${limit.toString()}&start=0`,
-		{ origins: TronScan.origins ?? [] },
+		{ origins: TronScan.origins  },
 	)
 )

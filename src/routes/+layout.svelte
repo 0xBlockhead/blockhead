@@ -33,7 +33,7 @@
 		entityResolvers,
 		entityFieldResolvers,
 		persistence,
-		schemaVersion: 2,
+		schemaVersion: 4,
 	})
 
 	export {
@@ -45,7 +45,7 @@
 
 
 <script lang="ts">
-	// Styles
+	// Types/constants
 	import '$/styles/fonts.css'
 	import '$/styles/colors.css'
 	import '$/styles/reset.css'
@@ -53,7 +53,6 @@
 
 
 	// View transitions
-
 
 
 	// Context
@@ -64,11 +63,6 @@
 	let {
 		children,
 	} = $props()
-
-	const navigationItems = $derived(
-		useNavigationItems().navigationItems
-	)
-
 
 	// Components
 	import Navigation from './Navigation.svelte'
@@ -100,7 +94,7 @@
 	</a>
 
 	<Navigation
-		{navigationItems}
+		navigationItems={useNavigationItems().navigationItems}
 	/>
 
 	<div

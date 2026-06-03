@@ -24,7 +24,7 @@ const beaconFetch = (
 	init?: RequestInit,
 ) => (
 	corsFetch(url, {
-		origins: Beacon.origins ?? [],
+		origins: Beacon.origins,
 		init,
 	})
 )

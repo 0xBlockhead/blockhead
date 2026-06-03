@@ -10,7 +10,7 @@ export const coinMarketCapFetch = async <_Response>(
 	pathAndQuery: string,
 ): Promise<_Response> => (
 	getJson<_Response>(`${baseUrl}${pathAndQuery}`, {
-		origins: CoinMarketCap.origins ?? [],
+		origins: CoinMarketCap.origins,
 		init: {
 			headers: {
 				Accept: 'application/json',

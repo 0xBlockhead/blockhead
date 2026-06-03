@@ -55,7 +55,6 @@ export default {
 						coins: [llamaId],
 					})
 				).coins[llamaId]
-				if (priceRow == null) throw new Error('Defillama_Rest: price missing')
 				const timestampMs = priceRow.timestamp * 1000
 				if (entityId.timestampMs !== timestampMs) {
 					throw new Error('Defillama_Rest: Market_Timestamp id does not match price clock')
@@ -63,7 +62,7 @@ export default {
 					return {
 						price: BigInt(Math.round(priceRow.price * 1e8)),
 						transport: 'defillama-pro-current-usd-1e8',
-						...(llamaId !== undefined && { providerAssetId: llamaId }),
+						providerAssetId: llamaId,
 					}
 			},
 		}),
@@ -116,7 +115,6 @@ export default {
 						coins: [llamaId],
 					})
 				).coins[llamaId]
-				if (priceRow == null) throw new Error('Defillama_Rest: price missing')
 				return [
 					{
 						[EntityMetaKey.Id]: {

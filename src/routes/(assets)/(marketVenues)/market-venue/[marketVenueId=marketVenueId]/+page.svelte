@@ -12,7 +12,6 @@
 		params,
 	} = $props()
 
-
 	const route = $derived.by(() => {
 		const param = params.marketVenueId ?? ''
 		const marketVenueId = marketVenueIdFromParam(param)

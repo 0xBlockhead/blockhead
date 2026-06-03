@@ -9,6 +9,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -21,10 +23,6 @@
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.Network,
@@ -57,6 +55,8 @@
 		},
 	)
 
+
+	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -116,17 +116,18 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={tronNetwork}>
-						{#snippet children(tronNetwork)}
-							{#if tronNetwork.$$blocks.at(0) != null}
-								<div>
-									<dt>Head block</dt>
-									<dd id="network-summary-head-block">
-										<TronBlockView
-											entityId={tronNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
-											layout={EntityLayout.Value}
-										/>
-									</dd>
+						<ResourceBoundary resource={tronNetwork}>
+							{#snippet children(tronNetwork)}
+								{@const block = tronNetwork.$$blocks?.at(0)}
+								{#if block != null}
+									<div>
+										<dt>Head block</dt>
+										<dd id="network-summary-head-block">
+											<TronBlockView
+												entityId={block[EntityMetaKey.Id]}
+												layout={EntityLayout.Value}
+											/>
+										</dd>
 								</div>
 							{/if}
 						{/snippet}
@@ -137,13 +138,13 @@
 						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 					</div>
 
-					{#if network.$$nativeAssets.length > 0}
-						<div>
-							<dt>Native asset</dt>
-							<dd>{network.$$nativeAssets.length}</dd>
-						</div>
-					{/if}
-				</dl>
+						{#if (network.$$nativeAssets?.length ?? 0) > 0}
+							<div>
+								<dt>Native asset</dt>
+								<dd>{network.$$nativeAssets?.length ?? 0}</dd>
+							</div>
+						{/if}
+					</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -236,16 +237,16 @@
 			data-card
 			class="network-view-collapsible-assets"
 			scrollContainerProps={{ 'data-row': 'start align-start' }}
-		>
-			{#snippet Summary()}
+				>
+				{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Assets</HeadingComponent>
 				</header>
-			{/snippet}
+				{/snippet}
 
-			{#snippet SectionTronAssetsNative({ id, label }: { id: string, label: string })}
+				{#snippet SectionTronAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
-					CollapsibleProps={{ canToggle: false }}
+			CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
 						entityId,
@@ -289,7 +290,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -308,7 +308,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>

@@ -82,12 +82,12 @@ const executionSpecsPinnedMarkdownFilenameFromLink = (
 	executionSpecsLink: string | undefined,
 ): string | undefined => {
 	if (executionSpecsLink == null) return undefined
-	const pathOnly = executionSpecsLink.split('?')[0] ?? executionSpecsLink
+	const pathOnly = executionSpecsLink.split('?')[0]
 	if (!pathOnly.includes('ethereum/execution-specs')) return undefined
 	if (!pathOnly.includes('network-upgrades/mainnet-upgrades')) return undefined
 	const segments = pathOnly.split('/')
 	const lastSegment = segments[segments.length - 1]
-	if (lastSegment == null || !lastSegment.endsWith('.md')) return undefined
+	if (!lastSegment.endsWith('.md')) return undefined
 	return /^[a-zA-Z0-9][a-zA-Z0-9._-]*\.md$/.test(lastSegment) ? lastSegment : undefined
 }
 
@@ -147,7 +147,14 @@ const activationFieldsFromActivation = (
 	:
 		{
 			...(activation.block != null && { activationBlock: activation.block }),
-			...(activation.timestamp != null && { activationTimestampMs: activation.timestamp }),
+			...(activation.timestamp != null && {
+				activationTimestampMs: (
+					activation.timestamp < 1e12 ?
+						activation.timestamp * 1000
+					:
+						activation.timestamp
+				),
+			}),
 			...(activation.epoch != null && { activationEpoch: activation.epoch }),
 		}
 )
@@ -174,10 +181,6 @@ const proposalStubs = (
 				category: proposalRef.kind,
 				number: proposalRef.number,
 			},
-			documentTitle: null,
-			documentCategory: null,
-			documentStatus: null,
-			documentBody: null,
 		}
 	))
 )
@@ -236,7 +239,7 @@ const networkExecutionUpgradeEntityFromSource = (
 		},
 		name: name ?? upgradeId,
 		slug: slugValue,
-		...(activationSource.executionProtocol != null && { protocol: activationSource.executionProtocol }),
+		protocol: activationSource.executionProtocol,
 		...activationFieldsFromActivation(activation),
 		...(forkHash != null && { forkHash }),
 		...(links?.ethereumOrg != null && { linkEthereumOrg: links.ethereumOrg }),
@@ -394,13 +397,9 @@ for (const chainId of chainIdsWithUpgradeActivations) {
 	for (const definition of ethereumNetworkMarketingUmbrellas) {
 		const executionUpgradeId = definition.$networkExecutionUpgrade[EntityMetaKey.Id].upgradeId
 		const consensusUpgradeId = definition.$networkConsensusUpgrade[EntityMetaKey.Id].upgradeId
-		const executionEntity = executionByKey[`${chainId}:${executionUpgradeId}`]
-		const consensusEntity = consensusByKey[`${chainId}:${consensusUpgradeId}`]
-		if (executionEntity != null && consensusEntity != null) {
 			subsumedOnChain.add(executionUpgradeId)
 			subsumedOnChain.add(consensusUpgradeId)
 		}
-	}
 	umbrellaSubsumedUpgradeIdsByChain.set(chainId, subsumedOnChain)
 }
 
@@ -411,11 +410,6 @@ const networkUpgradeMarketingUmbrellas = (
 			ethereumNetworkMarketingUmbrellas.flatMap((definition) => {
 				const executionUpgradeId = definition.$networkExecutionUpgrade[EntityMetaKey.Id].upgradeId
 				const consensusUpgradeId = definition.$networkConsensusUpgrade[EntityMetaKey.Id].upgradeId
-				const executionEntity = executionByKey[`${chainId}:${executionUpgradeId}`]
-				const consensusEntity = consensusByKey[`${chainId}:${consensusUpgradeId}`]
-				if (executionEntity == null || consensusEntity == null) {
-					return []
-				}
 				const umbrellaUpgradeId = definition[EntityMetaKey.Id].upgradeId
 				return [{
 					[EntityMetaKey.Id]: {

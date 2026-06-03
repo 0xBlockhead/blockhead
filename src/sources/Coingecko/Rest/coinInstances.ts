@@ -89,7 +89,7 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 		const key = stringify(instanceId)
 		if (seenKeys.has(key)) return
 		seenKeys.add(key)
-		const symbolTrimmed = (coin.symbol ?? '').trim()
+		const symbolTrimmed = (coin.symbol ).trim()
 		const lifiCoinKeyTrimmed = lifiCoinKeyForInstance(instanceId, lifiCoinKeyByAddress)?.trim()
 			const isNativeChain = (
 				nativeChainId != null

@@ -1,10 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import {
-		caip2RouteParamsFromEvmChainId,
-		networkIdFromEvmChainId,
-	} from '$/lib/caip.ts'
 
 
 	// Context
@@ -20,14 +16,14 @@
 <Page>
 	<EvmContractsView
 		href={resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/contracts',
+			'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/contracts',
 			{
-				...caip2RouteParamsFromEvmChainId(1),
+				...{ caip2Namespace: 'eip155' as const, caip2Reference: `${1}` },
 			},
 		)}
 		entityFieldReference={{
 			entityType: EntityType.EvmNetwork,
-			entityId: networkIdFromEvmChainId(1),
+			entityId: { caip2: { namespace: 'eip155' as const, reference: String(1) } },
 			fieldName: '$$contracts',
 		}}
 		id="contracts"

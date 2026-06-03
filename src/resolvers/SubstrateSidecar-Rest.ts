@@ -126,7 +126,7 @@ export default {
 									palletName,
 								},
 							},
-							eventName: eventName ?? event.method,
+							eventName: eventName,
 						}
 					}),
 				}
@@ -142,7 +142,7 @@ export default {
 					restBaseUrl: substrateSidecarDefaultLocalRestUrl,
 					blockId: entityId.$block.hash ?? entityId.$block.blockNumber,
 				})
-				const extrinsic = block.extrinsics[entityId.extrinsicIndex]
+				const extrinsic = block.extrinsics.at(entityId.extrinsicIndex)
 				if (extrinsic == null) {
 					throw new Error(`SubstrateSidecar_Rest: missing extrinsic ${entityId.extrinsicIndex}`)
 				}
@@ -190,7 +190,7 @@ export default {
 						}))
 					)),
 					...(block.onFinalize?.events ?? []),
-				][entityId.eventIndex]
+				].at(entityId.eventIndex)
 				if (event == null) {
 					throw new Error(`SubstrateSidecar_Rest: missing event ${entityId.eventIndex}`)
 				}
@@ -217,7 +217,7 @@ export default {
 							palletName,
 						},
 					},
-					eventName: eventName ?? event.method,
+					eventName: eventName,
 				}
 			},
 		}),
@@ -445,7 +445,7 @@ export default {
 								palletName,
 							},
 						},
-						eventName: eventName ?? event.method,
+						eventName: eventName,
 					}
 				})
 			},

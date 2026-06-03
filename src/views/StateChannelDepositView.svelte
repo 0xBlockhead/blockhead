@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -21,6 +22,7 @@
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
 		),
+		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
@@ -28,16 +30,13 @@
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const deposit = useEntity(
 		EntityType.StateChannelDeposit,
@@ -70,6 +69,7 @@
 	href={href}
 	{layout}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -96,7 +96,9 @@
 							open={false}
 						/>
 					{:else}
+						{#if Value}
 						{@render Value()}
+					{/if}
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
@@ -120,14 +122,14 @@
 						<div>
 							<dt>Account</dt>
 							<dd>
-								{#if deposit.$network?.[EntityMetaKey.Id].chainId !== undefined}
-									<EvmNetworkAccountView
-										entityId={{
-											$network: deposit.$network[EntityMetaKey.Id],
+									{#if deposit.$network !== undefined}
+										<EvmNetworkAccountView
+											entityId={{
+												$network: deposit.$network[EntityMetaKey.Id],
 											$actor: deposit.$account[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Title}
-										open={false}
+											open={false}
 									/>
 								{:else}
 									<EvmAccountView

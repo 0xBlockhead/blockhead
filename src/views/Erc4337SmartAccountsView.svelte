@@ -12,6 +12,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -34,9 +36,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -67,11 +66,6 @@
 				EntityType.EvmNetwork,
 				entityFieldReference.entityId,
 				{
-					blockHeight: {
-						$: [
-							Source.Voltaire_JsonRpc,
-						],
-					},
 					$$erc4337SmartAccounts: {
 						$: [
 							Source.Blockscout_Rest,
@@ -93,7 +87,7 @@
 				id={`${id}-items`}
 				href={href}
 				getKey={(smartAccount) => stringify(smartAccount[EntityMetaKey.Id])}
-				getSortValue={(smartAccount) => BigInt(smartAccount[EntityMetaKey.Id].address)}
+				getSortValue={(smartAccount) => smartAccount[EntityMetaKey.Id].address}
 				placeholderText="Loading smart accounts…"
 				resource={smartAccounts}
 				{title}

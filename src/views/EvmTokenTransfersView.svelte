@@ -12,8 +12,8 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { resolve } from '$app/paths'
 
 
 	// State
@@ -37,15 +37,12 @@
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -90,7 +87,7 @@
 							:
 								[
 									Source.Blockscout_Rest,
-									Source.Voltaire_JsonRpc,
+									Source.Etherscan_Rest,
 								]
 						),
 					},
@@ -110,7 +107,10 @@
 				showSummary={false}
 				entityType={EntityType.EvmTokenTransfer}
 				getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
-				getSortValue={(line) => line.value[EntityMetaKey.Id].logIndex}
+				getSortValue={(line) => (
+					line.value[EntityMetaKey.Id].logIndex
+					+ (line.value[EntityMetaKey.Id].transferIndex / 1000)
+			)}
 				placeholderText="Loading token transfers…"
 				resource={transfers}
 				{title}

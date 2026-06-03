@@ -5,7 +5,7 @@ import {
 	SourceProvider,
 } from '$/sources/$SourceProvider.ts'
 import { lensApiOrigins } from '$/sources/Lens/Graphql/constants.ts'
-import LensApiSource from '$/sources/Lens/Graphql/index.ts'
+import LensGraphqlSource from '$/sources/Lens/Graphql/index.ts'
 
 export default {
 	provider: SourceProvider.Lens,
@@ -16,6 +16,6 @@ export default {
 		PUBLIC_LENS_API_KEY: 'string > 0?',
 	}),
 	sources: [
-		LensApiSource,
+		LensGraphqlSource,
 	],
 } satisfies SourceProviderDefinition

@@ -12,6 +12,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -24,11 +25,13 @@
 		limit = 120,
 		collapsible = true,
 		CollapsibleProps = {},
+		href,
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterFeed>
 		id?: string
 		title?: string
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
+		href?: ComponentProps<typeof EntitiesList>['href']
 		open?: boolean
 		limit?: number
 		collapsible?: boolean
@@ -40,16 +43,18 @@
 		idArg.variant === 'trending' ?
 			resolve('/farcaster/feed/trending')
 		: idArg.variant === 'byUser' ?
-			resolve(`/farcaster/feed/user/${String(idArg.fid)}`)
+			resolve('/(social)/(farcaster)/farcaster/feed/user/[userId]', {
+				userId: String(idArg.fid),
+			})
 		: idArg.variant === 'byChannel' ?
-			resolve(`/farcaster/feed/channel/${encodeURIComponent(idArg.channelId)}`)
+			resolve('/(social)/(farcaster)/farcaster/feed/channel/[channelId]', {
+				channelId: idArg.channelId,
+			})
 		:
 			resolve('/farcaster/feed')
 	)
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -66,6 +71,7 @@
 	{id}
 	{title}
 	{collapsible}
+	{href}
 	bind:open
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -109,8 +115,8 @@
 				{id}
 				{title}
 				open={true}
-				getKey={(row) => stringify(farcasterFeed.value[EntityMetaKey.Id])}
-				getSortValue={(row) => stringify(farcasterFeed.value[EntityMetaKey.Id])}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => stringify(row.value[EntityMetaKey.Id])}
 				placeholderText="Loading Farcaster feeds (trending, FID, channel)…"
 				resource={feeds}
 			>

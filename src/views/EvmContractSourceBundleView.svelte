@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -13,24 +9,20 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(contracts)/contract/[address]/source-bundle/[bundleId]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
-				address: entityId.$contract.address,
-				bundleId: entityId.bundleId,
-			},
-		),
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
+				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
+			address: entityId.address,
+			}),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
-			|| layout === EntityLayout.Details
 		),
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
@@ -44,13 +36,10 @@
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const sourceBundle = useEntity(
 		EntityType.EvmContractSourceBundle,
@@ -90,7 +79,7 @@
 			{#snippet children(sourceBundle)}
 				{#if Object.keys(sourceBundle.files ?? {}).length > 0}
 					<code>
-						{Object.keys(sourceBundle.files ?? {})[0]
+						{String(Object.keys(sourceBundle.files ?? {})[0])
 							.split('/')
 							.at(-1)}
 					</code>

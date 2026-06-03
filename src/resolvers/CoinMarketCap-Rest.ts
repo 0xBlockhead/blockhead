@@ -61,8 +61,8 @@ export default {
 
 				const logoUrl = info.logo
 				const logoMedia = mediaFromUrl(logoUrl, MediaType.Image)
-				const infoName = info.name?.trim() ?? ''
-				const infoSymbol = info.symbol?.trim() ?? ''
+				const infoName = info.name ?? ''
+				const infoSymbol = info.symbol ?? ''
 
 				return {
 					...(infoName !== '' && { name: infoName }),
@@ -128,9 +128,9 @@ export default {
 				)?.platform
 				const caip2 = (
 					(p?.slug === 'ethereum' || p?.name === 'Ethereum')
-					&& p?.token_address != null
-					&& /^0x[a-fA-F0-9]{40}$/i.test(p.token_address.trim()) ?
-						caip19Erc20(1, p.token_address.trim().toLowerCase() as `0x${string}`)
+					&& p.token_address != null
+					&& /^0x[a-fA-F0-9]{40}$/i.test(p.token_address) ?
+						caip19Erc20(1, p.token_address.toLowerCase() as `0x${string}`)
 					:
 						undefined
 				)
@@ -138,9 +138,7 @@ export default {
 				return {
 					price: BigInt(Math.round((price ?? 0) * 1e8)),
 					transport: 'coinmarketcap-v2-quotes-and-info-usd-1e8',
-					...(String(coinMarketCapId) !== undefined && {
 						providerAssetId: String(coinMarketCapId),
-					}),
 					...(caip2 && { caip2 }),
 				}
 			},
@@ -354,7 +352,6 @@ export default {
 				if (idByCoinId[coinId] == null) throw new Error('CoinMarketCap_Rest: OHLC coin not mapped')
 				const publicEnv = sourcePublicEnv(context, Source.CoinMarketCap_Rest)
 				const coinMarketCapId = idByCoinId[coinId]
-				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: OHLC coin not mapped')
 				const lim = resolverLoadSubsetRowLimit(context)
 				const candles = []
 				for (const value of coingeckoOhlcDayWindowLengths) {
@@ -432,7 +429,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
@@ -442,7 +439,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,

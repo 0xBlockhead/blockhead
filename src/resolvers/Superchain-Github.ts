@@ -1,6 +1,11 @@
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
+	NetworkEnvironment,
+	NetworkNamespace,
+} from '$/constants/Network.ts'
+import {
 	defineEntityFieldResolver,
+	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -9,7 +14,51 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	source: Source.Superchain_Github,
 
-	entityResolvers: [],
+	entityResolvers: [
+		defineEntityResolver({
+			entityType: EntityType.EvmNetwork,
+			resolve: async (entityId) => {
+				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
+				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
+				const networks = await singleFlight(fetchNetworks)()
+				const network = networks.find((candidate) => candidate.chainId === Number(entityId.caip2.reference))
+				if (network == null) throw new Error('Superchain_Github: network not in chainList.json')
+				return {
+					[EntityMetaKey.Id]: entityId,
+					name: network.name,
+					namespace: NetworkNamespace.Evm,
+					environment: (
+						network.namespace === superchainMainnetIdentifier ?
+							NetworkEnvironment.Mainnet
+					:
+							NetworkEnvironment.Testnet
+					),
+					...(network.parentChainId != null && {
+						$parent: {
+							[EntityMetaKey.Id]: {
+								caip2: {
+									namespace: 'eip155',
+									reference: String(network.parentChainId),
+								},
+							},
+						},
+		}),
+					layerNumber: (() => {
+						let layerNumber = 1
+						let parentChainId = network.parentChainId
+						const visitedChainIds = new Set<number>()
+						for (let hop = 0; hop < 256 && parentChainId != null; hop += 1) {
+							if (visitedChainIds.has(parentChainId)) return layerNumber
+							visitedChainIds.add(parentChainId)
+							layerNumber += 1
+							parentChainId = networks.find((candidate) => candidate.chainId === parentChainId)?.parentChainId
+						}
+						return layerNumber
+					})(),
+				}
+			},
+		}),
+	],
 
 	entityFieldResolvers: [
 		defineEntityFieldResolver({

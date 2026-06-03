@@ -12,7 +12,14 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 
 
-export type OhlcCandle = readonly number[]
+export type OhlcCandle = readonly [
+	timestampMs: number,
+	open: number,
+	high: number,
+	low: number,
+	close: number,
+	quoteVolume?: number,
+]
 
 
 export const marketTimeIntervalKey = (timeInterval: MarketTimeInterval) => (
@@ -45,17 +52,8 @@ export const marketTimeIntervalsEqual = (
 export const candleFromOhlc = (
 	$market: EntityId<typeof schema, EntityType.Market>,
 	timeInterval: MarketTimeInterval,
-	[timestampMs, open, high, low, close]: OhlcCandle,
+	[timestampMs, open, high, low, close, quoteVolume]: OhlcCandle,
 ) => {
-	if (
-		timestampMs == null
-		|| open == null
-		|| high == null
-		|| low == null
-		|| close == null
-	) {
-		throw new Error('OHLC row must contain timestamp, open, high, low, and close')
-	}
 	const id = (
 		{
 			$market,
@@ -71,6 +69,9 @@ export const candleFromOhlc = (
 			high: BigInt(Math.round(high * 1e8)),
 			low: BigInt(Math.round(low * 1e8)),
 			close: BigInt(Math.round(close * 1e8)),
+			...(quoteVolume != null && {
+				quoteVolume: BigInt(Math.round(quoteVolume * 1e8)),
+			}),
 		}
 	)
 }

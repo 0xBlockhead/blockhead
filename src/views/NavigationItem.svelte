@@ -33,7 +33,6 @@
 	)
 
 
-	// State
 	let searchValue = $state(
 		'',
 	)
@@ -43,6 +42,7 @@
 	)
 
 
+	// (Derived)
 	const searchFilter = $derived(
 		searchValue.trim().toLowerCase(),
 	)
@@ -159,7 +159,12 @@
 							{#if node.address?.network}
 								<EvmNetworkAccountView
 									entityId={{
-										$network: node.address.network,
+										$network: {
+											caip2: {
+												namespace: 'eip155',
+												reference: String(node.address.network.chainId),
+											},
+										},
 										$actor: { address: node.address.address },
 									}}
 									layout={EntityLayout.Title}
@@ -230,7 +235,12 @@
 							{#if node.address?.network}
 								<EvmNetworkAccountView
 									entityId={{
-										$network: node.address.network,
+										$network: {
+											caip2: {
+												namespace: 'eip155',
+												reference: String(node.address.network.chainId),
+											},
+										},
 										$actor: { address: node.address.address },
 									}}
 									layout={EntityLayout.Title}
@@ -363,4 +373,3 @@
 		}
 	}
 </style>
-

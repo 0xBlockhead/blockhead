@@ -1,12 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import {
-		caip2RouteParamsFromNetworkId,
-		evmChainIdFromNetworkId,
-	} from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { schema } from '$/schema/index.ts'
@@ -18,21 +11,11 @@
 	import { stringify } from 'devalue'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		pageContent,
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
-				address: entityId.$actor.address,
-			},
-		),
+		href = `/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/account/${entityId.$actor.address}`,
 		title = 'Network account',
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -52,8 +35,7 @@
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const evmNetworkAccountDetailAnchorKey = stringify(entityId)
@@ -112,8 +94,8 @@
 				isContract: {},
 				$$transactions: {},
 				$$tokenTransfers: {},
-				$$internalTransactions: {},
-				transactionsCount: {},
+				$$internalTransfers: {},
+				transactionCount: {},
 				tokenTransferCount: {},
 				firstTransactionAt: {},
 				lastTransactionAt: {},
@@ -127,7 +109,7 @@
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -137,6 +119,8 @@
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import BalancesView from '$/views/BalancesView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
+	import EvmInternalTransfersView from '$/views/EvmInternalTransfersView.svelte'
+	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
@@ -195,7 +179,20 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			resource={actor}
+		>
+			{#snippet children(actor)}
+				{#if actor.$primaryName?.[EntityMetaKey.Id].name}
+					{actor.$primaryName?.[EntityMetaKey.Id].name}
+				{:else}
+					<TruncatedValue
+						format={TruncatedValueFormat.Visual}
+						value={entityId.$actor.address}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
 		<small data-row="inline align-center wrap" data-text="muted">
 			{' '}on{' '}
@@ -245,7 +242,7 @@
 				<div>
 					<dt>CAIP-2</dt>
 					<dd data-text="mono">
-						<code>eip155:{String(evmChainIdFromNetworkId(entityId.$network))}</code>
+						<code>eip155:{String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}</code>
 					</dd>
 				</div>
 			{/if}
@@ -270,8 +267,8 @@
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(evmNetworkAccount)}
-								{#if evmNetworkAccount.transactionsCount !== undefined}
-									<NumberValue value={evmNetworkAccount.transactionsCount} />
+								{#if evmNetworkAccount.transactionCount !== undefined}
+									<NumberValue value={evmNetworkAccount.transactionCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -293,8 +290,7 @@
 											$network: entityId.$network,
 											address: entityId.$actor.address,
 										}}
-										layout={EntityLayout.SummaryDetails}
-										open={true}
+										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
 								</dd>
@@ -383,96 +379,77 @@
 		/>
 		<CollapsibleTabs
 			id={`${evmNetworkAccountDetailAnchorKey}:carousel-balances`}
+			sectionIdPrefix={evmNetworkAccountDetailAnchorKey}
+			sections={collapsibleTabsSections([
+				{ id: 'actor-balances-tokens', label: 'Tokens' },
+				{ id: 'actor-contract-positions', label: 'Positions' },
+			])}
 			data-card
 			class="actor-network-view-collapsible-balances"
 		>
-				{#snippet Summary({ open: _balancesSummary })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Balances</HeadingComponent>
-					</header>
-				{/snippet}
+			{#snippet Summary({ open: _balancesSummary })}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Balances</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					{#if !evmNetworkAccount.ready || (evmNetworkAccount.current.$$ownedCoins ?? []).length > 0}
-						<a
-							data-scroll-marker-label="Tokens"
-							href={`#${evmNetworkAccountDetailAnchorKey}:actor-balances-tokens`}
-						>Tokens</a>
-					{/if}
+			{#snippet SectionActorBalancesTokens({ id: _tokensId, label: _tokensLabel })}
+				<BalancesView
+					CollapsibleProps={{ canToggle: false }}
+					href={href}
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.EvmNetworkAccount,
+						entityId,
+						fieldName: '$$ownedCoins',
+					}}
+					id={`${evmNetworkAccountDetailAnchorKey}:actor-owned-coins`}
+					title="Tokens"
+				/>
+			{/snippet}
 
-					{#if !evmNetworkAccount.ready || (evmNetworkAccount.current.contractPositions ?? []).length > 0}
-						<a
-							data-scroll-marker-label="Contract positions"
-							href={`#${evmNetworkAccountDetailAnchorKey}:actor-contract-positions`}
-						>Positions</a>
-					{/if}
-				{/snippet}
-
-				{#snippet body({ open: _bodyOpen })}
-					<section id={`${evmNetworkAccountDetailAnchorKey}:actor-balances-tokens`}>
-						<BalancesView
-							CollapsibleProps={{ canToggle: false }}
-							href={resolve(
-								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
-								{
-								...caip2RouteParamsFromNetworkId(entityId.$network),
-								address: entityId.$actor.address,
-								},
-		)}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.EvmNetworkAccount,
-								entityId,
-								fieldName: '$$ownedCoins',
-							}}
-							id={`${evmNetworkAccountDetailAnchorKey}:actor-owned-coins`}
-							title="Tokens"
-						/>
-					</section>
-
-					<section id={`${evmNetworkAccountDetailAnchorKey}:actor-contract-positions`}>
-						<ResourceBoundary
-							resource={evmNetworkAccount}
-							placeholderText="Loading positions…"
-						>
-							{#snippet children(evmNetworkAccount)}
-								{#if (evmNetworkAccount.contractPositions ?? []).length}
-									<ul data-evmNetworkAccounts="unstyled">
-										{#each evmNetworkAccount.contractPositions ?? [] as row (`${evmNetworkAccount.protocol.key}:${evmNetworkAccount.name}`)}
-											<li data-column="gap-1">
-												<div data-row="wrap align-baseline gap-2">
-													<strong>{evmNetworkAccount.name}</strong>
-													<span data-text="muted">{evmNetworkAccount.protocol.name}</span>
-												</div>
-												{#if evmNetworkAccount.pool != null}
-													<div data-row="wrap align-center gap-2">
-														<EvmContractView
-															entityId={{
-																$network: entityId.$network,
-																address: evmNetworkAccount.pool.address,
-															}}
-															layout={EntityLayout.Title}
-														/>
-														{#if evmNetworkAccount.pool.name != null}
-															<span data-text="muted">{evmNetworkAccount.pool.name}</span>
-														{/if}
-													</div>
+			{#snippet SectionActorContractPositions({ id: _positionsId, label: _positionsLabel })}
+				<ResourceBoundary
+					resource={evmNetworkAccount}
+					placeholderText="Loading positions…"
+				>
+					{#snippet children(evmNetworkAccount)}
+						{#if (evmNetworkAccount.contractPositions ?? []).length}
+							<ul data-evmNetworkAccounts="unstyled">
+								{#each evmNetworkAccount.contractPositions ?? [] as contractPosition (`${contractPosition.protocol.key}:${contractPosition.name}`)}
+									<li data-column="gap-1">
+										<div data-row="wrap align-baseline gap-2">
+											<strong>{contractPosition.name}</strong>
+											<span data-text="muted">{contractPosition.protocol.name}</span>
+										</div>
+										{#if contractPosition.pool != null}
+											<div data-row="wrap align-center gap-2">
+												<EvmContractView
+													entityId={{
+														$network: entityId.$network,
+														address: contractPosition.pool.address,
+													}}
+													layout={EntityLayout.Title}
+												/>
+												{#if contractPosition.pool.name != null}
+													<span data-text="muted">{contractPosition.pool.name}</span>
 												{/if}
-												<div data-text="annotation">
-													Value {String(evmNetworkAccount.value)}
-												</div>
-											</li>
-										{/each}
-									</ul>
-								{:else}
-									<p data-text="muted">
-										No contract positions on this evmNetworkAccount.
-									</p>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-				{/snippet}
+											</div>
+										{/if}
+										<div data-text="annotation">
+											Value {String(contractPosition.value)}
+										</div>
+									</li>
+								{/each}
+							</ul>
+						{:else}
+							<p data-text="muted">
+								No contract positions on this evmNetworkAccount.
+							</p>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
@@ -484,13 +461,15 @@
 					!evmNetworkAccount.ready
 					|| evmNetworkAccount.current.tokenTransferCount !== undefined
 					|| (evmNetworkAccount.current.$$tokenTransfers ?? []).length > 0
-				) ? ([{ id: 'activity-token-transfers', label: 'Token transfers' }] as const)
+				) ?
+					([{ id: 'activity-token-transfers', label: 'Token transfers' }] as const)
 				:
 					[],
 				...(
 					!evmNetworkAccount.ready
-					|| (evmNetworkAccount.current.$$internalTransactions ?? []).length > 0
-				) ? ([{ id: 'activity-internal-transactions', label: 'Internal transactions' }] as const)
+					|| (evmNetworkAccount.current.$$internalTransfers ?? []).length > 0
+				) ?
+					([{ id: 'activity-internal-transfers', label: 'Internal transfers' }] as const)
 				:
 					[],
 			]}
@@ -503,16 +482,10 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionActivityTransactions({ id, label })}
+			{#snippet SectionActivityTransactions({ id: _transactionsId, label: _transactionsLabel })}
 				<EvmTransactionsView
 					CollapsibleProps={{ canToggle: false }}
-					href={resolve(
-						'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
-						{
-						...caip2RouteParamsFromNetworkId(entityId.$network),
-						address: entityId.$actor.address,
-						},
-					)}
+					href={href}
 					collapsible={false}
 					entityFieldReference={{
 						entityType: EntityType.EvmNetworkAccount,
@@ -523,16 +496,10 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionActivityTokenTransfers({ id, label })}
-				<EvmTransactionsView
+			{#snippet SectionActivityTokenTransfers({ id: _tokenTransfersId, label: _tokenTransfersLabel })}
+				<EvmTokenTransfersView
 					CollapsibleProps={{ canToggle: false }}
-					href={resolve(
-						'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
-						{
-						...caip2RouteParamsFromNetworkId(entityId.$network),
-						address: entityId.$actor.address,
-						},
-					)}
+					href={href}
 					collapsible={false}
 					entityFieldReference={{
 						entityType: EntityType.EvmNetworkAccount,
@@ -544,26 +511,20 @@
 				/>
 			{/snippet}
 
-				{#snippet SectionActivityInternalTransactions({ id, label })}
-					<EvmTransactionsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve(
-							'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
-							{
-							...caip2RouteParamsFromNetworkId(entityId.$network),
-							address: entityId.$actor.address,
-							},
-						)}
-						collapsible={false}
-						entityFieldReference={{
-							entityType: EntityType.EvmNetworkAccount,
-							entityId,
-							fieldName: '$$internalTransactions',
-						}}
-						id={`${evmNetworkAccountDetailAnchorKey}:activity-internal-tx`}
-						title="Internal transactions"
-					/>
-				{/snippet}
+			{#snippet SectionActivityInternalTransfers({ id: _internalTransfersId, label: _internalTransfersLabel })}
+				<EvmInternalTransfersView
+					CollapsibleProps={{ canToggle: false }}
+					href={href}
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.EvmNetworkAccount,
+						entityId,
+						fieldName: '$$internalTransfers',
+					}}
+					id={`${evmNetworkAccountDetailAnchorKey}:activity-internal-tx`}
+					title="Internal transfers"
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 
 		{#if pageContent}

@@ -5,12 +5,6 @@
 	} = $props()
 
 
-	const entityId = $derived({
-		instanceOrigin: decodeURIComponent(params.instanceOrigin),
-		localAccountId: decodeURIComponent(params.localAccountId),
-	})
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
@@ -19,7 +13,10 @@
 
 <Page>
 	<ActivityPubActorView
-		{entityId}
+		{({
+		instanceOrigin: decodeURIComponent(params.instanceOrigin),
+		localAccountId: decodeURIComponent(params.localAccountId),
+	})}
 	>
 	</ActivityPubActorView>
 </Page>

@@ -18,7 +18,7 @@ export const getBlock = ({
 }) => (
 	getJson<SidecarBlock>(
 		`${base(restBaseUrl)}/blocks/${String(blockId)}`,
-		{ origins: SubstrateSidecar.origins ?? [] },
+		{ origins: SubstrateSidecar.origins  },
 	)
 )
 
@@ -31,20 +31,20 @@ export const getAccountBalanceInfo = ({
 }) => (
 	getJson<SidecarAccountBalanceInfo>(
 		`${base(restBaseUrl)}/accounts/${accountId}/balance-info`,
-		{ origins: SubstrateSidecar.origins ?? [] },
+		{ origins: SubstrateSidecar.origins  },
 	)
 )
 
 export const getRuntimeMetadata = ({ restBaseUrl }: { restBaseUrl: string }) => (
 	getJson<SidecarRuntimeMetadata>(
 		`${base(restBaseUrl)}/runtime/metadata`,
-		{ origins: SubstrateSidecar.origins ?? [] },
+		{ origins: SubstrateSidecar.origins  },
 	)
 )
 
 export const getStakingValidators = ({ restBaseUrl }: { restBaseUrl: string }) => (
 	getJson<SidecarStakingValidators>(
 		`${base(restBaseUrl)}/pallets/staking/validators`,
-		{ origins: SubstrateSidecar.origins ?? [] },
+		{ origins: SubstrateSidecar.origins  },
 	)
 )

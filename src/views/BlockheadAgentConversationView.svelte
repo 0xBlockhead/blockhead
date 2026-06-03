@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -9,6 +9,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -32,10 +33,6 @@
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const conversation = useEntity(
 		EntityType.BlockheadAgentConversation,
@@ -86,7 +83,7 @@
 
 	{#snippet Title()}
 		{#if true}
-			{#snippet ConversationHeading(conversation)}
+			{#snippet ConversationHeading(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
 				{conversation.name ?? entityId.id}
 			{/snippet}
 
@@ -113,7 +110,7 @@
 				<dt>Pinned</dt>
 				<dd>
 					{#if true}
-						{#snippet ConversationPinnedRow(conversation)}
+						{#snippet ConversationPinnedRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
 							{conversation.pinned ? 'Yes' : 'No'}
 						{/snippet}
 
@@ -130,7 +127,7 @@
 				<dt>Last activity</dt>
 				<dd>
 					{#if true}
-						{#snippet ConversationLastActivityRow(conversation)}
+						{#snippet ConversationLastActivityRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
 							{#if conversation.updatedAt !== undefined}
 								<Timestamp
 									timestamp={conversation.updatedAt}
@@ -158,7 +155,7 @@
 					<dt>Created</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationCreatedRow(conversation)}
+							{#snippet ConversationCreatedRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
 								{#if conversation.createdAt !== undefined}
 									<Timestamp
 										timestamp={conversation.createdAt}
@@ -179,7 +176,7 @@
 					<dt>Updated</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationUpdatedRow(conversation)}
+							{#snippet ConversationUpdatedRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
 								{#if conversation.updatedAt !== undefined}
 									<Timestamp
 										timestamp={conversation.updatedAt}
@@ -200,7 +197,7 @@
 					<dt>Default connection</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationConnectionRow(conversation)}
+							{#snippet ConversationConnectionRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
 								{#if conversation.defaultConnectionId != null && conversation.defaultConnectionId !== ''}
 									<TruncatedValue
 										value={conversation.defaultConnectionId}
@@ -226,7 +223,7 @@
 					<dt>Default model</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationModelRow(conversation)}
+							{#snippet ConversationModelRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
 								{#if conversation.defaultModelId != null && conversation.defaultModelId !== ''}
 									<TruncatedValue
 										value={conversation.defaultModelId}
@@ -252,7 +249,7 @@
 					<dt>System prompt</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationSystemPromptRow(conversation)}
+							{#snippet ConversationSystemPromptRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
 								{#if conversation.systemPrompt !== ''}
 									<p>
 										{conversation.systemPrompt}

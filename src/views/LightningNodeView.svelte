@@ -8,6 +8,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -24,10 +26,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const node = useEntity(
 		EntityType.LightningNode,
@@ -60,7 +58,12 @@
 <EntityView
 	entityType={EntityType.LightningNode}
 	{entityId}
-	href={`/network/${entityId.$network.networkSlug}/nodes/${entityId.publicKey}`}
+	href={
+		'networkSlug' in entityId.$network ?
+			`/network/${entityId.$network.networkSlug}/nodes/${entityId.publicKey}`
+		:
+			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/nodes/${entityId.publicKey}`
+	}
 	title={entityId.publicKey}
 	bind:open
 	{...EntityViewProps}
@@ -70,7 +73,7 @@
 		<ResourceBoundary
 			resource={node}
 		>
-			{#snippet children(row)}
+			{#snippet children(lightningNode)}
 				{lightningNode.alias ?? entityId.publicKey}
 			{/snippet}
 		</ResourceBoundary>
@@ -81,7 +84,7 @@
 			resource={node}
 			placeholderText="Loading node…"
 		>
-			{#snippet children(row)}
+			{#snippet children(lightningNode)}
 				<dl>
 					<div>
 						<dt>Public key</dt>

@@ -12,20 +12,23 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
 		id,
 		open = $bindable(true),
 		collapsible = true,
-		title = 'Agent Services',
+		title = 'ERC-8004 Registrations',
 		limit = 100,
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Eip8004Service>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmNft>
 			id: string
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 			limit?: number
 		},
@@ -36,16 +39,13 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Eip8004ServiceView from '$/views/Eip8004ServiceView.svelte'
+	import Eip8004RegistrationView from '$/views/Eip8004RegistrationView.svelte'
 </script>
 
 
@@ -56,7 +56,7 @@
 	data-entity-field-name={entityFieldReference.fieldName}
 	data-entity-field-parent={stringify(entityFieldReference.entityId)}
 	data-entity-field-type={entityFieldReference.entityType}
-	entityType={EntityType.Eip8004Service}
+	entityType={EntityType.EvmNft}
 	{id}
 	{title}
 >
@@ -71,7 +71,7 @@
 
 	{#snippet Empty()}
 		<p data-text="muted">
-			No agent services in this slice yet.
+			No ERC-8004 registrations in this slice yet.
 		</p>
 	{/snippet}
 
@@ -85,18 +85,18 @@
 						$: [
 							Source.Eip8004Scan_Rest,
 						],
-						limit,
+						$limit: limit,
 					},
 				},
 			)}
-			{@const services = derive(
+			{@const registrations = derive(
 				parent,
 				(parent) => {
-					const eip8004Services: Entity<typeof schema, EntityType.Eip8004Service>[] = (
+					const eip8004Registrations: Entity<typeof schema, EntityType.EvmNft>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						eip8004Services.map((value) => ({
+						eip8004Registrations.map((value) => ({
 							value,
 						}))
 					)
@@ -108,21 +108,21 @@
 				data-entity-field-name={entityFieldReference.fieldName}
 				data-entity-field-parent={stringify(entityFieldReference.entityId)}
 				data-entity-field-type={entityFieldReference.entityType}
-				entityType={EntityType.Eip8004Service}
+				entityType={EntityType.EvmNft}
 				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 				open={true}
-				resource={services}
+				resource={registrations}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No agent services in this slice yet.
+						No ERC-8004 registrations in this slice yet.
 					</p>
 				{/snippet}
 
 				{#snippet Item({ item })}
-					<Eip8004ServiceView
+					<Eip8004RegistrationView
 						entityId={item.value[EntityMetaKey.Id]}
 						layout={EntityLayout.Summary}
 						open={false}

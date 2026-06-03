@@ -8,6 +8,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -20,10 +22,6 @@
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.Network,
@@ -39,6 +37,8 @@
 		},
 	)
 
+
+	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -130,25 +130,25 @@
 			{/snippet}
 
 			{#snippet SectionLogosExecution()}
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						{#if network.$$executionEnvironments.length > 0}
-							<p><strong>Execution environments:</strong> {network.$$executionEnvironments.length}</p>
-						{/if}
+					<ResourceBoundary resource={network}>
+						{#snippet children(network)}
+							{#if (network.$$executionEnvironments?.length ?? 0) > 0}
+								<p><strong>Execution environments:</strong> {network.$$executionEnvironments?.length ?? 0}</p>
+							{/if}
 
-						<p><strong>Environment:</strong> {networkEnvironmentByEnvironment[network.environment].label}</p>
+							<p><strong>Environment:</strong> {networkEnvironmentByEnvironment[network.environment].label}</p>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
 
 			{#snippet SectionLogosConsensus()}
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						{#if network.$$consensusMechanisms.length > 0}
-							<p><strong>Consensus mechanisms:</strong> {network.$$consensusMechanisms.length}</p>
-						{:else}
-							<p data-text="muted">No consensus mechanisms mapped for this network yet.</p>
-						{/if}
+					<ResourceBoundary resource={network}>
+						{#snippet children(network)}
+							{#if (network.$$consensusMechanisms?.length ?? 0) > 0}
+								<p><strong>Consensus mechanisms:</strong> {network.$$consensusMechanisms?.length ?? 0}</p>
+							{:else}
+								<p data-text="muted">No consensus mechanisms mapped for this network yet.</p>
+							{/if}
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
@@ -186,7 +186,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -205,7 +204,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>

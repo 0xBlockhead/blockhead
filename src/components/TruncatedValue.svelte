@@ -22,7 +22,6 @@
 		format?: TruncatedValueFormat
 	} = $props()
 
-
 	const rendered = $derived(
 		value ?? '',
 	)

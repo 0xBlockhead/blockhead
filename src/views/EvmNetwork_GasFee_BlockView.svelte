@@ -1,13 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import {
-		caip2RouteParamsFromNetworkId,
-		evmChainIdFromNetworkId,
-	} from '$/lib/caip.ts'
-
-
-	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -16,19 +9,18 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-		'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]',
-		{
-			...caip2RouteParamsFromNetworkId(entityId.$network),
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]', {
+			caip2Namespace: entityId.$network.caip2.namespace,
+			caip2Reference: entityId.$network.caip2.reference,
 			blockNumber: String(entityId.blockNumber),
-		},
-	),
+		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
@@ -44,10 +36,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkGasFeeBlock = useEntity(
 		EntityType.EvmNetwork_GasFee_Block,
@@ -102,7 +90,24 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			placeholderText="Loading gas snapshot…"
+			resource={networkGasFeeBlock}
+		>
+			{#snippet children(networkGasFeeBlock)}
+				{#if networkGasFeeBlock.baseFeePerGas !== undefined}
+					<NumberValue value={networkGasFeeBlock.baseFeePerGas} />
+					wei
+				{:else if networkGasFeeBlock.legacyGasPrice !== undefined}
+					<NumberValue value={networkGasFeeBlock.legacyGasPrice} />
+					wei
+				{:else}
+					<span>
+						block {String(entityId.blockNumber)}
+					</span>
+				{/if}
+	{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

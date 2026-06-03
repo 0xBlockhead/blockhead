@@ -19,6 +19,7 @@
 		".svelte-kit/non-ambient.d.ts",
 		".svelte-kit/types/**/$types.d.ts",
 		"vite.config.ts",
+		"src/**/*.d.ts",
 		"src/**/*.js",
 		"src/**/*.ts",
 		"src/**/*.svelte"
@@ -27,6 +28,7 @@
 		"node_modules/**",
 		".svelte-kit/types/src/routes/api/e2e/**",
 		"src/routes/api/e2e/**",
+		"src/routes/demo/**",
 		"src/service-worker.js",
 		"src/service-worker/**/*.js",
 		"src/service-worker.ts",

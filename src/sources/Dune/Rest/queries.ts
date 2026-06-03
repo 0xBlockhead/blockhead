@@ -60,9 +60,7 @@ export async function executeQuery(
 ): Promise<DuneExecuteQueryResponse> {
 	return duneFetch<DuneExecuteQueryResponse>(publicEnv, `/api/v1/query/${queryId}/execute`, {
 		method: 'POST',
-		body: body != null ? JSON.stringify(body)
-		:
-			undefined,
+		body: body != null ? JSON.stringify(body) : undefined,
 	})
 }
 

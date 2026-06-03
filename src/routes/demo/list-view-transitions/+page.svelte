@@ -3,7 +3,6 @@
 	type Row = { id: string, label: string }
 
 
-	// State
 	const items: Row[] = [
 		{ id: 'a', label: 'Alpha' },
 		{ id: 'b', label: 'Bravo' },

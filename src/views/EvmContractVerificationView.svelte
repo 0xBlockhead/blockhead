@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,24 +11,20 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(contracts)/contract/[address]/verification/[verificationId]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
-				address: entityId.$contract.address,
-				verificationId: entityId.verificationId,
-			},
-		),
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
+				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
+			address: entityId.address,
+			}),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
-			|| layout === EntityLayout.Details
 		),
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
@@ -46,13 +38,10 @@
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const verification = useEntity(
 		EntityType.EvmContractVerification,
@@ -73,6 +62,11 @@
 		},
 	)
 
+
+	// (Derived)
+	const verificationRow = $derived(
+		verification.ready ? verification.current : undefined,
+	)
 
 	const verificationIdKey = $derived(
 		stringify(entityId),
@@ -109,10 +103,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Attestation that published source and a compilation run match on-chain creation and/or runtime bytecode (Sourcify).
@@ -127,7 +117,7 @@
 	})}
 		{#if contentOpen}
 			<dl data-column-item="center">
-				{#if verification.match}
+				{#if verificationRow?.match}
 					<div>
 						<dt>Match</dt>
 						<dd>
@@ -142,7 +132,7 @@
 						</dd>
 					</div>
 				{/if}
-				{#if verification.creationMatch}
+				{#if verificationRow?.creationMatch}
 					<div>
 						<dt>Creation match</dt>
 						<dd>
@@ -157,7 +147,7 @@
 						</dd>
 					</div>
 				{/if}
-				{#if verification.runtimeMatch}
+				{#if verificationRow?.runtimeMatch}
 					<div>
 						<dt>Runtime match</dt>
 						<dd>
@@ -172,7 +162,7 @@
 						</dd>
 					</div>
 				{/if}
-				{#if verification.verifiedAtMs}
+				{#if verificationRow?.verifiedAtMs}
 					<div>
 						<dt>Verified at</dt>
 						<dd>
@@ -187,7 +177,7 @@
 						</dd>
 					</div>
 				{/if}
-				{#if verification.matchId}
+				{#if verificationRow?.matchId}
 					<div>
 						<dt>Match id</dt>
 						<dd>

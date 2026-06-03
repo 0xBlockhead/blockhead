@@ -139,7 +139,9 @@ export default {
 					block: entityId.hash ?? entityId.blockNumber.toString(),
 				})
 				return {
-					hash: wireBlock.data.block?.hash,
+					...(wireBlock.data.block?.hash != null && {
+						hash: wireBlock.data.block.hash,
+					}),
 					...(entityId.blockNumber > 0n && {
 						$parent: {
 							[EntityMetaKey.Id]: {
@@ -161,7 +163,9 @@ export default {
 					block: entityId.slot.toString(),
 				})
 				return {
-					blockHash: wireBlock.data.block?.hash,
+					...(wireBlock.data.block?.hash != null && {
+						blockHash: wireBlock.data.block.hash,
+					}),
 					...(wireBlock.data.block?.time != null && {
 						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),

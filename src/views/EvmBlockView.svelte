@@ -1,6 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -19,13 +19,10 @@
 	let {
 		children,
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
-				blockNumber: String(entityId.blockNumber),
-			},
-		),
+			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]', {
+				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
+				blockNumber: entityId.blockNumber.toString(),
+			}),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -35,6 +32,7 @@
 			entityId: EntityId<typeof schema, EntityType.EvmBlock>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -42,10 +40,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const block = useEntity(
 		EntityType.EvmBlock,
@@ -71,6 +65,7 @@
 	)
 
 
+	// (Derived)
 	const blockIdKey = $derived(
 		stringify(entityId),
 	)
@@ -85,6 +80,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
@@ -98,6 +94,7 @@
 	title={`Block #${String(entityId.blockNumber)}`}
 	idDragPlainText={String(entityId.blockNumber)}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -109,7 +106,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Block </span>
-			{@render Value()}
+		<span data-badge="small">
+			#{String(entityId.blockNumber)}
+		</span>
 		</span>
 	{/snippet}
 
@@ -317,77 +316,74 @@
 		open,
 	})}
 		<CollapsibleTabs
-				sectionIdPrefix={blockIdKey}
-				sections={[
-					{ id: 'chain', label: 'Chain' },
-					{ id: 'transactions', label: 'Transactions' },
-					...(children ? [{ id: 'page-content', label: 'Content' }] : []),
-				]}
-				id={`${blockIdKey}:carousel-related`}
-				data-card
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<Heading>Block</Heading>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									The block body sequences transactions and their receipts.
-								</p>
-								<p>
-									Blob-carrying transactions reference large data with hashes instead of stuffing the execution trie.
-								</p>
-							{/snippet}
-							<abbr
-								class="entity-heading-tip"
-								aria-label="Block payload notes"
-							>ⓘ</abbr>
-						</Tooltip>
-					</header>
-				{/snippet}
-
-				{#snippet SectionChain({ id: _chainId, label: _chainLabel })}
-					<ResourceBoundary
-						resource={block}
-						placeholderText="Loading chain info…"
-					>
-						{#snippet children(block)}
-							{#if block.$parent}
-								<EvmBlockView
-									entityId={block.$parent[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-								/>
-							{/if}
+			sectionIdPrefix={blockIdKey}
+			sections={[
+				{ id: 'chain', label: 'Chain' },
+				{ id: 'transactions', label: 'Transactions' },
+					{ id: 'page-content', label: 'Content' },
+			]}
+			id={`${blockIdKey}:carousel-related`}
+			data-card
+		>
+			{#snippet Summary({ open: _isOpen })}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<Heading>Block</Heading>
+					<Tooltip contentProps={{ side: 'top' }}>
+						{#snippet Content()}
+							<p>
+								The block body sequences transactions and their receipts.
+							</p>
+							<p>
+								Blob-carrying transactions reference large data with hashes instead of stuffing the execution trie.
+							</p>
 						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+						<abbr
+							class="entity-heading-tip"
+							aria-label="Block payload notes"
+						>ⓘ</abbr>
+					</Tooltip>
+				</header>
+			{/snippet}
 
-				{#snippet SectionTransactions({ id: _txId, label: _txLabel })}
-					<EvmTransactionsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve(
-						'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
-						{
-							...caip2RouteParamsFromNetworkId(entityId.$network),
-							blockNumber: String(entityId.blockNumber),
-						},
-					)}
-						entityFieldReference={{
-							entityType: EntityType.EvmBlock,
-							entityId,
-							fieldName: '$$transactions',
-						}}
-						id="transactions"
-						collapsible={false}
-						open={true}
-					/>
-				{/snippet}
+			{#snippet SectionChain({ id: _chainId, label: _chainLabel })}
+				<ResourceBoundary
+					resource={block}
+					placeholderText="Loading chain info…"
+				>
+					{#snippet children(block)}
+						{#if block.$parent}
+							<EvmBlockView
+								entityId={block.$parent[EntityMetaKey.Id]}
+								layout={EntityLayout.Value}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet SectionPageContent({ id: _contentId, label: _contentLabel })}
-					{#if children}
-						{@render children()}
-					{/if}
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionTransactions({ id: _txId, label: _txLabel })}
+				<EvmTransactionsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/transactions', {
+						...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
+						blockNumber: String(entityId.blockNumber),
+					})}
+					entityFieldReference={{
+						entityType: EntityType.EvmBlock,
+						entityId,
+						fieldName: '$$transactions',
+					}}
+					id="transactions"
+					collapsible={false}
+					open={true}
+				/>
+			{/snippet}
+
+			{#snippet SectionPageContent({ id: _contentId, label: _contentLabel })}
+				{#if children}
+					{@render children()}
+				{/if}
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

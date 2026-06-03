@@ -5,11 +5,6 @@
 	} = $props()
 
 
-	const entityId = $derived(
-		{ did: decodeURIComponent(params.did) },
-	)
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
@@ -18,6 +13,6 @@
 
 <Page>
 	<AtprotoActorView
-		{entityId}
+		entityId={{ did: decodeURIComponent(params.did) }}
 	/>
 </Page>

@@ -8,11 +8,10 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -39,9 +38,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -108,20 +104,18 @@
 				id={`${id}-items`}
 				href={href}
 				open={true}
+				resource={gasFeeBlocks}
 			>
 				{#snippet Item({ item })}
 					{@const row = item.value}
-					{@const rowId = gasFeeBlock[EntityMetaKey.Id]}
+					{@const rowId = row[EntityMetaKey.Id]}
 					<EvmNetwork_GasFee_BlockView
 						entityId={rowId}
-						href={resolve(
-							'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]',
-							{
-								...caip2RouteParamsFromNetworkId(rowId.$network),
+						href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]', {
+							caip2Namespace: rowId.$network.caip2.namespace,
+							caip2Reference: rowId.$network.caip2.reference,
 								blockNumber: String(rowId.blockNumber),
-							},
-						)}
-						id={stringify(rowId)}
+						})}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

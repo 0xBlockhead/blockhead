@@ -2,8 +2,6 @@
 	// State
 	let { content = null }: { content?: string | null } = $props()
 
-
-	// State
 	import { markdownToHtml } from '$/lib/markdown.ts'
 </script>
 

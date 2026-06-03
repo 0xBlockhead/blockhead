@@ -32,7 +32,7 @@ export const coingeckoRestFetch = (
 	return corsFetch(
 		`${proApiKey != null ? proBaseUrl : demoBaseUrl}${path}`,
 		{
-			origins: Coingecko.origins ?? [],
+			origins: Coingecko.origins,
 			init: {
 				...init,
 				headers,

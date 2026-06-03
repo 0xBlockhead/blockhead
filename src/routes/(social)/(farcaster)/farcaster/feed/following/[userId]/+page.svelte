@@ -9,14 +9,6 @@
 	let { params } = $props()
 
 
-	const entityId: EntityId<typeof schema, EntityType.FarcasterFeed> = $derived(
-		{
-			variant: 'following',
-			viewerFid: Number(params.userId),
-		},
-	)
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import FarcasterFeedView from '$/views/FarcasterFeedView.svelte'
@@ -25,7 +17,10 @@
 
 <Page>
 	<FarcasterFeedView
-		entityId={entityId}
+		entityId={{
+			variant: 'following',
+			viewerFid: Number(params.userId),
+		}}
 		limit={50}
 	/>
 </Page>

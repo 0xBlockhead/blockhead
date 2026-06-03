@@ -20,6 +20,7 @@
 		".svelte-kit/types/**/$types.d.ts",
 		"playwright.config.ts",
 		"playwright.env.ts",
+		"src/typescript/**/*.d.ts",
 		"src/**/*.e2e.js",
 		"src/**/*.e2e.ts",
 		"src/routes/api/e2e/**/*.ts",
@@ -28,6 +29,7 @@
 	],
 	"exclude": [
 		"node_modules/**",
+		"src/routes/demo/**",
 		"src/**/*.test.js",
 		"src/**/*.test.ts",
 		"src/**/*.spec.js",

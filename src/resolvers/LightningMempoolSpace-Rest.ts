@@ -61,7 +61,7 @@ const statusFromMempoolSpace = (status: number | null | undefined): LightningCha
 
 const nodeReferenceFromPublicKey = (publicKey: string) => ({
 	[EntityMetaKey.Id]: {
-		$network: lightningNetwork,
+		$network: lightningNetworkId,
 		publicKey,
 	},
 })
@@ -89,7 +89,7 @@ const nodeReferenceFromMempoolSpaceChannelNode = (
 	node: MempoolSpaceLightningChannelNode,
 ) => ({
 	[EntityMetaKey.Id]: {
-		$network: lightningNetwork,
+		$network: lightningNetworkId,
 		publicKey: node.public_key,
 	},
 	alias: node.alias ?? undefined,
@@ -102,7 +102,7 @@ const nodeReferenceFromMempoolSpaceRankedNode = (
 	node: MempoolSpaceLightningRankedNode,
 ) => ({
 	[EntityMetaKey.Id]: {
-		$network: lightningNetwork,
+		$network: lightningNetworkId,
 		publicKey: node.publicKey,
 	},
 	alias: node.alias ?? undefined,
@@ -118,7 +118,7 @@ const channelFieldsFromMempoolSpaceChannel = (
 	channel: MempoolSpaceLightningChannel,
 ) => ({
 	[EntityMetaKey.Id]: {
-		$network: lightningNetwork,
+		$network: lightningNetworkId,
 		channelId: channel.id,
 	},
 	shortChannelId: channel.short_id ?? undefined,
@@ -128,7 +128,7 @@ const channelFieldsFromMempoolSpaceChannel = (
 	fundingOutputIndex: channel.transaction_vout ?? undefined,
 	closingTransactionId: channel.closing_transaction_id ?? undefined,
 	closingFeeSats: bigintFromWire(channel.closing_fee),
-	closingReason: channel.closing_reason ?? undefined,
+	closingReason: channel.closing_reason == null ? undefined : String(channel.closing_reason),
 	closedAtMs: timestampMsFromIso(channel.closing_date),
 	openedAtMs: timestampMsFromIso(channel.created),
 	updatedAtMs: timestampMsFromIso(channel.updated_at),
@@ -146,7 +146,7 @@ const timestampFieldsFromMempoolSpaceStatistics = (
 ) => ({
 	[EntityMetaKey.Id]: {
 		$lightningNetwork: {
-			$network: lightningNetwork,
+			$network: lightningNetworkId,
 		},
 		timestampMs: Date.parse(statistics.added),
 	},
@@ -273,7 +273,7 @@ export default {
 					})
 				).slice(0, resolverLoadSubsetRowLimit(context)).map((channel) => ({
 					[EntityMetaKey.Id]: {
-						$network: lightningNetwork,
+						$network: lightningNetworkId,
 						channelId: channel.id,
 					},
 					shortChannelId: channel.short_id ?? undefined,

@@ -29,34 +29,41 @@
 
 		let k = 0
 		return [
-			...(decimalIndex === -1
-				? parts
-			:
-				parts.slice(0, decimalIndex))
-				.toReversed()
-				.map((part) => (
-					{
-						key: `L${(k++).toString(36)}`,
-						part,
-					}
-				))
-				.toReversed(),
+			...(
+				(
+					decimalIndex === -1 ?
+						parts
+					:
+						parts.slice(0, decimalIndex)
+				)
+					.toReversed()
+					.map((part) => (
+						{
+							key: `L${(k++).toString(36)}`,
+							part,
+						}
+					))
+					.toReversed()
+			),
 
-			...(decimalIndex === -1
-				? []
-			:
-				parts.slice(decimalIndex))
-				.map((part) => (
-					{
-						key: `R${(k++).toString(36)}`,
-						part,
-					}
-				)),
+			...(
+				(
+					decimalIndex === -1 ?
+						[]
+					:
+						parts.slice(decimalIndex)
+				)
+					.map((part) => (
+						{
+							key: `R${(k++).toString(36)}`,
+							part,
+						}
+					))
+			),
 		]
 	}
 
 
-	// State
 	import { formatValue } from '$/lib/number.ts'
 
 	let isFirstTweenSet = $state(
@@ -67,16 +74,25 @@
 		duration: 0,
 		easing: quintOut,
 		interpolate: (from, to) => (step) => {
-			const dec = dPad
-			const logFrom = (from != 0 ? Math.log10(from)
-			:
-				-dec - 1)
+			const dec = (
+				formatValueOptions?.showDecimalPlaces
+				?? options.maximumFractionDigits
+				?? options.minimumFractionDigits
+				?? 0
+			)
+			const logFrom = (
+				from != 0 ?
+					Math.log10(from)
+				:
+					-dec - 1
+			)
 			const interpolated = (
 				10
 				** (
 					logFrom
 					+ step * (
-						(to != 0 ? Math.log10(to)
+						(to != 0 ?
+							Math.log10(to)
 						:
 							-dec - 1)
 						- logFrom
@@ -84,10 +100,11 @@
 				)
 			)
 			return (
-				to >= 100 && step < 0.9994
-					? (from < to ? Math.floor(interpolated)
+				to >= 100 && step < 0.9994 ?
+					from < to ?
+						Math.floor(interpolated)
 					:
-						Math.ceil(interpolated))
+						Math.ceil(interpolated)
 				:
 					interpolated
 			)
@@ -120,14 +137,14 @@
 		void tweenedNumber.set(
 			Number(value) || 0,
 			{
-				duration: (instant
-					? 0
-					:
-						tweenDuration),
-				delay: (instant
-					? 0
-					:
-						1),
+				duration: (instant ?
+					0
+				:
+					tweenDuration),
+				delay: (instant ?
+					0
+				:
+					1),
 			},
 		)
 		isFirstTweenSet = false

@@ -54,7 +54,7 @@
 	> = $props()
 
 
-	// State
+	// Inner context
 	incrementHeadingLevel()
 </script>
 
@@ -129,7 +129,6 @@
 		{/if}
 	</details>
 </section>
-
 
 
 <style>

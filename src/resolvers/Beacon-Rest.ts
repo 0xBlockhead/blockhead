@@ -43,7 +43,7 @@ const beaconForkScheduleEntryForNetworkConsensusUpgrade = async (
 	const consensusUpgrade = networkConsensusUpgradeByChainIdAndUpgradeId[
 		`${chainId}:${entityId.upgradeId}`
 	]
-	const activationEpoch = consensusUpgrade?.activationEpoch
+	const activationEpoch = consensusUpgrade.activationEpoch
 	if (activationEpoch == null) {
 		return undefined
 	}

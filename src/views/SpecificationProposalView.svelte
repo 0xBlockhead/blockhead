@@ -1,12 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
+
 	import {
 		ProposalCategory,
 		SpecificationRealm,
 		proposalCategoryById,
 		specificationRealmById,
 	} from '$/constants/SpecificationProposal.ts'
+
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import ProposalSchema from '$/schema/SpecificationProposal.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -14,6 +16,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -82,9 +85,6 @@
 		)
 	}
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const proposal = useEntity(
 		EntityType.SpecificationProposal,
@@ -167,19 +167,16 @@
 	)
 
 
+	// (Derived)
 	const href = $derived(
 		hrefProp ?? resolve(
-			'/proposals/[specificationRealmSlug]/[proposalKindSlug]/[proposalRef]',
+			'/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]/(proposalKind)/[proposalRef=proposalRef]',
 			{
 				specificationRealmSlug: specificationRealmById[entityId.realm].slug,
 				proposalKindSlug: proposalCategoryById[entityId.category].slug,
 				proposalRef: `${proposalCategoryById[entityId.category].slug}-${entityId.number}`,
 			},
 		),
-	)
-
-	const proposalDomId = $derived(
-		`proposal:${entityId.realm}:${entityId.category}:${entityId.number}`
 	)
 
 
@@ -289,7 +286,9 @@
 							>
 								{#snippet children(specificationRealm)}
 									{#if specificationRealm.slug != null}
-										<a href={resolve(`/proposals/${specificationRealm.slug}`)}>
+										<a href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+											specificationRealmSlug: specificationRealm.slug,
+										})}>
 											{specificationRealm.label ?? entityId.realm}
 										</a>
 									{:else}
@@ -306,17 +305,29 @@
 						<dt>Kind</dt>
 						<dd>
 							<ResourceBoundary
-								resource={proposalKind}
-								placeholderText="Loading proposal kind…"
+								resource={specificationRealm}
+								placeholderText="Loading specification realm…"
 							>
-								{#snippet children(proposalKind)}
-									{#if specificationRealm.slug != null && proposalKind.slug != null}
-										<a href={resolve(`/proposals/${specificationRealm.slug}/${proposalKind.slug}`)}>
-											{proposalKind.labelPlural ?? proposalKind.label ?? entityId.category}
-										</a>
-									{:else}
-										{proposalKind.labelPlural ?? proposalKind.label ?? entityId.category}
-									{/if}
+								{#snippet children(specificationRealm)}
+									<ResourceBoundary
+										resource={proposalKind}
+										placeholderText="Loading proposal kind…"
+									>
+										{#snippet children(proposalKind)}
+											{#if specificationRealm.slug != null && proposalKind.slug != null}
+												<a
+													href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {
+														specificationRealmSlug: specificationRealm.slug,
+														proposalKindSlug: proposalKind.slug,
+													})}
+												>
+													{proposalKind.labelPlural ?? proposalKind.label ?? entityId.category}
+												</a>
+											{:else}
+												{proposalKind.labelPlural ?? proposalKind.label ?? entityId.category}
+											{/if}
+										{/snippet}
+									</ResourceBoundary>
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -349,7 +360,7 @@
 
 	{#snippet Details({ open })}
 		<section
-			id={`${proposalDomId}:document-body`}
+			id={`${(`proposal:${entityId.realm}:${entityId.category}:${entityId.number}`)}:document-body`}
 		>
 			<ResourceBoundary
 				resource={proposal}

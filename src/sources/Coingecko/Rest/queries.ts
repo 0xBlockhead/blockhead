@@ -1,4 +1,5 @@
 import { throwHttpError } from '$/lib/http.ts'
+import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { coingeckoRestFetch } from '$/sources/Coingecko/Rest/client.ts'
@@ -238,7 +239,7 @@ export const getCoinOhlc = async ({
 	coingeckoId: string
 	vs: string
 	days: number
-}): Promise<number[][]> => {
+}): Promise<OhlcCandle[]> => {
 	if (coingeckoId.trim() === '') return []
 
 	const searchParams = new URLSearchParams()
@@ -253,5 +254,16 @@ export const getCoinOhlc = async ({
 	if (res.status === 404) return []
 	if (!res.ok) await throwHttpError(`CoinGecko /coins/${coingeckoId}/ohlc`, res)
 
-	return res.json<number[][]>()
+	return (
+		(await res.json<number[][]>())
+			.map(([timestampMs, open, high, low, close]): OhlcCandle => (
+				[
+					timestampMs,
+					open,
+					high,
+					low,
+					close,
+				]
+			))
+	)
 }

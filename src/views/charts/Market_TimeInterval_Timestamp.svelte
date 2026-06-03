@@ -32,8 +32,6 @@
 		height?: string
 	} = $props()
 
-
-	// State
 	import {
 		dedupeCandleEntitiesById,
 		marketTimeIntervalsEqual,

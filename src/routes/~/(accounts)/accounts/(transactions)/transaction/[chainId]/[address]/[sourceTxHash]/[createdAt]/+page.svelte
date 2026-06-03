@@ -1,14 +1,12 @@
 <script lang="ts">
 	// Types/constants
-	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
+	import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
 
 
 	// State
 	let {
 		params,
 	} = $props()
-
-	const chainId = $derived(Number(params.chainId))
 
 
 	// Components
@@ -21,12 +19,11 @@
 	<BridgeTransactionView
 		entityId={{
 			$account: {
-				$network: networkIdFromEvmChainId(chainId),
-				address: params.address as `0x${string}`,
+				address: EvmAddress.assert(params.address),
 			},
 			$sourceTx: {
-				$network: networkIdFromEvmChainId(chainId),
-				txHash: params.sourceTxHash as `0x${string}`,
+				$network: { caip2: { namespace: 'eip155' as const, reference: String((Number(params.chainId))) } },
+				txHash: ZeroExHex.assert(params.sourceTxHash),
 			},
 			createdAt: Number(params.createdAt),
 		}}

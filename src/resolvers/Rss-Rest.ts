@@ -9,9 +9,6 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() || undefined
-)
 
 export default {
 	source: Source.Rss_Rest,
@@ -24,29 +21,16 @@ export default {
 				const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
 				const feed = await singleFlight(getFeed)(feedUrl)
-				if (feed == null) throw new Error('Rss_Rest: feed not found')
 				return {
-					...(optionalTrimmedString(feed.title) != null && {
-						title: optionalTrimmedString(feed.title),
-					}),
-					...(optionalTrimmedString(feed.description) != null && {
-						description: optionalTrimmedString(feed.description),
-					}),
-					...(optionalTrimmedString(feed.link) != null && {
-						link: optionalTrimmedString(feed.link),
-					}),
-					...(optionalTrimmedString(feed.siteUrl) != null && {
-						siteUrl: optionalTrimmedString(feed.siteUrl),
-					}),
-					...(optionalTrimmedString(feed.language) != null && {
-						language: optionalTrimmedString(feed.language),
-					}),
+					...(feed.title != null && { title: feed.title }),
+					...(feed.description != null && { description: feed.description }),
+					...(feed.link != null && { link: feed.link }),
+					...(feed.siteUrl != null && { siteUrl: feed.siteUrl }),
+					...(feed.language != null && { language: feed.language }),
 					...(feed.lastBuildDate != null && {
 						lastBuildDate: feed.lastBuildDate,
 					}),
-					...(optionalTrimmedString(feed.imageUrl) != null && {
-						imageUrl: optionalTrimmedString(feed.imageUrl),
-					}),
+					...(feed.imageUrl != null && { imageUrl: feed.imageUrl }),
 				}
 			},
 		}),
@@ -61,27 +45,16 @@ export default {
 				const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
 				const feed = await singleFlight(getFeed)(feedUrl)
-				if (feed == null) throw new Error('Rss_Rest: feed not found')
 				const feedItem = feed.items.find((candidate) => (
 					rssItemGuidFromParts(candidate.guid, candidate.link, candidate.title) === entityId.guid
 				))
 				if (feedItem == null) throw new Error('Rss_Rest: feed item not found')
 				return {
-					...(optionalTrimmedString(feedItem.title) != null && {
-						title: optionalTrimmedString(feedItem.title),
-					}),
-					...(optionalTrimmedString(feedItem.link) != null && {
-						link: optionalTrimmedString(feedItem.link),
-					}),
-					...(optionalTrimmedString(feedItem.description) != null && {
-						description: optionalTrimmedString(feedItem.description),
-					}),
-					...(optionalTrimmedString(feedItem.content) != null && {
-						content: optionalTrimmedString(feedItem.content),
-					}),
-					...(optionalTrimmedString(feedItem.author) != null && {
-						author: optionalTrimmedString(feedItem.author),
-					}),
+					...(feedItem.title != null && { title: feedItem.title }),
+					...(feedItem.link != null && { link: feedItem.link }),
+					...(feedItem.description != null && { description: feedItem.description }),
+					...(feedItem.content != null && { content: feedItem.content }),
+					...(feedItem.author != null && { author: feedItem.author }),
 					...(feedItem.publishedAt != null && {
 						publishedAt: feedItem.publishedAt,
 					}),
@@ -91,12 +64,8 @@ export default {
 					...(feedItem.categories != null && feedItem.categories.length > 0 && {
 						categories: feedItem.categories,
 					}),
-					...(optionalTrimmedString(feedItem.enclosureUrl) != null && {
-						enclosureUrl: optionalTrimmedString(feedItem.enclosureUrl),
-					}),
-					...(optionalTrimmedString(feedItem.commentsUrl) != null && {
-						commentsUrl: optionalTrimmedString(feedItem.commentsUrl),
-					}),
+					...(feedItem.enclosureUrl != null && { enclosureUrl: feedItem.enclosureUrl }),
+					...(feedItem.commentsUrl != null && { commentsUrl: feedItem.commentsUrl }),
 					$feed: {
 						[EntityMetaKey.Id]: { feedUrl },
 					},

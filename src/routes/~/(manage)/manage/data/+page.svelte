@@ -6,21 +6,45 @@
 	import { enabledSources } from '$/sources/index.ts'
 	import { useCollectionCache } from './collectionCache.svelte.ts'
 
+	type CollectionCache = {
+		status: string
+		rows: any[]
+	}
 
-	// State
-	const entityCaches = Object.fromEntries(
+	type CollectionEntityDefinition = {
+		entityType: string
+		label: string
+		fields: readonly {
+			name: string
+		}[]
+	}
+
+
+	const inspectableEntityCollectionByEntityType: any = entityCollectionByEntityType
+
+	const inspectableEntityFieldCollections: any = entityFieldCollections
+
+	const collectionEntityDefinitions: readonly CollectionEntityDefinition[] = schema.map((entityDefinition) => ({
+		entityType: entityDefinition.entityType,
+		label: entityDefinition.label,
+		fields: entityDefinition.fields.map((field) => ({
+			name: field.name,
+		})),
+	}))
+
+	const entityCaches: Record<string, CollectionCache> = Object.fromEntries(
 		schema.map((entityDefinition) => [
 			entityDefinition.entityType,
-			useCollectionCache(entityCollectionByEntityType[entityDefinition.entityType]),
+			useCollectionCache(inspectableEntityCollectionByEntityType[entityDefinition.entityType]),
 		]),
 	)
 
-	const fieldCaches = Object.fromEntries(
+	const fieldCaches: Record<string, CollectionCache> = Object.fromEntries(
 		schema.flatMap((entityDefinition) => (
 			entityDefinition.fields.map((field) => [
 				`${entityDefinition.entityType}\0${field.name}`,
 				useCollectionCache(
-					entityFieldCollections[entityDefinition.entityType][field.name],
+					inspectableEntityFieldCollections[entityDefinition.entityType][field.name],
 				),
 			])
 		)),
@@ -59,7 +83,7 @@
 			each related field group.
 		</p>
 
-		{#each schema as entityDefinition (entityDefinition.entityType)}
+		{#each collectionEntityDefinitions as entityDefinition (entityDefinition.entityType)}
 			{@const entityCache = entityCaches[entityDefinition.entityType]}
 
 			<details
@@ -104,7 +128,8 @@
 									<li>
 										<pre data-card>{JSON.stringify(
 											row,
-											(_key, inner) => (typeof inner === 'bigint' ? inner.toString()
+											(_key, inner) => (typeof inner === 'bigint' ?
+												inner.toString()
 											:
 												inner),
 											2,
@@ -153,7 +178,8 @@
 											<li>
 												<pre data-card>{JSON.stringify(
 													row,
-													(_key, inner) => (typeof inner === 'bigint' ? inner.toString()
+													(_key, inner) => (typeof inner === 'bigint' ?
+														inner.toString()
 													:
 														inner),
 													2,

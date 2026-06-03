@@ -28,9 +28,8 @@
 				:
 					undefined
 			)
-			?? with0x
 		)
-		return { address }
+		return address === undefined ? undefined : { address }
 	})
 
 
@@ -41,6 +40,7 @@
 
 
 <Page>
+	{#if entityId}
 	<LensPostsView
 		href={resolve(
 			'/(social)/(lens)/lens/account/[address]/(account)/posts',
@@ -53,4 +53,5 @@
 		}}
 		id="lens-account-posts"
 	/>
+	{/if}
 </Page>

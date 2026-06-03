@@ -20,7 +20,7 @@ const tronFullNodePost = async <_Result>({
 	body: JsonValue
 }) => {
 	const response = await corsFetch(`${base(restBaseUrl)}/${path}`, {
-		origins: TronFullNode.origins ?? [],
+		origins: TronFullNode.origins,
 		init: {
 			method: 'POST',
 			headers: {

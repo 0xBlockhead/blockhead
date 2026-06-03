@@ -17,5 +17,5 @@ export type L2BeatScalingSummaryProject = {
 }
 
 export type L2BeatScalingSummaryResponse = {
-	projects: Record<string, L2BeatScalingSummaryProject>
+	projects: Partial<Record<string, L2BeatScalingSummaryProject>>
 }

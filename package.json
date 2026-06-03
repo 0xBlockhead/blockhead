@@ -36,6 +36,7 @@
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/kit": "^2.61.1",
+		"@sveltejs/mcp": "^0.1.23",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@types/node": "^25.9.1",
 		"@types/sanitize-html": "^2.16.1",

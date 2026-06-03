@@ -8,7 +8,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
 	let { data }: PageProps = $props()
 
 

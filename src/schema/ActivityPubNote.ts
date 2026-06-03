@@ -11,7 +11,7 @@ import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const mastodonVisibilityPrimitive = type.or(
-	...mastodonVisibilities.map((visibility) => type.unit(visibility)),
+	...mastodonVisibilities.map((visibility) => type.unit(visibility.visibility)),
 )
 
 export default {

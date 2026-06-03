@@ -11,6 +11,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -34,9 +36,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -108,8 +107,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(evmBlob[EntityMetaKey.Id])}
-					getSortValue={(row) => stringify(evmBlob[EntityMetaKey.Id])}
+						getKey={(row) => stringify(row[EntityMetaKey.Id])}
+						getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
 					placeholderText="Loading blobs…"
 					resource={blobs}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}

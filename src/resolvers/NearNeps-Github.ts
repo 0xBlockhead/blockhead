@@ -12,7 +12,7 @@ import { Source } from '$/sources/$Source.ts'
 const nearNepRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	return entries.flatMap((githubContent) => {
-		const proposalNumberRaw = regex('^nep-(?<proposalNumber>\\d{4})\\.md$').exec(githubContent.name)?.groups?.proposalNumber
+		const proposalNumberRaw = regex('^nep-(?<proposalNumber>\\d{4})\\.md$').exec(githubContent.name)?.groups.proposalNumber
 		return githubContent.type !== 'file' || proposalNumberRaw == null ?
 			[]
 		:
@@ -42,9 +42,9 @@ export default {
 				const frontmatter = parseFrontmatter(text)
 				const body = stripFrontmatter(text)
 				return {
-					documentCategory: frontmatter.category?.trim() ?? 'NEP',
-					documentTitle: frontmatter.title?.trim() ?? body.match(/^#\s*(.+)$/m)?.[1]?.trim(),
-					documentStatus: frontmatter.status?.trim() ?? null,
+					documentCategory: frontmatter.category.trim(),
+					documentTitle: frontmatter.title.trim(),
+					documentStatus: frontmatter.status.trim(),
 					documentBody: body,
 				}
 			},

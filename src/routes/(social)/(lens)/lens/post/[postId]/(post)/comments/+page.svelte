@@ -8,10 +8,6 @@
 		params,
 	} = $props()
 
-	const entityId = $derived(
-		{ id: decodeURIComponent(params.postId) },
-	)
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,7 +21,9 @@
 		href={resolve('/lens')}
 		entityFieldReference={{
 			entityType: EntityType.LensPost,
-			entityId,
+			entityId: {
+				id: decodeURIComponent(params.postId),
+			},
 			fieldName: '$$comments',
 		}}
 		id="lens-post-comments"

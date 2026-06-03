@@ -9,7 +9,7 @@ export const sourcifyGetJsonOrNull = async <T = JsonValue>({
 	path: string
 }): Promise<T | null> => {
 	const url = `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`
-	const res = await corsFetch(url, { origins: Sourcify.origins ?? [] })
+	const res = await corsFetch(url, { origins: Sourcify.origins  })
 	if (res.status === 404) return null
 	await throwIfHttpNotOk(res, url)
 	return res.json<T>()

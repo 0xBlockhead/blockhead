@@ -6,6 +6,11 @@ import {
 } from '$/resolvers/$resolvers.ts'
 import { nostrNetworkSeedProfiles } from '$/constants/Social/Nostr.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { optionalNonemptyString } from '$/lib/string.ts'
+import {
+	optionalTimestampMs,
+	timestampMsFromUnixSeconds,
+} from '$/lib/time.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
@@ -18,14 +23,11 @@ import type {
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { isJsonObject } from '$/typescript/JsonValue.ts'
 
-const optionalTrimmedString = (value: string | undefined | null) => (
-	value?.trim() || undefined
-)
 
 const normalizePubkey = (value: string | undefined | null) => {
-	const normalized = value?.trim().toLowerCase()
+	const normalized = value?.toLowerCase()
 	return (
-		normalized != null && /^[0-9a-f]{64}$/.test(normalized) ?
+		normalized != null && normalized !== '' && /^[0-9a-f]{64}$/.test(normalized) ?
 			normalized
 		:
 			undefined
@@ -33,7 +35,7 @@ const normalizePubkey = (value: string | undefined | null) => {
 }
 
 const normalizeEventId = (value: string | undefined | null) => {
-	const normalized = value?.trim().toLowerCase()
+	const normalized = value?.toLowerCase()
 	return (
 		normalized != null && /^[0-9a-f]{64}$/.test(normalized) ?
 			normalized
@@ -42,24 +44,10 @@ const normalizeEventId = (value: string | undefined | null) => {
 	)
 }
 
-const nostrCreatedAtMs = (createdAt: number | undefined) => (
-	createdAt != null && Number.isFinite(createdAt) ?
-		createdAt * 1000
-	:
-		undefined
-)
-
-const optionalTimestampMs = (value: string | undefined) => (
-	((parsed) => (
-		Number.isFinite(parsed) ? parsed : undefined
-	))(Date.parse(value ?? ''))
-)
-
 const profileMetadataFromContent = (content: string | undefined): PrimalNostrProfileMetadata | undefined => {
-	const trimmed = content?.trim()
-	if (trimmed == null || trimmed === '') return undefined
+	if (content == null || content === '') return undefined
 	try {
-		const parsed: PrimalNostrProfileMetadata = JSON.parse(trimmed)
+		const parsed: PrimalNostrProfileMetadata = JSON.parse(content)
 		return parsed
 	} catch {
 		return undefined
@@ -72,17 +60,16 @@ const tagValueFromTags = (
 ) => (
 	tags?.flatMap((tag) => (
 		tag[0] === tagName
-		&& tag[1] != null
-		&& tag[1].trim() !== '' ?
-			[tag[1].trim()]
+		&& tag[1] !== '' ?
+			[tag[1]]
 		:
 			[]
-	))[0]
+	)).at(0)
 )
 
 const eTagEventIdsFromTags = (tags: PrimalNostrEvent['tags']) => (
 	tags?.flatMap((tag) => (
-		tag[0] === 'e' && tag[1] != null ?
+		tag[0] === 'e' ?
 			(
 				((eventId) => (
 					eventId != null ?
@@ -99,7 +86,7 @@ const eTagEventIdsFromTags = (tags: PrimalNostrEvent['tags']) => (
 
 const eventIdFromETags = (tags: PrimalNostrEvent['tags']) => (
 	tags?.flatMap((tag) => (
-		tag[0] === 'e' && tag[1] != null ?
+		tag[0] === 'e' ?
 			[normalizeEventId(tag[1])]
 		:
 			[]
@@ -107,9 +94,9 @@ const eventIdFromETags = (tags: PrimalNostrEvent['tags']) => (
 		.flatMap((eventId) => (
 			eventId == null ?
 				[]
-			:
-				[eventId]
-		))[0]
+				:
+					[eventId]
+			)).at(0)
 )
 
 const reactionTargetEventIdFromTags = (tags: PrimalNostrEvent['tags']) => {
@@ -124,39 +111,37 @@ const replyToEventIdFromTags = (tags: PrimalNostrEvent['tags']) => {
 	const eventIds = eTagEventIdsFromTags(tags)
 	const markedReply = tags?.flatMap((tag) => (
 		tag[0] === 'e'
-		&& tag[1] != null
 		&& tag[3] === 'reply' ?
 			[normalizeEventId(tag[1])]
 		:
 			[]
-	))[0]
+	)).at(0)
 	if (markedReply != null) {
 		return markedReply
 	}
 	if (eventIds.length === 0) {
-		throw new Error('Primal_Rest: no event IDs found in tags for reply')
+		return undefined
 	}
 	if (eventIds.length === 1) {
-		return eventIds[0]
+		return eventIds.at(0)
 	}
-	return eventIds[eventIds.length - 1]
+	return eventIds.at(-1)
 }
 
 const rootEventIdFromTags = (tags: PrimalNostrEvent['tags']) => (
 	(
-		(markedRoot) => (
-			markedRoot
-			?? eTagEventIdsFromTags(tags)[0]
-		)
-	)(tags?.flatMap((tag) => (
-		tag[0] === 'e'
-		&& tag[1] != null
-		&& tag[3] === 'root' ?
-			[normalizeEventId(tag[1])]
-		:
-			[]
-	))[0])
-)
+			(markedRoot) => (
+				markedRoot
+				?? eTagEventIdsFromTags(tags).at(0)
+			)
+		)(tags?.flatMap((tag) => (
+			tag[0] === 'e'
+			&& tag[3] === 'root' ?
+				[normalizeEventId(tag[1])]
+			:
+				[]
+		)).at(0))
+	)
 
 const isNostrRepostKind = (kind: number | undefined): kind is 6 | 16 => (
 	kind === 6 || kind === 16
@@ -164,7 +149,7 @@ const isNostrRepostKind = (kind: number | undefined): kind is 6 | 16 => (
 
 const articleRefFromAddressableCoordinate = (coordinate: string | undefined) => (
 	((parts) => (
-		parts == null || parts[0] !== '30023' ?
+		parts == null || parts.at(0) !== '30023' ?
 			undefined
 		:
 			(
@@ -178,12 +163,12 @@ const articleRefFromAddressableCoordinate = (coordinate: string | undefined) => 
 									identifier,
 								},
 							}
-				)
-			)(
-				normalizePubkey(parts[1]),
-				parts[2]?.trim(),
 			)
-	))(coordinate?.trim().split(':'))
+		)(
+			normalizePubkey(parts.at(1)),
+			parts.at(2),
+		)
+	))(coordinate?.split(':'))
 )
 
 const articleRefFromEvent = (event: PrimalNostrEvent) => (
@@ -214,14 +199,14 @@ const profileFieldValuesFromMetadata = (
 	metadata: PrimalNostrProfileMetadata | undefined,
 	profileEvent: PrimalNostrEvent | undefined,
 ) => ({
-	displayName: optionalTrimmedString(metadata?.display_name ?? metadata?.name),
-	about: optionalTrimmedString(metadata?.about),
-	nip05: optionalTrimmedString(metadata?.nip05),
-	lud16: optionalTrimmedString(metadata?.lud16),
-	lud06: optionalTrimmedString(metadata?.lud06),
-	website: optionalTrimmedString(metadata?.website),
-	...(nostrCreatedAtMs(profileEvent?.created_at) != null && {
-		metadataUpdatedAt: nostrCreatedAtMs(profileEvent?.created_at),
+	displayName: optionalNonemptyString(metadata?.display_name ?? metadata?.name),
+	about: optionalNonemptyString(metadata?.about),
+	nip05: optionalNonemptyString(metadata?.nip05),
+	lud16: optionalNonemptyString(metadata?.lud16),
+	lud06: optionalNonemptyString(metadata?.lud06),
+	website: optionalNonemptyString(metadata?.website),
+	...(timestampMsFromUnixSeconds(profileEvent?.created_at) != null && {
+		metadataUpdatedAt: timestampMsFromUnixSeconds(profileEvent?.created_at),
 	}),
 	...((
 		iconMedia,
@@ -229,14 +214,14 @@ const profileFieldValuesFromMetadata = (
 		iconMedia != null && {
 			$icon: iconMedia,
 		}
-	))(mediaFromUrl(optionalTrimmedString(metadata?.picture), MediaType.Image)),
+	))(mediaFromUrl(optionalNonemptyString(metadata?.picture), MediaType.Image)),
 	...((
 		bannerMedia,
 	) => (
 		bannerMedia != null && {
 			$banner: bannerMedia,
 		}
-	))(mediaFromUrl(optionalTrimmedString(metadata?.banner), MediaType.Image)),
+	))(mediaFromUrl(optionalNonemptyString(metadata?.banner), MediaType.Image)),
 })
 
 const noteFieldValuesFromEvent = (event: PrimalNostrEvent) => {
@@ -246,10 +231,10 @@ const noteFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 		((replyToEventId, rootEventId) => ({
 			kind: 1,
 			pubkey: eventPubkey,
-			content: optionalTrimmedString(event.content),
+			content: optionalNonemptyString(event.content),
 			...(event.tags != null && { tags: event.tags }),
-			...(nostrCreatedAtMs(event.created_at) != null && {
-				createdAt: nostrCreatedAtMs(event.created_at),
+			...(timestampMsFromUnixSeconds(event.created_at) != null && {
+				createdAt: timestampMsFromUnixSeconds(event.created_at),
 			}),
 			$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
@@ -285,8 +270,8 @@ const repostFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 			kind,
 			pubkey: eventPubkey,
 			...(event.tags != null && { tags: event.tags }),
-			...(nostrCreatedAtMs(event.created_at) != null && {
-				createdAt: nostrCreatedAtMs(event.created_at),
+			...(timestampMsFromUnixSeconds(event.created_at) != null && {
+				createdAt: timestampMsFromUnixSeconds(event.created_at),
 			}),
 			$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
@@ -327,7 +312,7 @@ const repostFieldValuesFromTargetEvent = (
 					$repostedArticle: repostedArticle,
 					$repostedNote: undefined,
 				}
-		))(articleRefFromEvent(targetEvent)[0])
+			))(articleRefFromEvent(targetEvent).at(0))
 	:
 		repostValues
 )
@@ -341,8 +326,8 @@ const reactionFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 		kind: 7,
 		pubkey: eventPubkey,
 		...(event.tags != null && { tags: event.tags }),
-		...(nostrCreatedAtMs(event.created_at) != null && {
-			createdAt: nostrCreatedAtMs(event.created_at),
+		...(timestampMsFromUnixSeconds(event.created_at) != null && {
+			createdAt: timestampMsFromUnixSeconds(event.created_at),
 		}),
 		$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
@@ -355,12 +340,12 @@ const reactionFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 		...(targetArticle != null && {
 			$targetArticle: targetArticle,
 		}),
-		...(targetEventId != null && targetArticle == null && {
-			$targetNote: {
-				[EntityMetaKey.Id]: { eventId: targetEventId },
-			},
-		}),
-		content: optionalTrimmedString(event.content),
+			...(targetArticle == null && {
+				$targetNote: {
+					[EntityMetaKey.Id]: { eventId: targetEventId },
+				},
+			}),
+		content: optionalNonemptyString(event.content),
 	}
 }
 
@@ -380,7 +365,7 @@ const reactionFieldValuesFromTargetEvent = (
 						$targetArticle: targetArticle,
 						$targetNote: undefined,
 					}
-		))(articleRefFromEvent(targetEvent)[0])
+			))(articleRefFromEvent(targetEvent).at(0))
 	:
 		reactionValues
 )
@@ -388,7 +373,7 @@ const reactionFieldValuesFromTargetEvent = (
 const articlePublishedAtMs = (event: PrimalNostrEvent) => (
 	((publishedAtTag) => (
 		publishedAtTag == null ?
-			nostrCreatedAtMs(event.created_at)
+			timestampMsFromUnixSeconds(event.created_at)
 		:
 			(
 				Number.isFinite(Number(publishedAtTag)) ?
@@ -406,10 +391,10 @@ const articleFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 		((publishedAt) => ({
 			kind: 30023,
 			pubkey: eventPubkey,
-			title: optionalTrimmedString(tagValueFromTags(event.tags, 'title')),
-			summary: optionalTrimmedString(tagValueFromTags(event.tags, 'summary')),
-			imageUrl: optionalTrimmedString(tagValueFromTags(event.tags, 'image')),
-			content: optionalTrimmedString(event.content),
+			title: optionalNonemptyString(tagValueFromTags(event.tags, 'title')),
+			summary: optionalNonemptyString(tagValueFromTags(event.tags, 'summary')),
+			imageUrl: optionalNonemptyString(tagValueFromTags(event.tags, 'image')),
+			content: optionalNonemptyString(event.content),
 			...(event.tags != null && { tags: event.tags }),
 			...(publishedAt != null && { publishedAt }),
 			$author: ((normalizedPubkey) => (
@@ -425,50 +410,51 @@ const articleFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 }
 
 const parseKind0Metadata = (content: string | undefined) => {
-	if (content == null || content.trim() === '') return {}
+	if (content == null || content === '') return {}
 	try {
 		const parsed: JsonValue = JSON.parse(content)
 		if (!isJsonObject(parsed)) return {}
 		return {
-			displayName: optionalTrimmedString(
+			displayName: optionalNonemptyString(
 				typeof parsed.display_name === 'string' ?
 					parsed.display_name
-				:					typeof parsed.name === 'string' ?
+				:
+					typeof parsed.name === 'string' ?
 						parsed.name
 						:
 							undefined,
 			),
-			about: optionalTrimmedString(
+			about: optionalNonemptyString(
 				typeof parsed.about === 'string' ?
 					parsed.about
 				:
 					undefined,
 			),
-			picture: optionalTrimmedString(
+			picture: optionalNonemptyString(
 				typeof parsed.picture === 'string' ?
 					parsed.picture
 				:
 					undefined,
 			),
-			banner: optionalTrimmedString(
+			banner: optionalNonemptyString(
 				typeof parsed.banner === 'string' ?
 					parsed.banner
 				:
 					undefined,
 			),
-			website: optionalTrimmedString(
+			website: optionalNonemptyString(
 				typeof parsed.website === 'string' ?
 					parsed.website
 				:
 					undefined,
 			),
-			nip05: optionalTrimmedString(
+			nip05: optionalNonemptyString(
 				typeof parsed.nip05 === 'string' ?
 					parsed.nip05
 				:
 					undefined,
 			),
-			lud16: optionalTrimmedString(
+			lud16: optionalNonemptyString(
 				typeof parsed.lud16 === 'string' ?
 					parsed.lud16
 				:
@@ -493,9 +479,7 @@ const profileEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | u
 			content: typeof wire.content === 'string' ? wire.content : undefined,
 			created_at: typeof wire.created_at === 'number' ? wire.created_at : undefined,
 			tags: Array.isArray(wire.tags) ? wire.tags.map((tag) => (
-				Array.isArray(tag) ? tag.map((t) => String(t))
-				:
-					[]
+				Array.isArray(tag) ? tag.map((t) => String(t)) : []
 			))
 			:
 				undefined,
@@ -521,9 +505,7 @@ const noteEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | unde
 		content: typeof wire.content === 'string' ? wire.content : undefined,
 		created_at: typeof wire.created_at === 'number' ? wire.created_at : undefined,
 		tags: Array.isArray(wire.tags) ? wire.tags.map((tag) => (
-			Array.isArray(tag) ? tag.map((t) => String(t))
-			:
-				[]
+			Array.isArray(tag) ? tag.map((t) => String(t)) : []
 		))
 		:
 			undefined,
@@ -533,11 +515,11 @@ const noteEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | unde
 }
 
 const eventFromWire = (wire: JsonValue | undefined) => (
-	((record) => (
-		record == null ?
+	((nostrEventWire) => (
+		nostrEventWire == null ?
 			undefined
 		:
-			noteEventFromWire(isJsonObject(record) ? record.event ?? record : undefined)
+			noteEventFromWire(isJsonObject(nostrEventWire) ? nostrEventWire.event ?? nostrEventWire : undefined)
 	))(wire)
 )
 
@@ -680,7 +662,7 @@ export default {
 				const { getProfileArticles } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
 				const pubkey = normalizePubkey(entityId.pubkey)
-				const identifier = entityId.identifier.trim()
+				const identifier = entityId.identifier
 				if (pubkey == null || identifier === '') {
 					throw new Error('Primal_Rest: article id invalid')
 				}

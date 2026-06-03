@@ -3,6 +3,7 @@
 	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -11,6 +12,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -34,9 +37,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -83,12 +83,15 @@
 			)}
 			{@const upgrades = derive(
 				parent,
-				(parent) => (
-					(parent[entityFieldReference.fieldName] ?? [])
+				(parent) => {
+					const upgrades: Entity<typeof schema, EntityType.EthereumNetworkUpgrade>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return upgrades
 						.map((value) => ({
 							value,
 						}))
-				),
+				},
 			)}
 			<EntitiesList
 				collapsible={false}

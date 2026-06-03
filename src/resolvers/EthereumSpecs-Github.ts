@@ -44,8 +44,8 @@ export default {
 						`EthereumSpecs_Github: go-ethereum params unsupported for chain ${String(Number(entityId.caip2.reference))}`,
 					)
 				}
-				const { fetchParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')
-				return singleFlight(fetchParamsConfigGo)()
+				const { fetchGoEthereumParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')
+				return singleFlight(fetchGoEthereumParamsConfigGo)()
 			},
 		}),
 
@@ -57,7 +57,7 @@ export default {
 				const networkUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[
 					`${Number(entityId.$network.caip2.reference)}:${entityId.upgradeId}`
 				]
-				const filename = networkUpgrade?.executionSpecsPinnedMarkdownFilename
+				const filename = networkUpgrade.executionSpecsPinnedMarkdownFilename
 				if (filename == null) return undefined
 				const { fetchExecutionSpecsMainnetUpgradeMarkdown } = await import('$/sources/EthereumSpecs/Github/queries.ts')
 				return singleFlight(fetchExecutionSpecsMainnetUpgradeMarkdown)({ filename })

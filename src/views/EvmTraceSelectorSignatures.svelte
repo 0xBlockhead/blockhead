@@ -4,16 +4,14 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		selectorHex,
 	}: {
 		selectorHex: `0x${string}`
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const evmSelector = useEntity(
 		EntityType.EvmSelector,

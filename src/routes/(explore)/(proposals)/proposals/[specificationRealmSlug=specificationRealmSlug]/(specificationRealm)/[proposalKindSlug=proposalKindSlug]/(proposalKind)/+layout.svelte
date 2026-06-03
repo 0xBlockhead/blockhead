@@ -47,7 +47,10 @@
 
 {#if entityId !== undefined}
 	<ParentPageCollapsible
-		href={resolve(`/proposals/${params.specificationRealmSlug}/${params.proposalKindSlug}`)}
+		href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {
+			specificationRealmSlug: params.specificationRealmSlug,
+			proposalKindSlug: params.proposalKindSlug,
+		})}
 		id={stringify(entityId)}
 	>
 		{#snippet Summary({ open: _open })}

@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -14,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -21,14 +18,11 @@
 	let {
 		routeChildren,
 		entityId,
-		href = resolve(
-		'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blobs)/blob/[transactionId]/[blobIndex]',
-		{
-			...caip2RouteParamsFromNetworkId(entityId.$network),
+			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blobs)/blob/[transactionId]/[blobIndex]', {
+			...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
 			transactionId: entityId.txHash,
-			blobIndex: String(entityId.blobIndex),
-		},
-	),
+				blobIndex: entityId.blobIndex.toString(),
+			}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
@@ -44,10 +38,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const blob = useEntity(
 		EntityType.EvmBlob,
 		entityId,
@@ -55,7 +45,12 @@
 			$: [
 				Source.Voltaire_JsonRpc,
 			],
-			blobscanBlobJson: {
+			kzgCommitment: {
+				$: [
+					Source.Blobscan_Rest,
+				],
+			},
+			blobDataStorageReferences: {
 				$: [
 					Source.Blobscan_Rest,
 				],
@@ -65,6 +60,7 @@
 	)
 
 
+	// (Derived)
 	const blobIdKey = $derived(
 		stringify(entityId),
 	)
@@ -101,7 +97,9 @@
 
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
-			{@render Value()}
+				<span data-badge="small">
+			#{String(entityId.blobIndex)}
+		</span>
 
 			<ResourceBoundary
 				resource={blob}
@@ -159,18 +157,18 @@
 				</dd>
 			</div>
 			<div>
-				<dt>Blobscan JSON</dt>
+				<dt>KZG commitment</dt>
 				<dd data-column="gap-1">
 					<ResourceBoundary
 						resource={blob}
 						placeholderText="Loading blob…"
 					>
 						{#snippet children(blob)}
-							{#if blob.blobscanBlobJson !== undefined}
+							{#if blob.kzgCommitment !== undefined}
 								<div data-row="wrap align-start gap-2">
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
-										value={blob.blobscanBlobJson}
+										value={blob.kzgCommitment}
 									/>
 									{#if true}
 										<Tooltip
@@ -184,10 +182,37 @@
 										</Tooltip>
 
 										{#snippet BlobscanIndexerPayloadTooltip()}
-											<p><code>{'GET /blobs/{versionedHash}'}</code> JSON from the Blobscan REST API (commitment, proof, sizes, storage references). Only on chains their indexer hosts.</p>
+											<p><code>GET /blobs/:versionedHash</code> data from the Blobscan REST API. Only on chains their indexer hosts.</p>
 										{/snippet}
 									{/if}
 								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			<div>
+				<dt>Blob storage</dt>
+				<dd>
+					<ResourceBoundary
+						resource={blob}
+						placeholderText="Loading blob storage references…"
+					>
+						{#snippet children(blob)}
+							{#if blob.blobDataStorageReferences?.length}
+								<ul>
+									{#each blob.blobDataStorageReferences as reference (
+										`${reference.storage}:${reference.reference}`
+							)}
+										<li>
+											<span>{reference.storage}</span>
+											<TruncatedValue
+												value={reference.reference}
+										format={TruncatedValueFormat.Visual}
+											/>
+										</li>
+									{/each}
+								</ul>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -198,15 +223,10 @@
 				<div>
 					<dt>Transaction</dt>
 					<dd>
-						<a
-							href={resolve(
-								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
-								{
-								...caip2RouteParamsFromNetworkId(entityId.$network),
+							<a href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+								...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
 								transactionId: entityId.txHash,
-								},
-							)}
-						>
+							})}>
 							<TruncatedValue
 								value={entityId.txHash}
 								format={TruncatedValueFormat.Abbr}
@@ -222,46 +242,46 @@
 		open,
 	})}
 		<CollapsibleTabs
-				sectionIdPrefix={blobIdKey}
-				sections={[
-					{ id: 'blob-semantics', label: 'Blob primer' },
-					...(routeChildren ? [{ id: 'page-content', label: 'Route' }] : []),
-				]}
-				id={`${blobIdKey}:carousel-blob`}
-				data-card
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<SectionHeading>Type‑3 execution payload</SectionHeading>
-					</header>
-				{/snippet}
+			sectionIdPrefix={blobIdKey}
+			sections={[
+				{ id: 'blob-semantics', label: 'Blob primer' },
+					{ id: 'page-content', label: 'Route' },
+			]}
+			id={`${blobIdKey}:carousel-blob`}
+			data-card
+		>
+			{#snippet Summary({ open: _isOpen })}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<SectionHeading>Type‑3 execution payload</SectionHeading>
+				</header>
+			{/snippet}
 
-					{#snippet SectionBlobSemantics({ id: _semanticsId, label: _semanticsLabel })}
-						<div data-row="wrap align-center gap-2">
-							<span data-text="annotation">Consensus + execution roles</span>
-							{#if true}
-								<Tooltip
-									contentProps={{ side: 'top' }}
-									Content={BlobSemanticsTooltip}
-								>
-									<abbr
-										class="entity-heading-tip"
-										aria-label="Blob semantics"
-									>ⓘ</abbr>
-								</Tooltip>
+			{#snippet SectionBlobSemantics({ id: _semanticsId, label: _semanticsLabel })}
+				<div data-row="wrap align-center gap-2">
+					<span data-text="annotation">Consensus + execution roles</span>
+					{#if true}
+						<Tooltip
+							contentProps={{ side: 'top' }}
+							Content={BlobSemanticsTooltip}
+						>
+							<abbr
+								class="entity-heading-tip"
+								aria-label="Blob semantics"
+							>ⓘ</abbr>
+						</Tooltip>
 
-								{#snippet BlobSemanticsTooltip()}
-									<p>Blobs extend execution payloads with large binaries whose integrity is proved via KZG commitments — versioned hashes bind each sidecar to a succinct witness apart from execution gas; EIP‑4844 blob gas and pruning follow their own schedule while rollups may persist data off-chain.</p>
-								{/snippet}
-							{/if}
-						</div>
-					{/snippet}
+						{#snippet BlobSemanticsTooltip()}
+							<p>Blobs extend execution payloads with large binaries whose integrity is proved via KZG commitments — versioned hashes bind each sidecar to a succinct witness apart from execution gas; EIP‑4844 blob gas and pruning follow their own schedule while rollups may persist data off-chain.</p>
+						{/snippet}
+					{/if}
+				</div>
+			{/snippet}
 
-					{#snippet SectionPageContent({ id: _contentId, label: _contentLabel })}
-						{#if routeChildren}
-							{@render routeChildren()}
-						{/if}
-					{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionPageContent({ id: _contentId, label: _contentLabel })}
+				{#if routeChildren}
+					{@render routeChildren()}
+				{/if}
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

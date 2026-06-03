@@ -19,7 +19,7 @@ export const tradingViewScannerFetch = async ({
 	await getJson<TradingViewScannerResponse>(
 		`${baseUrl}${tradingViewCryptoScannerPath}`,
 		{
-			origins: TradingView.origins ?? [],
+			origins: TradingView.origins,
 			init: {
 				method: 'POST',
 				headers: {

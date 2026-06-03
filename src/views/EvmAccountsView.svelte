@@ -13,6 +13,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -30,6 +31,7 @@
 			id: string
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -38,9 +40,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -108,8 +107,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(row) => stringify(evmAccount.value[EntityMetaKey.Id])}
-				getSortValue={(row) => evmAccount.value[EntityMetaKey.Id].address.toLowerCase()}
+				getKey={(evmAccount) => stringify(evmAccount.value[EntityMetaKey.Id])}
+				getSortValue={(evmAccount) => evmAccount.value[EntityMetaKey.Id].address.toLowerCase()}
 				placeholderKeys={new SvelteSet<string>()}
 				placeholderText="Loading linked wallets…"
 				resource={actors}

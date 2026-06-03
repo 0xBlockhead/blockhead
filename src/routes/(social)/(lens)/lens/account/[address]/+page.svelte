@@ -4,6 +4,7 @@
 		params,
 	} = $props()
 
+	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 	const entityId = $derived.by(() => {
 		const raw = decodeURIComponent(params.address).trim()
 		const with0x = raw.startsWith('0x') ? raw : `0x${raw}`
@@ -15,24 +16,21 @@
 				:
 					undefined
 			)
-			?? with0x
 		)
-		return { address }
+		return address === undefined ? undefined : { address }
 	})
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
 	import LensAccountView from '$/views/LensAccountView.svelte'
-
-
-	// State
-	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 </script>
 
 
 <Page>
+	{#if entityId}
 	<LensAccountView
 		{entityId}
 	/>
+	{/if}
 </Page>

@@ -11,6 +11,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -24,19 +26,16 @@
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LensAccount>
 			id: string
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -75,7 +74,6 @@
 						$: [
 							Source.Constants_Internal,
 							Source.Lens_Graphql,
-							Source.Hey_Graphql,
 						],
 					},
 				},
@@ -95,8 +93,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(lensAccount[EntityMetaKey.Id])}
-					getSortValue={(row) => lensAccount[EntityMetaKey.Id].address}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortValue={(row) => row[EntityMetaKey.Id].address}
 					placeholderText="Loading Lens network…"
 					resource={accounts}
 				>

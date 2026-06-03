@@ -19,12 +19,16 @@ const pageErrors = (issues: string[]) => (
 const thisDir = dirname(fileURLToPath(import.meta.url))
 const networkPagePath = join(
 	thisDir,
-	'../../src/routes/(explore)/network/[caip2Namespace=caip2Namespace]:[caip2Reference=caip2Reference]/+page.svelte',
+	'../../src/routes/(explore)/(networks)/network/[caip2Namespace=caip2Namespace]:[caip2Reference=caip2Reference]/+page.svelte',
 )
 
 test.describe('Network head resolveLive (Voltaire block stream)', () => {
 	test('(contract) network leaf derives the CAIP-2 network and discriminates EVM routes', () => {
 		const source = readFileSync(networkPagePath, 'utf8')
+		const networkViewSource = readFileSync(
+			join(thisDir, '../../src/views/NetworkView.svelte'),
+			'utf8',
+		)
 		const resolvers = readFileSync(
 			join(thisDir, '../../src/resolvers/index.ts'),
 			'utf8',
@@ -33,9 +37,9 @@ test.describe('Network head resolveLive (Voltaire block stream)', () => {
 			join(thisDir, '../../src/lib/db/resolveLive.svelte.ts'),
 			'utf8',
 		)
-		expect(source, networkPagePath).toContain('networkIdFromCaip2')
-		expect(source).toContain('EvmNetworkView')
+		expect(source, networkPagePath).toContain('caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference }')
 		expect(source).toContain('NetworkView')
+		expect(networkViewSource).toContain('EvmNetworkView')
 		expect(hook).toContain('$effect')
 		expect(hook).toContain('startEntityFieldResolveLiveForParent')
 		expect(resolvers).toContain('entityFieldNamesWithResolveLiveByEntityType')

@@ -39,7 +39,6 @@
 	}
 
 
-	// State
 	import { type Match, fuzzyMatch } from '$/lib/string.ts'
 
 	let previousRanges: Match[] = []

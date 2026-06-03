@@ -23,7 +23,7 @@ const getAccessToken = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>)
 	const j = await getJson<RedditOAuthTokenResponse>(
 		`${redditWwwOrigin}/api/v1/access_token`,
 		{
-			origins: Reddit.origins ?? [],
+			origins: Reddit.origins,
 			init: {
 				method: 'POST',
 				headers: {
@@ -44,7 +44,7 @@ const getAccessToken = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>)
 
 const oauthGetJson = async <T>(publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>, path: string) => (
 	getJson<T>(`${redditOauthOrigin}${path.startsWith('/') ? path : `/${path}`}`, {
-		origins: Reddit.origins ?? [],
+		origins: Reddit.origins,
 		init: {
 			headers: {
 				Authorization: `Bearer ${await getAccessToken(publicEnv)}`,

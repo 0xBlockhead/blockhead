@@ -12,7 +12,6 @@
 		params,
 	} = $props()
 
-
 	const entityId = $derived(
 		{ videoId: decodeURIComponent(params.videoId) },
 	)

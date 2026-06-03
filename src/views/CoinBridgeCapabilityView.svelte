@@ -16,6 +16,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -28,16 +30,13 @@
 			entityId: EntityId<typeof schema, EntityType.CoinBridgeCapability>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const capability = useEntity(
 		EntityType.CoinBridgeCapability,
@@ -70,6 +69,7 @@
 	{entityId}
 	href={href}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -155,7 +155,7 @@
 				<dd>
 					<EvmCoinInstanceView
 						entityId={entityId.$fromInstance}
-						layout={EntityLayout.SummaryDetails}
+						layout={EntityLayout.Value}
 						open={true}
 						showTypeAnnotation={false}
 					/>
@@ -166,7 +166,7 @@
 				<dd>
 					<EvmCoinInstanceView
 						entityId={entityId.$toInstance}
-						layout={EntityLayout.SummaryDetails}
+						layout={EntityLayout.Value}
 						open={true}
 						showTypeAnnotation={false}
 					/>

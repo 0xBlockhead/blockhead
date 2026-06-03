@@ -1,4 +1,3 @@
-import { regex } from 'arkregex'
 import { corsFetch, jsonErrorHintFromResponse } from '$/lib/http.ts'
 import Ipfs from '$/sources/Ipfs/index.ts'
 import { gatewayUrls } from '$/sources/Ipfs/Rest/constants.ts'
@@ -8,9 +7,9 @@ import type {
 	ParsedIpfsBrowseInput,
 } from '$/sources/Ipfs/Rest/types.ts'
 
-const ipfsBrowseUriPattern = regex('^(?<namespace>ipfs|ipns)://(?<target>[^/?#]+)(?<contentPath>/[^?#]*)?(?:[?#].*)?$', 'i')
-const ipfsBrowseGatewayPattern = regex('^https?://[^/]+/(?<namespace>ipfs|ipns)/(?<target>[^/?#]+)(?<contentPath>/[^?#]*)?(?:[?#].*)?$', 'i')
-const gatewayUrlLastSegment = regex('(?<fileName>[^/]+)$')
+const ipfsBrowseUriPattern = /^(ipfs|ipns):\/\/([^/?#]+)((?:\/[^?#]*)?)(?:[?#].*)?$/i
+const ipfsBrowseGatewayPattern = /^https?:\/\/[^/]+\/(ipfs|ipns)\/([^/?#]+)((?:\/[^?#]*)?)(?:[?#].*)?$/i
+const gatewayUrlLastSegment = /([^/]+)$/
 
 const trimSlashes = (value: string) => (
 	value.replace(/^\/+|\/+$/g, '')
@@ -26,20 +25,20 @@ const namespaceFromString = (value: string | undefined): IpfsNamespace | undefin
 export const parseBrowseInput = (value: string): ParsedIpfsBrowseInput => {
 	const trimmedValue = value.trim()
 	const uriMatch = ipfsBrowseUriPattern.exec(trimmedValue)
-	if (uriMatch?.groups?.target != null) {
+	if (uriMatch != null) {
 		return {
-			namespace: namespaceFromString(uriMatch.groups.namespace.toLowerCase()),
-			target: trimSlashes(uriMatch.groups.target),
-			contentPath: trimSlashes(uriMatch.groups.contentPath ?? ''),
+			namespace: namespaceFromString(uriMatch[1].toLowerCase()),
+			target: trimSlashes(uriMatch[2]),
+			contentPath: trimSlashes(uriMatch[3]),
 		}
 	}
 
 	const gatewayMatch = ipfsBrowseGatewayPattern.exec(trimmedValue)
-	if (gatewayMatch?.groups?.target != null) {
+	if (gatewayMatch != null) {
 		return {
-			namespace: namespaceFromString(gatewayMatch.groups.namespace.toLowerCase()),
-			target: trimSlashes(gatewayMatch.groups.target),
-			contentPath: trimSlashes(gatewayMatch.groups.contentPath ?? ''),
+			namespace: namespaceFromString(gatewayMatch[1].toLowerCase()),
+			target: trimSlashes(gatewayMatch[2]),
+			contentPath: trimSlashes(gatewayMatch[3]),
 		}
 	}
 
@@ -113,7 +112,7 @@ export const fetchBrowseResult = async ({
 		})
 
 		const response = await corsFetch(gatewayUrl, {
-			origins: Ipfs.origins ?? [],
+			origins: Ipfs.origins,
 			init: { signal },
 		})
 		if (!response.ok) {
@@ -130,7 +129,7 @@ export const fetchBrowseResult = async ({
 		const { parseIpfsContentResponse } = await import('$/lib/contentType.ts')
 		const parsedContent = await parseIpfsContentResponse({
 			response,
-			fileName: gatewayUrlLastSegment.exec(gatewayUrl)?.groups?.fileName,
+			fileName: gatewayUrlLastSegment.exec(gatewayUrl)?.[1],
 		})
 
 		return {

@@ -10,6 +10,7 @@
 	import { Source } from '$/sources/$Source.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
+	// State
 	let { entityFieldReference, title = 'Channels', open = $bindable(true), id, href = '', ...EntitiesListProps }: WithRest<{ entityFieldReference: EntityFieldReference<typeof schema, EntityType.LightningChannel>, title?: string, open?: boolean, id: string, href?: string }, Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>> = $props()
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'

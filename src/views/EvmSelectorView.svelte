@@ -16,7 +16,6 @@
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
-			|| layout === EntityLayout.Details
 		),
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
@@ -30,6 +29,7 @@
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -37,8 +37,6 @@
 		>
 	> = $props()
 
-
-	// State
 	import { getEvmSelectorPath } from '$/lib/signature-paths.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 

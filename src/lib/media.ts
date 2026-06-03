@@ -24,9 +24,7 @@ const pathWithSuffix = (path: string, suffix: string | undefined) => (
 )
 
 export const resolveMediaUrlTransport = (value: string | null | undefined) => {
-	const raw = typeof value === 'string' ? value.trim()
-	:
-		''
+	const raw = typeof value === 'string' ? value : ''
 	if (raw.length === 0) return undefined
 
 	const withProtocol = raw.startsWith('//') ? `https:${raw}` : raw

@@ -17,7 +17,7 @@
 	<EthereumNetworkUpgradesView
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: {},
+			entityId: { scope: '$$networkUpgrades' },
 			fieldName: '$$networkUpgrades',
 		}}
 		id="upgrades"

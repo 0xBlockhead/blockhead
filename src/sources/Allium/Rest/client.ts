@@ -11,7 +11,7 @@ export const alliumFetch = async <_Response>(
 	init?: RequestInit,
 ): Promise<_Response> => {
 	const response = await corsFetch(`${baseUrl}${pathAndQuery}`, {
-		origins: Allium.origins ?? [],
+		origins: Allium.origins,
 		init: {
 			...init,
 			headers: {

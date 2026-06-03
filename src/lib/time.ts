@@ -1,6 +1,20 @@
 export const TIMESTAMP_RECENT_MAX_MS = 7 * 24 * 60 * 60 * 1000
 
 
+export const optionalTimestampMs = (value: string | null | undefined) => (
+	((parsed) => (
+		Number.isFinite(parsed) ? parsed : undefined
+	))(Date.parse(value ?? ''))
+)
+
+export const timestampMsFromUnixSeconds = (createdAtSeconds: number | undefined) => (
+	createdAtSeconds != null && Number.isFinite(createdAtSeconds) ?
+		createdAtSeconds * 1000
+	:
+		undefined
+)
+
+
 export const formatRelativeTime = (ms: number) => {
 	if (!Number.isFinite(ms) || Math.abs(ms) < 1000) {
 		return 'now'

@@ -7,6 +7,7 @@ import {
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import type { CastHash } from '$/schema/FarcasterCast.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -18,13 +19,12 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const zeroXLowerHexCastHash = (hash: string): CastHash => {
-	const t = hash.trim()
 	const hex = (
-		t.startsWith('0x')
-		|| t.startsWith('0X') ?
-			t.slice(2)
+		hash.startsWith('0x')
+		|| hash.startsWith('0X') ?
+			hash.slice(2)
 		:
-			t
+			hash
 	)
 	return `0x${hex.toLowerCase()}`
 }
@@ -33,7 +33,7 @@ const neynarPfpHttpUrl = (
 	value: string | null | undefined,
 	options?: { pageBaseUrl?: string },
 ) => {
-	const raw = value?.trim() ?? ''
+	const raw = value ?? ''
 	if (raw.length === 0) return undefined
 	return resolveMediaUrlTransport(
 		raw.startsWith('/') && options?.pageBaseUrl != null ?
@@ -43,9 +43,6 @@ const neynarPfpHttpUrl = (
 	)?.url
 }
 
-const optionalTrimmedString = (value: string | undefined | null) => (
-	value?.trim() || undefined
-)
 
 export default {
 	source: Source.Neynar_Rest,
@@ -60,7 +57,7 @@ export default {
 					publicEnv,
 					fids: [entityId.fid],
 				})
-				const user = bulkUsers?.users?.find((neynarUser) => neynarUser.fid === entityId.fid)
+				const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === entityId.fid)
 				if (user == null) throw new Error('Neynar_Rest: user not found')
 				const bioRaw = user.profile?.bio
 				const ethAddresses = (
@@ -71,7 +68,7 @@ export default {
 							[]),
 						...(user.verified_addresses?.eth_addresses ?? []),
 					]
-						.map(optionalTrimmedString)
+						.map(optionalNonemptyString)
 						.filter((address): address is string => address != null)
 						.filter((address, index, addresses) => addresses.indexOf(address) === index)
 				)
@@ -83,24 +80,29 @@ export default {
 							[]),
 						...(user.verified_addresses?.sol_addresses ?? []),
 					]
-						.map(optionalTrimmedString)
+						.map(optionalNonemptyString)
 						.filter((address): address is string => address != null)
 						.filter((address, index, addresses) => addresses.indexOf(address) === index)
 				)
 				const ethVerifiedParsed = (
-					ethAddresses[0] == null ?
+					ethAddresses.at(0) == null ?
 						arktype.errors
 					:
-						EvmAddress(ethAddresses[0])
+						EvmAddress(ethAddresses.at(0))
 				)
 					const verifiedPart = (
 						!(ethVerifiedParsed instanceof arktype.errors) && {
-							primaryEvmAddress: EvmAddress.assert(ethAddresses[0]),
+							primaryEvmAddress: EvmAddress.assert(ethAddresses.at(0)),
 						}
 					)
+				const username = optionalNonemptyString(user.username)
+				const displayName = optionalNonemptyString(user.display_name)
+				const bio = optionalNonemptyString(
+					bioRaw != null && typeof bioRaw === 'object' ? bioRaw.text : bioRaw ?? undefined,
+				)
 				return {
-					username: optionalTrimmedString(user.username),
-					displayName: optionalTrimmedString(user.display_name),
+					...(username != null && { username }),
+					...(displayName != null && { displayName }),
 					...((
 						iconMedia,
 					) => (
@@ -108,9 +110,7 @@ export default {
 							$icon: iconMedia,
 						}
 					))(mediaFromUrl(neynarPfpHttpUrl(user.pfp_url), MediaType.Image)),
-					bio: optionalTrimmedString(
-						bioRaw != null && typeof bioRaw === 'object' ? bioRaw.text : bioRaw ?? undefined,
-					),
+					...(bio != null && { bio }),
 					...(user.follower_count != null && {
 						followerCount: user.follower_count,
 					}),
@@ -157,7 +157,7 @@ export default {
 					publicEnv,
 					fids: [entityId.fid],
 				})
-				const user = bulkUsers?.users?.find((neynarUser) => neynarUser.fid === entityId.fid)
+				const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === entityId.fid)
 				if (user == null) throw new Error('Neynar_Rest: Blockhead Farcaster connection user not found')
 				const bioRaw = user.profile?.bio
 				const ethList = (
@@ -168,12 +168,17 @@ export default {
 						:
 							[]),
 					]
-						.map(optionalTrimmedString)
+						.map(optionalNonemptyString)
 						.filter((v): v is string => v != null)
 				)
+				const username = optionalNonemptyString(user.username)
+				const displayName = optionalNonemptyString(user.display_name)
+				const bio = optionalNonemptyString(
+					bioRaw != null && typeof bioRaw === 'object' ? bioRaw.text : bioRaw ?? undefined,
+				)
 				return {
-					username: optionalTrimmedString(user.username),
-					displayName: optionalTrimmedString(user.display_name),
+					...(username != null && { username }),
+					...(displayName != null && { displayName }),
 					...((
 						iconMedia,
 					) => (
@@ -181,9 +186,7 @@ export default {
 							$icon: iconMedia,
 						}
 					))(mediaFromUrl(neynarPfpHttpUrl(user.pfp_url), MediaType.Image)),
-					bio: optionalTrimmedString(
-						bioRaw != null && typeof bioRaw === 'object' ? bioRaw.text : bioRaw ?? undefined,
-					),
+					...(bio != null && { bio }),
 					...(ethList.length > 0 && { verifications: ethList }),
 				}
 			},
@@ -211,15 +214,19 @@ export default {
 				}
 				const mentionFids = (
 					(cast.mentioned_profiles ?? [])
-						.map((u) => u?.fid)
+						.map((u) => u.fid)
 						.filter((fidValue): fidValue is number => fidValue != null)
 				)
 				const mentionChIds = (
 					(cast.mentioned_channels ?? [])
-						.map((ch) => optionalTrimmedString(ch?.id))
+						.map((ch) => optionalNonemptyString(ch.id))
 						.filter((idValue): idValue is string => idValue != null)
 				)
-				const channelId = optionalTrimmedString(cast.channel?.id)
+				const channelId = optionalNonemptyString(cast.channel?.id)
+				const parentUrl = optionalNonemptyString(cast.parent_url ?? cast.root_parent_url)
+				const likeCount = cast.likes ?? cast.reactions?.likes_count
+				const recastCount = cast.recasts ?? cast.reactions?.recasts_count
+				const replyCount = cast.replies?.count
 				return {
 					$author: {
 						[EntityMetaKey.Id]: { fid: cast.author.fid },
@@ -232,11 +239,11 @@ export default {
 								[EntityMetaKey.Id]: { fid: cast.app.fid },
 							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
 					),
-					text: optionalTrimmedString(cast.text) ?? '',
+					text: optionalNonemptyString(cast.text) ?? '',
 					$parentCast: (
 						cast.parent_author?.fid == null
 						|| cast.parent_hash == null
-						|| String(cast.parent_hash).trim() === '' ?
+						|| cast.parent_hash === '' ?
 							undefined
 						:
 							{
@@ -246,7 +253,7 @@ export default {
 								},
 							} satisfies Entity<typeof schema, EntityType.FarcasterCast>
 					),
-					parentUrl: optionalTrimmedString(cast.parent_url ?? cast.root_parent_url),
+					...(parentUrl != null && { parentUrl }),
 					timestamp,
 					mentions: cast.mentions,
 					mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
@@ -259,7 +266,7 @@ export default {
 								$cast: castId,
 								index,
 							},
-							url: optionalTrimmedString(embed.url),
+							url: optionalNonemptyString(embed.url),
 							$embeddedCast: (
 								embed.cast?.hash != null && embed.cast.author?.fid != null ?
 									{
@@ -278,8 +285,8 @@ export default {
 								:
 									undefined
 							),
-							title: optionalTrimmedString(embed.metadata?.html?.ogTitle),
-							description: optionalTrimmedString(embed.metadata?.html?.ogDescription),
+							title: optionalNonemptyString(embed.metadata?.html?.ogTitle),
+							description: optionalNonemptyString(embed.metadata?.html?.ogDescription),
 							...((
 								iconMedia,
 							) => (
@@ -288,15 +295,15 @@ export default {
 								}
 							))(mediaFromUrl(neynarPfpHttpUrl(
 								og0 ?? undefined,
-								{ pageBaseUrl: optionalTrimmedString(embed.url) },
+								{ pageBaseUrl: optionalNonemptyString(embed.url) },
 							), MediaType.Image)),
-							quotedPreviewText: optionalTrimmedString(embed.cast?.text),
+							quotedPreviewText: optionalNonemptyString(embed.cast?.text),
 						}) satisfies CastEmbedEntity)
 					}),
-					likeCount: cast.likes ?? cast.reactions?.likes_count,
-					recastCount: cast.recasts ?? cast.reactions?.recasts_count,
-					replyCount: cast.replies?.count,
-					...(optionalTrimmedString(cast.thread_hash ?? undefined) != null && {
+					...(likeCount != null && { likeCount }),
+					...(recastCount != null && { recastCount }),
+					...(replyCount != null && { replyCount }),
+					...(cast.thread_hash != null && cast.thread_hash !== '' && {
 						threadHash: zeroXLowerHexCastHash(String(cast.thread_hash)),
 					}),
 					$channel: (
@@ -333,8 +340,7 @@ export default {
 						(page.casts ?? [])
 							.flatMap((cast) => (
 								cast.author?.fid == null
-								|| cast.hash == null
-								|| String(cast.hash).trim() === '' ?
+								|| cast.hash === '' ?
 									[]
 								:
 									[{
@@ -361,8 +367,7 @@ export default {
 						(page.casts ?? [])
 							.flatMap((cast) => (
 								cast.author?.fid == null
-								|| cast.hash == null
-								|| String(cast.hash).trim() === '' ?
+								|| cast.hash === '' ?
 									[]
 								:
 									[{
@@ -389,8 +394,7 @@ export default {
 						(page.casts ?? [])
 							.flatMap((cast) => (
 								cast.author?.fid == null
-								|| cast.hash == null
-								|| String(cast.hash).trim() === '' ?
+								|| cast.hash === '' ?
 									[]
 								:
 									[{
@@ -402,7 +406,6 @@ export default {
 							))
 					)
 				}
-				if (entityId.variant === 'following') {
 					const page = await singleFlight(getFeed)(
 						publicEnv,
 						{
@@ -416,8 +419,7 @@ export default {
 						(page.casts ?? [])
 							.flatMap((cast) => (
 								cast.author?.fid == null
-								|| cast.hash == null
-								|| String(cast.hash).trim() === '' ?
+							|| cast.hash === '' ?
 									[]
 								:
 									[{
@@ -428,8 +430,6 @@ export default {
 									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
 							))
 					)
-				}
-				throw new Error(`Neynar_Rest: unsupported FarcasterFeed variant ${JSON.stringify(entityId)}`)
 			},
 		}),
 
@@ -454,8 +454,7 @@ export default {
 					(page.casts ?? [])
 						.flatMap((cast) => (
 							cast.author?.fid == null
-							|| cast.hash == null
-							|| String(cast.hash).trim() === '' ?
+							|| cast.hash === '' ?
 								[]
 							:
 								[{
@@ -490,8 +489,7 @@ export default {
 					(page.casts ?? [])
 						.flatMap((cast) => (
 							cast.author?.fid == null
-							|| cast.hash == null
-							|| String(cast.hash).trim() === '' ?
+							|| cast.hash === '' ?
 								[]
 							:
 								[{

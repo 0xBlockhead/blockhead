@@ -60,7 +60,6 @@ import Ipfs from '$/sources/Ipfs/index.ts'
 import L2Beat from '$/sources/L2Beat/index.ts'
 import Lifi from '$/sources/Lifi/index.ts'
 import Lens from '$/sources/Lens/index.ts'
-import Hey from '$/sources/Hey/index.ts'
 import Local from '$/sources/Local/index.ts'
 import LitecoinCore from '$/sources/LitecoinCore/index.ts'
 import LitecoinLips from '$/sources/LitecoinLips/index.ts'
@@ -164,7 +163,6 @@ const sourceProviderDefinitions = [
 	Ipfs,
 	L2Beat,
 	Lens,
-	Hey,
 	Lifi,
 	LitecoinCore,
 	LitecoinLips,
@@ -253,14 +251,13 @@ export const resolverPublicEnv = (
 ) satisfies SourcePublicEnv
 
 const envSubsetFromSchema = (
-	envSchema: SourceProviderDefinition['env']  ,
+	envSchema: SourceProviderDefinition['env'] ,
 ): SourcePublicEnv | null => {
 	if (envSchema == null) return {}
 	const out = envSchema(resolverPublicEnv)
-	if (out instanceof arktype.errors || typeof out !== 'object' || out == null) return null
+	if (out instanceof arktype.errors || typeof out !== 'object') return null
 	const subsetEntries: [string, string][] = []
 	for (const [key, value] of Object.entries(out)) {
-		if (value == null) continue
 		if (typeof value !== 'string' || value.trim() === '') return null
 		subsetEntries.push([key, value])
 	}

@@ -1,10 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,19 +11,18 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
+			caip2Namespace: 'eip155',
+			caip2Reference: entityId.$network.caip2.reference,
 				upgradeSlug: entityId.upgradeId,
-			},
-		),
+			}),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -36,6 +31,7 @@
 			entityId: EntityId<typeof schema, EntityType.EthereumExecutionUpgrade>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -43,10 +39,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkExecutionUpgrade = useEntity(
 		EntityType.EthereumExecutionUpgrade,
@@ -108,6 +100,11 @@
 		href: _href,
 		open: contentOpen,
 	})}
+		<ResourceBoundary
+			resource={networkExecutionUpgrade}
+			placeholderText="Loading execution upgrade…"
+		>
+			{#snippet children(networkExecutionUpgrade)}
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
@@ -116,14 +113,7 @@
 				<div>
 					<dt>Execution fork</dt>
 					<dd>
-						<ResourceBoundary
-							resource={networkExecutionUpgrade}
-							placeholderText="Loading execution upgrade…"
-						>
-							{#snippet children(networkExecutionUpgrade)}
 								{executionProtocolByProtocol[networkExecutionUpgrade.protocol].label}
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
@@ -131,21 +121,14 @@
 				<div>
 					<dt>Activation block</dt>
 					<dd>
-						<ResourceBoundary
-							resource={networkExecutionUpgrade}
-							placeholderText="Loading execution upgrade…"
-						>
-							{#snippet children(networkExecutionUpgrade)}
-								<EvmBlockView
-									entityId={{
-										$network: entityId.$network,
-										blockNumber: networkExecutionUpgrade.activationBlock,
-									}}
-									layout={EntityLayout.Value}
-									open={false}
+									<EvmBlockView
+										entityId={{
+											$network: entityId.$network,
+											blockNumber: BigInt(networkExecutionUpgrade.activationBlock),
+										}}
+										layout={EntityLayout.Value}
+										open={false}
 								/>
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
@@ -153,14 +136,7 @@
 				<div>
 					<dt>Activation epoch</dt>
 					<dd>
-						<ResourceBoundary
-							resource={networkExecutionUpgrade}
-							placeholderText="Loading execution upgrade…"
-						>
-							{#snippet children(networkExecutionUpgrade)}
 								<NumberValue value={networkExecutionUpgrade.activationEpoch} />
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
@@ -168,25 +144,20 @@
 				<div>
 					<dt>Activation time</dt>
 					<dd>
-						<ResourceBoundary
-							resource={networkExecutionUpgrade}
-							placeholderText="Loading execution upgrade…"
-						>
-							{#snippet children(networkExecutionUpgrade)}
 								<Timestamp
 									timestamp={networkExecutionUpgrade.activationTimestampMs}
 								/>
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
 		</dl>
 	{/snippet}
+		</ResourceBoundary>
+	{/snippet}
 
 	{#snippet Details({ open })}
 		<ProposalsView
-			href={resolve('/proposals')}
+			href="/proposals"
 			entityFieldReference={{
 				entityType: EntityType.EthereumExecutionUpgrade,
 				entityId,

@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import { stringify } from 'devalue'
 
 
@@ -25,8 +21,8 @@
 
 <ParentPageCollapsible
 	title={'Blocks'}
-	href={resolve('/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/blocks', params)}
-	id={stringify(networkIdFromCaip2RouteParams(params))}
+	href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/blocks', params)}
+	id={stringify({ caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } })}
 >
 	{@render children()}
 </ParentPageCollapsible>

@@ -123,7 +123,7 @@ export default {
 				const instruction = heliusInstructionRows(
 					entityId.$transaction,
 					transaction,
-				)[entityId.instructionIndex]
+				).at(entityId.instructionIndex)
 				if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${entityId.$transaction.signature}:${entityId.instructionIndex}`)
 				return instruction
 			},

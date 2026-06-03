@@ -14,6 +14,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -31,10 +32,6 @@
 		recordId: string
 	} = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const ens = useEntity(
 		EntityType.EnsName,
 		entityId,
@@ -45,6 +42,7 @@
 	)
 
 
+	// (Derived)
 	const recordLabel = $derived(
 		ensTextRecordLabelByKey[recordId]?.label ?? recordId,
 	)
@@ -67,9 +65,11 @@
 		<span>{recordLabel}</span>
 	{/snippet}
 
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
+		{#snippet Title()}
+			{#if Value}
+				{@render Value()}
+			{/if}
+		{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -96,15 +96,11 @@
 								`mailto:${recordValue}`
 							: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.Prefix ?
 								`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue}`
-							: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.PrefixStripAt ?
-								`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue.startsWith('@') ? recordValue.slice(1)
-								:
-									recordValue}`
-							:
-								null
-						)
-					:
-						undefined
+								: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.PrefixStripAt ?
+									`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue.startsWith('@') ? recordValue.slice(1) : recordValue}` : undefined
+							)
+						:
+							undefined
 				)}
 				<dl data-column-item="center">
 					<div>

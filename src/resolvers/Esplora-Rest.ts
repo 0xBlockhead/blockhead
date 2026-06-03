@@ -51,7 +51,7 @@ export default {
 					}),
 					timestampMs: block.timestamp * 1000,
 					merkleRoot: block.merkle_root,
-					nonce: BigInt(block.nonce),
+					nonce: block.nonce,
 					difficulty: block.difficulty,
 					sizeBytes: block.size,
 					weightUnits: block.weight,

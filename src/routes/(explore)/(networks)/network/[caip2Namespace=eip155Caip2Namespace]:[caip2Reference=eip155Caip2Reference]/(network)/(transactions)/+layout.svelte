@@ -1,9 +1,7 @@
 <script lang="ts">
 	// Types/constants
-	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
-
-
-	// Types/constants
+	import type { Snippet } from 'svelte'
+	import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -11,27 +9,29 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
-		children,
+		children: PageChildren,
 		params,
+	}: {
+		children: Snippet
+		params: {
+			caip2Namespace: 'eip155'
+			caip2Reference: string
+			transactionId?: string
+		}
 	} = $props()
-
-	const transactionEntityId = $derived(
-		{
-			$network: networkIdFromCaip2RouteParams(params),
-			txHash: params.transactionId,
-		},
-	)
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const transaction = useEntity(
 		EntityType.EvmTransaction,
-		transactionEntityId,
+		{
+			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
+			txHash: ZeroExHex.assert(params.transactionId ?? ''),
+		},
 		{
 			$: [
 				Source.Blockscout_Rest,
@@ -46,17 +46,14 @@
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
-
-
-	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
 <ParentPageCollapsible
 	title={'Blocks'}
-	href={resolve('/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/blocks', params)}
-	id={stringify({ ...networkIdFromCaip2RouteParams(params), scope: 'blocks' })}
+	href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/blocks', params)}
+	id={stringify({ ...{ caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } }, scope: 'blocks' })}
 >
 	<ResourceBoundary
 		resource={transaction}
@@ -67,7 +64,7 @@
 				{@const blockEntityId = transaction.$block[EntityMetaKey.Id]}
 				<ParentPageCollapsible
 					href={resolve(
-						'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]',
+						'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]',
 						{
 							caip2Namespace: params.caip2Namespace,
 							caip2Reference: params.caip2Reference,
@@ -93,16 +90,16 @@
 							scope: 'transactions',
 						})}
 					>
-						{@render children()}
+						{@render PageChildren()}
 					</ParentPageCollapsible>
 				</ParentPageCollapsible>
 			{:else}
 				<ParentPageCollapsible
 					title={'Transactions'}
-					href={resolve('/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/transactions', params)}
-					id={stringify({ ...networkIdFromCaip2RouteParams(params), scope: 'transactions' })}
+					href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/transactions', params)}
+					id={stringify({ ...{ caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } }, scope: 'transactions' })}
 				>
-					{@render children()}
+					{@render PageChildren()}
 				</ParentPageCollapsible>
 			{/if}
 		{/snippet}

@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -32,10 +33,6 @@
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const global = useEntity(
 		EntityType._Global,
@@ -100,7 +97,7 @@
 	{/snippet}
 
 	{#snippet Content({})}
-		{#if summaryOpen}
+		{#if open}
 		<dl data-column-item="center">
 			<ResourceBoundary resource={global}>
 				{#snippet children(global)}
@@ -128,7 +125,6 @@
 	})}
 		{#if _open}
 			<div>
-				<CollapsibleTabs sections={[]}>
 					<ResourceBoundary resource={global}>
 						{#snippet children(global)}
 							<div>
@@ -147,7 +143,6 @@
 							</div>
 						{/snippet}
 					</ResourceBoundary>
-				</CollapsibleTabs>
 			</div>
 		{/if}
 	{/snippet}

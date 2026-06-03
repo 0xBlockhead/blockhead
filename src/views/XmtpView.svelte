@@ -10,16 +10,14 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/xmtp',
-			entityId,
-		),
+		href = resolve('/xmtp'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -35,10 +33,6 @@
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkIdKey = stringify(entityId)
 
@@ -108,10 +102,10 @@
 					placeholderText="Loading XMTP network…"
 				>
 					{#snippet children(network)}
-						<div>
-							<dt>Conversations</dt>
-							<dd>{String(network.$$xmtpConversations.length)}</dd>
-						</div>
+							<div>
+								<dt>Conversations</dt>
+								<dd>{String(network.$$xmtpConversations?.length ?? 0)}</dd>
+							</div>
 
 						<div>
 							<dt>Protocol</dt>
@@ -153,54 +147,54 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${networkIdKey}:registry`}
-				sectionIdPrefix={networkIdKey}
-				sections={[
-					{ id: 'demo-accounts', label: 'Demo accounts' },
-					{ id: 'conversations', label: 'Conversations' },
-				]}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Local inbox state
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:registry`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'demo-accounts', label: 'Demo accounts' },
+				{ id: 'conversations', label: 'Conversations' },
+			]}
+			data-card
+		>
+			{#snippet Summary()}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Local inbox state
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionDemoAccounts({ id: _id, label: _label })}
-					<EvmAccountsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/~/accounts')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$actors',
-						}}
-						id="accounts"
-						open={_open}
-						title="Demo accounts"
-					/>
-				{/snippet}
+			{#snippet SectionDemoAccounts({ id: _id, label: _label })}
+				<EvmAccountsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/~/accounts')}
+					entityFieldReference={{
+						entityType: EntityType._Global,
+						entityId: { scope: '$$actors' },
+						fieldName: '$$actors',
+					}}
+					id="accounts"
+					open={_open}
+					title="Demo accounts"
+				/>
+			{/snippet}
 
-				{#snippet SectionConversations({ id: _id, label: _label })}
-					<XmtpConversationsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/xmtp')}
-						entityFieldReference={{
-							entityType: EntityType.XmtpNetwork,
-							entityId,
-							fieldName: '$$xmtpConversations',
-						}}
-						id="conversations"
-						open={_open}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionConversations({ id: _id, label: _label })}
+				<XmtpConversationsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/xmtp')}
+					entityFieldReference={{
+						entityType: EntityType.XmtpNetwork,
+						entityId,
+						fieldName: '$$xmtpConversations',
+					}}
+					id="conversations"
+					open={_open}
+				/>
+			{/snippet}
+	</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

@@ -11,7 +11,7 @@ export default {
 	}),
 	origins: [
 		{
-			origin: 'https://api.helius.xyz',
+			origin: 'https://api-mainnet.helius-rpc.com',
 			corsEnabled: true,
 		},
 	],

@@ -28,20 +28,23 @@ const listRowFromWire = (
 		never,
 ): NormalizedEip8004ScanAgent | undefined => {
 	const chainId = row.chain_id
-	const identityId = row.token_id?.trim()
+	const tokenId = String(row.token_id).trim()
 	const contractAddress = contractAddressFromWire(row.contract_address)
+	const agentWallet = contractAddressFromWire(row.agent_wallet)
+	const ownerAddress = contractAddressFromWire(row.owner_address)
 	if (
-		chainId == null
-		|| identityId == null
-		|| identityId === ''
+		tokenId === ''
 		|| contractAddress == null
 	) {
 		return undefined
 	}
 	return {
 		chainId,
-		identityId,
+		tokenId,
 		contractAddress,
+		...(row.agent_id != null && row.agent_id !== '' && { agentId: row.agent_id }),
+		...(agentWallet != null && { agentWallet }),
+		...(ownerAddress != null && { ownerAddress }),
 	}
 }
 
@@ -53,7 +56,7 @@ const contactEndpointFromDetail = (
 		.find((endpoint) => endpoint != null && endpoint !== '')
 )
 
-const registrationUriFromDetail = (
+const agentUriFromDetail = (
 	row: NonNullable<Eip8004ScanAgentDetailResponse['data']>,
 ): string | undefined => {
 	const offchainUri = row.raw_metadata?.offchain_uri?.trim()
@@ -90,25 +93,25 @@ export const fetchAgentList = async ({
 
 export const fetchAgentDetail = async ({
 	chainId,
-	identityId,
+	tokenId,
 }: {
 	chainId: number
-	identityId: string
+	tokenId: string
 }): Promise<NormalizedEip8004ScanAgentDetail | undefined> => {
-	const url = `${eip8004ScanPublicBase}/agents/${String(chainId)}/${encodeURIComponent(identityId)}`
+	const url = `${eip8004ScanPublicBase}/agents/${String(chainId)}/${encodeURIComponent(tokenId)}`
 	const wire = await getJson<Eip8004ScanAgentDetailResponse>(url, corsOptions)
 	const row = wire.data
 	if (row == null) {
 		return undefined
 	}
 	const listRow = listRowFromWire(row)
-	const registrationUri = registrationUriFromDetail(row)
-	if (listRow == null || registrationUri == null) {
+	const agentUri = agentUriFromDetail(row)
+	if (listRow == null || agentUri == null) {
 		return undefined
 	}
 	return {
 		...listRow,
-		registrationUri,
+		agentUri,
 		fetchedAt: Date.now(),
 		...(row.name != null && row.name !== '' && { name: row.name }),
 		...(row.description != null && row.description !== '' && { description: row.description }),

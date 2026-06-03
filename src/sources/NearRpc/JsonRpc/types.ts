@@ -125,6 +125,13 @@ export type NearRpcTransactionStatus = {
 	transaction_outcome: NearRpcExecutionOutcome
 }
 
+export type NearRpcReceipt = {
+	predecessor_id: string
+	receiver_id: string
+	receipt_id: string
+	receipt: JsonValue
+}
+
 export type NearRpcExecutionOutcome = {
 	id: string
 	outcome: {

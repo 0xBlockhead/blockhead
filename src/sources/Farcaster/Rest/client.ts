@@ -27,5 +27,5 @@ export async function farcasterGet<T>(
 	params?: Record<string, string | number | boolean | undefined>,
 ): Promise<T> {
 	const baseUrl = path.startsWith('/~api/') ? webBaseUrl : clientBaseUrl
-	return getJson<T>(`${baseUrl}${path}${toQueryString(params)}`, { origins: Farcaster.origins ?? [] })
+	return getJson<T>(`${baseUrl}${path}${toQueryString(params)}`, { origins: Farcaster.origins  })
 }

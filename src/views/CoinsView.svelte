@@ -51,6 +51,7 @@
 			deploymentsOpen?: boolean
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Coin>
 		},
 		Pick<
@@ -96,7 +97,6 @@
 	)
 
 
-	// State
 	import type { DeclarativeOrderBy } from '$/lib/tanstackDb/orderBySteps.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
@@ -118,6 +118,7 @@
 </script>
 
 
+<section id={id}>
 <EntitiesList
 	{...EntitiesListProps}
 	bind:open
@@ -271,7 +272,7 @@
 				href={resolve('/markets')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: {},
+					entityId: { scope: '$$marketPrices' },
 					fieldName: '$$marketPrices',
 				}}
 				id={`${id}:prices-spot`}
@@ -331,7 +332,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType._Global,
-						entityId: {},
+						entityId: { scope: '$$marketTimeIntervalTimestamps' },
 						fieldName: '$$marketTimeIntervalTimestamps',
 					}}
 					href={resolve('/coins/candles')}
@@ -402,7 +403,7 @@
 					href={resolve('/markets')}
 					entityFieldReference={{
 						entityType: EntityType._Global,
-						entityId: {},
+						entityId: { scope: '$$markets' },
 						fieldName: '$$markets',
 					}}
 					id={`${id}:markets-index`}
@@ -460,6 +461,7 @@
 			/>
 		{/snippet}
 	</CollapsibleTabs>
+</section>
 
 
 <style>

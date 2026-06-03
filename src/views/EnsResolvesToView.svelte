@@ -9,6 +9,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -18,10 +19,6 @@
 	}: {
 		entityId: EntityId<typeof schema, EntityType.EnsName>
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const ens = useEntity(
 		EntityType.EnsName,

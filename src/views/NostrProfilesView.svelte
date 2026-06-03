@@ -13,6 +13,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -33,18 +34,15 @@
 			id: string
 			open?: boolean
 			title?: string
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -117,8 +115,8 @@
 				{title}
 				resource={profiles}
 				placeholderText="Loading profiles…"
-				getKey={(row) => stringify(nostrProfile.entityId)}
-				getSortValue={(row) => nostrProfile.entityId.pubkey}
+				getKey={(row) => stringify(row.entityId)}
+				getSortValue={(row) => row.entityId.pubkey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

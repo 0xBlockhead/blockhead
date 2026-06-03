@@ -5,7 +5,6 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
 
 	import {
 		normalizeEnsName,
@@ -14,6 +13,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,8 +35,6 @@
 	}
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	let searchInput = $state('')
@@ -97,6 +95,7 @@
 	}
 
 
+	// (Derived)
 	const ensSearch = $derived(
 		searchTerm == null ?
 			undefined
@@ -274,7 +273,7 @@
 					<dd>
 						<EvmNetworkAccountView
 							entityId={{
-								$network: networkIdFromEvmChainId(ensEthereumChainId),
+								$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
 								$actor: { address: reverseResult.address },
 							}}
 							layout={EntityLayout.Title}

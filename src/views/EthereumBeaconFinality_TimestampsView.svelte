@@ -10,7 +10,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
-
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		title = 'Finality',
@@ -34,9 +35,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -96,11 +94,12 @@
 				id={`${id}-items`}
 				href={href}
 				open={true}
+				resource={beaconFinalityTimestamps}
 			>
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<EthereumBeaconFinality_TimestampView
-						entityId={beaconFinalityTimestamp[EntityMetaKey.Id]}
+						entityId={row[EntityMetaKey.Id]}
 						layout={EntityLayout.SummaryDetails}
 						open={true}
 						showTypeAnnotation={false}

@@ -3,7 +3,6 @@
 	import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
 
 
-	// State
 	let cachedBoundaryOpen = $state(
 		true
 	)

@@ -10,9 +10,8 @@
 		params,
 	} = $props()
 
-
-	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const network = useEntity(
 		EntityType.Network,

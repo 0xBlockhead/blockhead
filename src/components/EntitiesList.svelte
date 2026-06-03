@@ -1,13 +1,20 @@
 <script
 	lang="ts"
 	generics="
-		_EntityType extends EntityType,
-		_Item = never,
+		_EntityType extends RegisteredEntityType,
+		_Item = (
+			& EntityId<typeof schema, _EntityType>
+			& Entity<typeof schema, _EntityType>
+			& {
+				value: Entity<typeof schema, _EntityType>
+			}
+		),
 		_Key extends string | number = string | number
 	"
 >
 	// Types/constants
-	import type { EntityType } from '$/schema/$EntityType.ts'
+	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { RegisteredEntityType, schema } from '$/schema/index.ts'
 	import { entityDefinitionByType } from '$/schema/index.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { SvelteHTMLElements } from 'svelte/elements'
@@ -15,9 +22,9 @@
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-		import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
-		import type { Match } from '$/lib/string.ts'
-		import type { RemoteResource } from '@sveltejs/kit'
+	import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
+	import type { Match } from '$/lib/string.ts'
+	import type { RemoteResource } from '@sveltejs/kit'
 
 	type ListItemProps = {
 		key: _Key
@@ -57,14 +64,14 @@
 	} from '$/context/onNestedCollapsibleClose.ts'
 
 
-	// State
 	import { SvelteSet } from 'svelte/reactivity'
 
+	// State
 	let {
 		entityType,
-		id,
-		title,
-		href,
+		id = `EntitiesList:${entityType}`,
+		title = entityDefinitionByType[entityType].labelPlural,
+		href = `#${id}`,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
@@ -95,7 +102,9 @@
 		...articleElementProps
 	}: WithRest<
 		{
-			body?: Snippet
+			body?: Snippet<[context: {
+				open?: boolean,
+			}]>
 			collapsible?: boolean
 			layout?: EntitiesListLayout
 			showSummary?: boolean
@@ -108,8 +117,8 @@
 			getKey?: (item: _Item) => _Key
 			getSortValue?: (item: _Item) => number | string
 			HeadingProps?: HeadingForwardProps
-			href: string
-			id: string
+			href?: string
+			id?: string
 			Item?: Snippet<[context: ListItemProps]>
 			ItemPlaceholder?: Snippet<[context: PlaceholderListItemProps]>
 			/** Ignored when `resource` is set; list rows come from the boundary resolution. */
@@ -118,7 +127,7 @@
 			placeholderText?: string
 			resource?: QueryLike<ItemsInput | undefined> | RemoteResource<ItemsInput | undefined>
 			placeholderKeys?: Set<_Key>
-			title: string
+			title?: string
 			UnorderedListProps?: UnorderedListForwardProps
 		},
 		SvelteHTMLElements['article']
@@ -148,13 +157,10 @@
 	}
 
 
-	// State
-
 	let listSummary = $state({
 		loaded: 0,
 		total: undefined,
 	})
-
 
 
 	const count = $derived(
@@ -168,15 +174,6 @@
 		listSummary.total,
 	)
 
-	const showCounts = $derived(
-		count !== undefined || totalCount !== undefined,
-	)
-
-	const showTotalCount = $derived(
-		count !== undefined
-		&& totalCount !== undefined
-		&& totalCount !== count,
-	)
 
 	const listItems = $derived(
 		items !== undefined ?
@@ -229,8 +226,8 @@
 		>
 			<Heading {...HeadingProps}>
 				<a {href}>{title}</a>
-				{#if showCounts}
-					<small>({#if count !== undefined}<NumberValue value={count} />{/if}{#if showTotalCount}/<NumberValue value={totalCount!} />{/if}{#if count === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
+				{#if (count !== undefined || totalCount !== undefined)}
+					<small>({#if count !== undefined}<NumberValue value={count} />{/if}{#if (count !== undefined && totalCount !== undefined && totalCount !== count)}/<NumberValue value={totalCount!} />{/if}{#if count === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
 				{/if}
 			</Heading>
 		</header>
@@ -278,7 +275,9 @@
 
 	{#snippet listColumnBody()}
 		{#if body}
-			{@render body()}
+			{@render body({
+				open,
+			})}
 		{:else if getKey !== undefined && Item !== undefined}
 			{#if resource !== undefined}
 				<ResourceBoundary
@@ -320,11 +319,11 @@
 			}}
 			data-card
 		>
-			{#snippet Summary({ open: _summaryOpen })}
+			{#snippet Summary()}
 				{@render SummaryHeader()}
 			{/snippet}
 
-			{#snippet Annotation({ open: _annotationOpen })}
+			{#snippet Annotation()}
 				{@render SummaryAnnotation()}
 			{/snippet}
 

@@ -1,12 +1,4 @@
 <script lang="ts">
-	// Types/constants
-	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		params,
@@ -21,13 +13,12 @@
 
 
 <Page>
-		<BeaconEpochsView
+	<BeaconEpochsView
 		entityFieldReference={{
 			entityType: EntityType.EvmNetwork,
-			entityId: networkIdFromCaip2RouteParams(params),
+			entityId: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			fieldName: '$$beaconEpochs',
 		}}
 		id="beacon-epochs"
 	/>
 </Page>
-

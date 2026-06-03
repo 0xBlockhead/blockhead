@@ -56,7 +56,6 @@ import IpfsRestResolvers from '$/resolvers/Ipfs-Rest.ts'
 import L2BeatRestResolvers from '$/resolvers/L2Beat-Rest.ts'
 import LifiRestResolvers from '$/resolvers/Lifi-Rest.ts'
 import LensGraphqlResolvers from '$/resolvers/Lens-Graphql.ts'
-import HeyGraphqlResolvers from '$/resolvers/Hey-Graphql.ts'
 import LitecoinCoreJsonRpcResolvers from '$/resolvers/LitecoinCore-JsonRpc.ts'
 import LitecoinLipsGithubResolvers from '$/resolvers/LitecoinLips-Github.ts'
 import LightningLndRestResolvers from '$/resolvers/LightningLnd-Rest.ts'
@@ -168,7 +167,6 @@ const enabledResolverModulesAfterSourceGate = (
 		IpfsRestResolvers,
 		LifiRestResolvers,
 		LensGraphqlResolvers,
-		HeyGraphqlResolvers,
 		LitecoinCoreJsonRpcResolvers,
 		LitecoinLipsGithubResolvers,
 		LightningLndRestResolvers,

@@ -32,6 +32,7 @@ export default {
 		$network: Network.id,
 		txHash: ZeroExHex,
 		logIndex: 'number',
+		transferIndex: 'number',
 	}),
 
 	fields: [

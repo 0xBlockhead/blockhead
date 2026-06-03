@@ -3,12 +3,12 @@ import { expect, test } from '@playwright/test'
 import {
 	assertMainSettled,
 	installChainlistRpcsJsonStub,
-} from '../../../../../../tests/_e2eBrowserHelpers.ts'
+} from '../../../../../../../tests/_e2eBrowserHelpers.ts'
 
 import {
 	routeViewSmokeTimeoutsMs,
 	setupRouteViewSmokePage,
-} from '../../../../../../tests/e2e/_routeViewDiagnostics.ts'
+} from '../../../../../../../tests/e2e/_routeViewDiagnostics.ts'
 
 
 const transactionRoutes = [

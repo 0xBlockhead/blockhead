@@ -24,6 +24,6 @@ export const pipedApiGet = async <T>(
 ): Promise<T> => (
 	getJson<T>(
 		`${pipedApiBaseUrl(publicEnv).replace(/\/$/, '')}${path}${toQuery(params ?? {})}`,
-		{ origins: pipedApiOriginsForPublicEnv(publicEnv, Piped.origins ?? []) },
+		{ origins: pipedApiOriginsForPublicEnv(publicEnv, Piped.origins ) },
 	)
 )

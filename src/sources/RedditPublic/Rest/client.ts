@@ -9,7 +9,7 @@ export const redditJsonGet = async <T>(path: string) => (
 	getJson<T>(
 		`${redditPublicOrigin}${path.startsWith('/') ? path : `/${path}`}`,
 		{
-			origins: RedditPublic.origins ?? [],
+			origins: RedditPublic.origins,
 			init: {
 				headers: {
 					'User-Agent': redditUserAgent,

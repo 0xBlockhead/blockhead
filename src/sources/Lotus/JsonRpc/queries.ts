@@ -32,7 +32,7 @@ const lotusJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: Lotus.origins ?? [],
+		origins: Lotus.origins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,

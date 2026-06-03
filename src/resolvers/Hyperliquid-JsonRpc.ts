@@ -31,7 +31,7 @@ export default {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
 					},
-					rpcEndpoints: hyperliquidMainnetRpcEndpoints,
+					rpcEndpoints: [...hyperliquidMainnetRpcEndpoints],
 				}
 			},
 		}),

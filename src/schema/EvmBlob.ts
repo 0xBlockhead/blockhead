@@ -16,6 +16,11 @@ const EvmBlobVersionedHash = type(
 	'/^0x01[0-9a-fA-F]{62}$/' as type.cast<`0x01${string}`>,
 )
 
+const EvmBlobStorageReference = type({
+	storage: 'string',
+	reference: 'string',
+})
+
 export default {
 	entityType: EntityType.EvmBlob,
 
@@ -57,9 +62,18 @@ export default {
 			],
 		},
 		{
-			name: 'blobscanBlobJson',
+			name: 'kzgCommitment',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blobscan_Rest,
+			],
+		},
+		{
+			name: 'blobDataStorageReferences',
+			type: EntityFieldType.Primitive,
+			primitiveType: EvmBlobStorageReference.array(),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Blobscan_Rest,

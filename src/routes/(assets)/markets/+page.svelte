@@ -23,7 +23,7 @@
 		href={resolve('/markets')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: {},
+			entityId: { scope: '$$markets' },
 			fieldName: '$$markets',
 		}}
 		open

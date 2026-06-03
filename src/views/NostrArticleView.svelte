@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -35,6 +36,7 @@
 			entityId: EntityId<typeof schema, EntityType.NostrArticle>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -42,10 +44,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const article = useEntity(
 		EntityType.NostrArticle,
@@ -71,7 +69,7 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import Markdown from '$/components/Markdown.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -198,45 +196,42 @@
 	})}
 		{@const idKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-article`}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
+			id={`${idKey}:carousel-article`}
+			sectionIdPrefix={idKey}
+			sections={collapsibleTabsSections([
+				{ id: 'body', label: 'Article body' },
+			])}
+			data-card
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Article body
+					</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionBody({ id: _id, label: _label })}
+				<section data-scroll-marker-label="Article body">
+					<ResourceBoundary
+						resource={article}
+						placeholderText="Loading article…"
 					>
-						<HeadingComponent>
-							Article body
-						</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Article body"
-						href={`#${idKey}:content`}
-					>Body</a>
-				{/snippet}
-
-				{#snippet body({ open: _sectionOpen })}
-					<section data-scroll-marker-label="Article body">
-						<ResourceBoundary
-							resource={article}
-							placeholderText="Loading article…"
-						>
-							{#snippet children(article)}
-								{#if article.content}
-									<Markdown content={article.content} />
-								{:else}
-									<p data-text="muted">
-										No article body yet.
-									</p>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-				{/snippet}
-		</CollapsibleTabs>
+						{#snippet children(article)}
+							{#if article.content}
+								<Markdown content={article.content} />
+							{:else}
+								<p data-text="muted">
+									No article body yet.
+								</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</section>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

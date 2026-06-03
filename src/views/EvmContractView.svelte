@@ -1,12 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import {
-		caip2RouteParamsFromNetworkId,
-		evmChainIdFromNetworkId,
-	} from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -26,38 +19,32 @@
 		children: _children,
 		entityId,
 		title = 'Contract',
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(contracts)/contract/[address]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
+			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
+				caip2Namespace: entityId.$network.caip2.namespace,
+				caip2Reference: entityId.$network.caip2.reference,
 				address: entityId.address,
-			},
-		),
+			}),
 		open = $bindable(true),
 		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
-			RouteContent?: Snippet
+				children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmContract>
 			title?: string
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'TypeAnnotationTooltip'
+				| 'layout'
+				| 'showTypeAnnotation'
+				| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const contract = useEntity(
@@ -125,6 +112,7 @@
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EvmAbiView from '$/views/EvmAbiView.svelte'
 </script>
 
 
@@ -134,8 +122,8 @@
 	{title}
 	{href}
 	bind:open
+	{collapsible}
 	{...entityViewRest}
-	summaryUsesHeading={true}
 >
 	{#snippet Value()}
 		<EvmNetworkAccountView
@@ -166,7 +154,14 @@
 				{:else if contract.$verification?.$compilation?.name}
 					{contract.$verification.$compilation.name}
 				{:else}
-					{@render Value()}
+						<EvmNetworkAccountView
+							entityId={{
+								$network: entityId.$network,
+								$actor: { address: entityId.address },
+							}}
+							layout={EntityLayout.Value}
+							open={false}
+						/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -177,7 +172,7 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>Chain ID</dt>
-						<dd>{String(evmChainIdFromNetworkId(entityId.$network))}</dd>
+						<dd>{String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}</dd>
 					</div>
 					{#if open}
 					<ResourceBoundary
@@ -210,13 +205,11 @@
 												$network: entityId.$network,
 												$actor: contract.$deployer[EntityMetaKey.Id],
 											}}
-											href={resolve(
-												'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
-												{
-													...caip2RouteParamsFromNetworkId(entityId.$network),
-													address: contract.$deployer[EntityMetaKey.Id].address,
-												},
-											)}
+											href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(accounts)/account/[address]', {
+												caip2Namespace: entityId.$network.caip2.namespace,
+												caip2Reference: entityId.$network.caip2.reference,
+												address: contract.$deployer[EntityMetaKey.Id].address,
+											})}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -230,13 +223,11 @@
 									<dd>
 										<EvmTransactionView
 											entityId={contract.$creationTransaction[EntityMetaKey.Id]}
-											href={resolve(
-												'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
-												{
-													...caip2RouteParamsFromNetworkId(entityId.$network),
-													transactionId: contract.$creationTransaction[EntityMetaKey.Id].txHash,
-												},
-											)}
+											href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+												caip2Namespace: entityId.$network.caip2.namespace,
+												caip2Reference: entityId.$network.caip2.reference,
+												transactionId: contract.$creationTransaction[EntityMetaKey.Id].txHash,
+											})}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -248,15 +239,11 @@
 									<div>
 										<dt>Implementation</dt>
 										<dd>
-											<a
-												href={resolve(
-													'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(contracts)/contract/[address]',
-													{
-														...caip2RouteParamsFromNetworkId(entityId.$network),
+												<a href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
+													caip2Namespace: entityId.$network.caip2.namespace,
+													caip2Reference: entityId.$network.caip2.reference,
 														address: contract.$implementation[EntityMetaKey.Id].address,
-													},
-												)}
-											>
+												})}>
 												<EvmNetworkAccountView
 													entityId={{
 														$network: contract.$implementation[EntityMetaKey.Id].$network,
@@ -299,9 +286,8 @@
 									<div>
 										<dt>ABI</dt>
 										<dd>
-											<TruncatedValue
-												value={contract.abi}
-												format={TruncatedValueFormat.Visual}
+											<EvmAbiView
+												abi={contract.abi}
 											/>
 										</dd>
 									</div>

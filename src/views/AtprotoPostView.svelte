@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -34,10 +35,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const idKey = stringify(entityId)
 
@@ -281,72 +278,72 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-post`}
-				sectionIdPrefix={idKey}
-					sections={collapsibleTabsSections([
-						{ id: 'thread', label: 'Thread' },
-						{ id: 'repository', label: 'Repository' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				data-card
+			id={`${idKey}:carousel-post`}
+			sectionIdPrefix={idKey}
+				sections={collapsibleTabsSections([
+					{ id: 'thread', label: 'Thread' },
+					{ id: 'repository', label: 'Repository' },
+					{ id: 'metric-snapshots', label: 'Metrics' },
+				])}
+			data-card
+		>
+			{#snippet Summary({ open: _postSummaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Thread & repository
+					</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionThread()}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Thread
+					</HeadingComponent>
+				</header>
+
+				<AtprotoPostThreadView
+					entityFieldReference={{
+						entityType: EntityType.AtprotoPost,
+						entityId,
+						fieldName: '$$thread',
+					}}
+					id={`${idKey}:thread-atprotoPosts`}
+					open={true}
+					title="Thread"
+				/>
+			{/snippet}
+
+			{#snippet SectionRepository()}
+				<header
+				data-row-item="flexible"
+				data-row="wrap gap-4"
 			>
-				{#snippet Summary({ open: _postSummaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Thread & repository
-						</HeadingComponent>
-					</header>
-				{/snippet}
+				<HeadingComponent>
+					Repository
+				</HeadingComponent>
+			</header>
 
-				{#snippet SectionThread()}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Thread
-						</HeadingComponent>
-					</header>
+			{/snippet}
 
-					<AtprotoPostThreadView
-						entityFieldReference={{
-							entityType: EntityType.AtprotoPost,
-							entityId,
-							fieldName: '$$thread',
-						}}
-						id={`${idKey}:thread-atprotoPosts`}
-						open={true}
-						title="Thread"
-					/>
-				{/snippet}
-
-					{#snippet SectionRepository()}
-						<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Repository
-						</HeadingComponent>
-					</header>
-
-					{/snippet}
-
-					{#snippet SectionMetricSnapshots()}
-						<AtprotoPost_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.AtprotoPost,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${idKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
-			</CollapsibleTabs>
+			{#snippet SectionMetricSnapshots()}
+				<AtprotoPost_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.AtprotoPost,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${idKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

@@ -6,8 +6,8 @@
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export type BskyAppViewProfile = {
-	did?: string
-	handle?: string
+	did: string
+	handle: string
 	displayName?: string
 	description?: string
 	avatar?: string
@@ -20,8 +20,8 @@ export type BskyAppViewProfile = {
 
 export type BskyAppViewPostRecord = {
 	$type?: string
-	text?: string
-	createdAt?: string
+	text: string
+	createdAt: string
 	langs?: string[]
 	labels?: {
 		values?: {
@@ -35,27 +35,27 @@ export type BskyAppViewPostRecord = {
 }
 
 export type BskyAppViewPostView = {
-	uri?: string
-	cid?: string
-	indexedAt?: string
+	uri: string
+	cid: string
+	indexedAt: string
 	likeCount?: number
 	repostCount?: number
 	replyCount?: number
 	quoteCount?: number
 	bookmarkCount?: number
-	author?: {
-		did?: string
-		handle?: string
+	author: {
+		did: string
+		handle: string
 	}
-	record?: BskyAppViewPostRecord
+	record: BskyAppViewPostRecord
 }
 
 export type BskyAppViewGetPostsResponse = {
-	posts?: BskyAppViewPostView[]
+	posts: BskyAppViewPostView[]
 }
 
 export type BskyAppViewGetAuthorFeedResponse = {
-	feed?: {
+	feed: {
 		post: BskyAppViewPostView
 		reply?: JsonValue
 		reason?: {
@@ -67,7 +67,7 @@ export type BskyAppViewGetAuthorFeedResponse = {
 
 export type BskyAppViewThreadViewPost = {
 	$type?: string
-	post?: BskyAppViewPostView
+	post: BskyAppViewPostView
 	parent?: BskyAppViewThreadNode
 	replies?: BskyAppViewThreadNode[]
 }

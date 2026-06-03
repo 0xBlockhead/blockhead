@@ -4,10 +4,6 @@
 		params,
 	} = $props()
 
-	const entityId = $derived(
-		{ channelId: decodeURIComponent(params.channelId) },
-	)
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -17,6 +13,6 @@
 
 <Page>
 	<YouTubeChannelView
-		{entityId}
+		entityId={{ channelId: decodeURIComponent(params.channelId) }}
 	/>
 </Page>

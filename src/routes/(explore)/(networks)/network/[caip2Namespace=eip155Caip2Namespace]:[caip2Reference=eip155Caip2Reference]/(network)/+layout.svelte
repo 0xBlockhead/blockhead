@@ -13,16 +13,6 @@
 		params,
 	} = $props()
 
-	import {
-		caip2FromRouteParams,
-		evmChainIdFromCaip2RouteParams,
-		networkIdFromCaip2RouteParams,
-	} from '$/lib/caip.ts'
-
-	const chainId = $derived(
-		evmChainIdFromCaip2RouteParams(params),
-	)
-
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -31,10 +21,10 @@
 </script>
 
 
-{#key caip2FromRouteParams(params)}
+{#key `${params.caip2Namespace}:${params.caip2Reference}`}
 	<ParentPageCollapsible
-		href={resolve('/(explore)/network/[caip2Namespace]:[caip2Reference]', params)}
-		id={stringify(networkIdFromCaip2RouteParams(params))}
+		href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]', params)}
+		id={stringify({ caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } })}
 	>
 		{#snippet Summary({ open: _open })}
 			<EvmNetworkView

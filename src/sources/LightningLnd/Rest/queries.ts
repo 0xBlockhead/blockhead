@@ -23,7 +23,7 @@ export const getInfo = ({
 	getJson<LndGetInfoResponse>(
 		`${base(restBaseUrl)}/v1/getinfo`,
 		{
-			origins: LightningLnd.origins ?? [],
+			origins: LightningLnd.origins,
 			init: {
 				headers: lndHeaders(macaroonHex),
 			},
@@ -41,7 +41,7 @@ export const listChannels = ({
 	getJson<LndListChannelsResponse>(
 		`${base(restBaseUrl)}/v1/channels`,
 		{
-			origins: LightningLnd.origins ?? [],
+			origins: LightningLnd.origins,
 			init: {
 				headers: lndHeaders(macaroonHex),
 			},
@@ -61,7 +61,7 @@ export const listInvoices = ({
 	getJson<LndListInvoicesResponse>(
 		`${base(restBaseUrl)}/v1/invoices${numMaxInvoices == null ? '' : `?num_max_invoices=${numMaxInvoices}`}`,
 		{
-			origins: LightningLnd.origins ?? [],
+			origins: LightningLnd.origins,
 			init: {
 				headers: lndHeaders(macaroonHex),
 			},
@@ -81,7 +81,7 @@ export const listPayments = ({
 	getJson<LndListPaymentsResponse>(
 		`${base(restBaseUrl)}/v1/payments${maxPayments == null ? '' : `?max_payments=${maxPayments}`}`,
 		{
-			origins: LightningLnd.origins ?? [],
+			origins: LightningLnd.origins,
 			init: {
 				headers: lndHeaders(macaroonHex),
 			},

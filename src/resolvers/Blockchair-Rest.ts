@@ -6,8 +6,8 @@ import {
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { BlockchairBitcoinLikeChain } from '$/sources/Blockchair/Rest/constants.ts'
 import type {
+	BlockchairBitcoinLikeChain,
 	BlockchairBitcoinLikeBlock,
 	BlockchairBitcoinLikeStats,
 	BlockchairBitcoinLikeTransaction,
@@ -46,23 +46,6 @@ const bigintFromNumber = (value: number | undefined) => (
 	value == null ? undefined : BigInt(value)
 )
 
-const utxoNetworkTimestampFields = (stats: BlockchairBitcoinLikeStats) => ({
-	...(bigintFromNumber(stats.best_block_height) != null && { bestBlockHeight: bigintFromNumber(stats.best_block_height) }),
-	...(stats.best_block_hash != null && { bestBlockHash: stats.best_block_hash }),
-	...(timestampMsFromBlockchairTime(stats.best_block_time) != null && { bestBlockTimeMs: timestampMsFromBlockchairTime(stats.best_block_time) }),
-	...(bigintFromNumber(stats.blocks) != null && { blockCount: bigintFromNumber(stats.blocks) }),
-	...(bigintFromNumber(stats.transactions) != null && { transactionCount: bigintFromNumber(stats.transactions) }),
-	...(stats.blocks_24h != null && { blocks24h: stats.blocks_24h }),
-	...(stats.transactions_24h != null && { transactions24h: stats.transactions_24h }),
-	...(stats.mempool_transactions != null && { mempoolTransactionCount: stats.mempool_transactions }),
-	...(bigintFromNumber(stats.mempool_size) != null && { mempoolSizeBytes: bigintFromNumber(stats.mempool_size) }),
-	...(stats.mempool_tps != null && { mempoolTps: stats.mempool_tps }),
-	...(bigintFromNumber(stats.average_transaction_fee_24h) != null && { averageTransactionFee24hSats: bigintFromNumber(stats.average_transaction_fee_24h) }),
-	...(bigintFromNumber(stats.median_transaction_fee_24h) != null && { medianTransactionFee24hSats: bigintFromNumber(stats.median_transaction_fee_24h) }),
-	...(stats.suggested_transaction_fee_per_byte_sat != null && { suggestedTransactionFeePerByteSats: stats.suggested_transaction_fee_per_byte_sat }),
-	...(bigintFromNumber(stats.blockchain_size) != null && { blockchainSizeBytes: bigintFromNumber(stats.blockchain_size) }),
-})
-
 const utxoBlockRow = (
 	network: NetworkId,
 	block: BlockchairBitcoinLikeBlock,
@@ -75,7 +58,7 @@ const utxoBlockRow = (
 	hash: block.hash,
 	...(timestampMsFromBlockchairTime(block.time) != null && { timestampMs: timestampMsFromBlockchairTime(block.time) }),
 	...(block.merkle_root != null && { merkleRoot: block.merkle_root }),
-	...(bigintFromNumber(block.nonce) != null && { nonce: bigintFromNumber(block.nonce) }),
+	...(block.nonce != null && { nonce: block.nonce }),
 	...(block.difficulty != null && { difficulty: block.difficulty }),
 	...(block.size != null && { sizeBytes: block.size }),
 	...(block.weight != null && { weightUnits: block.weight }),
@@ -157,7 +140,7 @@ export default {
 					timestampMs: dashboard.block.time == null ? undefined : Date.parse(dashboard.block.time),
 					merkleRoot: dashboard.block.merkle_root,
 					...(dashboard.block.nonce != null && {
-						nonce: BigInt(dashboard.block.nonce),
+						nonce: dashboard.block.nonce,
 					}),
 					difficulty: dashboard.block.difficulty,
 					sizeBytes: dashboard.block.size,
@@ -217,7 +200,7 @@ export default {
 						scriptSigAsm: input.script_hex,
 					}),
 					...(input.spending_sequence != null && {
-						sequence: BigInt(input.spending_sequence),
+						sequence: input.spending_sequence,
 					}),
 					...(input.spending_witness != null && {
 						witness: [
@@ -275,13 +258,36 @@ export default {
 				const stats = (await getBitcoinLikeStats({
 					chain: blockchairChain(entityId),
 				})).data
+				const bestBlockHeight = bigintFromNumber(stats.best_block_height)
+				const blockCount = bigintFromNumber(stats.blocks)
+				const transactionCount = bigintFromNumber(stats.transactions)
+				const mempoolSizeBytes = bigintFromNumber(stats.mempool_size)
+				const averageTransactionFee24hSats = bigintFromNumber(stats.average_transaction_fee_24h)
+				const medianTransactionFee24hSats = bigintFromNumber(stats.median_transaction_fee_24h)
+				const blockchainSizeBytes = bigintFromNumber(stats.blockchain_size)
+				const bestBlockTimeMs = timestampMsFromBlockchairTime(stats.best_block_time)
 				return [
 					{
 						[EntityMetaKey.Id]: {
 							$network: entityId,
-							timestampMs: timestampMsFromBlockchairTime(stats.best_block_time) ?? Date.now(),
+							timestampMs: bestBlockTimeMs ?? Date.now(),
 						},
-						...utxoNetworkTimestampFields(stats),
+						...(bestBlockHeight != null && { bestBlockHeight }),
+						...(stats.best_block_hash != null && { bestBlockHash: stats.best_block_hash }),
+						...(bestBlockTimeMs != null && { bestBlockTimeMs }),
+						...(blockCount != null && { blockCount }),
+						...(transactionCount != null && { transactionCount }),
+						...(stats.blocks_24h != null && { blocks24h: stats.blocks_24h }),
+						...(stats.transactions_24h != null && { transactions24h: stats.transactions_24h }),
+						...(stats.mempool_transactions != null && { mempoolTransactionCount: stats.mempool_transactions }),
+						...(mempoolSizeBytes != null && { mempoolSizeBytes }),
+						...(stats.mempool_tps != null && { mempoolTps: stats.mempool_tps }),
+						...(averageTransactionFee24hSats != null && { averageTransactionFee24hSats }),
+						...(medianTransactionFee24hSats != null && { medianTransactionFee24hSats }),
+						...(stats.suggested_transaction_fee_per_byte_sat != null && {
+							suggestedTransactionFeePerByteSats: stats.suggested_transaction_fee_per_byte_sat,
+						}),
+						...(blockchainSizeBytes != null && { blockchainSizeBytes }),
 					},
 				]
 			},
@@ -381,7 +387,7 @@ export default {
 							scriptSigAsm: input.script_hex,
 						}),
 						...(input.spending_sequence != null && {
-							sequence: BigInt(input.spending_sequence),
+							sequence: input.spending_sequence,
 						}),
 						...(input.spending_witness != null && {
 							witness: [

@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
@@ -27,7 +23,7 @@
 	<EthereumNetworkUpgradesView
 		entityFieldReference={{
 			entityType: EntityType.EvmNetwork,
-			entityId: networkIdFromCaip2RouteParams(params),
+			entityId: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			fieldName: '$$upgrades',
 		}}
 		id="upgrades"

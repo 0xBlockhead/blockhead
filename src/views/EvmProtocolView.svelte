@@ -10,17 +10,15 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/evm',
-			entityId,
-		),
-					open = $bindable(true),
+		href = resolve('/evm'),
+		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
@@ -28,13 +26,10 @@
 			entityId: EntityId<typeof schema, EntityType.EvmProtocol>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const protocol = useEntity(
 		EntityType.EvmProtocol,
@@ -178,106 +173,106 @@
 	})}
 		{@const protocolIdKey = stringify(entityId)}
 		<CollapsibleTabs
-				sectionIdPrefix={protocolIdKey}
-				sections={[
-					{ id: 'topics', label: 'Topics' },
-					{ id: 'selectors', label: 'Selectors' },
-					{ id: 'errors', label: 'Errors' },
-				]}
-				id={`${protocolIdKey}:catalogs`}
-				data-card
-				scrollContainerProps={entityViewDetailCarouselScrollProps}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							EVM catalogs
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			sectionIdPrefix={protocolIdKey}
+			sections={[
+				{ id: 'topics', label: 'Topics' },
+				{ id: 'selectors', label: 'Selectors' },
+				{ id: 'errors', label: 'Errors' },
+			]}
+			id={`${protocolIdKey}:catalogs`}
+			data-card
+			scrollContainerProps={entityViewDetailCarouselScrollProps}
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						EVM catalogs
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionTopics({ id: _topicsId, label: _topicsLabel })}
-					<EvmTopicsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/evm/topics')}
-						entityFieldReference={{
-							entityType: EntityType.EvmProtocol,
-							entityId,
-							fieldName: '$$evmTopics',
-						}}
-						id={`${protocolIdKey}:topics`}
-						open={true}
-					/>
-				{/snippet}
+			{#snippet SectionTopics({ id: _topicsId, label: _topicsLabel })}
+				<EvmTopicsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/evm/topics')}
+					entityFieldReference={{
+						entityType: EntityType.EvmProtocol,
+						entityId,
+						fieldName: '$$evmTopics',
+					}}
+					id={`${protocolIdKey}:topics`}
+					open={true}
+				/>
+			{/snippet}
 
-				{#snippet SectionSelectors({ id: _selectorsId, label: _selectorsLabel })}
-					<EvmSelectorsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/evm/selectors')}
-						entityFieldReference={{
-							entityType: EntityType.EvmProtocol,
-							entityId,
-							fieldName: '$$evmSelectors',
-						}}
-						id={`${protocolIdKey}:selectors`}
-						open={true}
-					/>
-				{/snippet}
+			{#snippet SectionSelectors({ id: _selectorsId, label: _selectorsLabel })}
+				<EvmSelectorsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/evm/selectors')}
+					entityFieldReference={{
+						entityType: EntityType.EvmProtocol,
+						entityId,
+						fieldName: '$$evmSelectors',
+					}}
+					id={`${protocolIdKey}:selectors`}
+					open={true}
+				/>
+			{/snippet}
 
-				{#snippet SectionErrors({ id: _errorsId, label: _errorsLabel })}
-					<EvmErrorsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/evm/errors')}
-						entityFieldReference={{
-							entityType: EntityType.EvmProtocol,
-							entityId,
-							fieldName: '$$evmErrors',
-						}}
-						id={`${protocolIdKey}:errors`}
-						open={true}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionErrors({ id: _errorsId, label: _errorsLabel })}
+				<EvmErrorsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/evm/errors')}
+					entityFieldReference={{
+						entityType: EntityType.EvmProtocol,
+						entityId,
+						fieldName: '$$evmErrors',
+					}}
+					id={`${protocolIdKey}:errors`}
+					open={true}
+				/>
+			{/snippet}
+	</CollapsibleTabs>
 
 		<CollapsibleTabs
-				sectionIdPrefix={protocolIdKey}
-				sections={[
-					{ id: 'decoder', label: 'Decoder' },
-				]}
-				id={`${protocolIdKey}:tools`}
-				data-card
-				scrollContainerProps={entityViewDetailCarouselScrollProps}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
+			sectionIdPrefix={protocolIdKey}
+			sections={[
+				{ id: 'decoder', label: 'Decoder' },
+			]}
+			id={`${protocolIdKey}:tools`}
+			data-card
+			scrollContainerProps={entityViewDetailCarouselScrollProps}
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Tools
+					</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionDecoder({ id: _decoderId, label: _decoderLabel })}
+				<div data-card data-column>
+					<header data-row="wrap align-center gap-2">
 						<HeadingComponent>
-							Tools
+							Calldata decoder
 						</HeadingComponent>
 					</header>
-				{/snippet}
-
-				{#snippet SectionDecoder({ id: _decoderId, label: _decoderLabel })}
-					<div data-card data-column>
-						<header data-row="wrap align-center gap-2">
-							<HeadingComponent>
-								Calldata decoder
-							</HeadingComponent>
-						</header>
-						<p>
-							Paste transaction input or event log hex to resolve selectors and topics via OpenChain, then decode ABI arguments.
-						</p>
-						<a href={resolve('/evm/calldata-decoder')}>
-							Open calldata decoder
-						</a>
-					</div>
-				{/snippet}
-		</CollapsibleTabs>
+					<p>
+						Paste transaction input or event log hex to resolve selectors and topics via OpenChain, then decode ABI arguments.
+					</p>
+					<a href={resolve('/evm/calldata-decoder')}>
+						Open calldata decoder
+					</a>
+				</div>
+			{/snippet}
+	</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -17,10 +18,7 @@
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/youtube',
-			entityId,
-		),
+		href = resolve('/youtube'),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
@@ -38,10 +36,6 @@
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.YouTubeNetwork,
@@ -198,71 +192,71 @@
 	})}
 		{@const networkIdKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-registry`}
-				sectionIdPrefix={networkIdKey}
-				sections={collapsibleTabsSections([
-					{ id: 'channels', label: 'Channels' },
-					{ id: 'videos', label: 'Popular videos' },
-					{ id: 'playlists', label: 'Playlists' },
-				])}
-				data-card
-				scrollContainerProps={entityViewDetailCarouselScrollProps}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Popular index
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-registry`}
+			sectionIdPrefix={networkIdKey}
+			sections={collapsibleTabsSections([
+				{ id: 'channels', label: 'Channels' },
+				{ id: 'videos', label: 'Popular videos' },
+				{ id: 'playlists', label: 'Playlists' },
+			])}
+			data-card
+			scrollContainerProps={entityViewDetailCarouselScrollProps}
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Popular index
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionChannels({ id, label })}
-					<YouTubeChannelsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/youtube/channels')}
-						entityFieldReference={{
-							entityType: EntityType.YouTubeNetwork,
-							entityId,
-							fieldName: '$$youtubeChannels',
-						}}
-						id="channels"
-						open={_open}
-					/>
-				{/snippet}
+			{#snippet SectionChannels({ id, label })}
+				<YouTubeChannelsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/youtube/channels')}
+					entityFieldReference={{
+						entityType: EntityType.YouTubeNetwork,
+						entityId,
+						fieldName: '$$youtubeChannels',
+					}}
+					id="channels"
+					open={_open}
+				/>
+			{/snippet}
 
-				{#snippet SectionVideos({ id, label })}
-					<YouTubeVideosView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/youtube/videos')}
-						entityFieldReference={{
-							entityType: EntityType.YouTubeNetwork,
-							entityId,
-							fieldName: '$$youtubeVideos',
-						}}
-						id="videos"
-						limit={25}
-						open={_open}
-						title="Popular videos"
-					/>
-				{/snippet}
+			{#snippet SectionVideos({ id, label })}
+				<YouTubeVideosView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/youtube/videos')}
+					entityFieldReference={{
+						entityType: EntityType.YouTubeNetwork,
+						entityId,
+						fieldName: '$$youtubeVideos',
+					}}
+					id="videos"
+					limit={25}
+					open={_open}
+					title="Popular videos"
+				/>
+			{/snippet}
 
-				{#snippet SectionPlaylists({ id, label })}
-					<YouTubePlaylistsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/youtube/playlists')}
-						entityFieldReference={{
-							entityType: EntityType.YouTubeNetwork,
-							entityId,
-							fieldName: '$$youtubePlaylists',
-						}}
-						id="playlists"
-						open={_open}
-						title="Playlists"
-					/>
-				{/snippet}
+			{#snippet SectionPlaylists({ id, label })}
+				<YouTubePlaylistsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/youtube/playlists')}
+					entityFieldReference={{
+						entityType: EntityType.YouTubeNetwork,
+						entityId,
+						fieldName: '$$youtubePlaylists',
+					}}
+					id="playlists"
+					open={_open}
+					title="Playlists"
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 
 	{/snippet}

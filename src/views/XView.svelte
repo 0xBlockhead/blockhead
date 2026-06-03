@@ -16,7 +16,6 @@
 		open = $bindable(true),
 	} = $props()
 
-	// State
 	import { stringify } from 'devalue'
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
@@ -54,6 +53,7 @@
 			},
 		},
 	)
+
 
 	// Components
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
@@ -155,88 +155,88 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				sectionIdPrefix={networkIdKey}
-				sections={collapsibleTabsSections([
-					{ id: 'profiles', label: 'Profiles' },
-					{ id: 'recent-posts', label: 'Recent posts' },
-					{ id: 'examples-xNetworks', label: 'Examples' },
-				])}
-				id={`${networkIdKey}:carousel-registry`}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4 align-center"
-					>
-						<HeadingComponent>
-							Directory & examples
-						</HeadingComponent>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									X’s HTTP APIs identify users and posts with opaque string ids; tutorials often embed stable public examples for copy/paste.
-								</p>
-								<p>
-									Search and timeline endpoints require OAuth or app-registered bearer tokens—rate limits and entitlements come from Twitter’s developer program, not from public HTML alone.
-								</p>
-							{/snippet}
-							<abbr
-								class="entity-heading-tip"
-								aria-label="About examples"
-							>ⓘ</abbr>
-						</Tooltip>
-					</header>
-				{/snippet}
+			sectionIdPrefix={networkIdKey}
+			sections={collapsibleTabsSections([
+				{ id: 'profiles', label: 'Profiles' },
+				{ id: 'recent-posts', label: 'Recent posts' },
+				{ id: 'examples-xNetworks', label: 'Examples' },
+			])}
+			id={`${networkIdKey}:carousel-registry`}
+			data-card
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4 align-center"
+				>
+					<HeadingComponent>
+						Directory & examples
+					</HeadingComponent>
+					<Tooltip contentProps={{ side: 'top' }}>
+						{#snippet Content()}
+							<p>
+								X’s HTTP APIs identify users and posts with opaque string ids; tutorials often embed stable public examples for copy/paste.
+							</p>
+							<p>
+								Search and timeline endpoints require OAuth or app-registered bearer tokens—rate limits and entitlements come from Twitter’s developer program, not from public HTML alone.
+							</p>
+						{/snippet}
+						<abbr
+							class="entity-heading-tip"
+							aria-label="About examples"
+						>ⓘ</abbr>
+					</Tooltip>
+				</header>
+			{/snippet}
 
-				{#snippet SectionProfiles({ id, label })}
-					<XUsersView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/x/users')}
-						entityFieldReference={{
-							entityType: EntityType.XNetwork,
-							entityId,
-							fieldName: '$$xUsers',
-						}}
-						id={`${networkIdKey}:users`}
-						open={_open}
-						title="Profiles"
-					/>
-				{/snippet}
+			{#snippet SectionProfiles({ id, label })}
+				<XUsersView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/x/users')}
+					entityFieldReference={{
+						entityType: EntityType.XNetwork,
+						entityId,
+						fieldName: '$$xUsers',
+					}}
+					id={`${networkIdKey}:users`}
+					open={_open}
+					title="Profiles"
+				/>
+			{/snippet}
 
-				{#snippet SectionRecentPosts({ id, label })}
-					<XPostsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/x/posts')}
-						entityFieldReference={{
-							entityType: EntityType.XNetwork,
-							entityId,
-							fieldName: '$$xPosts',
-						}}
-						id={`${networkIdKey}:posts`}
-						open={_open}
-						title="Recent posts"
-					/>
-				{/snippet}
+			{#snippet SectionRecentPosts({ id, label })}
+				<XPostsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/x/posts')}
+					entityFieldReference={{
+						entityType: EntityType.XNetwork,
+						entityId,
+						fieldName: '$$xPosts',
+					}}
+					id={`${networkIdKey}:posts`}
+					open={_open}
+					title="Recent posts"
+				/>
+			{/snippet}
 
-				{#snippet SectionExamplesList({ id, label })}
-					<ul>
-						<li>
-							<a href={resolve('/(social)/x/user/[userId]', {
-								userId: encodeURIComponent(exampleUserId),
-							})}>
-								Example user
-							</a>
-						</li>
-						<li>
-							<a href={resolve('/(social)/x/post/[postId]', {
-								postId: examplePostId,
-							})}>
-								Example post
-							</a>
-						</li>
-					</ul>
-				{/snippet}
+			{#snippet SectionExamplesList({ id, label })}
+				<ul>
+					<li>
+						<a href={resolve('/(social)/(x)/x/user/[userId]', {
+							userId: encodeURIComponent(exampleUserId),
+						})}>
+							Example user
+						</a>
+					</li>
+					<li>
+						<a href={resolve('/(social)/(x)/x/post/[postId]', {
+							postId: examplePostId,
+						})}>
+							Example post
+						</a>
+					</li>
+				</ul>
+			{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

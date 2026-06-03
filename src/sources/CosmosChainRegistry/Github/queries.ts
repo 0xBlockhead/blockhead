@@ -18,7 +18,7 @@ export const getChain = ({ chainName }: { chainName: string }) => (
 			ref,
 			pathInRepo: `${chainName}/chain.json`,
 		}),
-		{ origins: CosmosChainRegistry.origins ?? [] },
+		{ origins: CosmosChainRegistry.origins  },
 	)
 )
 
@@ -30,6 +30,6 @@ export const getAssetList = ({ chainName }: { chainName: string }) => (
 			ref,
 			pathInRepo: `${chainName}/assetlist.json`,
 		}),
-		{ origins: CosmosChainRegistry.origins ?? [] },
+		{ origins: CosmosChainRegistry.origins  },
 	)
 )

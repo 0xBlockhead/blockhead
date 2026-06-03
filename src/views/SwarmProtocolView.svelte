@@ -10,17 +10,15 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/swarm',
-			entityId,
-		),
-					open = $bindable(true),
+		href = resolve('/swarm'),
+		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
@@ -28,13 +26,10 @@
 			entityId: EntityId<typeof schema, EntityType.SwarmProtocol>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const protocol = useEntity(
 		EntityType.SwarmProtocol,
@@ -156,29 +151,29 @@
 	})}
 		{@const protocolIdKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${protocolIdKey}:browse`}
-				sectionIdPrefix={protocolIdKey}
-				sections={[
-					{ id: 'browse', label: 'Browse' },
-				]}
-				data-card
-				scrollContainerProps={entityViewDetailCarouselScrollProps}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Swarm
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${protocolIdKey}:browse`}
+			sectionIdPrefix={protocolIdKey}
+			sections={[
+				{ id: 'browse', label: 'Browse' },
+			]}
+			data-card
+			scrollContainerProps={entityViewDetailCarouselScrollProps}
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Swarm
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionBrowse()}
-					<SwarmBrowseView />
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionBrowse()}
+				<SwarmBrowseView />
+			{/snippet}
+	</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

@@ -32,18 +32,20 @@ const zeroGStorageTimestampFields = async () => {
 			limit: 1,
 		}),
 	])
+	const latestTransaction = transactions.list.at(0)
+	const latestMiner = miners.list.at(0)
 	return {
 		storageLogSyncHeight: summary.logSync.logSyncHeight,
 		storageLayer1LogSyncHeight: summary.logSync['layer1-logSyncHeight'],
 		storageTransactionCount: transactions.total,
-		...(transactions.list[0] != null && {
-			latestDataRoot: transactions.list[0].rootHash,
-			latestDataSizeBytes: BigInt(transactions.list[0].dataSize),
-			latestStorageTxHash: transactions.list[0].txHash,
+		...(latestTransaction != null && {
+			latestDataRoot: latestTransaction.rootHash,
+			latestDataSizeBytes: BigInt(latestTransaction.dataSize),
+			latestStorageTxHash: latestTransaction.txHash,
 		}),
 		storageMinerCount: miners.total,
-		...(miners.list[0] != null && {
-			latestStorageMiner: miners.list[0].miner,
+		...(latestMiner != null && {
+			latestStorageMiner: latestMiner.miner,
 		}),
 		storageFeeTotal: summary.storageFee.storageFeeTotal,
 		storageRewardTotal: summary.minerReward.totalReward,
@@ -148,7 +150,7 @@ export default {
 					limit: 1,
 					rootHash: entityId.dataRoot,
 				})
-				const transaction = transactions.list[0]
+				const transaction = transactions.list.at(0)
 				if (transaction == null) throw new Error(`ZeroGStorageScan_Rest: data root not found ${entityId.dataRoot}`)
 				return {
 					$consensusNetwork: {

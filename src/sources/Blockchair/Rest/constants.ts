@@ -3,26 +3,6 @@ import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
 
 // Types
 
-export type BlockchairChain = (typeof blockchairChains)[number]['chain']
-
-export type BlockchairBitcoinLikeChain = (typeof blockchairBitcoinLikeChains)[number]['chain']
-
-export type BlockchairEthereumLikeChain = (typeof blockchairEthereumLikeChains)[number]['chain']
-
-export type BlockchairBlockInfinitableChain = (typeof blockchairBlockInfinitableChains)[number]['chain']
-
-export type BlockchairTransactionInfinitableChain = (
-	typeof blockchairTransactionInfinitableChains
-)[number]['chain']
-
-export type BlockchairAddressInfinitableChain = (
-	typeof blockchairAddressInfinitableChains
-)[number]['chain']
-
-export type BlockchairRawBlockChain = (typeof blockchairRawBlockChains)[number]['chain']
-
-export type BlockchairRawTransactionChain = (typeof blockchairRawTransactionChains)[number]['chain']
-
 export type BlockchairOrigin = (typeof blockchairOrigins)[number]
 
 

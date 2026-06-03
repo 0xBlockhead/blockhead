@@ -8,13 +8,13 @@ const primalUrl = (path: string) => (
 
 export const primalGet = async <T>(path: string) => (
 	getJson<T>(primalUrl(path), {
-		origins: Primal.origins ?? [],
+		origins: Primal.origins,
 	})
 )
 
 export const primalPost = async <T>(path: string, body: unknown) => (
 	getJson<T>(primalUrl(path), {
-		origins: Primal.origins ?? [],
+		origins: Primal.origins,
 		init: {
 			method: 'POST',
 			headers: {

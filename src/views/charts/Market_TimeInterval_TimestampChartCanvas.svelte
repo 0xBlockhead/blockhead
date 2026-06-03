@@ -4,6 +4,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -35,6 +36,7 @@
 	)
 
 
+	// (Derived)
 	const chartRangeSummary = $derived.by(() => {
 		if (points.length === 0)
 			return null
@@ -51,14 +53,6 @@
 			}
 		)
 	})
-
-	const chartViewportAriaLabel = $derived.by(() => (
-		chartRangeSummary === null ?
-			`${title} candlestick chart (no OHLC points)`
-		:
-			`${title} candlestick chart: ${String(chartRangeSummary.count)} OHLC candles spanning ${new Date(chartRangeSummary.firstMs).toLocaleDateString()}–${new Date(chartRangeSummary.lastMs).toLocaleDateString()}`
-	))
-
 
 	// Components
 	import Tooltip from '$/components/Tooltip.svelte'
@@ -101,14 +95,18 @@
 		data-scroll-container="inline snap-inline"
 		data-sticky-container
 		role="img"
-		aria-label={chartViewportAriaLabel}
+		aria-label={chartRangeSummary === null ?
+			`${title} candlestick chart (no OHLC points)`
+		:
+			`${title} candlestick chart: ${String(chartRangeSummary.count)} OHLC candles spanning ${new Date(chartRangeSummary.firstMs).toLocaleDateString()}–${new Date(chartRangeSummary.lastMs).toLocaleDateString()}`
+		}
 	>
 		<ul
 			class="chart-canvas"
 			data-scroll-item="inline-attached overflow-end"
 			data-marketTimeIntervalTimestamps="unstyled"
 		>
-			{#each points as point (point[EntityMetaKey.IdKey])}
+			{#each points as point (stringify(point[EntityMetaKey.Id]))}
 				{@const open = Number(point.open ?? 0n) / (10 ** priceDecimals)}
 				{@const high = Number(point.high ?? 0n) / (10 ** priceDecimals)}
 				{@const low = Number(point.low ?? 0n) / (10 ** priceDecimals)}

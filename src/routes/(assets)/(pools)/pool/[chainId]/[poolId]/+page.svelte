@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Types/constants
-	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
-
-
 	// State
 	let {
 		params,
@@ -18,7 +14,7 @@
 <Page>
 	<LiquidityPoolView
 		entityId={{
-			$network: networkIdFromEvmChainId(Number(params.chainId)),
+			$network: { caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } },
 			id: params.poolId,
 		}}
 	/>

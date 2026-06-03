@@ -9,7 +9,7 @@ import {
 } from '$/sources/Substrate/JsonRpc/queries.ts'
 
 const polkadotJsonRpc = {
-	origins: Polkadot.origins ?? [],
+	origins: Polkadot.origins,
 	label: 'Polkadot',
 } as const
 

@@ -88,18 +88,6 @@ const transactionKind = ({
 		EvmTransactionKind.ContractCall
 )
 
-const zeroGNetworkTimestampFields = (block: RpcBlockHeader) => ({
-	...(quantityToBigInt(block.number) != null && { headBlockNumber: quantityToBigInt(block.number) }),
-	...(block.hash != null && { headBlockHash: block.hash }),
-	...((timestamp) => (
-		timestamp != null && { headTimestampMs: timestamp * 1000 }
-	))(quantityToNumber(block.timestamp)),
-	...(block.transactions != null && { transactionCount: block.transactions.length }),
-	...(quantityToBigInt(block.gasUsed) != null && { gasUsed: quantityToBigInt(block.gasUsed) }),
-	...(quantityToBigInt(block.gasLimit) != null && { gasLimit: quantityToBigInt(block.gasLimit) }),
-	...(quantityToBigInt(block.baseFeePerGas) != null && { baseFeePerGas: quantityToBigInt(block.baseFeePerGas) }),
-})
-
 export default {
 	source: Source.ZeroGChain_JsonRpc,
 
@@ -253,15 +241,24 @@ export default {
 					txObjects: false,
 				})
 				if (block == null) throw new Error('ZeroGChain_JsonRpc: latest block not found')
+				const headBlockNumber = quantityToBigInt(block.number)
+				const headTimestamp = quantityToNumber(block.timestamp)
+				const gasUsed = quantityToBigInt(block.gasUsed)
+				const gasLimit = quantityToBigInt(block.gasLimit)
+				const baseFeePerGas = quantityToBigInt(block.baseFeePerGas)
 				return [
 					{
 						[EntityMetaKey.Id]: {
 							$network: entityId,
-							timestampMs: ((timestamp) => timestamp == null ? Date.now()
-							:
-								timestamp * 1000)(quantityToNumber(block.timestamp)),
+							timestampMs: headTimestamp == null ? Date.now() : headTimestamp * 1000,
 						},
-						...zeroGNetworkTimestampFields(block),
+						...(headBlockNumber != null && { headBlockNumber }),
+						...(block.hash != null && { headBlockHash: block.hash }),
+						...(headTimestamp != null && { headTimestampMs: headTimestamp * 1000 }),
+						...(block.transactions != null && { transactionCount: block.transactions.length }),
+						...(gasUsed != null && { gasUsed }),
+						...(gasLimit != null && { gasLimit }),
+						...(baseFeePerGas != null && { baseFeePerGas }),
 					},
 				]
 			},

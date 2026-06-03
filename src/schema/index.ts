@@ -67,7 +67,6 @@ import Market_TimestampSchema from '$/schema/Market_Timestamp.ts'
 import MevBuilderSchema from '$/schema/MevBuilder.ts'
 import MevRelaySchema from '$/schema/MevRelay.ts'
 import MevRelay_ProposerPayloadDeliveredSchema from '$/schema/MevRelay_ProposerPayloadDelivered.ts'
-import Eip8004ServiceSchema from '$/schema/Eip8004Service.ts'
 import EnsNameSchema from '$/schema/EnsName.ts'
 import EnsProtocolSchema from '$/schema/EnsProtocol.ts'
 import EnsSearchSchema from '$/schema/EnsSearch.ts'
@@ -86,6 +85,7 @@ import EvmErrorSchema from '$/schema/EvmError.ts'
 import EvmProtocolSchema from '$/schema/EvmProtocol.ts'
 import EvmInternalTransferSchema from '$/schema/EvmInternalTransfer.ts'
 import EvmLogSchema from '$/schema/EvmLog.ts'
+import EvmNftSchema from '$/schema/EvmNft.ts'
 import EvmSelectorSchema from '$/schema/EvmSelector.ts'
 import EvmTopicSchema from '$/schema/EvmTopic.ts'
 import EvmTokenTransferSchema from '$/schema/EvmTokenTransfer.ts'
@@ -372,7 +372,6 @@ export const schema = [
 	MevBuilderSchema,
 	MevRelaySchema,
 	MevRelay_ProposerPayloadDeliveredSchema,
-	Eip8004ServiceSchema,
 	EnsNameSchema,
 	EnsProtocolSchema,
 	EnsSearchSchema,
@@ -391,6 +390,7 @@ export const schema = [
 	EvmProtocolSchema,
 	EvmInternalTransferSchema,
 	EvmLogSchema,
+	EvmNftSchema,
 	EvmSelectorSchema,
 	EvmTopicSchema,
 	EvmTokenTransferSchema,

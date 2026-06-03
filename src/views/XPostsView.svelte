@@ -13,6 +13,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -31,25 +33,12 @@
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'body'
-			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'Empty'
-			| 'HeadingProps'
-			| 'href'
-			| 'layout'
-			| 'panelStyle'
-			| 'placeholderText'
-			| 'showSummary'
-			| 'TypeAnnotationTooltip'
-			| 'UnorderedListProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -110,8 +99,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(row) => stringify(xPost.value[EntityMetaKey.Id])}
-				getSortValue={(row) => xPost.value[EntityMetaKey.Id].id}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => row.value[EntityMetaKey.Id].id}
 				resource={posts}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}

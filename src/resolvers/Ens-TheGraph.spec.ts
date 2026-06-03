@@ -32,7 +32,6 @@ const ensNamesOwnedResolver = ensTheGraphResolvers.entityFieldResolvers.find((
 	resolver,
 ) => (
 	resolver.entityType === EntityType.EvmAccount
-	&& resolver.fieldName === '$$ensNamesOwned'
 ))
 
 const resolverContext = {
@@ -86,12 +85,12 @@ describe('Ens-TheGraph entity resolver', () => {
 		expect(ensNameResolver).toBeDefined()
 		getName.mockResolvedValueOnce([vitalikDomainWire])
 
-		const result = await ensNameResolver!.resolve(
+		const resolvedEntity = await ensNameResolver!.resolve(
 			{ name: 'vitalik.eth' },
 			resolverContext,
 		)
 
-		expect(result).toMatchObject({
+		expect(resolvedEntity).toMatchObject({
 			subgraphId: vitalikDomainWire.id,
 			labelName: 'vitalik',
 			$parent: {
@@ -136,13 +135,13 @@ describe('Ens-TheGraph entity resolver', () => {
 			owner: null,
 		}])
 
-		const result = await ensNameResolver!.resolve(
+		const resolvedEntity = await ensNameResolver!.resolve(
 			{ name: 'vitalik.eth' },
 			resolverContext,
 		)
 
-		expect(result.$subgraphResolvedActor).toBeUndefined()
-		expect(result.$subgraphOwnerActor).toBeUndefined()
+		expect(resolvedEntity.$subgraphResolvedActor).toBeUndefined()
+		expect(resolvedEntity.$subgraphOwnerActor).toBeUndefined()
 	})
 })
 
@@ -160,12 +159,12 @@ describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 			},
 		])
 
-		const result = await ensNamesOwnedResolver!.resolve(
+		const resolvedEntity = await ensNamesOwnedResolver!.resolve(
 			{ address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045' },
 			resolverContext,
 		)
 
-		expect(result).toEqual([
+		expect(resolvedEntity).toEqual([
 			{
 				[EntityMetaKey.Id]: {
 					name: 'owned.eth',

@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Types/constants
-	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
-
-
 	// State
 	let {
 		params,
@@ -18,9 +14,8 @@
 <Page>
 		<EvmTransactionView
 		entityId={{
-			$network: networkIdFromCaip2RouteParams(params),
+			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			txHash: params.transactionId as `0x${string}`,
 		}}
 	/>
 </Page>
-

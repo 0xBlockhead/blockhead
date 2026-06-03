@@ -52,12 +52,11 @@ export default {
 				const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')
 				const coinId = entityId.$market.$base.$coin.coinId
 				const llamaId = (
-					entityId.feedKey?.trim()
+					entityId.feedKey
 					?? defillamaCurrentPriceIdByCoinId[coinId]
 				)
 				if (llamaId == null) throw new Error('Defillama_OpenApi: no price id')
 				const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]
-				if (priceRow == null) throw new Error('Defillama_OpenApi: price missing')
 				const timestampMs = priceRow.timestamp * 1000
 				if (entityId.timestampMs !== timestampMs) {
 					throw new Error('Defillama_OpenApi: Market_Timestamp id does not match price clock')
@@ -65,7 +64,7 @@ export default {
 				return {
 					price: BigInt(Math.round(priceRow.price * 1e8)),
 					transport: 'defillama-usd-1e8',
-					...(llamaId !== undefined && { providerAssetId: llamaId }),
+					providerAssetId: llamaId,
 				}
 			},
 		}),
@@ -258,7 +257,6 @@ export default {
 					throw new Error('Defillama_OpenApi: OHLC coin not mapped')
 				}
 				const llamaId = defillamaCurrentPriceIdByCoinId[coinId]
-				if (llamaId == null) throw new Error('Defillama_OpenApi: OHLC coin not mapped')
 				const lim = resolverLoadSubsetRowLimit(context)
 				const candles = []
 				for (const value of coingeckoOhlcDayWindowLengths) {
@@ -303,7 +301,7 @@ export default {
 				const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')
 				const coinId = entityId.$market.$base.$coin.coinId
 				const llamaId = (
-					entityId.feedKey?.trim()
+					entityId.feedKey
 					?? (
 						entityId.$network != null ?
 							(
@@ -318,13 +316,12 @@ export default {
 				)
 				if (llamaId == null) throw new Error('Defillama_OpenApi: no price id')
 				const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]
-				if (priceRow == null) throw new Error('Defillama_OpenApi: price missing')
 				return [
 					{
 						[EntityMetaKey.Id]: {
 							$market: entityId.$market,
 							timestampMs: priceRow.timestamp * 1000,
-							...(llamaId != null && llamaId !== '' && { feedKey: llamaId }),
+							...(llamaId !== '' && { feedKey: llamaId }),
 						},
 					},
 				]
@@ -333,7 +330,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
@@ -343,7 +340,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,

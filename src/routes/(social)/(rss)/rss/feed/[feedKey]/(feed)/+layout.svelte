@@ -7,7 +7,6 @@
 	// State
 	let { children } = $props()
 
-
 	const feedUrl = $derived(
 		decodeURIComponent(page.params.feedKey ?? '').trim(),
 	)

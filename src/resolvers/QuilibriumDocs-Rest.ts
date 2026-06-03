@@ -37,7 +37,6 @@ export default {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.networkSlug !== 'quilibrium') throw new Error('QuilibriumDocs_Rest: unsupported network')
 				return {
 					docsEndpoints: [
 						...quilibriumDocsEndpoints,
@@ -82,7 +81,6 @@ export default {
 			fieldName: '$protocolDocument',
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.networkSlug !== 'quilibrium') throw new Error('QuilibriumDocs_Rest: unsupported network')
 				return {
 					[EntityMetaKey.Id]: {
 						realm: SpecificationRealm.Quilibrium,

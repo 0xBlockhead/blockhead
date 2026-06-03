@@ -217,10 +217,10 @@
 			const useSearchVisuals = useVisualFilters && hasSearch && hasSearchData
 			const hasNoSearchMatches = useSearchVisuals && (matches?.size ?? 0) === 0
 			const hidden = (
-				(useVisualFilters && getIsHidden ? getIsHidden(row.item)
-				:
-					false)
-				|| hasNoSearchMatches
+				useVisualFilters &&
+					getIsHidden?.(row.item)
+				||
+					hasNoSearchMatches
 			)
 
 			return {
@@ -272,7 +272,7 @@
 					...buildRenderRows(
 						allRows.slice(
 							0,
-							rowLimit,
+							limit ?? (onLoadMorePlaceholders ? 200 : 100),
 						),
 						true,
 					),
@@ -427,7 +427,6 @@
 	}
 
 
-	// State
 	let listEl: HTMLElement | undefined = $state()
 	let virtualMeasureWidth = $state(0)
 	let virtualScrollTop = $state(0)
@@ -460,11 +459,8 @@
 					0
 			})
 	)
-	const searchQueryNormalized = $derived(
-		searchQuery.trim().toLowerCase()
-	)
 	const hasSearch = $derived(
-		!!searchQueryNormalized
+		!!searchQuery.trim()
 	)
 	const hasSearchData = $derived(
 		!hasSearch || sortedItems.every((item) => matchesForItem.has(item))
@@ -494,12 +490,15 @@
 					if (scoreA.minStart !== scoreB.minStart) return scoreA.minStart - scoreB.minStart
 					if (scoreA.spread !== scoreB.spread) return scoreA.spread - scoreB.spread
 					if (getSortValue === undefined) return 0
-					return getSortValue(itemA) < getSortValue(itemB) ?
-						-1
-					: getSortValue(itemA) > getSortValue(itemB) ?
-						1
-					:
-						0
+
+					return (
+						getSortValue(itemA) < getSortValue(itemB) ?
+							-1
+						: getSortValue(itemA) > getSortValue(itemB) ?
+							1
+						:
+							0
+					)
 				})
 			})()
 		:
@@ -508,9 +507,6 @@
 	const rowLimit = $derived(
 		limit ?? (onLoadMorePlaceholders ? 200 : 100)
 	)
-	const summaryTotal = $derived.by(() => (
-		placeholderKeys.size > 0 ? placeholderKeys.size : undefined
-	))
 	const itemKeys = $derived(
 		new Set(sortedItems.map((item) => getKey(item)))
 	)
@@ -534,22 +530,14 @@
 		:
 			sortedItems
 		return baseItems.filter((item) => (
-			getIsHidden ? !getIsHidden(item)
-			:
-				true
+			getIsHidden ? !getIsHidden(item) : true
 		))
 	})
-	const virtualItemKeys = $derived(
-		new Set(virtualItems.map((item) => getKey(item)))
-	)
-	const virtualPlaceholderRows = $derived.by(() => (
-		buildPlaceholderRows(virtualItemKeys)
-	))
 	const virtualRows = $derived.by(() => (
 		buildRows({
 			groupEntries: buildGroupEntries(virtualItems),
 			itemsToRender: virtualItems,
-			placeholderRows: virtualPlaceholderRows,
+			placeholderRows: buildPlaceholderRows((new Set(virtualItems.map((item) => getKey(item))))),
 			includePagination: !!pagination?.hasMore,
 			includePlaceholderSentinel: !!onLoadMorePlaceholders,
 		})
@@ -568,12 +556,6 @@
 	)
 	const renderHasVirtual = $derived(
 		committedRenderState.hasVirtual
-	)
-	const renderIsEmpty = $derived(
-		committedRenderState.empty
-	)
-	const renderManyItems = $derived(
-		committedRenderState.manyItems
 	)
 	const viewTransitionRunner = createSerialViewTransitionRunner()
 	const virtualRange = $derived(
@@ -622,7 +604,7 @@
 	$effect(() => {
 		summary = {
 			loaded: sortedItems.length,
-			total: summaryTotal,
+			total: placeholderKeys.size > 0 ? placeholderKeys.size : undefined,
 		}
 	})
 	$effect(() => {
@@ -823,14 +805,14 @@
 {/snippet}
 
 
-{#if renderIsEmpty && Empty}
+{#if (committedRenderState.empty) && Empty}
 	{@render Empty()}
 {:else}
 	<svelte:element
 		this={listElement}
 		bind:this={listEl}
 		class="list anchor-{scrollPosition.toLowerCase()}"
-		class:many-items={renderManyItems}
+		class:many-items={(committedRenderState.manyItems)}
 		class:virtual={renderHasVirtual}
 		data-row={orientation === ListOrientation.Row ? '' : undefined}
 		data-column={orientation === ListOrientation.Column ? '' : undefined}

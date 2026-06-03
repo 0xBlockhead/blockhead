@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -37,10 +38,6 @@
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const panelTree = useEntity(
 		EntityType.BlockheadPanelTree,
@@ -72,10 +69,6 @@
 		<span>
 			{entityId.id}
 		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

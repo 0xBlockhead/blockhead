@@ -22,7 +22,7 @@ export const getContents = async (): Promise<CosmosAdrsGithubContents> => {
 			pathInRepo: cosmosAdrsGithubRepo.path,
 			ref: cosmosAdrsGithubRepo.ref,
 		}),
-		origins: CosmosAdrs.origins ?? [],
+		origins: CosmosAdrs.origins,
 	})
 	if (!response.ok) await throwHttpError('CosmosAdrs GitHub contents', response)
 	return response.json<CosmosAdrsGithubContents>()
@@ -36,6 +36,6 @@ export const getMarkdownText = ({ number }: { number: number }) => (
 			ref: cosmosAdrsGithubRepo.ref,
 			pathInRepo: `${cosmosAdrsGithubRepo.path}/adr-${number.toString().padStart(3, '0')}.md`,
 		}),
-		origins: CosmosAdrs.origins ?? [],
+		origins: CosmosAdrs.origins,
 	})
 )

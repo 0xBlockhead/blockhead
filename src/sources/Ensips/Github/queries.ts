@@ -28,12 +28,12 @@ export const getProposalMarkdownUrl = ({ number }: { number: number }) => (
 
 export const getContents = (): Promise<EnsipsGithubContents> => getJson({
 	url: getContentsUrl(),
-	origins: Ensips.origins ?? [],
+	origins: Ensips.origins,
 })
 
 export const getProposalMarkdownText = ({ number }: { number: number }) => (
 	getText({
 		url: getProposalMarkdownUrl({ number }),
-		origins: Ensips.origins ?? [],
+		origins: Ensips.origins,
 	})
 )

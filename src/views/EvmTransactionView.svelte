@@ -1,10 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import {
-		caip2RouteParamsFromNetworkId,
-		evmChainIdFromNetworkId,
-	} from '$/lib/caip.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -29,15 +25,13 @@
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
-				transactionId: entityId.txHash,
-			},
-		),
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+			...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
+			transactionId: entityId.txHash,
+		}),
 		title = entityId.txHash,
 		open = $bindable(true),
+		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
@@ -46,6 +40,7 @@
 			/** href override: block-scoped tx URL when listed under `EvmBlock`. */
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -54,8 +49,7 @@
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const evmTransaction = useEntity(
@@ -106,6 +100,7 @@
 	)
 
 
+	// (Derived)
 	const txIdKey = $derived(
 		stringify(entityId),
 	)
@@ -138,8 +133,20 @@
 	{title}
 	idDragPlainText={entityId.txHash}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 >
+	{#snippet Value()}
+		<TruncatedValue
+			value={entityId.transactionId}
+			format={TruncatedValueFormat.Abbr}
+		/>
+	{/snippet}
+
+	{#snippet Title()}
+		Transaction {@render Value()}
+	{/snippet}
+
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Signed execution-layer transaction (legacy or type-2 envelope). From and to are addresses; either may be a contract.
@@ -239,7 +246,7 @@
 							{#if transaction.$contract?.[EntityMetaKey.Id].address !== undefined}
 								<EvmContractView
 									entityId={transaction.$contract[EntityMetaKey.Id]}
-									layout={EntityLayout.SummaryDetails}
+									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
 								/>
@@ -403,153 +410,144 @@
 
 	{#snippet Details()}
 		<CollapsibleTabs
-				sectionIdPrefix={txIdKey}
-				sections={[
-					{ id: 'movements', label: 'Movements' },
-					{ id: 'call', label: 'Call' },
-					{ id: 'events', label: 'Events' },
-					{ id: 'trace', label: 'Trace' },
-					{ id: 'blobs', label: 'Blobs' },
-					{ id: 'user-operations', label: 'User operations' },
-				]}
-				id={`${txIdKey}:carousel-execution`}
-				data-card
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<Heading>Execution</Heading>
-					</header>
-				{/snippet}
+			sectionIdPrefix={txIdKey}
+			sections={[
+				{ id: 'movements', label: 'Movements' },
+				{ id: 'call', label: 'Call' },
+				{ id: 'events', label: 'Events' },
+				{ id: 'trace', label: 'Trace' },
+				{ id: 'blobs', label: 'Blobs' },
+				{ id: 'user-operations', label: 'User operations' },
+			]}
+			id={`${txIdKey}:carousel-execution`}
+			data-card
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<Heading>Execution</Heading>
+				</header>
+			{/snippet}
 
-				{#snippet SectionMovements({ id: _movementsId, label: _movementsLabel })}
-					<EvmAssetMovementsView
-						CollapsibleProps={{ canToggle: false }}
-						{entityId}
-						id={`${txIdKey}:movements`}
-						open={true}
-					/>
-				{/snippet}
+			{#snippet SectionMovements({ id: _movementsId, label: _movementsLabel })}
+				<EvmAssetMovementsView
+					CollapsibleProps={{ canToggle: false }}
+					{entityId}
+					id={`${txIdKey}:movements`}
+					open={true}
+				/>
+			{/snippet}
 
-				{#snippet SectionCall({ id: _callId, label: _callLabel })}
-					<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText="Loading transaction input…"
-					>
-						{#snippet children(transaction)}
-							{#if transaction.input != null}
-								<EvmTransactionInputDecode
-									input={transaction.input}
-									open={true}
-								/>
-							{:else}
-								<p data-text="muted">No calldata on this transaction.</p>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+			{#snippet SectionCall({ id: _callId, label: _callLabel })}
+				<ResourceBoundary
+					resource={evmTransaction}
+					placeholderText="Loading transaction input…"
+				>
+					{#snippet children(transaction)}
+						{#if transaction.input != null}
+							<EvmTransactionInputDecode
+								input={transaction.input}
+								open={true}
+							/>
+						{:else}
+							<p data-text="muted">No calldata on this transaction.</p>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet SectionEvents({ id: _eventsId, label: _eventsLabel })}
-					<EvmLogsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve(
-							'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
-							{
-								...caip2RouteParamsFromNetworkId(entityId.$network),
-								transactionId: entityId.txHash,
-							},
-						)}
-						entityFieldReference={{
-							entityType: EntityType.EvmTransaction,
-							entityId,
-							fieldName: '$$logs',
-						}}
-						collapsible={false}
-						id={`${txIdKey}:events`}
-						open={true}
-						showTypeAnnotation={false}
-						title="Receipt logs"
-					/>
-				{/snippet}
-
-				{#snippet SectionTrace({ id: _traceId, label: _traceLabel })}
-					{@const txTrace = useEntity(
-						EntityType.EvmTransaction,
+			{#snippet SectionEvents({ id: _eventsId, label: _eventsLabel })}
+				<EvmLogsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+						...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
+						transactionId: entityId.txHash,
+					})}
+					entityFieldReference={{
+						entityType: EntityType.EvmTransaction,
 						entityId,
-						{
-							$: [
-								Source.Blockscout_Rest,
-								Source.Voltaire_JsonRpc,
-							],
-							traceRoot: {},
-							traceUnavailable: {},
-						},
-					)}
-					<ResourceBoundary
-						resource={txTrace}
-						placeholderText="Loading call trace…"
-					>
-						{#snippet children(trace)}
-							{#if trace.traceRoot != null}
-								<EvmTraceTreeView
-									traceRoot={trace.traceRoot}
-									chainId={evmChainIdFromNetworkId(entityId.$network)}
-								/>
-							{:else if trace.traceUnavailable}
-								<p data-text="muted">
-									Call trace is not available from the configured RPC or explorer for this chain.
-								</p>
-							{:else}
-								<p data-text="muted">No call trace for this transaction.</p>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+						fieldName: '$$logs',
+					}}
+					collapsible={false}
+					id={`${txIdKey}:events`}
+					open={true}
+					title="Receipt logs"
+				/>
+			{/snippet}
 
-				{#snippet SectionBlobs({ id: _blobsId, label: _blobsLabel })}
-					<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText=""
-					>
-						{#snippet children(transaction)}
-							{#if transaction.envelopeType === EvmTransactionEnvelopeType.Blob}
-								<EvmBlobsView
-									CollapsibleProps={{ canToggle: false }}
-									entityFieldReference={{
-										entityType: EntityType.EvmTransaction,
-										entityId,
-										fieldName: '$$blobs',
-									}}
-									href={resolve(
-										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
-										{
-											...caip2RouteParamsFromNetworkId(entityId.$network),
-											transactionId: entityId.txHash,
-										},
-									)}
-									id={`${txIdKey}:blobs`}
-									open={true}
-									showTypeAnnotation={false}
-									title="Blob sidecars"
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+			{#snippet SectionTrace({ id: _traceId, label: _traceLabel })}
+				{@const txTrace = useEntity(
+					EntityType.EvmTransaction,
+					entityId,
+					{
+						$: [
+							Source.Blockscout_Rest,
+							Source.Voltaire_JsonRpc,
+						],
+						traceRoot: {},
+						traceUnavailable: {},
+					},
+				)}
+				<ResourceBoundary
+					resource={txTrace}
+					placeholderText="Loading call trace…"
+				>
+					{#snippet children(trace)}
+						{#if trace.traceRoot != null}
+							<EvmTraceTreeView
+								traceRoot={trace.traceRoot}
+								chainId={evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)}
+							/>
+						{:else if trace.traceUnavailable}
+							<p data-text="muted">
+								Call trace is not available from the configured RPC or explorer for this chain.
+							</p>
+						{:else}
+							<p data-text="muted">No call trace for this transaction.</p>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet SectionUserOperations({ id: _userOpsId, label: _userOpsLabel })}
-					<EvmUserOperationsView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.EvmTransaction,
-							entityId,
-							fieldName: '$$userOperations',
-						}}
-						id={`${txIdKey}:user-operations`}
-						open={true}
-						showTypeAnnotation={false}
-						title="User operations"
-					/>
-				{/snippet}
+			{#snippet SectionBlobs({ id: _blobsId, label: _blobsLabel })}
+				<ResourceBoundary
+					resource={evmTransaction}
+					placeholderText=""
+				>
+					{#snippet children(transaction)}
+						{#if transaction.envelopeType === EvmTransactionEnvelopeType.Blob}
+							<EvmBlobsView
+								CollapsibleProps={{ canToggle: false }}
+								entityFieldReference={{
+									entityType: EntityType.EvmTransaction,
+									entityId,
+									fieldName: '$$blobs',
+								}}
+								href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+										...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
+										transactionId: entityId.txHash,
+									})}
+								id={`${txIdKey}:blobs`}
+								open={true}
+								title="Blob sidecars"
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionUserOperations({ id: _userOpsId, label: _userOpsLabel })}
+				<EvmUserOperationsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.EvmTransaction,
+						entityId,
+						fieldName: '$$userOperations',
+					}}
+					id={`${txIdKey}:user-operations`}
+					open={true}
+					title="User operations"
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

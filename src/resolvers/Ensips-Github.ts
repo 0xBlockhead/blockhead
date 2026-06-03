@@ -19,11 +19,14 @@ const githubEnsipProposalIndexRows = async (
 	const markdownFiles = data.filter((githubContent) => githubContent.type === 'file' && githubContent.name.endsWith('.md'))
 	const ensips = []
 	for (const markdownFile of markdownFiles) {
-		const proposalNumberRaw = regex('^(?<proposalNumber>\\d+)\\.md$').exec(markdownFile.name)?.groups?.proposalNumber
-		const proposalNumber = proposalNumberRaw != null ? parseInt(proposalNumberRaw, 10)
+		const proposalNumberRaw = regex('^(?<proposalNumber>\\d+)\\.md$').exec(markdownFile.name)?.groups.proposalNumber
+		const proposalNumber = proposalNumberRaw != null ?
+			parseInt(proposalNumberRaw, 10)
 		:
 			null
+
 		if (proposalNumber == null) continue
+
 		ensips.push({
 			[EntityMetaKey.Id]: {
 				realm: SpecificationRealm.Ens,
@@ -54,23 +57,14 @@ export default {
 				const body = stripFrontmatter(text)
 				const fm = parseFrontmatter(text)
 				return {
-					documentCategory: (
-						((docCategory) => (
-							docCategory != null && docCategory !== '' ? docCategory : null
-						))(fm.category?.trim())
-					),
+					documentCategory: fm.category.trim() || undefined,
 					documentTitle: (
-						fm.title?.trim()
+						fm.title.trim()
 						|| body.match(/#\s*(ENSIP-\d+:\s*.+)/)?.[1]?.trim()
-						|| fm.description?.trim()
-						|| null
+						|| fm.description.trim()
 					),
-					documentStatus: (
-						((docStatus) => (
-							docStatus != null && docStatus !== '' ? docStatus : null
-						))(fm.status?.trim())
-					),
-					documentBody: body.length > 0 ? body : null,
+					documentStatus: fm.status.trim() || undefined,
+					documentBody: body.length > 0 ? body : undefined,
 				}
 			},
 		}),

@@ -2,6 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,6 +11,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -27,35 +30,15 @@
 			id?: string
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'body'
-			| 'collapsible'
-			| 'CollapsibleProps'
-			| 'Empty'
-			| 'getKey'
-			| 'getSortValue'
-			| 'HeadingProps'
-			| 'Item'
-			| 'ItemPlaceholder'
-			| 'items'
-			| 'layout'
-			| 'limit'
-			| 'panelStyle'
-			| 'placeholderKeys'
-			| 'placeholderText'
-			| 'resource'
-			| 'showSummary'
-			| 'TypeAnnotationTooltip'
-			| 'UnorderedListProps',
 			| 'href'
+			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -101,12 +84,16 @@
 			)}
 			{@const connections = derive(
 				global,
-				(global) => (
-					(global['$$blockheadFarcasterAccountConnections'] ?? [])
-						.map((result) => ({
+					(global) => {
+						const connections: Entity<typeof schema, EntityType.BlockheadFarcasterAccountConnection>[] = (
+							global.$$blockheadFarcasterAccountConnections ?? []
+						)
+						return (
+							connections.map((result) => ({
 							result,
 						}))
-				),
+						)
+					},
 			)}
 			<EntitiesList
 				collapsible={false}
@@ -115,8 +102,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(row) => blockheadFarcasterAccountConnection.result[EntityMetaKey.Id].fid}
-				getSortValue={(row) => blockheadFarcasterAccountConnection.result[EntityMetaKey.Id].fid}
+				getKey={(row) => row.result[EntityMetaKey.Id].fid}
+				getSortValue={(row) => row.result[EntityMetaKey.Id].fid}
 				placeholderText="Loading connected Farcaster accounts…"
 				resource={connections}
 			>

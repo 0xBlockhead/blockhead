@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -17,8 +18,8 @@
 	let {
 		entityId,
 		href = resolve(
-			'/(explore)/(evm)/evm/(calldata)/calldata/[calldataId]',
-			{ calldataId: entityId.id },
+		'/(explore)/(evm)/evm/(calldata)/calldata/[hex]',
+		{ hex: entityId.hex },
 		),
 		title = 'Calldata',
 		open = $bindable(true),
@@ -32,10 +33,6 @@
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const calldata = useEntity(
 		EntityType.EvmCalldata,
@@ -73,7 +70,9 @@
 	{/snippet}
 
 	{#snippet Title()}
+		{#if Value}
 		{@render Value()}
+			{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

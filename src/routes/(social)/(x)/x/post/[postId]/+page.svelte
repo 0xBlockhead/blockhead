@@ -5,11 +5,6 @@
 	} = $props()
 
 
-	const entityId = $derived(
-		{ id: decodeURIComponent(params.postId) },
-	)
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import XPostView from '$/views/XPostView.svelte'
@@ -18,7 +13,7 @@
 
 <Page>
 	<XPostView
-		{entityId}
+		entityId={{ id: decodeURIComponent(params.postId) }}
 	>
 	</XPostView>
 </Page>

@@ -58,7 +58,7 @@ export const bridgeRouteStepMechanicsFromToolKey = (
 export const lifiToolKeyFromQuoteStep = (
 	step: LifiQuoteStepLike,
 ) => (
-	step.tool?.trim()
+	step.tool.trim()
 	|| step.toolDetails?.key?.trim()
 	|| ''
 )

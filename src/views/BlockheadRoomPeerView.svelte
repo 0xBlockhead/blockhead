@@ -1,8 +1,9 @@
-<script lang="ts">
+	<script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+		import type { ComponentProps, Snippet } from 'svelte'
+		import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+		import { EntityType } from '$/schema/$EntityType.ts'
+		import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -10,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -32,6 +34,7 @@
 			href?: string
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -39,10 +42,7 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
+	
 	const peer = useEntity(
 		EntityType.BlockheadRoomPeer,
 		entityId,
@@ -123,42 +123,36 @@
 				</dd>
 			</div>
 
-			{#if (
-				open
-				&& peer.peerId !== undefined && peer.peerId !== ''
-			)}
-				<div>
-					<dt>libp2p peer ID</dt>
-					<dd>
-						<ResourceBoundary resource={peer}>
-							{#snippet children(peer)}
-								{peer.peerId}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+			{#if open}
+
+				<ResourceBoundary resource={peer}>
+					{#snippet children(peer)}
+						{#if peer.peerId !== undefined && peer.peerId !== ''}
+							<div>
+								<dt>libp2p peer ID</dt>
+								<dd>
+									{peer.peerId}
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 
-			{#if (
-				open
-				&& peer.$room?.id != null && peer.$room.id !== ''
-			)}
-				<div>
-					<dt>Room session</dt>
-					<dd>
-						<ResourceBoundary resource={peer}>
-							{#snippet children(peer)}
-								{peer.$room.id}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+			{#if open}
+				<ResourceBoundary resource={peer}>
+					{#snippet children(peer)}
+						{#if peer.$room?.id != null && peer.$room.id !== ''}
+							<div>
+								<dt>Room session</dt>
+								<dd>
+									{peer.$room[EntityMetaKey.Id].id}
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
 	{/snippet}
 </EntityView>

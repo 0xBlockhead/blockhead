@@ -1,11 +1,10 @@
 <script lang="ts">
 	// Context
 	import { resolve } from '$app/paths'
-	import { page } from '$app/state'
 
 
 	// State
-	let { children } = $props()
+	let { children, params } = $props()
 
 
 	// Components
@@ -16,12 +15,12 @@
 
 
 <ParentPageCollapsible
-	href={resolve(`/farcaster/channel/${page.params.channelId}`)}
-	id={page.params.channelId}
+	href={resolve(`/farcaster/channel/${params.channelId}`)}
+	id={params.channelId}
 >
 	{#snippet Summary({ open: _open })}
 		<FarcasterChannelView
-			entityId={{ id: page.params.channelId }}
+			entityId={{ id: params.channelId }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

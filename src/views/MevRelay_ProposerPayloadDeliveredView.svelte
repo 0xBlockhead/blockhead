@@ -1,13 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import {
-		caip2RouteParamsFromNetworkId,
-		evmChainIdFromNetworkId,
-	} from '$/lib/caip.ts'
-
-
-	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -18,16 +11,11 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
-
-
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
-		href = resolve(
-		'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-		{ ...caip2RouteParamsFromNetworkId(entityId.$network) },
-	),
+		href = `/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`,
 		layout,
 		open = $bindable(true),
 		collapsible = true,
@@ -38,16 +26,13 @@
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'href'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const mevRelayProposerPayloadDelivered = useEntity(
 		EntityType.MevRelay_ProposerPayloadDelivered,
@@ -64,6 +49,7 @@
 	)
 
 
+	// (Derived)
 	const payloadIdKey = $derived(
 		stringify(entityId),
 	)
@@ -98,7 +84,9 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<span>
+			{entityId.slot}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -111,102 +99,88 @@
 	{/snippet}
 
 	{#snippet Content({})}
-		<dl data-column-item="center">
-			{#if mevRelayProposerPayloadDelivered.value !== undefined}
-				<div>
-					<dt>Value</dt>
-					<dd>
-						<ResourceBoundary
-							placeholderText="Loading builder bid…"
-							resource={mevRelayProposerPayloadDelivered}
-						>
-							{#snippet children(mevRelayProposerPayloadDelivered)}
+		<ResourceBoundary
+			placeholderText="Loading builder bid…"
+			resource={mevRelayProposerPayloadDelivered}
+		>
+			{#snippet children(mevRelayProposerPayloadDelivered)}
+				<dl data-column-item="center">
+					{#if mevRelayProposerPayloadDelivered.value !== undefined}
+						<div>
+							<dt>Value</dt>
+							<dd>
 								<NumberValue value={mevRelayProposerPayloadDelivered.value} />
 								wei
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if mevRelayProposerPayloadDelivered.builderPubkey !== undefined}
-				<div>
-					<dt>Builder pubkey</dt>
-					<dd>
-						<ResourceBoundary
-							placeholderText="Loading builder bid…"
-							resource={mevRelayProposerPayloadDelivered}
-						>
-							{#snippet children(mevRelayProposerPayloadDelivered)}
+					{#if mevRelayProposerPayloadDelivered.builderPubkey !== undefined}
+						<div>
+							<dt>Builder pubkey</dt>
+							<dd>
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
 									startLength={10}
 									endLength={8}
 									value={mevRelayProposerPayloadDelivered.builderPubkey}
 								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				mevRelayProposerPayloadDelivered.value === undefined
-				&& mevRelayProposerPayloadDelivered.builderPubkey === undefined
-			)}
-				<div>
-					<dt>Builder bid</dt>
-					<dd>
-						<ResourceBoundary
-							placeholderText="Loading builder bid…"
-							resource={mevRelayProposerPayloadDelivered}
-						>
-							{#snippet children()}
+					{#if (
+						mevRelayProposerPayloadDelivered.value === undefined
+						&& mevRelayProposerPayloadDelivered.builderPubkey === undefined
+					)}
+						<div>
+							<dt>Builder bid</dt>
+							<dd>
 								<p data-text="muted">
 									No bid / builder pubkey fields yet.
 								</p>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({ open })}
 		<CollapsibleTabs
-				id={`${payloadIdKey}:carousel-payload`}
-				sectionIdPrefix={payloadIdKey}
-				sections={[
-					{ id: 'mev-included-block', label: 'Block' },
+			id={`${payloadIdKey}:carousel-payload`}
+			sectionIdPrefix={payloadIdKey}
+			sections={[
+				{ id: 'mev-included-block', label: 'Block' },
 				] as const}
 				data-card
-			>
+				>
 				{#snippet Summary({
-					open: _isOpen,
+				open: _isOpen,
 				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<Heading>
-							Block
-						</Heading>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									The execution block ties the winning relay bid to a specific EL block header the builder committed for that validator duty.
-								</p>
-								<p>
-									When the trace omits that linkage, only bid-side fields (value, builder identity) are available until matched out of band.
-								</p>
-							{/snippet}
-							<abbr
-								class="entity-heading-tip"
-								aria-label="Execution block notes"
-							>ⓘ</abbr>
-						</Tooltip>
-					</header>
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<Heading>
+						Block
+					</Heading>
+					<Tooltip contentProps={{ side: 'top' }}>
+						{#snippet Content()}
+							<p>
+								The execution block ties the winning relay bid to a specific EL block header the builder committed for that validator duty.
+							</p>
+							<p>
+								When the trace omits that linkage, only bid-side fields (value, builder identity) are available until matched out of band.
+							</p>
+						{/snippet}
+						<abbr
+							class="entity-heading-tip"
+							aria-label="Execution block notes"
+						>ⓘ</abbr>
+					</Tooltip>
+				</header>
 				{/snippet}
 
 				{#snippet SectionMevIncludedBlock()}
@@ -220,29 +194,30 @@
 								&& mevRelayProposerPayloadDelivered.$executionBlock !== undefined
 							)}
 								<EvmBlockView
-								entityId={mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id]}
-								id={`${String(evmChainIdFromNetworkId(entityId.$network))}:${String(mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id].blockNumber)}:mev-exec-block`}
-								layout={EntityLayout.Summary}
+									entityId={mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id]}
+									layout={EntityLayout.Summary}
 								/>
 							{:else if open}
 								<div data-row="wrap align-center gap-2">
-								<mevRelayProposerPayloadDelivered data-text="muted">
-								No execution block linked yet.
-								</mevRelayProposerPayloadDelivered>
-								<Tooltip contentProps={{ side: 'top' }}>
-								{#snippet Content()}
-								<mevRelayProposerPayloadDelivered>Resolving the included EL header for a proposer-delivered (MEV-Boost) payload can lag until the relay or indexers tie bid metadata to an execution block.</mevRelayProposerPayloadDelivered>
-								{/snippet}
-								<abbr
-								class="entity-heading-tip"
-								aria-label="Execution block resolution"
-								>ⓘ</abbr>
-								</Tooltip>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+									<p data-text="muted">
+										No execution block linked yet.
+									</p>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Resolving the included EL header for a proposer-delivered (MEV-Boost) payload can lag until the relay or indexers tie bid metadata to an execution block.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Execution block resolution"
+										>ⓘ</abbr>
+									</Tooltip>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 		</CollapsibleTabs>
 
 	{/snippet}

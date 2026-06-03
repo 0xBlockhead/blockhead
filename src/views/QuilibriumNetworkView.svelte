@@ -9,6 +9,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -21,10 +23,6 @@
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.Network,
@@ -60,6 +58,8 @@
 		},
 	)
 
+
+	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -204,13 +204,13 @@
 			{/snippet}
 
 			{#snippet SectionQuilibriumConsensus()}
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						{#if network.$$consensusMechanisms.length > 0}
-							<p><strong>Consensus mechanisms:</strong> {network.$$consensusMechanisms.length}</p>
-						{:else}
-							<p data-text="muted">No consensus mechanisms mapped for this network yet.</p>
-						{/if}
+					<ResourceBoundary resource={network}>
+						{#snippet children(network)}
+							{#if (network.$$consensusMechanisms?.length ?? 0) > 0}
+								<p><strong>Consensus mechanisms:</strong> {network.$$consensusMechanisms?.length ?? 0}</p>
+							{:else}
+								<p data-text="muted">No consensus mechanisms mapped for this network yet.</p>
+							{/if}
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
@@ -225,16 +225,16 @@
 			data-card
 			class="network-view-collapsible-assets"
 			scrollContainerProps={{ 'data-row': 'start align-start' }}
-		>
-			{#snippet Summary()}
+				>
+				{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Assets</HeadingComponent>
 				</header>
-			{/snippet}
+				{/snippet}
 
-			{#snippet SectionQuilibriumAssetsNative({ id, label }: { id: string, label: string })}
+				{#snippet SectionQuilibriumAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
-					CollapsibleProps={{ canToggle: false }}
+			CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
 						entityId,
@@ -278,7 +278,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -297,7 +296,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>

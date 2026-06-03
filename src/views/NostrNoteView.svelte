@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -18,7 +19,7 @@
 	// State
 	let {
 		entityId,
-		href = resolve('/nostr/note/[eventId]', {
+		href = resolve('/(social)/(nostr)/nostr/note/[eventId]', {
 			eventId: entityId.eventId,
 		}),
 		open = $bindable(
@@ -31,6 +32,7 @@
 			entityId: EntityId<typeof schema, EntityType.NostrNote>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -38,10 +40,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const note = useEntity(
 		EntityType.NostrNote,
@@ -122,7 +120,9 @@
 						value={note.content}
 					/>
 				{:else}
+					{#if Value}
 					{@render Value()}
+				{/if}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -155,48 +155,48 @@
 
 	{#snippet Content({})}
 		<dl data-column-item="center">
-			{#if (
-				open
-				&& note.$author
-			)}
-				<div>
-					<dt>Author</dt>
-					<dd>
+			{#if open}
 						<ResourceBoundary
 							resource={note}
 							placeholderText="Loading note…"
 						>
 							{#snippet children(note)}
+						{#if note.$author}
+				<div>
+					<dt>Author</dt>
+					<dd>
 								<NostrProfileView
 									entityId={note.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 
-			{#if open && (note.$replyToNote || note.replyToEventId)}
-				<div>
-					<dt>Reply to</dt>
-					<dd>
+			{#if open}
 						<ResourceBoundary
 							resource={note}
 							placeholderText="Loading note…"
 						>
 							{#snippet children(note)}
+						{#if note.$replyToNote || note.replyToEventId}
+				<div>
+					<dt>Reply to</dt>
+					<dd>
 								{#if note.$replyToNote}
-									<NostrNoteView
+										<svelte:self
 										entityId={note.$replyToNote[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
-										open={false}
+											open={false}
 									/>
 								{:else if note.replyToEventId}
 									<a
 										data-link
-										href={resolve('/nostr/note/[eventId]', {
+										href={resolve('/(social)/(nostr)/nostr/note/[eventId]', {
 											eventId: note.replyToEventId,
 										})}
 									>
@@ -208,42 +208,44 @@
 										/>
 									</a>
 								{/if}
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 
-			{#if (
-				open
-				&& note.rootEventId
-				&& note.rootEventId !== note.replyToEventId
-			)}
-				<div>
-					<dt>Thread root</dt>
-					<dd>
-						<ResourceBoundary
-							resource={note}
-							placeholderText="Loading note…"
-						>
-							{#snippet children(note)}
-								<a
-									data-link
-									href={resolve('/nostr/note/[eventId]', {
-										eventId: note.rootEventId,
-									})}
-								>
-									<TruncatedValue
-										endLength={12}
-										format={TruncatedValueFormat.Visual}
-										startLength={20}
-										value={note.rootEventId}
-									/>
-								</a>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+			{#if open}
+				<ResourceBoundary
+					resource={note}
+					placeholderText="Loading note…"
+				>
+					{#snippet children(note)}
+						{#if (
+							note.rootEventId
+							&& note.rootEventId !== note.replyToEventId
+						)}
+							<div>
+								<dt>Thread root</dt>
+								<dd>
+									<a
+										data-link
+										href={resolve('/(social)/(nostr)/nostr/note/[eventId]', {
+											eventId: note.rootEventId,
+										})}
+									>
+										<TruncatedValue
+											endLength={12}
+											format={TruncatedValueFormat.Visual}
+											startLength={20}
+											value={note.rootEventId}
+										/>
+									</a>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 		</dl>
 	{/snippet}
@@ -253,87 +255,87 @@
 	})}
 		{@const idKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-note`}
-				sectionIdPrefix={idKey}
-				sections={collapsibleTabsSections([
-					{ id: 'content', label: 'Note text' },
-					{ id: 'replies', label: 'Reply thread' },
-					{ id: 'reactions', label: 'Reactions' },
-				])}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Note thread
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${idKey}:carousel-note`}
+			sectionIdPrefix={idKey}
+			sections={collapsibleTabsSections([
+				{ id: 'content', label: 'Note text' },
+				{ id: 'replies', label: 'Reply thread' },
+				{ id: 'reactions', label: 'Reactions' },
+			])}
+			data-card
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Note thread
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionContent()}
-					<ResourceBoundary
-						resource={note}
-						placeholderText="Loading note…"
-					>
-						{#snippet children(note)}
-							{#if note.content}
-								<p>{note.content}</p>
-							{:else}
-								<div data-row="wrap align-center gap-2">
-									<p data-text="muted">
-										No text yet.
-									</p>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
-											<p>
-												Note body resolves when NostrBand or Primal returns the signed kind-1 event—not from a WebSocket relay subscription.
-											</p>
-										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="Note content"
-										>ⓘ</abbr>
-									</Tooltip>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+			{#snippet SectionContent()}
+				<ResourceBoundary
+					resource={note}
+					placeholderText="Loading note…"
+				>
+					{#snippet children(note)}
+						{#if note.content}
+							<p>{note.content}</p>
+						{:else}
+							<div data-row="wrap align-center gap-2">
+								<p data-text="muted">
+									No text yet.
+								</p>
+								<Tooltip contentProps={{ side: 'top' }}>
+									{#snippet Content()}
+										<p>
+											Note body resolves when NostrBand or Primal returns the signed kind-1 event—not from a WebSocket relay subscription.
+										</p>
+									{/snippet}
+									<abbr
+										class="entity-heading-tip"
+										aria-label="Note content"
+									>ⓘ</abbr>
+								</Tooltip>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet SectionReplies()}
-					<NostrNotesView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve(
-			'/(social)/(nostr)/nostr/note/[eventId]/(note)/replies',
-			{ eventId: entityId.eventId },
-		)}
-						entityFieldReference={{
-							entityType: EntityType.NostrNote,
-							entityId,
-							fieldName: '$$replies',
-						}}
-						id={`${idKey}:replies`}
-						open={true}
-						title="Reply thread"
-					/>
-				{/snippet}
+			{#snippet SectionReplies()}
+				<NostrNotesView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve(
+						'/(social)/(nostr)/nostr/note/[eventId]/(note)/replies',
+						{ eventId: entityId.eventId },
+					)}
+					entityFieldReference={{
+						entityType: EntityType.NostrNote,
+						entityId,
+						fieldName: '$$replies',
+					}}
+					id={`${idKey}:replies`}
+					open={true}
+					title="Reply thread"
+				/>
+			{/snippet}
 
-				{#snippet SectionReactions()}
-					<NostrReactionsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/nostr/reactions')}
-						entityFieldReference={{
-							entityType: EntityType.NostrNote,
-							entityId,
-							fieldName: '$$reactions',
-						}}
-						id={`${idKey}:reactions`}
-						open={true}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionReactions()}
+				<NostrReactionsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/nostr/reactions')}
+					entityFieldReference={{
+						entityType: EntityType.NostrNote,
+						entityId,
+						fieldName: '$$reactions',
+					}}
+					id={`${idKey}:reactions`}
+					open={true}
+				/>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

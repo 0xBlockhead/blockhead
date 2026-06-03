@@ -2,6 +2,7 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import { evmAbiFromJsonValue } from '$/lib/evmAbi.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -23,12 +24,12 @@ const sourcifyFirstStorageLayoutRecord = (
 			}
 			return undefined
 		}
-		const record = node as Record<string, unknown>
-		const direct = record.storageLayout
+		const metadataNode = node as Record<string, unknown>
+		const direct = metadataNode.storageLayout
 		if (direct !== null && typeof direct === 'object' && !Array.isArray(direct)) {
 			return direct as Record<string, unknown>
 		}
-		for (const child of Object.values(record)) {
+		for (const child of Object.values(metadataNode)) {
 			const found = walk(child)
 			if (found !== undefined) return found
 		}
@@ -55,76 +56,13 @@ const sourcifySourceFilesFromLookup = (
 	Object.fromEntries(
 		Object.entries(wire.sources ?? wire.metadata?.sources ?? {})
 			.flatMap(([path, source]) => (
-				source?.content != null && source.content.length > 0 ?
+				source.content != null && source.content.length > 0 ?
 					[[path, source.content]]
 				:
 					[]
 			)),
 	)
 )
-
-const sourcifyCompilationFieldsFromLookup = (
-	wire: SourcifyContractLookup,
-) => {
-	const compiler = (
-		wire.metadata?.compiler?.version
-		?? wire.compilation?.compilerVersion
-		?? wire.compilation?.compiler
-	)
-	const language = wire.metadata?.language ?? wire.compilation?.language
-	const name = wire.compilation?.name
-	const fullyQualifiedName = (
-		wire.metadata?.fullyQualifiedName
-		?? wire.compilation?.fullyQualifiedName
-	)
-	const compilerSettingsJson = (
-		wire.compilation?.compilerSettings != null ?
-			JSON.stringify(wire.compilation.compilerSettings)
-		:
-			undefined
-	)
-	const storageLayoutJson = sourcifyStorageLayoutJsonFromLookup(wire)
-	return {
-		...(language != null && language !== '' && { language }),
-		...(compiler != null && compiler !== '' && { compiler }),
-		...(wire.compilation?.compilerVersion != null
-			&& wire.compilation.compilerVersion !== ''
-			&& { compilerVersion: wire.compilation.compilerVersion }),
-		...(name != null && name !== '' && { name }),
-		...(fullyQualifiedName != null && fullyQualifiedName !== '' && { fullyQualifiedName }),
-		...(compilerSettingsJson != null && { compilerSettingsJson }),
-		...(storageLayoutJson != null && { storageLayoutJson }),
-	}
-}
-
-const sourcifyVerificationFieldsFromLookup = (
-	wire: SourcifyContractLookup,
-	entityId: {
-		$network: { caip2: { namespace: 'eip155', reference: string } }
-		address: `0x${string}`
-	},
-) => ({
-	...(wire.match != null && wire.match !== '' && { match: wire.match }),
-	...(wire.creationMatch != null
-		&& wire.creationMatch !== ''
-		&& { creationMatch: wire.creationMatch }),
-	...(wire.runtimeMatch != null
-		&& wire.runtimeMatch !== ''
-		&& { runtimeMatch: wire.runtimeMatch }),
-	...(wire.verifiedAt != null && wire.verifiedAt !== '' && ((parsed) => (
-		Number.isFinite(parsed) && parsed >= 0 ?
-			{ verifiedAtMs: parsed }
-		:
-			{}
-	))(Date.parse(wire.verifiedAt))),
-	...(wire.matchId != null && wire.matchId !== '' && { matchId: String(wire.matchId) }),
-	$compilation: {
-		[EntityMetaKey.Id]: entityId,
-	},
-	$sourceBundle: {
-		[EntityMetaKey.Id]: entityId,
-	},
-})
 
 const getSourcifyContractLookupForEntityId = async (entityId: {
 	$network: { caip2: { namespace: 'eip155', reference: string } }
@@ -146,7 +84,28 @@ export default {
 			resolve: async (entityId) => {
 				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
 				if (contractLookup == null) throw new Error('Sourcify_Rest: contract not verified')
-				return sourcifyVerificationFieldsFromLookup(contractLookup, entityId)
+				return {
+					...(contractLookup.match != null && contractLookup.match !== '' && { match: contractLookup.match }),
+					...(contractLookup.creationMatch != null
+						&& contractLookup.creationMatch !== ''
+						&& { creationMatch: contractLookup.creationMatch }),
+					...(contractLookup.runtimeMatch != null
+						&& contractLookup.runtimeMatch !== ''
+						&& { runtimeMatch: contractLookup.runtimeMatch }),
+					...((verifiedAtMs) => (
+						Number.isFinite(verifiedAtMs) && verifiedAtMs >= 0 ?
+							{ verifiedAtMs }
+						:
+							{}
+					))(Date.parse(contractLookup.verifiedAt ?? '')),
+					...(contractLookup.matchId != null && contractLookup.matchId !== '' && { matchId: String(contractLookup.matchId) }),
+					$compilation: {
+						[EntityMetaKey.Id]: entityId,
+					},
+					$sourceBundle: {
+						[EntityMetaKey.Id]: entityId,
+					},
+				}
 			},
 		}),
 
@@ -155,7 +114,36 @@ export default {
 			resolve: async (entityId) => {
 				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
 				if (contractLookup == null) throw new Error('Sourcify_Rest: compilation not verified')
-				return sourcifyCompilationFieldsFromLookup(contractLookup)
+				const language = contractLookup.metadata?.language ?? contractLookup.compilation?.language
+				const compiler = (
+					contractLookup.metadata?.compiler?.version
+					?? contractLookup.compilation?.compilerVersion
+					?? contractLookup.compilation?.compiler
+				)
+				const fullyQualifiedName = (
+					contractLookup.metadata?.fullyQualifiedName
+					?? contractLookup.compilation?.fullyQualifiedName
+				)
+				return {
+					...(language != null && language !== '' && { language }),
+					...(compiler != null && compiler !== '' && { compiler }),
+					...(contractLookup.compilation?.compilerVersion != null
+						&& contractLookup.compilation.compilerVersion !== ''
+						&& { compilerVersion: contractLookup.compilation.compilerVersion }),
+					...(contractLookup.compilation?.name != null
+						&& contractLookup.compilation.name !== ''
+						&& { name: contractLookup.compilation.name }),
+					...(fullyQualifiedName != null && fullyQualifiedName !== '' && { fullyQualifiedName }),
+					...(contractLookup.compilation?.compilerSettings != null && {
+						compilerSettingsJson: JSON.stringify(contractLookup.compilation.compilerSettings),
+					}),
+					...((storageLayoutJson) => (
+						storageLayoutJson != null ?
+							{ storageLayoutJson }
+						:
+							{}
+					))(sourcifyStorageLayoutJsonFromLookup(contractLookup)),
+				}
 			},
 		}),
 
@@ -180,7 +168,7 @@ export default {
 				if (contractLookup == null) return undefined
 				return (
 					Array.isArray(contractLookup.abi) ?
-						JSON.stringify(contractLookup.abi)
+						evmAbiFromJsonValue(contractLookup.abi)
 					:
 						undefined
 				)

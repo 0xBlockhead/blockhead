@@ -5,6 +5,6 @@ import type { BcmrRegistry } from '$/sources/BitcoinCashBcmr/Github/types.ts'
 export const getRegistry = ({ url }: { url: string }) => (
 	getJson<BcmrRegistry>(
 		url,
-		{ origins: BitcoinCashBcmr.origins ?? [] },
+		{ origins: BitcoinCashBcmr.origins  },
 	)
 )

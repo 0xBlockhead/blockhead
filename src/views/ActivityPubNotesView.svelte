@@ -11,6 +11,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		id,
@@ -22,6 +24,7 @@
 		entityFieldReference,
 		fieldOpen = true,
 		CollapsibleProps = {},
+		href,
 	}: {
 		id: string
 		limit?: number
@@ -32,11 +35,9 @@
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActivityPubNote>
 		fieldOpen?: boolean
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
+		href?: ComponentProps<typeof EntitiesList>['href']
 	} = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -54,6 +55,7 @@
 	{id}
 	bind:open
 	{title}
+	{href}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -100,8 +102,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(activityPubNote[EntityMetaKey.Id])}
-					getSortValue={(row) => (
+					getKey={(activityPubNote) => stringify(activityPubNote[EntityMetaKey.Id])}
+					getSortValue={(activityPubNote) => (
 						orderByCreatedAt === 'asc' ?
 							Number(activityPubNote[EntityMetaKey.Id].localStatusId) || 0
 						:
@@ -114,7 +116,6 @@
 							'Facet idle—no timeline request.'
 					)}
 					resource={notes}
-					UnorderedListProps={{ limit }}
 				>
 					{#snippet Empty()}
 						<p data-text="muted">

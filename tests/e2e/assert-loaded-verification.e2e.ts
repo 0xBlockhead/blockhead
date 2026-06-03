@@ -100,8 +100,8 @@ test.describe('assertLoaded verification', () => {
 		for (const c of cases) {
 			expect(typeof c.key === 'string' && c.key.length > 0).toBe(true)
 			expect(assertLoadedResolverProbeCategories.includes(c.category)).toBe(true)
-			expect(c.resolveRejected === true || c.resolveRejected === false).toBe(true)
-			expect(c.assertThrew === true || c.assertThrew === false).toBe(true)
+			expect(typeof c.resolveRejected).toBe('boolean')
+			expect(typeof c.assertThrew).toBe('boolean')
 			if (c.resolveRejected) {
 				expect(typeof c.resolveError === 'string' && c.resolveError.length > 0).toBe(true)
 			}

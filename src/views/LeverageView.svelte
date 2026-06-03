@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -10,13 +10,14 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve('/position/[positionId]', {
+		href = resolve('/(assets)/(leverage)/position/[positionId]', {
 			positionId: entityId.id,
 		}),
 		open = $bindable(true),
@@ -29,10 +30,6 @@
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const leverage = useEntity(
 		EntityType.Leverage,
@@ -57,7 +54,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -82,7 +78,9 @@
 
 	{#snippet Title()}
 		<span data-text="muted">
+			{#if Value}
 			{@render Value()}
+			{/if}
 		</span>
 	{/snippet}
 
@@ -125,7 +123,7 @@
 								{#if leverage.$pool !== undefined}
 									<LiquidityPoolView
 										entityId={leverage.$pool[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryDetails}
+										layout={EntityLayout.Value}
 										open={true}
 										showTypeAnnotation={false}
 									/>
@@ -214,9 +212,4 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
-
-	{/snippet}
 </EntityView>

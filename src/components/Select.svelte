@@ -33,11 +33,11 @@
 	const _id = $props.id()
 
 
-	// State
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 	import type { Snippet } from 'svelte'
 
+	// State
 	let {
 		items,
 		value = $bindable(),
@@ -80,16 +80,12 @@
 		SvelteHTMLElements['select']
 	> = $props()
 
-
-
 	const normalizedItems = $derived(
 		items.map((item) => ({
 			item,
 			id: getItemId(item),
 			label: getItemLabel(item),
-			disabled: getItemDisabled ? getItemDisabled(item)
-			:
-				false,
+			disabled: getItemDisabled ? getItemDisabled(item) : false,
 		})),
 	)
 	const normalizedGroups = $derived(
@@ -109,18 +105,14 @@
 					item,
 					id: getItemId(item),
 					label: getItemLabel(item),
-					disabled: getItemDisabled ? getItemDisabled(item)
-					:
-						false,
+					disabled: getItemDisabled ? getItemDisabled(item) : false,
 				})),
 			}))
 		:
 			[],
 	)
 	const valueStr = $derived(
-		value !== undefined ? String(getItemId(value))
-		:
-			'',
+		value !== undefined ? String(getItemId(value)) : '',
 	)
 
 

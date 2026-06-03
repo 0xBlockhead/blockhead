@@ -15,6 +15,7 @@
 	},
 	"exclude": [
 		"node_modules/**",
+		"src/routes/demo/**",
 		"src/service-worker.js",
 		"src/service-worker/**/*.js",
 		"src/service-worker.ts",

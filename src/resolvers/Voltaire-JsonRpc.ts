@@ -7,6 +7,7 @@ import {
 	EvmTransactionExecutionStatus,
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
+import { evmAbiFromJsonString } from '$/lib/evmAbi.ts'
 import { hexLowerOfByteSize, with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
@@ -109,8 +110,8 @@ const UNISWAP_V3_SWAP_TOPIC = (
 const evmLogInterpretationKindFromTopics = (
 	topics: readonly string[],
 ): EvmLogInterpretationKind => {
-	const topic0 = topics[0]?.toLowerCase()
-	if (topic0 == null) return EvmLogInterpretationKind.Unknown
+	if (topics.length === 0) return EvmLogInterpretationKind.Unknown
+	const topic0 = topics[0].toLowerCase()
 	if (topic0 === ERC20_TRANSFER_TOPIC.toLowerCase()) return EvmLogInterpretationKind.Transfer
 	if (topic0 === ERC20_APPROVAL_TOPIC.toLowerCase()) return EvmLogInterpretationKind.Approval
 	if (
@@ -129,16 +130,16 @@ const evmLogIndexFromWire = (
 		undefined
 	:
 		((parsed) => (
-		Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
-			parsed
-		:
-			undefined
-	))(
-		raw.startsWith('0x') || raw.startsWith('0X') ?
-			Number.parseInt(raw, 16)
-		:
-			Number(raw),
-	)
+			Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
+				parsed
+			:
+				undefined
+		))(
+			raw.startsWith('0x') || raw.startsWith('0X') ?
+				Number.parseInt(raw, 16)
+			:
+				Number(raw),
+		)
 )
 
 const evmLogRpcQuantityToBigInt = (
@@ -148,19 +149,19 @@ const evmLogRpcQuantityToBigInt = (
 		undefined
 	:
 		((value) => (
-		value < 0n ?
-			undefined
-		:
-			value
-	))(
-		(() => {
-			try {
-				return BigInt(raw)
-			} catch {
-				return undefined
-			}
-		})() ?? -1n,
-	)
+			value < 0n ?
+				undefined
+			:
+				value
+		))(
+			(() => {
+				try {
+					return BigInt(raw)
+				} catch {
+					return undefined
+				}
+			})() ?? -1n,
+		)
 )
 
 const evmLogEntityIdFromWire = ({
@@ -178,10 +179,10 @@ const evmLogEntityIdFromWire = ({
 		undefined
 	:
 		{
-		$network,
-		txHash: normalizedTxHash,
-		logIndex,
-	}
+			$network,
+			txHash: normalizedTxHash,
+			logIndex,
+		}
 }
 
 const evmLogEntityFromIdAndWire = (
@@ -484,12 +485,7 @@ const networkScopedEvmBlockFieldsFromVoltaireBlockRpc = (
 	chainId: number,
 	wire: VoltaireBlockRpc,
 ) => {
-	const blockHash = (
-		wire.hash != null ?
-			hexLowerOfByteSize(wire.hash, 32)
-		:
-			undefined
-	)
+	const blockHash = hexLowerOfByteSize(wire.hash, 32)
 	const blockNumber = (() => {
 		try {
 			return BigInt(wire.number)
@@ -508,14 +504,12 @@ const networkScopedEvmBlockFieldsFromVoltaireBlockRpc = (
 		},
 		number: blockNumber,
 		timestamp: (
-			wire.timestamp != null ?
+			typeof wire.timestamp === 'number' ?
+				wire.timestamp * 1000
+			:
 				((parsed) => (
 					Number.isFinite(parsed) ? parsed * 1000 : undefined
 				))(Number(wire.timestamp))
-			:	typeof wire.timestamp === 'number' ?
-				wire.timestamp * 1000
-			:
-				undefined
 		),
 		gasUsed: nonNegativeBigIntFromHex(wire.gasUsed),
 		gasLimit: nonNegativeBigIntFromHex(wire.gasLimit),
@@ -699,9 +693,7 @@ export default {
 				if (versionedHash == null || !versionedHash.startsWith('0x01')) throw new Error('Voltaire_JsonRpc: invalid blob versioned hash')
 				const blockNumber = (() => {
 					try {
-						return tx.blockNumber != null ? BigInt(tx.blockNumber)
-						:
-							undefined
+						return tx.blockNumber != null ? BigInt(tx.blockNumber) : undefined
 					} catch {
 						return undefined
 					}
@@ -841,7 +833,7 @@ export default {
 				return {
 					...(Object.keys(resolution.textRecords).length > 0 && { textRecords: resolution.textRecords }),
 					...(resolution.contentHash != null && { contentHash: resolution.contentHash }),
-					...(resolution.resolverAbiJson != null && { resolverAbiJson: resolution.resolverAbiJson }),
+					...(resolution.resolverAbiJsonText != null && { resolverAbi: evmAbiFromJsonString(resolution.resolverAbiJsonText) }),
 					...(Object.keys(resolution.coinAddresses).length > 0 && { coinAddresses: resolution.coinAddresses }),
 					...(resolution.address != null && {
 							$resolvedActor: {
@@ -1314,10 +1306,9 @@ export default {
 							writeEntityFieldUpserts('$$blocks', evmBlockRows)
 						}
 					}
-					while (!signal.aborted) {
-						for (const jsonRpcTransport of candidateTransports) {
-							if (signal.aborted) break
-							const provider = getProviderForExecutionUrl({
+						while (!signal.aborted) {
+							for (const jsonRpcTransport of candidateTransports) {
+								const provider = getProviderForExecutionUrl({
 								url: jsonRpcTransport.rpcUrl,
 								transportType: jsonRpcTransport.transportType,
 							})
@@ -1365,17 +1356,12 @@ export default {
 									}])
 									await invalidate(['$$blocks'])
 
-									if (event.blocks.length > 0) {
-										const latestBlock = event.blocks[event.blocks.length - 1]
-										const latestBlockFields = (
-											latestBlock?.header == null ?
-												null
-											:
-												networkScopedEvmBlockFieldsFromVoltaireBlockRpc(
-													chainIdFromEvmNetworkId(parentEntityId),
-													streamBlockToBlockRpcWire(latestBlock),
-												)
-										)
+										if (event.blocks.length > 0) {
+											const latestBlock = event.blocks[event.blocks.length - 1]
+											const latestBlockFields = networkScopedEvmBlockFieldsFromVoltaireBlockRpc(
+												chainIdFromEvmNetworkId(parentEntityId),
+												streamBlockToBlockRpcWire(latestBlock),
+											)
 										if (latestBlockFields != null) {
 											const baseFeePerGas = latestBlockFields.baseFeePerGas
 											const gasUsed = latestBlockFields.gasUsed
@@ -1395,20 +1381,19 @@ export default {
 												}])
 											}
 										}
-										const evmBlockRows = (
-											event.blocks
-												.map((block) => {
-													if (block.header == null) return null
-													const wire = streamBlockToBlockRpcWire(block)
-													const value = networkScopedEvmBlockFieldsFromVoltaireBlockRpc(chainIdFromEvmNetworkId(parentEntityId), wire)
+											const evmBlockRows = (
+												event.blocks
+													.map((block) => {
+														const wire = streamBlockToBlockRpcWire(block)
+														const value = networkScopedEvmBlockFieldsFromVoltaireBlockRpc(chainIdFromEvmNetworkId(parentEntityId), wire)
 													return (
 														value == null ?
 															null
-														:
-															{
-															source: Source.Voltaire_JsonRpc,
-															value,
-														}
+															:
+																{
+																	source: Source.Voltaire_JsonRpc,
+																	value,
+																}
 													)
 												})
 												.filter((evmLog): evmLog is NonNullable<typeof evmLog> => evmLog != null)
@@ -1422,17 +1407,16 @@ export default {
 										await writeRecentBlocksForTransport(jsonRpcTransport, 1)
 									}
 
-									if (
-										event.blocks.some((block) => (
-											(block.body?.transactions?.length ?? 0) > 0
-										))
-									) {
+										if (
+											event.blocks.some((block) => (
+												block.body.transactions.length > 0
+											))
+										) {
 										await invalidate(activityFields)
 									}
-								}
-							} catch (error) {
-								if (signal.aborted) return
-								console.warn('Voltaire: block stream ended', {
+									}
+								} catch (error) {
+									console.warn('Voltaire: block stream ended', {
 									error,
 									rpcUrl: jsonRpcTransport.rpcUrl,
 									transportType: jsonRpcTransport.transportType,
@@ -1692,7 +1676,7 @@ export default {
 						evmBlobs.push(evmBlob)
 					}
 				}
-				return storageSlots
+				return evmBlobs
 			},
 		}),
 
@@ -1789,17 +1773,27 @@ export default {
 				const chainId = ensEthereumChainId
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-				const ensNameFromReverseLookup = await singleFlight(resolveEnsReverseForRpcUrl)({
-					...jsonRpcTransport,
-					address: entityId.address,
-				})
+				let ensNameFromReverseLookup: string | undefined
+				try {
+					ensNameFromReverseLookup = (await singleFlight(resolveEnsReverseForRpcUrl)({
+						...jsonRpcTransport,
+						address: entityId.address,
+					})) ?? undefined
+				} catch {
+					return undefined
+				}
 				if (ensNameFromReverseLookup == null) return undefined
 				const normalizedPrimaryName = normalizeEnsName(ensNameFromReverseLookup)
-				const { textRecords } = await singleFlight(resolveEnsForwardForRpcUrl)({
+				let textRecords: Awaited<ReturnType<typeof resolveEnsForwardForRpcUrl>>['textRecords']
+				try {
+					;({ textRecords } = await singleFlight(resolveEnsForwardForRpcUrl)({
 					...jsonRpcTransport,
 					name: normalizedPrimaryName,
 					textKeys: [...ensTextRecordKeys],
-				})
+					}))
+				} catch {
+					return undefined
+				}
 				return ((
 					t,
 				) => (
@@ -1808,20 +1802,17 @@ export default {
 					:
 						t
 				))(
-					mediaFromUrl((
-						((raw) => (
-							raw.length === 0 ?
-								undefined
-							:
-								resolveMediaUrlTransport(raw)?.url
-						))(
-							textRecords.avatar != null ?
-								String(textRecords.avatar).trim()
-							:
-								'',
-						)
-					), MediaType.Image),
-				)
+						mediaFromUrl((
+							((raw) => (
+											raw.length === 0 ?
+												undefined
+											:
+												resolveMediaUrlTransport(raw)?.url
+							))(
+								String(textRecords.avatar),
+							)
+						), MediaType.Image),
+					)
 			},
 		}),
 

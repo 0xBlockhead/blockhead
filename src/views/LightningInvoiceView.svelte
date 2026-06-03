@@ -8,6 +8,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -24,10 +26,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const invoice = useEntity(
 		EntityType.LightningInvoice,
@@ -71,7 +69,7 @@
 			resource={invoice}
 			placeholderText="Loading invoice…"
 		>
-			{#snippet children(row)}
+			{#snippet children(lightningInvoice)}
 				<dl>
 					{#if lightningInvoice.memo != null}
 						<div>

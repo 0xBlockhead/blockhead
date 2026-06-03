@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -14,22 +10,21 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/erc-4337/account-factory/[address]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/erc-4337/account-factory/[address]', {
+				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
 				address: entityId.address,
-			},
-		),
+		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		title = 'ERC-4337 account factory',
+		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
@@ -38,13 +33,13 @@
 			layout?: EntityLayout
 			open?: boolean
 			title?: string
+			collapsible?: boolean
 		},
-		never
+		Pick<
+				ComponentProps<typeof EntityView>,
+				| 'showTypeAnnotation'
+			>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const accountFactory = useEntity(
 		EntityType.Erc4337AccountFactory,
@@ -74,6 +69,7 @@
 	{layout}
 	bind:open
 	{title}
+		{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -84,7 +80,10 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<TruncatedValue
+			format={TruncatedValueFormat.Visual}
+			value={entityId.address}
+		/>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -115,7 +114,7 @@
 						<dd>
 							<EvmContractView
 								entityId={accountFactory.$contract[EntityMetaKey.Id]}
-								layout={EntityLayout.SummaryDetails}
+								layout={EntityLayout.Value}
 								open={true}
 								showTypeAnnotation={false}
 							/>

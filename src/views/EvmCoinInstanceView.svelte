@@ -9,7 +9,6 @@
 	import { schema } from '$/schema/index.ts'
 	import { coinInstanceRepresentationByRepresentation } from '$/constants/Bridge.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 
 
@@ -31,6 +30,7 @@
 			entityId: EntityId<typeof schema, EntityType.EvmCoinInstance>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -40,8 +40,7 @@
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const coinInstance = useEntity(
@@ -91,29 +90,9 @@
 	)
 
 
+	// (Derived)
 	const coinInstanceKey = $derived(
 		stringify(entityId),
-	)
-
-	const coinInstanceHref = $derived(
-		href ?? (
-			entityId.type === CoinInstanceType.NativeCurrency ?
-				resolve(
-					'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
-					{
-						chainId: String(evmChainIdFromNetworkId(entityId.$network)),
-						coinInstanceSlug: 'native',
-					},
-				)
-			:
-				resolve(
-					'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
-					{
-						chainId: String(evmChainIdFromNetworkId(entityId.$network)),
-						coinInstanceSlug: entityId.$contract.address,
-					},
-				)
-		),
 	)
 
 
@@ -134,7 +113,27 @@
 	entityType={EntityType.EvmCoinInstance}
 	bind:open
 	{entityId}
-	href={coinInstanceHref}
+	href={
+		href ?? (
+			entityId.type === CoinInstanceType.NativeCurrency ?
+				resolve(
+					'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
+					{
+						chainId: String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)),
+						coinInstanceSlug: 'native',
+					},
+				)
+			:
+				resolve(
+					'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
+					{
+						chainId: String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)),
+						coinInstanceSlug: entityId.$contract.address,
+					},
+				)
+		)
+	}
+	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Icon()}
@@ -172,9 +171,9 @@
 			{#snippet children(coinInstance)}
 				{coinInstance.symbol ?? coinInstance.name ?? (
 					entityId.type === CoinInstanceType.NativeCurrency ?
-						`Native (${evmChainIdFromNetworkId(entityId.$network)})`
+						`Native (${evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)})`
 					:
-						`ERC-20 (${evmChainIdFromNetworkId(entityId.$network)})`
+						`ERC-20 (${evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)})`
 				)}
 			{/snippet}
 		</ResourceBoundary>
@@ -198,7 +197,7 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>Chain</dt>
-						<dd>{String(evmChainIdFromNetworkId(entityId.$network))}</dd>
+						<dd>{String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}</dd>
 					</div>
 					<div>
 						<dt>Kind</dt>
@@ -208,7 +207,7 @@
 							{:else}
 								<EvmContractView
 									entityId={entityId.$contract}
-									layout={EntityLayout.SummaryDetails}
+									layout={EntityLayout.Value}
 									open={true}
 									showTypeAnnotation={false}
 								/>
@@ -290,55 +289,62 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<CollapsibleTabs
-				id={`${coinInstanceKey}:carousel-bridging`}
-				sectionIdPrefix={coinInstanceKey}
-				sections={[
-					...((coinInstance.$$outboundBridgeCapabilities ?? []).length ? [{ id: 'bridge-outbound', label: 'Outbound' }] : []),
-					...((coinInstance.$$inboundBridgeCapabilities ?? []).length ? [{ id: 'bridge-inbound', label: 'Inbound' }] : []),
-				]}
-				data-card
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>
-							Bridging
-						</HeadingComponent>
-					</header>
-				{/snippet}
+		<ResourceBoundary
+			resource={coinInstance}
+			placeholderText="Loading bridge capabilities…"
+		>
+			{#snippet children(coinInstance)}
+				<CollapsibleTabs
+					id={`${coinInstanceKey}:carousel-bridging`}
+					sectionIdPrefix={coinInstanceKey}
+					sections={[
+						{ id: 'bridge-outbound', label: 'Outbound' },
+						{ id: 'bridge-inbound', label: 'Inbound' },
+					]}
+					data-card
+				>
+					{#snippet Summary({ open: _isOpen })}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>
+								Bridging
+							</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#snippet SectionBridgeOutbound({ id, label })}
-					{#if (coinInstance.$$outboundBridgeCapabilities ?? []).length}
-						<CoinBridgeCapabilitiesView
-							CollapsibleProps={{ canToggle: false }}
-							href={resolve('/bridge')}
-							entityFieldReference={{
-								entityType: EntityType.EvmCoinInstance,
-								entityId,
-								fieldName: '$$outboundBridgeCapabilities',
-							}}
-							{id}
-							title="Outbound"
-						/>
-					{/if}
-				{/snippet}
+					{#snippet SectionBridgeOutbound({ id, label })}
+						{#if (coinInstance.$$outboundBridgeCapabilities ?? []).length}
+							<CoinBridgeCapabilitiesView
+								CollapsibleProps={{ canToggle: false }}
+								href={resolve('/bridge')}
+								entityFieldReference={{
+									entityType: EntityType.EvmCoinInstance,
+									entityId,
+									fieldName: '$$outboundBridgeCapabilities',
+								}}
+								{id}
+								title="Outbound"
+							/>
+						{/if}
+					{/snippet}
 
-				{#snippet SectionBridgeInbound({ id, label })}
-					{#if (coinInstance.$$inboundBridgeCapabilities ?? []).length}
-						<CoinBridgeCapabilitiesView
-							CollapsibleProps={{ canToggle: false }}
-							href={resolve('/bridge')}
-							entityFieldReference={{
-								entityType: EntityType.EvmCoinInstance,
-								entityId,
-								fieldName: '$$inboundBridgeCapabilities',
-							}}
-							{id}
-							title="Inbound"
-						/>
-					{/if}
-				{/snippet}
-		</CollapsibleTabs>
+					{#snippet SectionBridgeInbound({ id, label })}
+						{#if (coinInstance.$$inboundBridgeCapabilities ?? []).length}
+							<CoinBridgeCapabilitiesView
+								CollapsibleProps={{ canToggle: false }}
+								href={resolve('/bridge')}
+								entityFieldReference={{
+									entityType: EntityType.EvmCoinInstance,
+									entityId,
+									fieldName: '$$inboundBridgeCapabilities',
+								}}
+								{id}
+								title="Inbound"
+							/>
+						{/if}
+					{/snippet}
+				</CollapsibleTabs>
+			{/snippet}
+		</ResourceBoundary>
 
 		{#if RouteContent}
 			{@render RouteContent()}

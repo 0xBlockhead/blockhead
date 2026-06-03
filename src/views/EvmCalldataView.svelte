@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -32,10 +33,6 @@
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const calldata = useEntity(
 		EntityType.EvmCalldata,
@@ -75,7 +72,9 @@
 	{/snippet}
 
 	{#snippet Title()}
+		{#if Value}
 		{@render Value()}
+					{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

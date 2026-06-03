@@ -12,6 +12,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -24,20 +26,18 @@
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LiquidityPool>
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 			limit?: number
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -100,7 +100,7 @@
 						$: [
 							Source.Dexscreener_OpenApi,
 						],
-						limit,
+							$limit: limit,
 					},
 				},
 			)}

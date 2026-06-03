@@ -16,7 +16,7 @@ export const getCoinpaprikaJson = async <_Response>(
 	const response = await corsFetch(
 		`${apiKey == null ? freeBaseUrl : proBaseUrl}${pathAndQuery}`,
 		{
-			origins: Coinpaprika.origins ?? [],
+			origins: Coinpaprika.origins,
 			init: {
 				headers: {
 					Accept: 'application/json',

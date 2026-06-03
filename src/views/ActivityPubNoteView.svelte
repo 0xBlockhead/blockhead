@@ -41,8 +41,6 @@
 		>
 	> = $props()
 
-
-	// State
 	import { htmlToPlainText } from '$/lib/html.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -463,87 +461,87 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-note`}
-				sectionIdPrefix={idKey}
-					sections={collapsibleTabsSections([
-						{ id: 'note-details', label: 'Metadata' },
-						{ id: 'note-thread', label: 'Thread' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				data-card
-			>
-				{#snippet Summary({ open: _conversationSummaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Status & conversation
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${idKey}:carousel-note`}
+			sectionIdPrefix={idKey}
+				sections={collapsibleTabsSections([
+					{ id: 'note-details', label: 'Metadata' },
+					{ id: 'note-thread', label: 'Thread' },
+					{ id: 'metric-snapshots', label: 'Metrics' },
+				])}
+			data-card
+		>
+			{#snippet Summary({ open: _conversationSummaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Status & conversation
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionNoteDetails()}
-					<ResourceBoundary
-						resource={note}
-						placeholderText="Loading note…"
-					>
-						{#snippet children(note)}
-							{@const mastodonThreadMetadataUnset = (
-								htmlToPlainText(note.content ?? '').trim() === ''
-								&& note.createdAt == null
-							)}
-							{#if mastodonThreadMetadataUnset}
-								<div data-row="wrap align-center gap-2">
-									<p data-text="muted">
-										No body or timestamp yet.
-									</p>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
-											<p>
-												Plain text and created time fill in when the status is fetched from the origin instance.
-											</p>
-										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="Status metadata"
-										>ⓘ</abbr>
-									</Tooltip>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-
-					{#snippet SectionNoteThread()}
-						<ActivityPubNotesView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.ActivityPubNote,
-							entityId,
-							fieldName: '$$thread',
-						}}
-						id={`${idKey}:note-thread-activityPubNotes`}
-						fieldOpen={_open}
-						orderByCreatedAt="asc"
-						placeholderText="Loading conversation…"
-						title="Thread"
-						/>
+			{#snippet SectionNoteDetails()}
+				<ResourceBoundary
+					resource={note}
+					placeholderText="Loading note…"
+				>
+					{#snippet children(note)}
+						{@const mastodonThreadMetadataUnset = (
+							htmlToPlainText(note.content ?? '').trim() === ''
+							&& note.createdAt == null
+						)}
+						{#if mastodonThreadMetadataUnset}
+							<div data-row="wrap align-center gap-2">
+								<p data-text="muted">
+									No body or timestamp yet.
+								</p>
+								<Tooltip contentProps={{ side: 'top' }}>
+									{#snippet Content()}
+										<p>
+											Plain text and created time fill in when the status is fetched from the origin instance.
+										</p>
+									{/snippet}
+									<abbr
+										class="entity-heading-tip"
+										aria-label="Status metadata"
+									>ⓘ</abbr>
+								</Tooltip>
+							</div>
+						{/if}
 					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<ActivityPubNote_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.ActivityPubNote,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${idKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
-			</CollapsibleTabs>
+			{#snippet SectionNoteThread()}
+				<ActivityPubNotesView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.ActivityPubNote,
+						entityId,
+						fieldName: '$$thread',
+					}}
+					id={`${idKey}:note-thread-activityPubNotes`}
+					fieldOpen={_open}
+				orderByCreatedAt="asc"
+					placeholderText="Loading conversation…"
+					title="Thread"
+				/>
+			{/snippet}
+
+			{#snippet SectionMetricSnapshots()}
+				<ActivityPubNote_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.ActivityPubNote,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${idKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 		{/snippet}
 	</EntityView>
 

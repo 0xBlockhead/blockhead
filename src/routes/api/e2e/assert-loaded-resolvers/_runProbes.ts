@@ -13,11 +13,17 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { entityDefinitionByType } from '$/schema/index.ts'
+import { schema } from '$/schema/index.ts'
 import {
 	entityFieldResolvers,
 	entityResolvers,
 } from '$/resolvers/index.ts'
+import type { ResolverLoadSubset } from '$/resolvers/$resolvers.ts'
 import { Source } from '$/sources/$Source.ts'
+import type {
+	EntityId,
+	EntityType as SchemaEntityType,
+} from '$/schema/$schema.ts'
 import { resolverPublicEnvBySource } from '$/sources/index.ts'
 
 import {
@@ -38,7 +44,51 @@ const resolverContext = {
 	filters: [],
 	sorts: [],
 	limit: 20,
-} as const
+}
+
+const probeTimeoutMs = 30_000
+
+
+const withProbeTimeout = async <_Value>(
+	key: string,
+	resolve: () => Promise<_Value>,
+) => {
+	let timeoutId: ReturnType<typeof setTimeout> | undefined
+
+	try {
+		return await Promise.race([
+			resolve(),
+			new Promise<never>((_resolve, reject) => {
+				timeoutId = setTimeout(
+					() => reject(new Error(`resolver probe timed out: ${key}`)),
+					probeTimeoutMs,
+				)
+		}),
+		])
+	} finally {
+		if (timeoutId != null)
+			clearTimeout(timeoutId)
+	}
+}
+
+type ProbeEntityResolver<_EntityType extends SchemaEntityType<typeof schema>> = {
+	entityType: _EntityType
+	source: Source
+	resolve(
+		entityId: EntityId<typeof schema, _EntityType>,
+		context?: ResolverLoadSubset,
+	): Promise<unknown>
+}
+
+type ProbeEntityFieldResolver<_EntityType extends SchemaEntityType<typeof schema>> = {
+	entityType: _EntityType
+	fieldName: string
+	source: Source
+	resolve(
+		scopedEntityId: EntityId<typeof schema, _EntityType>,
+		context?: ResolverLoadSubset,
+	): Promise<unknown>
+}
 
 
 export type AssertLoadedResolverProbeCase = {
@@ -161,7 +211,9 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 	}
 
 	const entityCases = await Promise.all(
-		entityResolvers.map(async (resolver) => {
+			entityResolvers.map(async (resolver: ProbeEntityResolver<
+				SchemaEntityType<typeof schema>
+			>) => {
 			let entityId: Awaited<ReturnType<typeof resolveProbeEntityId>>
 			try {
 				entityId = await resolveProbeEntityId(resolver.entityType)
@@ -183,12 +235,15 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 
 			let fields: unknown
 			try {
-				fields = await resolver.resolve(
+				fields = await withProbeTimeout(
+					key,
+					() => resolver.resolve(
 					entityId,
 					{
 						...resolverContext,
 						publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
 					},
+				),
 				)
 			} catch (error) {
 				return finalizeProbeCase({
@@ -250,13 +305,17 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 	)
 
 	const fieldCases = await Promise.all(
-		entityFieldResolvers.map(async (fieldResolver) => {
+			entityFieldResolvers.map(async (fieldResolver: ProbeEntityFieldResolver<
+				SchemaEntityType<typeof schema>
+			>) => {
 			const parentEntityId = parentEntityIdForFieldResolver(fieldResolver.entityType)
 			const entityDef = entityDefinitionByType[fieldResolver.entityType]
 			if (entityDef == null) {
 				throw new Error(`No entityDefinitionByType[${fieldResolver.entityType}]`)
 			}
-			const fieldDef = entityDef.fields.find((f) => f.name === fieldResolver.fieldName)
+			const fieldDef = entityDef.fields.find((field: EntityFieldDefinition) => (
+				field.name === fieldResolver.fieldName
+	))
 			if (fieldDef == null) {
 				throw new Error(
 					`No field ${fieldResolver.fieldName} on ${fieldResolver.entityType}`,
@@ -269,12 +328,15 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 
 			let raw: unknown
 			try {
-				raw = await fieldResolver.resolve(
+				raw = await withProbeTimeout(
+					key,
+					() => fieldResolver.resolve(
 					parentEntityId,
 					{
 						...resolverContext,
 						publicEnv: resolverPublicEnvBySource.get(fieldResolver.source) ?? {},
 					},
+				),
 				)
 			} catch (error) {
 				return finalizeProbeCase({

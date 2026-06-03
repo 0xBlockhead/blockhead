@@ -10,6 +10,7 @@ import type { CoinId } from '$/constants/Coin.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
 import { MarketAssetKind, MarketKind, coingeckoOhlcDayWindowLengths } from '$/constants/Market.ts'
 import type { MarketVenueId } from '$/constants/MarketVenue.ts'
+import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { optionalPublicEnvString } from '$/lib/sources.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -240,7 +241,7 @@ export const getCoinMarkets = async ({
 		publicEnv,
 		`/coins/${coinpaprikaId}/markets?quotes=USD`,
 	)
-	?? []
+
 )
 
 
@@ -259,7 +260,7 @@ export const getExchangeMarkets = async ({
 		publicEnv,
 		`/exchanges/${exchangeId}/markets?quotes=USD`,
 	)
-	?? []
+
 )
 
 
@@ -277,11 +278,11 @@ export const getTickerById = async ({
 )
 
 /**
- * CoinGecko `/coins/{id}/ohlc`-style rows `[timestampMs, open, high, low, close]`.
+* CoinGecko `/coins/{id}/ohlc`-style rows `[timestampMs, open, high, low, close, quoteVolume?]`.
  */
 export const normalizeOhlcvRowsToOhlcRows = (
 	rows: CoinpaprikaOhlcv[],
-): number[][] => (
+): OhlcCandle[] => (
 	rows.flatMap((row) => (
 		row.time_open == null
 		|| row.open == null
@@ -290,7 +291,14 @@ export const normalizeOhlcvRowsToOhlcRows = (
 		|| row.close == null ?
 			[]
 		:
-			[[Date.parse(row.time_open), row.open, row.high, row.low, row.close]]
+			[[
+				Date.parse(row.time_open),
+				row.open,
+				row.high,
+				row.low,
+				row.close,
+				row.volume ?? undefined,
+			]]
 	))
 )
 
@@ -304,12 +312,12 @@ export const getOhlcvTodayRows = async ({
 }: {
 	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
 	coinpaprikaId: string
-}): Promise<number[][]> => {
+}): Promise<OhlcCandle[]> => {
 	const rows = await getCoinpaprikaJson<CoinpaprikaOhlcv[]>(
 		publicEnv,
 		`/coins/${coinpaprikaId}/ohlcv/today`,
 	)
-	return normalizeOhlcvRowsToOhlcRows(rows ?? [])
+	return normalizeOhlcvRowsToOhlcRows(rows)
 }
 
 /**
@@ -324,7 +332,7 @@ export const getOhlcvHistoricalRows = async ({
 	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
 	coinpaprikaId: string
 	days: number
-}): Promise<number[][]> => {
+}): Promise<OhlcCandle[]> => {
 	const end = new Date()
 	const start = new Date(end)
 	start.setUTCDate(start.getUTCDate() - days)
@@ -334,5 +342,5 @@ export const getOhlcvHistoricalRows = async ({
 		publicEnv,
 		`/coins/${coinpaprikaId}/ohlcv/historical?start=${startDate}&end=${endDate}&limit=${days}&interval=24h&quote=usd`,
 	)
-	return normalizeOhlcvRowsToOhlcRows(rows ?? [])
+	return normalizeOhlcvRowsToOhlcRows(rows)
 }

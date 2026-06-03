@@ -9,7 +9,6 @@
 		params,
 	} = $props()
 
-
 	const route = $derived.by(() => {
 		const param = params.coinId ?? ''
 		const coinId = coinIdFromParam(param)

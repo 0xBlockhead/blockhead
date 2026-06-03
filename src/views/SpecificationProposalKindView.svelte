@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -30,10 +31,6 @@
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const kind = useEntity(
 		EntityType.SpecificationProposalKind,
@@ -82,21 +79,36 @@
 	)
 
 
+	// (Derived)
+	const kindRow = $derived(
+		kind.ready ?
+			kind.current
+			:
+			undefined,
+	)
+
+	const specificationRealmRow = $derived(
+		specificationRealm.ready ?
+			specificationRealm.current
+			:
+			undefined,
+	)
+
 	const href = $derived(
 		hrefProp ?? (
-			kind.slug != null && specificationRealm.slug != null ?
+			kindRow?.slug != null && specificationRealmRow?.slug != null ?
 				resolve(
-					'/proposals/[specificationRealmSlug]/[proposalKindSlug]',
+					'/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
 					{
-						specificationRealmSlug: specificationRealm.slug,
-						proposalKindSlug: kind.slug,
+						specificationRealmSlug: specificationRealmRow.slug,
+						proposalKindSlug: kindRow.slug,
 					},
 				)
-			: specificationRealm.slug != null ?
+			: specificationRealmRow?.slug != null ?
 				resolve(
-					'/proposals/[specificationRealmSlug]',
+					'/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
 					{
-						specificationRealmSlug: specificationRealm.slug,
+						specificationRealmSlug: specificationRealmRow.slug,
 					},
 				)
 			:
@@ -118,7 +130,7 @@
 	entityType={EntityType.SpecificationProposalKind}
 	{entityId}
 	{href}
-	title={kind.labelPlural ?? kind.label ?? `${entityId.category}`}
+	title={kindRow?.labelPlural ?? kindRow?.label ?? `${entityId.category}`}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -153,7 +165,7 @@
 		<dl data-column-item="center">
 			{#if (
 				open
-				&& kind.labelPlural !== undefined
+				&& kindRow?.labelPlural !== undefined
 			)}
 				<div>
 					<dt>Label plural</dt>

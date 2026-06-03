@@ -7,10 +7,12 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -25,19 +27,19 @@
 		),
 		collapsible = true,
 		CollapsibleProps = {},
+		href,
 		title = 'Videos',
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.YouTubeVideo>
 			id: string
 		limit?: number
 		open?: boolean
+		collapsible?: boolean
+		href?: ComponentProps<typeof EntitiesList>['href']
 		title?: string
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -74,6 +76,7 @@
 	{title}
 	bind:open
 	{collapsible}
+	{href}
 	>
 		{#snippet Empty()}
 			<div data-row="wrap align-center gap-2">
@@ -126,7 +129,7 @@
 						return (
 							youTubeVideos.map((video) => ({
 								...video[EntityMetaKey.Id],
-								sortKey: video[EntityMetaKey.IdKey],
+								sortKey: stringify(video[EntityMetaKey.Id]),
 							}))
 						)
 					},
@@ -139,8 +142,8 @@
 					{title}
 					resource={videos}
 					placeholderText="Loading videos…"
-					getKey={(row) => youTubeVideo.videoId}
-					getSortValue={(row) => youTubeVideo.sortKey}
+					getKey={(video) => video.videoId}
+					getSortValue={(video) => video.sortKey}
 					placeholderKeys={new SvelteSet<string>()}
 				>
 					{#snippet Empty()}

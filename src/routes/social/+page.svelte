@@ -3,7 +3,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
 	const hubKey = 'social'
 
 	const socialProtocolGroups = [
@@ -104,7 +103,7 @@
 
 <Page>
 	<GlobalView
-		entityId={{}}
+		entityId={{ scope: 'Social' }}
 		title="Social"
 		href={resolve('/social')}
 	>

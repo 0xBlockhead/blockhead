@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -22,6 +23,7 @@
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
 		),
+		collapsible = true,
 		showParentChannel = true,
 		...EntityViewProps
 	}: WithRest<
@@ -30,6 +32,7 @@
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
+			collapsible?: boolean
 			showParentChannel?: boolean
 		},
 		Pick<
@@ -37,10 +40,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const transfer = useEntity(
 		EntityType.StateChannelTransfer,
@@ -77,6 +76,7 @@
 	href={href}
 	{layout}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -96,7 +96,9 @@
 					{#if transfer.turnNum !== undefined}
 						<span>turn {String(transfer.turnNum)}</span>
 					{:else}
+						{#if Value}
 						{@render Value()}
+					{/if}
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
@@ -169,14 +171,14 @@
 						<div>
 							<dt>From</dt>
 							<dd>
-								{#if transfer.$channel?.[EntityMetaKey.Id].id !== undefined && transfer.$channel.$network?.[EntityMetaKey.Id].chainId !== undefined}
-									<EvmNetworkAccountView
-										entityId={{
-											$network: transfer.$channel.$network[EntityMetaKey.Id],
+									{#if transfer.$channel?.[EntityMetaKey.Id].id !== undefined && transfer.$channel.$network !== undefined}
+										<EvmNetworkAccountView
+											entityId={{
+												$network: transfer.$channel.$network[EntityMetaKey.Id],
 											$actor: transfer.$from[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Title}
-										open={false}
+											open={false}
 									/>
 								{:else}
 									<EvmAccountView
@@ -196,14 +198,14 @@
 						<div>
 							<dt>To</dt>
 							<dd>
-								{#if transfer.$channel?.[EntityMetaKey.Id].id !== undefined && transfer.$channel.$network?.[EntityMetaKey.Id].chainId !== undefined}
-									<EvmNetworkAccountView
-										entityId={{
-											$network: transfer.$channel.$network[EntityMetaKey.Id],
+									{#if transfer.$channel?.[EntityMetaKey.Id].id !== undefined && transfer.$channel.$network !== undefined}
+										<EvmNetworkAccountView
+											entityId={{
+												$network: transfer.$channel.$network[EntityMetaKey.Id],
 											$actor: transfer.$to[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Title}
-										open={false}
+											open={false}
 									/>
 								{:else}
 									<EvmAccountView

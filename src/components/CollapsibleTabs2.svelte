@@ -1,3 +1,21 @@
+<script module lang="ts">
+	// Types/constants
+	import type { Snippet as SvelteSnippet } from 'svelte'
+
+
+	export type CollapsibleTabs2SectionContentProps = {
+		id: string
+		label: string
+	}
+
+	export type CollapsibleTabs2Section = {
+		id: string
+		label: string
+		Content: SvelteSnippet<[CollapsibleTabs2SectionContentProps]>
+	}
+</script>
+
+
 <script lang="ts">
 	// Types/constants
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -41,19 +59,6 @@
 	const sectionAnchorId = (sectionId: string) => (
 		`${sectionIdPrefix}:${sectionId}`
 	)
-
-
-	// State
-	export type CollapsibleTabs2SectionContentProps = {
-		id: string
-		label: string
-	}
-
-	export type CollapsibleTabs2Section = {
-		id: string
-		label: string
-		Content: Snippet<[CollapsibleTabs2SectionContentProps]>
-	}
 
 
 	// Components

@@ -66,7 +66,7 @@ export const getContents = ({ ledger }: { ledger: EthereumEipSpecLedger }) => (
 		name: string
 	}[]>({
 		url: getContentsUrl({ ledger }),
-		origins: EthereumEips.origins ?? [],
+		origins: EthereumEips.origins,
 	})
 )
 
@@ -80,7 +80,7 @@ export const getRawMarkdownText = ({
 	downloadUrl: string | null | undefined
 }) => getText({
 	url: getRawMarkdownUrl({ ledger, fileName, downloadUrl }),
-	origins: EthereumEips.origins ?? [],
+	origins: EthereumEips.origins,
 })
 
 export const getProposalMarkdownText = ({
@@ -91,5 +91,5 @@ export const getProposalMarkdownText = ({
 	number: number
 }) => getText({
 	url: getProposalMarkdownUrl({ ledger, number }),
-	origins: EthereumEips.origins ?? [],
+	origins: EthereumEips.origins,
 })

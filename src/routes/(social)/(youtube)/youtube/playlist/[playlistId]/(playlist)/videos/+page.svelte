@@ -12,10 +12,6 @@
 		params,
 	} = $props()
 
-	const entityId = $derived(
-		{ playlistId: decodeURIComponent(params.playlistId) },
-	)
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -28,7 +24,9 @@
 		href={resolve('/youtube/videos')}
 		entityFieldReference={{
 			entityType: EntityType.YouTubePlaylist,
-			entityId,
+			entityId: {
+				playlistId: decodeURIComponent(params.playlistId),
+			},
 			fieldName: '$$videos',
 		}}
 		id="youtube-playlist-videos"

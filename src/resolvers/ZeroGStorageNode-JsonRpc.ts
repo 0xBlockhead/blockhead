@@ -67,7 +67,7 @@ export default {
 			entityType: EntityType.ZeroGDataChunk,
 			resolve: async (entityId) => {
 				const fileInfo = await fileInfoForDataBlob(entityId.$dataBlob)
-				const chunkRoot = fileInfo.tx.streamIds[entityId.chunkIndex]
+				const chunkRoot = fileInfo.tx.streamIds.at(entityId.chunkIndex)
 				if (chunkRoot == null) throw new Error(`ZeroGStorageNode_JsonRpc: chunk not found ${entityId.$dataBlob.dataRoot}:${String(entityId.chunkIndex)}`)
 				return {
 					$storageNode: {

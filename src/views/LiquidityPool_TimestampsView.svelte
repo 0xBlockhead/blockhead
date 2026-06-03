@@ -13,6 +13,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		title = 'Pool observations',
@@ -28,13 +30,11 @@
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -91,8 +91,8 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.LiquidityPool_Timestamp}
-				getKey={(row) => stringify(liquidityPoolTimestamp.value[EntityMetaKey.Id])}
-				getSortValue={(row) => String(liquidityPoolTimestamp.value[EntityMetaKey.Id].timestampMs)}
+				getKey={(timestamp) => stringify(timestamp.value[EntityMetaKey.Id])}
+				getSortValue={(timestamp) => String(timestamp.value[EntityMetaKey.Id].timestampMs)}
 				placeholderKeys={new SvelteSet<string>()}
 				resource={timestamps}
 				{title}
@@ -106,10 +106,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const row = item.value}
 					<LiquidityPool_TimestampView
-						entityId={liquidityPoolTimestamp[EntityMetaKey.Id]}
-						id={stringify(liquidityPoolTimestamp[EntityMetaKey.Id])}
+						entityId={item.value[EntityMetaKey.Id]}
+						id={stringify(item.value[EntityMetaKey.Id])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

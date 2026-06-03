@@ -5,11 +5,6 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
 
 
 	// State
@@ -25,10 +20,8 @@
 		open?: boolean
 	} = $props()
 
-
-	// State
 	import {
-		decodeLogWithContractAbiJson,
+		decodeLogWithContractAbi,
 		decodeLogWithSignature,
 		formatDecodedParamValue,
 	} from '$/lib/calldata-decode.ts'
@@ -36,12 +29,7 @@
 	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const topic0Hex = $derived(
-		topics[0]?.startsWith('0x') ?
-			normalizeEvmTopicHex(topics[0] as `0x${string}`)
-		:
-			null,
-	)
+	const emptyTopicHex: `0x${string}` = '0x0000000000000000000000000000000000000000000000000000000000000000'
 
 	const topic = useEntity(
 		EntityType.EvmTopic,
@@ -49,7 +37,7 @@
 			topic0Hex != null ?
 				{ hex: topic0Hex }
 			:
-				{ hex: `0x${'0'.repeat(64)}` }
+					{ hex: emptyTopicHex }
 		) satisfies EntityId<typeof schema, EntityType.EvmTopic>,
 		{
 			$: [
@@ -62,7 +50,7 @@
 	const emitterContract = useEntity(
 		EntityType.EvmContract,
 		emitterContractId ?? {
-			$network: networkIdFromEvmChainId(0),
+			$network: { caip2: { namespace: 'eip155' as const, reference: String(0) } },
 			address: '0x0000000000000000000000000000000000000000',
 		},
 		{
@@ -82,17 +70,31 @@
 	)
 
 
+	// (Derived)
+	const topic0Hex = $derived(
+		topics[0]?.startsWith('0x') ?
+			normalizeEvmTopicHex(topics[0] as `0x${string}`)
+		:
+			null,
+	)
+
 	const decodedLog = $derived.by(() => {
-		if (!open || topic0Hex == null || data == null) return null
-		for (const signature of topic.current.signatures ?? []) {
+		if (!open || topic0Hex == null || data == null)
+			return null
+
+		for (const signature of topic.current?.signatures ?? []) {
 			const decoded = decodeLogWithSignature(signature, topics, data)
-			if (decoded) return { signature, decoded, source: 'catalog' as const }
+			if (decoded)
+				return { signature, decoded, source: 'catalog' as const }
 		}
-		const abiJson = emitterContract.current.abi
-		if (abiJson != null && abiJson !== '') {
-			const fromAbi = decodeLogWithContractAbiJson(abiJson, topics, data)
-			if (fromAbi) return { ...fromAbi, source: 'contract-abi' as const }
+
+		const abi = emitterContract.current?.abi
+		if (abi?.length) {
+			const fromAbi = decodeLogWithContractAbi(abi, topics, data)
+			if (fromAbi)
+				return { ...fromAbi, source: 'contract-abi' as const }
 		}
+
 		return null
 	})
 
@@ -109,7 +111,7 @@
 			<span data-text="annotation">Topic 0</span>
 			<a
 				data-text="font-monospace"
-				href={resolve(getEvmTopicPath(topic0Hex))}
+				href={getEvmTopicPath(topic0Hex)}
 			>
 				<TruncatedValue
 					value={topic0Hex}

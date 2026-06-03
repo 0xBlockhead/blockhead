@@ -36,13 +36,12 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 		)
 		expect(
 			preflight.ok,
-			preflight.ok
-				? 'ok'
-				:
-					'detail' in preflight && preflight.detail != null
-					? jsonStringifyForExpectMessage(preflight.detail)
-					:
-						jsonStringifyForExpectMessage(preflight),
+			preflight.ok ?
+				'ok'
+			: 'detail' in preflight && preflight.detail != null ?
+				jsonStringifyForExpectMessage(preflight.detail)
+			:
+				jsonStringifyForExpectMessage(preflight),
 		).toBe(true)
 
 		await step(page.goto('/', { waitUntil: 'domcontentloaded' }))
@@ -54,7 +53,7 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 		await step(expect(page.locator('#network-summary-head-block')).toBeVisible({
 			timeout: 45_000,
 		}))
-		await step(expect(page.locator('.network-view-carousel-groups')).toBeAttached({
+		await step(expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
 			timeout: 120_000,
 		}))
 
@@ -75,7 +74,7 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 
 		await step(collapseNetworkEntityView(page))
 
-		await step(expect(page.locator('.network-view-carousel-groups')).toHaveCount(0))
+		await step(expect(page.locator('.network-view-collapsible-topology')).toHaveCount(0))
 		await step(expect(page.locator('#network-summary-head-block')).toBeVisible())
 		await step(expect(page.locator('#network-summary-head-block a[href*="/block/"]')).toBeAttached({
 			timeout: 30_000,

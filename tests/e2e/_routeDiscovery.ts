@@ -28,7 +28,8 @@ const encodeUrlSegment = (segment: string) => (
 const bracketSegmentToParamKey = (segment: string) => (
 	segment.startsWith('[...') ?
 		`...${segment.slice(4, -1)}`
-	:	segment.startsWith('[') && segment.endsWith(']') ?
+	:
+	segment.startsWith('[') && segment.endsWith(']') ?
 		((inner) => (
 			(() => {
 				const eq = inner.indexOf('=')
@@ -42,9 +43,7 @@ const bracketSegmentToParamKey = (segment: string) => (
 const bracketSegmentToMatcherKey = (segment: string) => (
 	segment.startsWith('[') && segment.endsWith(']') ?
 		((inner) => (
-			inner.includes('=') ? inner.slice(inner.indexOf('=') + 1)
-			:
-				undefined
+			inner.includes('=') ? inner.slice(inner.indexOf('=') + 1) : undefined
 		))(segment.slice(1, -1))
 	:
 		undefined
@@ -53,16 +52,15 @@ const bracketSegmentToMatcherKey = (segment: string) => (
 const bracketExpressionToParamKey = (expression: string) => (
 	expression.startsWith('...') ?
 		`...${expression.slice(3)}`
-	:	expression.includes('=') ?
+	:
+		expression.includes('=') ?
 		expression.slice(0, expression.indexOf('='))
 	:
 		expression
 )
 
 const bracketExpressionToMatcherKey = (expression: string) => (
-	expression.includes('=') ? expression.slice(expression.indexOf('=') + 1)
-	:
-		undefined
+	expression.includes('=') ? expression.slice(expression.indexOf('=') + 1) : undefined
 )
 
 const dynamicFixture = (
@@ -79,7 +77,7 @@ const dynamicFixture = (
 	const contextual = e2eRouteParamFixtureForContext(paramKey, staticSegments)
 	return (
 		contextual
-		?? `e2e-${paramKey}`
+
 	)
 }
 
@@ -106,7 +104,8 @@ const expandMixedSegment = (
 			(
 				matcherKey === 'eip155Caip2Namespace' ?
 					['eip155']
-				:	matcherKey === 'eip155Caip2Reference' ?
+	:
+		matcherKey === 'eip155Caip2Reference' ?
 					['1']
 				:
 					e2eRouteParamFixtureVariantsForContext(
@@ -187,7 +186,8 @@ const pageFileToPathname = (absPath: string) => {
 			contexts = contexts.flatMap((context) => (
 				matcherKey === 'eip155Caip2Namespace' ?
 					['eip155']
-				:	matcherKey === 'eip155Caip2Reference' ?
+	:
+		matcherKey === 'eip155Caip2Reference' ?
 					['1']
 				:
 					e2eRouteParamFixtureVariantsForContext(
@@ -238,6 +238,7 @@ const pageFileToPathname = (absPath: string) => {
 const walkFiles = async function* (dir: string): AsyncGenerator<string> {
 	for (const ent of await readdir(dir, { withFileTypes: true })) {
 		const p = join(dir, ent.name)
+		if (ent.isDirectory() && p === join(routesDir, 'demo')) continue
 		if (ent.isDirectory())
 			yield* walkFiles(p)
 		else if (ent.name === '+page.svelte')

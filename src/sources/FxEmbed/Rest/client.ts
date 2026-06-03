@@ -18,6 +18,6 @@ export const fxEmbedGet = async <T>(
 ): Promise<T> => (
 	getJson<T>(
 		`${fxEmbedApiV2Base}${path}${toQuery(params ?? {})}`,
-		{ origins: FxEmbed.origins ?? [] },
+		{ origins: FxEmbed.origins  },
 	)
 )

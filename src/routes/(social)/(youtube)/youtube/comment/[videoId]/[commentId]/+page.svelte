@@ -8,11 +8,6 @@
 		params,
 	} = $props()
 
-	const entityId = $derived({
-		videoId: decodeURIComponent(params.videoId),
-		commentId: decodeURIComponent(params.commentId),
-	})
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -22,6 +17,9 @@
 
 <Page>
 	<YouTubeCommentView
-		{entityId}
+		{({
+		videoId: decodeURIComponent(params.videoId),
+		commentId: decodeURIComponent(params.commentId),
+	})}
 	/>
 </Page>

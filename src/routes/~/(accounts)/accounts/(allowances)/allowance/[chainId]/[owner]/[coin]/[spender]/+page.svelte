@@ -1,12 +1,9 @@
 <script lang="ts">
-	// Types/constants
-	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
-
-
 	// State
 	let {
 		params,
 	} = $props()
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -23,10 +20,10 @@
 					address: params.owner as `0x${string}`,
 				},
 				$coinInstance: {
-					$network: networkIdFromEvmChainId(Number(params.chainId)),
+					$network: { caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } },
 					type: CoinInstanceType.Erc20Token,
 					$contract: {
-						$network: networkIdFromEvmChainId(Number(params.chainId)),
+						$network: { caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } },
 						address: params.coin as `0x${string}`,
 					},
 				},

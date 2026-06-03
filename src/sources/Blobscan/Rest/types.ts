@@ -8,4 +8,15 @@ export type BlobscanTransaction = {
 	blobs?: BlobscanTransactionBlob[]
 }
 
-export type BlobscanBlobDetail = JsonObject
+export type BlobscanBlobDataStorageReference = {
+	storage?: string
+	reference?: string
+}
+
+export type BlobscanBlobDetail = JsonObject & {
+	blob?: {
+	versionedHash?: string
+		commitment?: string
+}
+	blobDataStorage?: BlobscanBlobDataStorageReference[]
+}

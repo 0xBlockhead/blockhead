@@ -47,7 +47,7 @@ export const threeXplUrl = ({
 		url.searchParams.set(key, String(value))
 	}
 	for (const [key, values] of Object.entries(repeatedSearchParams ?? {})) {
-		for (const value of values ?? []) {
+		for (const value of values ) {
 			url.searchParams.append(key, String(value))
 		}
 	}
@@ -73,7 +73,7 @@ export const threeXplGetJson = async <T>({
 			server: options?.server,
 		}),
 		{
-			origins: ThreeXpl.origins ?? [],
+			origins: ThreeXpl.origins,
 			...(options?.token != null && options.token !== '' && {
 				init: {
 					headers: {

@@ -100,7 +100,7 @@ const resolveCatalogFamilyToken = ({
 		const slugNormalized = normalizeFamilyToken(slugCanonical)
 		return slugFamilyTokenAliases[slugNormalized] ?? slugCanonical
 	}
-	const text = `${title ?? ''} ${name ?? ''} ${shortName ?? ''}`
+	const text = `${title ?? ''} ${name } ${shortName }`
 	if (/\bethereum\s+classic\b/i.test(text)) {
 		return 'ethereumclassic'
 	}
@@ -122,7 +122,7 @@ const pairingFamilyKey = (chain: EthereumListsChainPairing): string | undefined 
 }
 
 const ethereumListsRowImpliesTestnet = (chain: Pick<EthereumListsChainPairing, 'name' | 'title'>): boolean => (
-	testnetKeywordPattern.test(`${chain.title ?? ''} ${chain.name ?? ''}`)
+	testnetKeywordPattern.test(`${chain.title ?? ''} ${chain.name }`)
 )
 
 const catalogChainIsEthereumExecutionRoot = (chain: EthereumListsChainPairing): boolean => (
@@ -160,7 +160,8 @@ const selectBestMainnetCandidate = ({
 			String(rightCandidate.chainId).length - String(leftCandidate.chainId).length
 			|| leftCandidate.chainId - rightCandidate.chainId
 		))
-	if (byChainIdPrefix[0] != null) return byChainIdPrefix[0]
+	const chainIdPrefixMatch = byChainIdPrefix.at(0)
+	if (chainIdPrefixMatch != null) return chainIdPrefixMatch
 	const normalizedSourceShortName = normalizePairingShortName(testnetShortName)
 	if (normalizedSourceShortName.length > 0) {
 		const byShortNamePrefix = mainnetCandidates
@@ -177,18 +178,20 @@ const selectBestMainnetCandidate = ({
 			.toSorted((leftCandidate, rightCandidate) => (
 				leftCandidate.chainId - rightCandidate.chainId
 			))
-		if (byShortNamePrefix[0] != null) return byShortNamePrefix[0]
+		const shortNamePrefixMatch = byShortNamePrefix.at(0)
+		if (shortNamePrefixMatch != null) return shortNamePrefixMatch
 	}
 	const byMainnetKeyword = mainnetCandidates
 		.filter((candidate) => /\bmainnet\b/i.test(candidate.name ?? ''))
 		.toSorted((leftCandidate, rightCandidate) => (
 			leftCandidate.chainId - rightCandidate.chainId
 		))
-	if (byMainnetKeyword[0] != null) return byMainnetKeyword[0]
+	const mainnetKeywordMatch = byMainnetKeyword.at(0)
+	if (mainnetKeywordMatch != null) return mainnetKeywordMatch
 	return mainnetCandidates
 		.toSorted((leftCandidate, rightCandidate) => (
 			leftCandidate.chainId - rightCandidate.chainId
-		))[0]
+		)).at(0)
 }
 
 const canonicalPublicHttpUrlFromCatalogString = (raw: string): string => {
@@ -316,7 +319,7 @@ export default {
 				const chain = chains.find((listedChain) => listedChain.chainId === Number(entityId.caip2.reference))
 				if (chain == null) throw new Error('EthereumLists_Rest: chain id not in chains.json')
 				const nativeSymbol = chain.nativeCurrency.symbol.trim()
-				const displayName = `${chain.title ?? chain.name ?? ''}`.trim()
+				const displayName = `${chain.title ?? chain.name }`.trim()
 				if (nativeSymbol === '') throw new Error(`EthereumLists_Rest: native currency symbol missing for chain ${chain.chainId}`)
 				if (displayName.length === 0) throw new Error(`EthereumLists_Rest: chain display name missing for chain ${chain.chainId}`)
 				const rpcUrls = chain.rpc.filter((url) => url.length > 0)
@@ -345,13 +348,11 @@ export default {
 					})),
 					$$rpcUrls: urlEntitiesFromFaucetUrlStrings(rpcUrls),
 					name: displayName,
-					...(nativeCoin != null && {
 						$nativeCoin: {
 							[EntityMetaKey.Id]: {
 								coinId: nativeCoin.id,
 							},
 						},
-					}),
 					$nativeCoinInstance: {
 						[EntityMetaKey.Id]: nativeCoinInstanceId,
 					},
@@ -374,7 +375,7 @@ export default {
 						let layer = 1
 						let currentChainId: number | undefined = chain.chainId
 						const visitedChainIds = new Set<number>()
-						for (let hop = 0; hop < 256 && currentChainId !== undefined; hop += 1) {
+						for (let hop = 0; hop < 256; hop += 1) {
 							if (visitedChainIds.has(currentChainId)) return layer
 							visitedChainIds.add(currentChainId)
 							const currentChain = chainByChainId.get(currentChainId)
@@ -531,18 +532,23 @@ export default {
 					throw new Error('EthereumLists_Rest: network not in chains.json for sibling shard list')
 				}
 				return (
-					chain.parent == null || chain.parent.chain == null || String(chain.parent.type ?? '').toLowerCase() !== 'shard' ?
+					chain.parent == null || String(chain.parent.type).toLowerCase() !== 'shard' ?
 						[]
 					:
+						(() => {
+							const shardParentChain = chain.parent.chain.trim()
+				return (
 						chains.flatMap((candidate) => (
 							candidate.chainId === chain.chainId
 							|| candidate.parent == null
-							|| candidate.parent.chain?.trim() !== chain.parent?.chain?.trim()
-							|| String(candidate.parent.type ?? '').toLowerCase() !== 'shard' ?
+									|| candidate.parent.chain.trim() !== shardParentChain
+									|| String(candidate.parent.type).toLowerCase() !== 'shard' ?
 								[]
 							:
 								[{ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(candidate.chainId) } } }]
 						))
+				)
+						})()
 				)
 			},
 		}),

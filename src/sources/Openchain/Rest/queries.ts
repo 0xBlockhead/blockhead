@@ -10,16 +10,22 @@ import {
 } from '$/sources/Openchain/Rest/types.ts'
 
 const normalizeHex4 = (hex: `0x${string}`): `0x${string}` => {
-	const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase()
-	:
-		hex.toLowerCase()
+	const digits = (
+		hex.toLowerCase().startsWith('0x') ?
+			hex.slice(2).toLowerCase()
+		:
+			hex.toLowerCase()
+	)
 	return `0x${digits.padStart(8, '0').slice(-8)}`
 }
 
 const normalizeHex32 = (hex: `0x${string}`): `0x${string}` => {
-	const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase()
-	:
-		hex.toLowerCase()
+	const digits = (
+		hex.toLowerCase().startsWith('0x') ?
+			hex.slice(2).toLowerCase()
+		:
+			hex.toLowerCase()
+	)
 	return `0x${digits.padStart(64, '0').slice(-64)}`
 }
 

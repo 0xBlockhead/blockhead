@@ -17,7 +17,7 @@ const info = async <_Result>({
 	body: JsonValue
 }) => {
 	const response = await corsFetch(`${restBaseUrl.replace(/\/$/, '')}/info`, {
-		origins: Hyperliquid.origins ?? [],
+		origins: Hyperliquid.origins,
 		init: {
 			method: 'POST',
 			headers: {

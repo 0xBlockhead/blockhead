@@ -601,7 +601,7 @@
 		CoinInstance = 'CoinInstance',
 		MarketPrice = 'MarketPrice',
 		Market_TimeInterval_Timestamp = 'Market_TimeInterval_Timestamp',
-		Eip8004Service = 'Eip8004Service',
+		EvmNft = 'EvmNft',
 		EnsName = 'EnsName',
 		EvmBlock = 'EvmBlock',
 		EvmCalldata = 'EvmCalldata',
@@ -1007,7 +1007,8 @@
 					timestamp: (
 						typeof tsRaw === 'string' ?
 							Number.parseInt(tsRaw, 16)
-						:	typeof tsRaw === 'number' ?
+						:
+							typeof tsRaw === 'number' ?
 							tsRaw
 						:
 							undefined
@@ -1454,7 +1455,6 @@
 	const liveQueryDataRows = (data: JsonValue) => (data === undefined ? [] : Array.isArray(data) ? data : [data])
 
 
-	// State
 	const queryClient = new _QueryClient()
 
 	const entityCollectionByEntityType = Object.fromEntries(
@@ -1723,7 +1723,8 @@
 									<li>
 										<pre data-card>{JSON.stringify(
 											entityRow.entity,
-											(_key, inner) => (typeof inner === 'bigint' ? inner.toString()
+											(_key, inner) => (typeof inner === 'bigint' ?
+												inner.toString()
 											:
 												inner),
 											2,
@@ -1768,7 +1769,8 @@
 											<li>
 												<pre data-card>{JSON.stringify(
 													fieldRow.entityField,
-													(_key, inner) => (typeof inner === 'bigint' ? inner.toString()
+													(_key, inner) => (typeof inner === 'bigint' ?
+														inner.toString()
 													:
 														inner),
 													2,

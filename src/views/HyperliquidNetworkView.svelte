@@ -9,6 +9,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -21,10 +23,6 @@
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.Network,
@@ -61,6 +59,8 @@
 		},
 	)
 
+
+	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -124,17 +124,18 @@
 		open,
 	})}
 		<dl class="network-summary-head" data-column-item="center">
-			<ResourceBoundary resource={hyperliquidNetwork} placeholderText="Loading head block…">
-				{#snippet children(hyperliquidNetwork)}
-					{#if hyperliquidNetwork.$$blocks.at(0) != null}
-						<div>
-							<dt>Head block</dt>
-							<dd id="network-summary-head-block">
-								<HyperliquidBlockView
-									entityId={hyperliquidNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
+				<ResourceBoundary resource={hyperliquidNetwork} placeholderText="Loading head block…">
+					{#snippet children(hyperliquidNetwork)}
+						{@const block = hyperliquidNetwork.$$blocks?.at(0)}
+						{#if block != null}
+							<div>
+								<dt>Head block</dt>
+								<dd id="network-summary-head-block">
+									<HyperliquidBlockView
+										entityId={block[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+									/>
+								</dd>
 						</div>
 					{/if}
 				{/snippet}
@@ -353,7 +354,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -372,7 +372,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>

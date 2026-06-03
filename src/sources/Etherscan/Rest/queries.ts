@@ -291,7 +291,7 @@ export const getContractCreation = async ({
 			row.contractAddress?.toLowerCase() === address.toLowerCase()
 		))
 		?? wire.result[0]
-		?? null
+
 	)
 }
 
@@ -374,7 +374,7 @@ export const getGasOracle = async ({
 		},
 		options,
 	})
-	if (wire == null || wire.status !== '1' || wire.result == null) return null
+	if (wire == null || wire.status !== '1') return null
 	return wire.result
 }
 

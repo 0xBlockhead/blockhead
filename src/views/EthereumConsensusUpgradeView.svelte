@@ -1,10 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,19 +11,18 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
+			caip2Namespace: 'eip155',
+			caip2Reference: entityId.$network.caip2.reference,
 				upgradeSlug: entityId.upgradeId,
-			},
-		),
+			}),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -36,6 +31,7 @@
 			entityId: EntityId<typeof schema, EntityType.EthereumConsensusUpgrade>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -43,10 +39,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkConsensusUpgrade = useEntity(
 		EntityType.EthereumConsensusUpgrade,
@@ -119,6 +111,11 @@
 		href: _href,
 		open: contentOpen,
 	})}
+		<ResourceBoundary
+			resource={networkConsensusUpgrade}
+			placeholderText="Loading consensus upgrade…"
+		>
+			{#snippet children(networkConsensusUpgrade)}
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
@@ -127,14 +124,7 @@
 				<div>
 					<dt>Consensus fork</dt>
 					<dd>
-						<ResourceBoundary
-							resource={networkConsensusUpgrade}
-							placeholderText="Loading consensus upgrade…"
-						>
-							{#snippet children(networkConsensusUpgrade)}
 								{consensusProtocolByProtocol[networkConsensusUpgrade.protocol].label}
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
@@ -142,21 +132,14 @@
 				<div>
 					<dt>Activation block</dt>
 					<dd>
-						<ResourceBoundary
-							resource={networkConsensusUpgrade}
-							placeholderText="Loading consensus upgrade…"
-						>
-							{#snippet children(networkConsensusUpgrade)}
-								<EvmBlockView
-									entityId={{
-										$network: entityId.$network,
-										blockNumber: networkConsensusUpgrade.activationBlock,
-									}}
-									layout={EntityLayout.Value}
-									open={false}
+									<EvmBlockView
+										entityId={{
+											$network: entityId.$network,
+											blockNumber: BigInt(networkConsensusUpgrade.activationBlock),
+										}}
+										layout={EntityLayout.Value}
+										open={false}
 								/>
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
@@ -164,14 +147,7 @@
 				<div>
 					<dt>Activation epoch</dt>
 					<dd>
-						<ResourceBoundary
-							resource={networkConsensusUpgrade}
-							placeholderText="Loading consensus upgrade…"
-						>
-							{#snippet children(networkConsensusUpgrade)}
 								<NumberValue value={networkConsensusUpgrade.activationEpoch} />
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
@@ -179,16 +155,9 @@
 				<div>
 					<dt>Activation time</dt>
 					<dd>
-						<ResourceBoundary
-							resource={networkConsensusUpgrade}
-							placeholderText="Loading consensus upgrade…"
-						>
-							{#snippet children(networkConsensusUpgrade)}
 								<Timestamp
 									timestamp={networkConsensusUpgrade.activationTimestampMs}
 								/>
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
@@ -196,17 +165,10 @@
 				<div>
 					<dt>Previous fork version</dt>
 					<dd>
-						<ResourceBoundary
-							resource={networkConsensusUpgrade}
-							placeholderText="Loading consensus upgrade…"
-						>
-							{#snippet children(networkConsensusUpgrade)}
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
 									value={networkConsensusUpgrade.previousForkVersion}
 								/>
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
@@ -214,26 +176,21 @@
 				<div>
 					<dt>Current fork version</dt>
 					<dd>
-						<ResourceBoundary
-							resource={networkConsensusUpgrade}
-							placeholderText="Loading consensus upgrade…"
-						>
-							{#snippet children(networkConsensusUpgrade)}
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
 									value={networkConsensusUpgrade.currentForkVersion}
 								/>
-							{/snippet}
-						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
 		</dl>
 	{/snippet}
+		</ResourceBoundary>
+	{/snippet}
 
 	{#snippet Details({ open })}
 		<ProposalsView
-			href={resolve('/proposals')}
+			href="/proposals"
 			entityFieldReference={{
 				entityType: EntityType.EthereumConsensusUpgrade,
 				entityId,

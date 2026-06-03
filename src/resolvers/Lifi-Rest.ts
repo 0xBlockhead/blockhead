@@ -232,11 +232,7 @@ export default {
 			entityType: EntityType.Coin,
 			fieldName: '$$bridgeCapabilities',
 			resolve: async (entityId, context) => {
-				const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin(entityId, context)
-				if (bridgeCapabilities.length === 0) {
-					throw new Error(`Lifi_Rest: no bridge capabilities for coin ${entityId.coinId}`)
-				}
-				return bridgeCapabilities
+				return coinBridgeCapabilityRowsForCoin(entityId, context)
 			},
 		}),
 

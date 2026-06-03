@@ -18,6 +18,6 @@ export const bskySocialXrpcGet = async <T>(
 ): Promise<T> => (
 	getJson<T>(
 		`${bskySocialXrpcBase}${path}${toQuery(params)}`,
-		{ origins: AtprotoBskySocial.origins ?? [] },
+		{ origins: AtprotoBskySocial.origins  },
 	)
 )

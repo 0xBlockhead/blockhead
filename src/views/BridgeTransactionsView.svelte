@@ -17,6 +17,8 @@
 	}
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -29,18 +31,16 @@
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BridgeTransaction>
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -107,8 +107,8 @@
 				open={true}
 				resource={bridgeTransactions}
 				placeholderText="Loading bridge transactions…"
-				getKey={(row) => stringify(bridgeTransaction.value[EntityMetaKey.Id])}
-				getSortValue={(row) => (
+				getKey={(bridgeTransaction) => stringify(bridgeTransaction.value[EntityMetaKey.Id])}
+				getSortValue={(bridgeTransaction) => (
 					`${String(bridgeTransaction.value[EntityMetaKey.Id].createdAt)}\0${stringify(bridgeTransaction.value[EntityMetaKey.Id])}`
 				)}
 				placeholderKeys={new SvelteSet<string | number>()}

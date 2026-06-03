@@ -13,6 +13,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -34,6 +35,7 @@
 			id?: string
 			limit?: number
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 		},
 		Pick<
@@ -43,9 +45,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -123,8 +122,8 @@
 				{title}
 				resource={rssItems}
 				placeholderText="Loading items…"
-				getKey={(row) => stringify(rssItem.entityId)}
-				getSortValue={(row) => rssItem.sortKey}
+				getKey={(rssItem) => stringify(rssItem.entityId)}
+				getSortValue={(rssItem) => rssItem.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

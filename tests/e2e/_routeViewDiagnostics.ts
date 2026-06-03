@@ -103,7 +103,7 @@ export const setupRouteViewSmokePage = (page: Page) => {
 			try {
 				html += (
 					`\n---\nouterHTML (evaluate):\n${await page.evaluate(() => (
-						document.documentElement?.outerHTML ?? '(no documentElement)'
+						document.documentElement.outerHTML
 					))}`
 				)
 			}
@@ -129,7 +129,7 @@ export const setupRouteViewSmokePage = (page: Page) => {
 			contentType: screenshotContentType,
 		})
 		const domHints = await page.evaluate(() => ({
-			bodyChildren: document.body?.childElementCount ?? null,
+			bodyChildren: document.body.childElementCount,
 			hasLayout: !!document.querySelector('#layout'),
 			hasMain: !!document.querySelector('#main'),
 			readyState: document.readyState,

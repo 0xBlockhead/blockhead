@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -17,7 +17,12 @@
 			entityId: EntityId<typeof schema, EntityType.LiquidityPool>
 			open?: boolean
 		},
-		never
+		Pick<
+			ComponentProps<typeof LiquidityPoolView>,
+			| 'href'
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
 
@@ -27,7 +32,6 @@
 
 
 <LiquidityPoolView
-	{children}
 	{entityId}
 	bind:open
 	{...EntityViewProps}

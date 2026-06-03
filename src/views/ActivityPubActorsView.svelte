@@ -11,6 +11,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -27,19 +29,16 @@
 			>
 			id: string
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -100,8 +99,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(activityPubActor[EntityMetaKey.Id])}
-					getSortValue={(row) => {
+					getKey={(activityPubActor) => stringify(activityPubActor[EntityMetaKey.Id])}
+					getSortValue={(activityPubActor) => {
 						const actorId = activityPubActor[EntityMetaKey.Id]
 						return `${actorId.instanceOrigin}\0${actorId.localAccountId}`
 					}}

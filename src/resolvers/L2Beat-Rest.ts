@@ -7,8 +7,6 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const eip155Caip2Namespace = 'eip155'
-
 export default {
 	source: Source.L2Beat_Rest,
 
@@ -19,15 +17,11 @@ export default {
 				const {
 					l2beatHostChainToParentChainId,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
-				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				const summary = await singleFlight(fetchScalingSummary)()
-				const project = summary.projects[entityId.projectId]
-				if (project == null) {
-					throw new Error(
-						`L2Beat_Rest: no scaling project ${entityId.projectId}`,
-					)
-				}
-				const settlementChainId = l2beatHostChainToParentChainId[project.hostChain]
+					const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
+					const summary = await singleFlight(fetchScalingSummary)()
+					const project = summary.projects[entityId.projectId]
+					if (project == null) throw new Error('L2Beat_Rest: rollup project not found')
+					const settlementChainId = l2beatHostChainToParentChainId[project.hostChain]
 				return {
 					name: project.name,
 					slug: project.slug,
@@ -37,16 +31,9 @@ export default {
 					...(project.isArchived != null && { isArchived: project.isArchived }),
 					...(project.isUpcoming != null && { isUpcoming: project.isUpcoming }),
 					...(project.isUnderReview != null && { isUnderReview: project.isUnderReview }),
-					...(settlementChainId != null && {
 						$settlementNetwork: {
-							[EntityMetaKey.Id]: {
-								caip2: {
-									namespace: eip155Caip2Namespace,
-									reference: String(settlementChainId),
-								},
-							},
+						[EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(settlementChainId) } },
 						},
-					}),
 				}
 			},
 		}),
@@ -67,26 +54,20 @@ export default {
 				return [
 					{
 						[EntityMetaKey.Id]: {
-							caip2: {
-								namespace: eip155Caip2Namespace,
-								reference: String(ethereumChainId),
-							},
+							...{ caip2: { namespace: 'eip155' as const, reference: String(ethereumChainId) } },
 						},
 					},
 					...l2BeatProjectChainIds
 						.flatMap(({ projectId }) => {
 							const chainId = chainIdByL2BeatProjectId[projectId]
 							return (
-								chainId == null || summary.projects[projectId] == null ?
+								chainId == null ?
 									[]
 								:
 									[
 									{
 										[EntityMetaKey.Id]: {
-											caip2: {
-												namespace: eip155Caip2Namespace,
-												reference: String(chainId),
-											},
+												...{ caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 										},
 									},
 								]
@@ -106,26 +87,15 @@ export default {
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
 				const projectId = l2BeatProjectIdByChainId[entityId.caip2.reference]
-				if (projectId == null) {
-					throw new Error(
-						`L2Beat_Rest: no scaling project for chain ${entityId.caip2.reference}`,
-					)
-				}
+				if (projectId == null) return undefined
 				const summary = await singleFlight(fetchScalingSummary)()
 				const project = summary.projects[projectId]
-				if (project == null || project.isArchived === true) {
-					throw new Error(
-						`L2Beat_Rest: scaling project archived or missing for chain ${entityId.caip2.reference}`,
-					)
-				}
+				if (project == null || project.isArchived === true) return undefined
 				const parentChainId = l2beatHostChainToParentChainId[project.hostChain]
-				if (parentChainId == null || parentChainId === Number(entityId.caip2.reference)) return undefined
+				if (parentChainId === Number(entityId.caip2.reference)) return undefined
 				return {
 					[EntityMetaKey.Id]: {
-						caip2: {
-							namespace: eip155Caip2Namespace,
-							reference: String(parentChainId),
-						},
+						...{ caip2: { namespace: 'eip155' as const, reference: String(parentChainId) } },
 					},
 				}
 			},
@@ -140,11 +110,7 @@ export default {
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
 				const projectId = l2BeatProjectIdByChainId[entityId.caip2.reference]
-				if (projectId == null) {
-					throw new Error(
-						`L2Beat_Rest: no scaling project for chain ${entityId.caip2.reference}`,
-					)
-				}
+				if (projectId == null) return undefined
 				const summary = await singleFlight(fetchScalingSummary)()
 				const project = summary.projects[projectId]
 				if (project == null || project.isArchived === true) return undefined
@@ -193,10 +159,7 @@ export default {
 							{
 								[EntityMetaKey.Id]: {
 									$network: {
-										caip2: {
-											namespace: eip155Caip2Namespace,
-											reference: String(chainId),
-										},
+										...{ caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 									},
 									projectId,
 								},
@@ -240,10 +203,7 @@ export default {
 				)
 				return chainIds.map((chainId) => ({
 					[EntityMetaKey.Id]: {
-						caip2: {
-							namespace: eip155Caip2Namespace,
-							reference: String(chainId),
-						},
+						...{ caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 					},
 				}))
 			},

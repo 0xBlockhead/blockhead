@@ -74,7 +74,6 @@
 	}
 
 
-	// State
 	const samples = [
 		sample({
 			label: 'Bee docs landing page',

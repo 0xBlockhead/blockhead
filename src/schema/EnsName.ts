@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EvmAbi } from '$/schema/$EvmAbi.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
@@ -111,9 +112,9 @@ export default {
 			],
 		},
 		{
-			name: 'resolverAbiJson',
+			name: 'resolverAbi',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: EvmAbi,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,

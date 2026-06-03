@@ -1,16 +1,8 @@
 <script lang="ts">
-	// Types/constants
-	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
-
-
 	// State
 	let {
 		params,
 	} = $props()
-
-	const networkEntityId = $derived(
-		networkIdFromCaip2RouteParams(params),
-	)
 
 
 	// Components
@@ -21,6 +13,6 @@
 
 <Page>
 	<NetworkView
-		entityId={networkEntityId}
+		entityId={{ caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } }}
 	/>
 </Page>

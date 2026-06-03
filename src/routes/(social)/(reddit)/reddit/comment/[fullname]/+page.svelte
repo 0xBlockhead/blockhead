@@ -5,11 +5,6 @@
 	} = $props()
 
 
-	const entityId = $derived(
-		{ fullname: decodeURIComponent(params.fullname) },
-	)
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import RedditCommentView from '$/views/RedditCommentView.svelte'
@@ -18,7 +13,7 @@
 
 <Page>
 	<RedditCommentView
-		{entityId}
+		entityId={{ fullname: decodeURIComponent(params.fullname) }}
 	>
 	</RedditCommentView>
 </Page>

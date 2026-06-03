@@ -8,10 +8,6 @@
 		params,
 	} = $props()
 
-	const entityId = $derived({
-		uri: decodeURIComponent(params.uri),
-	})
-
 
 	// Components
 	import AtprotoPostThreadView from '$/views/AtprotoPostThreadView.svelte'
@@ -24,7 +20,9 @@
 	<AtprotoPostThreadView
 		entityFieldReference={{
 			entityType: EntityType.AtprotoPost,
-			entityId,
+			entityId: {
+				uri: decodeURIComponent(params.uri),
+			},
 			fieldName: '$$thread',
 		}}
 		id="atproto-post-thread"

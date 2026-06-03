@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -39,10 +40,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const feed = useEntity(
 		EntityType.RssFeed,
@@ -248,43 +245,43 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-feed`}
-				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'feed-record', label: 'Record' },
-					{ id: 'feed-items', label: 'Items' },
-				]}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Feed
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${idKey}:carousel-feed`}
+			sectionIdPrefix={idKey}
+			sections={[
+				{ id: 'feed-record', label: 'Record' },
+				{ id: 'feed-items', label: 'Items' },
+			]}
+			data-card
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Feed
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionFeedRecord({ id, label })}
-				{/snippet}
+			{#snippet SectionFeedRecord({ id, label })}
+			{/snippet}
 
-				{#snippet SectionFeedItems({ id, label })}
-					<RssItemsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/rss/items')}
-						entityFieldReference={{
-							entityType: EntityType.RssFeed,
-							entityId,
-							fieldName: '$$items',
-						}}
-						id={`${idKey}:feed-items-rssFeeds`}
-						{limit}
-						open={_open}
-						title="Items"
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionFeedItems({ id, label })}
+				<RssItemsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/rss/items')}
+					entityFieldReference={{
+						entityType: EntityType.RssFeed,
+						entityId,
+						fieldName: '$$items',
+					}}
+					id={`${idKey}:feed-items-rssFeeds`}
+					{limit}
+					open={_open}
+					title="Items"
+				/>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

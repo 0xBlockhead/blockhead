@@ -46,7 +46,7 @@ export const queryTheGraph = async <
 	}
 
 	const payload = await getJson<TheGraphPayloadWire>(endpointUrl, {
-		origins: TheGraph.origins ?? [],
+		origins: TheGraph.origins,
 		init: {
 			method: 'POST',
 			headers: {

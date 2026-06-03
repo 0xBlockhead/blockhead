@@ -4,6 +4,7 @@
  */
 
 import { coinMarketCapFetch } from '$/sources/CoinMarketCap/Rest/client.ts'
+import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import type {
@@ -56,7 +57,7 @@ export const getOhlcvHistoricalRows = async ({
 	publicEnv: SourcePublicEnvFor<Source.CoinMarketCap_Rest>
 	id: number
 	days: number
-}): Promise<number[][]> => {
+}): Promise<OhlcCandle[]> => {
 	const response = await coinMarketCapFetch<CoinMarketCapOhlcvHistoricalResponse>(
 		publicEnv,
 		`/v2/cryptocurrency/ohlcv/historical?id=${id}&time_period=daily&count=${days}&convert=USD`,
@@ -82,7 +83,14 @@ export const getOhlcvHistoricalRows = async ({
 			}
 			const timestampMs = Date.parse(timeOpen)
 			if (!Number.isFinite(timestampMs)) return []
-			return [[timestampMs, usd.open, usd.high, usd.low, usd.close]]
+			return [[
+				timestampMs,
+				usd.open,
+				usd.high,
+				usd.low,
+				usd.close,
+				usd.volume,
+			]]
 		})
 	)
 }

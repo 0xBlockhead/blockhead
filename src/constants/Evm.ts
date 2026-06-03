@@ -46,6 +46,16 @@ export enum EvmTokenStandard {
 	Erc1155 = 'ERC-1155',
 }
 
+export enum EvmNftStandard {
+	Erc721 = 'ERC-721',
+	Erc1155 = 'ERC-1155',
+}
+
+export enum EvmNftFormat {
+	Generic = 'Generic',
+	Eip8004Registration = 'Eip8004Registration',
+}
+
 
 // Constants
 
@@ -160,11 +170,11 @@ const evmInternalCallTypes = [
 const evmLogInterpretationKinds = [
 	{
 		interpretationKind: EvmLogInterpretationKind.Transfer,
-		label: 'Transfer',
+		label: 'Token transfer',
 	},
 	{
 		interpretationKind: EvmLogInterpretationKind.Approval,
-		label: 'Approval',
+		label: 'Token approval',
 	},
 	{
 		interpretationKind: EvmLogInterpretationKind.Swap,

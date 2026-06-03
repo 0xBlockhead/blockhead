@@ -48,7 +48,7 @@ export const getHumanDocUrl = ({ number }: { number: number }) => (
 
 export const getContents = (): Promise<CaipsGithubContents> => getJson<CaipsGithubContents>({
 	url: getContentsUrl(),
-	origins: Caips.origins ?? [],
+	origins: Caips.origins,
 })
 
 export const getRawMarkdownText = ({
@@ -59,12 +59,12 @@ export const getRawMarkdownText = ({
 	downloadUrl: string | null | undefined
 }) => getText({
 	url: getRawMarkdownUrl({ fileName, downloadUrl }),
-	origins: Caips.origins ?? [],
+	origins: Caips.origins,
 })
 
 export const getMarkdownTextForNumber = ({ number }: { number: number }) => (
 	getText({
 		url: getMarkdownUrlForNumber({ number }),
-		origins: Caips.origins ?? [],
+		origins: Caips.origins,
 	})
 )

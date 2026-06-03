@@ -1,6 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -10,19 +9,18 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(beacon-epochs)/epoch/[epochNumber]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
+			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(beacon-epochs)/epoch/[epochNumber]', {
+				caip2Namespace: entityId.$network.caip2.namespace,
+				caip2Reference: entityId.$network.caip2.reference,
 				epochNumber: String(entityId.epoch),
-			},
-		),
+			}),
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -40,10 +38,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const epoch = useEntity(
 		EntityType.BeaconEpoch,
@@ -69,6 +63,7 @@
 	)
 
 
+	// (Derived)
 	const title = $derived(
 		titleProp ?? `Epoch #${entityId.epoch.toLocaleString()}`,
 	)
@@ -108,7 +103,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Epoch </span>
-			{@render Value()}
+		<span data-badge="small">
+			#{String(entityId.epoch)}
+		</span>
 		</span>
 	{/snippet}
 
@@ -154,6 +151,11 @@
 					</dd>
 				</div>
 
+					<ResourceBoundary
+						resource={epoch}
+						placeholderText="Loading epoch…"
+					>
+						{#snippet children(epoch)}
 				{#if epoch.finalized !== undefined}
 					<div>
 						<dt>Finalized</dt>
@@ -205,6 +207,8 @@
 						</dd>
 					</div>
 				{/if}
+						{/snippet}
+					</ResourceBoundary>
 			{/if}
 		</dl>
 	{/snippet}
@@ -213,31 +217,32 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${epochIdKey}:carousel-slots`}
-				sectionIdPrefix={epochIdKey}
-				sections={[
-					{ id: 'beacon-slots', label: 'Slots' },
-				]}
-				data-card
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Slots</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${epochIdKey}:carousel-slots`}
+			sectionIdPrefix={epochIdKey}
+			sections={[
+				{ id: 'beacon-slots', label: 'Slots' },
+			]}
+			data-card
+		>
+			{#snippet Summary({ open: _isOpen })}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Slots</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionBeaconSlots()}
-					<BeaconSlotsView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.BeaconEpoch,
-							entityId,
-							fieldName: '$$beaconSlots',
-						}}
-						title="Slots"
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionBeaconSlots()}
+				<BeaconSlotsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.BeaconEpoch,
+						entityId,
+						fieldName: '$$beaconSlots',
+					}}
+					id={`${epochIdKey}:beacon-slots`}
+					title="Slots"
+				/>
+			{/snippet}
+	</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

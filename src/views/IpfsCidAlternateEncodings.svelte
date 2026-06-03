@@ -38,7 +38,6 @@
 	)
 
 
-	// State
 	import { ipfsResourceHref } from '$/lib/ipfs.ts'
 
 	import {

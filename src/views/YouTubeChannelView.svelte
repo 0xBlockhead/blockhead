@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -37,10 +38,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const channel = useEntity(
 		EntityType.YouTubeChannel,
@@ -241,66 +238,66 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-channel`}
-				sectionIdPrefix={idKey}
-					sections={collapsibleTabsSections([
-						{ id: 'videos', label: 'Videos' },
-						{ id: 'playlists', label: 'Playlists' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Channel library
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${idKey}:carousel-channel`}
+			sectionIdPrefix={idKey}
+				sections={collapsibleTabsSections([
+					{ id: 'videos', label: 'Videos' },
+					{ id: 'playlists', label: 'Playlists' },
+					{ id: 'metric-snapshots', label: 'Metrics' },
+				])}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Channel library
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionVideos()}
-					<YouTubeVideosView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.YouTubeChannel,
-							entityId,
-							fieldName: '$$videos',
-						}}
-						id={`${idKey}:youtube-videos`}
-						open={_open}
-					/>
-				{/snippet}
+			{#snippet SectionVideos()}
+				<YouTubeVideosView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.YouTubeChannel,
+						entityId,
+						fieldName: '$$videos',
+					}}
+					id={`${idKey}:youtube-videos`}
+					open={_open}
+				/>
+			{/snippet}
 
-					{#snippet SectionPlaylists()}
-						<YouTubePlaylistsView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.YouTubeChannel,
-							entityId,
-							fieldName: '$$playlists',
-						}}
-						id={`${idKey}:youtube-playlists`}
-						open={_open}
-						/>
-					{/snippet}
+			{#snippet SectionPlaylists()}
+				<YouTubePlaylistsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.YouTubeChannel,
+						entityId,
+						fieldName: '$$playlists',
+					}}
+					id={`${idKey}:youtube-playlists`}
+					open={_open}
+				/>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<YouTubeChannel_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.YouTubeChannel,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${idKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
-			</CollapsibleTabs>
+			{#snippet SectionMetricSnapshots()}
+				<YouTubeChannel_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.YouTubeChannel,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${idKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

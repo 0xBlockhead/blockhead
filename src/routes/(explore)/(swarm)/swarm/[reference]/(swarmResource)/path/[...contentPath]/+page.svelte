@@ -11,8 +11,6 @@
 		params,
 	} = $props()
 
-
-
 	const entityId = $derived(
 		getResourceAddressFromRouteParams({
 			reference: params.reference,

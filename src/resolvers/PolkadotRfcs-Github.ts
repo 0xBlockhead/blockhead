@@ -11,7 +11,7 @@ import { Source } from '$/sources/$Source.ts'
 const polkadotRfcRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	return entries.flatMap((githubContent) => {
-		const proposalNumberRaw = regex('^(?<proposalNumber>\\d{4})\\.md$').exec(githubContent.name)?.groups?.proposalNumber
+		const proposalNumberRaw = regex('^(?<proposalNumber>\\d{4})\\.md$').exec(githubContent.name)?.groups.proposalNumber
 		return githubContent.type !== 'file' || proposalNumberRaw == null ?
 			[]
 		:
@@ -40,8 +40,8 @@ export default {
 				const text = await singleFlight(getMarkdownText)({ number: entityId.number })
 				return {
 					documentCategory: 'RFC',
-					documentTitle: text.match(/^#\s*(.+)$/m)?.[1]?.trim() ?? null,
-					documentStatus: text.match(/^Status:\s*(.+)$/im)?.[1]?.trim() ?? null,
+					documentTitle: text.match(/^#\s*(.+)$/m)?.[1]?.trim(),
+					documentStatus: text.match(/^Status:\s*(.+)$/im)?.[1]?.trim(),
 					documentBody: text,
 				}
 			},

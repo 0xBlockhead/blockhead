@@ -35,7 +35,7 @@ export const getMarkdownUrl = ({ number }: { number: number }) => (
 export const getContents = async (): Promise<FilecoinFipsGithubContents> => {
 	const response = await githubHttp({
 		url: getContentsUrl(),
-		origins: FilecoinFips.origins ?? [],
+		origins: FilecoinFips.origins,
 	})
 	if (!response.ok) await throwHttpError('FilecoinFips GitHub contents', response)
 	return response.json<FilecoinFipsGithubContents>()
@@ -44,6 +44,6 @@ export const getContents = async (): Promise<FilecoinFipsGithubContents> => {
 export const getMarkdownText = ({ number }: { number: number }) => (
 	getText({
 		url: getMarkdownUrl({ number }),
-		origins: FilecoinFips.origins ?? [],
+		origins: FilecoinFips.origins,
 	})
 )

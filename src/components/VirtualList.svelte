@@ -32,16 +32,14 @@
 			rowInsetBlock?: number
 			itemGap?: number
 			overscan?: number
-			Item: Snippet<[context?: {
-				item?: _Item,
-				index?: number,
+			Item: Snippet<[context: {
+				item: _Item,
+				index: number,
 			}]>
 		},
 		SvelteHTMLElements['div']
 	> = $props()
 
-
-	// State
 	let viewportEl: HTMLDivElement | undefined = $state()
 	let measureWidth = $state(0)
 	let viewportHeight = $state(0)
@@ -100,7 +98,7 @@
 		}
 	})
 
-	const visibleIndices = $derived.by(() => (
+	const visibleIndices = $derived(
 		visible.end < visible.start ?
 			[]
 		:
@@ -112,7 +110,7 @@
 					visible.start + k
 				),
 			)
-	))
+	)
 
 
 	// Functions

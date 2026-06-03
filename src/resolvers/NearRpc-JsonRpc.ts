@@ -14,6 +14,7 @@ import type {
 	NearRpcBlock,
 	NearRpcExecutionOutcome,
 	NearRpcGasPrice,
+	NearRpcReceipt,
 	NearRpcStatus,
 	NearRpcTransactionStatus,
 	NearRpcValidator,
@@ -30,25 +31,28 @@ const assertNearMainnet = (network: { caip2: { namespace: string; reference: str
 
 const nearActionFields = (action: NearRpcAction) => ({
 	actionKind: (
-		action.CreateAccount != null ? 'CreateAccount'
-		:
-			action.DeployContract != null ? 'DeployContract'
-		:
-			action.FunctionCall != null ? 'FunctionCall'
-		:
-			action.Transfer != null ? 'Transfer'
-		:
-			action.Stake != null ? 'Stake'
-		:
-			action.AddKey != null ? 'AddKey'
-		:
-			action.DeleteKey != null ? 'DeleteKey'
-		:
-			action.DeleteAccount != null ? 'DeleteAccount'
-		:
-			action.Delegate != null ? 'Delegate'
-		:
-			'Unknown'
+		(
+			action.CreateAccount != null ?
+				'CreateAccount'
+			: action.DeployContract != null ?
+				'DeployContract'
+			: action.FunctionCall != null ?
+				'FunctionCall'
+			: action.Transfer != null ?
+				'Transfer'
+			: action.Stake != null ?
+				'Stake'
+			: action.AddKey != null ?
+				'AddKey'
+			: action.DeleteKey != null ?
+				'DeleteKey'
+			: action.DeleteAccount != null ?
+				'DeleteAccount'
+			: action.Delegate != null ?
+				'Delegate'
+			:
+				'Unknown'
+		)
 	),
 	...(action.FunctionCall != null && {
 		methodName: action.FunctionCall.method_name,
@@ -72,13 +76,16 @@ const nearExecutionOutcomeFields = (
 	executionOutcome: NearRpcExecutionOutcome,
 ) => ({
 	status: (
-		executionOutcome.outcome.status.SuccessValue != null ? 'SuccessValue'
-		:
-			executionOutcome.outcome.status.SuccessReceiptId != null ? 'SuccessReceiptId'
-		:
-			executionOutcome.outcome.status.Failure != null ? 'Failure'
-		:
-			'Unknown'
+		(
+			executionOutcome.outcome.status.SuccessValue != null ?
+				'SuccessValue'
+			: executionOutcome.outcome.status.SuccessReceiptId != null ?
+				'SuccessReceiptId'
+			: executionOutcome.outcome.status.Failure != null ?
+				'Failure'
+			:
+				'Unknown'
+		)
 	),
 	gasBurnt: BigInt(executionOutcome.outcome.gas_burnt),
 	$$receipts: executionOutcome.outcome.receipt_ids.map((receiptId) => ({
@@ -89,31 +96,22 @@ const nearExecutionOutcomeFields = (
 	})),
 })
 
-const nearNetworkTimestampFields = ({
-	block,
-	gasPrice,
-	status,
-	validators,
-}: {
-	block: NearRpcBlock
-	gasPrice: NearRpcGasPrice
-	status: NearRpcStatus
-	validators: NearRpcValidators
-}) => ({
-	headHeight: BigInt(block.header.height),
-	headHash: block.header.hash,
-	epochId: block.header.epoch_id,
-	epochHeight: BigInt(validators.epoch_height),
-	epochStartHeight: BigInt(validators.epoch_start_height),
-	chunkCount: block.chunks.length,
-	gasPriceYoctoNear: BigInt(gasPrice.gas_price),
-	currentValidatorCount: validators.current_validators.length,
-	nextValidatorCount: validators.next_validators.length,
-	currentProposalCount: validators.current_proposals.length,
-	protocolVersion: status.protocol_version,
-	latestProtocolVersion: status.latest_protocol_version,
-	nodeVersion: status.version.version,
-	syncing: status.sync_info.syncing,
+const nearReceiptFields = (
+	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+	receipt: NearRpcReceipt,
+) => ({
+	$predecessor: {
+		[EntityMetaKey.Id]: {
+			$network: network,
+			accountId: receipt.predecessor_id,
+		},
+	},
+	$receiver: {
+		[EntityMetaKey.Id]: {
+			$network: network,
+			accountId: receipt.receiver_id,
+		},
+	},
 })
 
 const nearValidatorFields = (validator: NearRpcValidator) => ({
@@ -261,8 +259,8 @@ export default {
 					chunkHash: entityId.chunkHash,
 				})
 				return {
-					shardId: BigInt(wireBlock.header.shard_id),
-					gasUsed: BigInt(wireBlock.header.gas_used),
+					shardId: BigInt(wireChunk.header.shard_id),
+					gasUsed: BigInt(wireChunk.header.gas_used),
 					$$transactions: wireChunk.transactions.map((transaction) => ({
 						[EntityMetaKey.Id]: {
 							$network: entityId.$network,
@@ -312,7 +310,7 @@ export default {
 			entityType: EntityType.NearAction,
 			resolve: async (entityId) => {
 				const transactionStatus = await getNearTransactionStatus(entityId.$transaction)
-				const action = transactionStatus.transaction.actions[entityId.actionIndex]
+				const action = transactionStatus.transaction.actions.at(entityId.actionIndex)
 				if (action == null) {
 					throw new Error(`NearRpc_JsonRpc: action ${entityId.actionIndex.toString()} not found for ${entityId.$transaction.hash}`)
 				}
@@ -335,6 +333,26 @@ export default {
 					entityId.$transaction.$network,
 					executionOutcome,
 				)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.NearReceipt,
+			resolve: async (entityId) => {
+				assertNearMainnet(entityId.$network)
+				const { getReceipt } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				try {
+					return nearReceiptFields(
+					entityId.$network,
+						await getReceipt({
+							rpcUrl: nearMainnetRpcUrl,
+							receiptId: entityId.receiptId,
+						}),
+				)
+				}
+				catch (cause) {
+					throw new Error(`NearRpc_JsonRpc: failed to resolve receipt ${entityId.receiptId}`, { cause })
+				}
 			},
 		}),
 
@@ -445,12 +463,20 @@ export default {
 							$network: entityId,
 							timestampMs: Number(BigInt(headBlock.header.timestamp_nanosec) / 1_000_000n),
 						},
-						...nearNetworkTimestampFields({
-							block: headBlock,
-							gasPrice: currentGasPrice,
-							status: nodeStatus,
-							validators: validatorSet,
-						}),
+						headHeight: BigInt(headBlock.header.height),
+						headHash: headBlock.header.hash,
+						epochId: headBlock.header.epoch_id,
+						epochHeight: BigInt(validatorSet.epoch_height),
+						epochStartHeight: BigInt(validatorSet.epoch_start_height),
+						chunkCount: headBlock.chunks.length,
+						gasPriceYoctoNear: BigInt(currentGasPrice.gas_price),
+						currentValidatorCount: validatorSet.current_validators.length,
+						nextValidatorCount: validatorSet.next_validators.length,
+						currentProposalCount: validatorSet.current_proposals.length,
+						protocolVersion: nodeStatus.protocol_version,
+						latestProtocolVersion: nodeStatus.latest_protocol_version,
+						nodeVersion: nodeStatus.version.version,
+						syncing: nodeStatus.sync_info.syncing,
 					},
 				]
 			},

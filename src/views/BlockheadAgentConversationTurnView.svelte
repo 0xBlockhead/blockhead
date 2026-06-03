@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -10,19 +10,11 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
-
-
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/~/(agents)/agents/(conversations)/conversation/[conversationId]/turn/[turnId]',
-			{
-				conversationId: entityId.conversationId,
-				turnId: entityId.turnId,
-			},
-		),
+		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
@@ -37,10 +29,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const turn = useEntity(
 		EntityType.BlockheadAgentConversationTurn,
@@ -91,7 +79,7 @@
 
 	{#snippet Title()}
 		{#if true}
-			{#snippet TurnPromptHeading(turn)}
+			{#snippet TurnPromptHeading(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
 				<TruncatedValue
 					value={turn.userPrompt}
 					format={TruncatedValueFormat.Visual}
@@ -110,7 +98,7 @@
 		<ResourceBoundary
 			resource={turn}
 		>
-			{#snippet children(turn)}
+			{#snippet children(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
 				{#if turn.createdAt !== undefined}
 					<span data-text="muted">
 						<Timestamp
@@ -135,7 +123,7 @@
 					<dt>User prompt</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnPromptSummary(turn)}
+							{#snippet TurnPromptSummary(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
 								{#if turn.userPrompt !== ''}
 									<p>{turn.userPrompt}</p>
 								{:else}
@@ -157,8 +145,10 @@
 				<dt>Status</dt>
 				<dd>
 					{#if true}
-						{#snippet TurnStatusRow(turn)}
+						{#snippet TurnStatusRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
+							{#if turn.status !== undefined}
 							{blockheadAgentConversationTurnStatusByStatus[turn.status].label}
+							{/if}
 						{/snippet}
 
 						<ResourceBoundary
@@ -175,7 +165,7 @@
 					<dt>User prompt</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnPromptRow(turn)}
+							{#snippet TurnPromptRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
 								{#if turn.userPrompt !== ''}
 									<p>{turn.userPrompt}</p>
 								{:else}
@@ -196,7 +186,7 @@
 					<dt>Created</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnCreatedRow(turn)}
+							{#snippet TurnCreatedRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
 								{#if turn.createdAt !== undefined}
 									<Timestamp
 										timestamp={turn.createdAt}
@@ -217,7 +207,7 @@
 					<dt>Assistant reply</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnAssistantRow(turn)}
+							{#snippet TurnAssistantRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
 								{#if turn.assistantText != null && turn.assistantText !== ''}
 									<p>
 										{turn.assistantText}
@@ -242,7 +232,7 @@
 					<dt>Provider</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnProviderRow(turn)}
+							{#snippet TurnProviderRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
 								{#if turn.providerId != null && turn.providerId !== ''}
 									<TruncatedValue
 										value={turn.providerId}
@@ -268,7 +258,7 @@
 					<dt>Prompt version</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnPromptVersionRow(turn)}
+							{#snippet TurnPromptVersionRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
 								{#if turn.promptVersion !== ''}
 									{turn.promptVersion}
 								{:else}
@@ -291,9 +281,9 @@
 					<dt>Parent turn</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnParentRow(turn)}
+							{#snippet TurnParentRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
 								{#if turn.parentId != null && turn.parentId !== ''}
-									<BlockheadAgentConversationTurnView
+									<svelte:self
 										entityId={{ id: turn.parentId }}
 										layout={EntityLayout.Title}
 										open={false}
@@ -318,7 +308,7 @@
 					<dt>Error</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnErrorRow(turn)}
+							{#snippet TurnErrorRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
 								{#if turn.error != null && turn.error !== ''}
 									{turn.error}
 								{:else}

@@ -53,14 +53,14 @@
 
 	export type FilterGroup<_Item, _FilterId extends string = string> =
 		| (FilterGroupBase<_Item, _FilterId> &
-				FilterGroupSelection<_FilterId> & {
-					displayType: FilterDisplayType.Snippet
-					Snippet: import('svelte').Snippet<[context?: FilterGroupSnippetProps<_Item, _FilterId>]>
-				})
+			FilterGroupSelection<_FilterId> & {
+				displayType: FilterDisplayType.Snippet
+				Snippet: import('svelte').Snippet<[context?: FilterGroupSnippetProps<_Item, _FilterId>]>
+			})
 		| (FilterGroupBase<_Item, _FilterId> &
-				FilterGroupSelection<_FilterId> & {
-					displayType?: Exclude<FilterDisplayType, FilterDisplayType.Snippet>
-				})
+			FilterGroupSelection<_FilterId> & {
+				displayType?: Exclude<FilterDisplayType, FilterDisplayType.Snippet>
+			})
 
 	export type Sort<_Item, _SortId extends string = string> = {
 		id: _SortId
@@ -180,7 +180,7 @@
 			displayedItems?: _Item[]
 			filter?: (item: _Item) => boolean
 
-			GroupHeader?: import('svelte').Snippet<[GroupHeaderSnippetContext]>
+			GroupHeader?: import('svelte').Snippet<[context?: GroupHeaderSnippetContext]>
 			Item: import('svelte').Snippet<[ItemSnippetContext]>
 			ItemPlaceholder?: import('svelte').Snippet<[ItemPlaceholderSnippetContext]>
 			Empty?: import('svelte').Snippet
@@ -206,9 +206,7 @@
 	const itemsToSort = $derived(
 		(
 			filter ?
-				(hasFilterGroups ? filteredItems : items).filter(filter)
-			:
-				(hasFilterGroups ? filteredItems : items)
+				(hasFilterGroups ? filteredItems : items).filter(filter) : (hasFilterGroups ? filteredItems : items)
 		)
 	)
 	const displayItems = $derived(
@@ -216,9 +214,6 @@
 			sortedItems
 		:
 			itemsToSort
-	)
-	const orderMap = $derived(
-		new Map(displayItems.map((item, i) => [getKey(item), i]))
 	)
 	$effect(() => {
 		if (!hasFilterGroups) filteredItems = items
@@ -356,7 +351,7 @@
 		items={new SvelteSet(displayItems)}
 		{getKey}
 		getSortValue={
-			getSortValue ?? ((item: _Item) => orderMap.get(getKey(item)) ?? Infinity)
+			getSortValue ?? ((item: _Item) => (new Map(displayItems.map((item, i) => [getKey(item), i]))).get(getKey(item)) ?? Infinity)
 		}
 		{getGroupKey}
 		{getGroupLabel}

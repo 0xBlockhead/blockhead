@@ -73,7 +73,6 @@ export default {
 			defaultSources: [
 				Source.Constants_Internal,
 				Source.Lens_Graphql,
-				Source.Hey_Graphql,
 			],
 		},
 		{
@@ -83,7 +82,6 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Lens_Graphql,
-				Source.Hey_Graphql,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

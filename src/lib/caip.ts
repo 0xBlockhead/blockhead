@@ -1,69 +1,5 @@
-export const caip2Key = (networkId: {
-	namespace: string
-	reference: string
-}) => `${networkId.namespace}:${networkId.reference}`
-
-export const caip2FromEvmChainId = (chainId: number) => (
-	`eip155:${chainId}`
-)
-
-export const networkIdFromEvmChainId = (chainId: number) => ({
-	caip2: {
-		namespace: 'eip155',
-		reference: String(chainId),
-	},
-})
-
-export const caip2RouteParams = (networkId: {
-	caip2: {
-		namespace: string
-		reference: string
-	}
-}) => ({
-	caip2Namespace: networkId.caip2.namespace,
-	caip2Reference: networkId.caip2.reference,
-})
-
-export const caip2RouteParamsFromEvmChainId = (chainId: number) => ({
-	caip2Namespace: 'eip155',
-	caip2Reference: `${chainId}`,
-})
-
-export const caip2RouteParamsFromNetworkId = (networkId: {
-	caip2: {
-		namespace: string
-		reference: string
-	}
-}) => ({
-	caip2Namespace: networkId.caip2.namespace,
-	caip2Reference: networkId.caip2.reference,
-})
-
-export const caip2FromRouteParams = (params: {
-	caip2Namespace: string
-	caip2Reference: string
-}) => `${params.caip2Namespace}:${params.caip2Reference}`
-
-export const networkIdFromCaip2RouteParams = (params: {
-	caip2Namespace: string
-	caip2Reference: string
-}) => ({
-	caip2: {
-		namespace: params.caip2Namespace,
-		reference: params.caip2Reference,
-	},
-})
-
-export const encodeCaipRouteSegment = (value: string) => (
-	encodeURIComponent(value)
-)
-
-export const decodeCaipRouteSegment = (value: string) => (
-	decodeURIComponent(value)
-)
-
-export const networkIdFromCaip2 = (caip2RouteSegment: string) => {
-	const caip2 = decodeCaipRouteSegment(caip2RouteSegment)
+const networkIdFromCaip2 = (caip2RouteSegment: string) => {
+	const caip2 = decodeURIComponent(caip2RouteSegment)
 	const separatorIndex = caip2.indexOf(':')
 	if (separatorIndex <= 0 || separatorIndex === caip2.length - 1) {
 		throw new Error(`Invalid CAIP-2 network id: ${caip2RouteSegment}`)
@@ -85,15 +21,3 @@ export const evmChainIdFromCaip2 = (caip2: string) => {
 	}
 	return chainId
 }
-
-export const evmChainIdFromCaip2RouteParams = (params: {
-	caip2Namespace: string
-	caip2Reference: string
-}) => evmChainIdFromCaip2(caip2FromRouteParams(params))
-
-export const evmChainIdFromNetworkId = (networkId: {
-	caip2: {
-		namespace: string
-		reference: string
-	}
-}) => evmChainIdFromCaip2(caip2Key(networkId.caip2))

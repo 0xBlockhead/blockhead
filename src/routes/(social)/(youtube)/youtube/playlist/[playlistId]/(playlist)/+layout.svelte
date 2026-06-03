@@ -7,7 +7,6 @@
 	// State
 	let { children } = $props()
 
-
 	const playlistId = $derived(
 		page.params.playlistId ?? '',
 	)

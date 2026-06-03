@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
@@ -12,13 +8,10 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
-	import { resolve } from '$app/paths'
-
-
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		title = 'MEV-Boost deliveries',
@@ -38,15 +31,12 @@
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -111,16 +101,14 @@
 				entityType={EntityType.MevRelay_ProposerPayloadDelivered}
 				{title}
 				open={true}
+				resource={deliveredPayloads}
 			>
 				{#snippet Item({ item })}
 					{@const row = item.value}
+					{@const rowId = row[EntityMetaKey.Id]}
 					<MevRelay_ProposerPayloadDeliveredView
-						entityId={deliveredPayload[EntityMetaKey.Id]}
-						href={resolve(
-							'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-							{ ...caip2RouteParamsFromNetworkId(deliveredPayload[EntityMetaKey.Id].$network) },
-						)}
-						id={stringify(deliveredPayload[EntityMetaKey.Id])}
+						entityId={rowId}
+						href={`/network/${rowId.$network.caip2.namespace}:${rowId.$network.caip2.reference}`}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,10 +36,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const subreddit = useEntity(
 		EntityType.RedditSubreddit,
@@ -189,51 +186,51 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				sectionIdPrefix={idKey}
-					sections={collapsibleTabsSections([
-						{ id: 'links', label: 'Submissions' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				id={`${idKey}:carousel-posts`}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Posts
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			sectionIdPrefix={idKey}
+				sections={collapsibleTabsSections([
+					{ id: 'links', label: 'Submissions' },
+					{ id: 'metric-snapshots', label: 'Metrics' },
+				])}
+			id={`${idKey}:carousel-posts`}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Posts
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-					{#snippet SectionLinks()}
-						<RedditLinksView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.RedditSubreddit,
-							entityId,
-							fieldName: '$$links',
-						}}
-						id={`${idKey}:reddit-links`}
-						/>
-					{/snippet}
+			{#snippet SectionLinks()}
+				<RedditLinksView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.RedditSubreddit,
+						entityId,
+						fieldName: '$$links',
+					}}
+					id={`${idKey}:reddit-links`}
+				/>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<RedditSubreddit_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.RedditSubreddit,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${idKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
-			</CollapsibleTabs>
+			{#snippet SectionMetricSnapshots()}
+				<RedditSubreddit_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.RedditSubreddit,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${idKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

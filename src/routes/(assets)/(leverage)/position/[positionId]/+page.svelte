@@ -1,12 +1,9 @@
 <script lang="ts">
-	// Types/constants
-	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
-
-
 	// State
 	let {
 		params,
 	} = $props()
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -17,7 +14,7 @@
 <Page>
 	<LeverageView
 		entityId={{
-			$network: networkIdFromEvmChainId(1),
+			$network: { caip2: { namespace: 'eip155' as const, reference: String(1) } },
 			id: params.positionId,
 		}}
 	/>

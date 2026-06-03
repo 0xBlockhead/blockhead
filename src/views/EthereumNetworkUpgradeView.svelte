@@ -1,13 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import {
-		caip2RouteParamsFromNetworkId,
-		evmChainIdFromNetworkId,
-	} from '$/lib/caip.ts'
-
-
-	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -18,19 +11,18 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
+			caip2Namespace: entityId.$network.caip2.namespace,
+			caip2Reference: entityId.$network.caip2.reference,
 				upgradeSlug: entityId.upgradeId,
-			},
-		),
+		}),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -39,16 +31,13 @@
 			entityId: EntityId<typeof schema, EntityType.EthereumNetworkUpgrade>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkUpgrade = useEntity(
 		EntityType.EthereumNetworkUpgrade,
@@ -132,13 +121,13 @@
 						<div>
 							<dt>Activation block</dt>
 							<dd>
-								<EvmBlockView
-									entityId={{
-										$network: networkIdFromEvmChainId(evmChainIdFromNetworkId(entityId.$network)),
-										blockNumber: networkUpgrade.activationBlock,
-									}}
-									layout={EntityLayout.Value}
-									open={false}
+									<EvmBlockView
+										entityId={{
+											$network: entityId.$network,
+											blockNumber: BigInt(networkUpgrade.activationBlock),
+										}}
+										layout={EntityLayout.Value}
+										open={false}
 								/>
 							</dd>
 						</div>
@@ -170,7 +159,7 @@
 								<dd>
 								<EthereumExecutionUpgradeView
 									entityId={networkUpgrade.$networkExecutionUpgrade[EntityMetaKey.Id]}
-									layout={EntityLayout.Summary}
+									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
 									/>
@@ -185,7 +174,7 @@
 								<dd>
 									<EthereumConsensusUpgradeView
 										entityId={networkUpgrade.$networkConsensusUpgrade[EntityMetaKey.Id]}
-										layout={EntityLayout.Summary}
+									layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}
 									/>
@@ -200,7 +189,7 @@
 
 	{#snippet Details({ open })}
 		<ProposalsView
-			href={resolve('/proposals')}
+			href="/proposals"
 			entityFieldReference={{
 				entityType: EntityType.EthereumNetworkUpgrade,
 				entityId,

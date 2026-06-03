@@ -244,7 +244,6 @@ export default {
 			defaultSources: [
 				Source.Blockscout_Rest,
 				Source.Etherscan_Rest,
-				Source.Voltaire_JsonRpc,
 			],
 		},
 		{

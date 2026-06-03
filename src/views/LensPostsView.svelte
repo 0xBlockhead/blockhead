@@ -12,6 +12,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -27,19 +29,16 @@
 			id: string
 			limit?: number
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -79,7 +78,6 @@
 							$$lensPosts: {
 								$: [
 									Source.Lens_Graphql,
-									Source.Hey_Graphql,
 								],
 							},
 						}
@@ -88,7 +86,6 @@
 							$$posts: {
 								$: [
 									Source.Lens_Graphql,
-									Source.Hey_Graphql,
 								],
 							},
 						}
@@ -117,9 +114,9 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => lensPost[EntityMetaKey.Id].id}
+					getKey={(row) => row[EntityMetaKey.Id].id}
 					getSortValue={(row) => (
-						-(lensPost.timestamp ?? 0)
+						-(row.timestamp ?? 0)
 					)}
 					resource={posts}
 				>

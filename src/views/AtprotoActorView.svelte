@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -34,10 +35,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const idKey = stringify(entityId)
 
@@ -157,7 +154,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({})}
+	{#snippet Content({ open })}
 		<ResourceBoundary
 			resource={actor}
 			placeholderText="Loading profile…"
@@ -175,7 +172,7 @@
 		</ResourceBoundary>
 
 		<dl data-column-item="center">
-			{#if contentOpen}
+			{#if open}
 				<div>
 					<dt>Handle</dt>
 					<dd>
@@ -193,7 +190,7 @@
 				</div>
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				<ResourceBoundary
 					resource={actor}
 					placeholderText="Loading profile…"
@@ -219,7 +216,7 @@
 				</ResourceBoundary>
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				<ResourceBoundary
 					resource={actor}
 					placeholderText="Loading profile…"
@@ -245,89 +242,89 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-profile`}
-				sectionIdPrefix={idKey}
-					sections={collapsibleTabsSections([
-						{ id: 'profile-details', label: 'Lexicon identity' },
-						{ id: 'activity-posts', label: 'Posts' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				data-card
-			>
-				{#snippet Summary({ open: _profileSummaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Lexicon profile & posts
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${idKey}:carousel-profile`}
+			sectionIdPrefix={idKey}
+				sections={collapsibleTabsSections([
+					{ id: 'profile-details', label: 'Lexicon identity' },
+					{ id: 'activity-posts', label: 'Posts' },
+					{ id: 'metric-snapshots', label: 'Metrics' },
+				])}
+			data-card
+		>
+			{#snippet Summary({ open: _profileSummaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Lexicon profile & posts
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionProfileDetails()}
-					<ResourceBoundary
-						resource={actor}
-						placeholderText="Loading profile…"
-					>
-						{#snippet children(actor)}
-							{@const atprotoProfileUnset = (
-								actor.handle == null
-								&& actor.displayName == null
-								&& actor.description == null
-							)}
-							{#if atprotoProfileUnset}
-								<div data-row="wrap align-center gap-2">
-									<p data-text="muted">
-										No profile fields yet.
-									</p>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
-											<p>
-												Display name, handle, and description load from the configured ATProto repository when the DID resolves.
-											</p>
-										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="Lexicon profile"
-										>ⓘ</abbr>
-									</Tooltip>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-
-					{#snippet SectionActivityPosts()}
-						<AtprotoPostsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve(
-							'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
-							{ did: encodeURIComponent(entityId.did) },
+			{#snippet SectionProfileDetails()}
+				<ResourceBoundary
+					resource={actor}
+					placeholderText="Loading profile…"
+				>
+					{#snippet children(actor)}
+						{@const atprotoProfileUnset = (
+							actor.handle == null
+							&& actor.displayName == null
+							&& actor.description == null
 						)}
-						entityFieldReference={{
-							entityType: EntityType.AtprotoActor,
-							entityId,
-							fieldName: '$$posts',
-						}}
-						id={`${idKey}:posts`}
-						fieldOpen={_open}
-						title="Posts"
-						/>
+						{#if atprotoProfileUnset}
+							<div data-row="wrap align-center gap-2">
+								<p data-text="muted">
+									No profile fields yet.
+								</p>
+								<Tooltip contentProps={{ side: 'top' }}>
+									{#snippet Content()}
+										<p>
+											Display name, handle, and description load from the configured ATProto repository when the DID resolves.
+										</p>
+									{/snippet}
+									<abbr
+										class="entity-heading-tip"
+										aria-label="Lexicon profile"
+									>ⓘ</abbr>
+								</Tooltip>
+							</div>
+						{/if}
 					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<AtprotoActor_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.AtprotoActor,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${idKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
-			</CollapsibleTabs>
+			{#snippet SectionActivityPosts()}
+				<AtprotoPostsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve(
+					'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
+					{ did: encodeURIComponent(entityId.did) },
+				)}
+					entityFieldReference={{
+						entityType: EntityType.AtprotoActor,
+						entityId,
+						fieldName: '$$posts',
+					}}
+					id={`${idKey}:posts`}
+					fieldOpen={_open}
+					title="Posts"
+				/>
+			{/snippet}
+
+			{#snippet SectionMetricSnapshots()}
+				<AtprotoActor_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.AtprotoActor,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${idKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

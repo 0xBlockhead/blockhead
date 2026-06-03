@@ -16,6 +16,6 @@ export const getInfo = () => ({
 
 export const getLlmInfo = () => (
 	getText('https://chainscan.0g.ai/llms.txt', {
-		origins: ZeroG.origins ?? [],
+		origins: ZeroG.origins,
 	})
 )

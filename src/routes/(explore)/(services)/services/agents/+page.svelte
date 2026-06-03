@@ -9,16 +9,16 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import Eip8004ServicesView from '$/views/Eip8004ServicesView.svelte'
+	import Eip8004RegistrationsView from '$/views/Eip8004RegistrationsView.svelte'
 </script>
 
 
 <Page>
-	<Eip8004ServicesView
+	<Eip8004RegistrationsView
 		href={resolve('/services')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: {},
+			entityId: { scope: '$$eip8004Services' },
 			fieldName: '$$eip8004Services',
 		}}
 		id="agents"

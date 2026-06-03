@@ -2,6 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -31,11 +32,13 @@
 		{
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Currency>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -77,7 +80,6 @@
 	)
 
 
-	// State
 	import type { DeclarativeOrderBy } from '$/lib/tanstackDb/orderBySteps.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
@@ -137,7 +139,7 @@
 			)}
 			{@const currencies = derive(
 				parent,
-				(parent) => (
+				(parent): Entity<typeof schema, EntityType.Currency>[] => (
 					parent[entityFieldReference.fieldName] ?? []
 				),
 			)}
@@ -146,8 +148,8 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.Currency}
-				getKey={(row) => currency[EntityMetaKey.Id].iso4217}
-				getSortValue={(row) => (
+				getKey={(currency) => currency[EntityMetaKey.Id].iso4217}
+				getSortValue={(currency) => (
 					-Number(currency.$$timestamps?.[0]?.marketCap ?? 0)
 				)}
 				resource={currencies}

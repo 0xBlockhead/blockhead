@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -33,10 +34,6 @@
 		never
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const networkIdKey = stringify(entityId)
 
 	const lensNetwork = useEntity(
@@ -55,13 +52,11 @@
 						$: [
 							Source.Constants_Internal,
 							Source.Lens_Graphql,
-							Source.Hey_Graphql,
 						],
 					},
 					$$lensPosts: {
 						$: [
 							Source.Lens_Graphql,
-							Source.Hey_Graphql,
 						],
 					},
 				}
@@ -185,71 +180,71 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-registry`}
-				sectionIdPrefix={networkIdKey}
-				sections={collapsibleTabsSections([
-					{ id: 'registry-accounts', label: 'Profiles' },
-					{ id: 'registry-posts', label: 'Publications' },
-					{ id: 'examples-lensNetworks', label: 'Examples' },
-				])}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Directory & examples
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-registry`}
+			sectionIdPrefix={networkIdKey}
+			sections={collapsibleTabsSections([
+				{ id: 'registry-accounts', label: 'Profiles' },
+				{ id: 'registry-posts', label: 'Publications' },
+				{ id: 'examples-lensNetworks', label: 'Examples' },
+			])}
+			data-card
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Directory & examples
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionRegistryAccounts()}
-					<LensAccountsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/lens/accounts')}
-						entityFieldReference={{
-							entityType: EntityType.LensNetwork,
-							entityId,
-							fieldName: '$$lensAccounts',
-						}}
-						id={`${networkIdKey}:accounts`}
-						open={_open}
-					/>
-				{/snippet}
+			{#snippet SectionRegistryAccounts()}
+				<LensAccountsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/lens/accounts')}
+					entityFieldReference={{
+						entityType: EntityType.LensNetwork,
+						entityId,
+						fieldName: '$$lensAccounts',
+					}}
+					id={`${networkIdKey}:accounts`}
+					open={_open}
+				/>
+			{/snippet}
 
-				{#snippet SectionRegistryPosts()}
-					<LensPostsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/lens/posts')}
-						entityFieldReference={{
-							entityType: EntityType.LensNetwork,
-							entityId,
-							fieldName: '$$lensPosts',
-						}}
-						id={`${networkIdKey}:posts`}
-						open={_open}
-						title="Recent Lens v3 publications"
-					/>
-				{/snippet}
+			{#snippet SectionRegistryPosts()}
+				<LensPostsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/lens/posts')}
+					entityFieldReference={{
+						entityType: EntityType.LensNetwork,
+						entityId,
+						fieldName: '$$lensPosts',
+					}}
+					id={`${networkIdKey}:posts`}
+					open={_open}
+					title="Recent Lens v3 publications"
+				/>
+			{/snippet}
 
-				{#snippet SectionExamplesList()}
-					<ul>
-						<li>
-							<a href={resolve('/(social)/lens/account/[address]', {
-								address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-							})}>
-								Lens v3 profile example
-							</a>
-						</li>
-						<li>
-							<a href={resolve('/(social)/(lens)/lens/posts')}>
-								Browse recent publications
-							</a>
-						</li>
-					</ul>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionExamplesList()}
+				<ul>
+					<li>
+						<a href={resolve('/(social)/(lens)/lens/account/[address]', {
+							address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+						})}>
+							Lens v3 profile example
+						</a>
+					</li>
+					<li>
+						<a href={resolve('/(social)/(lens)/lens/posts')}>
+							Browse recent publications
+						</a>
+					</li>
+				</ul>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

@@ -12,6 +12,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -41,9 +43,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -104,8 +103,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(evmContract[EntityMetaKey.Id])}
-					getSortValue={(row) => BigInt(evmContract[EntityMetaKey.Id].address)}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortValue={(row) => row[EntityMetaKey.Id].address}
 					placeholderText="Loading precompiles…"
 					resource={precompiles}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}

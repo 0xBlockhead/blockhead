@@ -62,15 +62,12 @@
 
 	} = $props()
 
-
 	const normalizedItems = $derived(
 		items.map((item) => ({
 			item,
 			id: getItemId(item),
 			label: getItemLabel(item) ?? '',
-			disabled: getItemDisabled ? getItemDisabled(item)
-			:
-				false,
+			disabled: getItemDisabled ? getItemDisabled(item) : false,
 		}))
 	)
 	const normalizedGroups = $derived(
@@ -91,9 +88,7 @@
 							item,
 							id: getItemId(item),
 							label: getItemLabel(item) ?? '',
-							disabled: getItemDisabled ? getItemDisabled(item)
-							:
-								false,
+							disabled: getItemDisabled ? getItemDisabled(item) : false,
 						})),
 					}))
 			:
@@ -101,7 +96,6 @@
 	)
 
 
-	// State
 	let isFocused = $state(
 		false
 	)
@@ -109,15 +103,6 @@
 		false
 	)
 
-	const filteredItems = $derived(
-		inputValue === ''
-			? normalizedItems
-			:
-				normalizedItems.filter((item) => (
-					item.label.toLowerCase().includes(inputValue.toLowerCase())
-					),
-				)
-	)
 	const filteredGroups = $derived(
 		normalizedGroups.length > 0
 			? normalizedGroups
@@ -131,20 +116,6 @@
 					.filter((group) => group.items.length > 0)
 			:
 				[]
-	)
-	const rootItems = $derived(
-		normalizedItems.map((item) => ({
-			value: item.id,
-			label: item.label,
-			disabled: item.disabled,
-		}))
-	)
-	const selectedChips = $derived(
-		(value ?? []).flatMap((entry) => {
-			const id = getItemId(entry)
-			const n = normalizedItems.find((item) => item.id === id)
-			return n ? [{ id: n.id, label: n.label, item: n.item }] : []
-		})
 	)
 
 
@@ -191,7 +162,11 @@
 	}
 	{disabled}
 	{name}
-	items={rootItems}
+	items={(normalizedItems.map((item) => ({
+			value: item.id,
+			label: item.label,
+			disabled: item.disabled,
+		})))}
 	{inputValue}
 >
 	{#if children}
@@ -205,7 +180,11 @@
 				{@render Before()}
 			{/if}
 
-			{#each selectedChips as chip (chip.id)}
+			{#each ((value ?? []).flatMap((entry) => {
+			const id = getItemId(entry)
+			const n = normalizedItems.find((item) => item.id === id)
+			return n ? [{ id: n.id, label: n.label, item: n.item }] : []
+		})) as chip (chip.id)}
 				<span
 					data-badge="small"
 					data-row="gap-1"
@@ -305,7 +284,13 @@
 							</Combobox.Group>
 						{/each}
 					{:else}
-						{#each filteredItems as item (item.id)}
+						{#each (inputValue === ''
+			? normalizedItems
+			:
+				normalizedItems.filter((item) => (
+					item.label.toLowerCase().includes(inputValue.toLowerCase())
+					),
+				)) as item (item.id)}
 							<Combobox.Item
 								value={item.id}
 								label={item.label}

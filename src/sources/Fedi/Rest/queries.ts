@@ -40,7 +40,7 @@ export const listAccountStatuses = async (
 ) => {
 	if (localAccountId.includes('@')) {
 		const a = await fediGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct: localAccountId })
-		if (a?.id == null) return []
+		if (a.id == null) return []
 		return fediGet<MastodonApiV1Status[]>(
 			publicEnv,
 			`/accounts/${encodeURIComponent(String(a.id))}/statuses`,

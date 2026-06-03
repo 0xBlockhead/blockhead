@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,10 +36,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const idKey = stringify(entityId)
 
 	const lensAccount = useEntity(
@@ -47,7 +44,6 @@
 		{
 			$: [
 				Source.Lens_Graphql,
-				Source.Hey_Graphql,
 			],
 			localName: {},
 			displayName: {},
@@ -58,7 +54,6 @@
 			$$timestamps: {
 				$: [
 					Source.Lens_Graphql,
-					Source.Hey_Graphql,
 				],
 				$limit: 1,
 			},
@@ -224,60 +219,60 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-activity`}
-				sectionIdPrefix={idKey}
-					sections={collapsibleTabsSections([
-						{ id: 'lens-account-record', label: 'Record' },
-						{ id: 'posts', label: 'Publications' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Lens profile &amp; publications
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${idKey}:carousel-activity`}
+			sectionIdPrefix={idKey}
+				sections={collapsibleTabsSections([
+					{ id: 'lens-account-record', label: 'Record' },
+					{ id: 'posts', label: 'Publications' },
+					{ id: 'metric-snapshots', label: 'Metrics' },
+				])}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Lens profile &amp; publications
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionLensAccountRecord()}
-				{/snippet}
+			{#snippet SectionLensAccountRecord()}
+			{/snippet}
 
-					{#snippet SectionPosts()}
-						<LensPostsView
-						CollapsibleProps={{ canToggle: false }}
-							href={resolve(
-								'/(social)/(lens)/lens/account/[address]/(account)/posts',
-								{ address: entityId.address },
-							)}
-						entityFieldReference={{
-							entityType: EntityType.LensAccount,
-							entityId,
-							fieldName: '$$posts',
-						}}
-						id={`${idKey}:posts-lensAccounts`}
-						/>
-					{/snippet}
+			{#snippet SectionPosts()}
+				<LensPostsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve(
+						'/(social)/(lens)/lens/account/[address]/(account)/posts',
+						{ address: entityId.address },
+					)}
+					entityFieldReference={{
+						entityType: EntityType.LensAccount,
+						entityId,
+						fieldName: '$$posts',
+					}}
+					id={`${idKey}:posts-lensAccounts`}
+				/>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<LensAccount_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.LensAccount,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${idKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
-			</CollapsibleTabs>
+			{#snippet SectionMetricSnapshots()}
+				<LensAccount_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.LensAccount,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${idKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 
 		{/snippet}
 	</EntityView>

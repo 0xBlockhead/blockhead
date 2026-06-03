@@ -1,38 +1,31 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+
 	import {
 		EvmInternalCallType,
 		evmInternalCallTypeByCallType,
 	} from '$/constants/Evm.ts'
+
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
-
-
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]/internal/[internalIndex]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
-				transactionId: entityId.$transaction.txHash,
-				internalIndex: String(entityId.internalIndex),
-			},
-		),
+		href = `/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/tx/${entityId.txHash}`,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
 		),
+		collapsible = true,
 		showParentTransaction = true,
 		...EntityViewProps
 	}: WithRest<
@@ -41,6 +34,7 @@
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
+			collapsible?: boolean
 			showParentTransaction?: boolean
 		},
 		Pick<
@@ -48,10 +42,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const transfer = useEntity(
 		EntityType.EvmInternalTransfer,
@@ -96,6 +86,7 @@
 	href={href}
 	{layout}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -107,7 +98,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Internal transfer </span>
-			{@render Value()}
+			<span data-badge="small">
+				#{entityId.internalIndex}
+			</span>
 		</span>
 	{/snippet}
 
@@ -130,13 +123,7 @@
 							<dt>Transaction</dt>
 							<dd>
 								<a
-									href={resolve(
-										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
-										{
-											...caip2RouteParamsFromNetworkId(entityId.$network),
-											transactionId: entityId.txHash,
-										},
-									)}
+									href={`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/tx/${entityId.txHash}`}
 								>
 									<TruncatedValue
 										value={entityId.txHash}
@@ -178,7 +165,7 @@
 							<dd>
 								<EvmContractView
 									entityId={transfer.$createdContract[EntityMetaKey.Id]}
-									layout={EntityLayout.SummaryDetails}
+									layout={EntityLayout.Value}
 									open={true}
 									showTypeAnnotation={false}
 								/>
@@ -188,8 +175,5 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
-	{/snippet}
-
-	{#snippet Details()}
 	{/snippet}
 </EntityView>

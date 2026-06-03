@@ -1,48 +1,22 @@
-import { type } from 'arktype'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { type } from 'arktype'
+import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import type {
 	FxEmbedTwitterStatus,
 	FxEmbedUser,
 } from '$/sources/FxEmbed/Rest/types.ts'
 
-const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() || undefined
-)
-
-const optionalUrlString = (value: string | undefined) => {
-	const trimmed = optionalTrimmedString(value)
-	if (trimmed == null) return undefined
-	const parsed = UrlString(trimmed)
-	return parsed instanceof type.errors ? undefined : parsed
-}
-
-const xUserTimestampFieldsFromUser = (
-	user: FxEmbedUser,
-) => ({
-	followerCount: user.followers,
-	followingCount: user.following,
-	tweetCount: user.statuses,
-})
-
-const xPostTimestampFieldsFromStatus = (
-	status: FxEmbedTwitterStatus,
-) => ({
-	likeCount: status.likes,
-	retweetCount: status.reposts,
-	replyCount: status.replies,
-	quoteCount: status.quotes,
-})
 
 export default {
 	source: Source.X_FxEmbed_Rest,
@@ -56,18 +30,38 @@ export default {
 				const user = response.user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
 				const createdAt = Date.parse(user.joined ?? '')
-				const websiteUrl = optionalUrlString(user.url)
+				const websiteUrl = (
+					((urlString) => (
+						urlString == null ?
+							undefined
+						:
+							(
+								(parsed) => (
+									parsed instanceof type.errors ?
+										undefined
+									:
+										parsed
+								)
+							)(UrlString(urlString))
+					))(optionalNonemptyString(user.url))
+				)
+				const username = optionalNonemptyString(user.screen_name)
+				const name = optionalNonemptyString(user.name)
+				const description = optionalNonemptyString(user.description)
+				const location = optionalNonemptyString(user.location)
 				return {
-					username: optionalTrimmedString(user.screen_name),
-					name: optionalTrimmedString(user.name),
-					description: optionalTrimmedString(user.description),
-					location: optionalTrimmedString(user.location),
+					...(username != null && { username }),
+					...(name != null && { name }),
+					...(description != null && { description }),
+					...(location != null && { location }),
 					...(user.verification?.verified != null && {
 						verified: user.verification.verified,
 					}),
 					...(Number.isFinite(createdAt) && { createdAt }),
 					...(websiteUrl != null && { websiteUrl }),
-					...xUserTimestampFieldsFromUser(user),
+					...(user.followers != null && { followerCount: user.followers }),
+					...(user.following != null && { followingCount: user.following }),
+					...(user.statuses != null && { tweetCount: user.statuses }),
 					...((
 						iconMedia,
 					) => (
@@ -94,16 +88,20 @@ export default {
 					:
 						Date.parse(status.created_at ?? '')
 				)
-				const replyToId = optionalTrimmedString(status.replying_to?.status)
-				const quotedId = optionalTrimmedString(status.quote?.id)
-				const postId = optionalTrimmedString(status.id)
+				const replyToId = optionalNonemptyString(status.replying_to?.status)
+				const quotedId = optionalNonemptyString(status.quote?.id)
+				const postId = optionalNonemptyString(status.id)
+				const text = optionalNonemptyString(status.text)
 				return {
-					text: optionalTrimmedString(status.text),
+					...(text != null && { text }),
 					...(Number.isFinite(createdAt) && { createdAt }),
 					...(postId != null && {
 						postUrl: `https://x.com/i/web/status/${postId}`,
 					}),
-					...xPostTimestampFieldsFromStatus(status),
+					...(status.likes != null && { likeCount: status.likes }),
+					...(status.reposts != null && { retweetCount: status.reposts }),
+					...(status.replies != null && { replyCount: status.replies }),
+					...(status.quotes != null && { quoteCount: status.quotes }),
 					...(replyToId != null && {
 						$replyToPost: {
 							[EntityMetaKey.Id]: { id: replyToId },
@@ -132,7 +130,11 @@ export default {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const user = (await singleFlight(getUser)(entityId.$user.id)).user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
-				return xUserTimestampFieldsFromUser(user)
+				return {
+					followerCount: user.followers,
+					followingCount: user.following,
+					tweetCount: user.statuses,
+				}
 			},
 		}),
 
@@ -144,7 +146,12 @@ export default {
 				if (status?.type !== 'status' || status.id == null) {
 					throw new Error('X_FxEmbed_Rest: post not found')
 				}
-				return xPostTimestampFieldsFromStatus(status)
+				return {
+					likeCount: status.likes,
+					retweetCount: status.reposts,
+					replyCount: status.replies,
+					quoteCount: status.quotes,
+				}
 			},
 		}),
 	],
@@ -156,11 +163,11 @@ export default {
 			resolve: async (_entityId, context) => {
 				const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				const result = await singleFlight(searchStatuses)(limit)
+				const statusSearchResponse = await singleFlight(searchStatuses)(limit)
 				return (
-					(result.results ?? [])
+					(statusSearchResponse.results ?? [])
 						.flatMap((status) => {
-							const authorId = optionalTrimmedString(status.author?.id)
+							const authorId = optionalNonemptyString(status.author?.id)
 							if (authorId == null) return []
 							return [{
 								[EntityMetaKey.Id]: { id: authorId },
@@ -205,7 +212,10 @@ export default {
 							$post: entityId,
 							timestampMs: Date.now(),
 						},
-						...xPostTimestampFieldsFromStatus(status),
+						likeCount: status.likes,
+					retweetCount: status.reposts,
+					replyCount: status.replies,
+					quoteCount: status.quotes,
 					},
 				]
 			},
@@ -224,7 +234,9 @@ export default {
 							$user: entityId,
 							timestampMs: Date.now(),
 						},
-						...xUserTimestampFieldsFromUser(user),
+						followerCount: user.followers,
+						followingCount: user.following,
+						tweetCount: user.statuses,
 					},
 				]
 			},

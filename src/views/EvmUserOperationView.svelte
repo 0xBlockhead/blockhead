@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -14,25 +10,22 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/user-operation/[userOperationHash]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/user-operation/[userOperationHash=userOperationHash]', {
+				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
 				userOperationHash: entityId.hash,
-			},
-		),
+		}),
 
 		layout = EntityLayout.SummaryDetails,
 
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
-			|| layout === EntityLayout.Details
 		),
 
 		open = $bindable(
@@ -40,6 +33,7 @@
 		),
 
 		title = 'User operation',
+		collapsible = true,
 
 		HeadingSnippet,
 
@@ -55,15 +49,15 @@
 			open?: boolean
 
 			title?: string
+			collapsible?: boolean
 
 			HeadingSnippet?: Snippet
 		},
-		never
+		Pick<
+				ComponentProps<typeof EntityView>,
+				| 'showTypeAnnotation'
+			>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const operation = useEntity(
 		EntityType.EvmUserOperation,
@@ -121,6 +115,7 @@
 	{layout}
 	bind:open
 	{title}
+		{collapsible}
 	{...entityViewProps}
 >
 	{#snippet Value()}
@@ -297,13 +292,10 @@
 					{#if operation.$bundledTransaction != null}
 						<EvmTransactionView
 							entityId={operation.$bundledTransaction[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
-								{
-									...caip2RouteParamsFromNetworkId(entityId.$network),
-									transactionId: operation.$bundledTransaction[EntityMetaKey.Id].txHash,
-								},
-							)}
+							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+								...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
+								transactionId: operation.$bundledTransaction[EntityMetaKey.Id].txHash,
+							})}
 							layout={EntityLayout.Summary}
 							open={false}
 							collapsible={false}

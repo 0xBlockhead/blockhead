@@ -12,6 +12,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,10 +39,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const video = useEntity(
 		EntityType.YouTubeVideo,
@@ -322,87 +319,87 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-video`}
-				sectionIdPrefix={idKey}
-					sections={collapsibleTabsSections([
-						{ id: 'description', label: 'Description' },
-						{ id: 'comments', label: 'Comment thread' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				data-card
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Watch page
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${idKey}:carousel-video`}
+			sectionIdPrefix={idKey}
+			sections={collapsibleTabsSections([
+				{ id: 'description', label: 'Description' },
+				{ id: 'comments', label: 'Comment thread' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
+			data-card
+		>
+			{#snippet Summary({
+				open: _summaryOpen,
+			})}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Watch page
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionDescription()}
-					<ResourceBoundary
-						resource={video}
-						placeholderText="Loading video…"
-					>
-						{#snippet children(video)}
-							{#if video.description}
-								<p>{video.description}</p>
-							{:else}
-								<div data-row="wrap align-center gap-2">
-									<p data-text="muted">
-										No description yet.
-									</p>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
-											<p>
-												Description text fills in when Youtube_Rest or Piped_Rest returns stream metadata for this watch key.
-											</p>
-										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="Video description"
-										>ⓘ</abbr>
-									</Tooltip>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-
-					{#snippet SectionComments()}
-						<YouTubeCommentsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve(
-			'/(social)/(youtube)/youtube/video/[videoId]/(video)/comments',
-			{ videoId: encodeURIComponent(entityId.videoId) },
-		)}
-						entityFieldReference={{
-							entityType: EntityType.YouTubeVideo,
-							entityId,
-							fieldName: '$$comments',
-						}}
-						id={`${idKey}:youtube-comments`}
-						open={_open}
-						/>
+			{#snippet SectionDescription()}
+				<ResourceBoundary
+					resource={video}
+					placeholderText="Loading video…"
+				>
+					{#snippet children(video)}
+						{#if video.description}
+							<p>{video.description}</p>
+						{:else}
+							<div data-row="wrap align-center gap-2">
+								<p data-text="muted">
+									No description yet.
+								</p>
+								<Tooltip contentProps={{ side: 'top' }}>
+									{#snippet Content()}
+										<p>
+											Description text fills in when Youtube_Rest or Piped_Rest returns stream metadata for this watch key.
+										</p>
+									{/snippet}
+									<abbr
+										class="entity-heading-tip"
+										aria-label="Video description"
+									>ⓘ</abbr>
+								</Tooltip>
+							</div>
+						{/if}
 					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<YouTubeVideo_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.YouTubeVideo,
-								entityId,
-								fieldName: '$$timestamps',
-							}}
-							href={href}
-							id={`${idKey}:metric-snapshots`}
-							title="Metric snapshots"
-						/>
-					{/snippet}
+			{#snippet SectionComments()}
+				<YouTubeCommentsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve(
+						'/(social)/(youtube)/youtube/video/[videoId]/(video)/comments',
+						{ videoId: encodeURIComponent(entityId.videoId) },
+					)}
+					entityFieldReference={{
+						entityType: EntityType.YouTubeVideo,
+						entityId,
+						fieldName: '$$comments',
+					}}
+					id={`${idKey}:youtube-comments`}
+					open={_open}
+				/>
+			{/snippet}
+
+			{#snippet SectionMetricSnapshots()}
+				<YouTubeVideo_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.YouTubeVideo,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${idKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
 			</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

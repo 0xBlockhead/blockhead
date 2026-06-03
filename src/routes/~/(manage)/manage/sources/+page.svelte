@@ -18,7 +18,7 @@
 		href={resolve('/~/manage/sources')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: {},
+			entityId: { scope: '$$blockheadSources' },
 			fieldName: '$$blockheadSources',
 		}}
 		id="sources"

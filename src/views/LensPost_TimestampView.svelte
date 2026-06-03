@@ -9,6 +9,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -34,17 +35,12 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const lensPostTimestamp = useEntity(
 		EntityType.LensPost_Timestamp,
 		entityId,
 		{
 			$: [
 				Source.Lens_Graphql,
-				Source.Hey_Graphql,
 			],
 			commentCount: {},
 			repostCount: {},

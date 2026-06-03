@@ -9,6 +9,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -21,10 +23,6 @@
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.Network,
@@ -56,6 +54,8 @@
 		},
 	)
 
+
+	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -136,12 +136,12 @@
 						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 					</div>
 
-					{#if network.$$nativeAssets.length > 0}
-						<div>
-							<dt>Native assets</dt>
-							<dd>{network.$$nativeAssets.length}</dd>
-						</div>
-					{/if}
+						{#if (network.$$nativeAssets?.length ?? 0) > 0}
+							<div>
+								<dt>Native assets</dt>
+								<dd>{network.$$nativeAssets?.length ?? 0}</dd>
+							</div>
+						{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -303,7 +303,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -322,7 +321,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>

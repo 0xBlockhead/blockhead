@@ -33,7 +33,7 @@ export async function neynarFetch<T>(
 	const headers = neynarRequestHeaders(publicEnv)
 	if (headers == null) return undefined
 	const res = await corsFetch(`${baseUrl}${path}`, {
-		origins: Neynar.origins ?? [],
+		origins: Neynar.origins,
 		init: {
 			...init,
 			headers: { ...headers, ...init?.headers },

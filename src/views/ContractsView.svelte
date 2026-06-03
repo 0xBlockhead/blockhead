@@ -12,6 +12,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -35,9 +37,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -89,7 +88,7 @@
 					id={`${id}-items`}
 					href={href}
 					getKey={(contract) => stringify(contract[EntityMetaKey.Id])}
-					getSortValue={(contract) => BigInt(contract[EntityMetaKey.Id].address)}
+					getSortValue={(contract) => contract[EntityMetaKey.Id].address}
 					placeholderText="Loading contracts…"
 					resource={contracts}
 					{title}

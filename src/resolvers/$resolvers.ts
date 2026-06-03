@@ -4,6 +4,7 @@ import { parseLoadSubsetOptions } from '@tanstack/svelte-db'
 import type {
 	EntityFieldValue,
 	EntityFieldValues,
+	EntityFieldName,
 	EntityId,
 	EntityType,
 	Schema,
@@ -122,9 +123,9 @@ export type EntityFieldResolver<
 	/** Long-running sync; wire via `mountEntityResolveLive` / `startEntityFieldResolveLiveForParent` in `$/lib/db/resolveLive.svelte.ts` (default field list: `entityFieldNamesWithResolveLiveByEntityType` from `$/resolvers/index.ts`). */
 	resolveLive?: (ctx: ResolveLiveContext<_Schema, _EntityType>) => (
 		void
-	| Promise<void>
-	| (() => void)
-	| Promise<() => void>
+		| Promise<void>
+		| (() => void)
+		| Promise<() => void>
 	)
 	/**
 	 * Must **throw** when the field cannot be resolved (unsupported parent scope, missing API mapping, missing `context.limit` when the source requires a bounded page, etc.).
@@ -150,7 +151,7 @@ export const defineEntityResolver = <_EntityType extends EntityType<typeof schem
 
 export const defineEntityFieldResolver = <
 	_EntityType extends EntityType<typeof schema>,
-	_ResolverFieldKey extends string,
+	_ResolverFieldKey extends EntityFieldName<typeof schema, _EntityType>,
 >(
 	entityFieldResolver: EntityFieldResolverDefinition<
 		typeof schema,

@@ -13,6 +13,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		title = 'Spot stream',
@@ -24,18 +26,17 @@
 		{
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Market_Timestamp>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'href'
+			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -115,8 +116,8 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.Market_Timestamp}
-				getKey={(row) => stringify(marketTimestamp.value[EntityMetaKey.Id])}
-				getSortValue={(row) => String(marketTimestamp.value[EntityMetaKey.Id].timestampMs)}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampMs)}
 				placeholderKeys={new SvelteSet<string>()}
 				resource={quotes}
 				{title}
@@ -132,8 +133,8 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<Market_TimestampView
-						entityId={marketTimestamp[EntityMetaKey.Id]}
-						id={stringify(marketTimestamp[EntityMetaKey.Id])}
+						entityId={row[EntityMetaKey.Id]}
+						id={stringify(row[EntityMetaKey.Id])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -48,17 +48,11 @@
 	}
 
 
-	// State
 	const popoverId = $props.id()
 
 	let triggerEl: HTMLElement | null = $state(null)
 
 	let popoverEl: HTMLElement | null = $state(null)
-
-
-	const side = $derived((contentProps?.side as string) ?? 'top')
-
-	const sideOffset = $derived((contentProps?.sideOffset as number) ?? 6)
 </script>
 
 
@@ -114,8 +108,8 @@
 			class="tooltip-content"
 			popover={triggerAction === 'click' ? 'auto' : 'hint'}
 			bind:this={popoverEl}
-			data-side={side}
-			style="--side-offset: {sideOffset}px"
+			data-side={contentProps?.side ?? 'top'}
+			style="--side-offset: {contentProps?.sideOffset ?? 6}px"
 		>
 			{#if Content}
 				{@render Content()}

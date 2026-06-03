@@ -81,7 +81,7 @@ export default {
 					}),
 					timestampMs: block.timestamp * 1000,
 					merkleRoot: block.merkle_root,
-					nonce: BigInt(block.nonce),
+					nonce: block.nonce,
 					difficulty: block.difficulty,
 					sizeBytes: block.size,
 					weightUnits: block.weight,
@@ -149,7 +149,7 @@ export default {
 					...(input.scriptsig_asm != null && {
 						scriptSigAsm: input.scriptsig_asm,
 					}),
-					sequence: BigInt(input.sequence),
+					sequence: input.sequence,
 					...(input.witness != null && {
 						witness: input.witness,
 					}),
@@ -219,15 +219,15 @@ export default {
 				assertBitcoinMainnet(entityId)
 				const {
 					getBlocks,
-					getStats,
+					getMempoolStats,
 					getRecommendedFees,
 				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const [blocks, mempoolStats, fees] = await Promise.all([
 					getBlocks({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl }),
-					getStats({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl }),
+					getMempoolStats({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl }),
 					getRecommendedFees({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl }),
 				])
-				const block = blocks[0]
+				const block = blocks.at(0)
 				if (block == null) throw new Error('MempoolSpace_Rest: no blocks returned')
 				return [
 					{
@@ -261,7 +261,7 @@ export default {
 					hash: block.id,
 					timestampMs: block.timestamp * 1000,
 					merkleRoot: block.merkle_root,
-					nonce: BigInt(block.nonce),
+					nonce: block.nonce,
 					difficulty: block.difficulty,
 					sizeBytes: block.size,
 					weightUnits: block.weight,
@@ -275,8 +275,8 @@ export default {
 			fieldName: '$$transactions',
 			resolve: async (entityId, context) => {
 				assertBitcoinMainnet(entityId)
-				const { getTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-				const txids = await getTxids({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
+				const { getMempoolTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+				const txids = await getMempoolTxids({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
 				return txids.slice(0, resolverLoadSubsetRowLimit(context)).map((txId) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId,
@@ -339,7 +339,7 @@ export default {
 						...(input.scriptsig_asm != null && {
 							scriptSigAsm: input.scriptsig_asm,
 						}),
-						sequence: BigInt(input.sequence),
+						sequence: input.sequence,
 						...(input.witness != null && {
 							witness: input.witness,
 						}),

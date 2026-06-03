@@ -13,6 +13,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -32,19 +33,16 @@
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.NostrRelay>
 			id: string
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -115,8 +113,8 @@
 				{title}
 				resource={relays}
 				placeholderText="Loading relays…"
-				getKey={(row) => stringify(nostrRelay.entityId)}
-				getSortValue={(row) => nostrRelay.entityId.relayUrl}
+				getKey={(relay) => stringify(relay.entityId)}
+				getSortValue={(relay) => relay.entityId.relayUrl}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

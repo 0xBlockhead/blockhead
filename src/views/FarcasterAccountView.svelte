@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -29,13 +30,10 @@
 			entityId: EntityId<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const connection = useEntity(
 		EntityType.BlockheadFarcasterAccountConnection,
@@ -79,6 +77,7 @@
 	{entityId}
 	href={href}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Icon()}

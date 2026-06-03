@@ -1,33 +1,44 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-	import type { Snippet } from 'svelte'
+	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-			{ ...caip2RouteParamsFromNetworkId(entityId.$network) },
-		),
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]', {
+			caip2Namespace: entityId.$network.caip2.namespace,
+			caip2Reference: entityId.$network.caip2.reference,
+		}),
+		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(true),
 		collapsible = true,
-	}: {
-		entityId: EntityId<typeof schema, EntityType.BeaconValidator>
-		href?: string
-		title?: string
-		open?: boolean
-	} = $props()
+		...EntityViewProps
+	}: WithRest<
+		{
+			entityId: EntityId<typeof schema, EntityType.BeaconValidator>
+			href?: string
+			layout?: EntityLayout
+			title?: string
+			open?: boolean
+			collapsible?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'showTypeAnnotation'
+		>
+	> = $props()
 
 
 	// Functions
@@ -36,9 +47,6 @@
 		?? `Validator #${entityId.validatorIndex.toLocaleString()}`
 	)
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const validator = useEntity(
 		EntityType.BeaconValidator,
@@ -73,9 +81,11 @@
 	entityType={EntityType.BeaconValidator}
 	{entityId}
 	href={href}
-	layout={EntityLayout.Summary}
+		{layout}
 	bind:open
 	{title}
+		{collapsible}
+		{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
@@ -86,7 +96,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Validator </span>
-			{@render Value()}
+		<span data-badge="small">
+			#{String(entityId.validatorIndex)}
+		</span>
 		</span>
 	{/snippet}
 

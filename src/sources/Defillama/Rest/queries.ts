@@ -40,7 +40,7 @@ export const getProCurrentPrices = async ({
 		`${proBaseUrl}/${encodeURIComponent(apiKey)}/coins/prices/current/${coins.join(',')}`,
 	)
 	if (searchWidthOption != null) url.searchParams.set('searchWidth', searchWidthOption)
-	const res = await corsFetch(url.href, { origins: Defillama.origins ?? [] })
+	const res = await corsFetch(url.href, { origins: Defillama.origins  })
 	await throwIfHttpNotOk(res, url.href)
 	return res.json<DefiLlamaCurrentPricesResponse>()
 }

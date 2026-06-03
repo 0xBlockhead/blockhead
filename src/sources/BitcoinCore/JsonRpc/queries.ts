@@ -29,7 +29,7 @@ const bitcoinCoreJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: BitcoinCore.origins ?? [],
+		origins: BitcoinCore.origins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,

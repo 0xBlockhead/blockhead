@@ -8,18 +8,17 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const markdownTitle = (text: string) => text.match(/^#\s*(.+)$/m)?.[1]?.trim() ?? null
+const markdownTitle = (text: string) => text.match(/^#\s*(.+)$/m)?.[1]?.trim()
 
 const markdownStatus = (text: string) => (
 	text.match(/^##\s*Status\s*\n+(.+)$/im)?.[1]?.trim()
 	?? text.match(/^Status:\s*(.+)$/im)?.[1]?.trim()
-	?? null
 )
 
 const cosmosAdrRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	return entries.flatMap((githubContent) => {
-		const proposalNumberRaw = regex('^adr-(?<proposalNumber>\\d{3})\\.md$').exec(githubContent.name)?.groups?.proposalNumber
+		const proposalNumberRaw = regex('^adr-(?<proposalNumber>\\d{3})\\.md$').exec(githubContent.name)?.groups.proposalNumber
 		return githubContent.type !== 'file' || proposalNumberRaw == null ?
 			[]
 		:

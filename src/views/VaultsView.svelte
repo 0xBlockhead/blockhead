@@ -11,6 +11,8 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -25,20 +27,17 @@
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Vault>
 			id: string
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 			limit?: number
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -93,7 +92,7 @@
 				entityFieldReference.entityId,
 				{
 					[entityFieldReference.fieldName]: {
-						limit,
+							$limit: limit,
 					},
 				},
 			)}

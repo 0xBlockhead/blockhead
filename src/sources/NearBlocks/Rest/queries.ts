@@ -17,7 +17,7 @@ export const getAccount = ({
 }) => (
 	getJson<NearBlocksAccountResponse>(
 		`${base(restBaseUrl)}/v1/account/${encodeURIComponent(accountId)}`,
-		{ origins: NearBlocks.origins ?? [] },
+		{ origins: NearBlocks.origins  },
 	)
 )
 
@@ -30,7 +30,7 @@ export const getBlock = ({
 }) => (
 	getJson<NearBlocksBlockResponse>(
 		`${base(restBaseUrl)}/v1/blocks/${encodeURIComponent(String(block))}`,
-		{ origins: NearBlocks.origins ?? [] },
+		{ origins: NearBlocks.origins  },
 	)
 )
 
@@ -43,6 +43,6 @@ export const getTransaction = ({
 }) => (
 	getJson<NearBlocksTransactionResponse>(
 		`${base(restBaseUrl)}/v1/txns/${encodeURIComponent(transactionHash)}`,
-		{ origins: NearBlocks.origins ?? [] },
+		{ origins: NearBlocks.origins  },
 	)
 )

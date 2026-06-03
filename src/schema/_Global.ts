@@ -200,7 +200,7 @@ export default {
 		{
 			name: '$$eip8004Services',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.Eip8004Service,
+			entityType: EntityType.EvmNft,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [Source.Eip8004Scan_Rest],
 		},

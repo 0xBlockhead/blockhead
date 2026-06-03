@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,25 +11,13 @@
 	import { stringify } from 'devalue'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		entityId,
-		href = resolve(
-		'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]',
-		{
-			...caip2RouteParamsFromNetworkId(entityId.$network),
-			transactionId: entityId.txHash,
-			logIndex: String(entityId.logIndex),
-		},
-	),
+		href = `/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/tx/${entityId.txHash}/log/${entityId.logIndex}`,
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
-			|| layout === EntityLayout.Details
 		),
 		showParentTransaction = true,
 		open = $bindable(
@@ -49,6 +33,7 @@
 			summaryUsesHeading?: boolean
 			showParentTransaction?: boolean
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -56,8 +41,6 @@
 		>
 	> = $props()
 
-
-	// State
 	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -115,7 +98,9 @@
 				<span data-row="wrap gap-2 align-baseline">
 					<span data-row="inline align-center gap-2 wrap">
 						<span>Receipt log </span>
-						{@render Value()}
+						<span data-badge="small">
+							#{entityId.logIndex}
+						</span>
 					</span>
 					{#if log.topics?.[0]?.startsWith('0x')}
 						{@const topic0Hex = normalizeEvmTopicHex(log.topics[0])}
@@ -152,13 +137,7 @@
 						<dd>
 							<a
 								data-text="font-monospace"
-								href={resolve(
-									'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
-									{
-									...caip2RouteParamsFromNetworkId(entityId.$network),
-									transactionId: entityId.txHash,
-									},
-								)}
+								href={`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/tx/${entityId.txHash}`}
 							>
 								<TruncatedValue
 									value={entityId.txHash}
@@ -186,8 +165,7 @@
 							<dd>
 								<EvmContractView
 									entityId={log.$emitter[EntityMetaKey.Id]}
-									layout={EntityLayout.SummaryDetails}
-									open={true}
+									layout={EntityLayout.Value}
 									showTypeAnnotation={false}
 								/>
 							</dd>
@@ -201,8 +179,7 @@
 										$network: entityId.$network,
 										address: log.address,
 									}}
-									layout={EntityLayout.SummaryDetails}
-									open={true}
+									layout={EntityLayout.Value}
 									showTypeAnnotation={false}
 								/>
 							</dd>
@@ -271,8 +248,5 @@
 			</ResourceBoundary>
 			</dl>
 		</div>
-	{/snippet}
-
-	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

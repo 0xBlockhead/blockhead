@@ -11,6 +11,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -18,7 +19,7 @@
 	// State
 	let {
 		entityId,
-		href = resolve('/nostr/profile/[pubkey]', {
+		href = resolve('/(social)/(nostr)/nostr/profile/[pubkey]', {
 			pubkey: entityId.pubkey,
 		}),
 		open = $bindable(
@@ -31,6 +32,7 @@
 			entityId: EntityId<typeof schema, EntityType.NostrProfile>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -38,10 +40,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const profile = useEntity(
 		EntityType.NostrProfile,
@@ -84,6 +82,12 @@
 			:
 				{}),
 		},
+	)
+
+
+	// (Derived)
+	const profileRow = $derived(
+		profile.ready ? profile.current : undefined,
 	)
 
 
@@ -145,7 +149,9 @@
 				{#if profile.displayName}
 					{profile.displayName}
 				{:else}
+					{#if Value}
 					{@render Value()}
+				{/if}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -178,7 +184,7 @@
 		</ResourceBoundary>
 
 		<dl data-column-item="center">
-			{#if profile.nip05}
+			{#if profileRow?.nip05}
 				<div>
 					<dt>NIP-05</dt>
 					<dd>
@@ -196,7 +202,7 @@
 
 			{#if (
 				open
-				&& profile.$banner?.[EntityMetaKey.Id].url
+				&& profileRow?.$banner?.[EntityMetaKey.Id].url
 			)}
 				<div>
 					<dt>Banner</dt>
@@ -204,21 +210,23 @@
 						<ResourceBoundary
 							resource={profile}
 							placeholderText="Loading profile…"
-						>
-							{#snippet children(profile)}
-								<img
-									src={profile.$banner[EntityMetaKey.Id].url}
-									alt=""
-								/>
-							{/snippet}
-						</ResourceBoundary>
+							>
+								{#snippet children(profile)}
+									{#if profile.$banner !== undefined}
+										<img
+											src={profile.$banner[EntityMetaKey.Id].url}
+											alt=""
+										/>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
 
 			{#if (
 				open
-				&& profile.website
+				&& profileRow?.website
 			)}
 				<div>
 					<dt>Website</dt>
@@ -240,7 +248,7 @@
 			{/if}
 			{#if (
 				open
-				&& profile.lud16
+				&& profileRow?.lud16
 			)}
 				<div>
 					<dt>Lightning address</dt>
@@ -258,7 +266,7 @@
 			{/if}
 			{#if (
 				open
-				&& profile.lud06
+				&& profileRow?.lud06
 			)}
 				<div>
 					<dt>Lightning URI</dt>
@@ -276,7 +284,7 @@
 			{/if}
 			{#if (
 				open
-				&& profile.metadataUpdatedAt != null
+				&& profileRow?.metadataUpdatedAt != null
 			)}
 				<div>
 					<dt>Metadata updated</dt>
@@ -302,71 +310,71 @@
 	})}
 		{@const idKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-profile-feed`}
-				sectionIdPrefix={idKey}
-				sections={collapsibleTabsSections([
-					{ id: 'notes', label: 'Notes' },
-					{ id: 'articles', label: 'Articles' },
-					{ id: 'reposts', label: 'Reposts' },
-				])}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Profile feed
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${idKey}:carousel-profile-feed`}
+			sectionIdPrefix={idKey}
+			sections={collapsibleTabsSections([
+				{ id: 'notes', label: 'Notes' },
+				{ id: 'articles', label: 'Articles' },
+				{ id: 'reposts', label: 'Reposts' },
+			])}
+			data-card
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Profile feed
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionNotes()}
-					<NostrNotesView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve(
-			'/(social)/(nostr)/nostr/profile/[pubkey]/(profile)/notes',
-			{ pubkey: entityId.pubkey },
-		)}
-						entityFieldReference={{
-							entityType: EntityType.NostrProfile,
-							entityId,
-							fieldName: '$$notes',
-						}}
-						id={`${idKey}:notes`}
-						open={true}
-						title="Notes"
-					/>
-				{/snippet}
+			{#snippet SectionNotes()}
+				<NostrNotesView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve(
+						'/(social)/(nostr)/nostr/profile/[pubkey]/(profile)/notes',
+						{ pubkey: entityId.pubkey },
+					)}
+					entityFieldReference={{
+						entityType: EntityType.NostrProfile,
+						entityId,
+						fieldName: '$$notes',
+					}}
+					id={`${idKey}:notes`}
+					open={true}
+					title="Notes"
+				/>
+			{/snippet}
 
-				{#snippet SectionArticles()}
-					<NostrArticlesView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.NostrProfile,
-							entityId,
-							fieldName: '$$articles',
-						}}
-						id={`${idKey}:articles`}
-						open={true}
-						title="Articles"
-					/>
-				{/snippet}
+			{#snippet SectionArticles()}
+				<NostrArticlesView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.NostrProfile,
+						entityId,
+						fieldName: '$$articles',
+					}}
+					id={`${idKey}:articles`}
+					open={true}
+					title="Articles"
+				/>
+			{/snippet}
 
-				{#snippet SectionReposts()}
-					<NostrRepostsView
-						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.NostrProfile,
-							entityId,
-							fieldName: '$$reposts',
-						}}
-						id={`${idKey}:reposts`}
-						open={true}
-						title="Reposts"
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionReposts()}
+				<NostrRepostsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.NostrProfile,
+						entityId,
+						fieldName: '$$reposts',
+					}}
+					id={`${idKey}:reposts`}
+					open={true}
+					title="Reposts"
+				/>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

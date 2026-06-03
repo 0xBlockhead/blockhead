@@ -21,8 +21,6 @@
 		SvelteHTMLElements['h1']
 	> = $props()
 
-
-	// State
 	const isInsidePage = getIsInsidePage()
 </script>
 

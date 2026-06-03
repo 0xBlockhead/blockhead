@@ -2,10 +2,9 @@
 	// Types/constants
 	import type { EntityType } from '$/schema/$EntityType.ts'
 
-
-	// State
 	import type { Snippet } from 'svelte'
 
+	// State
 	let {
 		entityType: _entityType,
 		entityId,

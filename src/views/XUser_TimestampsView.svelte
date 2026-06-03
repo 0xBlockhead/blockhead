@@ -9,6 +9,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -25,14 +27,15 @@
 	} = $props()
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
+	// Functions
 	const xUserTimestampSources = (
 		entityResolversByEntityType[EntityType.XUser_Timestamp]?.map((resolver) => resolver.source)
 		?? [Source.Local_Internal]
 	)
+
+
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'

@@ -9,6 +9,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -21,10 +23,6 @@
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.SolanaNetwork,
@@ -57,6 +55,8 @@
 		},
 	)
 
+
+	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -112,14 +112,15 @@
 			<div>
 				<dt>Slot</dt>
 				<dd id="network-summary-head-block">
-					<ResourceBoundary resource={network} placeholderText="Loading head slot…">
-						{#snippet children(network)}
-							{#if network.$$blocks.at(0) != null}
-								<SolanaBlockView
-									entityId={network.$$blocks.at(0)[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-								/>
-							{:else}
+						<ResourceBoundary resource={network} placeholderText="Loading head slot…">
+							{#snippet children(network)}
+								{@const block = network.$$blocks?.at(0)}
+								{#if block != null}
+									<SolanaBlockView
+										entityId={block[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+									/>
+								{:else}
 								<span data-text="muted">—</span>
 							{/if}
 						{/snippet}
@@ -143,15 +144,16 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={baseNetwork}>
-				{#snippet children(baseNetwork)}
-					{#if baseNetwork.$$nativeAssets.length > 0}
-						<div>
-							<dt>Native asset</dt>
-							<dd>{baseNetwork.$$nativeAssets.length}</dd>
-						</div>
-					{/if}
-				{/snippet}
+				<ResourceBoundary resource={baseNetwork}>
+					{#snippet children(baseNetwork)}
+						{@const nativeAssetCount = baseNetwork.$$nativeAssets?.length ?? 0}
+						{#if nativeAssetCount > 0}
+							<div>
+								<dt>Native asset</dt>
+								<dd>{nativeAssetCount}</dd>
+							</div>
+						{/if}
+					{/snippet}
 			</ResourceBoundary>
 		</dl>
 	{/snippet}
@@ -333,7 +335,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -352,7 +353,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>

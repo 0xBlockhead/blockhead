@@ -164,7 +164,7 @@ const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
 
 	await page.goto(url, { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
 	await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
-	await expect(page.locator('.network-view-carousel-groups')).toBeAttached({
+	await expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
 		timeout: 120_000,
 	})
 
@@ -202,7 +202,7 @@ const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
 
 	await page.reload({ waitUntil: 'load', timeout: gotoLoadTimeoutMs })
 	await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
-	await expect(page.locator('.network-view-carousel-groups')).toBeAttached({
+	await expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
 		timeout: 120_000,
 	})
 

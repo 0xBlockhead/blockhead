@@ -3,6 +3,10 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import {
+	EvmNftFormat,
+	EvmNftStandard,
+} from '$/constants/Evm.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import type { EntityId } from '$/schema/$schema.ts'
@@ -15,31 +19,40 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.Eip8004Service,
+			entityType: EntityType.EvmNft,
 			resolve: async (entityId) => {
 				const { fetchAgentDetail } = await import(
 					'$/sources/Eip8004Scan/Rest/queries.ts'
 					)
 					const detail = await fetchAgentDetail({
-						chainId: Number(entityId.$network.caip2.reference),
-						identityId: entityId.identityId,
+					chainId: Number(entityId.$contract.$network.caip2.reference),
+					tokenId: entityId.tokenId,
 					})
 					if (detail == null) {
 						throw new Error(
-							`Eip8004Scan_Rest: agent ${entityId.$network.caip2.reference}/${entityId.identityId} not found`,
+						`Eip8004Scan_Rest: agent ${entityId.$contract.$network.caip2.reference}/${entityId.tokenId} not found`,
 						)
 					}
+				if (detail.contractAddress !== entityId.$contract.address.toLowerCase()) {
+						throw new Error(
+						`Eip8004Scan_Rest: agent ${entityId.$contract.$network.caip2.reference}/${entityId.$contract.address}/${entityId.tokenId} not found`,
+					)
+				}
 				return {
-					$registry: {
+					standard: EvmNftStandard.Erc721,
+					format: EvmNftFormat.Eip8004Registration,
+					tokenUri: detail.agentUri,
+					agentRegistry: `eip155:${String(detail.chainId)}:${detail.contractAddress}`,
+					agentId: detail.tokenId,
+					agentUri: detail.agentUri,
+					fetchedAt: detail.fetchedAt,
+					...(detail.agentWallet != null && {
+						$agentWallet: {
 							[EntityMetaKey.Id]: {
-								$network: {
-									caip2: { namespace: 'eip155' as const, reference: String(detail.chainId) },
-								},
-								address: EvmAddress.assert(detail.contractAddress),
+								address: EvmAddress.assert(detail.agentWallet),
 							},
 						},
-					registrationUri: detail.registrationUri,
-					fetchedAt: detail.fetchedAt,
+					}),
 					...(detail.name != null && { name: detail.name }),
 					...(detail.description != null && { description: detail.description }),
 					...(detail.image != null && { image: detail.image }),
@@ -71,10 +84,13 @@ export default {
 				return (
 					agents.map((agent) => ({
 							[EntityMetaKey.Id]: {
+							$contract: {
 								$network: {
 									caip2: { namespace: 'eip155' as const, reference: String(agent.chainId) },
 								},
-								identityId: agent.identityId,
+								address: EvmAddress.assert(agent.contractAddress),
+						},
+							tokenId: agent.tokenId,
 						},
 					}))
 				)

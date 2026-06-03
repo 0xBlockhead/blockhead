@@ -7,6 +7,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -19,10 +21,6 @@
 		layout?: EntityLayout
 		title?: string
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const rollup = useEntity(
 		EntityType.EvmRollup,

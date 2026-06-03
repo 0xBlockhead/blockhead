@@ -9,6 +9,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -21,10 +23,6 @@
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.Network,
@@ -41,6 +39,7 @@
 			$$nativeAssets: {},
 		},
 	)
+
 	const bittensorNetwork = useEntity(
 		EntityType.BittensorNetwork,
 		entityId,
@@ -59,6 +58,9 @@
 			},
 		},
 	)
+
+
+	// (Derived)
 	const networkIdKey = $derived(stringify(entityId))
 
 
@@ -107,35 +109,38 @@
 
 	{#snippet Content({ open })}
 		<dl class="network-summary-head" data-column-item="center">
-			<ResourceBoundary resource={bittensorNetwork}>
-				{#snippet children(bittensorNetwork)}
-					{#if bittensorNetwork.$$blocks.at(0) != null}
-						<div>
-							<dt>Finalized block</dt>
-							<dd id="network-summary-head-block">
-								<BittensorBlockView
-									entityId={bittensorNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
+				<ResourceBoundary resource={bittensorNetwork}>
+					{#snippet children(bittensorNetwork)}
+						{@const block = bittensorNetwork.$$blocks?.at(0)}
+						{@const subnetCount = bittensorNetwork.$$subnets?.length ?? 0}
+						{#if block != null}
+							<div>
+								<dt>Finalized block</dt>
+								<dd id="network-summary-head-block">
+									<BittensorBlockView
+										entityId={block[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+									/>
+								</dd>
+							</div>
+						{/if}
 
-					{#if bittensorNetwork.$$subnets.length > 0}
-						<div>
-							<dt>Subnets</dt>
-							<dd><NumberValue value={bittensorNetwork.$$subnets.length} /></dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+						{#if subnetCount > 0}
+							<div>
+								<dt>Subnets</dt>
+								<dd><NumberValue value={subnetCount} /></dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-			<ResourceBoundary resource={network}>
-				{#snippet children(network)}
-					<div>
-						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
-					</div>
+				<ResourceBoundary resource={network}>
+					{#snippet children(network)}
+						{@const nativeAssetCount = network.$$nativeAssets?.length ?? 0}
+						<div>
+							<dt>Environment</dt>
+							<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
+						</div>
 
 					{#if open && network.$networkStack != null}
 						<div>
@@ -149,14 +154,14 @@
 						</div>
 					{/if}
 
-					{#if open && network.$$nativeAssets.length > 0}
-						<div>
-							<dt>Native asset</dt>
-							<dd>{network.$$nativeAssets.length}</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+						{#if open && nativeAssetCount > 0}
+							<div>
+								<dt>Native asset</dt>
+								<dd>{nativeAssetCount}</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -181,34 +186,35 @@
 			data-card
 			class="network-view-collapsible-execution"
 			scrollContainerProps={{ 'data-row': 'start align-start' }}
-		>
-			{#snippet Summary()}
+				>
+				{#snippet Summary()}
 				<header
 					data-row-item="flexible"
 					data-row="wrap gap-4"
 				>
 					<HeadingComponent>Activity</HeadingComponent>
 				</header>
-			{/snippet}
+				{/snippet}
 
-			{#snippet SectionBittensorSubtensor()}
+				{#snippet SectionBittensorSubtensor()}
 				<ResourceBoundary resource={bittensorNetwork}>
 					{#snippet children(bittensorNetwork)}
+						{@const block = bittensorNetwork.$$blocks?.at(0)}
 						<div>
-							{#if bittensorNetwork.$$blocks.at(0) != null}
+							{#if block != null}
 								<BittensorBlockView
-									entityId={bittensorNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
+									entityId={block[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 								/>
 							{/if}
-						</div>
-					{/snippet}
+					</div>
+				{/snippet}
 				</ResourceBoundary>
-			{/snippet}
+				{/snippet}
 
-			{#snippet SectionBittensorBlocks()}
+				{#snippet SectionBittensorBlocks()}
 				<BittensorBlocksView
-					CollapsibleProps={{ canToggle: false }}
+			CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BittensorNetwork,
 						entityId,
@@ -249,16 +255,16 @@
 			data-card
 			class="network-view-collapsible-consensus"
 			scrollContainerProps={{ 'data-row': 'start align-start' }}
-		>
-			{#snippet Summary()}
+				>
+				{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Consensus &amp; Neurons</HeadingComponent>
 				</header>
-			{/snippet}
+				{/snippet}
 
-			{#snippet SectionBittensorNeurons()}
+				{#snippet SectionBittensorNeurons()}
 				<BittensorSubnetsView
-					CollapsibleProps={{ canToggle: false }}
+			CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BittensorNetwork,
 						entityId,
@@ -272,9 +278,10 @@
 			{#snippet SectionBittensorConsensus()}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
+						{@const consensusMechanismCount = network.$$consensusMechanisms?.length ?? 0}
 						<div>
-							{#if network.$$consensusMechanisms.length > 0}
-								<p><strong>Consensus:</strong> {network.$$consensusMechanisms.length}</p>
+							{#if consensusMechanismCount > 0}
+								<p><strong>Consensus:</strong> {consensusMechanismCount}</p>
 							{/if}
 
 							<BittensorNetwork_TimestampsView
@@ -286,11 +293,11 @@
 								}}
 								id={`${networkIdKey}:bittensor-consensus-snapshots`}
 								title="Network snapshots"
-							/>
-						</div>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
+						/>
+					</div>
+				{/snippet}
+			</ResourceBoundary>
+		{/snippet}
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
@@ -303,16 +310,16 @@
 			data-card
 			class="network-view-collapsible-economics"
 			scrollContainerProps={{ 'data-row': 'start align-start' }}
-		>
-			{#snippet Summary()}
+				>
+				{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Assets</HeadingComponent>
 				</header>
-			{/snippet}
+				{/snippet}
 
-			{#snippet SectionBittensorAssetsNative({ id, label }: { id: string, label: string })}
+				{#snippet SectionBittensorAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
-					CollapsibleProps={{ canToggle: false }}
+			CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
 						entityId,
@@ -326,7 +333,7 @@
 			{#snippet SectionBittensorAssetsSubnets()}
 				<ResourceBoundary resource={bittensorNetwork}>
 					{#snippet children(bittensorNetwork)}
-						<p><strong>Subnet assets:</strong> {bittensorNetwork.$$subnets.length} alpha-token markets are represented by subnet identities and DynamicInfo wire snapshots.</p>
+						<p><strong>Subnet assets:</strong> {bittensorNetwork.$$subnets?.length ?? 0} alpha-token markets are represented by subnet identities and DynamicInfo wire snapshots.</p>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
@@ -348,16 +355,16 @@
 			data-card
 			class="network-view-collapsible-resources"
 			scrollContainerProps={{ 'data-row': 'start align-start' }}
-		>
-			{#snippet Summary()}
+				>
+				{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Resources</HeadingComponent>
 				</header>
-			{/snippet}
+				{/snippet}
 
-			{#snippet SectionBittensorResourcesFaucets()}
+				{#snippet SectionBittensorResourcesFaucets()}
 				<UrlsView
-					CollapsibleProps={{ canToggle: false }}
+			CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
@@ -368,7 +375,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${networkIdKey}:bittensor-resources-faucets-bittensorNetworks`}
 					title="Faucets"
 				/>
@@ -387,7 +393,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${networkIdKey}:bittensor-resources-block-explorers-bittensorNetworks`}
 					title="Block explorers"
 				/>

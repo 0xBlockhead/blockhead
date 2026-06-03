@@ -8,11 +8,6 @@
 		params,
 	} = $props()
 
-	const entityId = $derived({
-		instanceOrigin: decodeURIComponent(params.instanceOrigin),
-		localAccountId: decodeURIComponent(params.localAccountId),
-	})
-
 
 	// Components
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
@@ -26,7 +21,10 @@
 		href={resolve('/activitypub/notes')}
 		entityFieldReference={{
 			entityType: EntityType.ActivityPubActor,
-			entityId,
+			({
+		instanceOrigin: decodeURIComponent(params.instanceOrigin),
+		localAccountId: decodeURIComponent(params.localAccountId),
+	}),
 			fieldName: '$$notes',
 		}}
 		id="activitypub-actor-notes"

@@ -30,7 +30,7 @@ export const getProposalRstUrl = ({ number }: { number: number }) => (
 export const getContents = async (): Promise<ZcashZipsGithubContents> => {
 	const response = await githubHttp({
 		url: getContentsUrl(),
-		origins: ZcashZips.origins ?? [],
+		origins: ZcashZips.origins,
 	})
 	if (!response.ok) await throwHttpError('ZcashZips GitHub contents', response)
 	return response.json<ZcashZipsGithubContents>()
@@ -39,6 +39,6 @@ export const getContents = async (): Promise<ZcashZipsGithubContents> => {
 export const getProposalRstText = ({ number }: { number: number }) => (
 	getText({
 		url: getProposalRstUrl({ number }),
-		origins: ZcashZips.origins ?? [],
+		origins: ZcashZips.origins,
 	})
 )

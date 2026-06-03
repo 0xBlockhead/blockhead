@@ -34,7 +34,7 @@ const solanaJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: Solana.origins ?? [],
+		origins: Solana.origins,
 		init: {
 			method: 'POST',
 			headers: {

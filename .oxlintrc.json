@@ -25,6 +25,7 @@
 		"dist/**",
 		"coverage/**",
 		"playwright-report/**",
+		"src/routes/demo/**",
 		"**/*.d.ts",
 		"scripts/**/*.ts"
 	],
@@ -43,6 +44,7 @@
 			}
 		],
 		"typescript/no-inferrable-types": "error",
+		"typescript/no-unnecessary-condition": "error",
 		"typescript/no-unnecessary-type-assertion": "error",
 		"typescript/no-restricted-types": [
 			"error",

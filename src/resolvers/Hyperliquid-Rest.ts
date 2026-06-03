@@ -32,7 +32,7 @@ export default {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
 					},
-					restEndpoints: hyperliquidMainnetRestEndpoints,
+					restEndpoints: [...hyperliquidMainnetRestEndpoints],
 				}
 			},
 		}),

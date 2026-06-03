@@ -35,6 +35,6 @@ export const getNetworkSummary = {
 
 export const getPage = ({ url }: { url: string }) => (
 	getText(url, {
-		origins: LogosDocs.origins ?? [],
+		origins: LogosDocs.origins,
 	})
 )

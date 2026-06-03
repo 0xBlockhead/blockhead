@@ -7,7 +7,6 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 
 
@@ -21,7 +20,7 @@
 		href = resolve(
 			'/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]',
 			{
-				chainId: String(evmChainIdFromNetworkId(entityId.$coinInstance.$network)),
+				chainId: String(evmChainIdFromCaip2(`${entityId.$coinInstance.$network.caip2.namespace}:${entityId.$coinInstance.$network.caip2.reference}`)),
 				owner: entityId.$actor.address,
 				coin: (
 					entityId.$coinInstance.type === CoinInstanceType.Erc20Token ?
@@ -32,7 +31,6 @@
 			},
 		),
 		open = $bindable(true),
-		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
@@ -46,8 +44,7 @@
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { formatValue } from '$/lib/number.ts'
 
@@ -72,28 +69,29 @@
 		},
 	)
 
-	const formattedBalance = $derived(
-		actorCoin.balance != null
-			? (
-				actorCoin.decimals != null && actorCoin.decimals > 0 ?
-					(() => {
-						const divisor = 10n ** BigInt(actorCoin.decimals)
-						const intPart = actorCoin.balance / divisor
-						const fracPart = actorCoin.balance % divisor
-						const fracStr = String(fracPart).padStart(actorCoin.decimals, '0').replace(/0+$/, '')
-						return (
-							fracStr ?
-								`${formatValue(Number(intPart))}.${fracStr}`
-							:
-								formatValue(Number(intPart))
-						)
-					})()
-				:
-					formatValue(Number(actorCoin.balance))
-			)
+
+	// (Derived)
+	const formattedBalance = $derived.by(() => {
+		const currentActorCoin = actorCoin.current
+
+		if (currentActorCoin?.balance == null)
+			return undefined
+
+		if (currentActorCoin.decimals == null || currentActorCoin.decimals <= 0)
+			return formatValue(Number(currentActorCoin.balance))
+
+		const divisor = 10n ** BigInt(currentActorCoin.decimals)
+		const integerPart = currentActorCoin.balance / divisor
+		const fractionalPart = currentActorCoin.balance % divisor
+		const fractionalPartString = String(fractionalPart).padStart(currentActorCoin.decimals, '0').replace(/0+$/, '')
+
+		return (
+			fractionalPartString ?
+				`${formatValue(Number(integerPart))}.${fractionalPartString}`
 			:
-				undefined
-	)
+				formatValue(Number(integerPart))
+		)
+	})
 
 
 	// Components
@@ -139,7 +137,9 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({})}
+	{#snippet Content({
+		open: contentOpen,
+	})}
 		<dl data-column-item="center">
 			<div>
 				<dt>Account</dt>
@@ -162,7 +162,7 @@
 					{:else if entityId.$coinInstance.type === CoinInstanceType.Erc20Token}
 						<EvmContractView
 							entityId={entityId.$coinInstance.$contract}
-							layout={EntityLayout.SummaryDetails}
+							layout={EntityLayout.Value}
 							open={false}
 							showTypeAnnotation={false}
 						/>
@@ -233,56 +233,56 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${actorCoinDetailAnchorKey}:carousel-related`}
-				sectionIdPrefix={actorCoinDetailAnchorKey}
-				sections={[
-					{ id: 'coin-overview', label: 'Overview' },
-				]}
-				data-card
-			>
-				{#snippet Summary({ open: _relatedSummaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Holding detail
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${actorCoinDetailAnchorKey}:carousel-related`}
+			sectionIdPrefix={actorCoinDetailAnchorKey}
+			sections={[
+				{ id: 'coin-overview', label: 'Overview' },
+			]}
+			data-card
+		>
+			{#snippet Summary({ open: _relatedSummaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Holding detail
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionCoinOverview({ id, label })}
-					<ResourceBoundary
-						resource={actorCoin}
-						placeholderText="Loading holding…"
-					>
-						{#snippet children(actorCoin)}
-							{#if (
-								actorCoin.symbol == null
-								&& actorCoin.decimals == null
-								&& actorCoin.balance == null
-							)}
-								<div data-row="wrap align-center gap-2">
-									<p data-text="muted">
-										No balance yet.
-									</p>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
-											<p>
-												Symbol, decimals, and balance appear once this holding is resolved for the wallet on this network.
-											</p>
-										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="Token balance"
-										>ⓘ</abbr>
-									</Tooltip>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+			{#snippet SectionCoinOverview({ id, label })}
+				<ResourceBoundary
+					resource={actorCoin}
+					placeholderText="Loading holding…"
+				>
+					{#snippet children(actorCoin)}
+						{#if (
+							actorCoin.symbol == null
+							&& actorCoin.decimals == null
+							&& actorCoin.balance == null
+						)}
+							<div data-row="wrap align-center gap-2">
+								<p data-text="muted">
+									No balance yet.
+								</p>
+								<Tooltip contentProps={{ side: 'top' }}>
+									{#snippet Content()}
+										<p>
+											Symbol, decimals, and balance appear once this holding is resolved for the wallet on this network.
+										</p>
+									{/snippet}
+									<abbr
+										class="entity-heading-tip"
+										aria-label="Token balance"
+									>ⓘ</abbr>
+								</Tooltip>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-				{/snippet}
-		</CollapsibleTabs>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>

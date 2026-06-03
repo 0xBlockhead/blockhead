@@ -1,4 +1,8 @@
-import { QueryClient } from '@tanstack/query-core'
+import {
+	QueryClient,
+	type QueryFunctionContext,
+	type QueryKey,
+} from '@tanstack/query-core'
 import {
 	queryCollectionOptions,
 	type QueryCollectionUtils,
@@ -9,6 +13,7 @@ import {
 } from '@tanstack/db-sqlite-persistence-core'
 import {
 	BasicIndex,
+	type CollectionConfig,
 	createCollection,
 	type LoadSubsetOptions,
 	parseLoadSubsetOptions,
@@ -276,6 +281,15 @@ const collectionPersistedGcTime = Number.POSITIVE_INFINITY
 
 type ParsedLoadSubset = ReturnType<typeof parseLoadSubsetOptions>
 type SubsetFilter = ParsedLoadSubset['filters'][number]
+type CollectionQueryKey = (string | {
+	filters: {
+		field: string[]
+		operator: string
+		value: unknown
+	}[]
+	limit: number | undefined
+	sorts: ParsedLoadSubset['sorts']
+})[]
 type PersistOnDemandSubsetSync<
 	_Row extends object,
 	_Key extends string | number,
@@ -510,12 +524,12 @@ const recordPersistenceLoadSubsetDecision = (
 }
 
 const wrapQueryFnWithPersistenceProbe = <
-	_QueryContext extends { meta?: { loadSubsetOptions?: LoadSubsetOptions } },
+	_QueryKey extends QueryKey,
 	_Result,
 >(
 	collectionId: string,
-	queryFn: (queryContext: _QueryContext) => Promise<_Result>,
-) => async (queryContext: _QueryContext) => {
+	queryFn: (queryContext: QueryFunctionContext<_QueryKey>) => Promise<_Result>,
+) => async (queryContext: QueryFunctionContext<_QueryKey>) => {
 	const loadSubsetOptions = queryContext.meta?.loadSubsetOptions
 	if (loadSubsetOptions != null)
 		pushPersistenceProbeEvent({
@@ -658,13 +672,15 @@ const collectionSnapshotHasChanges = <
 		})
 }
 
-const persistOnDemandSubsets = <_Options>(
+const persistOnDemandSubsets = <
+	_Row extends object,
+	_Key extends string | number,
+	_Options extends { sync: PersistOnDemandSubsetSync<_Row, _Key> },
+>(
 	options: _Options,
 	probeCollectionId: string,
 ) => {
-	const outerSync = (options as _Options & {
-		sync: PersistOnDemandSubsetSync<object, string | number>
-	}).sync
+	const outerSync = options.sync
 
 	return {
 		...options,
@@ -712,7 +728,7 @@ const persistOnDemandSubsets = <_Options>(
 						}
 
 						const markLoaded = () => {
-							if (params.begin == null || params.commit == null || params.metadata == null)
+							if (params.metadata == null)
 								return
 							if (
 								queryFnCompletenessByCollectionIdAndLoadedKey
@@ -803,11 +819,25 @@ const createEntityCollection = <
 			never,
 			EntityCollectionUtils<_Schema, _EntityType>
 		>({
-			...persistOnDemandSubsets(queryCollectionOptions({
+			...persistOnDemandSubsets<
+				EntityCollectionItem<_Schema, _EntityType>,
+				string | number,
+				CollectionConfig<
+					EntityCollectionItem<_Schema, _EntityType>,
+					string | number,
+					never,
+					EntityCollectionUtils<_Schema, _EntityType>
+				>
+			>(queryCollectionOptions<
+				EntityCollectionItem<_Schema, _EntityType>,
+				unknown,
+				CollectionQueryKey,
+				string | number
+			>({
 				queryKey: (loadSubsetOptions) => [
 					`EntityCollection:${entityType}`,
 					...(
-						loadSubsetOptions == null || Object.keys(loadSubsetOptions).length === 0 ?
+						Object.keys(loadSubsetOptions).length === 0 ?
 							[]
 						:
 							[
@@ -905,12 +935,7 @@ const createEntityCollection = <
 											)
 
 											return {
-												...(
-													fields != null && typeof fields === 'object' && !Array.isArray(fields) ?
-														fields
-													:
-														{}
-												),
+												...fields,
 												[EntityMetaKey.Id]: entityId,
 												[EntityMetaKey.IdKey]: stringify(entityId),
 												[EntityMetaKey.Source]: entityResolver.source,
@@ -1018,13 +1043,10 @@ const createEntityFieldCollection = <
 	)
 	const resolveDiscriminatorValue = async (
 		parentEntityId: EntityId<_Schema, _EntityType>,
-		fieldName: string,
+		fieldName: EntityFieldName<_Schema, _EntityType>,
 		subsetBase: ReturnType<typeof parseLoadSubsetForQueryFn>,
 	): Promise<string | number> => {
 		const discriminatorField = fieldDefinitionByName[entityType][fieldName]
-		if (discriminatorField == null) {
-			throw new Error(`${String(entityType)}.${fieldDefinition.name}: discriminator field ${fieldName} is not defined`)
-		}
 		if ('when' in discriminatorField && discriminatorField.when != null) {
 			throw new Error(`${String(entityType)}.${fieldDefinition.name}: discriminator field ${fieldName} cannot be conditional`)
 		}
@@ -1043,8 +1065,8 @@ const createEntityFieldCollection = <
 		}
 
 		const entitySettled = await Promise.allSettled(
-			entityResolvers.map(async (entityResolver) => (
-				(await entityResolver.resolve(
+			entityResolvers.map(async (entityResolver) => {
+				const entityRow = await entityResolver.resolve(
 					parentEntityId,
 					{
 						filters: subsetBase.filters,
@@ -1052,8 +1074,9 @@ const createEntityFieldCollection = <
 						limit: subsetBase.limit,
 						publicEnv: resolverPublicEnvBySource.get(entityResolver.source) ?? {},
 					},
-				))[fieldName]
-			)),
+				)
+				return entityRow[fieldName as keyof typeof entityRow]
+			}),
 		)
 		for (const result of entitySettled) {
 			if (
@@ -1100,12 +1123,26 @@ const createEntityFieldCollection = <
 			never,
 			EntityFieldCollectionUtils<_Schema, _EntityType, _FieldDefinition['name']>
 		>({
-			...persistOnDemandSubsets(queryCollectionOptions({
+			...persistOnDemandSubsets<
+				EntityFieldCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
+				string | number,
+				CollectionConfig<
+					EntityFieldCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
+					string | number,
+					never,
+					EntityFieldCollectionUtils<_Schema, _EntityType, _FieldDefinition['name']>
+				>
+			>(queryCollectionOptions<
+				EntityFieldCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
+				unknown,
+				CollectionQueryKey,
+				string | number
+			>({
 				queryKey: (loadSubsetOptions) => [
 					`EntityFieldCollection:${entityType}`,
 					fieldDefinition.name,
 					...(
-						loadSubsetOptions == null || Object.keys(loadSubsetOptions).length === 0 ?
+						Object.keys(loadSubsetOptions).length === 0 ?
 							[]
 						:
 							[

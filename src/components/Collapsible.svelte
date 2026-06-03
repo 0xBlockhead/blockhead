@@ -48,7 +48,7 @@
 	> = $props()
 
 
-	// State
+	// Inner context
 	incrementHeadingLevel()
 </script>
 

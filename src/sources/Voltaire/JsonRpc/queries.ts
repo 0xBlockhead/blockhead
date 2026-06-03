@@ -134,9 +134,12 @@ export const narrowBlockRpc = (raw: JsonValue): VoltaireBlockRpc | null => {
 const narrowVoltaireReceiptRpc = (raw: JsonValue): VoltaireReceiptRpc | null => {
 	if (!isJsonObject(raw)) return null
 	const logsRaw = raw['logs']
-	const logsParsed = Array.isArray(logsRaw) ? logsRaw.map(narrowRpcLog)
-	:
-		null
+	const logsParsed = (
+		Array.isArray(logsRaw) ?
+			logsRaw.map(narrowRpcLog)
+		:
+			null
+	)
 	const logs = (
 		logsParsed != null && logsParsed.every((l) => l != null) ?
 			logsParsed.filter((l): l is RpcLog => l != null)

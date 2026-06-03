@@ -1,6 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import BeaconSlotSchema from '$/schema/BeaconSlot.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -9,19 +8,18 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(beacon-slots)/slot/[slotNumber]',
-			{
-				...caip2RouteParamsFromNetworkId(entityId.$network),
+			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(beacon-slots)/slot/[slotNumber]', {
+				caip2Namespace: entityId.$network.caip2.namespace,
+				caip2Reference: entityId.$network.caip2.reference,
 				slotNumber: String(entityId.slot),
-			},
-		),
+			}),
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -39,10 +37,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const slot = useEntity(
 		EntityType.BeaconSlot,
@@ -65,6 +59,7 @@
 	)
 
 
+	// (Derived)
 	const title = $derived(
 		titleProp ?? `Slot #${entityId.slot.toLocaleString()}`,
 	)
@@ -104,7 +99,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Slot </span>
-			{@render Value()}
+		<span data-badge="small">
+			#{String(entityId.slot)}
+		</span>
 		</span>
 	{/snippet}
 
@@ -122,11 +119,13 @@
 					<ResourceBoundary
 						resource={slot}
 						placeholderText="Loading slot…"
-					>
-						{#snippet children(slot)}
-							<NumberValue value={slot.proposerIndex} />
-						{/snippet}
-					</ResourceBoundary>
+						>
+							{#snippet children(slot)}
+								{#if slot.proposerIndex !== undefined}
+									<NumberValue value={slot.proposerIndex} />
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
 				</dd>
 			</div>
 			{#if open}
@@ -159,12 +158,12 @@
 						<ResourceBoundary
 							resource={slot}
 							placeholderText="Loading slot…"
-						>
-							{#snippet children(slot)}
-								{#if slot.root !== undefined && slot.root !== ''}
-									<TruncatedValue
-										value={slot.root}
-										format={TruncatedValueFormat.Abbr}
+							>
+								{#snippet children(slot)}
+									{#if slot.root !== undefined}
+										<TruncatedValue
+											value={slot.root}
+											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
 							{/snippet}
@@ -194,12 +193,12 @@
 						<ResourceBoundary
 							resource={slot}
 							placeholderText="Loading slot…"
-						>
-							{#snippet children(slot)}
-								{#if slot.parentRoot !== undefined && slot.parentRoot !== ''}
-									<TruncatedValue
-										value={slot.parentRoot}
-										format={TruncatedValueFormat.Abbr}
+							>
+								{#snippet children(slot)}
+									{#if slot.parentRoot !== undefined}
+										<TruncatedValue
+											value={slot.parentRoot}
+											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
 							{/snippet}
@@ -213,12 +212,12 @@
 						<ResourceBoundary
 							resource={slot}
 							placeholderText="Loading slot…"
-						>
-							{#snippet children(slot)}
-								{#if slot.stateRoot !== undefined && slot.stateRoot !== ''}
-									<TruncatedValue
-										value={slot.stateRoot}
-										format={TruncatedValueFormat.Abbr}
+							>
+								{#snippet children(slot)}
+									{#if slot.stateRoot !== undefined}
+										<TruncatedValue
+											value={slot.stateRoot}
+											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
 							{/snippet}
@@ -232,12 +231,12 @@
 						<ResourceBoundary
 							resource={slot}
 							placeholderText="Loading slot…"
-						>
-							{#snippet children(slot)}
-								{#if slot.bodyRoot !== undefined && slot.bodyRoot !== ''}
-									<TruncatedValue
-										value={slot.bodyRoot}
-										format={TruncatedValueFormat.Abbr}
+							>
+								{#snippet children(slot)}
+									{#if slot.bodyRoot !== undefined}
+										<TruncatedValue
+											value={slot.bodyRoot}
+											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
 							{/snippet}
@@ -251,12 +250,12 @@
 						<ResourceBoundary
 							resource={slot}
 							placeholderText="Loading slot…"
-						>
-							{#snippet children(slot)}
-								{#if slot.signature !== undefined && slot.signature !== ''}
-									<TruncatedValue
-										value={slot.signature}
-										format={TruncatedValueFormat.Abbr}
+							>
+								{#snippet children(slot)}
+									{#if slot.signature !== undefined}
+										<TruncatedValue
+											value={slot.signature}
+											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
 							{/snippet}

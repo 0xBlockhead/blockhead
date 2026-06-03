@@ -19,8 +19,6 @@
 		boundaryKey?: string
 	} = $props()
 
-
-	// State
 	import { serializeError } from '$/lib/errors.ts'
 	import { stringify } from '$/lib/json.ts'
 </script>

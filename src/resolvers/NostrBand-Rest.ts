@@ -5,6 +5,11 @@ import {
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { optionalNonemptyString } from '$/lib/string.ts'
+import {
+	optionalTimestampMs,
+	timestampMsFromUnixSeconds,
+} from '$/lib/time.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
@@ -17,14 +22,11 @@ import type {
 } from '$/sources/NostrBand/Rest/types.ts'
 import type { JsonObject } from '$/typescript/JsonValue.ts'
 
-const optionalTrimmedString = (value: string | undefined | null) => (
-	value?.trim() || undefined
-)
 
 const normalizePubkey = (value: string | undefined | null) => {
-	const normalized = value?.trim().toLowerCase()
+	const normalized = value?.toLowerCase()
 	return (
-		normalized != null && /^[0-9a-f]{64}$/.test(normalized) ?
+		normalized != null && normalized !== '' && /^[0-9a-f]{64}$/.test(normalized) ?
 			normalized
 		:
 			undefined
@@ -32,7 +34,7 @@ const normalizePubkey = (value: string | undefined | null) => {
 }
 
 const normalizeEventId = (value: string | undefined | null) => {
-	const normalized = value?.trim().toLowerCase()
+	const normalized = value?.toLowerCase()
 	return (
 		normalized != null && /^[0-9a-f]{64}$/.test(normalized) ?
 			normalized
@@ -42,14 +44,13 @@ const normalizeEventId = (value: string | undefined | null) => {
 }
 
 const normalizeRelayUrl = (value: string | undefined) => {
-	const trimmed = value?.trim()
-	if (trimmed == null || trimmed === '') return undefined
+	if (value == null || value === '') return undefined
 	try {
 		const url = new URL(
-			trimmed.includes('://') ?
-				trimmed
+			value.includes('://') ?
+				value
 			:
-				`wss://${trimmed}`,
+				`wss://${value}`,
 		)
 		if (url.protocol !== 'wss:' && url.protocol !== 'ws:') return undefined
 		const pathname = url.pathname.replace(/\/$/, '')
@@ -59,24 +60,10 @@ const normalizeRelayUrl = (value: string | undefined) => {
 	}
 }
 
-const nostrCreatedAtMs = (createdAt: number | undefined) => (
-	createdAt != null && Number.isFinite(createdAt) ?
-		createdAt * 1000
-	:
-		undefined
-)
-
-const optionalTimestampMs = (value: string | undefined) => (
-	((parsed) => (
-		Number.isFinite(parsed) ? parsed : undefined
-	))(Date.parse(value ?? ''))
-)
-
 const profileMetadataFromContent = (content: string | undefined): NostrProfileMetadata | undefined => {
-	const trimmed = content?.trim()
-	if (trimmed == null || trimmed === '') return undefined
+	if (content == null || content === '') return undefined
 	try {
-		const parsed: NostrProfileMetadata = JSON.parse(trimmed)
+		const parsed: NostrProfileMetadata = JSON.parse(content)
 		return parsed
 	} catch {
 		return undefined
@@ -89,17 +76,16 @@ const tagValueFromTags = (
 ) => (
 	tags?.flatMap((tag) => (
 		tag[0] === tagName
-		&& tag[1] != null
-		&& tag[1].trim() !== '' ?
-			[tag[1].trim()]
+		&& tag[1] !== '' ?
+			[tag[1]]
 		:
 			[]
-	))[0]
+	)).at(0)
 )
 
 const eTagEventIdsFromTags = (tags: NostrEvent['tags']) => (
 	tags?.flatMap((tag) => (
-		tag[0] === 'e' && tag[1] != null ?
+		tag[0] === 'e' ?
 			(
 				((eventId) => (
 					eventId != null ?
@@ -116,7 +102,7 @@ const eTagEventIdsFromTags = (tags: NostrEvent['tags']) => (
 
 const eventIdFromETags = (tags: NostrEvent['tags']) => (
 	tags?.flatMap((tag) => (
-		tag[0] === 'e' && tag[1] != null ?
+		tag[0] === 'e' ?
 			[normalizeEventId(tag[1])]
 		:
 			[]
@@ -124,9 +110,9 @@ const eventIdFromETags = (tags: NostrEvent['tags']) => (
 		.flatMap((eventId) => (
 			eventId == null ?
 				[]
-			:
-				[eventId]
-		))[0]
+				:
+					[eventId]
+			)).at(0)
 )
 
 const reactionTargetEventIdFromTags = (tags: NostrEvent['tags']) => {
@@ -141,39 +127,37 @@ const replyToEventIdFromTags = (tags: NostrEvent['tags']) => {
 	const eventIds = eTagEventIdsFromTags(tags)
 	const markedReply = tags?.flatMap((tag) => (
 		tag[0] === 'e'
-		&& tag[1] != null
 		&& tag[3] === 'reply' ?
 			[normalizeEventId(tag[1])]
 		:
 			[]
-	))[0]
+	)).at(0)
 	if (markedReply != null) {
 		return markedReply
 	}
 	if (eventIds.length === 0) {
-		throw new Error('NostrBand_Rest: no event IDs found in tags for reply')
+		return undefined
 	}
 	if (eventIds.length === 1) {
-		return eventIds[0]
+		return eventIds.at(0)
 	}
-	return eventIds[eventIds.length - 1]
+	return eventIds.at(-1)
 }
 
 const rootEventIdFromTags = (tags: NostrEvent['tags']) => (
 	(
-		(markedRoot) => (
-			markedRoot
-			?? eTagEventIdsFromTags(tags)[0]
-		)
-	)(tags?.flatMap((tag) => (
-		tag[0] === 'e'
-		&& tag[1] != null
-		&& tag[3] === 'root' ?
-			[normalizeEventId(tag[1])]
-		:
-			[]
-	))[0])
-)
+			(markedRoot) => (
+				markedRoot
+				?? eTagEventIdsFromTags(tags).at(0)
+			)
+		)(tags?.flatMap((tag) => (
+			tag[0] === 'e'
+			&& tag[3] === 'root' ?
+				[normalizeEventId(tag[1])]
+			:
+				[]
+		)).at(0))
+	)
 
 const isNostrRepostKind = (kind: number | undefined): kind is 6 | 16 => (
 	kind === 6 || kind === 16
@@ -181,7 +165,7 @@ const isNostrRepostKind = (kind: number | undefined): kind is 6 | 16 => (
 
 const articleRefFromAddressableCoordinate = (coordinate: string | undefined) => (
 	((parts) => (
-		parts == null || parts[0] !== '30023' ?
+		parts == null || parts.at(0) !== '30023' ?
 			undefined
 		:
 			(
@@ -195,12 +179,12 @@ const articleRefFromAddressableCoordinate = (coordinate: string | undefined) => 
 									identifier,
 								},
 							}
-				)
-			)(
-				normalizePubkey(parts[1]),
-				parts[2]?.trim(),
 			)
-	))(coordinate?.trim().split(':'))
+		)(
+			normalizePubkey(parts.at(1)),
+			parts.at(2),
+		)
+	))(coordinate?.split(':'))
 )
 
 const articleRefFromEvent = (event: NostrEvent) => (
@@ -231,14 +215,14 @@ const profileFieldValuesFromMetadata = (
 	metadata: NostrProfileMetadata | undefined,
 	profileEvent: NostrEvent | undefined,
 ) => ({
-	displayName: optionalTrimmedString(metadata?.display_name ?? metadata?.name),
-	about: optionalTrimmedString(metadata?.about),
-	nip05: optionalTrimmedString(metadata?.nip05),
-	lud16: optionalTrimmedString(metadata?.lud16),
-	lud06: optionalTrimmedString(metadata?.lud06),
-	website: optionalTrimmedString(metadata?.website),
-	...(nostrCreatedAtMs(profileEvent?.created_at) != null && {
-		metadataUpdatedAt: nostrCreatedAtMs(profileEvent?.created_at),
+	displayName: optionalNonemptyString(metadata?.display_name ?? metadata?.name),
+	about: optionalNonemptyString(metadata?.about),
+	nip05: optionalNonemptyString(metadata?.nip05),
+	lud16: optionalNonemptyString(metadata?.lud16),
+	lud06: optionalNonemptyString(metadata?.lud06),
+	website: optionalNonemptyString(metadata?.website),
+	...(timestampMsFromUnixSeconds(profileEvent?.created_at) != null && {
+		metadataUpdatedAt: timestampMsFromUnixSeconds(profileEvent?.created_at),
 	}),
 	...((
 		iconMedia,
@@ -246,14 +230,14 @@ const profileFieldValuesFromMetadata = (
 		iconMedia != null && {
 			$icon: iconMedia,
 		}
-	))(mediaFromUrl(optionalTrimmedString(metadata?.picture), MediaType.Image)),
+	))(mediaFromUrl(optionalNonemptyString(metadata?.picture), MediaType.Image)),
 	...((
 		bannerMedia,
 	) => (
 		bannerMedia != null && {
 			$banner: bannerMedia,
 		}
-	))(mediaFromUrl(optionalTrimmedString(metadata?.banner), MediaType.Image)),
+	))(mediaFromUrl(optionalNonemptyString(metadata?.banner), MediaType.Image)),
 })
 
 const noteFieldValuesFromEvent = (event: NostrEvent) => {
@@ -263,10 +247,10 @@ const noteFieldValuesFromEvent = (event: NostrEvent) => {
 		((replyToEventId, rootEventId) => ({
 			kind: 1,
 			pubkey: eventPubkey,
-			content: optionalTrimmedString(event.content),
+			content: optionalNonemptyString(event.content),
 			...(event.tags != null && { tags: event.tags }),
-			...(nostrCreatedAtMs(event.created_at) != null && {
-				createdAt: nostrCreatedAtMs(event.created_at),
+			...(timestampMsFromUnixSeconds(event.created_at) != null && {
+				createdAt: timestampMsFromUnixSeconds(event.created_at),
 			}),
 			$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
@@ -302,8 +286,8 @@ const repostFieldValuesFromEvent = (event: NostrEvent) => {
 			kind,
 			pubkey: eventPubkey,
 			...(event.tags != null && { tags: event.tags }),
-			...(nostrCreatedAtMs(event.created_at) != null && {
-				createdAt: nostrCreatedAtMs(event.created_at),
+			...(timestampMsFromUnixSeconds(event.created_at) != null && {
+				createdAt: timestampMsFromUnixSeconds(event.created_at),
 			}),
 			$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
@@ -344,7 +328,7 @@ const repostFieldValuesFromTargetEvent = (
 					$repostedArticle: repostedArticle,
 					$repostedNote: undefined,
 				}
-		))(articleRefFromEvent(targetEvent)[0])
+			))(articleRefFromEvent(targetEvent).at(0))
 	:
 		repostValues
 )
@@ -358,8 +342,8 @@ const reactionFieldValuesFromEvent = (event: NostrEvent) => {
 		kind: 7,
 		pubkey: eventPubkey,
 		...(event.tags != null && { tags: event.tags }),
-		...(nostrCreatedAtMs(event.created_at) != null && {
-			createdAt: nostrCreatedAtMs(event.created_at),
+		...(timestampMsFromUnixSeconds(event.created_at) != null && {
+			createdAt: timestampMsFromUnixSeconds(event.created_at),
 		}),
 		$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
@@ -372,12 +356,12 @@ const reactionFieldValuesFromEvent = (event: NostrEvent) => {
 		...(targetArticle != null && {
 			$targetArticle: targetArticle,
 		}),
-		...(targetEventId != null && targetArticle == null && {
-			$targetNote: {
-				[EntityMetaKey.Id]: { eventId: targetEventId },
-			},
-		}),
-		content: optionalTrimmedString(event.content),
+			...(targetArticle == null && {
+				$targetNote: {
+					[EntityMetaKey.Id]: { eventId: targetEventId },
+				},
+			}),
+		content: optionalNonemptyString(event.content),
 	}
 }
 
@@ -397,7 +381,7 @@ const reactionFieldValuesFromTargetEvent = (
 						$targetArticle: targetArticle,
 						$targetNote: undefined,
 					}
-		))(articleRefFromEvent(targetEvent)[0])
+			))(articleRefFromEvent(targetEvent).at(0))
 	:
 		reactionValues
 )
@@ -405,7 +389,7 @@ const reactionFieldValuesFromTargetEvent = (
 const articlePublishedAtMs = (event: NostrEvent) => (
 	((publishedAtTag) => (
 		publishedAtTag == null ?
-			nostrCreatedAtMs(event.created_at)
+			timestampMsFromUnixSeconds(event.created_at)
 		:
 			(
 				Number.isFinite(Number(publishedAtTag)) ?
@@ -423,10 +407,10 @@ const articleFieldValuesFromEvent = (event: NostrEvent) => {
 		((publishedAt) => ({
 			kind: 30023,
 			pubkey: eventPubkey,
-			title: optionalTrimmedString(tagValueFromTags(event.tags, 'title')),
-			summary: optionalTrimmedString(tagValueFromTags(event.tags, 'summary')),
-			imageUrl: optionalTrimmedString(tagValueFromTags(event.tags, 'image')),
-			content: optionalTrimmedString(event.content),
+			title: optionalNonemptyString(tagValueFromTags(event.tags, 'title')),
+			summary: optionalNonemptyString(tagValueFromTags(event.tags, 'summary')),
+			imageUrl: optionalNonemptyString(tagValueFromTags(event.tags, 'image')),
+			content: optionalNonemptyString(event.content),
 			...(event.tags != null && { tags: event.tags }),
 			...(publishedAt != null && { publishedAt }),
 			$author: ((normalizedPubkey) => (
@@ -545,10 +529,10 @@ const profileMetadataFromProfileWire = (wire: {
 )
 
 const relayFieldValuesFromWire = (relay: NostrBandRelayStats) => ({
-	name: optionalTrimmedString(relay.name),
-	description: optionalTrimmedString(relay.description),
-	software: optionalTrimmedString(relay.software),
-	version: optionalTrimmedString(relay.version),
+	name: optionalNonemptyString(relay.name),
+	description: optionalNonemptyString(relay.description),
+	software: optionalNonemptyString(relay.software),
+	version: optionalNonemptyString(relay.version),
 	...(
 		relay.nips?.length != null && Number.isFinite(relay.nips.length) ?
 			{ supportedNipCount: relay.nips.length }
@@ -557,7 +541,8 @@ const relayFieldValuesFromWire = (relay: NostrBandRelayStats) => ({
 	),
 	...(relay.is_paid === true || relay.paid === true ?
 		{ isPaid: true }
-	:		relay.is_paid === false || relay.paid === false ?
+	:
+		relay.is_paid === false || relay.paid === false ?
 			{ isPaid: false }
 		:
 			{}),
@@ -577,14 +562,14 @@ export default {
 			entityType: EntityType.NostrProfile,
 			resolve: async (entityId, context) => {
 				const { getProfileByPubkey } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const d = await singleFlight(getProfileByPubkey)(entityId.pubkey)
-				const metadata = profileMetadataFromProfileWire(d)
-				if (metadata == null && d.profile == null) {
+				const profileWire = await singleFlight(getProfileByPubkey)(entityId.pubkey)
+				const metadata = profileMetadataFromProfileWire(profileWire)
+				if (metadata == null && profileWire.profile == null) {
 					throw new Error('NostrBand_Rest: profile not found')
 				}
 				return profileFieldValuesFromMetadata(
 					metadata,
-					eventFromWire(d),
+					eventFromWire(profileWire),
 				)
 			},
 		}),
@@ -682,7 +667,7 @@ export default {
 			resolve: async (entityId, context) => {
 				const { listAuthorArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const pubkey = normalizePubkey(entityId.pubkey)
-				const identifier = entityId.identifier.trim()
+				const identifier = entityId.identifier
 				if (pubkey == null || identifier === '') {
 					throw new Error('NostrBand_Rest: article id invalid')
 				}
@@ -690,20 +675,20 @@ export default {
 				const event = (
 					((await singleFlight(listAuthorArticles)(pubkey, limit)).events ?? [])
 						.find((noteEvent) => (
-							noteEvent.kind === 30023
-							&& normalizePubkey(noteEvent.pubkey) === pubkey
-                            && (
-                                (
-                                    Array.isArray(noteEvent.tags)
-                                    && noteEvent.tags.find((tag) => (
-                                        Array.isArray(tag)
-                                        && tag[0] === 'd'
-                                        && tag[1] === identifier
-                                    ))
-                                )
-                                ?? false
-                            )
-						))
+								noteEvent.kind === 30023
+								&& normalizePubkey(noteEvent.pubkey) === pubkey
+								&& (
+									(
+										Array.isArray(noteEvent.tags)
+										&& noteEvent.tags.find((tag) => (
+											Array.isArray(tag)
+											&& tag[0] === 'd'
+											&& tag[1] === identifier
+										))
+									)
+									?? false
+								)
+							))
 				)
 				if (event == null) {
 					throw new Error('NostrBand_Rest: article not found')
@@ -879,7 +864,7 @@ export default {
 				const metadata = profileMetadataFromProfileWire(
 					await singleFlight(getProfileByPubkey)(entityId.pubkey),
 				)
-			return optionalTrimmedString(
+				return optionalNonemptyString(
 				metadata?.website,
 			)
 			},
@@ -894,7 +879,7 @@ export default {
 					await singleFlight(getProfileByPubkey)(entityId.pubkey),
 				)
 			return mediaFromUrl(
-				optionalTrimmedString(
+					optionalNonemptyString(
 					metadata?.banner,
 				),
 				MediaType.Image,

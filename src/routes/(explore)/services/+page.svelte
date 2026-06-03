@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import GlobalView from '$/views/GlobalView.svelte'
@@ -12,12 +8,13 @@
 
 <Page>
 	<GlobalView
-		entityId={{}}
+		entityId={{ scope: 'Services' }}
 		title={'Services'}
-		href={resolve('/services')}
+		href="/services"
 	>
-		{#snippet children({ open: hubOpen,
-		})}
+		{#snippet children({
+			open: hubOpen,
+		} = {})}
 			<ServicesView
 				{hubOpen}
 			/>

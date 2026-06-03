@@ -6,6 +6,8 @@ import {
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { optionalNonemptyString } from '$/lib/string.ts'
+import { optionalTimestampMs } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
@@ -20,37 +22,13 @@ import type {
 	YoutubeApiCommentThread,
 	YoutubeApiPlaylist,
 	YoutubeApiSnippet,
+	YoutubeApiThumbnail,
 	YoutubeApiVideo,
 } from '$/sources/Youtube/Rest/types.ts'
 
-const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() || undefined
-)
 
-const optionalCountString = (value: string | undefined) => (
-	((parsed) => (
-		Number.isFinite(parsed) ? parsed : undefined
-	))(Number(value ?? ''))
-)
-
-const optionalFiniteNumber = (value: number | undefined) => (
-	value != null && Number.isFinite(value) ?
-		value
-	:
-		undefined
-)
-
-const optionalTimestampMs = (value: string | undefined) => (
-	((parsed) => (
-		Number.isFinite(parsed) ?
-			parsed
-		:
-			undefined
-	))(Date.parse(value ?? ''))
-)
-
-const youtubeThumbnailUrl = (thumbnails: YoutubeApiSnippet['thumbnails']) => (
-	optionalTrimmedString(
+const youtubeThumbnailUrl = (thumbnails: Partial<Record<string, YoutubeApiThumbnail>> | undefined) => (
+	optionalNonemptyString(
 		thumbnails?.maxres?.url
 		?? thumbnails?.standard?.url
 		?? thumbnails?.high?.url
@@ -58,36 +36,6 @@ const youtubeThumbnailUrl = (thumbnails: YoutubeApiSnippet['thumbnails']) => (
 		?? thumbnails?.default?.url,
 	)
 )
-
-const youtubeChannelTimestampFieldsFromChannel = (
-	channel: YoutubeApiChannel,
-) => ({
-	subscriberCount: optionalCountString(channel.statistics?.subscriberCount),
-	videoCount: optionalCountString(channel.statistics?.videoCount),
-	viewCount: optionalCountString(channel.statistics?.viewCount),
-})
-
-const youtubeVideoTimestampFieldsFromVideo = (
-	video: YoutubeApiVideo,
-) => ({
-	viewCount: optionalCountString(video.statistics?.viewCount),
-	likeCount: optionalCountString(video.statistics?.likeCount),
-	commentCount: optionalCountString(video.statistics?.commentCount),
-})
-
-const youtubePlaylistTimestampFieldsFromPlaylist = (
-	playlist: YoutubeApiPlaylist,
-) => ({
-	itemCount: optionalFiniteNumber(playlist.contentDetails?.itemCount),
-})
-
-const youtubeCommentTimestampFieldsFromComment = (
-	comment: YoutubeApiComment,
-	thread: YoutubeApiCommentThread | undefined,
-) => ({
-	likeCount: optionalFiniteNumber(comment.snippet?.likeCount),
-	replyCount: optionalFiniteNumber(thread?.snippet?.totalReplyCount),
-})
 
 export default {
 	source: Source.Youtube_Rest,
@@ -100,19 +48,29 @@ export default {
 				const d = (await singleFlight(getChannel)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.channelId))
 					.items?.[0]
 				if (d == null) throw new Error('Youtube_Rest: channel not found')
+				const customUrl = optionalNonemptyString(d.snippet?.customUrl)
 				return {
-					title: optionalTrimmedString(d.snippet?.title),
-					description: optionalTrimmedString(d.snippet?.description),
-					...(optionalTrimmedString(d.snippet?.customUrl) != null && {
-						customUrl: optionalTrimmedString(d.snippet?.customUrl),
+					title: optionalNonemptyString(d.snippet?.title),
+					description: optionalNonemptyString(d.snippet?.description),
+					...(customUrl != null && { customUrl }),
+					...(d.statistics?.subscriberCount != null && {
+						subscriberCount: Number(d.statistics.subscriberCount),
 					}),
-					...youtubeChannelTimestampFieldsFromChannel(d),
-					...(optionalTrimmedString(d.snippet?.publishedAt) != null && {
-						publishedAt: optionalTrimmedString(d.snippet?.publishedAt),
+					...(d.statistics?.videoCount != null && {
+						videoCount: Number(d.statistics.videoCount),
 					}),
-					...(optionalTimestampMs(d.snippet?.publishedAt) != null && {
-						publishedAtMs: optionalTimestampMs(d.snippet?.publishedAt),
+					...(d.statistics?.viewCount != null && {
+						viewCount: Number(d.statistics.viewCount),
 					}),
+					...((publishedAt, publishedAtMs) => (
+						{
+							...(publishedAt != null && { publishedAt }),
+							...(publishedAtMs != null && { publishedAtMs }),
+						}
+					))(
+						optionalNonemptyString(d.snippet?.publishedAt),
+						optionalTimestampMs(d.snippet?.publishedAt),
+					),
 					...((
 						iconMedia,
 					) => (
@@ -131,14 +89,14 @@ export default {
 				const d = (await singleFlight(getVideo)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.videoId))
 					.items?.[0]
 				if (d == null) throw new Error('Youtube_Rest: video not found')
-				const channelId = optionalTrimmedString(d.snippet?.channelId)
+				const channelId = optionalNonemptyString(d.snippet?.channelId)
 				const thumbnailUrlParsed = (() => {
 					const trimmed = youtubeThumbnailUrl(d.snippet?.thumbnails)
 					if (trimmed == null) return undefined
 					const parsed = UrlString(trimmed)
 					return parsed instanceof type.errors ? undefined : parsed
 				})()
-				const liveBroadcastContentLabel = optionalTrimmedString(d.snippet?.liveBroadcastContent)
+				const liveBroadcastContentLabel = optionalNonemptyString(d.snippet?.liveBroadcastContent)
 				const liveBroadcastContent = (
 					liveBroadcastContentLabel === YouTubeLiveBroadcastContent.Live ?
 						YouTubeLiveBroadcastContent.Live
@@ -154,25 +112,42 @@ export default {
 					if (value == null || !value.startsWith('PT')) return undefined
 					const match = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(value)
 					if (match == null) return undefined
+					const [
+						,
+						hours = '0',
+						minutes = '0',
+						seconds = '0',
+					] = match
 					return (
-						Number(match[1] ?? 0) * 3600
-						+ Number(match[2] ?? 0) * 60
-						+ Number(match[3] ?? 0)
+						Number(hours) * 3600
+						+ Number(minutes) * 60
+						+ Number(seconds)
 					)
 				})()
 				return {
-					title: optionalTrimmedString(d.snippet?.title),
-					description: optionalTrimmedString(d.snippet?.description),
-					...(optionalTrimmedString(d.snippet?.publishedAt) != null && {
-						publishedAt: optionalTrimmedString(d.snippet?.publishedAt),
+					title: optionalNonemptyString(d.snippet?.title),
+					description: optionalNonemptyString(d.snippet?.description),
+					...((publishedAt, publishedAtMs) => (
+						{
+							...(publishedAt != null && { publishedAt }),
+							...(publishedAtMs != null && { publishedAtMs }),
+						}
+					))(
+						optionalNonemptyString(d.snippet?.publishedAt),
+						optionalTimestampMs(d.snippet?.publishedAt),
+					),
+					...(d.statistics?.viewCount != null && {
+						viewCount: Number(d.statistics.viewCount),
 					}),
-					...(optionalTimestampMs(d.snippet?.publishedAt) != null && {
-						publishedAtMs: optionalTimestampMs(d.snippet?.publishedAt),
+					...(d.statistics?.likeCount != null && {
+						likeCount: Number(d.statistics.likeCount),
 					}),
-					...youtubeVideoTimestampFieldsFromVideo(d),
-					...(optionalTrimmedString(d.snippet?.categoryId) != null && {
-						categoryId: optionalTrimmedString(d.snippet?.categoryId),
+					...(d.statistics?.commentCount != null && {
+						commentCount: Number(d.statistics.commentCount),
 					}),
+					...((categoryId) => categoryId != null && { categoryId })(
+						optionalNonemptyString(d.snippet?.categoryId),
+					),
 					...(d.snippet?.tags != null && d.snippet.tags.length > 0 && {
 						tags: d.snippet.tags,
 					}),
@@ -198,17 +173,22 @@ export default {
 				const d = (await singleFlight(getPlaylist)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.playlistId))
 					.items?.[0]
 				if (d == null) throw new Error('Youtube_Rest: playlist not found')
-				const channelId = optionalTrimmedString(d.snippet?.channelId)
+				const channelId = optionalNonemptyString(d.snippet?.channelId)
 				return {
-					title: optionalTrimmedString(d.snippet?.title),
-					description: optionalTrimmedString(d.snippet?.description),
-					...youtubePlaylistTimestampFieldsFromPlaylist(d),
-					...(optionalTrimmedString(d.snippet?.publishedAt) != null && {
-						publishedAt: optionalTrimmedString(d.snippet?.publishedAt),
+					title: optionalNonemptyString(d.snippet?.title),
+					description: optionalNonemptyString(d.snippet?.description),
+					...(d.contentDetails?.itemCount != null && {
+						itemCount: d.contentDetails.itemCount,
 					}),
-					...(optionalTimestampMs(d.snippet?.publishedAt) != null && {
-						publishedAtMs: optionalTimestampMs(d.snippet?.publishedAt),
-					}),
+					...((publishedAt, publishedAtMs) => (
+						{
+							...(publishedAt != null && { publishedAt }),
+							...(publishedAtMs != null && { publishedAtMs }),
+						}
+					))(
+						optionalNonemptyString(d.snippet?.publishedAt),
+						optionalTimestampMs(d.snippet?.publishedAt),
+					),
 					$channel: (
 						channelId == null ?
 							undefined
@@ -233,13 +213,13 @@ export default {
 					.items?.[0]
 				if (d == null) throw new Error('Youtube_Rest: comment not found')
 				const snippet = d.snippet
-				const videoId = optionalTrimmedString(snippet?.videoId) ?? entityId.videoId
-				const parentId = optionalTrimmedString(snippet?.parentId)
+				const videoId = optionalNonemptyString(snippet?.videoId) ?? entityId.videoId
+				const parentId = optionalNonemptyString(snippet?.parentId)
 				const authorChannelId = (
 					typeof snippet?.authorChannelId === 'string' ?
-						optionalTrimmedString(snippet.authorChannelId)
+						optionalNonemptyString(snippet.authorChannelId)
 					:
-						optionalTrimmedString(snippet?.authorChannelId?.value)
+						optionalNonemptyString(snippet?.authorChannelId?.value)
 				)
 				const thread = (
 					parentId == null ?
@@ -248,24 +228,24 @@ export default {
 					:
 						undefined
 				)
+				const authorDisplayName = optionalNonemptyString(snippet?.authorDisplayName)
+				const publishedAt = optionalNonemptyString(snippet?.publishedAt)
+				const publishedAtMs = optionalTimestampMs(snippet?.publishedAt)
 				return {
-					text: optionalTrimmedString(snippet?.textDisplay) ?? optionalTrimmedString(snippet?.textOriginal),
-					...(optionalTrimmedString(snippet?.authorDisplayName) != null && {
-						authorDisplayName: optionalTrimmedString(snippet?.authorDisplayName),
-					}),
+					text: optionalNonemptyString(snippet?.textDisplay) ?? optionalNonemptyString(snippet?.textOriginal),
+					...(authorDisplayName != null && { authorDisplayName }),
 					...(authorChannelId != null && { authorChannelId }),
 					...(authorChannelId != null && {
 						$author: {
 							[EntityMetaKey.Id]: { channelId: authorChannelId },
 						},
 					}),
-					...youtubeCommentTimestampFieldsFromComment(d, thread),
-					...(optionalTrimmedString(snippet?.publishedAt) != null && {
-						publishedAt: optionalTrimmedString(snippet?.publishedAt),
+					...(d.snippet?.likeCount != null && { likeCount: d.snippet.likeCount }),
+					...(thread?.snippet?.totalReplyCount != null && {
+						replyCount: thread.snippet.totalReplyCount,
 					}),
-					...(optionalTimestampMs(snippet?.publishedAt) != null && {
-						publishedAtMs: optionalTimestampMs(snippet?.publishedAt),
-					}),
+					...(publishedAt != null && { publishedAt }),
+					...(publishedAtMs != null && { publishedAtMs }),
 					$video: {
 						[EntityMetaKey.Id]: { videoId },
 					},
@@ -291,7 +271,17 @@ export default {
 				const channel = (await singleFlight(getChannel)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.$channel.channelId))
 					.items?.[0]
 				if (channel == null) throw new Error('Youtube_Rest: channel not found')
-				return youtubeChannelTimestampFieldsFromChannel(channel)
+				return {
+					...(channel.statistics?.subscriberCount != null && {
+						subscriberCount: Number(channel.statistics.subscriberCount),
+					}),
+					...(channel.statistics?.videoCount != null && {
+						videoCount: Number(channel.statistics.videoCount),
+					}),
+					...(channel.statistics?.viewCount != null && {
+						viewCount: Number(channel.statistics.viewCount),
+					}),
+				}
 			},
 		}),
 
@@ -302,7 +292,17 @@ export default {
 				const video = (await singleFlight(getVideo)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.$video.videoId))
 					.items?.[0]
 				if (video == null) throw new Error('Youtube_Rest: video not found')
-				return youtubeVideoTimestampFieldsFromVideo(video)
+				return {
+					...(video.statistics?.viewCount != null && {
+						viewCount: Number(video.statistics.viewCount),
+					}),
+					...(video.statistics?.likeCount != null && {
+						likeCount: Number(video.statistics.likeCount),
+					}),
+					...(video.statistics?.commentCount != null && {
+						commentCount: Number(video.statistics.commentCount),
+					}),
+				}
 			},
 		}),
 
@@ -317,14 +317,19 @@ export default {
 				const comment = (await singleFlight(getComment)(publicEnv, entityId.$comment.commentId))
 					.items?.[0]
 				if (comment == null) throw new Error('Youtube_Rest: comment not found')
-				return youtubeCommentTimestampFieldsFromComment(
-					comment,
-					optionalTrimmedString(comment.snippet?.parentId) == null ?
+				const thread = (
+					optionalNonemptyString(comment.snippet?.parentId) == null ?
 						(await singleFlight(getCommentThread)(publicEnv, entityId.$comment.commentId))
 							.items?.[0]
 					:
-						undefined,
+						undefined
 				)
+				return {
+					...(comment.snippet?.likeCount != null && { likeCount: comment.snippet.likeCount }),
+					...(thread?.snippet?.totalReplyCount != null && {
+						replyCount: thread.snippet.totalReplyCount,
+					}),
+				}
 			},
 		}),
 
@@ -335,7 +340,11 @@ export default {
 				const playlist = (await singleFlight(getPlaylist)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.$playlist.playlistId))
 					.items?.[0]
 				if (playlist == null) throw new Error('Youtube_Rest: playlist not found')
-				return youtubePlaylistTimestampFieldsFromPlaylist(playlist)
+				return {
+					...(playlist.contentDetails?.itemCount != null && {
+						itemCount: playlist.contentDetails.itemCount,
+					}),
+				}
 			},
 		}),
 	],
@@ -351,7 +360,7 @@ export default {
 				return (
 					((await singleFlight(listPopularVideos)(publicEnv, limit)).items ?? [])
 						.flatMap((video) => {
-							const channelId = optionalTrimmedString(video.snippet?.channelId)
+							const channelId = optionalNonemptyString(video.snippet?.channelId)
 							if (channelId == null) return []
 							return [{
 								[EntityMetaKey.Id]: { channelId },
@@ -396,13 +405,13 @@ export default {
 						...youtubeNetworkSeedChannels.map(({ channelId }) => channelId),
 					]
 				for (const video of ((await singleFlight(listPopularVideos)(publicEnv, limit)).items ?? [])) {
-					const channelId = optionalTrimmedString(video.snippet?.channelId)
+					const channelId = optionalNonemptyString(video.snippet?.channelId)
 					if (channelId != null) channelIds.push(channelId)
 				}
 				const refs: { [EntityMetaKey.Id]: { playlistId: string } }[] = []
 				for (const channelId of channelIds) {
 					for (const playlist of ((await singleFlight(listChannelPlaylists)(publicEnv, channelId, limit)).items ?? [])) {
-						const playlistId = optionalTrimmedString(playlist.id)
+						const playlistId = optionalNonemptyString(playlist.id)
 						if (playlistId == null) continue
 						refs.push({
 							[EntityMetaKey.Id]: { playlistId },
@@ -429,7 +438,15 @@ export default {
 							$channel: entityId,
 							timestampMs: Date.now(),
 						},
-						...youtubeChannelTimestampFieldsFromChannel(channel),
+						...(channel.statistics?.subscriberCount != null && {
+							subscriberCount: Number(channel.statistics.subscriberCount),
+						}),
+						...(channel.statistics?.videoCount != null && {
+							videoCount: Number(channel.statistics.videoCount),
+						}),
+						...(channel.statistics?.viewCount != null && {
+							viewCount: Number(channel.statistics.viewCount),
+						}),
 					},
 				]
 			},
@@ -491,7 +508,9 @@ export default {
 							$playlist: entityId,
 							timestampMs: Date.now(),
 						},
-						...youtubePlaylistTimestampFieldsFromPlaylist(playlist),
+						...(playlist.contentDetails?.itemCount != null && {
+						itemCount: playlist.contentDetails.itemCount,
+					}),
 					},
 				]
 			},
@@ -515,8 +534,8 @@ export default {
 										[EntityMetaKey.Id]: { videoId },
 									}]
 							))(
-								optionalTrimmedString(video.contentDetails?.videoId)
-								?? optionalTrimmedString(video.snippet?.resourceId?.videoId),
+								optionalNonemptyString(video.contentDetails?.videoId)
+								?? optionalNonemptyString(video.snippet?.resourceId?.videoId),
 							)
 						))
 				)
@@ -537,7 +556,15 @@ export default {
 							$video: entityId,
 							timestampMs: Date.now(),
 						},
-						...youtubeVideoTimestampFieldsFromVideo(video),
+						...(video.statistics?.viewCount != null && {
+							viewCount: Number(video.statistics.viewCount),
+						}),
+						...(video.statistics?.likeCount != null && {
+							likeCount: Number(video.statistics.likeCount),
+						}),
+						...(video.statistics?.commentCount != null && {
+							commentCount: Number(video.statistics.commentCount),
+						}),
 					},
 				]
 			},
@@ -566,16 +593,17 @@ export default {
 						pageToken,
 					)
 					for (const thread of page.items ?? []) {
-						const commentId = optionalTrimmedString(thread.snippet?.topLevelComment?.id)
+						const commentId = optionalNonemptyString(thread.snippet?.topLevelComment?.id)
 						if (commentId == null) continue
+						const publishedAtMs = optionalTimestampMs(
+							thread.snippet?.topLevelComment?.snippet?.publishedAt,
+						)
 						refs.push({
 							[EntityMetaKey.Id]: {
 								videoId: entityId.videoId,
 								commentId,
 							},
-							...(optionalTimestampMs(thread.snippet?.topLevelComment?.snippet?.publishedAt) != null && {
-								publishedAtMs: optionalTimestampMs(thread.snippet?.topLevelComment?.snippet?.publishedAt),
-							}),
+							...(publishedAtMs != null && { publishedAtMs }),
 						})
 						if (refs.length >= limit) break
 					}
@@ -598,20 +626,22 @@ export default {
 				const comment = (await singleFlight(getComment)(publicEnv, entityId.commentId))
 					.items?.[0]
 				if (comment == null) throw new Error('Youtube_Rest: comment not found')
+				const thread = (
+					optionalNonemptyString(comment.snippet?.parentId) == null ?
+						(await singleFlight(getCommentThread)(publicEnv, entityId.commentId))
+							.items?.[0]
+					:
+						undefined
+				)
+				const replyCount = thread?.snippet?.totalReplyCount
 				return [
 					{
 						[EntityMetaKey.Id]: {
 							$comment: entityId,
 							timestampMs: Date.now(),
 						},
-						...youtubeCommentTimestampFieldsFromComment(
-							comment,
-							optionalTrimmedString(comment.snippet?.parentId) == null ?
-								(await singleFlight(getCommentThread)(publicEnv, entityId.commentId))
-									.items?.[0]
-							:
-								undefined,
-						),
+						...(comment.snippet?.likeCount != null && { likeCount: comment.snippet.likeCount }),
+						...(replyCount != null && { replyCount }),
 					},
 				]
 			},
@@ -628,7 +658,7 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Youtube_Rest)
 				const parent = (await singleFlight(getComment)(publicEnv, entityId.commentId))
 					.items?.[0]
-				if (optionalTrimmedString(parent?.snippet?.parentId) != null) return []
+				if (parent?.snippet?.parentId != null && parent.snippet.parentId !== '') return []
 				const limit = resolverLoadSubsetRowLimit(context)
 				const refs: {
 					[EntityMetaKey.Id]: {
@@ -646,16 +676,15 @@ export default {
 						pageToken,
 					)
 					for (const video of page.items ?? []) {
-						const commentId = optionalTrimmedString(video.id)
+						const commentId = optionalNonemptyString(video.id)
 						if (commentId == null) continue
+						const publishedAtMs = optionalTimestampMs(video.snippet?.publishedAt)
 						refs.push({
 							[EntityMetaKey.Id]: {
 								videoId: entityId.videoId,
 								commentId,
 							},
-							...(optionalTimestampMs(video.snippet?.publishedAt) != null && {
-								publishedAtMs: optionalTimestampMs(video.snippet?.publishedAt),
-							}),
+							...(publishedAtMs != null && { publishedAtMs }),
 						})
 						if (refs.length >= limit) break
 					}

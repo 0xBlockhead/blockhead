@@ -11,29 +11,27 @@
 	// Context
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { afterNavigate, goto } from '$app/navigation'
-	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
 
 	// Functions
-	import {
-		decodeCalldataWithSignature,
-		decodeEventDataWithSignature,
-		formatDecodedParamValue,
-	} from '$/lib/calldata-decode.ts'
-	import { getEvmSelectorPath, getEvmTopicPath } from '$/lib/signature-paths.ts'
-
 	const normalizeHex4 = (hex: `0x${string}`): `0x${string}` => {
-		const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase()
-		:
-			hex.toLowerCase()
+		const digits = (
+			hex.toLowerCase().startsWith('0x') ?
+				hex.slice(2).toLowerCase()
+			:
+				hex.toLowerCase()
+		)
 		return `0x${digits.padStart(8, '0').slice(-8)}`
 	}
 
 	const normalizeHex32 = (hex: `0x${string}`): `0x${string}` => {
-		const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase()
-		:
-			hex.toLowerCase()
+		const digits = (
+			hex.toLowerCase().startsWith('0x') ?
+				hex.slice(2).toLowerCase()
+			:
+				hex.toLowerCase()
+		)
 		return `0x${digits.padStart(64, '0').slice(-64)}`
 	}
 
@@ -52,7 +50,14 @@
 	}
 
 
-	// State
+	import {
+		decodeCalldataWithSignature,
+		decodeEventDataWithSignature,
+		formatDecodedParamValue,
+	} from '$/lib/calldata-decode.ts'
+
+	import { getEvmSelectorPath, getEvmTopicPath } from '$/lib/signature-paths.ts'
+
 	const EMPTY_SIGNATURES: readonly string[] = []
 
 	const IDLE_SELECTOR_HEX: `0x${string}` = '0xffffffff'
@@ -99,7 +104,7 @@
 		selectedExample = undefined
 	})
 
-
+	// (Derived)
 	const hexWithPrefix = $derived(
 		inputRaw.startsWith('0x') ?
 			inputRaw
@@ -129,36 +134,21 @@
 	)
 
 	const normalizedSelector = $derived(
-		selector ? normalizeHex4(selector)
-		:
-			null,
+		selector ? normalizeHex4(selector) : null,
 	)
 
 	const normalizedTopic = $derived(
-		topic ? normalizeHex32(topic)
-		:
-			null,
-	)
-
-	const selectorEntityId = $derived(
-		selector ?
-			{ hex: normalizedSelector ?? selector }
-		:
-			{ hex: IDLE_SELECTOR_HEX },
-	)
-
-	const topicEntityId = $derived(
-		topic ?
-			{ hex: normalizedTopic ?? topic }
-		:
-			{ hex: IDLE_TOPIC_HEX },
+		topic ? normalizeHex32(topic) : null,
 	)
 
 
-	// State
 	const selectorEntity = useEntity(
 		EntityType.EvmSelector,
-		selectorEntityId,
+		(selector ?
+			{ hex: normalizedSelector ?? selector }
+		:
+			{ hex: IDLE_SELECTOR_HEX }
+		),
 		{
 			$: [
 				Source.Openchain_Rest,
@@ -169,7 +159,11 @@
 
 	const topicEntity = useEntity(
 		EntityType.EvmTopic,
-		topicEntityId,
+		(topic ?
+			{ hex: normalizedTopic ?? topic }
+		:
+			{ hex: IDLE_TOPIC_HEX }
+		),
 		{
 			$: [
 				Source.Openchain_Rest,
@@ -179,22 +173,16 @@
 	)
 
 
-	const byteCount = $derived(
-		hexNormalized ? Math.floor(hexNormalized.length / 2)
-		:
-			0,
-	)
-
 	const functionSignatures = $derived(
 		selector ?
-			(selectorEntity.current.signatures ?? EMPTY_SIGNATURES)
+			(selectorEntity.current?.signatures ?? EMPTY_SIGNATURES)
 		:
 			EMPTY_SIGNATURES,
 	)
 
 	const eventSignatures = $derived(
 		topic ?
-			(topicEntity.current.signatures ?? EMPTY_SIGNATURES)
+			(topicEntity.current?.signatures ?? EMPTY_SIGNATURES)
 		:
 			EMPTY_SIGNATURES,
 	)
@@ -319,11 +307,11 @@
 					>
 						{#if selector && normalizedSelector}
 							<li>
-								<EntityView
-									entityType={EntityType.EvmSelector}
-									entityId={{ hex: normalizedSelector }}
-									href={resolve(getEvmSelectorPath(normalizedSelector))}
-								>
+									<EntityView
+										entityType={EntityType.EvmSelector}
+										entityId={{ hex: normalizedSelector }}
+										href={getEvmSelectorPath(normalizedSelector)}
+									>
 									{#snippet Icon()}
 										<Icon
 											icon="🔖"
@@ -337,12 +325,12 @@
 											resource={selectorEntity}
 											placeholderText="Loading function signature…"
 										>
-											{#snippet children(row)}
-												<Heading>
-													<a href={resolve(getEvmSelectorPath(normalizedSelector))}>
-														{signatureForDecode ?? row.signatures?.[0] ?? normalizedSelector}
-													</a>
-												</Heading>
+												{#snippet children(row)}
+													<Heading>
+														<a href={getEvmSelectorPath(normalizedSelector)}>
+															{signatureForDecode ?? row.signatures?.[0] ?? normalizedSelector}
+														</a>
+													</Heading>
 											{/snippet}
 										</ResourceBoundary>
 									{/snippet}
@@ -418,11 +406,11 @@
 
 						{#if topic && normalizedTopic}
 							<li>
-								<EntityView
-									entityType={EntityType.EvmTopic}
-									entityId={{ hex: normalizedTopic }}
-									href={resolve(getEvmTopicPath(normalizedTopic))}
-								>
+									<EntityView
+										entityType={EntityType.EvmTopic}
+										entityId={{ hex: normalizedTopic }}
+										href={getEvmTopicPath(normalizedTopic)}
+									>
 									{#snippet Icon()}
 										<Icon
 											icon="📋"
@@ -436,12 +424,12 @@
 											resource={topicEntity}
 											placeholderText="Loading event signature…"
 										>
-											{#snippet children(row)}
-												<Heading>
-													<a href={resolve(getEvmTopicPath(normalizedTopic))}>
-														{eventSignatureForDecode ?? row.signatures?.[0] ?? normalizedTopic}
-													</a>
-												</Heading>
+												{#snippet children(row)}
+													<Heading>
+														<a href={getEvmTopicPath(normalizedTopic)}>
+															{eventSignatureForDecode ?? row.signatures?.[0] ?? normalizedTopic}
+														</a>
+													</Heading>
 											{/snippet}
 										</ResourceBoundary>
 									{/snippet}
@@ -519,7 +507,7 @@
 							<dl data-definition-list="vertical">
 								<div>
 									<dt>Bytes</dt>
-									<dd>{byteCount}</dd>
+									<dd>{hexNormalized ? Math.floor(hexNormalized.length / 2) : 0}</dd>
 								</div>
 							</dl>
 						</li>

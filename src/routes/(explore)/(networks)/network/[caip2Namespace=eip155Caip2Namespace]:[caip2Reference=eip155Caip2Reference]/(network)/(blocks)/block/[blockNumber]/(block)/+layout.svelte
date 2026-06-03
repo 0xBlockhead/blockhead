@@ -1,9 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import { stringify } from 'devalue'
 
 
@@ -19,7 +15,7 @@
 
 	const blockEntityId = $derived(
 		{
-			$network: networkIdFromCaip2RouteParams(params),
+			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			blockNumber: BigInt(params.blockNumber),
 		},
 	)
@@ -37,7 +33,7 @@
 
 <ParentPageCollapsible
 	href={resolve(
-		'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]',
+		'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]',
 		params,
 	)}
 	id={stringify(blockEntityId)}

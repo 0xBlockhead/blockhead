@@ -10,6 +10,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -31,10 +33,8 @@
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -115,8 +115,8 @@
 				{title}
 				resource={comments}
 				placeholderText="Loading comment thread…"
-				getKey={(row) => redditComment.comment[EntityMetaKey.Id].fullname}
-				getSortValue={(row) => redditComment.sortKey}
+				getKey={(comment) => comment.comment[EntityMetaKey.Id].fullname}
+				getSortValue={(comment) => comment.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 				open={true}
 			>

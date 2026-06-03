@@ -40,8 +40,6 @@
 		never
 	> = $props()
 
-
-	// State
 	import { syndicationHtmlToSafeHtml } from '$/lib/markdown.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -267,59 +265,59 @@
 	})}
 		{@const idKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${idKey}:carousel-item`}
-				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'description', label: 'Description' },
-					{ id: 'content', label: 'Content' },
-				]}
-				data-card
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Item detail
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${idKey}:carousel-item`}
+			sectionIdPrefix={idKey}
+			sections={[
+				{ id: 'description', label: 'Description' },
+				{ id: 'content', label: 'Content' },
+			]}
+			data-card
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Item detail
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionDescription({ id, label })}
-					<ResourceBoundary
-						resource={item}
-						placeholderText="Loading item…"
-					>
-						{#snippet children(item)}
-							{#if item.description}
-								<div class="rss-html">
-									{@html syndicationHtmlToSafeHtml(item.description)}
-								</div>
-							{:else}
-								<p data-text="muted">No description.</p>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+			{#snippet SectionDescription({ id, label })}
+				<ResourceBoundary
+					resource={item}
+					placeholderText="Loading item…"
+				>
+					{#snippet children(item)}
+						{#if item.description}
+							<div class="rss-html">
+								{@html syndicationHtmlToSafeHtml(item.description)}
+							</div>
+						{:else}
+							<p data-text="muted">No description.</p>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet SectionContent({ id, label })}
-					<ResourceBoundary
-						resource={item}
-						placeholderText="Loading item…"
-					>
-						{#snippet children(item)}
-							{#if item.content}
-								<div class="rss-html">
-									{@html syndicationHtmlToSafeHtml(item.content)}
-								</div>
-							{:else}
-								<p data-text="muted">No full content.</p>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionContent({ id, label })}
+				<ResourceBoundary
+					resource={item}
+					placeholderText="Loading item…"
+				>
+					{#snippet children(item)}
+						{#if item.content}
+							<div class="rss-html">
+								{@html syndicationHtmlToSafeHtml(item.content)}
+							</div>
+						{:else}
+							<p data-text="muted">No full content.</p>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+	</CollapsibleTabs>
 	{/snippet}
 </EntityView>
 

@@ -12,6 +12,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -34,15 +36,11 @@
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -127,7 +125,7 @@
 					const atprotoPosts: Entity<typeof schema, EntityType.AtprotoPost>[] = (
 						entityFieldReference.entityType === EntityType.AtprotoNetwork ?
 							(atprotoNetworkOrAccount.$$atprotoActors ?? [])
-								.flatMap((actor) => actor.$$posts ?? [])
+								.flatMap((actor: Entity<typeof schema, EntityType.AtprotoActor>) => actor.$$posts ?? [])
 						:
 							(atprotoNetworkOrAccount.$$posts ?? [])
 					)
@@ -142,8 +140,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => atprotoPost[EntityMetaKey.Id].uri}
-					getSortValue={(row) => (
+					getKey={(atprotoPost) => atprotoPost[EntityMetaKey.Id].uri}
+					getSortValue={(atprotoPost) => (
 						`${String(-(atprotoPost.createdAt ?? 0)).padStart(20, '0')}\0${atprotoPost[EntityMetaKey.Id].uri}`
 					)}
 					placeholderText={`Loading ${title.toLowerCase()}…`}

@@ -12,6 +12,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -34,6 +35,7 @@
 			href?: string
 			limit?: number
 			open?: boolean
+			collapsible?: boolean
 			title?: string
 		},
 		Pick<
@@ -42,9 +44,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -116,14 +115,13 @@
 				entityType={EntityType.AtprotoPost}
 				id={`${id}-items`}
 				href={href}
-				getKey={(row) => atprotoPost.value[EntityMetaKey.Id].uri}
-				getSortValue={(row) => (
+				getKey={(atprotoPost) => atprotoPost.value[EntityMetaKey.Id].uri}
+				getSortValue={(atprotoPost) => (
 					`${String(atprotoPost.value.createdAt ?? 0).padStart(20, '0')}\0${atprotoPost.value[EntityMetaKey.Id].uri}`
 				)}
 				placeholderText={`Loading ${title.toLowerCase()}…`}
 				resource={threadPosts}
 				{title}
-				UnorderedListProps={{ limit }}
 				open={true}
 			>
 				{#snippet Empty()}

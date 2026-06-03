@@ -1,6 +1,9 @@
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { graphql, queryLens } from '$/sources/Lens/Graphql/client.ts'
+import {
+	graphql,
+	queryLens,
+} from '$/sources/Lens/Graphql/client.ts'
 
 const LensPostSlug = graphql(`
 	fragment LensPostSlug on Post @_unmask {

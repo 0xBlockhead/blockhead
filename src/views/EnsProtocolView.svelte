@@ -10,17 +10,15 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/ens',
-			entityId,
-		),
-					open = $bindable(true),
+		href = resolve('/ens'),
+		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
@@ -28,13 +26,10 @@
 			entityId: EntityId<typeof schema, EntityType.EnsProtocol>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const protocol = useEntity(
 		EntityType.EnsProtocol,
@@ -156,29 +151,29 @@
 	})}
 		{@const protocolIdKey = stringify(entityId)}
 		<CollapsibleTabs
-				id={`${protocolIdKey}:browse`}
-				sectionIdPrefix={protocolIdKey}
-				sections={[
-					{ id: 'browse', label: 'Browse' },
-				]}
-				data-card
-				scrollContainerProps={entityViewDetailCarouselScrollProps}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							ENS
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${protocolIdKey}:browse`}
+			sectionIdPrefix={protocolIdKey}
+			sections={[
+				{ id: 'browse', label: 'Browse' },
+			]}
+			data-card
+			scrollContainerProps={entityViewDetailCarouselScrollProps}
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						ENS
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionBrowse({ id, label })}
-					<EnsBrowseView />
-				{/snippet}
-		</CollapsibleTabs>
+			{#snippet SectionBrowse({ id, label })}
+				<EnsBrowseView />
+			{/snippet}
+	</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

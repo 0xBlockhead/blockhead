@@ -279,7 +279,7 @@ export default {
 				const block = (await getBlock({
 					restBaseUrl: tronScanRestBaseUrl,
 					height: entityId.height,
-				})).data[0]
+				})).data.at(0)
 				if (block == null) throw new Error(`TronScan_Rest: block not found for ${entityId.height.toString()}`)
 				return blockFieldsFromTronScanBlock(entityId.$network, block)
 			},
@@ -341,7 +341,7 @@ export default {
 				const contract = (await getContract({
 					restBaseUrl: tronScanRestBaseUrl,
 					address: entityId.address,
-				})).data[0]
+				})).data.at(0)
 				if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${entityId.address}`)
 				return contractFieldsFromTronScanContract(entityId.$network, entityId.address, contract)
 			},
@@ -363,9 +363,8 @@ export default {
 					?? (await getTrc10Token({
 						restBaseUrl: tronScanRestBaseUrl,
 						tokenId: entityId.tokenId,
-					})).data[0]
+					})).data.at(0)
 				)
-				if (token == null) throw new Error(`TronScan_Rest: token not found for ${entityId.tokenId}`)
 				return tokenFieldsFromTronScanToken(entityId.$network, token)
 			},
 		}),
@@ -382,7 +381,7 @@ export default {
 						limit: entityId.transferIndex + 1,
 					})).token_transfers
 					?? []
-				)[entityId.transferIndex]
+				).at(entityId.transferIndex)
 				if (transfer == null) throw new Error(`TronScan_Rest: token transfer not found for ${entityId.transactionId}:${entityId.transferIndex.toString()}`)
 				return tokenTransferFieldsFromTronScanTransfer(
 					entityId.$network,
@@ -433,7 +432,7 @@ export default {
 				const contract = (await getContract({
 					restBaseUrl: tronScanRestBaseUrl,
 					address: entityId.address,
-				})).data[0]
+				})).data.at(0)
 				if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${entityId.address}`)
 				return contractFieldsFromTronScanContract(entityId.$network, entityId.address, contract).$$tokens
 			},

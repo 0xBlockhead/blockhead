@@ -6,10 +6,6 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		input,
@@ -19,22 +15,15 @@
 		open?: boolean
 	} = $props()
 
-
-	// State
 	import {
 		decodeCalldataWithSignature,
 		formatDecodedParamValue,
 	} from '$/lib/calldata-decode.ts'
 
-	import { getEvmSelectorPath } from '$/lib/signature-paths.ts'
+	import { getEvmSelectorPath, normalizeEvmSelectorHex } from '$/lib/signature-paths.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const selectorHex = $derived(
-		input.startsWith('0x') && input.length >= 10 ?
-			`0x${input.slice(2, 10).toLowerCase()}`
-		:
-			null,
-	)
+	const emptySelectorHex: `0x${string}` = '0x00000000'
 
 	const selector = useEntity(
 		EntityType.EvmSelector,
@@ -42,7 +31,7 @@
 			selectorHex != null ?
 				{ hex: selectorHex }
 			:
-				{ hex: '0x00000000' }
+					{ hex: emptySelectorHex }
 		) satisfies EntityId<typeof schema, EntityType.EvmSelector>,
 		{
 			$: [
@@ -53,14 +42,28 @@
 	)
 
 
+	// (Derived)
+	const selectorHex = $derived(
+		input.startsWith('0x') && input.length >= 10 ?
+			normalizeEvmSelectorHex(input)
+		:
+			null,
+	)
+
 	const decodedCall = $derived.by(() => {
-		if (!open) return null
-		const signatures = selector.current.signatures
-		if (!signatures?.length) return null
+		if (!open)
+			return null
+
+		const signatures = selector.current?.signatures
+		if (!signatures?.length)
+			return null
+
 		for (const signature of signatures) {
 			const decoded = decodeCalldataWithSignature(signature, input)
-			if (decoded) return { signature, decoded }
+			if (decoded)
+				return { signature, decoded }
 		}
+
 		return null
 	})
 
@@ -77,7 +80,7 @@
 			<span data-text="annotation">Selector</span>
 			<a
 				data-text="font-monospace"
-				href={resolve(getEvmSelectorPath(selectorHex))}
+				href={getEvmSelectorPath(selectorHex)}
 			>
 				<TruncatedValue
 					value={selectorHex}

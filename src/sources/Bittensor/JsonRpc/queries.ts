@@ -12,7 +12,7 @@ import {
 export const getMainnetRpcUrl = 'https://entrypoint-finney.opentensor.ai'
 
 const bittensorJsonRpc = {
-	origins: Bittensor.origins ?? [],
+	origins: Bittensor.origins,
 	label: 'Bittensor',
 } as const
 

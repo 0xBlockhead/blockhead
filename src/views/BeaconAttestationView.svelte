@@ -8,6 +8,8 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -28,10 +30,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const attestation = useEntity(
 		EntityType.BeaconAttestation,
 		entityId,
@@ -49,6 +47,8 @@
 		),
 	)
 
+
+	// (Derived)
 	const title = $derived(
 		titleProp
 		?? `Attestation ${entityId.index} in slot ${entityId.slot.toLocaleString()}`
@@ -83,7 +83,12 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Attestation </span>
-			{@render Value()}
+		<span
+			data-badge="small"
+			data-attestation-index={String(entityId.index)}
+				>
+			{String(entityId.index)}
+		</span>
 		</span>
 	{/snippet}
 

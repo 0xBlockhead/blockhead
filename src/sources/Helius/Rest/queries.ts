@@ -4,8 +4,9 @@ import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
 
-const origin = 'https://api.helius.xyz'
+const origin = 'https://api-mainnet.helius-rpc.com'
 
+/** Deprecated by Helius for new parser work, but still the documented parsed transaction endpoint. */
 export const getEnhancedTransactions = async ({
 	signatures,
 	publicEnv,
@@ -14,7 +15,7 @@ export const getEnhancedTransactions = async ({
 	publicEnv: SourcePublicEnvFor<Source.Helius_Rest>
 }) => {
 	const response = await corsFetch(`${origin}/v0/transactions/?api-key=${encodeURIComponent(publicEnv.PUBLIC_HELIUS_API_KEY)}`, {
-		origins: Helius.origins ?? [],
+		origins: Helius.origins,
 		init: {
 			method: 'POST',
 			headers: {

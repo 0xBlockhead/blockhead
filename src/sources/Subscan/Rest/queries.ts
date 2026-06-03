@@ -21,7 +21,7 @@ const post = async <_Result>({
 	publicEnv: SourcePublicEnvFor<Source.Subscan_Rest>
 }) => {
 	const response = await corsFetch(`${restBaseUrl.replace(/\/$/, '')}${path}`, {
-		origins: Subscan.origins ?? [],
+		origins: Subscan.origins,
 		init: {
 			method: 'POST',
 			headers: {

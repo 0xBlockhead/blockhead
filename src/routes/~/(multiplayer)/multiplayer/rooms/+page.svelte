@@ -18,7 +18,7 @@
 		href={resolve('/~/multiplayer/rooms')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: {},
+			entityId: { scope: '$$blockheadRooms' },
 			fieldName: '$$blockheadRooms',
 		}}
 		id="rooms"

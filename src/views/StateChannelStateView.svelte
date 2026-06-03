@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -21,6 +22,7 @@
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
 		),
+		collapsible = true,
 		showParentChannel = true,
 		...EntityViewProps
 	}: WithRest<
@@ -29,6 +31,7 @@
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
+			collapsible?: boolean
 			showParentChannel?: boolean
 		},
 		Pick<
@@ -36,10 +39,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const state = useEntity(
 		EntityType.StateChannelState,
@@ -75,6 +74,7 @@
 	href={href}
 	{layout}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -94,7 +94,9 @@
 					{#if state.version !== undefined}
 						<span>v{String(state.version)}</span>
 					{:else}
+						{#if Value}
 						{@render Value()}
+					{/if}
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

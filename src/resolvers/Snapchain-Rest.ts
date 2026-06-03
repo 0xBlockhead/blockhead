@@ -2,6 +2,7 @@ import { type as arktype } from 'arktype'
 
 import { SnapchainReactionType } from '$/constants/Snapchain.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
@@ -23,16 +24,13 @@ const lowerHex0xCastHash = (hash: `0x${string}`): `0x${string}` => (
 		?? hash
 )
 
-const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() || undefined
-)
 
 const channelIdFromParentUrl = (parentUrl: string | undefined) => {
-	const trimmed = optionalTrimmedString(parentUrl)
-	if (trimmed == null) return undefined
+	const parentUrlString = optionalNonemptyString(parentUrl)
+	if (parentUrlString == null) return undefined
 	return (
-		/warpcast\.com\/~\/channel\/([^/?#]+)/.exec(trimmed)?.[1]
-		?? /farcaster\.xyz\/([^/?#]+)/.exec(trimmed)?.[1]
+		/warpcast\.com\/~\/channel\/([^/?#]+)/.exec(parentUrlString)?.[1]
+		?? /farcaster\.xyz\/([^/?#]+)/.exec(parentUrlString)?.[1]
 	)
 }
 
@@ -51,7 +49,7 @@ const snapchainCastTimestampMs = (farcasterTimestamp: number | undefined) => (
 )
 
 const snapchainUserDataPfpHttpUrl = (value: string | null | undefined) => {
-	const raw = value?.trim() ?? ''
+	const raw = value ?? ''
 	if (raw.length === 0) return undefined
 	return resolveMediaUrlTransport(raw)?.url
 }
@@ -87,7 +85,7 @@ export default {
 					(verifications.messages ?? [])
 						.flatMap((message: SnapVerify) => {
 							const body = message.data?.verificationAddAddressBody
-							const address = optionalTrimmedString(body?.address)
+							const address = optionalNonemptyString(body?.address)
 								const protocol = (
 									body?.protocol === 'PROTOCOL_ETHEREUM' ?
 										'ethereum' as const
@@ -129,7 +127,7 @@ export default {
 						EvmAddress(primaryVerifiedEvmAddress)
 				)
 				const userFields: Partial<UserFields> = {
-					username: optionalTrimmedString(usernameProofs.proofs?.[0]?.name),
+					username: optionalNonemptyString(usernameProofs.proofs?.[0]?.name),
 					followerCount,
 					followingCount,
 					$$verifiedAddresses: verifiedAddresses,
@@ -137,7 +135,7 @@ export default {
 					if (!(verifiedParsed instanceof arktype.errors)) userFields.primaryEvmAddress = EvmAddress.assert(primaryVerifiedEvmAddress)
 				for (const message of (userData.messages ?? [])) {
 					const userDataType = message.data?.userDataBody?.type
-					const fieldValue = optionalTrimmedString(message.data?.userDataBody?.value)
+					const fieldValue = optionalNonemptyString(message.data?.userDataBody?.value)
 					if (fieldValue == null) continue
 					if (userDataType === 'USER_DATA_TYPE_PFP') {
 						const icon = mediaFromUrl(snapchainUserDataPfpHttpUrl(fieldValue), MediaType.Image)
@@ -187,10 +185,9 @@ export default {
 					fid: entityId.fid,
 					hash: entityId.hash,
 				})
-				if (snapchainCast == null) throw new Error('Snapchain_Rest: cast not found')
 				const castAddBody = snapchainCast.data?.castAddBody
 				const farcasterTimestamp = snapchainCast.data?.timestamp
-				const parentUrl = optionalTrimmedString(castAddBody?.parentUrl)
+				const parentUrl = optionalNonemptyString(castAddBody?.parentUrl)
 				const channelId = channelIdFromParentUrl(parentUrl)
 				const { likeCount, recastCount, replyCount } = await getCastEngagementCountsForCast({
 					targetFid: entityId.fid,
@@ -208,7 +205,7 @@ export default {
 							fid: entityId.fid,
 						},
 					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
-					text: optionalTrimmedString(castAddBody?.text) ?? '',
+					text: optionalNonemptyString(castAddBody?.text) ?? '',
 					$parentCast: (
 						castAddBody?.parentCastId?.fid != null
 						&& castAddBody.parentCastId.hash != null
@@ -241,9 +238,9 @@ export default {
 									$cast: entityId,
 									index,
 								},
-								url: optionalTrimmedString(embed?.url),
+									url: optionalNonemptyString(embed.url),
 								$embeddedCast: (
-									embed?.castId?.fid != null
+										embed.castId?.fid != null
 									&& embed.castId.hash != null
 								) ?
 									{
@@ -271,12 +268,10 @@ export default {
 					getCastById,
 					getCastEngagementCountsForCast,
 				} = await import('$/sources/Snapchain/Rest/queries.ts')
-				if (await singleFlight(getCastById)({
+				await singleFlight(getCastById)({
 					fid: entityId.$cast.fid,
 					hash: entityId.$cast.hash,
-				}) == null) {
-					throw new Error('Snapchain_Rest: cast not found')
-				}
+				})
 				return getCastEngagementCountsForCast({
 					targetFid: entityId.$cast.fid,
 					targetHash: entityId.$cast.hash,
@@ -305,7 +300,7 @@ export default {
 						.map((message: SnapVerify) => {
 							const body = message.data?.verificationAddAddressBody
 							if (body?.protocol !== 'PROTOCOL_ETHEREUM') return undefined
-							return optionalTrimmedString(body.address)
+							return optionalNonemptyString(body.address)
 						})
 						.filter((address): address is string => address != null)
 				)
@@ -315,7 +310,7 @@ export default {
 					),
 				)
 				const connectionFields: Partial<ConnectionFields> = {
-					username: optionalTrimmedString(usernameProofs.proofs?.[0]?.name),
+					username: optionalNonemptyString(usernameProofs.proofs?.[0]?.name),
 					...(ethList.length > 0 && { verifications: ethList }),
 					...((
 						custodyAddress,
@@ -323,11 +318,11 @@ export default {
 						custodyAddress != null && {
 							custody: custodyAddress,
 						}
-					))(optionalTrimmedString(custodyEvent?.idRegisterEventBody?.to)),
+					))(optionalNonemptyString(custodyEvent?.idRegisterEventBody?.to)),
 				}
 				for (const message of (userData.messages ?? [])) {
 					const userDataType = message.data?.userDataBody?.type
-					const fieldValue = optionalTrimmedString(message.data?.userDataBody?.value)
+					const fieldValue = optionalNonemptyString(message.data?.userDataBody?.value)
 					if (fieldValue == null) continue
 					if (userDataType === 'USER_DATA_TYPE_PFP') {
 						const icon = mediaFromUrl(snapchainUserDataPfpHttpUrl(fieldValue), MediaType.Image)
@@ -352,7 +347,7 @@ export default {
 				})
 				for (const message of (userData.messages ?? [])) {
 					const userDataType = message.data?.userDataBody?.type
-					const fieldValue = optionalTrimmedString(message.data?.userDataBody?.value)
+					const fieldValue = optionalNonemptyString(message.data?.userDataBody?.value)
 					if (fieldValue == null) continue
 					if (userDataType === 'USER_DATA_TYPE_PFP') {
 						return (
@@ -474,12 +469,10 @@ export default {
 					getCastById,
 					getCastEngagementCountsForCast,
 				} = await import('$/sources/Snapchain/Rest/queries.ts')
-				if (await singleFlight(getCastById)({
+				await singleFlight(getCastById)({
 					fid: entityId.fid,
 					hash: entityId.hash,
-				}) == null) {
-					throw new Error('Snapchain_Rest: cast not found')
-				}
+				})
 				return [
 					{
 						[EntityMetaKey.Id]: {
@@ -508,7 +501,7 @@ export default {
 				const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
 				const { getCastsByParent } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const channel = await singleFlight(getChannel)(entityId.id)
-				const channelPageUrl = optionalTrimmedString(channel?.url) ?? `https://warpcast.com/~/channel/${entityId.id}`
+				const channelPageUrl = optionalNonemptyString(channel?.url) ?? `https://warpcast.com/~/channel/${entityId.id}`
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
 				const casts: SnapCast[] = []
 				let pageToken: string | undefined
@@ -641,7 +634,7 @@ export default {
 					const { getCastsByParent } = await import('$/sources/Snapchain/Rest/queries.ts')
 					const channel = await singleFlight(getChannel)(entityId.channelId)
 					const channelPageUrl = (
-						optionalTrimmedString(channel?.url)
+						optionalNonemptyString(channel?.url)
 						?? `https://warpcast.com/~/channel/${entityId.channelId}`
 					)
 					const casts: SnapCast[] = []
@@ -678,9 +671,6 @@ export default {
 					)
 				}
 
-				if (entityId.variant !== 'trending') {
-					throw new Error(`Snapchain_Rest: unsupported FarcasterFeed variant ${JSON.stringify(entityId)}`)
-				}
 				const { getFids, getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const fids: number[] = []
 				let fidsPageToken: string | undefined

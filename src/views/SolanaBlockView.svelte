@@ -8,6 +8,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -24,10 +26,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const block = useEntity(
 		EntityType.SolanaBlock,
@@ -60,7 +58,12 @@
 <EntityView
 	entityType={EntityType.SolanaBlock}
 	{entityId}
-	href={`/network/${entityId.$network.networkSlug}/blocks/${entityId.slot.toString()}`}
+	href={
+		'networkSlug' in entityId.$network ?
+			`/network/${entityId.$network.networkSlug}/blocks/${entityId.slot.toString()}`
+		:
+			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/blocks/${entityId.slot.toString()}`
+	}
 	title={`Slot #${entityId.slot.toString()}`}
 	idDragPlainText={entityId.slot.toString()}
 	bind:open
@@ -76,7 +79,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Slot </span>
+			{#if Value}
 			{@render Value()}
+					{/if}
 		</span>
 	{/snippet}
 

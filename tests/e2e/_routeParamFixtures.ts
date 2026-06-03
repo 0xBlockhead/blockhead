@@ -4,69 +4,46 @@ import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { specificationRealms } from '$/constants/SpecificationProposal.ts'
 import {
-	caip2NetworkNamespaceByNamespace,
 	NetworkEnvironment,
 	networks,
 } from '$/constants/Network.ts'
 import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
 import {
 	CAST_HASH_32,
+	ERC4337_ACCOUNT_FACTORY_ADDRESS,
+	ERC4337_BUNDLER_ADDRESS,
+	ERC4337_PAYMASTER_ADDRESS,
+	ERC4337_SMART_ACCOUNT_ADDRESS,
+	NOSTR_PROBE_ARTICLE_IDENTIFIER,
 	NOSTR_PROBE_PUBKEY,
+	NOSTR_PROBE_REACTION_EVENT_ID,
+	NOSTR_PROBE_RELAY_URL,
+	NOSTR_PROBE_REPOST_EVENT_ID,
 	SAMPLE_BLOB_TX_HASH,
 	SAMPLE_TX_HASH,
+	SAMPLE_USER_OPERATION_HASH,
+	USDC_ADDRESS,
+	VITALIK_ADDRESS,
+	YOUTUBE_PROBE_COMMENT_ID,
+	YOUTUBE_PROBE_PLAYLIST_ID,
+	YOUTUBE_PROBE_VIDEO_ID,
 	e2eNostrYouTubeOptionalDetailRoutePaths,
+	ethUsdCatalogMarket,
 } from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
 
 
-const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
-
-const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const
-
-const ERC4337_SMART_ACCOUNT_ADDRESS = '0x0000000000001d8a2e7bf6bc369525a2654aa298' as const
-
-const ERC4337_BUNDLER_ADDRESS = '0xf0ac778fb2e56bab4edd7f25c2ed2f333d165b8d' as const
-
-const ERC4337_PAYMASTER_ADDRESS = '0x6599bba2a055f3c769cba1a2d462a75429bd7bf7' as const
-
-const ERC4337_ACCOUNT_FACTORY_ADDRESS = '0xcad776fce9c3b3db6724aeb4c7fa2f5f3c088253' as const
-
-const SAMPLE_USER_OPERATION_HASH = (
-	'0xca87534346367dbf4ff6675627a3e43635db5a36bd8ef99ffcd20a63d1555ef5' as const
-)
-
-const NOSTR_PROBE_RELAY_URL = 'wss://relay.damus.io' as const
-
 const NOSTR_PROBE_NOTE_EVENT_ID = `${'a'.repeat(64)}` as const
 
-const NOSTR_PROBE_REPOST_EVENT_ID = `${'b'.repeat(64)}` as const
-
-const NOSTR_PROBE_REACTION_EVENT_ID = `${'c'.repeat(64)}` as const
-
-const NOSTR_PROBE_ARTICLE_IDENTIFIER = 'e2e-probe-article' as const
-
 const YOUTUBE_PROBE_CHANNEL_ID = 'UC_x5XG1OV2P6uZZ5FSM9Ttw' as const
-
-const YOUTUBE_PROBE_VIDEO_ID = 'jNQXAC9IVRw' as const
-
-const YOUTUBE_PROBE_PLAYLIST_ID = 'UU_x5XG1OV2P6uZZ5FSM9Ttw' as const
-
-const YOUTUBE_PROBE_COMMENT_ID = 'e2e-probe-comment' as const
 
 const RSS_PROBE_FEED_URL = 'https://blog.svelte.dev/feed.xml' as const
 
 const LENS_PROBE_POST_ID = '161m1s2r2av9deyh2a3' as const
 
-const MARKET_KEY_ETH_USD_BINANCE = stringify({
-	$base: { kind: 'Coin', $coin: { coinId: 'ETH' } },
-	$quote: { kind: 'Currency', $currency: { iso4217: 'USD' } },
-	$marketVenue: { marketVenueId: MarketVenueId.Binance },
-	marketKind: 'Spot',
-})
-
 const PRIMARY_NETWORK_CAIP2_FIXTURES = networks
 	.filter((network) => network.environment === NetworkEnvironment.Mainnet)
 	.flatMap((network) => (
-		!('caip2' in network) || caip2NetworkNamespaceByNamespace[network.caip2.namespace] == null ?
+		!('caip2' in network) ?
 			[]
 		:
 			[`${network.caip2.namespace}:${network.caip2.reference}`]
@@ -125,6 +102,7 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	ensName: 'vitalik.eth',
 	upgradeSlug: 'Homestead',
 	blockNumber: '18000000',
+	height: '18000000',
 	transactionId: SAMPLE_TX_HASH,
 	address: VITALIK_ADDRESS,
 	caipId: '25',
@@ -150,7 +128,7 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	namespace: 'ipfs',
 	target: 'bafybeigdyrzt3sfp7vd2lvdwqcedebyb6utyghj6v7k5vcheck7l1vprfw',
 	test: 'test',
-	marketKey: MARKET_KEY_ETH_USD_BINANCE,
+	marketKey: stringify(ethUsdCatalogMarket),
 	instanceOrigin: 'https://mastodon.social',
 	did: atprotoProbeDid,
 	uri: atprotoProbePostUri,
@@ -167,7 +145,8 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	direction: 'proposerPayloadDelivered',
 	name: 'ethereum',
 	fullname: 't3_1h7t8a',
-	identityId: '104776',
+	contractAddress: '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432',
+	tokenId: '104776',
 	reference: swarmDocsLandingReference,
 	pubkey: NOSTR_PROBE_PUBKEY,
 	eventId: NOSTR_PROBE_NOTE_EVENT_ID,
@@ -234,6 +213,12 @@ export const e2eRouteParamFixtureForContext = (
 
 	if (paramKey === 'chainId' && path.includes('services/agent'))
 		return '56'
+
+	if (paramKey === 'contractAddress' && path.includes('services/agent'))
+		return '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432'
+
+	if (paramKey === 'tokenId' && path.includes('services/agent'))
+		return '104776'
 
 	if (paramKey === 'caip2Namespace' && path === 'network')
 		return 'bip122'

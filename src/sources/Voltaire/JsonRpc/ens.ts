@@ -87,8 +87,6 @@ const ensResolverAbiContentTypesMask = 15n
 
 const ensResolverAbiContentTypeJson = 1n
 
-const ensResolverAbiContentTypeUri = 4n
-
 const RESOLVER_MULTICOIN_ADDR_ABI = new Abi([
 	{
 		type: 'function',
@@ -283,15 +281,12 @@ const resolveContentHash = async ({
 			contentHash
 }
 
-const resolverAbiJsonFromWire = (
+const resolverAbiJsonTextFromWire = (
 	contentType: bigint,
 	data: Uint8Array,
 ) => {
 	if (data.length === 0) return null
-	if (
-		contentType === ensResolverAbiContentTypeJson
-		|| contentType === ensResolverAbiContentTypeUri
-	) {
+	if (contentType === ensResolverAbiContentTypeJson) {
 		const text = new TextDecoder().decode(data).trim()
 		return text === '' ? null : text
 	}
@@ -345,7 +340,7 @@ const resolveResolverAbiJson = async ({
 			null
 	)
 	if (contentTypeBigInt == null || dataBytes == null) return null
-	return resolverAbiJsonFromWire(contentTypeBigInt, dataBytes)
+	return resolverAbiJsonTextFromWire(contentTypeBigInt, dataBytes)
 }
 
 const resolveMulticoinAddr = async ({
@@ -463,11 +458,11 @@ export const resolveEnsForwardForRpcUrl = async ({
 			resolver: null,
 			textRecords: { ...emptyStringRecord },
 			contentHash: null,
-			resolverAbiJson: null,
+			resolverAbiJsonText: null,
 			coinAddresses: { ...emptyStringRecord },
 		}
 	}
-	const [address, textRecords, contentHash, resolverAbiJson, coinAddresses] = await Promise.all([
+	const [address, textRecords, contentHash, resolverAbiJsonText, coinAddresses] = await Promise.all([
 		resolveAddr({
 			rpcUrl,
 			transportType,
@@ -527,7 +522,7 @@ export const resolveEnsForwardForRpcUrl = async ({
 		resolver: resolverAddress,
 		textRecords,
 		contentHash,
-		resolverAbiJson,
+		resolverAbiJsonText,
 		coinAddresses,
 	}
 }

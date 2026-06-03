@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -28,16 +29,13 @@
 			entityId: EntityId<typeof schema, EntityType.BlockheadSession>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const session = useEntity(
 		EntityType.BlockheadSession,
@@ -116,7 +114,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={session}
-							placeholderText="Loading session…"
+						placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
 								{blockheadSessionStatusByStatus[session.status]?.label ?? String(session.status)}

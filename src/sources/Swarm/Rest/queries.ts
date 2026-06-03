@@ -54,7 +54,7 @@ const splitRawTarget = (value: string): ParsedSwarmBrowseInput => {
 export const parseBrowseInput = (value: string): ParsedSwarmBrowseInput => {
 	const trimmedValue = value.trim()
 	const uriMatch = swarmBrowseUriPattern.exec(trimmedValue)
-	if (uriMatch?.groups?.reference != null) {
+	if (uriMatch?.groups.reference != null) {
 		return {
 			reference: normalizeReference(uriMatch.groups.reference),
 			contentPath: trimSlashes(uriMatch.groups.contentPath ?? ''),
@@ -62,7 +62,7 @@ export const parseBrowseInput = (value: string): ParsedSwarmBrowseInput => {
 	}
 
 	const gatewayMatch = swarmBrowseGatewayPattern.exec(trimmedValue)
-	if (gatewayMatch?.groups?.reference != null) {
+	if (gatewayMatch?.groups.reference != null) {
 		return {
 			reference: normalizeReference(gatewayMatch.groups.reference),
 			contentPath: trimSlashes(gatewayMatch.groups.contentPath ?? ''),

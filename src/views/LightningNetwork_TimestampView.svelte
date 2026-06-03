@@ -8,6 +8,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -24,10 +26,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const snapshot = useEntity(
 		EntityType.LightningNetwork_Timestamp,
@@ -71,7 +69,7 @@
 			resource={snapshot}
 			placeholderText="Loading snapshot…"
 		>
-			{#snippet children(row)}
+			{#snippet children(lightningNetworkTimestamp)}
 				{#if lightningNetworkTimestamp.nodeCount != null}
 					<NumberValue value={lightningNetworkTimestamp.nodeCount} />
 					nodes
@@ -85,16 +83,12 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
 	{#snippet Content()}
 		<ResourceBoundary
 			resource={snapshot}
 			placeholderText="Loading snapshot…"
 		>
-			{#snippet children(row)}
+			{#snippet children(lightningNetworkTimestamp)}
 				<dl>
 					{#if lightningNetworkTimestamp.nodeCount != null}
 						<div>

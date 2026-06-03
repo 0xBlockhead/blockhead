@@ -10,6 +10,8 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -18,17 +20,20 @@
 		open = $bindable(true),
 		collapsible = true,
 		CollapsibleProps = {},
+		href,
 	}: {
-		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterUser>
+		entityFieldReference: Extract<
+			EntityFieldReference<typeof schema, EntityType.FarcasterUser>,
+			{ entityType: EntityType.FarcasterNetwork }
+		>
 		id?: string
 		title?: string
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
+		href?: ComponentProps<typeof EntitiesList>['href']
 		open?: boolean
+		collapsible?: boolean
 	} = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -46,6 +51,7 @@
 	{title}
 	bind:open
 	{collapsible}
+	{href}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -89,8 +95,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(row) => stringify(farcasterUser.value[EntityMetaKey.Id])}
-				getSortValue={(row) => farcasterUser.value[EntityMetaKey.Id].fid}
+				getKey={(farcasterUser) => stringify(farcasterUser.value[EntityMetaKey.Id])}
+				getSortValue={(farcasterUser) => farcasterUser.value[EntityMetaKey.Id].fid}
 				placeholderText="Loading Farcaster users…"
 				resource={users}
 			>

@@ -31,7 +31,7 @@ export const mastodonGet = async <T>(
 	search?: Record<string, string | undefined>,
 ) => (
 	getJson<T>(`${mastodonApiBase}${path}${qs(search ?? {})}`, {
-		origins: Mastodon.origins ?? [],
+		origins: Mastodon.origins,
 		init: { headers: authHeaders(publicEnv) },
 	})
 )

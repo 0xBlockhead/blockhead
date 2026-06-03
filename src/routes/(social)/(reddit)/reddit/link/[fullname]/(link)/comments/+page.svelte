@@ -8,10 +8,6 @@
 		params,
 	} = $props()
 
-	const entityId = $derived(
-		{ fullname: decodeURIComponent(params.fullname) },
-	)
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,7 +21,9 @@
 		href={resolve('/reddit/comments')}
 		entityFieldReference={{
 			entityType: EntityType.RedditLink,
-			entityId,
+			entityId: {
+				fullname: decodeURIComponent(params.fullname),
+			},
 			fieldName: '$$comments',
 		}}
 		id="reddit-link-comments"

@@ -1,13 +1,12 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { entityResolversByEntityType } from '$/resolvers/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Context
@@ -17,8 +16,8 @@
 	// State
 	let {
 		entityId,
-		href = resolve('/~/accounts/positions/position/[chainId]/[positionId]', {
-			chainId: String(evmChainIdFromNetworkId(entityId.$network)),
+		href = resolve('/~/(accounts)/accounts/(positions)/position/[chainId]/[positionId]', {
+			chainId: String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)),
 			positionId: entityId.id,
 		}),
 		open = $bindable(true),
@@ -35,8 +34,7 @@
 		>
 	> = $props()
 
-
-	// State
+	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const liquidityPosition = useEntity(
@@ -62,7 +60,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -87,7 +84,9 @@
 
 	{#snippet Title()}
 		<span data-text="muted">
+			{#if Value}
 			{@render Value()}
+			{/if}
 		</span>
 	{/snippet}
 
@@ -130,7 +129,7 @@
 								{#if liquidityPosition.$pool !== undefined}
 									<LiquidityPoolView
 										entityId={liquidityPosition.$pool[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryDetails}
+										layout={EntityLayout.Value}
 										open={true}
 										showTypeAnnotation={false}
 									/>
@@ -219,9 +218,4 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
-
-	{/snippet}
 </EntityView>

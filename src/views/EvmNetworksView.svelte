@@ -4,21 +4,27 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+
+	import {
+		EntityMetaKey,
+		type EntityFieldDefinition,
+	} from '$/schema/$EntityDefinition.ts'
+
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { entityDefinitionByType, schema } from '$/schema/index.ts'
 
 	import {
 		ethereumChainId,
 		l2BeatProjectChainIds,
 	} from '$/sources/L2Beat/Rest/constants.ts'
 
-	import { Source } from '$/sources/$Source.ts'
 	import { stringify as stringifyId } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
+	// Context
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		title = 'EVM networks',
@@ -42,9 +48,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const sortValueByChainId = new Map<number, number>([
@@ -88,12 +91,13 @@
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				{
-					$: [
-						Source.L2Beat_Rest,
-						Source.Chainlist_Rest,
-						Source.EthereumLists_Rest,
-					],
 					[entityFieldReference.fieldName]: {
+							$: (
+								entityDefinitionByType[entityFieldReference.entityType].fields
+									.find((field: EntityFieldDefinition) => field.name === entityFieldReference.fieldName)
+									?.defaultSources
+								?? []
+							),
 						$limit: 4096,
 					},
 				},

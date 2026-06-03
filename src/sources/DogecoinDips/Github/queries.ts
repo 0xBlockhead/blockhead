@@ -22,7 +22,7 @@ export const getContents = async (): Promise<DogecoinDipsGithubContents> => {
 			pathInRepo: dogecoinDipsGithubRepo.path,
 			ref: dogecoinDipsGithubRepo.ref,
 		}),
-		origins: DogecoinDips.origins ?? [],
+		origins: DogecoinDips.origins,
 	})
 	if (!response.ok) await throwHttpError('DogecoinDips GitHub contents', response)
 	return response.json<DogecoinDipsGithubContents>()
@@ -36,6 +36,6 @@ export const getMediaWikiText = ({ number }: { number: number }) => (
 			ref: dogecoinDipsGithubRepo.ref,
 			pathInRepo: `dip-${number.toString().padStart(4, '0')}.mediawiki`,
 		}),
-		origins: DogecoinDips.origins ?? [],
+		origins: DogecoinDips.origins,
 	})
 )

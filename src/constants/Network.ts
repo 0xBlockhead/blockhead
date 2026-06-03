@@ -342,10 +342,10 @@ export const caip2NetworkNamespaceByNamespace = Object.fromEntries(
 	networks.flatMap((row) => (
 		!('caip2' in row) ?
 			[]
-	:
-		[[
+		:
+			[[
 				row.caip2.namespace,
-				row.caip2.namespace,
+				row.namespace,
 			]]
 	)),
 )

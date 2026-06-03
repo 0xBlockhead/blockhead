@@ -10,6 +10,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -34,10 +35,6 @@
 		},
 		never
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkIdKey = stringify(entityId)
 
@@ -184,55 +181,55 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-registry`}
-				sectionIdPrefix={networkIdKey}
-				sections={collapsibleTabsSections([
-					{ id: 'feeds', label: 'Feeds' },
-					{ id: 'items', label: 'Recent items' },
-				])}
-				data-card
-				scrollContainerProps={entityViewDetailCarouselScrollProps}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Feed registry
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-registry`}
+			sectionIdPrefix={networkIdKey}
+			sections={collapsibleTabsSections([
+				{ id: 'feeds', label: 'Feeds' },
+				{ id: 'items', label: 'Recent items' },
+			])}
+			data-card
+			scrollContainerProps={entityViewDetailCarouselScrollProps}
+		>
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Feed registry
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionFeeds({ id, label })}
-					<RssFeedsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/rss/feeds')}
-						entityFieldReference={{
-							entityType: EntityType.RssNetwork,
-							entityId,
-							fieldName: '$$rssFeeds',
-						}}
-						id={`${networkIdKey}:feeds`}
-						open={_open}
-					/>
-				{/snippet}
+			{#snippet SectionFeeds({ id, label })}
+				<RssFeedsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/rss/feeds')}
+					entityFieldReference={{
+						entityType: EntityType.RssNetwork,
+						entityId,
+						fieldName: '$$rssFeeds',
+					}}
+					id={`${networkIdKey}:feeds`}
+					open={_open}
+				/>
+			{/snippet}
 
-				{#snippet SectionItems({ id, label })}
-					<RssItemsView
-						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/rss/items')}
-						entityFieldReference={{
-							entityType: EntityType.RssNetwork,
-							entityId,
-							fieldName: '$$rssItems',
-						}}
-						id={`${networkIdKey}:items`}
-						limit={25}
-						open={_open}
-						title="Recent items"
-					/>
-				{/snippet}
+			{#snippet SectionItems({ id, label })}
+				<RssItemsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve('/rss/items')}
+					entityFieldReference={{
+						entityType: EntityType.RssNetwork,
+						entityId,
+						fieldName: '$$rssItems',
+					}}
+					id={`${networkIdKey}:items`}
+					limit={25}
+					open={_open}
+					title="Recent items"
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 
 	{/snippet}

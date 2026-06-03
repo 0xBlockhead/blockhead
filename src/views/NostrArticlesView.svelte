@@ -12,6 +12,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -34,20 +35,17 @@
 			id: string
 			limit?: number
 			open?: boolean
+			collapsible?: boolean
 			fieldOpen?: boolean
 			title?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
 			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -110,15 +108,15 @@
 								}
 						)
 					:
-						{
-							$: [
-								Source.NostrBand_Rest,
-								Source.Primal_Rest,
-							],
-							[entityFieldReference.fieldName]: {
+							{
 								$: [
 									Source.NostrBand_Rest,
 									Source.Primal_Rest,
+								],
+								$$articles: {
+									$: [
+										Source.NostrBand_Rest,
+										Source.Primal_Rest,
 								],
 							},
 						}
@@ -132,7 +130,7 @@
 							[
 								...(parent.$$nostrArticles ?? []),
 								...(parent.$$nostrProfiles ?? [])
-									.flatMap((profile) => profile.$$articles ?? []),
+									.flatMap((profile: Entity<typeof schema, EntityType.NostrProfile>) => profile.$$articles ?? []),
 							]
 						:
 							(parent[entityFieldReference.fieldName] ?? [])
@@ -147,9 +145,9 @@
 					entityType={EntityType.NostrArticle}
 					id={`${id}-items`}
 					{title}
-					getKey={(row) => stringify(nostrArticle[EntityMetaKey.Id])}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
 					getSortValue={(row) => (
-						`${String(-(nostrArticle.publishedAt ?? 0)).padStart(20, '0')}\0${nostrArticle[EntityMetaKey.Id].identifier}`
+						`${String(-(row.publishedAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].identifier}`
 					)}
 					placeholderText={`Loading ${title.toLowerCase()}…`}
 					resource={articles}

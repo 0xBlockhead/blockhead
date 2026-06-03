@@ -12,6 +12,7 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,10 +36,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const user = useEntity(
 		EntityType.XUser,
@@ -160,7 +157,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({})}
+	{#snippet Content({ open })}
 		<ResourceBoundary
 			resource={user}
 			placeholderText="Loading X profile…"
@@ -178,7 +175,7 @@
 		</ResourceBoundary>
 
 		<dl data-column-item="center">
-			{#if contentOpen}
+			{#if open}
 				<ResourceBoundary
 					resource={user}
 					placeholderText="Loading X profile…"
@@ -208,7 +205,7 @@
 				</ResourceBoundary>
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				<div>
 					<dt>Verified</dt>
 					<dd>
@@ -226,7 +223,7 @@
 				</div>
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				<div>
 					<dt>Website</dt>
 					<dd>
@@ -253,7 +250,7 @@
 				</div>
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				<div>
 					<dt>Location</dt>
 					<dd>
@@ -271,7 +268,7 @@
 				</div>
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				<div>
 					<dt>Joined</dt>
 					<dd>
@@ -298,97 +295,97 @@
 	})}
 		{@const userIdKey = stringify(entityId)}
 		<CollapsibleTabs
-				sectionIdPrefix={userIdKey}
-					sections={collapsibleTabsSections([
-						{ id: 'profile', label: 'Profile' },
-						{ id: 'posts', label: 'Posts' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])}
-				id={`${userIdKey}:carousel-profile`}
-				data-card
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Profile
-						</HeadingComponent>
-					</header>
-				{/snippet}
+			sectionIdPrefix={userIdKey}
+				sections={collapsibleTabsSections([
+					{ id: 'profile', label: 'Profile' },
+					{ id: 'posts', label: 'Posts' },
+					{ id: 'metric-snapshots', label: 'Metrics' },
+				])}
+			id={`${userIdKey}:carousel-profile`}
+			data-card
+		>
+			{#snippet Summary({ open: _isOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>
+						Profile
+					</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionProfile()}
-					<ResourceBoundary
-						resource={user}
-						placeholderText="Loading X profile…"
-					>
-						{#snippet children(user)}
-							<div>
-								{#if user.description}
-									<p><strong>Description:</strong> {user.description}</p>
-								{/if}
-
-								{#if user.$profileBanner?.[EntityMetaKey.Id].url != null}
-									<figure>
-										<Media
-											alt=""
-											media={{ url: user.$profileBanner[EntityMetaKey.Id].url }}
-										/>
-									</figure>
-								{/if}
-
-								{#if (
-									user.name === undefined
-									&& user.username === undefined
-									&& user.description === undefined
-									&& user.$icon === undefined
-									&& user.$profileBanner === undefined
-								)}
-									<p data-text="muted">
-										User details are not available yet.
-									</p>
-								{/if}
-							</div>
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-
-					{#snippet SectionPosts()}
-						<ResourceBoundary resource={user}>
-						{#snippet children(user)}
-							{#if (user.$$posts?.length)}
-								<XPostsView
-									CollapsibleProps={{ canToggle: false }}
-									href={resolve(
-										'/(social)/(x)/x/user/[userId]',
-										{ userId: entityId.id },
-									)}
-									entityFieldReference={{
-										entityType: EntityType.XUser,
-										entityId,
-										fieldName: '$$posts',
-									}}
-									id={`${userIdKey}:posts`}
-									title="Posts"
-								/>
+			{#snippet SectionProfile()}
+				<ResourceBoundary
+					resource={user}
+					placeholderText="Loading X profile…"
+				>
+					{#snippet children(user)}
+						<div>
+							{#if user.description}
+								<p><strong>Description:</strong> {user.description}</p>
 							{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
 
-					{#snippet SectionMetricSnapshots()}
-						<XUser_TimestampsView
+							{#if user.$profileBanner?.[EntityMetaKey.Id].url != null}
+								<figure>
+									<Media
+										alt=""
+										media={{ url: user.$profileBanner[EntityMetaKey.Id].url }}
+									/>
+								</figure>
+							{/if}
+
+							{#if (
+								user.name === undefined
+								&& user.username === undefined
+								&& user.description === undefined
+								&& user.$icon === undefined
+								&& user.$profileBanner === undefined
+							)}
+								<p data-text="muted">
+									User details are not available yet.
+								</p>
+							{/if}
+						</div>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionPosts()}
+				<ResourceBoundary resource={user}>
+				{#snippet children(user)}
+					{#if (user.$$posts?.length)}
+						<XPostsView
+							CollapsibleProps={{ canToggle: false }}
+							href={resolve(
+								'/(social)/(x)/x/user/[userId]',
+								{ userId: entityId.id },
+							)}
 							entityFieldReference={{
 								entityType: EntityType.XUser,
 								entityId,
-								fieldName: '$$timestamps',
+								fieldName: '$$posts',
 							}}
-							href={href}
-							id={`${userIdKey}:metric-snapshots`}
-							title="Metric snapshots"
+							id={`${userIdKey}:posts`}
+							title="Posts"
 						/>
+					{/if}
 					{/snippet}
-			</CollapsibleTabs>
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionMetricSnapshots()}
+				<XUser_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.XUser,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					href={href}
+					id={`${userIdKey}:metric-snapshots`}
+					title="Metric snapshots"
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

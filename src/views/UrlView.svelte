@@ -10,16 +10,14 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/url/[urlKey]',
-			{ urlKey: encodeURIComponent(entityId.url) },
-		),
+		href = resolve(`/url/${encodeURIComponent(entityId.url)}`),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
@@ -33,10 +31,6 @@
 			| 'layout'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const url = useEntity(
 		EntityType.Url,
@@ -104,7 +98,9 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({})}
+	{#snippet Content({
+		open: contentOpen,
+	})}
 		{#if contentOpen}
 			<ResourceBoundary resource={url}>
 				{#snippet children(url)}
@@ -199,10 +195,5 @@
 				</dd>
 			</div>
 		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
 	{/snippet}
 </EntityView>

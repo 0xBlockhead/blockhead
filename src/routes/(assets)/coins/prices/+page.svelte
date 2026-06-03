@@ -29,7 +29,7 @@
 		collapsible={false}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: {},
+			entityId: { scope: '$$marketPrices' },
 			fieldName: '$$marketPrices',
 		}}
 		id="coin-prices-page"

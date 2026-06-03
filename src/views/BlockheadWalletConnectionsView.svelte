@@ -85,7 +85,6 @@
 	}
 
 
-	// State
 	import type { Eip6963ProviderDetail } from '$/lib/eip6963.ts'
 
 	import {

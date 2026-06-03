@@ -5,13 +5,11 @@ import { type as arktype } from 'arktype'
 import CoinInstanceSchema, { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import NetworkSchema from '$/schema/EvmNetwork.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
-import { networkIdFromEvmChainId } from '$/lib/caip.ts'
-
 import type { PageLoad } from './$types.ts'
 
 
 export const load: PageLoad = ({ params }) => {
-	const $network = NetworkSchema.id(networkIdFromEvmChainId(Number(params.chainId)))
+	const $network = NetworkSchema.id({ caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } })
 	if ($network instanceof arktype.errors) error(404, 'Invalid network')
 
 	if (params.coinInstanceSlug === 'native') {

@@ -10,6 +10,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -28,10 +30,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const lightningNetwork = useEntity(
 		EntityType.LightningNetwork,
@@ -93,7 +91,7 @@
 			resource={lightningNetwork}
 		>
 			{#snippet children(row)}
-				{lightningNetwork.name}
+				{row.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -108,30 +106,31 @@
 		<ResourceBoundary
 			resource={lightningNetwork}
 			placeholderText="Loading Lightning Network…"
-		>
-			{#snippet children(row)}
-				<dl>
-					{#if lightningNetwork.$settlementNetwork != null}
-						<div>
-							<dt>Settlement network</dt>
+			>
+				{#snippet children(row)}
+					{@const timestamp = row.$$timestamps?.at(0)}
+					<dl>
+						{#if row.$settlementNetwork != null}
+							<div>
+								<dt>Settlement network</dt>
 							<dd>
 								<NetworkView
-									entityId={lightningNetwork.$settlementNetwork[EntityMetaKey.Id]}
+									entityId={row.$settlementNetwork[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if lightningNetwork.$$timestamps.at(0) != null}
-						<div>
-							<dt>Latest snapshot</dt>
-							<dd>
-								<LightningNetwork_TimestampView
-									entityId={lightningNetwork.$$timestamps.at(0)[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
+						{#if timestamp != null}
+							<div>
+								<dt>Latest snapshot</dt>
+								<dd>
+									<LightningNetwork_TimestampView
+										entityId={timestamp[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+									/>
+								</dd>
 						</div>
 					{/if}
 				</dl>
@@ -279,7 +278,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -298,7 +296,6 @@
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					limit={undefined}
 					id={`${id}-list`}
 					title={label}
 				/>

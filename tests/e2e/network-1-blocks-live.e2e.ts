@@ -55,13 +55,12 @@ test.describe('/network/eip155:1/blocks (EvmBlocksView + blockHeight-driven quer
 		)
 		expect(
 			preflight.ok,
-			preflight.ok
-				? 'ok'
-				:
-					'detail' in preflight && preflight.detail != null
-					? jsonStringifyForExpectMessage(preflight.detail)
-					:
-						jsonStringifyForExpectMessage(preflight),
+			preflight.ok ?
+				'ok'
+			: 'detail' in preflight && preflight.detail != null ?
+				jsonStringifyForExpectMessage(preflight.detail)
+			:
+				jsonStringifyForExpectMessage(preflight),
 		).toBe(true)
 
 		const issues = collectIssues(page)

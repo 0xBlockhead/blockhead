@@ -18,7 +18,7 @@
 		href={resolve('/~/manage/profiles')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: {},
+			entityId: { scope: '$$blockheadSessions' },
 			fieldName: '$$blockheadSessions',
 		}}
 		id="profiles"

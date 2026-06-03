@@ -29,7 +29,7 @@ const hyperliquidJsonRpc = async <_Result>({
 	params: JsonValue[]
 }) => {
 	const response = await corsFetch(rpcUrl, {
-		origins: Hyperliquid.origins ?? [],
+		origins: Hyperliquid.origins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,

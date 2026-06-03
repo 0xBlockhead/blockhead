@@ -17,10 +17,12 @@ const solanaSimdProposalRows = async (
 ) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	return entries.flatMap((githubContent) => {
-		const proposalNumberRaw = regex('^(?<proposalNumber>\\d+)-.+\\.md$').exec(githubContent.name)?.groups?.proposalNumber
-		const proposalNumber = proposalNumberRaw != null ? parseInt(proposalNumberRaw, 10)
+		const proposalNumberRaw = regex('^(?<proposalNumber>\\d+)-.+\\.md$').exec(githubContent.name)?.groups.proposalNumber
+		const proposalNumber = proposalNumberRaw != null ?
+			parseInt(proposalNumberRaw, 10)
 		:
 			null
+
 		return githubContent.type !== 'file' || proposalNumber == null ?
 			[]
 		:
@@ -50,14 +52,13 @@ export default {
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
 				return {
-					documentCategory: frontmatter.category?.trim() || 'SIMD',
+					documentCategory: frontmatter.category.trim() || 'SIMD',
 					documentTitle: (
-						frontmatter.title?.trim()
+						frontmatter.title.trim()
 						|| body.match(/^#\s*(.+)$/m)?.[1]?.trim()
-						|| null
 					),
-					documentStatus: frontmatter.status?.trim() || null,
-					documentBody: body.length > 0 ? body : null,
+					documentStatus: frontmatter.status.trim() || undefined,
+					documentBody: body.length > 0 ? body : undefined,
 				}
 			},
 		}),

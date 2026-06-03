@@ -4,6 +4,12 @@ import { tmpdir } from 'node:os'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { generateOutput } from '@gql.tada/cli-utils'
+import {
+	buildClientSchema,
+	getIntrospectionQuery,
+	printSchema,
+	type IntrospectionQuery,
+} from 'graphql'
 
 /**
  * Syncs GraphQL sources by scanning provider-local schema manifests.
@@ -51,8 +57,50 @@ const normalizeGraphqlSchemaText = (schemaText: string) => {
 	return (
 		missingDeclarations.length === 0 ?
 			schemaText
-		:	`${missingDeclarations.join('\n')}\n\n${schemaText}`
+		:
+			`${missingDeclarations.join('\n')}\n\n${schemaText}`
 	)
+}
+
+const downloadSchemaText = async (schemaUrl: string) => {
+	const schemaUrlPath = new URL(schemaUrl).pathname.replace(/\/$/, '')
+	if (schemaUrlPath.endsWith('/graphql')) {
+		const response = await fetch(schemaUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				query: getIntrospectionQuery(),
+			}),
+		})
+	if (!response.ok) {
+			throw new Error(`Failed to download schema: ${response.status} ${response.statusText}`)
+		}
+		const {
+			data,
+			errors,
+		}: {
+			data?: IntrospectionQuery
+			errors?: {
+				message?: string
+			}[]
+		} = await response.json()
+		if (data == null) {
+		throw new Error(
+				`Failed to introspect schema: ${
+					errors?.[0]?.message ?? 'missing data'
+				}`,
+			)
+		}
+		return printSchema(buildClientSchema(data))
+	}
+
+	const response = await fetch(schemaUrl)
+	if (!response.ok) {
+		throw new Error(`Failed to download schema: ${response.status} ${response.statusText}`)
+	}
+	return response.text()
 }
 
 const syncModule = async (sourceModule: string) => {
@@ -66,14 +114,8 @@ const syncModule = async (sourceModule: string) => {
 	const patchFile =
 		manifest.patchFile == null ? undefined : resolve(dirname(manifestFile), manifest.patchFile)
 
-	const response = await fetch(manifest.schemaUrl)
-	if (!response.ok) {
-		throw new Error(
-			`Failed to download ${sourceModule} schema: ${response.status} ${response.statusText}`,
-		)
-	}
 	await mkdir(dirname(schemaFile), { recursive: true })
-	await writeFile(schemaFile, normalizeGraphqlSchemaText(await response.text()))
+	await writeFile(schemaFile, normalizeGraphqlSchemaText(await downloadSchemaText(manifest.schemaUrl)))
 	console.log(`Downloaded ${sourceModule} schema`)
 
 	const tempDir = await mkdtemp(join(tmpdir(), 'blockhead-graphql-'))

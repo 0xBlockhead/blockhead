@@ -35,7 +35,7 @@ export const getChartJson = async ({
 	if (period != null) reqUrl.searchParams.set('period', period)
 	if (span != null) reqUrl.searchParams.set('span', String(span))
 
-	const response = await corsFetch(reqUrl.href, { origins: Defillama.origins ?? [] })
+	const response = await corsFetch(reqUrl.href, { origins: Defillama.origins  })
 
 	if (!response.ok) throw new Error(await fetchFailedMessage(reqUrl.href, response))
 
@@ -56,7 +56,7 @@ export const getCurrentPricesJson = async ({
 		),
 		searchWidth,
 	)
-	const response = await corsFetch(reqUrl.href, { origins: Defillama.origins ?? [] })
+	const response = await corsFetch(reqUrl.href, { origins: Defillama.origins  })
 
 	if (!response.ok) throw new Error(await fetchFailedMessage(reqUrl.href, response))
 

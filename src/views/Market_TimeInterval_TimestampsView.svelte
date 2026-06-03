@@ -27,6 +27,7 @@
 		{
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			limit?: number
 			timeInterval?: MarketTimeInterval
 			entityFieldReference: EntityFieldReference<
@@ -37,13 +38,11 @@
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'href'
-			| 'CollapsibleProps'
 			| 'id'
+			| 'CollapsibleProps'
 		>
 	> = $props()
 
-
-	// State
 	import {
 		dedupeCandleEntitiesById,
 		marketTimeIntervalsEqual,
@@ -139,8 +138,8 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<Market_TimeInterval_TimestampView
-						entityId={marketTimeIntervalTimestamp[EntityMetaKey.Id]}
-						id={stringify(marketTimeIntervalTimestamp[EntityMetaKey.Id])}
+						entityId={row[EntityMetaKey.Id]}
+						id={stringify(row[EntityMetaKey.Id])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Types/constants
-	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
-
-
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -24,11 +20,11 @@
 	<EvmBlobsView
 		entityFieldReference={{
 			entityType: EntityType.EvmNetwork,
-			entityId: networkIdFromCaip2RouteParams(params),
+			entityId: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			fieldName: '$$blobs',
 		}}
 		href={resolve(
-			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/blobs',
+			'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/blobs',
 			{
 				caip2Namespace: params.caip2Namespace,
 				caip2Reference: params.caip2Reference,

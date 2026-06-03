@@ -7,6 +7,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -17,10 +19,6 @@
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const subnet = useEntity(
 		EntityType.BittensorSubnet,
@@ -67,7 +65,9 @@
 			{#snippet Pending()}
 				<span data-row="inline align-center gap-2 wrap">
 					<span>Subnet </span>
+					{#if Value}
 					{@render Value()}
+					{/if}
 				</span>
 			{/snippet}
 

@@ -5,14 +5,12 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		params,
 	} = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
 		EntityType.Network,
@@ -50,10 +48,13 @@
 <Page>
 	<ResourceBoundary resource={network}>
 			{#snippet children(network)}
-				{@const entityId = network.caip2 == null ? { networkSlug: network.slug }
-				:
-					{ caip2: network.caip2 }}
-				{@const href = `/network/${params.networkSlug}/blocks`}
+				(
+					{@const entityId = network.caip2 == null ?
+						{ networkSlug: network.slug }
+					:
+						{ caip2: network.caip2 }}
+						{@const href = `/network/${params.networkSlug}/blocks`}
+				)
 			{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
 				<UtxoBlocksView
 					entityFieldReference={{

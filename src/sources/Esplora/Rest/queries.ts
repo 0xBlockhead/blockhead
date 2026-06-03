@@ -16,7 +16,7 @@ export const getBlock = ({
 }) => (
 	getJson<EsploraBlock>(
 		`${base(restBaseUrl)}/block/${blockHash}`,
-		{ origins: Esplora.origins ?? [] },
+		{ origins: Esplora.origins  },
 	)
 )
 
@@ -29,7 +29,7 @@ export const getBlockHashByHeight = ({
 }) => (
 	getJson<string>(
 		`${base(restBaseUrl)}/block-height/${height.toString()}`,
-		{ origins: Esplora.origins ?? [] },
+		{ origins: Esplora.origins  },
 	)
 )
 
@@ -42,13 +42,13 @@ export const getTransaction = ({
 }) => (
 	getJson<EsploraTransaction>(
 		`${base(restBaseUrl)}/tx/${txId}`,
-		{ origins: Esplora.origins ?? [] },
+		{ origins: Esplora.origins  },
 	)
 )
 
 export const getMempoolTransactionIds = ({ restBaseUrl }: { restBaseUrl: string }) => (
 	getJson<string[]>(
 		`${base(restBaseUrl)}/mempool/txids`,
-		{ origins: Esplora.origins ?? [] },
+		{ origins: Esplora.origins  },
 	)
 )

@@ -30,7 +30,7 @@ export const getProposalMediaWikiUrl = ({ number }: { number: number }) => (
 export const getContents = async (): Promise<BitcoinBipsGithubContents> => {
 	const response = await githubHttp({
 		url: getContentsUrl(),
-		origins: BitcoinBips.origins ?? [],
+		origins: BitcoinBips.origins,
 	})
 	if (!response.ok) await throwHttpError('BitcoinBips GitHub contents', response)
 	return response.json<BitcoinBipsGithubContents>()
@@ -39,6 +39,6 @@ export const getContents = async (): Promise<BitcoinBipsGithubContents> => {
 export const getProposalMediaWikiText = ({ number }: { number: number }) => (
 	getText({
 		url: getProposalMediaWikiUrl({ number }),
-		origins: BitcoinBips.origins ?? [],
+		origins: BitcoinBips.origins,
 	})
 )

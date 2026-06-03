@@ -10,6 +10,8 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
 		entityId,
@@ -27,9 +29,6 @@
 		>
 	> = $props()
 
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -87,7 +86,7 @@
 						open={true}
 						resource={moneroRingMembers}
 						placeholderText="Loading Monero ring members..."
-						getKey={(row) => stringify(moneroRing[EntityMetaKey.Id])}
+						getKey={(row) => stringify(row[EntityMetaKey.Id])}
 					>
 						{#snippet Item({ item: member })}
 							<MoneroRingMemberView

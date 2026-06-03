@@ -6,35 +6,23 @@ import {
 } from '$/constants/Social/Atproto.ts'
 import {
 	CAST_HASH_32,
+	ERC4337_ACCOUNT_FACTORY_ADDRESS,
+	ERC4337_BUNDLER_ADDRESS,
+	ERC4337_PAYMASTER_ADDRESS,
+	ERC4337_SMART_ACCOUNT_ADDRESS,
 	e2eNostrYouTubeOptionalDetailRoutePaths,
 	e2eNostrYouTubeRoutePaths,
 	SAMPLE_BLOB_TX_HASH,
+	SAMPLE_TX_HASH,
+	VITALIK_ADDRESS,
+	ethUsdCatalogMarket,
 } from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
 
 
 /** Routes exercised by `route-views-smoke.e2e.ts` and boundary-settle checks. */
-const SAMPLE_TX_HASH = (
-	'0xdacd6abf5b2814b28c68c59981f269c615796e7f0cba2009f4bf5edfdd9595ab' as const
-)
-
-const MARKET_KEY_ETH_USD_BINANCE = stringify({
-	$base: { kind: 'Coin', $coin: { coinId: 'ETH' } },
-	$quote: { kind: 'Currency', $currency: { iso4217: 'USD' } },
-	$marketVenue: { marketVenueId: 'Binance' },
-	marketKind: 'Spot',
-})
-
 const RSS_PROBE_FEED_URL = 'https://blog.svelte.dev/feed.xml' as const
 
-export const ADDR = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
-
-const ERC4337_SMART_ACCOUNT_ADDRESS = '0x0000000000001d8a2e7bf6bc369525a2654aa298' as const
-
-const ERC4337_BUNDLER_ADDRESS = '0xf0ac778fb2e56bab4edd7f25c2ed2f333d165b8d' as const
-
-const ERC4337_PAYMASTER_ADDRESS = '0x6599bba2a055f3c769cba1a2d462a75429bd7bf7' as const
-
-const ERC4337_ACCOUNT_FACTORY_ADDRESS = '0xcad776fce9c3b3db6724aeb4c7fa2f5f3c088253' as const
+export const ADDR = VITALIK_ADDRESS
 
 /** Detail routes depending on live NostrBand / YouTube / Piped payloads (not in default smoke set). */
 export const routeViewSmokeOptionalDetailPathByLabel: Record<string, `/${string}`> = (
@@ -127,7 +115,7 @@ export const routeViewSmokePathByLabel: Record<string, `/${string}`> = {
 	coinsCandles: '/coins/candles',
 	coinsPrices: '/coins/prices',
 	marketsHub: '/markets',
-	marketsMarketEthUsdBinance: `/market/${encodeURIComponent(MARKET_KEY_ETH_USD_BINANCE)}`,
+	marketsMarketEthUsdBinance: `/market/${encodeURIComponent(stringify(ethUsdCatalogMarket))}`,
 	marketsMarketInvalid: '/market/%7B%7D',
 	marketVenuesHub: '/market-venues',
 	marketVenuesBinance: '/market-venue/Binance',
@@ -139,8 +127,8 @@ export const routeViewSmokePathByLabel: Record<string, `/${string}`> = {
 	channelsChannelDetail: '/channel/e2e-probe-state-channel',
 	leverageHub: '/leverage',
 	servicesHub: '/services',
-	agentServicesList: '/services/agents',
-	agentServiceDetail: '/services/agent/56/104776',
+	eip8004RegistrationsList: '/services/agents',
+	eip8004RegistrationDetail: '/services/agent/56/0x8004a169fb4a3325136eb29fa0ceb6d2e539a432/104776',
 	agentsConversationsList: '/~/agents/conversations',
 	agentConversationWorkspace: '/~/agents/conversation/e2e-probe-agent-conversation',
 	socialHub: '/social',

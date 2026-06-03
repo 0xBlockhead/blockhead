@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -10,19 +10,16 @@
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(assets)/(currencies)/currency/[iso4217]/timestamp/[timestampMs]',
-			{
+		href = resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
 				iso4217: entityId.$currency.iso4217,
-				timestampMs: String(entityId.timestampMs),
-			},
-		),
+		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
@@ -37,10 +34,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const currencyTimestamp = useEntity(
 		EntityType.Currency_Timestamp,
@@ -105,7 +98,23 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			resource={currencyTimestamp}
+			placeholderText="Loading snapshot…"
+		>
+			{#snippet children(currencyTimestamp)}
+				{#if currencyTimestamp.marketCap !== undefined}
+					<CurrencyAmount
+						currency="USD"
+						value={currencyTimestamp.marketCap}
+					/>
+				{:else}
+					<span>
+						{entityId.$currency.iso4217}
+					</span>
+				{/if}
+	{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

@@ -57,7 +57,7 @@ for (const { path, data } of entries) {
 		const id = path.slice(path.lastIndexOf('/') + 1).replace('.json', '')
 		precompileDefs.set(id, {
 			address: parseAddress(data.address),
-			name: data.name ?? id,
+			name: data.name,
 		})
 	}
 }
@@ -147,6 +147,6 @@ export function getPrecompilesIntroducedAtBlock(
 	const schedule = syncedScheduleByChainId.get(chainId)
 	if (!schedule) return []
 	const ids = schedule[String(blockNumber)]
-	if (!ids?.length) return []
+	if (!ids.length) return []
 	return resolvePrecompileIds(ids)
 }

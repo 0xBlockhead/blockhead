@@ -36,7 +36,6 @@
 		subicon?: SubiconProps
 	} = $props()
 
-
 	const a11yLabel = $derived(
 		label ?? alt
 	)
@@ -46,20 +45,11 @@
 <span
 	class="icon shape-{shape}"
 	data-row="center"
-	style={`--icon-size: ${typeof size === 'number' ?
-		`${size}px`
-		:
-			size}`}
+	style={`--icon-size: ${typeof size === 'number' ? `${size}px` : size}`}
 	aria-label={a11yLabel || undefined}
-	aria-hidden={a11yLabel ?
-		undefined
-		:
-			true}
+	aria-hidden={a11yLabel ? undefined : true}
 	title={title ?? (alt || undefined)}
-	role={a11yLabel ?
-		'img'
-		:
-			undefined}
+	role={a11yLabel ? 'img' : undefined}
 >
 	<span
 		data-row
