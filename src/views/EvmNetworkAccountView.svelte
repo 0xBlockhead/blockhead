@@ -110,7 +110,6 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
@@ -145,7 +144,6 @@
 					alt=""
 					shape={IconShape.Square}
 					src={blo(entityId.$actor.address)}
-					size="1.25em"
 				/>
 			{/snippet}
 
@@ -155,7 +153,6 @@
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
 					src={avatarUrl ?? blo(entityId.$actor.address)}
-					size="1.25em"
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -179,20 +176,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={actor}
-		>
-			{#snippet children(actor)}
-				{#if actor.$primaryName?.[EntityMetaKey.Id].name}
-					{actor.$primaryName?.[EntityMetaKey.Id].name}
-				{:else}
-					<TruncatedValue
-						format={TruncatedValueFormat.Visual}
-						value={entityId.$actor.address}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{@render Value()}
 
 		<small data-row="inline align-center wrap" data-text="muted">
 			{' '}on{' '}
@@ -373,10 +357,6 @@
 	{#snippet Details({
 		open: detailsOpen,
 	})}
-		<EntityDetails
-			entityType={EntityType.EvmNetworkAccount}
-			{entityId}
-		/>
 		<CollapsibleTabs
 			id={`${evmNetworkAccountDetailAnchorKey}:carousel-balances`}
 			sectionIdPrefix={evmNetworkAccountDetailAnchorKey}

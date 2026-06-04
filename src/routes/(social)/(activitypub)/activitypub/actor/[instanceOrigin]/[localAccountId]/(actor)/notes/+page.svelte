@@ -21,10 +21,10 @@
 		href={resolve('/activitypub/notes')}
 		entityFieldReference={{
 			entityType: EntityType.ActivityPubActor,
-			({
-		instanceOrigin: decodeURIComponent(params.instanceOrigin),
-		localAccountId: decodeURIComponent(params.localAccountId),
-	}),
+			entityId: {
+				instanceOrigin: decodeURIComponent(params.instanceOrigin),
+				localAccountId: decodeURIComponent(params.localAccountId),
+			},
 			fieldName: '$$notes',
 		}}
 		id="activitypub-actor-notes"

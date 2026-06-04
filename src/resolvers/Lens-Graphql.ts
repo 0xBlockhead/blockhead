@@ -53,6 +53,44 @@ const lensAnyPostSlugFromWire = (
 		undefined
 )
 
+const lensAccountTimestampFieldsFromWire = (
+	wire: {
+		accountStats: {
+			graphFollowStats: {
+				followers?: number | null
+				following?: number | null
+			}
+		}
+	},
+) => ({
+	...(wire.accountStats.graphFollowStats.followers != null && {
+		followerCount: wire.accountStats.graphFollowStats.followers,
+	}),
+	...(wire.accountStats.graphFollowStats.following != null && {
+		followingCount: wire.accountStats.graphFollowStats.following,
+	}),
+})
+
+const lensPostTimestampFieldsFromWire = (
+	post: {
+		stats: {
+			comments?: number | null
+			reposts?: number | null
+			quotes?: number | null
+			bookmarks?: number | null
+			collects?: number | null
+			reactions?: number | null
+		}
+	},
+) => ({
+	...(post.stats.comments != null && { commentCount: post.stats.comments }),
+	...(post.stats.reposts != null && { repostCount: post.stats.reposts }),
+	...(post.stats.quotes != null && { quoteCount: post.stats.quotes }),
+	...(post.stats.bookmarks != null && { bookmarkCount: post.stats.bookmarks }),
+	...(post.stats.collects != null && { collectCount: post.stats.collects }),
+	...(post.stats.reactions != null && { reactionCount: post.stats.reactions }),
+})
+
 const lensGraphqlResolvers = {
 	source: Source.Lens_Graphql,
 
@@ -75,12 +113,7 @@ const lensGraphqlResolvers = {
 					...(displayName != null && { displayName }),
 					...(bio != null && { bio }),
 					...(createdAt != null && { createdAt }),
-					...(wire.accountStats?.graphFollowStats?.followers != null && {
-						followerCount: wire.accountStats.graphFollowStats.followers,
-					}),
-					...(wire.accountStats?.graphFollowStats?.following != null && {
-						followingCount: wire.accountStats.graphFollowStats.following,
-					}),
+					...lensAccountTimestampFieldsFromWire(wire),
 					...((
 						iconMedia,
 					) => (
@@ -101,7 +134,6 @@ const lensGraphqlResolvers = {
 				if (p == null) throw new Error('Lens_Graphql: post not found')
 
 				if (p.__typename === 'Repost') {
-					if (p.author.address == null) throw new Error('Lens_Graphql: post author address missing')
 					const timestamp = optionalTimestampMs(String(p.timestamp))
 					return {
 						...(timestamp != null && { timestamp }),
@@ -119,7 +151,6 @@ const lensGraphqlResolvers = {
 					}
 				}
 
-				if (p.author.address == null) throw new Error('Lens_Graphql: post author address missing')
 				const text = lensMetadataTextFromWire(p.metadata)
 				const timestamp = optionalTimestampMs(String(p.timestamp))
 				return {
@@ -127,24 +158,7 @@ const lensGraphqlResolvers = {
 					...(timestamp != null && { timestamp }),
 					isEdited: p.isEdited,
 					isDeleted: p.isDeleted,
-					...(p.__typename === 'Post' && p.stats?.comments != null && {
-						commentCount: p.stats.comments,
-					}),
-					...(p.__typename === 'Post' && p.stats?.reposts != null && {
-						repostCount: p.stats.reposts,
-					}),
-					...(p.__typename === 'Post' && p.stats?.quotes != null && {
-						quoteCount: p.stats.quotes,
-					}),
-					...(p.__typename === 'Post' && p.stats?.bookmarks != null && {
-						bookmarkCount: p.stats.bookmarks,
-					}),
-					...(p.__typename === 'Post' && p.stats?.collects != null && {
-						collectCount: p.stats.collects,
-					}),
-					...(p.__typename === 'Post' && p.stats?.reactions != null && {
-						reactionCount: p.stats.reactions,
-					}),
+					...lensPostTimestampFieldsFromWire(p),
 					...((postSlug) => (
 						postSlug != null && {
 							$commentOn: { [EntityMetaKey.Id]: { id: postSlug } },
@@ -189,14 +203,7 @@ const lensGraphqlResolvers = {
 				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
 				const wire = await singleFlight(queryAccount)(publicEnv, zeroExLowerCase(entityId.$account.address))
 				if (wire.account == null) throw new Error('Lens_Graphql: account not found')
-				return {
-					...(wire.accountStats?.graphFollowStats?.followers != null && {
-						followerCount: wire.accountStats.graphFollowStats.followers,
-					}),
-					...(wire.accountStats?.graphFollowStats?.following != null && {
-						followingCount: wire.accountStats.graphFollowStats.following,
-					}),
-				}
+				return lensAccountTimestampFieldsFromWire(wire)
 			},
 		}),
 
@@ -207,26 +214,8 @@ const lensGraphqlResolvers = {
 				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
 				const p = (await singleFlight(queryPost)(publicEnv, entityId.$post.id)).post
 				if (p == null) throw new Error('Lens_Graphql: post not found')
-				return {
-					...(p.__typename === 'Post' && p.stats?.comments != null && {
-						commentCount: p.stats.comments,
-					}),
-					...(p.__typename === 'Post' && p.stats?.reposts != null && {
-						repostCount: p.stats.reposts,
-					}),
-					...(p.__typename === 'Post' && p.stats?.quotes != null && {
-						quoteCount: p.stats.quotes,
-					}),
-					...(p.__typename === 'Post' && p.stats?.bookmarks != null && {
-						bookmarkCount: p.stats.bookmarks,
-					}),
-					...(p.__typename === 'Post' && p.stats?.collects != null && {
-						collectCount: p.stats.collects,
-					}),
-					...(p.__typename === 'Post' && p.stats?.reactions != null && {
-						reactionCount: p.stats.reactions,
-					}),
-				}
+				if (p.__typename !== 'Post') return {}
+				return lensPostTimestampFieldsFromWire(p)
 			},
 		}),
 	],
@@ -294,24 +283,7 @@ const lensGraphqlResolvers = {
 							$post: entityId,
 							timestampMs: Date.now(),
 						},
-						...(p.__typename === 'Post' && p.stats?.comments != null && {
-							commentCount: p.stats.comments,
-						}),
-						...(p.__typename === 'Post' && p.stats?.reposts != null && {
-							repostCount: p.stats.reposts,
-						}),
-						...(p.__typename === 'Post' && p.stats?.quotes != null && {
-							quoteCount: p.stats.quotes,
-						}),
-						...(p.__typename === 'Post' && p.stats?.bookmarks != null && {
-							bookmarkCount: p.stats.bookmarks,
-						}),
-						...(p.__typename === 'Post' && p.stats?.collects != null && {
-							collectCount: p.stats.collects,
-						}),
-						...(p.__typename === 'Post' && p.stats?.reactions != null && {
-							reactionCount: p.stats.reactions,
-						}),
+						...(p.__typename === 'Post' && lensPostTimestampFieldsFromWire(p)),
 					},
 				]
 			},
@@ -357,12 +329,7 @@ const lensGraphqlResolvers = {
 							$account: entityId,
 							timestampMs: Date.now(),
 						},
-						...(wire.accountStats?.graphFollowStats?.followers != null && {
-							followerCount: wire.accountStats.graphFollowStats.followers,
-						}),
-						...(wire.accountStats?.graphFollowStats?.following != null && {
-							followingCount: wire.accountStats.graphFollowStats.following,
-						}),
+						...lensAccountTimestampFieldsFromWire(wire),
 					},
 				]
 			},
@@ -395,7 +362,5 @@ const lensGraphqlResolvers = {
 		}),
 	],
 }
-
-export const lensHeyGraphqlResolvers = lensGraphqlResolvers
 
 export default lensGraphqlResolvers

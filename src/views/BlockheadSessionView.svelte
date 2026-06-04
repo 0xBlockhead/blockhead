@@ -18,8 +18,8 @@
 	let {
 		entityId,
 		href = resolve(
-			'/~/(manage)/manage/(profiles)/profile/[profileId]',
-			{ profileId: entityId.id },
+			'/~/(sessions)/session/[sessionId]',
+			{ sessionId: entityId.id },
 		),
 		open = $bindable(true),
 		collapsible = true,
@@ -59,7 +59,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'

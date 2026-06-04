@@ -52,7 +52,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
@@ -202,8 +201,5 @@
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

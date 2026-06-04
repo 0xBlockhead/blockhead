@@ -5,6 +5,11 @@ import {
 	compileSingleRowExpression,
 	extractFieldPath,
 	type Collection,
+	type Context,
+	type OrderByCallback,
+	type OrderByDirection,
+	type OrderByOptions,
+	type QueryBuilder,
 	type Source,
 } from '@tanstack/svelte-db'
 
@@ -14,17 +19,18 @@ import {
 } from '$/lib/tanstackDb/orderByComparison.ts'
 
 
-/** Same tuple shape TanStack’s fluent `.orderBy(callback, options?)` accepts — exported as steps for reuse on queries and arrays */
-type OrderByDirection = 'asc' | 'desc'
-type OrderByOptions = {
-	direction?: OrderByDirection
-	nulls?: 'first' | 'last'
-	stringSort?: 'locale' | 'binary'
-	locale?: string
+type FieldRowContext<_FieldRow> = Context & {
+	baseSchema: {
+		fieldRow: _FieldRow
+	}
+	schema: {
+		fieldRow: _FieldRow
+	}
+	fromSourceName: 'fieldRow'
 }
 
 export type OrderByStep<_FieldRow> = readonly [
-	orderBy: (context: { fieldRow: _FieldRow }) => unknown,
+	orderBy: OrderByCallback<FieldRowContext<_FieldRow>>,
 	options?: OrderByDirection | OrderByOptions,
 ]
 
@@ -35,12 +41,12 @@ type BuilderWithInternalQuery = InstanceType<typeof BaseQueryBuilder> & {
 }
 
 export const foldOrderBySteps = <
-	_Context,
-	QB,
+	_FieldRow,
+	_QueryBuilder extends QueryBuilder<FieldRowContext<_FieldRow>>,
 >(
-	qb: QB,
-	steps: readonly OrderByStep<_Context>[],
-): QB => (
+	qb: _QueryBuilder,
+	steps: readonly OrderByStep<_FieldRow>[],
+): _QueryBuilder => (
 	steps.reduce(
 		(acc, step) => (
 			step[1] === undefined ?
@@ -49,7 +55,7 @@ export const foldOrderBySteps = <
 				acc.orderBy(step[0], step[1])
 		),
 		qb,
-	) as unknown as QB
+	) as _QueryBuilder
 )
 
 /** Compile steps using the same builder IR TanStack uses internally (requires a real `from` source). */

@@ -3,11 +3,6 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 
-
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	let { data }: PageProps = $props()
 
 

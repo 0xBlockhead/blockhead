@@ -88,7 +88,6 @@
 	import ActivityPubActorsView from '$/views/ActivityPubActorsView.svelte'
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

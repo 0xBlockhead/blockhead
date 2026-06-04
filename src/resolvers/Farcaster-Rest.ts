@@ -56,6 +56,11 @@ export default {
 							$user: {
 								[EntityMetaKey.Id]: entityId,
 							},
+							$evmAccount: {
+								[EntityMetaKey.Id]: {
+									address: ethAddress,
+								},
+							},
 								protocol: 'ethereum' as const,
 								address: ethAddress,
 							}]),
@@ -70,6 +75,17 @@ export default {
 								},
 							$user: {
 								[EntityMetaKey.Id]: entityId,
+							},
+							$solanaAccount: {
+								[EntityMetaKey.Id]: {
+									$network: {
+										caip2: {
+											namespace: 'solana',
+											reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+										},
+									},
+									pubkey: solAddress,
+								},
 							},
 								protocol: 'solana' as const,
 								address: solAddress,

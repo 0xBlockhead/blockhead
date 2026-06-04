@@ -21,10 +21,10 @@
 		href={resolve('/activitypub/notes')}
 		entityFieldReference={{
 			entityType: EntityType.ActivityPubNote,
-			({
-		instanceOrigin: decodeURIComponent(params.instanceOrigin),
-		localStatusId: decodeURIComponent(params.localStatusId),
-	}),
+			entityId: {
+				instanceOrigin: decodeURIComponent(params.instanceOrigin),
+				localStatusId: decodeURIComponent(params.localStatusId),
+			},
 			fieldName: '$$thread',
 		}}
 		id="activitypub-note-thread"

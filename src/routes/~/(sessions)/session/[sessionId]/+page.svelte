@@ -1,21 +1,18 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
-	// State
+	// Props
 	let {
 		params,
 	} = $props()
 
+
 	// Components
-	import Page from '$/components/Page.svelte'
 	import BlockheadSessionView from '$/views/BlockheadSessionView.svelte'
+	import Page from '$/components/Page.svelte'
 </script>
 
 
 <Page>
 	<BlockheadSessionView
-		entityId={{ id: params.profileId }}
+		entityId={{ id: params.sessionId }}
 	/>
 </Page>

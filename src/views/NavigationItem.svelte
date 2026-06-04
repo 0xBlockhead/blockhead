@@ -133,7 +133,72 @@
 		summaryAttrs={{ 'data-sticky': '', 'data-row': 'start gap-2' }}
 	>
 		{#snippet Content({ node })}
-			{#if node.href}
+			{#if node.href && node.address}
+				{@const navHref = node.href}
+				<span
+					data-row="start"
+					aria-current={currentPathname === node.href ? 'page' : undefined}
+				>
+					<span
+						data-row="start inline"
+						data-row-item="flexible"
+					>
+						{#if LabelSnippet}
+							{@render LabelSnippet({ node })}
+						{:else if node.address.network}
+							<EvmNetworkAccountView
+								entityId={{
+									$network: {
+										caip2: {
+											namespace: 'eip155',
+											reference: String(node.address.network.chainId),
+										},
+									},
+									$actor: { address: node.address.address },
+								}}
+								href={navHref}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						{:else}
+							<EvmAccountView
+								entityId={{ address: node.address.address }}
+								href={navHref}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						{/if}
+					</span>
+
+					{#if node.tag || node.manualWatch}
+						<span data-row="start gap-1">
+							{#if node.tag}
+								<span
+									data-tag={node.tag}
+									data-row="start gap-1"
+								>
+									{#if node.tagIcon}
+										<Icon
+											{...navIconProps(node.tagIcon)}
+											size="1em"
+										/>
+									{/if}
+
+									{node.tag}
+								</span>
+							{/if}
+
+							{#if node.manualWatch}
+								<Icon
+									icon="★"
+									label="Pinned"
+									size="1em"
+								/>
+							{/if}
+						</span>
+					{/if}
+				</span>
+			{:else if node.href}
 				{@const navHref = node.href}
 				<a
 					href={navHref}
@@ -156,42 +221,17 @@
 						{#if LabelSnippet}
 							{@render LabelSnippet({ node })}
 						{:else}
-							{#if node.address?.network}
-								<EvmNetworkAccountView
-									entityId={{
-										$network: {
-											caip2: {
-												namespace: 'eip155',
-												reference: String(node.address.network.chainId),
-											},
-										},
-										$actor: { address: node.address.address },
-									}}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							{:else if node.address}
-								<EvmAccountView
-									entityId={{ address: node.address.address }}
-									href={resolve('/account/[address]', {
-										address: node.address.address,
-									})}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							{:else if node.icon}
+							{#if node.icon}
 								<Icon
 									{...navIconProps(node.icon)}
 									size="1em"
 								/>
 							{/if}
 
-							{#if !node.address}
-								<SearchableText
-									text={node.title}
-									query={searchFilter}
-								/>
-							{/if}
+							<SearchableText
+								text={node.title}
+								query={searchFilter}
+							/>
 						{/if}
 					</span>
 

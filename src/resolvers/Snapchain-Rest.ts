@@ -106,6 +106,26 @@ export default {
 									$user: {
 										[EntityMetaKey.Id]: entityId,
 									},
+									...(protocol === 'ethereum' && {
+										$evmAccount: {
+											[EntityMetaKey.Id]: {
+												address,
+											},
+										},
+									}),
+									...(protocol === 'solana' && {
+										$solanaAccount: {
+											[EntityMetaKey.Id]: {
+												$network: {
+													caip2: {
+														namespace: 'solana',
+														reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+													},
+												},
+												pubkey: address,
+											},
+										},
+									}),
 									protocol,
 									address,
 								}]

@@ -112,7 +112,6 @@
 	// Components
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
 

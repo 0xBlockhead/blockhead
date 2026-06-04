@@ -1,11 +1,10 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
 
@@ -30,7 +29,6 @@
 
 	// State
 	let {
-		children,
 		entityId,
 		href = resolve('/account/[address]', { address: entityId.address }),
 		title = 'Account',
@@ -39,7 +37,6 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmAccount>
 			title?: string
 			href?: string
@@ -202,7 +199,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
@@ -229,55 +225,50 @@
 	{...EntityViewProps}
 >
 	{#snippet Icon()}
-		{#if true}
-			{#snippet ActorIconPending()}
+		<ResourceBoundary
+			resource={actor}
+		>
+			{#snippet Pending()}
 				<IconComponent
 					alt=""
 					shape={IconShape.Square}
 					src={blo(entityId.address)}
-					size="1.5em"
 				/>
 			{/snippet}
 
-				{#snippet ActorIconBody(actor: Entity<typeof schema, EntityType.EvmAccount>)}
+			{#snippet children(actor)}
 				{@const avatarUrl = actor.$icon?.[EntityMetaKey.Id].url}
 				<IconComponent
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
 					src={avatarUrl ?? blo(entityId.address)}
-					size="1.5em"
-					title={actor.$primaryName?.[EntityMetaKey.Id].name ?? entityId.address}
 				/>
 			{/snippet}
-
-			<ResourceBoundary
-				Pending={ActorIconPending}
-				children={ActorIconBody}
-				placeholderText=""
-				resource={actor}
-			/>
-		{/if}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue
-			format={TruncatedValueFormat.Visual}
-			value={entityId.address}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		{#if true}
-			{#snippet ActorHeadingBody(actor: Entity<typeof schema, EntityType.EvmAccount>)}
-				{actor.$primaryName?.[EntityMetaKey.Id].name ?? entityId.address}
+		<ResourceBoundary
+			resource={actor}
+		>
+			{#snippet Pending()}
+				<TruncatedValue
+					format={TruncatedValueFormat.Visual}
+					value={entityId.address}
+				/>
 			{/snippet}
 
-			<ResourceBoundary
-				children={ActorHeadingBody}
-				placeholderText="Loading account…"
-				resource={actor}
-			/>
-		{/if}
+			{#snippet children(actor)}
+				{#if actor.$primaryName?.[EntityMetaKey.Id].name}
+					{actor.$primaryName?.[EntityMetaKey.Id].name}
+				{:else}
+					<TruncatedValue
+						format={TruncatedValueFormat.Visual}
+						value={entityId.address}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -345,10 +336,6 @@
 	{#snippet Details({
 		open,
 	})}
-		<EntityDetails
-			entityType={EntityType.EvmAccount}
-			{entityId}
-		/>
 		<CollapsibleTabs
 			id={`${idKey}:carousel-identity`}
 			sectionIdPrefix={idKey}
@@ -635,9 +622,5 @@
 				{/each}
 			{/snippet}
 			</CollapsibleTabs>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

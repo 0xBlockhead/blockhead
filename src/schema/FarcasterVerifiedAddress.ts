@@ -29,5 +29,17 @@ export default {
 			entityType: EntityType.FarcasterUser,
 			cardinality: EntityFieldCardinality.One,
 		},
+		{
+			name: '$evmAccount',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$solanaAccount',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.SolanaAccount,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

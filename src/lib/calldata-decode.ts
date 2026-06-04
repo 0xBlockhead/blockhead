@@ -54,7 +54,7 @@ export const parseFunctionSignature = (sig: string): { name: string, types: stri
 	const match = /^(\w+)\s*\((.*)\)\s*$/.exec(sig.trim())
 	if (!match) return null
 	const [, name, paramsBody] = match
-	if (paramsBody.trim() === '') return { name: name ?? '', types: [] }
+	if (paramsBody.trim() === '') return { name, types: [] }
 	const types: string[] = []
 	let depth = 0
 	let start = 0
@@ -68,7 +68,7 @@ export const parseFunctionSignature = (sig: string): { name: string, types: stri
 		}
 	}
 	types.push(paramsBody.slice(start).trim())
-	return { name: name ?? '', types }
+	return { name, types }
 }
 
 /**
@@ -134,7 +134,7 @@ export const decodeLogWithSignature = (
 		:
 			hex.toLowerCase()
 	)
-	if (topics.length === 0 || topics[0] == null || topics[0] === '') return null
+	if (topics.length === 0 || topics[0] === '') return null
 	const parsed = parseEventSignature(signature)
 	if (!parsed) return null
 	const indexedCount = parsed.indexedTypes.length
@@ -166,7 +166,7 @@ export const decodeLogWithContractAbi = (
 	topics: readonly string[],
 	data: string,
 ): { signature: string, decoded: DecodedCalldata } | null => {
-	if (topics.length === 0 || topics[0] == null || topics[0] === '' || data === '') return null
+	if (topics.length === 0 || topics[0] === '' || data === '') return null
 
 	for (const entry of abi) {
 		if (entry.type !== 'event' || entry.name == null) continue
@@ -188,7 +188,7 @@ export const decodeLogWithContractAbiJson = (
 	topics: readonly string[],
 	data: string,
 ): { signature: string, decoded: DecodedCalldata } | null => {
-	if (topics.length === 0 || topics[0] == null || topics[0] === '' || data === '') return null
+	if (topics.length === 0 || topics[0] === '' || data === '') return null
 	let parsed: unknown
 	try {
 		parsed = JSON.parse(abiJson)

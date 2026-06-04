@@ -2,11 +2,6 @@
 	// Types/constants
 	import { EntityType } from '$/schema/$EntityType.ts'
 
-
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		params,

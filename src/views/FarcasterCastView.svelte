@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -17,7 +17,6 @@
 
 	// State
 	let {
-		children,
 		entityId,
 		href = resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
 			fid: String(entityId.fid),
@@ -28,7 +27,6 @@
 			...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.FarcasterCast>
 			href?: string
 			variant?: 'feed' | 'hub'
@@ -95,8 +93,7 @@
 
 	// Components
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -190,37 +187,33 @@
 	{/snippet}
 
 	{#snippet Content({})}
+		<ResourceBoundary
+			resource={cast}
+			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+		>
+			{#snippet children(cast)}
+				{@const flatText = cast.text?.replaceAll('\n', ' ') ?? ''}
+				{#if (
+					flatText !== ''
+					&& variant === 'feed'
+				)}
+					<p>
+						<TruncatedValue
+							value={flatText}
+							startLength={120}
+							endLength={48}
+							format={TruncatedValueFormat.Abbr}
+						/>
+					</p>
+				{:else if flatText !== ''}
+					<p>
+						{cast.text ?? ''}
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+
 		<dl>
-			<div>
-				<dt>Text</dt>
-				<dd>
-					<ResourceBoundary
-						resource={cast}
-						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
-					>
-						{#snippet children(cast)}
-							{@const flatText = cast.text?.replaceAll('\n', ' ') ?? ''}
-							{#if (
-								flatText !== ''
-								&& variant === 'feed'
-							)}
-								<p>
-									<TruncatedValue
-										value={flatText}
-										startLength={120}
-										endLength={48}
-										format={TruncatedValueFormat.Abbr}
-									/>
-								</p>
-							{:else if flatText !== ''}
-								<p>
-									{cast.text ?? ''}
-								</p>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
@@ -433,21 +426,12 @@
 		<CollapsibleTabs
 			id={`${castDetailKey}:carousel-cast`}
 			sectionIdPrefix={castDetailKey}
-			sections={(
-				children ?
-					collapsibleTabsSections([
-						{ id: 'cast-record', label: 'Record' },
-						{ id: 'cast-more', label: 'More' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])
-				:
-					collapsibleTabsSections([
-						{ id: 'cast-record', label: 'Record' },
-						{ id: 'cast-thread', label: 'Thread' },
-						{ id: 'cast-media', label: 'Embeds' },
-						{ id: 'metric-snapshots', label: 'Metrics' },
-					])
-			)}
+			sections={collapsibleTabsSections([
+				{ id: 'cast-record', label: 'Record' },
+				{ id: 'cast-thread', label: 'Thread' },
+				{ id: 'cast-media', label: 'Embeds' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
 			data-card
 		>
 			{#snippet Summary({
@@ -466,15 +450,8 @@
 			{#snippet SectionCastRecord()}
 			{/snippet}
 
-			{#snippet SectionCastMore()}
-				{#if children}
-					{@render children()}
-				{/if}
-			{/snippet}
-
 			{#snippet SectionCastThread()}
-				{#if !children}
-					<ResourceBoundary
+				<ResourceBoundary
 						resource={cast}
 						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
@@ -587,11 +564,10 @@
 								</section>
 							{/snippet}
 						</ResourceBoundary>
-					{/if}
-				{/snippet}
+			{/snippet}
 
 			{#snippet SectionCastMedia()}
-				{#if !children && open}
+				{#if open}
 				<ResourceBoundary
 					resource={cast}
 					placeholderText="Loading cast mentions, channel ids & embeds…"

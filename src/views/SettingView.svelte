@@ -6,8 +6,6 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { SvelteSet } from 'svelte/reactivity'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
@@ -60,12 +58,7 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
-	import UnorderedList from '$/components/UnorderedList.svelte'
 </script>
 
 

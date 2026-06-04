@@ -11,7 +11,6 @@
 
 
 	// Components
-	import BlockheadSessionsView from '$/views/BlockheadSessionsView.svelte'
 	import BlockheadSourcesView from '$/views/BlockheadSourcesView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -23,7 +22,7 @@
 <Page>
 	<GlobalView
 		entityId={{ scope: 'Manage' }}
-		title={'Manage'}
+		title="Manage"
 		href={resolve('/~/manage')}
 	>
 		{#snippet children({ open: hubOpen,
@@ -53,16 +52,9 @@
 				{/snippet}
 
 				{#snippet SectionProfiles({ id, label })}
-					<BlockheadSessionsView
-						href={resolve('/~/manage/profiles')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: { scope: '$$blockheadSessions' },
-							fieldName: '$$blockheadSessions',
-						}}
-						id="profiles"
-						open={hubOpen}
-					/>
+					<p data-text="muted">
+						Profiles are not wired yet.
+					</p>
 				{/snippet}
 
 				{#snippet SectionSources({ id, label })}

@@ -18,34 +18,28 @@
 	} from '$/routes/+layout.svelte'
 
 
-	const entityQueryByEntityType = Object.fromEntries(
-		schema.map((entityDefinition) => [
-			entityDefinition.entityType,
-			useLiveQuery((queryBuilder) => (
+	const inspectionRows = schema.map((entityDefinition) => (
+		{
+			entityDefinition,
+			entityQuery: useLiveQuery((queryBuilder) => (
 				queryBuilder
 					.from({ entity: entityCollectionByEntityType[entityDefinition.entityType] })
 					.select(({ entity }) => ({ entity }))
 			)),
-		] as const),
-	)
-
-	const entityFieldQueryByEntityType = Object.fromEntries(
-		schema.map((entityDefinition) => [
-			entityDefinition.entityType,
-			Object.fromEntries(
-				entityDefinition.fields.map((field) => [
-					field.name,
-					useLiveQuery((queryBuilder) => (
+			fieldRows: entityDefinition.fields.map((field) => (
+				{
+					field,
+					entityFieldQuery: useLiveQuery((queryBuilder) => (
 						queryBuilder
 							.from({
 								entityField: entityFieldCollections[entityDefinition.entityType][field.name],
 							})
 							.select(({ entityField }) => ({ entityField }))
 					)),
-				] as const),
-			),
-		] as const),
-	)
+				}
+			)),
+		}
+	))
 
 
 	// Components
@@ -60,9 +54,7 @@
 			Grouped by type. Expand a type to see stored rows and each related field group.
 		</p>
 
-		{#each schema as entityDefinition (entityDefinition.entityType)}
-			{@const entityQuery = entityQueryByEntityType[entityDefinition.entityType]}
-
+		{#each inspectionRows as { entityDefinition, entityQuery, fieldRows } (entityDefinition.entityType)}
 			<details
 				data-card
 				class="collection-domain"
@@ -116,9 +108,7 @@
 						{/if}
 					</details>
 
-					{#each entityDefinition.fields as field (field.name)}
-						{@const entityFieldQuery = entityFieldQueryByEntityType[entityDefinition.entityType][field.name]}
-
+					{#each fieldRows as { field, entityFieldQuery } (field.name)}
 						<details
 							data-card
 							class="collection-field"

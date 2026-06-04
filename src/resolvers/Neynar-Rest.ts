@@ -128,6 +128,11 @@ export default {
 							$user: {
 								[EntityMetaKey.Id]: entityId,
 							},
+							$evmAccount: {
+								[EntityMetaKey.Id]: {
+									address,
+								},
+							},
 								protocol: 'ethereum' as const,
 								address,
 						})),
@@ -139,6 +144,17 @@ export default {
 								},
 							$user: {
 								[EntityMetaKey.Id]: entityId,
+							},
+							$solanaAccount: {
+								[EntityMetaKey.Id]: {
+									$network: {
+										caip2: {
+											namespace: 'solana',
+											reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+										},
+									},
+									pubkey: address,
+								},
 							},
 								protocol: 'solana' as const,
 								address,

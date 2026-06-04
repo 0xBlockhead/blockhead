@@ -305,7 +305,6 @@
 	import UrlsView from '$/views/UrlsView.svelte'
 	import EvmNetwork_GasEstimate_TimestampView from '$/views/EvmNetwork_GasEstimate_TimestampView.svelte'
 	import EvmNetwork_GasEstimate_TimestampsView from '$/views/EvmNetwork_GasEstimate_TimestampsView.svelte'
-	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 	import EvmRollupView from '$/views/EvmRollupView.svelte'
 	import EvmRollupsView from '$/views/EvmRollupsView.svelte'
 	import EvmNetwork_GasFee_BlocksView from '$/views/EvmNetwork_GasFee_BlocksView.svelte'

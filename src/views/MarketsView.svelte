@@ -11,7 +11,6 @@
 	import { marketCatalogFieldSources } from '$/constants/Market.ts'
 	import type { MarketVenueId } from '$/constants/MarketVenue.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 

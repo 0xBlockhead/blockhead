@@ -62,5 +62,11 @@ export default {
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,
 		},
+		{
+			name: 'error',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

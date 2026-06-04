@@ -55,7 +55,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -117,30 +116,24 @@
 	{/snippet}
 
 	{#snippet Content({})}
+		<ResourceBoundary
+			resource={turn}
+			placeholderText="Loading turn…"
+		>
+			{#snippet children(turn)}
+				{#if turn.userPrompt !== ''}
+					<p>{turn.userPrompt}</p>
+				{:else}
+					<p data-text="muted">Empty prompt.</p>
+				{/if}
+
+				{#if open && turn.assistantText != null && turn.assistantText !== ''}
+					<p>{turn.assistantText}</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+
 		<dl data-column-item="center">
-			{#if !open}
-				<div>
-					<dt>User prompt</dt>
-					<dd>
-						{#if true}
-							{#snippet TurnPromptSummary(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
-								{#if turn.userPrompt !== ''}
-									<p>{turn.userPrompt}</p>
-								{:else}
-									<span data-text="muted">Empty prompt.</span>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={TurnPromptSummary}
-								placeholderText="Loading turn…"
-								resource={turn}
-							/>
-						{/if}
-					</dd>
-				</div>
-			{/if}
-
 			<div>
 				<dt>Status</dt>
 				<dd>
@@ -162,27 +155,6 @@
 
 			{#if open}
 				<div>
-					<dt>User prompt</dt>
-					<dd>
-						{#if true}
-							{#snippet TurnPromptRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
-								{#if turn.userPrompt !== ''}
-									<p>{turn.userPrompt}</p>
-								{:else}
-									<span data-text="muted">Empty prompt.</span>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={TurnPromptRow}
-								placeholderText="Loading turn…"
-								resource={turn}
-							/>
-						{/if}
-					</dd>
-				</div>
-
-				<div>
 					<dt>Created</dt>
 					<dd>
 						{#if true}
@@ -202,32 +174,9 @@
 						{/if}
 					</dd>
 				</div>
+			{/if}
 
-				<div>
-					<dt>Assistant reply</dt>
-					<dd>
-						{#if true}
-							{#snippet TurnAssistantRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
-								{#if turn.assistantText != null && turn.assistantText !== ''}
-									<p>
-										{turn.assistantText}
-									</p>
-								{:else}
-									<span data-text="muted">
-										No assistant text yet.
-									</span>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={TurnAssistantRow}
-								placeholderText="Loading turn…"
-								resource={turn}
-							/>
-						{/if}
-					</dd>
-				</div>
-
+			{#if open}
 				<div>
 					<dt>Provider</dt>
 					<dd>
@@ -253,7 +202,9 @@
 						{/if}
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Prompt version</dt>
 					<dd>
@@ -276,7 +227,9 @@
 						{/if}
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Parent turn</dt>
 					<dd>
@@ -303,7 +256,9 @@
 						{/if}
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Error</dt>
 					<dd>

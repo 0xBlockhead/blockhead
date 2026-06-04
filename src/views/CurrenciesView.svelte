@@ -8,7 +8,6 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { SvelteSet } from 'svelte/reactivity'
 
 	type CurrencyOrderFieldRow = {
 		[EntityMetaKey.Value]: {

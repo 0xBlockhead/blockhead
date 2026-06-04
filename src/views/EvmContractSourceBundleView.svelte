@@ -56,7 +56,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
@@ -146,8 +145,5 @@
 				</div>
 			</dl>
 		{/if}
-	{/snippet}
-
-	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

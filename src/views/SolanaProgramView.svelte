@@ -3,6 +3,7 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
@@ -31,14 +32,17 @@
 		entityId,
 		{
 			name: {},
+			$programAccount: {},
+			$upgradeAuthority: {},
 		},
 	)
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
 </script>
 
 
@@ -68,6 +72,32 @@
 						<div>
 							<dt>Name</dt>
 							<dd>{solanaProgram.name}</dd>
+						</div>
+					{/if}
+
+					{#if solanaProgram.$programAccount}
+						<div>
+							<dt>Program account</dt>
+							<dd>
+								<SolanaAccountView
+									entityId={solanaProgram.$programAccount[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if solanaProgram.$upgradeAuthority}
+						<div>
+							<dt>Upgrade authority</dt>
+							<dd>
+								<SolanaAccountView
+									entityId={solanaProgram.$upgradeAuthority[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
 						</div>
 					{/if}
 				</dl>

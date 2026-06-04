@@ -6,7 +6,6 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -59,11 +58,10 @@
 
 	// Components
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
-	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -181,26 +179,30 @@
 					>
 						{#snippet children(farcasterUser)}
 							{#if farcasterUser.$$verifiedAddresses.length}
-								<ul data-column="gap-2">
-									{#each farcasterUser.$$verifiedAddresses as verification (String(verification[EntityMetaKey.Id].protocol) + ':' + verification[EntityMetaKey.Id].address)}
-										<li>
-												{#if verification[EntityMetaKey.Id].protocol === 'ethereum'}
+									<ul data-column="gap-2">
+										{#each farcasterUser.$$verifiedAddresses as verification (String(verification[EntityMetaKey.Id].protocol) + ':' + verification[EntityMetaKey.Id].address)}
+											<li>
+												{#if verification.$evmAccount}
 													<EvmAccountView
-														entityId={{
-															address: EvmAddress.assert(verification[EntityMetaKey.Id].address),
-														}}
+														entityId={verification.$evmAccount[EntityMetaKey.Id]}
 														href={resolve('/account/[address]', {
-														address: verification[EntityMetaKey.Id].address,
-													})}
-													layout={EntityLayout.Title}
+															address: verification.$evmAccount[EntityMetaKey.Id].address,
+														})}
+														layout={EntityLayout.Title}
 														open={false}
-												/>
-											{:else}
-												<span data-text="mono muted">
-													solana:{verification[EntityMetaKey.Id].address}
-												</span>
-											{/if}
-										</li>
+													/>
+												{:else if verification.$solanaAccount}
+													<SolanaAccountView
+														entityId={verification.$solanaAccount[EntityMetaKey.Id]}
+														layout={EntityLayout.Title}
+														open={false}
+													/>
+												{:else}
+													<span data-text="mono muted">
+														{verification[EntityMetaKey.Id].protocol}:{verification[EntityMetaKey.Id].address}
+													</span>
+												{/if}
+											</li>
 									{/each}
 								</ul>
 							{/if}
@@ -247,29 +249,6 @@
 				</div>
 			{/if}
 
-			{#if (
-				open
-				&& farcasterUserRow?.$icon?.[EntityMetaKey.Id].url != null
-			)}
-				<div>
-					<dt>Profile image</dt>
-					<dd>
-						<ResourceBoundary
-							resource={farcasterUser}
-							placeholderText="Loading profile…"
-							>
-								{#snippet children(farcasterUser)}
-									{#if farcasterUser.$icon !== undefined}
-										<Media
-											media={{ url: farcasterUser.$icon[EntityMetaKey.Id].url }}
-											alt={farcasterUser.displayName ?? farcasterUser.username ?? ''}
-										/>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
 		</dl>
 	{/snippet}
 

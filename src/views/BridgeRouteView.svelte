@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -17,7 +17,6 @@
 
 	// State
 	let {
-		children,
 		entityId,
 		href = resolve(`/bridge/route/${encodeURIComponent(stringify(entityId))}`),
 		open = $bindable(true),
@@ -25,7 +24,6 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BridgeRoute>
 			href?: string
 			open?: boolean
@@ -62,7 +60,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -314,9 +311,4 @@
 			/>
 		{/if}
 	{/snippet}
-
-	{#snippet Details({ open })}
-	{/snippet}
-
-	{@render children?.()}
 </EntityView>

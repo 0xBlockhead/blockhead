@@ -18,6 +18,18 @@ export const useNavigationItems = () => {
 			defaultIsOpen: true,
 			children: [
 				{
+					id: 'local-connections',
+					title: 'Connections',
+					href: '/~/accounts/connections',
+					icon: '🔌',
+				},
+				{
+					id: 'local-watched-accounts',
+					title: 'Watched accounts',
+					href: '/~/accounts/watched-accounts',
+					icon: '👛',
+				},
+				{
 					id: 'local-balances',
 					title: 'Balances',
 					href: '/~/accounts/balances',
@@ -42,6 +54,14 @@ export const useNavigationItems = () => {
 					icon: '🧾',
 				},
 			],
+		},
+		{
+			id: 'local-sessions',
+			title: 'Sessions',
+			href: '/~/sessions',
+			icon: '🧪',
+			defaultIsOpen: true,
+			children: [],
 		},
 		{
 			id: 'explore',

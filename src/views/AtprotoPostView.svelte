@@ -79,7 +79,6 @@
 	import AtprotoPost_TimestampsView from '$/views/AtprotoPost_TimestampsView.svelte'
 	import AtprotoPostThreadView from '$/views/AtprotoPostThreadView.svelte'
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

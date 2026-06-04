@@ -58,12 +58,10 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import BlockheadAgentConversationTurnsView from '$/views/BlockheadAgentConversationTurnsView.svelte'
 </script>
 
 
@@ -105,6 +103,28 @@
 	{/snippet}
 
 	{#snippet Content({})}
+		{#if open}
+			{#if true}
+				{#snippet ConversationSystemPromptProse(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
+					{#if conversation.systemPrompt !== ''}
+						<p>
+							{conversation.systemPrompt}
+						</p>
+					{:else}
+						<p data-text="muted">
+							Empty.
+						</p>
+					{/if}
+				{/snippet}
+
+				<ResourceBoundary
+					children={ConversationSystemPromptProse}
+					placeholderText="Loading conversation…"
+					resource={conversation}
+				/>
+			{/if}
+		{/if}
+
 		<dl data-column-item="center">
 			<div>
 				<dt>Pinned</dt>
@@ -171,7 +191,9 @@
 						{/if}
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Updated</dt>
 					<dd>
@@ -192,7 +214,9 @@
 						{/if}
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Default connection</dt>
 					<dd>
@@ -218,7 +242,9 @@
 						{/if}
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Default model</dt>
 					<dd>
@@ -244,32 +270,8 @@
 						{/if}
 					</dd>
 				</div>
-
-				<div>
-					<dt>System prompt</dt>
-					<dd>
-						{#if true}
-							{#snippet ConversationSystemPromptRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
-								{#if conversation.systemPrompt !== ''}
-									<p>
-										{conversation.systemPrompt}
-									</p>
-								{:else}
-									<span data-text="muted">
-										Empty.
-									</span>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={ConversationSystemPromptRow}
-								placeholderText="Loading conversation…"
-								resource={conversation}
-							/>
-						{/if}
-					</dd>
-				</div>
 			{/if}
+
 		</dl>
 	{/snippet}
 

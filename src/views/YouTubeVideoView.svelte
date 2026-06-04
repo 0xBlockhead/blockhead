@@ -88,7 +88,6 @@
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -191,6 +190,9 @@
 						/>
 					{/snippet}
 				</ResourceBoundary>
+			{/if}
+
+			{#if open}
 				<div>
 					<dt>Category</dt>
 					<dd>
@@ -206,6 +208,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
+
+			{#if open}
 				<div>
 					<dt>Live broadcast</dt>
 					<dd>
@@ -221,6 +226,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
+
+			{#if open}
 				<div>
 					<dt>Tags</dt>
 					<dd>
@@ -236,6 +244,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
+
+			{#if open}
 				<div>
 					<dt>Duration</dt>
 					<dd>
@@ -251,6 +262,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
+
+			{#if open}
 				<div>
 					<dt>Published</dt>
 					<dd>
@@ -268,6 +282,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
+
+			{#if open}
 				<div>
 					<dt>Channel</dt>
 					<dd>
@@ -279,7 +296,7 @@
 								{#if video.$author}
 									<YouTubeChannelView
 										entityId={video.$author[EntityMetaKey.Id]}
-										layout={EntityLayout.Value}
+										layout={EntityLayout.Title}
 										open={false}
 									/>
 								{/if}
@@ -287,31 +304,8 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
-				<div>
-					<dt>Thumbnail</dt>
-					<dd>
-						<ResourceBoundary
-							resource={video}
-							placeholderText="Loading video…"
-						>
-							{#snippet children(video)}
-								{#if video.thumbnailUrl}
-									<a
-										href={video.thumbnailUrl}
-										rel="noreferrer"
-										target="_blank"
-									>
-										<img
-											alt=""
-											src={video.thumbnailUrl}
-										/>
-									</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
 			{/if}
+
 		</dl>
 	{/snippet}
 

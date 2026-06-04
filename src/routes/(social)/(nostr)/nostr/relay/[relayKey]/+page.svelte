@@ -2,11 +2,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 
-
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	let { data }: PageProps = $props()
 
 

@@ -419,9 +419,7 @@ const defaultEvmErrors: readonly NormalizedEvmError[] = [
 ]
 
 const defaultNormalizedLocalInternal: NormalizedLocalInternal = {
-	actors: [
-		{ address: '0xd8da6bf26964af9d7eed9e403e826090792bed6a' },
-	],
+	actors: [],
 	xmtpConversations: [
 		{
 			id: 'e2e-probe-conversation',

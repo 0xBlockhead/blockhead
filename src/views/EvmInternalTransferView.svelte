@@ -70,13 +70,10 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 

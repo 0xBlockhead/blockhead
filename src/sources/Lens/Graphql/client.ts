@@ -7,7 +7,10 @@ import {
 import { getJson } from '$/lib/http.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { lensGraphqlUrl } from '$/sources/Lens/Graphql/constants.ts'
+import {
+	lensGraphqlUrl,
+	lensHeyGraphqlUrl,
+} from '$/sources/Lens/Graphql/constants.ts'
 import Lens from '$/sources/Lens/index.ts'
 
 import type { introspection } from './graphql-env.d.ts'
@@ -30,6 +33,11 @@ type LensGqlResponse<_Result> = {
 	}[]
 }
 
+const lensGraphqlUrls = [
+	lensGraphqlUrl,
+	lensHeyGraphqlUrl,
+] as const
+
 export const queryLens = async <
 	_Result extends {
 		[key: string]: any
@@ -49,25 +57,40 @@ export const queryLens = async <
 		:
 			''
 	)
-	const out = await getJson<LensGqlResponse<_Result>>(lensGraphqlUrl, {
-		origins: Lens.origins ?? [],
-		init: {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Accept: 'application/json',
-				...(trimmedApiKey !== '' && { 'x-lens-app': trimmedApiKey }),
-			},
-			body: JSON.stringify({
-				query: print(document),
-				variables,
-			}),
-		},
-	})
+	let lastError: Error | undefined
+	for (const url of lensGraphqlUrls) {
+		try {
+			const out = await getJson<LensGqlResponse<_Result>>(url, {
+				origins: Lens.origins,
+				init: {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Accept: 'application/json',
+						...(trimmedApiKey !== '' && { 'x-lens-app': trimmedApiKey }),
+					},
+					body: JSON.stringify({
+						query: print(document),
+						variables,
+					}),
+				},
+			})
 
-	if (out.errors?.[0]?.message != null) {
-		throw new Error(`Lens_Graphql: ${out.errors[0].message}`)
+			if (out.errors?.[0]?.message != null) {
+				throw new Error(`Lens_Graphql: ${out.errors[0].message}`)
+			}
+
+			return out.data
+		}
+		catch (error) {
+			lastError = (
+				error instanceof Error ?
+					error
+				:
+					new Error(String(error))
+			)
+		}
 	}
 
-	return out.data
+	throw lastError ?? new Error('Lens_Graphql: all endpoints failed')
 }

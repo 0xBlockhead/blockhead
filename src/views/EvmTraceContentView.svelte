@@ -2,11 +2,6 @@
 	// Types/constants
 	import type { EvmTraceTree } from '$/schema/EvmTrace.ts'
 
-
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		trace,

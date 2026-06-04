@@ -34,7 +34,7 @@
 				sectionIdPrefix={hubKey}
 				sections={[
 					{ id: 'connections', label: 'Connections' },
-					{ id: 'wallets', label: 'Wallets' },
+					{ id: 'watched-accounts', label: 'Watched accounts' },
 					{ id: 'balances', label: 'Balances' },
 				]}
 				data-card
@@ -61,9 +61,9 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionWallets({ id, label })}
+				{#snippet SectionWatchedAccounts({ id, label })}
 					<EvmAccountsView
-						href={resolve('/~/accounts')}
+						href={resolve('/~/accounts/watched-accounts')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
 							entityId: { scope: '$$actors' },
@@ -76,7 +76,7 @@
 
 				{#snippet SectionBalances({ id, label })}
 					<EvmNetworkActorCoinBalancesView
-						href={resolve('/~/(accounts)/accounts/balances')}
+						href={resolve('/~/accounts/balances')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
 							entityId: { scope: '$$actorCoins' },

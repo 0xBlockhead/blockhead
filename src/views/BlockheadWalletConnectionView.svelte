@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -34,7 +35,7 @@
 			icon?: string
 			accounts: `0x${string}`[]
 			chainId: number | null
-			status: 'connecting' | 'connected' | 'error'
+			status: BlockheadConnectionStatus
 			error: string | null
 			onRemove: () => void
 			entityId: EntityId<typeof schema, EntityType.BlockheadWalletConnection>
@@ -72,7 +73,6 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'

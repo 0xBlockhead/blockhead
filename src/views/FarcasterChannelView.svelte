@@ -75,8 +75,7 @@
 
 	// Components
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
@@ -207,30 +206,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
 
-				<div>
-					<dt>Icon</dt>
-					<dd data-column>
-						<ResourceBoundary
-							resource={channel}
-							placeholderText="Loading Farcaster channel (channel id / slug)…"
-						>
-							{#snippet children(channel)}
-								{#if (
-									channel.$icon !== undefined
-									&& channel.$icon[EntityMetaKey.Id].url !== undefined
-								)}
-									<Media
-										media={{ url: channel.$icon[EntityMetaKey.Id].url }}
-										alt=""
-									/>
-									<a href={channel.$icon[EntityMetaKey.Id].url}>{channel.$icon[EntityMetaKey.Id].url}</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
+			{#if open}
 				<div>
 					<dt>Lead</dt>
 					<dd>
@@ -253,7 +231,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Moderator</dt>
 					<dd>
@@ -276,7 +256,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Moderators</dt>
 					<dd>
@@ -302,7 +284,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Created</dt>
 					<dd>
@@ -320,7 +304,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Pinned cast hash</dt>
 					<dd>
@@ -343,21 +329,17 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
 
-					<ResourceBoundary
-						resource={channel}
-						placeholderText="Loading Farcaster channel (channel id / slug)…"
-					>
-						{#snippet children(channel)}
-							{#if channel.externalLinkTitle !== undefined}
-								<div>
+			{#if open}
+				<div>
 									<dt>External link title</dt>
 									<dd>{channel.externalLinkTitle}</dd>
 								</div>
-							{/if}
+			{/if}
 
-							{#if channel.externalLinkUrl !== undefined}
-								<div>
+			{#if open}
+				<div>
 									<dt>External link URL</dt>
 									<dd>
 										<a href={channel.externalLinkUrl}>
@@ -365,10 +347,9 @@
 										</a>
 									</dd>
 								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Followed at</dt>
 					<dd>

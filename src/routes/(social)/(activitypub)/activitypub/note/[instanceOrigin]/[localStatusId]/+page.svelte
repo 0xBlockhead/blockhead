@@ -13,10 +13,10 @@
 
 <Page>
 	<ActivityPubNoteView
-		{({
-		instanceOrigin: decodeURIComponent(params.instanceOrigin),
-		localStatusId: decodeURIComponent(params.localStatusId),
-	})}
+		entityId={{
+			instanceOrigin: decodeURIComponent(params.instanceOrigin),
+			localStatusId: decodeURIComponent(params.localStatusId),
+		}}
 	>
 	</ActivityPubNoteView>
 </Page>

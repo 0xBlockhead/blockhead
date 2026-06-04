@@ -7,11 +7,6 @@
 
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 
-
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		params,

@@ -104,17 +104,8 @@
 
 
 	// Functions
-	const specificationRealmKey = (specificationRealm: { result: Entity<typeof schema, EntityType.SpecificationRealm> }) => (
-		stringify(specificationRealm.result[EntityMetaKey.Id])
-	)
-
-	const specificationRealmResultsFromSpecificationRealms = (
-		specificationRealms: { result: Entity<typeof schema, EntityType.SpecificationRealm> }[] | undefined,
-	): { result: Entity<typeof schema, EntityType.SpecificationRealm> }[] => (
-		specificationRealms === undefined ?
-			[]
-		:
-			[...specificationRealms]
+	const specificationRealmKey = (specificationRealm: Entity<typeof schema, EntityType.SpecificationRealm>) => (
+		stringify(specificationRealm[EntityMetaKey.Id])
 	)
 
 	const realmPanelDomId = (realm: Entity<typeof schema, EntityType.SpecificationRealm>) => (
@@ -149,9 +140,6 @@
 							second.label ?? stringify(second[EntityMetaKey.Id]),
 						)
 					))
-					.map((realm) => ({
-						result: realm,
-					}))
 			)
 		},
 	)
@@ -218,16 +206,13 @@
 		}
 		resource={specificationRealms}
 	>
-		{#snippet children(specificationRealmsResult)}
-			{#key specificationRealmsResult}
-				{@const specificationRealmRows = specificationRealmResultsFromSpecificationRealms(specificationRealmsResult)}
-
-				{#if specificationRealmRows.length === 0}
+		{#snippet children(specificationRealms)}
+			{#key specificationRealms}
+				{#if specificationRealms.length === 0}
 					{@render EmptyFallback()}
 				{:else if !showSummary}
 					<div {...standaloneRealmPanelsProps}>
-						{#each specificationRealmRows as specificationRealmResult (specificationRealmKey(specificationRealmResult))}
-							{@const specificationRealm = specificationRealmResult.result}
+						{#each specificationRealms as specificationRealm (specificationRealmKey(specificationRealm))}
 							<section data-scroll-marker-label={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Id].realm)}>
 								<ProposalKindsView
 									collapsible={false}
@@ -300,8 +285,7 @@
 						{/snippet}
 
 						{#snippet SectionRealms({ id: _sectionId, label: _sectionLabel })}
-							{#each specificationRealmRows as specificationRealmResult (specificationRealmKey(specificationRealmResult))}
-								{@const specificationRealm = specificationRealmResult.result}
+							{#each specificationRealms as specificationRealm (specificationRealmKey(specificationRealm))}
 								<section id={realmPanelDomId(specificationRealm)}>
 									<ProposalKindsView
 										CollapsibleProps={{ canToggle: false }}
@@ -358,8 +342,7 @@
 									data-carousel-markers
 									data-row-item="flexible"
 								>
-									{#each specificationRealmRows as specificationRealmResult (specificationRealmKey(specificationRealmResult))}
-										{@const specificationRealm = specificationRealmResult.result}
+									{#each specificationRealms as specificationRealm (specificationRealmKey(specificationRealm))}
 										<a
 											data-scroll-marker-label={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Id].realm)}
 											href={`#${realmPanelDomId(specificationRealm)}`}
@@ -379,8 +362,7 @@
 							data-sticky-container
 						>
 							<div {...standaloneRealmPanelsProps}>
-								{#each specificationRealmRows as specificationRealmResult (specificationRealmKey(specificationRealmResult))}
-									{@const specificationRealm = specificationRealmResult.result}
+								{#each specificationRealms as specificationRealm (specificationRealmKey(specificationRealm))}
 									<section data-scroll-marker-label={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Id].realm)}>
 										<ProposalKindsView
 											collapsible={false}

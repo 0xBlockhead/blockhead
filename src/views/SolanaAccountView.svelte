@@ -3,6 +3,7 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
@@ -30,6 +31,7 @@
 		EntityType.SolanaAccount,
 		entityId,
 		{
+			$ownerProgram: {},
 			lamports: {},
 			rentEpoch: {},
 			executable: {},
@@ -39,10 +41,11 @@
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
+	import SolanaProgramView from '$/views/SolanaProgramView.svelte'
 </script>
 
 
@@ -68,6 +71,19 @@
 		>
 			{#snippet children(solanaAccount)}
 				<dl>
+					{#if solanaAccount.$ownerProgram}
+						<div>
+							<dt>Owner program</dt>
+							<dd>
+								<SolanaProgramView
+									entityId={solanaAccount.$ownerProgram[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
 					{#if solanaAccount.lamports != null}
 						<div>
 							<dt>Lamports</dt>
@@ -96,7 +112,8 @@
 								<TruncatedValue
 									value={solanaAccount.dataEncoding}
 									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								/>
+							</dd>
 						</div>
 					{/if}
 				</dl>

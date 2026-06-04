@@ -5,7 +5,6 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -40,18 +39,16 @@
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmNetworkActorCoinBalanceView from '$/views/EvmNetworkActorCoinBalanceView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.EvmNetworkActorCoinBalance}
+	entityType={EntityType.EvmAccount}
 	{title}
 	bind:open
 	{collapsible}
@@ -59,10 +56,10 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Each row is a token balance for an address on a specific chain (native asset or ERC-20 style contract).
+			Balances are grouped by watched account; each account resolves indexed token balances across supported execution networks.
 		</p>
 		<p>
-			Totals come from execution-layer address indexers; beacon-chain validator balances and rewards use a different accounting model.
+			Balance rows come from provider-backed network account resolvers, while the watched-account list comes from local account state.
 		</p>
 	{/snippet}
 
@@ -75,27 +72,27 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
-				entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				EntityType._Global,
+				{ scope: '$$actors' },
 				{
 					$: [
-						Source.Allium_Rest,
+						Source.Local_Internal,
 					],
-					[entityFieldReference.fieldName]: {
+					$$actors: {
 						$: [
-							Source.Allium_Rest,
+							Source.Local_Internal,
 						],
 					},
 				},
 			)}
-			{@const tokenBalances = derive(
+			{@const actors = derive(
 				parent,
 				(parent) => {
-					const evmNetworkActorCoinBalances: Entity<typeof schema, EntityType.EvmNetworkActorCoinBalance>[] = (
-						parent[entityFieldReference.fieldName] ?? []
+					const evmAccounts: Entity<typeof schema, EntityType.EvmAccount>[] = (
+						parent.$$actors ?? []
 					)
 					return (
-						evmNetworkActorCoinBalances.map((value) => ({
+						evmAccounts.map((value) => ({
 							value,
 						}))
 					)
@@ -104,14 +101,14 @@
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
-				entityType={EntityType.EvmNetworkActorCoinBalance}
+				entityType={EntityType.EvmAccount}
 				{title}
 				open={true}
 				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 				placeholderKeys={new SvelteSet<string>()}
 				placeholderText={`Loading ${title.toLowerCase()}…`}
-				resource={tokenBalances}
+				resource={actors}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
@@ -122,10 +119,10 @@
 
 				{#snippet Item({ item })}
 					{@const id = item.value[EntityMetaKey.Id]}
-					<EvmNetworkActorCoinBalanceView
+					<EvmAccountView
 						entityId={id}
-						layout={EntityLayout.Summary}
-						open={false}
+						layout={EntityLayout.SummaryDetails}
+						open={true}
 					/>
 				{/snippet}
 			</EntitiesList>

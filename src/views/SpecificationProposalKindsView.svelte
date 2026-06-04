@@ -104,17 +104,8 @@
 
 
 	// Functions
-	const proposalKindKey = (specificationProposalKind: { result: Entity<typeof schema, EntityType.SpecificationProposalKind> }) => (
-		stringify(specificationProposalKind.result[EntityMetaKey.Id])
-	)
-
-	const specificationProposalKindResultsFromProposalKinds = (
-		proposalKinds: { result: Entity<typeof schema, EntityType.SpecificationProposalKind> }[] | undefined,
-	): { result: Entity<typeof schema, EntityType.SpecificationProposalKind> }[] => (
-		proposalKinds === undefined ?
-			[]
-		:
-			[...proposalKinds]
+	const proposalKindKey = (specificationProposalKind: Entity<typeof schema, EntityType.SpecificationProposalKind>) => (
+		stringify(specificationProposalKind[EntityMetaKey.Id])
 	)
 
 	const kindPanelDomId = (kind: Entity<typeof schema, EntityType.SpecificationProposalKind>) => (
@@ -150,9 +141,6 @@
 							second.labelPlural ?? second.label ?? stringify(second[EntityMetaKey.Id]),
 						)
 					))
-					.map((kind) => ({
-						result: kind,
-					}))
 			)
 		},
 	)
@@ -221,14 +209,11 @@
 	>
 		{#snippet children(proposalKinds)}
 			{#key proposalKinds}
-				{@const specificationProposalKinds = specificationProposalKindResultsFromProposalKinds(proposalKinds)}
-
-				{#if specificationProposalKinds.length === 0}
+				{#if proposalKinds.length === 0}
 					{@render EmptyFallback()}
 				{:else if !showSummary}
 					<div {...standaloneKindPanelsProps}>
-						{#each specificationProposalKinds as specificationProposalKindResult (proposalKindKey(specificationProposalKindResult))}
-							{@const specificationProposalKind = specificationProposalKindResult.result}
+						{#each proposalKinds as specificationProposalKind (proposalKindKey(specificationProposalKind))}
 							<section data-scroll-marker-label={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Id].category)}>
 								<ProposalsView
 									href={resolve('/proposals')}
@@ -305,8 +290,7 @@
 						{/snippet}
 
 						{#snippet SectionKinds({ id: _sectionId, label: _sectionLabel })}
-							{#each specificationProposalKinds as specificationProposalKindResult (proposalKindKey(specificationProposalKindResult))}
-								{@const specificationProposalKind = specificationProposalKindResult.result}
+							{#each proposalKinds as specificationProposalKind (proposalKindKey(specificationProposalKind))}
 								<section id={kindPanelDomId(specificationProposalKind)}>
 									<ProposalsView
 										CollapsibleProps={{ canToggle: false }}
@@ -367,8 +351,7 @@
 									data-carousel-markers
 									data-row-item="flexible"
 								>
-									{#each specificationProposalKinds as specificationProposalKindResult (proposalKindKey(specificationProposalKindResult))}
-										{@const specificationProposalKind = specificationProposalKindResult.result}
+									{#each proposalKinds as specificationProposalKind (proposalKindKey(specificationProposalKind))}
 										<a
 											data-scroll-marker-label={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Id].category)}
 											href={`#${kindPanelDomId(specificationProposalKind)}`}
@@ -388,8 +371,7 @@
 							data-sticky-container
 						>
 							<div {...standaloneKindPanelsProps}>
-								{#each specificationProposalKinds as specificationProposalKindResult (proposalKindKey(specificationProposalKindResult))}
-									{@const specificationProposalKind = specificationProposalKindResult.result}
+								{#each proposalKinds as specificationProposalKind (proposalKindKey(specificationProposalKind))}
 									<section data-scroll-marker-label={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Id].category)}>
 										<ProposalsView
 											href={resolve('/proposals')}

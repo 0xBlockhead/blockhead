@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { stringify } from 'devalue'
 	import { Source } from '$/sources/$Source.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 

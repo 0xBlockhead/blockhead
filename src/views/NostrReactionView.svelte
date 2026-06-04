@@ -58,7 +58,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -105,23 +104,20 @@
 	{/snippet}
 
 	{#snippet Content({})}
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={reaction}
-				placeholderText="Loading reaction…"
-			>
-				{#snippet children(reaction)}
-					{#if reaction.content}
-						<div>
-							<dt>Content</dt>
-							<dd>
-								{reaction.content}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+		<ResourceBoundary
+			resource={reaction}
+			placeholderText="Loading reaction…"
+		>
+			{#snippet children(reaction)}
+				{#if reaction.content}
+					<p>
+						{reaction.content}
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
+		<dl data-column-item="center">
 			<div>
 				<dt>Created</dt>
 				<dd>

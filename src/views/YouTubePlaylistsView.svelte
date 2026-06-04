@@ -14,7 +14,6 @@
 	// Context
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { resolve } from '$app/paths'
 
 
 	// State
@@ -46,7 +45,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import YouTubePlaylistView from '$/views/YouTubePlaylistView.svelte'
 </script>
 

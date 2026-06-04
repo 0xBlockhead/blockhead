@@ -70,7 +70,6 @@
 
 	// Components
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import Markdown from '$/components/Markdown.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -170,19 +169,6 @@
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && article.imageUrl}
-						<div>
-							<dt>Hero image</dt>
-							<dd>
-								<a
-									href={article.imageUrl}
-									rel="noreferrer"
-									target="_blank"
-								>{article.imageUrl}</a>
 							</dd>
 						</div>
 					{/if}

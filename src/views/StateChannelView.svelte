@@ -6,11 +6,9 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -71,10 +69,7 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import BlockheadRoomView from '$/views/BlockheadRoomView.svelte'
@@ -83,9 +78,6 @@
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
-	import StateChannelDepositsView from '$/views/StateChannelDepositsView.svelte'
-	import StateChannelStatesView from '$/views/StateChannelStatesView.svelte'
-	import StateChannelTransfersView from '$/views/StateChannelTransfersView.svelte'
 </script>
 
 

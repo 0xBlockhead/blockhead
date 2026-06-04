@@ -106,7 +106,7 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	transactionId: SAMPLE_TX_HASH,
 	address: VITALIK_ADDRESS,
 	caipId: '25',
-	profileId: 'e2e-probe-session',
+	sessionId: 'e2e-probe-session',
 	sourceId: 'e2e-probe-source',
 	dashboardId: 'c0000000-0000-4000-8000-000000000003',
 	userId: '3',

@@ -2,11 +2,6 @@
 	// Types/constants
 	import { EntityType } from '$/schema/$EntityType.ts'
 
-
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Components
 	import EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'
 	import Page from '$/components/Page.svelte'

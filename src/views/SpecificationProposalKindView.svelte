@@ -119,7 +119,6 @@
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ProposalsView from '$/views/SpecificationProposalsView.svelte'

@@ -56,7 +56,7 @@ export default {
 			entityType: EntityType.AtprotoPost,
 			resolve: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const postView = (await singleFlight(getPosts)([entityId.uri])).posts[0]
+				const postView = (await singleFlight(getPosts)([entityId.uri])).posts.at(0)
 				if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
 				const atprotoRecord = postView.record
 				const createdAt = Date.parse(atprotoRecord.createdAt)
@@ -103,7 +103,7 @@ export default {
 			entityType: EntityType.AtprotoPost_Timestamp,
 			resolve: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const postView = (await singleFlight(getPosts)([entityId.$post.uri])).posts[0]
+				const postView = (await singleFlight(getPosts)([entityId.$post.uri])).posts.at(0)
 				if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
 				return {
 					...(postView.likeCount != null && { likeCount: postView.likeCount }),
@@ -196,7 +196,7 @@ export default {
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const postView = (await singleFlight(getPosts)([entityId.uri])).posts[0]
+				const postView = (await singleFlight(getPosts)([entityId.uri])).posts.at(0)
 				if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
 				return [
 					{
@@ -220,14 +220,14 @@ export default {
 				const { getPostThread } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const { thread } = await singleFlight(getPostThread)(entityId.uri)
-				const threadPostUri = optionalNonemptyString(thread?.post?.uri)
-				if (thread == null || threadPostUri == null) {
+				const threadPostUri = optionalNonemptyString(thread.post.uri)
+				if (threadPostUri == null) {
 					throw new Error(`Atproto_BskySocial_Xrpc: post thread not found for ${entityId.uri}`)
 				}
 				const ancestors: { [EntityMetaKey.Id]: { uri: string } }[] = []
 				let parent = thread.parent
 				while (parent != null) {
-					const uri = optionalNonemptyString(parent.post?.uri)
+					const uri = optionalNonemptyString(parent.post.uri)
 					if (uri == null) break
 					if (uri !== entityId.uri) {
 						ancestors.unshift({ [EntityMetaKey.Id]: { uri } })
@@ -237,7 +237,7 @@ export default {
 				const descendants: { [EntityMetaKey.Id]: { uri: string } }[] = []
 				const walkReplies = (node: NonNullable<typeof thread>) => {
 					for (const reply of node.replies ?? []) {
-						const uri = optionalNonemptyString(reply.post?.uri)
+						const uri = optionalNonemptyString(reply.post.uri)
 						if (uri != null && uri !== entityId.uri) {
 							descendants.push({ [EntityMetaKey.Id]: { uri } })
 						}

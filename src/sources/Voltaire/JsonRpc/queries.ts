@@ -134,15 +134,13 @@ export const narrowBlockRpc = (raw: JsonValue): VoltaireBlockRpc | null => {
 const narrowVoltaireReceiptRpc = (raw: JsonValue): VoltaireReceiptRpc | null => {
 	if (!isJsonObject(raw)) return null
 	const logsRaw = raw['logs']
-	const logsParsed = (
-		Array.isArray(logsRaw) ?
-			logsRaw.map(narrowRpcLog)
-		:
-			null
-	)
 	const logs = (
-		logsParsed != null && logsParsed.every((l) => l != null) ?
-			logsParsed.filter((l): l is RpcLog => l != null)
+		Array.isArray(logsRaw) ?
+			logsRaw.flatMap((entry) => (
+				((log) => (
+					log == null ? [] : [log]
+				))(narrowRpcLog(entry))
+			))
 		:
 			undefined
 	)
@@ -284,19 +282,14 @@ const logBlockStreamEvent = (
 ) => {
 	if (event.type === 'blocks') {
 		const chainHead = event.metadata.chainHead
-		const blockNumbers = event.blocks.map((b) => (
-			b.header != null ?
-				String(b.header.number)
-			:
-				'(no header)'
-		))
+			const blockNumbers = event.blocks.map((b) => String(b.header.number))
 		console.info(
 			`[block stream] chainId=${String(chainId)} type=blocks chainHead=${String(chainHead)} blockNumbers=${blockNumbers.join(',')}`,
 		)
 	} else {
 		const ancestor = event.commonAncestor
 		console.info(
-			`[block stream] chainId=${String(chainId)} type=reorg removed=${String(event.removed.length)} added=${String(event.added.length)} commonAncestor=${ancestor != null ? String(ancestor.number) : '?'}`,
+				`[block stream] chainId=${String(chainId)} type=reorg removed=${String(event.removed.length)} added=${String(event.added.length)} commonAncestor=${String(ancestor.number)}`,
 		)
 	}
 }

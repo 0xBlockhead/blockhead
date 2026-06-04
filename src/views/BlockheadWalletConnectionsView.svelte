@@ -1,18 +1,25 @@
 <script lang="ts">
 	// Types/constants
+	import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 	import { SvelteMap } from 'svelte/reactivity'
 
 	type WalletConnection = {
 		detail: Eip6963ProviderDetail
 		accounts: `0x${string}`[]
 		chainId: number | null
-		status: 'connecting' | 'connected' | 'error'
+		status: BlockheadConnectionStatus
 		error: string | null
 	}
 
 
 	// Context
+	import {
+		entityCollectionByEntityType,
+	} from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,12 +47,61 @@
 			...connections.filter((connection) => connection.detail.info.rdns !== rdns),
 			nextConnection,
 		]
+		writeConnection(nextConnection)
 	}
 
 	const disconnect = (rdns: string) => {
 		cleanupByRdns.get(rdns)?.()
 		cleanupByRdns.delete(rdns)
 		connections = connections.filter((connection) => connection.detail.info.rdns !== rdns)
+		entityCollectionByEntityType[EntityType.BlockheadWalletConnection].delete([
+			Source.Local_Internal,
+			stringify({ $wallet: { rdns } }),
+		].join('\x1E'))
+	}
+
+	const writeConnection = (connection: WalletConnection) => {
+		const entityId = {
+			$wallet: {
+				rdns: connection.detail.info.rdns,
+			},
+		}
+		const fields = {
+			status: connection.status,
+			$$connectedActors: connection.accounts.map((address) => ({
+				[EntityMetaKey.Id]: {
+					address,
+				},
+			})),
+			...(connection.chainId !== null && {
+				$network: {
+					[EntityMetaKey.Id]: {
+						caip2: {
+							namespace: 'eip155',
+							reference: String(connection.chainId),
+						},
+					},
+				},
+			}),
+			...(connection.accounts[0] && {
+				$activeActor: {
+					[EntityMetaKey.Id]: {
+						address: connection.accounts[0],
+					},
+				},
+			}),
+			selected: connection.status === BlockheadConnectionStatus.Connected,
+			connectedAt: Date.now(),
+			...(connection.error !== null && { error: connection.error }),
+		}
+
+		entityCollectionByEntityType[EntityType.BlockheadWalletConnection].utils.writeUpsert({
+			[EntityMetaKey.Id]: entityId,
+			[EntityMetaKey.IdKey]: stringify(entityId),
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.Fields]: fields,
+			...fields,
+		})
 	}
 
 	const subscribeConnection = (detail: Eip6963ProviderDetail) => {
@@ -63,7 +119,7 @@
 				detail,
 				accounts,
 				chainId: connection?.chainId ?? null,
-				status: 'connected',
+				status: BlockheadConnectionStatus.Connected,
 				error: null,
 			}))
 		})
@@ -73,7 +129,7 @@
 				detail,
 				accounts: connection?.accounts ?? [],
 				chainId,
-				status: connection?.status ?? 'connected',
+				status: connection?.status ?? BlockheadConnectionStatus.Connected,
 				error: connection?.error ?? null,
 			}))
 		})
@@ -113,7 +169,7 @@
 			detail,
 			accounts: connection?.accounts ?? [],
 			chainId: connection?.chainId ?? null,
-			status: 'connecting',
+			status: BlockheadConnectionStatus.Connecting,
 			error: null,
 		}))
 
@@ -129,7 +185,7 @@
 				detail,
 				accounts,
 				chainId,
-				status: 'connected',
+				status: BlockheadConnectionStatus.Connected,
 				error: null,
 			}))
 
@@ -140,7 +196,7 @@
 				detail,
 				accounts: connection?.accounts ?? [],
 				chainId: connection?.chainId ?? null,
-				status: 'error',
+				status: BlockheadConnectionStatus.Error,
 				error:
 					error instanceof Error ?
 						error.message
@@ -170,7 +226,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import Icon from '$/components/Icon.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import BlockheadWalletConnectionView from '$/views/BlockheadWalletConnectionView.svelte'
 </script>
 

@@ -24,23 +24,17 @@
 
 
 	// Global context
-	const {
-		entityCollections: entityCollectionByEntityType,
-		entityFieldCollections,
-		queryClient: entityCollectionsQueryClient,
-	} = createCollectionsFromSchema({
+	const entityCollectionsContext = createCollectionsFromSchema({
 		schema,
 		entityResolvers,
 		entityFieldResolvers,
 		persistence,
-		schemaVersion: 4,
+		schemaVersion: 5,
 	})
 
-	export {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-		entityCollectionsQueryClient,
-	}
+	export const entityCollectionByEntityType = entityCollectionsContext.entityCollections
+	export const entityFieldCollections = entityCollectionsContext.entityFieldCollections
+	export const entityCollectionsQueryClient = entityCollectionsContext.queryClient
 </script>
 
 

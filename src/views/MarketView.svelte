@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -25,7 +25,6 @@
 
 	// State
 	let {
-		children,
 		entityId,
 		href = resolve(
 			'/(assets)/(markets)/market/[marketKey]',
@@ -38,7 +37,6 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.Market>
 			href?: string
 			open?: boolean
@@ -92,7 +90,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
@@ -245,10 +242,6 @@
 					open={true}
 				/>
 			</section>
-		{/if}
-
-		{#if children}
-			{@render children()}
 		{/if}
 	{/snippet}
 </EntityView>

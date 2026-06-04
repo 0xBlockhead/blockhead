@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -17,7 +17,6 @@
 
 	// State
 	let {
-		children,
 		entityId,
 			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]', {
 				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
@@ -28,7 +27,6 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmBlock>
 			href?: string
 			open?: boolean
@@ -73,7 +71,6 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -320,7 +317,6 @@
 			sections={[
 				{ id: 'chain', label: 'Chain' },
 				{ id: 'transactions', label: 'Transactions' },
-					{ id: 'page-content', label: 'Content' },
 			]}
 			id={`${blockIdKey}:carousel-related`}
 			data-card
@@ -377,12 +373,6 @@
 					collapsible={false}
 					open={true}
 				/>
-			{/snippet}
-
-			{#snippet SectionPageContent({ id: _contentId, label: _contentLabel })}
-				{#if children}
-					{@render children()}
-				{/if}
 			{/snippet}
 	</CollapsibleTabs>
 	{/snippet}

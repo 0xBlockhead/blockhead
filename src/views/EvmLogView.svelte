@@ -8,7 +8,6 @@
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EvmLogInterpretationKind, evmLogInterpretationKindByInterpretationKind } from '$/constants/Evm.ts'
-	import { stringify } from 'devalue'
 
 
 	// State
@@ -64,7 +63,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'

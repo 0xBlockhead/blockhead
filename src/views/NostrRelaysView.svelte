@@ -15,7 +15,6 @@
 	// Context
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { resolve } from '$app/paths'
 
 
 	// State

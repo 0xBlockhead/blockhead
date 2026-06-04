@@ -294,8 +294,6 @@ export default {
 				const networkUpgrade = networkUpgradeByChainIdAndUpgradeId[
 					`${entityId.$network.caip2.reference}:${entityId.upgradeId}`
 				]
-				if (networkUpgrade == null)
-					throw new Error(`Constants_Internal: unknown NetworkUpgrade ${entityId.$network.caip2.reference}:${entityId.upgradeId}`)
 				if (networkUpgrade.$networkExecutionUpgrade == null)
 					throw new Error(`Constants_Internal: NetworkUpgrade ${entityId.$network.caip2.reference}:${entityId.upgradeId} has no $networkExecutionUpgrade`)
 
@@ -311,11 +309,11 @@ export default {
 						]
 				)
 				const activationTimestampsMs = [
-					linkedNetworkExecutionUpgrade?.activationTimestampMs,
+					linkedNetworkExecutionUpgrade.activationTimestampMs,
 					linkedNetworkConsensusUpgrade?.activationTimestampMs,
 				].filter((timestamp): timestamp is number => timestamp != null)
 				const proposals = [
-					...(linkedNetworkExecutionUpgrade?.$$proposals ?? []),
+					...(linkedNetworkExecutionUpgrade.$$proposals ?? []),
 					...(linkedNetworkConsensusUpgrade?.$$proposals ?? []),
 				].filter((proposal, index, proposals) => (
 					proposals.findIndex((otherProposal) => (
@@ -325,10 +323,10 @@ export default {
 
 				return {
 					...networkUpgrade,
-					...(linkedNetworkExecutionUpgrade?.activationBlock != null && {
+					...(linkedNetworkExecutionUpgrade.activationBlock != null && {
 						activationBlock: linkedNetworkExecutionUpgrade.activationBlock,
 					}),
-					...(linkedNetworkExecutionUpgrade?.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
+					...(linkedNetworkExecutionUpgrade.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
 						activationBlock: linkedNetworkConsensusUpgrade.activationBlock,
 					}),
 					...(activationTimestampsMs.length > 0 && {
@@ -337,7 +335,7 @@ export default {
 					...(linkedNetworkConsensusUpgrade?.activationEpoch != null && {
 						activationEpoch: linkedNetworkConsensusUpgrade.activationEpoch,
 					}),
-					...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade?.activationEpoch != null && {
+					...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade.activationEpoch != null && {
 						activationEpoch: linkedNetworkExecutionUpgrade.activationEpoch,
 					}),
 					...(proposals.length > 0 && { $$proposals: proposals }),
@@ -354,8 +352,6 @@ export default {
 				const networkExecutionUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[
 					`${entityId.$network.caip2.reference}:${entityId.upgradeId}`
 				]
-				if (networkExecutionUpgrade == null)
-					throw new Error(`Constants_Internal: unknown NetworkExecutionUpgrade ${entityId.$network.caip2.reference}:${entityId.upgradeId}`)
 
 				return { ...networkExecutionUpgrade }
 			},
@@ -370,8 +366,6 @@ export default {
 				const networkConsensusUpgrade = networkConsensusUpgradeByChainIdAndUpgradeId[
 					`${entityId.$network.caip2.reference}:${entityId.upgradeId}`
 				]
-				if (networkConsensusUpgrade == null)
-					throw new Error(`Constants_Internal: unknown NetworkConsensusUpgrade ${entityId.$network.caip2.reference}:${entityId.upgradeId}`)
 
 				return { ...networkConsensusUpgrade }
 			},
@@ -833,11 +827,11 @@ export default {
 							]
 					)
 					const activationTimestampsMs = [
-						linkedNetworkExecutionUpgrade?.activationTimestampMs,
+						linkedNetworkExecutionUpgrade.activationTimestampMs,
 						linkedNetworkConsensusUpgrade?.activationTimestampMs,
 					].filter((timestamp): timestamp is number => timestamp != null)
 					const proposals = [
-						...(linkedNetworkExecutionUpgrade?.$$proposals ?? []),
+						...(linkedNetworkExecutionUpgrade.$$proposals ?? []),
 						...(linkedNetworkConsensusUpgrade?.$$proposals ?? []),
 					].filter((proposal, index, proposals) => (
 						proposals.findIndex((otherProposal) => (
@@ -847,10 +841,10 @@ export default {
 
 					return {
 						...networkUpgrade,
-						...(linkedNetworkExecutionUpgrade?.activationBlock != null && {
+						...(linkedNetworkExecutionUpgrade.activationBlock != null && {
 							activationBlock: linkedNetworkExecutionUpgrade.activationBlock,
 						}),
-						...(linkedNetworkExecutionUpgrade?.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
+						...(linkedNetworkExecutionUpgrade.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
 							activationBlock: linkedNetworkConsensusUpgrade.activationBlock,
 						}),
 						...(activationTimestampsMs.length > 0 && {
@@ -859,7 +853,7 @@ export default {
 						...(linkedNetworkConsensusUpgrade?.activationEpoch != null && {
 							activationEpoch: linkedNetworkConsensusUpgrade.activationEpoch,
 						}),
-						...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade?.activationEpoch != null && {
+						...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade.activationEpoch != null && {
 							activationEpoch: linkedNetworkExecutionUpgrade.activationEpoch,
 						}),
 						...(proposals.length > 0 && { $$proposals: proposals }),
@@ -1490,11 +1484,11 @@ export default {
 								]
 						)
 						const activationTimestampsMs = [
-							linkedNetworkExecutionUpgrade?.activationTimestampMs,
+							linkedNetworkExecutionUpgrade.activationTimestampMs,
 							linkedNetworkConsensusUpgrade?.activationTimestampMs,
 						].filter((timestamp): timestamp is number => timestamp != null)
 						const proposals = [
-							...(linkedNetworkExecutionUpgrade?.$$proposals ?? []),
+							...(linkedNetworkExecutionUpgrade.$$proposals ?? []),
 							...(linkedNetworkConsensusUpgrade?.$$proposals ?? []),
 						].filter((proposal, index, proposals) => (
 							proposals.findIndex((otherProposal) => (
@@ -1504,10 +1498,10 @@ export default {
 
 						return {
 							...networkUpgrade,
-							...(linkedNetworkExecutionUpgrade?.activationBlock != null && {
+							...(linkedNetworkExecutionUpgrade.activationBlock != null && {
 								activationBlock: linkedNetworkExecutionUpgrade.activationBlock,
 							}),
-							...(linkedNetworkExecutionUpgrade?.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
+							...(linkedNetworkExecutionUpgrade.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
 								activationBlock: linkedNetworkConsensusUpgrade.activationBlock,
 							}),
 							...(activationTimestampsMs.length > 0 && {
@@ -1516,7 +1510,7 @@ export default {
 							...(linkedNetworkConsensusUpgrade?.activationEpoch != null && {
 								activationEpoch: linkedNetworkConsensusUpgrade.activationEpoch,
 							}),
-							...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade?.activationEpoch != null && {
+							...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade.activationEpoch != null && {
 								activationEpoch: linkedNetworkExecutionUpgrade.activationEpoch,
 							}),
 							...(proposals.length > 0 && { $$proposals: proposals }),
@@ -1592,8 +1586,6 @@ export default {
 					networkConsensusUpgradeByChainIdAndUpgradeId,
 				} = await import('$/constants/EthereumNetworkUpgrades.ts')
 				const networkUpgrade = networkUpgradeByChainIdAndUpgradeId[`${entityId.$network.caip2.reference}:${entityId.upgradeId}`]
-				if (networkUpgrade == null)
-					throw new Error(`Constants_Internal: unknown NetworkUpgrade ${entityId.$network.caip2.reference}:${entityId.upgradeId}`)
 				if (networkUpgrade.$networkExecutionUpgrade == null)
 					throw new Error(`Constants_Internal: NetworkUpgrade ${entityId.$network.caip2.reference}:${entityId.upgradeId} has no $networkExecutionUpgrade`)
 

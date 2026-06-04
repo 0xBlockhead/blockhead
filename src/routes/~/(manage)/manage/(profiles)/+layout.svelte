@@ -13,7 +13,7 @@
 
 
 <ParentPageCollapsible
-	title={'Profiles'}
+	title="Profiles"
 	href={resolve('/~/manage/profiles')}
 >
 	{@render children()}

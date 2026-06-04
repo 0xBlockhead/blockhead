@@ -4,15 +4,21 @@
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { type as arktype } from 'arktype'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
+	import {
+		entityCollectionByEntityType,
+		entityFieldCollections,
+	} from '$/routes/+layout.svelte'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
@@ -20,7 +26,7 @@
 	// State
 	let {
 		entityFieldReference,
-		title = 'Linked wallets',
+		title = 'Watched accounts',
 		id,
 		open = $bindable(true),
 		collapsible = true,
@@ -42,11 +48,46 @@
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
+	let watchAddressInput = $state('')
+	let watchAddressError = $state<string | undefined>(
+		undefined,
+	)
+
+
+	// Actions
+	const watchAccount = () => {
+		const parsedAddress = EvmAddress(watchAddressInput.trim())
+		if (parsedAddress instanceof arktype.errors) {
+			watchAddressError = 'Enter a 20-byte EVM address.'
+			return
+		}
+
+		const accountEntityId = {
+			address: parsedAddress,
+		}
+		entityCollectionByEntityType[EntityType.EvmAccount].utils.writeUpsert({
+			[EntityMetaKey.Id]: accountEntityId,
+			[EntityMetaKey.IdKey]: stringify(accountEntityId),
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.Fields]: {},
+		})
+		entityFieldCollections[EntityType._Global].$$actors.utils.writeUpsert({
+			[EntityMetaKey.ParentId]: { scope: '$$actors' },
+			[EntityMetaKey.ParentIdKey]: stringify({ scope: '$$actors' }),
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.Value]: {
+				[EntityMetaKey.Id]: accountEntityId,
+				[EntityMetaKey.IdKey]: stringify(accountEntityId),
+			},
+		})
+		watchAddressInput = ''
+		watchAddressError = undefined
+	}
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
 
@@ -61,21 +102,53 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Linked wallets are execution-layer addresses associated with this facet (account, room, or profile).
+			Watched accounts are execution-layer addresses explicitly added to this facet.
 		</p>
 		<p>
-			Empty lists usually mean nothing has been linked yet or the parent entity has not loaded its relations fully.
+			Empty lists usually mean nothing is being watched yet or the parent entity has not loaded its relations fully.
 		</p>
 	{/snippet}
 
 	{#snippet Empty()}
 		<p data-text="muted">
-			No linked wallets in this evmAccounts yet.
+			No watched accounts in this evmAccounts yet.
 		</p>
 	{/snippet}
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
+			<form
+				data-card
+				data-column="gap-2"
+				onsubmit={(event) => {
+					event.preventDefault()
+					watchAccount()
+				}}
+			>
+				<label for={`${id}-watch-address`}>
+					Watch account
+				</label>
+
+				<div data-row="align-center">
+					<input
+						id={`${id}-watch-address`}
+						type="text"
+						bind:value={watchAddressInput}
+						placeholder="0xd8da6bf26964af9d7eed9e403e826090792bed6a"
+					/>
+
+					<button type="submit">
+						Add
+					</button>
+				</div>
+
+				{#if watchAddressError !== undefined}
+					<p data-text="muted">
+						{watchAddressError}
+					</p>
+				{/if}
+			</form>
+
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -110,12 +183,12 @@
 				getKey={(evmAccount) => stringify(evmAccount.value[EntityMetaKey.Id])}
 				getSortValue={(evmAccount) => evmAccount.value[EntityMetaKey.Id].address.toLowerCase()}
 				placeholderKeys={new SvelteSet<string>()}
-				placeholderText="Loading linked wallets…"
+				placeholderText="Loading watched accounts…"
 				resource={actors}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No linked wallets in this evmAccounts yet.
+						No watched accounts in this evmAccounts yet.
 					</p>
 				{/snippet}
 

@@ -70,7 +70,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
@@ -168,7 +167,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Settlement</dt>
 					<dd>
@@ -184,7 +185,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Verification</dt>
 					<dd>
@@ -200,7 +203,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>Asset outcome</dt>
 					<dd>
@@ -270,7 +275,7 @@
 								{#if step.$fromToken}
 									<EvmCoinInstanceView
 										entityId={step.$fromToken[EntityMetaKey.Id]}
-										layout={EntityLayout.Value}
+										layout={EntityLayout.Title}
 										open={false}
 										showTypeAnnotation={false}
 									/>
@@ -279,7 +284,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
 
+			{#if open}
 				<div>
 					<dt>To token</dt>
 					<dd>
@@ -291,7 +298,7 @@
 								{#if step.$toToken}
 									<EvmCoinInstanceView
 										entityId={step.$toToken[EntityMetaKey.Id]}
-										layout={EntityLayout.Value}
+										layout={EntityLayout.Title}
 										open={false}
 										showTypeAnnotation={false}
 									/>
@@ -302,8 +309,5 @@
 				</div>
 			{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

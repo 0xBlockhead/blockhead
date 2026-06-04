@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		params,
@@ -17,9 +13,9 @@
 
 <Page>
 	<YouTubeCommentView
-		{({
-		videoId: decodeURIComponent(params.videoId),
-		commentId: decodeURIComponent(params.commentId),
-	})}
+		entityId={{
+			videoId: decodeURIComponent(params.videoId),
+			commentId: decodeURIComponent(params.commentId),
+		}}
 	/>
 </Page>

@@ -74,7 +74,6 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmContractCompilationView from '$/views/EvmContractCompilationView.svelte'
 	import EvmContractSourceBundleView from '$/views/EvmContractSourceBundleView.svelte'

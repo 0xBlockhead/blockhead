@@ -70,7 +70,6 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ProposalKindsView from '$/views/SpecificationProposalKindsView.svelte'
 </script>

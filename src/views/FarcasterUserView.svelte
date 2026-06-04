@@ -5,11 +5,9 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -46,7 +44,7 @@
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const farcasterUser = useEntity(
+	const farcasterUserResource = useEntity(
 		EntityType.FarcasterUser,
 		entityId,
 		{
@@ -78,18 +76,17 @@
 	// Components
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
-	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import FarcasterCastView from '$/views/FarcasterCastView.svelte'
 	import FarcasterUser_TimestampsView from '$/views/FarcasterUser_TimestampsView.svelte'
+	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
 	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
+	import UrlView from '$/views/UrlView.svelte'
 </script>
 
 
@@ -102,7 +99,7 @@
 >
 	{#snippet Icon()}
 		<ResourceBoundary
-			resource={farcasterUser}
+			resource={farcasterUserResource}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
 			{#snippet children(farcasterUser)}
@@ -128,7 +125,7 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={farcasterUser}
+			resource={farcasterUserResource}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
 			{#snippet children(farcasterUser)}
@@ -141,7 +138,7 @@
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
-			resource={farcasterUser}
+			resource={farcasterUserResource}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
 			{#snippet children(farcasterUser)}
@@ -172,7 +169,7 @@
 
 	{#snippet Content({})}
 		<ResourceBoundary
-			resource={farcasterUser}
+			resource={farcasterUserResource}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
 			{#snippet children(farcasterUser)}
@@ -192,15 +189,19 @@
 				<dt>URL</dt>
 				<dd>
 					<ResourceBoundary
-						resource={farcasterUser}
+						resource={farcasterUserResource}
 						placeholderText="Loading Farcaster profile (FID)…"
 					>
 						{#snippet children(farcasterUser)}
 							{#if farcasterUser.url}
-								<a
-									href={farcasterUser.url}
-									data-text="muted"
-								>{farcasterUser.url}</a>
+								<UrlView
+									entityId={{
+										url: farcasterUser.url,
+									}}
+									layout={EntityLayout.Title}
+									open={false}
+									showTypeAnnotation={false}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -208,7 +209,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={farcasterUser}
+				resource={farcasterUserResource}
 				placeholderText="Loading Farcaster profile (FID)…"
 			>
 				{#snippet children(farcasterUser)}
@@ -232,31 +233,35 @@
 					<dt>Verified addresses</dt>
 					<dd>
 						<ResourceBoundary
-							resource={farcasterUser}
+							resource={farcasterUserResource}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
 							{#snippet children(farcasterUser)}
-								{#if farcasterUser.$$verifiedAddresses.length}
-									<ul data-column="gap-2">
-										{#each farcasterUser.$$verifiedAddresses as verification (stringify(verification[EntityMetaKey.Id]))}
-											<li>
-													{#if verification[EntityMetaKey.Id].protocol === 'ethereum'}
+									{#if farcasterUser.$$verifiedAddresses.length}
+										<ul data-column="gap-2">
+											{#each farcasterUser.$$verifiedAddresses as verification (stringify(verification[EntityMetaKey.Id]))}
+												<li>
+													{#if verification.$evmAccount}
 														<EvmAccountView
-															entityId={{
-																address: EvmAddress.assert(verification[EntityMetaKey.Id].address),
-															}}
+															entityId={verification.$evmAccount[EntityMetaKey.Id]}
 															href={resolve('/account/[address]', {
-																address: verification[EntityMetaKey.Id].address,
-														})}
-														layout={EntityLayout.Title}
+																address: verification.$evmAccount[EntityMetaKey.Id].address,
+															})}
+															layout={EntityLayout.Title}
 															open={false}
-													/>
-												{:else}
-													<span data-text="mono muted">
-														solana:{verification[EntityMetaKey.Id].address}
-													</span>
-												{/if}
-											</li>
+														/>
+													{:else if verification.$solanaAccount}
+														<SolanaAccountView
+															entityId={verification.$solanaAccount[EntityMetaKey.Id]}
+															layout={EntityLayout.Title}
+															open={false}
+														/>
+													{:else}
+														<span data-text="mono muted">
+															{verification[EntityMetaKey.Id].protocol}:{verification[EntityMetaKey.Id].address}
+														</span>
+													{/if}
+												</li>
 										{/each}
 									</ul>
 								{/if}
@@ -271,36 +276,12 @@
 					<dt>Username</dt>
 					<dd>
 						<ResourceBoundary
-							resource={farcasterUser}
+							resource={farcasterUserResource}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
 							{#snippet children(farcasterUser)}
 								{#if farcasterUser.username}
 									@{farcasterUser.username}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>Icon</dt>
-					<dd>
-						<ResourceBoundary
-							resource={farcasterUser}
-							placeholderText="Loading Farcaster profile (FID)…"
-						>
-							{#snippet children(farcasterUser)}
-								{#if (
-									farcasterUser.$icon
-									&& farcasterUser.$icon[EntityMetaKey.Id].url
-								)}
-									<Media
-										media={{ url: farcasterUser.$icon[EntityMetaKey.Id].url }}
-										alt={(farcasterUser.displayName ?? farcasterUser.username) ?? ''}
-									/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -317,7 +298,6 @@
 			id={`farcaster-user:${String(entityId.fid)}:carousel`}
 			sectionIdPrefix={`farcaster-user:${String(entityId.fid)}`}
 			sections={collapsibleTabsSections([
-				{ id: 'record', label: 'Record' },
 				{ id: 'overview', label: 'Profile' },
 				{ id: 'casts', label: 'Casts' },
 				{ id: 'metric-snapshots', label: 'Metrics' },
@@ -337,12 +317,9 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRecord()}
-			{/snippet}
-
 			{#snippet SectionOverview()}
 				<ResourceBoundary
-					resource={farcasterUser}
+					resource={farcasterUserResource}
 					placeholderText="Loading Farcaster profile (FID)…"
 				>
 					{#snippet children(farcasterUser)}

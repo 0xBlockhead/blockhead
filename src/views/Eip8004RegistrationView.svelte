@@ -234,19 +234,6 @@
 						</div>
 					{/if}
 
-					{#if open && registration.image}
-						<div>
-							<dt>Image</dt>
-							<dd>
-								<a
-									href={registration.image}
-									rel="noreferrer"
-									target="_blank"
-								>{registration.image}</a>
-							</dd>
-						</div>
-					{/if}
-
 					{#if open && registration.fetchedAt != null}
 						<div>
 							<dt>Fetched</dt>
