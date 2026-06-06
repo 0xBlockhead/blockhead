@@ -162,8 +162,22 @@ export default {
 				const withdrawal = summary.withdrawals.find((committee) => committee.index === entityId.index)
 				if (withdrawal == null) throw new Error('Beacon_Rest: withdrawal not found')
 				return {
-					...(withdrawal.validatorIndex != null && { validatorIndex: withdrawal.validatorIndex }),
-					...(withdrawal.address != null && { address: with0xHex(withdrawal.address) }),
+					...(withdrawal.validatorIndex != null && {
+						validatorIndex: withdrawal.validatorIndex,
+						$validator: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								validatorIndex: withdrawal.validatorIndex,
+							},
+						},
+					}),
+					...(withdrawal.address != null && {
+						$account: {
+							[EntityMetaKey.Id]: {
+								address: with0xHex(withdrawal.address),
+							},
+						},
+					}),
 					...(withdrawal.amountGwei != null && { amountGwei: withdrawal.amountGwei }),
 				}
 			},

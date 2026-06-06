@@ -49,6 +49,8 @@
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
 			],
+			eventId: {},
+			pubkey: {},
 			content: {},
 			createdAt: {},
 			replyToEventId: {},
@@ -154,6 +156,27 @@
 
 	{#snippet Content({})}
 		<dl data-column-item="center">
+			{#if open}
+				<ResourceBoundary
+					resource={note}
+					placeholderText="Loading note…"
+				>
+					{#snippet children(note)}
+						{#if note.eventId}
+							<div>
+								<dt>Event id</dt>
+								<dd>
+									<TruncatedValue
+										value={note.eventId}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
 			{#if open}
 						<ResourceBoundary
 							resource={note}

@@ -19,10 +19,14 @@
 	let {
 		entityId,
 		href = resolve('/(social)/(lens)/lens/account/[address]', {
-			address: entityId.address,
+			address: (
+				'address' in entityId ? entityId.address
+				: 'localName' in entityId ? entityId.localName
+				: `legacy:${entityId.legacyProfileId}`
+			),
 		}),
 		open = $bindable(true),
-			...EntityViewProps
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.LensAccount>
@@ -45,6 +49,7 @@
 			$: [
 				Source.Lens_Graphql,
 			],
+			address: {},
 			localName: {},
 			displayName: {},
 			bio: {},
@@ -108,7 +113,7 @@
 
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.address}
+			{'address' in entityId ? entityId.address : 'localName' in entityId ? `@${entityId.localName}` : entityId.legacyProfileId}
 		</span>
 	{/snippet}
 
@@ -120,7 +125,7 @@
 			{#snippet children(lensAccount)}
 				{lensAccount.displayName
 					?? lensAccount.localName
-					?? entityId.address}
+					?? ('address' in entityId ? entityId.address : 'localName' in entityId ? entityId.localName : entityId.legacyProfileId)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -136,7 +141,7 @@
 					&& lensAccount.localName !== (
 						lensAccount.displayName
 						?? lensAccount.localName
-						?? entityId.address
+						?? ('address' in entityId ? entityId.address : 'localName' in entityId ? entityId.localName : entityId.legacyProfileId)
 					)
 				)}
 					<span data-text="muted">
@@ -220,11 +225,11 @@
 		<CollapsibleTabs
 			id={`${idKey}:carousel-activity`}
 			sectionIdPrefix={idKey}
-				sections={collapsibleTabsSections([
-					{ id: 'lens-account-record', label: 'Record' },
-					{ id: 'posts', label: 'Publications' },
-					{ id: 'metric-snapshots', label: 'Metrics' },
-				])}
+			sections={collapsibleTabsSections([
+				{ id: 'lens-account-record', label: 'Record' },
+				{ id: 'posts', label: 'Publications' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
 			data-card
 		>
 			{#snippet Summary({
@@ -244,34 +249,54 @@
 			{/snippet}
 
 			{#snippet SectionPosts()}
-				<LensPostsView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve(
-						'/(social)/(lens)/lens/account/[address]/(account)/posts',
-						{ address: entityId.address },
-					)}
-					entityFieldReference={{
-						entityType: EntityType.LensAccount,
-						entityId,
-						fieldName: '$$posts',
-					}}
-					id={`${idKey}:posts-lensAccounts`}
-				/>
+				<ResourceBoundary
+					resource={lensAccount}
+					placeholderText="Loading Lens profile…"
+				>
+					{#snippet children(lensAccount)}
+						<LensPostsView
+							CollapsibleProps={{ canToggle: false }}
+							href={resolve(
+								'/(social)/(lens)/lens/account/[address]/(account)/posts',
+								{ address: lensAccount.address },
+							)}
+							entityFieldReference={{
+								entityType: EntityType.LensAccount,
+								entityId: {
+									address: lensAccount.address,
+								},
+								fieldName: '$$posts',
+							}}
+							id={`${idKey}:posts-lensAccounts`}
+						/>
+					{/snippet}
+				</ResourceBoundary>
 			{/snippet}
 
 			{#snippet SectionMetricSnapshots()}
-				<LensAccount_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.LensAccount,
-						entityId,
-						fieldName: '$$timestamps',
-					}}
-					href={href}
-					id={`${idKey}:metric-snapshots`}
-					title="Metric snapshots"
-				/>
+				<ResourceBoundary
+					resource={lensAccount}
+					placeholderText="Loading Lens profile…"
+				>
+					{#snippet children(lensAccount)}
+						<LensAccount_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.LensAccount,
+								entityId: {
+									address: lensAccount.address,
+								},
+								fieldName: '$$timestamps',
+							}}
+							href={resolve('/(social)/(lens)/lens/account/[address]', {
+								address: lensAccount.address,
+							})}
+							id={`${idKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+				</ResourceBoundary>
 			{/snippet}
 		</CollapsibleTabs>
 
-		{/snippet}
-	</EntityView>
+	{/snippet}
+</EntityView>

@@ -95,7 +95,11 @@ export default {
 							$network: entityId,
 							nodeId: miner.miner,
 						},
-						operatorAddress: miner.miner,
+						$operator: {
+							[EntityMetaKey.Id]: {
+								address: miner.miner,
+							},
+						},
 						totalReward: miner.totalReward,
 						winCount: miner.winCount,
 						miningAttempts: miner.miningAttempts,
@@ -134,7 +138,11 @@ export default {
 					address: entityId.nodeId,
 				})
 				return {
-					operatorAddress: entityId.nodeId,
+					$operator: {
+						[EntityMetaKey.Id]: {
+							address: entityId.nodeId,
+						},
+					},
 					balance: miner.balance,
 					totalReward: miner.totalReward,
 				}
@@ -247,7 +255,11 @@ export default {
 						$network: entityId,
 						nodeId: miner.miner,
 					},
-					operatorAddress: miner.miner,
+					$operator: {
+						[EntityMetaKey.Id]: {
+							address: miner.miner,
+						},
+					},
 					totalReward: miner.totalReward,
 					winCount: miner.winCount,
 					miningAttempts: miner.miningAttempts,

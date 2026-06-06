@@ -1,6 +1,7 @@
 import { getJson } from '$/lib/http.ts'
 import Esplora from '$/sources/Esplora/index.ts'
 import type {
+	EsploraAsset,
 	EsploraBlock,
 	EsploraTransaction,
 } from '$/sources/Esplora/Rest/types.ts'
@@ -50,5 +51,29 @@ export const getMempoolTransactionIds = ({ restBaseUrl }: { restBaseUrl: string 
 	getJson<string[]>(
 		`${base(restBaseUrl)}/mempool/txids`,
 		{ origins: Esplora.origins  },
+	)
+)
+
+export const getAsset = ({
+	restBaseUrl,
+	assetId,
+}: {
+	restBaseUrl: string
+	assetId: string
+}) => (
+	getJson<EsploraAsset>(
+		`${base(restBaseUrl)}/asset/${assetId}`,
+		{ origins: Esplora.origins },
+	)
+)
+
+export const listRegistryAssets = ({
+	restBaseUrl,
+}: {
+	restBaseUrl: string
+}) => (
+	getJson<EsploraAsset[]>(
+		`${base(restBaseUrl)}/assets/registry`,
+		{ origins: Esplora.origins },
 	)
 )

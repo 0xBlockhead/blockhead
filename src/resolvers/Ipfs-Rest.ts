@@ -1,7 +1,7 @@
 import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { decodeIpfsCid } from '$/lib/multiformats.ts'
+import { canonicalIpfsCidString, decodeIpfsCid } from '$/lib/multiformats.ts'
 import { ipfsResourceCanonicalUri } from '$/lib/ipfs.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -61,6 +61,14 @@ export default {
 				)
 
 				return {
+					namespace: browseResult.namespace,
+					target: (
+						browseResult.namespace === 'ipfs' ?
+							canonicalIpfsCidString(browseResult.target) ?? browseResult.target
+						:
+							browseResult.target
+					),
+					contentPath: browseResult.contentPath,
 					canonicalUri: ipfsResourceCanonicalUri({
 						namespace: browseResult.namespace,
 						target: browseResult.target,

@@ -14,6 +14,7 @@ export enum ExecutionEnvironmentId {
 	QuilibriumQcl = 'QuilibriumQcl',
 	BitcoinScript = 'BitcoinScript',
 	BitcoinCashScript = 'BitcoinCashScript',
+	ElementsScript = 'ElementsScript',
 	TronTvm = 'TronTvm',
 	ZeroGChainEvm = 'ZeroGChainEvm',
 	ZeroGServingFramework = 'ZeroGServingFramework',
@@ -74,6 +75,10 @@ const executionEnvironments = [
 	{
 		executionEnvironmentId: ExecutionEnvironmentId.BitcoinCashScript,
 		label: 'Bitcoin Cash Script',
+	},
+	{
+		executionEnvironmentId: ExecutionEnvironmentId.ElementsScript,
+		label: 'Elements Script',
 	},
 	{
 		executionEnvironmentId: ExecutionEnvironmentId.TronTvm,

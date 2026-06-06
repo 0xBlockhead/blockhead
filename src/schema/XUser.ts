@@ -9,6 +9,10 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
+const lowercaseIdentityValue = (value: unknown) => (
+	String(value).toLowerCase()
+)
+
 const XId = type(
 	'/^\\d+$/' as type.cast<string>,
 )
@@ -19,11 +23,45 @@ export default {
 	label: 'X user',
 	labelPlural: 'X users',
 
-	id: type({
-		id: XId,
-	}),
+	id: type.or(
+		type({
+			id: XId,
+			'+': 'reject',
+		}),
+		type({
+			username: 'string',
+			'+': 'reject',
+		}),
+	),
+
+	lookups: [
+		{
+			name: 'username',
+			fields: [
+				{
+					name: 'username',
+					normalize: lowercaseIdentityValue,
+				},
+			],
+		},
+	],
+
+	identities: [
+		{
+			name: 'id',
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: XId,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'username',
 			type: EntityFieldType.Primitive,

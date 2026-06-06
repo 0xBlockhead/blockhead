@@ -5,9 +5,10 @@ import {
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import Network from '$/schema/Network.ts'
+	} from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import EvmAccount from '$/schema/EvmAccount.ts'
+	import Network from '$/schema/Network.ts'
 
 export default {
 	entityType: EntityType.ZeroGKvEntry,
@@ -27,13 +28,14 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGStorageLogEntry,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'ownerAddress',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
+			},
+			{
+				name: '$owner',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmAccount,
+				entityId: EvmAccount.id,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
 		{
 			name: 'valueHash',
 			type: EntityFieldType.Primitive,

@@ -98,7 +98,7 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(activityPubActor) => stringify(activityPubActor[EntityMetaKey.Id])}
+					getKey={(activityPubActor) => activityPubActor[EntityMetaKey.IdKey]}
 					getSortValue={(activityPubActor) => {
 						const actorId = activityPubActor[EntityMetaKey.Id]
 						return `${actorId.instanceOrigin}\0${actorId.localAccountId}`

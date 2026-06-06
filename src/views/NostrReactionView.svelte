@@ -48,6 +48,8 @@
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
 			],
+			eventId: {},
+			pubkey: {},
 			createdAt: {},
 			$author: {},
 			$targetNote: {},
@@ -118,6 +120,27 @@
 		</ResourceBoundary>
 
 		<dl data-column-item="center">
+			{#if open}
+				<div>
+					<dt>Event id</dt>
+					<dd>
+						<ResourceBoundary
+							resource={reaction}
+							placeholderText="Loading reaction…"
+						>
+							{#snippet children(reaction)}
+								{#if reaction.eventId}
+									<TruncatedValue
+										value={reaction.eventId}
+										format={TruncatedValueFormat.Visual}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
 			<div>
 				<dt>Created</dt>
 				<dd>

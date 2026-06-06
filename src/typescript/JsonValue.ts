@@ -11,6 +11,14 @@ export type JsonValue =
 	| readonly JsonValue[]
 	| JsonObject
 
-export const isJsonObject = (value: JsonValue): value is JsonObject => (
+export const isJsonObject = (value: JsonValue | undefined): value is JsonObject => (
 	typeof value === 'object' && value !== null && !Array.isArray(value)
+)
+
+export const isJsonString = (value: JsonValue): value is string => (
+	typeof value === 'string'
+)
+
+export const isJsonArray = (value: JsonValue): value is readonly JsonValue[] => (
+	Array.isArray(value)
 )

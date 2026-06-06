@@ -22,11 +22,12 @@ export default {
 			entityType: EntityType.AtprotoActor,
 			resolve: async (entityId) => {
 				const { getProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const profile = await singleFlight(getProfile)(entityId.did)
+				const profile = await singleFlight(getProfile)('did' in entityId ? entityId.did : entityId.handle)
 				const displayName = optionalNonemptyString(profile.displayName)
 				const description = optionalNonemptyString(profile.description)
 				const indexedAt = optionalTimestampMs(profile.indexedAt)
 				return {
+					did: profile.did,
 					...(displayName != null && { displayName }),
 					handle: profile.handle,
 					...((
@@ -89,6 +90,9 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.AtprotoActor_Timestamp,
 			resolve: async (entityId) => {
+				if (!('did' in entityId.$actor))
+					throw new Error('Atproto_BskySocial_Xrpc: AtprotoActor_Timestamp handle lookup is unsupported')
+
 				const { getProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const profile = await singleFlight(getProfile)(entityId.$actor.did)
 				return {
@@ -123,9 +127,12 @@ export default {
 				const { searchActorsTypeahead } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const refs: { [EntityMetaKey.Id]: { did: string } }[] = [
-					...atprotoNetworkSeedActors.map((seed) => ({
-						[EntityMetaKey.Id]: { did: seed.did },
-					})),
+					...atprotoNetworkSeedActors.flatMap((seed) => (
+						'did' in seed ?
+							[{ [EntityMetaKey.Id]: { did: seed.did } }]
+						:
+							[]
+					)),
 					...((await singleFlight(searchActorsTypeahead)({
 						limit,
 						q: 'bsky',
@@ -154,12 +161,17 @@ export default {
 			entityType: EntityType.AtprotoActor,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
+				if (!('did' in entityId))
+					throw new Error('Atproto_BskySocial_Xrpc: AtprotoActor.$$timestamps handle lookup is unsupported')
+
 				const { getProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const profile = await singleFlight(getProfile)(entityId.did)
 				return [
 					{
 						[EntityMetaKey.Id]: {
-							$actor: entityId,
+							$actor: {
+								did: profile.did,
+							},
 							timestampMs: Date.now(),
 						},
 						...(profile.followersCount != null && { followersCount: profile.followersCount }),
@@ -174,6 +186,9 @@ export default {
 			entityType: EntityType.AtprotoActor,
 			fieldName: '$$posts',
 			resolve: async (entityId, context) => {
+				if (!('did' in entityId))
+					throw new Error('Atproto_BskySocial_Xrpc: AtprotoActor.$$posts handle lookup is unsupported')
+
 				const { getAuthorFeed } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const { feed } = await singleFlight(getAuthorFeed)({
@@ -217,13 +232,16 @@ export default {
 			entityType: EntityType.AtprotoPost,
 			fieldName: '$$thread',
 			resolve: async (entityId, context) => {
-				const { getPostThread } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
-				const { thread } = await singleFlight(getPostThread)(entityId.uri)
-				const threadPostUri = optionalNonemptyString(thread.post.uri)
-				if (threadPostUri == null) {
-					throw new Error(`Atproto_BskySocial_Xrpc: post thread not found for ${entityId.uri}`)
-				}
+					const { getPostThread } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
+					const limit = resolverLoadSubsetRowLimit(context)
+					const { thread } = await singleFlight(getPostThread)(entityId.uri)
+					if (thread == null)
+						throw new Error(`Atproto_BskySocial_Xrpc: post thread not found for ${entityId.uri}`)
+
+					const threadPostUri = optionalNonemptyString(thread.post.uri)
+					if (threadPostUri == null) {
+						throw new Error(`Atproto_BskySocial_Xrpc: post thread not found for ${entityId.uri}`)
+					}
 				const ancestors: { [EntityMetaKey.Id]: { uri: string } }[] = []
 				let parent = thread.parent
 				while (parent != null) {

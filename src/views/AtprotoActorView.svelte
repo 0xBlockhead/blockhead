@@ -19,7 +19,7 @@
 	let {
 		entityId,
 		href = resolve('/(social)/(atproto)/atproto/actor/[did]', {
-			did: entityId.did,
+			did: 'did' in entityId ? entityId.did : entityId.handle,
 		}),
 		open = $bindable(true),
 			...EntityViewProps
@@ -51,6 +51,7 @@
 			$icon: {},
 			...(open ?
 				{
+					$banner: {},
 					description: {},
 					followersCount: {},
 					followsCount: {},
@@ -111,7 +112,7 @@
 
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.did}
+			{'did' in entityId ? entityId.did : `@${entityId.handle}`}
 		</span>
 	{/snippet}
 
@@ -121,10 +122,10 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(actor)}
-				{actor.displayName
-					?? actor.handle
-					?? entityId.did}
-			{/snippet}
+					{actor.displayName
+						?? actor.handle
+						?? ('did' in entityId ? entityId.did : entityId.handle)}
+				{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
@@ -133,11 +134,11 @@
 			resource={actor}
 		>
 			{#snippet children(actor)}
-				{@const atprotoSummaryHeadingLine = (
-					actor.displayName
-					?? actor.handle
-					?? entityId.did
-				)}
+					{@const atprotoSummaryHeadingLine = (
+						actor.displayName
+						?? actor.handle
+						?? ('did' in entityId ? entityId.did : entityId.handle)
+					)}
 				{#if actor.handle && actor.handle !== atprotoSummaryHeadingLine}
 					<span data-text="muted">
 						@{actor.handle}
@@ -221,6 +222,29 @@
 					placeholderText="Loading profile…"
 				>
 					{#snippet children(actor)}
+						{#if actor.$banner != null}
+							<div>
+								<dt>Banner</dt>
+								<dd>
+									<a href={actor.$banner[EntityMetaKey.Id].url}>
+										<TruncatedValue
+											value={actor.$banner[EntityMetaKey.Id].url}
+											format={TruncatedValueFormat.Visual}
+										/>
+									</a>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
+			{#if open}
+				<ResourceBoundary
+					resource={actor}
+					placeholderText="Loading profile…"
+				>
+					{#snippet children(actor)}
 						{#if actor.indexedAt != null}
 							<div>
 								<dt>Indexed</dt>
@@ -294,36 +318,56 @@
 				</ResourceBoundary>
 			{/snippet}
 
-			{#snippet SectionActivityPosts()}
-				<AtprotoPostsView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve(
-					'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
-					{ did: encodeURIComponent(entityId.did) },
-				)}
-					entityFieldReference={{
-						entityType: EntityType.AtprotoActor,
-						entityId,
-						fieldName: '$$posts',
-					}}
-					id={`${idKey}:posts`}
-					fieldOpen={_open}
-					title="Posts"
-				/>
-			{/snippet}
+				{#snippet SectionActivityPosts()}
+					<ResourceBoundary
+						resource={actor}
+						placeholderText="Loading profile…"
+					>
+						{#snippet children(actor)}
+							<AtprotoPostsView
+								CollapsibleProps={{ canToggle: false }}
+								href={resolve(
+								'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
+									{ did: encodeURIComponent(actor.did) },
+							)}
+								entityFieldReference={{
+									entityType: EntityType.AtprotoActor,
+									entityId: {
+										did: actor.did,
+									},
+									fieldName: '$$posts',
+								}}
+								id={`${idKey}:posts`}
+								fieldOpen={_open}
+								title="Posts"
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
 
-			{#snippet SectionMetricSnapshots()}
-				<AtprotoActor_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.AtprotoActor,
-						entityId,
-						fieldName: '$$timestamps',
-					}}
-					href={href}
-					id={`${idKey}:metric-snapshots`}
-					title="Metric snapshots"
-				/>
-			{/snippet}
+				{#snippet SectionMetricSnapshots()}
+					<ResourceBoundary
+						resource={actor}
+						placeholderText="Loading profile…"
+					>
+						{#snippet children(actor)}
+							<AtprotoActor_TimestampsView
+								entityFieldReference={{
+									entityType: EntityType.AtprotoActor,
+									entityId: {
+										did: actor.did,
+									},
+									fieldName: '$$timestamps',
+								}}
+								href={resolve('/(social)/(atproto)/atproto/actor/[did]', {
+									did: encodeURIComponent(actor.did),
+								})}
+								id={`${idKey}:metric-snapshots`}
+								title="Metric snapshots"
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
 		</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

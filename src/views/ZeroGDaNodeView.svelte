@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	let {
 		entityId,
 		open = $bindable(true),
@@ -19,27 +20,22 @@
 			entityId: EntityId<typeof schema, EntityType.ZeroGDaNode>
 			open?: boolean
 		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'layout'
-			| 'showTypeAnnotation'
-		>
+		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const zeroGDaNode = useEntity(
-		EntityType.ZeroGDaNode,
-		entityId,
-		{
-			operatorAddress: {},
-			endpoint: {},
-		},
-	)
+	const zeroGDaNode = useEntity(EntityType.ZeroGDaNode, entityId, {
+		$quorum: {},
+		$operator: {},
+		endpoint: {},
+	})
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import ZeroGDaQuorumView from '$/views/ZeroGDaQuorumView.svelte'
 </script>
 
 
@@ -50,7 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Title()}
 		<TruncatedValue
 			value={entityId.nodeId}
@@ -65,14 +60,16 @@
 		>
 			{#snippet children(zeroGDaNode)}
 				<dl>
-					{#if zeroGDaNode.operatorAddress != null}
+					{#if zeroGDaNode.$operator != null}
 						<div>
-							<dt>Operator Address</dt>
+							<dt>Operator</dt>
 							<dd>
-								<TruncatedValue
-									value={zeroGDaNode.operatorAddress}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								<EvmAccountView
+									entityId={zeroGDaNode.$operator[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
 						</div>
 					{/if}
 
@@ -80,6 +77,19 @@
 						<div>
 							<dt>Endpoint</dt>
 							<dd>{zeroGDaNode.endpoint}</dd>
+						</div>
+					{/if}
+
+					{#if zeroGDaNode.$quorum != null}
+						<div>
+							<dt>Quorum</dt>
+							<dd>
+								<ZeroGDaQuorumView
+									entityId={zeroGDaNode.$quorum[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
 						</div>
 					{/if}
 				</dl>

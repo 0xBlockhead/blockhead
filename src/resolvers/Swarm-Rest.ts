@@ -70,6 +70,8 @@ export default {
 				)
 
 				return {
+					reference: normalizedReference,
+					contentPath: browseResult.contentPath,
 					canonicalUri: getResourceCanonicalUri({
 						reference: browseResult.reference,
 						contentPath: browseResult.contentPath,

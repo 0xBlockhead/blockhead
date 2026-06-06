@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	let {
 		entityId,
 		open = $bindable(true),
@@ -19,29 +20,23 @@
 			entityId: EntityId<typeof schema, EntityType.SolanaInstruction>
 			open?: boolean
 		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'layout'
-			| 'showTypeAnnotation'
-		>
+		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const solanaInstruction = useEntity(
-		EntityType.SolanaInstruction,
-		entityId,
-		{
-			programId: {},
-			parsedType: {},
-			data: {},
-			accounts: {},
-		},
-	)
+	const solanaInstruction = useEntity(EntityType.SolanaInstruction, entityId, {
+		$program: {},
+		parsedType: {},
+		data: {},
+		$$accounts: {},
+	})
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
+	import SolanaProgramView from '$/views/SolanaProgramView.svelte'
 </script>
 
 
@@ -53,7 +48,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Value()}
 		<span data-badge="small">
 			#{entityId.instructionIndex.toString()}
@@ -64,8 +58,8 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Instruction </span>
 			{#if Value}
-			{@render Value()}
-					{/if}
+				{@render Value()}
+			{/if}
 		</span>
 	{/snippet}
 
@@ -76,14 +70,16 @@
 		>
 			{#snippet children(solanaInstruction)}
 				<dl>
-					{#if solanaInstruction.programId != null}
+					{#if solanaInstruction.$program != null}
 						<div>
-							<dt>Program ID</dt>
+							<dt>Program</dt>
 							<dd>
-								<TruncatedValue
-									value={solanaInstruction.programId}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								<SolanaProgramView
+									entityId={solanaInstruction.$program}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
 						</div>
 					{/if}
 
@@ -101,17 +97,24 @@
 								<TruncatedValue
 									value={solanaInstruction.data}
 									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								/>
+							</dd>
 						</div>
 					{/if}
 
-					{#if solanaInstruction.accounts != null}
+					{#if solanaInstruction.$$accounts.length}
 						<div>
 							<dt>Accounts</dt>
 							<dd>
 								<ul>
-									{#each solanaInstruction.accounts as accounts (accounts)}
-										<li>{accounts}</li>
+									{#each solanaInstruction.$$accounts as account (account[EntityMetaKey.Id].pubkey)}
+										<li>
+											<SolanaAccountView
+												entityId={account[EntityMetaKey.Id]}
+												layout={EntityLayout.Title}
+												open={false}
+											/>
+										</li>
 									{/each}
 								</ul>
 							</dd>

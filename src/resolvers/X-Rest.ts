@@ -26,6 +26,9 @@ export default {
 			entityType: EntityType.XUser,
 			resolve: async (entityId, context) => {
 				const { getUser } = await import('$/sources/X/Rest/queries.ts')
+				if (!('id' in entityId))
+					throw new Error('X_Rest: XUser username lookup is unsupported')
+
 				const xUser = (await singleFlight(getUser)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
 				if (xUser == null) throw new Error('X_Rest: user not found')
 				const createdAt = Date.parse(xUser.created_at ?? '')
@@ -49,6 +52,7 @@ export default {
 				const description = optionalNonemptyString(xUser.description)
 				const location = optionalNonemptyString(xUser.location)
 				return {
+					id: xUser.id,
 					...(username != null && { username }),
 					...(name != null && { name }),
 					...(description != null && { description }),
@@ -162,6 +166,9 @@ export default {
 			entityType: EntityType.XUser_Timestamp,
 			resolve: async (entityId, context) => {
 				const { getUser } = await import('$/sources/X/Rest/queries.ts')
+				if (!('id' in entityId.$user))
+					throw new Error('X_Rest: XUser_Timestamp username lookup is unsupported')
+
 				const user = (await singleFlight(getUser)(sourcePublicEnv(context, Source.X_Rest), entityId.$user.id)).data
 				if (user == null) throw new Error('X_Rest: user not found')
 				return {
@@ -267,6 +274,9 @@ export default {
 			fieldName: '$$timestamps',
 			resolve: async (entityId, context) => {
 				const { getUser } = await import('$/sources/X/Rest/queries.ts')
+				if (!('id' in entityId))
+					throw new Error('X_Rest: XUser.$$timestamps username lookup is unsupported')
+
 				const user = (await singleFlight(getUser)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
 				if (user == null) throw new Error('X_Rest: user not found')
 				return [
@@ -289,6 +299,9 @@ export default {
 			fieldName: '$$posts',
 			resolve: async (entityId, context) => {
 				const { listUserTweets } = await import('$/sources/X/Rest/queries.ts')
+				if (!('id' in entityId))
+					throw new Error('X_Rest: XUser.$$posts username lookup is unsupported')
+
 				const limit = resolverLoadSubsetRowLimit(context)
 				const { data = [] } = await singleFlight(listUserTweets)(sourcePublicEnv(context, Source.X_Rest), entityId.id, limit)
 				return (

@@ -8,6 +8,10 @@ import {
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
+const lowercaseIdentityValue = (value: unknown) => (
+	String(value).toLowerCase()
+)
+
 const Did = type(
 	'/^did:(plc:[a-z2-7]+|web:[A-Za-z0-9._:%-]+)$/' as type.cast<string>,
 )
@@ -18,11 +22,48 @@ export default {
 	label: 'AT Protocol actor',
 	labelPlural: 'AT Protocol actors',
 
-	id: type({
-		did: Did,
-	}),
+	id: type.or(
+		type({
+			did: Did,
+			'+': 'reject',
+		}),
+		type({
+			handle: 'string',
+			'+': 'reject',
+		}),
+	),
+
+	lookups: [
+		{
+			name: 'handle',
+			fields: [
+				{
+					name: 'handle',
+					normalize: lowercaseIdentityValue,
+				},
+			],
+		},
+	],
+
+	identities: [
+		{
+			name: 'did',
+			fields: [
+				{
+					name: 'did',
+					normalize: lowercaseIdentityValue,
+				},
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'did',
+			type: EntityFieldType.Primitive,
+			primitiveType: Did,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'displayName',
 			type: EntityFieldType.Primitive,

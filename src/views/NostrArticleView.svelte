@@ -53,6 +53,8 @@
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
 			],
+			pubkey: {},
+			identifier: {},
 			title: {},
 			summary: {},
 			imageUrl: {},
@@ -168,6 +170,30 @@
 									entityId={article.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if open && article.pubkey}
+						<div>
+							<dt>Author pubkey</dt>
+							<dd>
+								<TruncatedValue
+									value={article.pubkey}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if open && article.identifier}
+						<div>
+							<dt>Identifier</dt>
+							<dd>
+								<TruncatedValue
+									value={article.identifier}
+									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
 						</div>

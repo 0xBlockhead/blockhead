@@ -5,10 +5,11 @@ import {
 	type ResolverLoadSubset,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import type { EntityId } from '$/schema/$schema.ts'
-import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import type { EntityId } from '$/schema/$schema.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const sliceNormalizedRowsForSubset = <_Row>(
@@ -21,6 +22,13 @@ const sliceNormalizedRowsForSubset = <_Row>(
 const readNormalizedLocalInternal = async () => (
 	(await import('$/sources/Local/Internal/catalog.ts')).readNormalizedLocalInternal()
 )
+
+const blockheadConnectionStatusByLocalStatus = {
+	disconnected: BlockheadConnectionStatus.Disconnected,
+	connecting: BlockheadConnectionStatus.Connecting,
+	connected: BlockheadConnectionStatus.Connected,
+	error: BlockheadConnectionStatus.Error,
+} as const
 
 const findNormalizedBridgeTransactionRow = async (
 	...args: Parameters<typeof import('$/sources/Local/Internal/catalog.ts').findNormalizedBridgeTransactionRow>
@@ -85,6 +93,89 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.BlockheadWallet,
+			resolve: async (entityId) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadWallet = catalog.blockheadWallets.find((candidate) => candidate.id === entityId.id)
+				if (blockheadWallet == null) throw new Error('Local_Internal: BlockheadWallet not present in local catalog')
+				return {
+					name: blockheadWallet.name,
+					icon: blockheadWallet.icon,
+					protocol: blockheadWallet.protocol,
+					discoveryKind: blockheadWallet.discoveryKind,
+					transportKind: blockheadWallet.transportKind,
+					...(blockheadWallet.rdns != null && { rdns: blockheadWallet.rdns }),
+					...(blockheadWallet.websiteUrl != null && { websiteUrl: blockheadWallet.websiteUrl }),
+					capabilities: [...blockheadWallet.capabilities],
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BlockheadWalletAccount,
+			resolve: async (entityId) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadWalletAccount = catalog.blockheadWalletAccounts.find((candidate) => (
+					candidate.namespace === entityId.caip10.namespace
+					&& candidate.reference === entityId.caip10.reference
+					&& candidate.accountAddress === entityId.caip10.accountAddress
+				))
+				if (blockheadWalletAccount == null) throw new Error('Local_Internal: BlockheadWalletAccount not present in local catalog')
+				return {
+					$network: {
+						[EntityMetaKey.Id]: {
+							caip2: {
+								namespace: blockheadWalletAccount.namespace,
+								reference: blockheadWalletAccount.reference,
+							},
+						},
+					},
+					address: blockheadWalletAccount.accountAddress,
+					...(blockheadWalletAccount.label != null && { label: blockheadWalletAccount.label }),
+					capabilities: [...blockheadWalletAccount.capabilities],
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BlockheadWalletConnection,
+			resolve: async (entityId) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadWalletConnection = catalog.blockheadWalletConnections.find((candidate) => candidate.walletId === entityId.$wallet.id)
+				if (blockheadWalletConnection == null) throw new Error('Local_Internal: BlockheadWalletConnection not present in local catalog')
+				return {
+					status: blockheadConnectionStatusByLocalStatus[blockheadWalletConnection.status],
+					protocol: blockheadWalletConnection.protocol,
+					transportKind: blockheadWalletConnection.transportKind,
+					scopes: blockheadWalletConnection.scopes.map((scope) => ({
+						namespace: scope.namespace,
+						reference: scope.reference,
+						methods: [...scope.methods],
+						events: [...scope.events],
+					})),
+					$$connectedAccounts: blockheadWalletConnection.accountIds.map((accountId) => ({
+						[EntityMetaKey.Id]: {
+							caip10: accountId,
+						},
+					})),
+					...(blockheadWalletConnection.activeAccountId != null && {
+						$activeAccount: {
+							[EntityMetaKey.Id]: {
+								caip10: blockheadWalletConnection.activeAccountId,
+							},
+						},
+					}),
+					selected: blockheadWalletConnection.selected,
+					connectedAt: blockheadWalletConnection.connectedAt,
+					...(blockheadWalletConnection.disconnectedAt != null && { disconnectedAt: blockheadWalletConnection.disconnectedAt }),
+					...(blockheadWalletConnection.sessionId != null && { sessionId: blockheadWalletConnection.sessionId }),
+					...(blockheadWalletConnection.sessionTopic != null && { sessionTopic: blockheadWalletConnection.sessionTopic }),
+					...(blockheadWalletConnection.error != null && { error: blockheadWalletConnection.error }),
+				}
+			},
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.BlockheadPanelTree,
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
@@ -122,6 +213,29 @@ export default {
 					updatedAt: blockheadSession.updatedAt,
 					...(blockheadSession.lockedAt != null && { lockedAt: blockheadSession.lockedAt }),
 					...(blockheadSession.simulationCount != null && { simulationCount: blockheadSession.simulationCount }),
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BlockheadSessionAction,
+			resolve: async (entityId) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadSessionAction = catalog.blockheadSessionActions.find((candidate) => (
+					candidate.sessionId === entityId.sessionId
+					&& candidate.actionId === entityId.actionId
+				))
+				if (blockheadSessionAction == null) throw new Error('Local_Internal: BlockheadSessionAction not present in local catalog')
+				return {
+					$session: {
+						[EntityMetaKey.Id]: {
+							id: blockheadSessionAction.sessionId,
+						},
+					},
+					indexInSequence: blockheadSessionAction.indexInSequence,
+					action: blockheadSessionAction.action,
+					createdAt: blockheadSessionAction.createdAt,
+					updatedAt: blockheadSessionAction.updatedAt,
 				}
 			},
 		}),
@@ -358,6 +472,58 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
+			fieldName: '$$blockheadWallets',
+			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				sliceNormalizedRowsForSubset(
+					(await readNormalizedLocalInternal()).blockheadWallets,
+					context,
+				)
+					.map((blockheadWallet) => ({
+						[EntityMetaKey.Id]: { id: blockheadWallet.id },
+					}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
+			fieldName: '$$blockheadWalletConnections',
+			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				sliceNormalizedRowsForSubset(
+					(await readNormalizedLocalInternal()).blockheadWalletConnections,
+					context,
+				)
+					.map((blockheadWalletConnection) => ({
+						[EntityMetaKey.Id]: {
+							$wallet: {
+								id: blockheadWalletConnection.walletId,
+							},
+						},
+					}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
+			fieldName: '$$blockheadWalletAccounts',
+			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				sliceNormalizedRowsForSubset(
+					(await readNormalizedLocalInternal()).blockheadWalletAccounts,
+					context,
+				)
+					.map((blockheadWalletAccount) => ({
+						[EntityMetaKey.Id]: {
+							caip10: {
+								namespace: blockheadWalletAccount.namespace,
+								reference: blockheadWalletAccount.reference,
+								accountAddress: blockheadWalletAccount.accountAddress,
+							},
+						},
+					}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
 			fieldName: '$$blockheadSessions',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
@@ -366,6 +532,28 @@ export default {
 				)
 					.map((blockheadSession) => ({
 						[EntityMetaKey.Id]: { id: blockheadSession.id },
+					}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.BlockheadSession,
+			fieldName: '$$actions',
+			resolve: async (
+				scopedEntityId: EntityId<typeof schema, EntityType.BlockheadSession>,
+				context,
+			) => (
+				sliceNormalizedRowsForSubset(
+					(await readNormalizedLocalInternal()).blockheadSessionActions
+						.filter((sessionAction) => sessionAction.sessionId === scopedEntityId.id)
+						.toSorted((left, right) => left.indexInSequence - right.indexInSequence),
+					context,
+				)
+					.map((sessionAction) => ({
+						[EntityMetaKey.Id]: {
+							sessionId: sessionAction.sessionId,
+							actionId: sessionAction.actionId,
+						},
 					}))
 			),
 		}),

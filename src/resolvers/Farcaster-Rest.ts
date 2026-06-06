@@ -1,5 +1,3 @@
-import { type as arktype } from 'arktype'
-
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
@@ -10,6 +8,9 @@ import { optionalNonemptyString } from '$/lib/string.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+import type { Entity } from '$/schema/$schema.ts'
+import type { CastHash } from '$/schema/FarcasterCast.ts'
+import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -21,6 +22,29 @@ const normalizeMediaUrl = (value: string | null | undefined): string | undefined
 	if (farcasterPlaceholderIconUrlFragments.some((fragment) => raw.toLowerCase().includes(fragment))) return undefined
 	return resolveMediaUrlTransport(raw)?.url
 }
+
+const zeroXLowerHexCastHash = (hash: string): CastHash => {
+	const hex = (
+		hash.startsWith('0x')
+		|| hash.startsWith('0X') ?
+			hash.slice(2)
+		:
+			hash
+	)
+	return `0x${hex.toLowerCase()}`
+}
+
+const farcasterCastTimestampMs = (timestamp: number | undefined) => (
+	timestamp != null && Number.isFinite(timestamp) ?
+		(
+			timestamp >= 1e12 ?
+				timestamp
+			:
+				timestamp * 1000
+		)
+	:
+		undefined
+)
 
 export default {
 	source: Source.Farcaster_Rest,
@@ -36,43 +60,37 @@ export default {
 					protocol: 'solana',
 				})
 				const ethAddress = optionalNonemptyString(ethRaw ?? undefined)
-				const ethParsed = (
-					ethAddress == null ?
-						arktype.errors
-					:
-						EvmAddress(ethAddress)
-				)
 				const solAddress = optionalNonemptyString(solRaw ?? undefined)
 				const verifiedAddresses = [
 					...(ethAddress == null ?
 						[]
 					:
-						[{
-								[EntityMetaKey.Id]: {
-									fid: entityId.fid,
-									protocol: 'ethereum' as const,
-									address: ethAddress,
-								},
+						[((evmAddress) => ({
+							[EntityMetaKey.Id]: {
+								fid: entityId.fid,
+								protocol: 'ethereum' as const,
+								address: evmAddress,
+							},
 							$user: {
 								[EntityMetaKey.Id]: entityId,
 							},
 							$evmAccount: {
 								[EntityMetaKey.Id]: {
-									address: ethAddress,
+									address: evmAddress,
 								},
 							},
-								protocol: 'ethereum' as const,
-								address: ethAddress,
-							}]),
-						...(solAddress == null ?
+							protocol: 'ethereum' as const,
+							address: evmAddress,
+						}))(EvmAddress.assert(ethAddress))]),
+					...(solAddress == null ?
 						[]
 					:
 						[{
-								[EntityMetaKey.Id]: {
-									fid: entityId.fid,
-									protocol: 'solana' as const,
-									address: solAddress,
-								},
+							[EntityMetaKey.Id]: {
+								fid: entityId.fid,
+								protocol: 'solana' as const,
+								address: solAddress,
+							},
 							$user: {
 								[EntityMetaKey.Id]: entityId,
 							},
@@ -87,15 +105,21 @@ export default {
 									pubkey: solAddress,
 								},
 							},
-								protocol: 'solana' as const,
-								address: solAddress,
+							protocol: 'solana' as const,
+							address: solAddress,
 						}]),
 				]
 				if (verifiedAddresses.length === 0) {
 					throw new Error('Farcaster_Rest: verified address not found')
 				}
 				return {
-						...(ethParsed instanceof arktype.errors ? {} : { primaryEvmAddress: EvmAddress.assert(ethAddress) }),
+					...(ethAddress != null && {
+						$primaryEvmAccount: {
+							[EntityMetaKey.Id]: {
+								address: EvmAddress.assert(ethAddress),
+							},
+						},
+					}),
 					$$verifiedAddresses: verifiedAddresses,
 				}
 			},
@@ -202,6 +226,61 @@ export default {
 				return {
 					followerCount,
 					memberCount,
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.FarcasterCast,
+			resolve: async (entityId) => {
+				if (!('username' in entityId) || !('hashPrefix' in entityId)) {
+					throw new Error('Farcaster_Rest: cast id requires username and hash prefix')
+				}
+				const { getCastByUsernameAndHashPrefix } = await import('$/sources/Farcaster/Rest/queries.ts')
+				const cast = await singleFlight(getCastByUsernameAndHashPrefix)({
+					username: entityId.username,
+					castHashPrefix: entityId.hashPrefix,
+				})
+				const hash = optionalNonemptyString(cast?.hash)
+				if (
+					cast == null
+					|| hash == null
+					|| cast.author?.fid == null
+				) {
+					throw new Error('Farcaster_Rest: cast not found')
+				}
+				const castHash = zeroXLowerHexCastHash(hash)
+				if (!castHash.startsWith(zeroXLowerHexCastHash(entityId.hashPrefix))) {
+					throw new Error('Farcaster_Rest: cast hash prefix mismatch')
+				}
+				const timestamp = farcasterCastTimestampMs(cast.timestamp)
+				if (timestamp == null) {
+					throw new Error('Farcaster_Rest: cast missing timestamp')
+				}
+				return {
+					fid: cast.author.fid,
+					hash: castHash,
+					username: entityId.username,
+					hashPrefix: zeroXLowerHexCastHash(entityId.hashPrefix),
+					$author: {
+						[EntityMetaKey.Id]: {
+							fid: cast.author.fid,
+						},
+					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
+					text: optionalNonemptyString(cast.text) ?? '',
+					timestamp,
+					...(cast.reactions?.count != null && {
+						likeCount: cast.reactions.count,
+					}),
+					...(cast.recasts?.count != null && {
+						recastCount: cast.recasts.count,
+					}),
+					...(cast.replies?.count != null && {
+						replyCount: cast.replies.count,
+					}),
+					...(cast.threadHash != null && cast.threadHash !== '' && {
+						threadHash: zeroXLowerHexCastHash(cast.threadHash),
+					}),
 				}
 			},
 		}),

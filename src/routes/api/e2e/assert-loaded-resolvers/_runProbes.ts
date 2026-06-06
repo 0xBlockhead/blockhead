@@ -7,6 +7,7 @@ import {
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
+	entityFieldDefinitions,
 	EntityMetaKey,
 	type EntityDefinition,
 	type EntityFieldDefinition,
@@ -152,7 +153,7 @@ const entityResolvePayloadEmptyForProbe = (
 	}
 
 	const record = fields as Record<string, unknown>
-	const requiredPrimitivesForSource = entityDefinition.fields.filter((field) => (
+	const requiredPrimitivesForSource = entityFieldDefinitions(entityDefinition).filter((field) => (
 		field.type === EntityFieldType.Primitive
 		&& field.cardinality === EntityFieldCardinality.One
 		&& field.defaultSources?.includes(source)

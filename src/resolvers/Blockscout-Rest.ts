@@ -6,6 +6,7 @@ import { optionalNonemptyString } from '$/lib/string.ts'
 import { hexLowerOfByteSize, with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
+	defineEntityFieldCountResolver,
 	defineEntityFieldResolver,
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
@@ -17,7 +18,6 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import {
 	EvmInternalCallType,
-	EvmLogInterpretationKind,
 	EvmTokenStandard,
 	EvmTransactionEnvelopeType,
 	EvmTransactionExecutionStatus,
@@ -87,35 +87,6 @@ const evmContractStorageSlotReadsFromEthGetStorageAt = async ({
 		storageSlots.push({ slot: slotNormalized, value })
 	}
 	return storageSlots
-}
-
-const ERC20_TRANSFER_TOPIC = (
-	'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
-)
-const ERC20_APPROVAL_TOPIC = (
-	'0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e80d49a8a6f947aeb'
-)
-const UNISWAP_V2_SWAP_TOPIC = (
-	'0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822'
-)
-const UNISWAP_V3_SWAP_TOPIC = (
-	'0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67'
-)
-
-const evmLogInterpretationKindFromTopics = (
-	topics: readonly string[],
-): EvmLogInterpretationKind => {
-	if (topics.length === 0) return EvmLogInterpretationKind.Unknown
-	const topic0 = topics[0].toLowerCase()
-	if (topic0 === ERC20_TRANSFER_TOPIC.toLowerCase()) return EvmLogInterpretationKind.Transfer
-	if (topic0 === ERC20_APPROVAL_TOPIC.toLowerCase()) return EvmLogInterpretationKind.Approval
-	if (
-		topic0 === UNISWAP_V2_SWAP_TOPIC.toLowerCase()
-		|| topic0 === UNISWAP_V3_SWAP_TOPIC.toLowerCase()
-	) {
-		return EvmLogInterpretationKind.Swap
-	}
-	return EvmLogInterpretationKind.Unknown
 }
 
 const evmLogIndexFromWire = (
@@ -199,8 +170,6 @@ const evmLogEntityFromIdAndWire = (
 	return {
 		[EntityMetaKey.Id]: entityId,
 		topics,
-		interpretationKind: evmLogInterpretationKindFromTopics(topics),
-		...(address != null && { address }),
 		...(data != null && { data }),
 		...(blockNumber != null && { blockNumber }),
 		...(blockHash != null && { blockHash }),
@@ -718,6 +687,20 @@ const blockscoutStatsForNativeCoinId = async (
 		if (stats != null) return stats
 	}
 	return null
+}
+
+const blockscoutCountFromDecimalString = (
+	raw: string | number | null | undefined,
+	label: string,
+) => {
+	if (raw == null || String(raw).trim() === '')
+		throw new Error(`Blockscout_Rest: missing ${label}`)
+
+	const count = Number(raw)
+	if (!Number.isSafeInteger(count) || count < 0)
+		throw new Error(`Blockscout_Rest: invalid ${label}: ${String(raw)}`)
+
+	return count
 }
 
 const blockscoutV2ExplorerOriginWhenRestSupported = ({
@@ -1833,6 +1816,97 @@ export default {
 					transport: 'blockscout-stats',
 					providerAssetId: entityId.$coin.coinId,
 				}
+			},
+		}),
+	],
+
+	entityFieldCountResolvers: [
+		defineEntityFieldCountResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$$transactions',
+			resolve: async (entityId) => {
+				const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId(entityId))
+				if (stats == null)
+					throw new Error(`Blockscout_Rest: no stats for chain ${chainIdFromEvmNetworkId(entityId)}`)
+
+				return blockscoutCountFromDecimalString(
+					stats.total_transactions,
+					'total_transactions',
+				)
+			},
+		}),
+
+		defineEntityFieldCountResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$$blocks',
+			resolve: async (entityId) => {
+				const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId(entityId))
+				if (stats == null)
+					throw new Error(`Blockscout_Rest: no stats for chain ${chainIdFromEvmNetworkId(entityId)}`)
+
+				return blockscoutCountFromDecimalString(
+					stats.total_blocks,
+					'total_blocks',
+				)
+			},
+		}),
+
+		defineEntityFieldCountResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			fieldName: '$$transactions',
+			resolve: async (entityId) => {
+				const { getAddressCounters } = await import('$/sources/Blockscout/Rest/queries.ts')
+				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
+				const address = hexLowerOfByteSize(entityId.$actor.address, 20)
+				if (address == null)
+					throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
+
+				return blockscoutCountFromDecimalString(
+					(await singleFlight(getAddressCounters)({
+						explorerOrigin: origin,
+						address,
+					})).transactions_count,
+					'transactions_count',
+				)
+			},
+		}),
+
+		defineEntityFieldCountResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			fieldName: '$$tokenTransfers',
+			resolve: async (entityId) => {
+				const { getAddressCounters } = await import('$/sources/Blockscout/Rest/queries.ts')
+				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
+				const address = hexLowerOfByteSize(entityId.$actor.address, 20)
+				if (address == null)
+					throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
+
+				return blockscoutCountFromDecimalString(
+					(await singleFlight(getAddressCounters)({
+						explorerOrigin: origin,
+						address,
+					})).token_transfers_count,
+					'token_transfers_count',
+				)
+			},
+		}),
+
+		defineEntityFieldCountResolver({
+			entityType: EntityType.EvmBlock,
+			fieldName: '$$transactions',
+			resolve: async (entityId) => {
+				const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
+				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
+				const header = await singleFlight(getBlockByNumber)({
+					explorerOrigin: origin,
+					blockNumber: entityId.blockNumber,
+				})
+				if (header == null)
+					throw new Error('Blockscout_Rest: block header not returned for EvmBlock count')
+				if (header.transactions == null)
+					throw new Error('Blockscout_Rest: block header missing transaction count')
+
+				return header.transactions.length
 			},
 		}),
 	],

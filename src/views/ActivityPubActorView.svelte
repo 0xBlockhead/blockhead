@@ -19,10 +19,10 @@
 		entityId,
 		href = resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
 			instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
-			localAccountId: entityId.localAccountId,
+			localAccountId: 'localAccountId' in entityId ? entityId.localAccountId : entityId.acct,
 		}),
 		open = $bindable(true),
-			...EntityViewProps
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.ActivityPubActor>
@@ -49,6 +49,7 @@
 				Source.Mastodon_Rest,
 				Source.Fedi_Rest,
 			],
+			localAccountId: {},
 			username: {},
 			acct: {},
 			displayName: {},
@@ -109,7 +110,7 @@
 			{#snippet children(actor)}
 				{#if actor.$icon}
 					<IconComponent
-						alt={actor.displayName ?? actor.acct ?? actor.username ?? entityId.localAccountId}
+						alt={actor.displayName ?? actor.acct ?? actor.username ?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
 						shape={IconShape.Circle}
 						src={actor.$icon[EntityMetaKey.Id].url}
 					/>
@@ -120,7 +121,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={`@${entityId.localAccountId}@${entityId.instanceOrigin}`}
+			value={'localAccountId' in entityId ? `@${entityId.localAccountId}@${entityId.instanceOrigin}` : `@${entityId.acct}`}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -134,7 +135,7 @@
 				{actor.displayName
 					?? actor.acct
 					?? actor.username
-					?? entityId.localAccountId}
+					?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -148,7 +149,7 @@
 					actor.displayName
 					?? actor.acct
 					?? actor.username
-					?? entityId.localAccountId}
+					?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
 				{#if actor.username && actor.username !== activityPubSummaryHeadingLine}
 					<span data-text="muted">
 						@{actor.username}
@@ -193,13 +194,13 @@
 				<ResourceBoundary
 					resource={actor}
 					placeholderText="Loading actor…"
-				>
-					{#snippet children(actor)}
-						{@const activityPubSummaryHeadingLine =
-							actor.displayName
-							?? actor.acct
-							?? actor.username
-							?? entityId.localAccountId}
+					>
+						{#snippet children(actor)}
+							{@const activityPubSummaryHeadingLine =
+								actor.displayName
+								?? actor.acct
+								?? actor.username
+								?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
 
 						{#if actor.acct && actor.acct !== activityPubSummaryHeadingLine}
 							<div>
@@ -314,25 +315,25 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			id={`${idKey}:carousel-activity`}
-			sectionIdPrefix={idKey}
+				id={`${idKey}:carousel-activity`}
+				sectionIdPrefix={idKey}
 				sections={collapsibleTabsSections([
 					{ id: 'mastodon-profile', label: 'Profile' },
 					{ id: 'activity-statuses', label: 'Outbox' },
 					{ id: 'metric-snapshots', label: 'Metrics' },
 				])}
-			data-card
-		>
-			{#snippet Summary({ open: _activitySummaryOpen })}
-			<header
-				data-row-item="flexible"
-				data-row="wrap gap-4"
+				data-card
 			>
-				<HeadingComponent>
-					Mastodon actor & outbox
-				</HeadingComponent>
-			</header>
-		{/snippet}
+				{#snippet Summary({ open: _activitySummaryOpen })}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Mastodon actor & outbox
+						</HeadingComponent>
+					</header>
+				{/snippet}
 
 			{#snippet SectionMastodonProfile()}
 				<ResourceBoundary
@@ -368,34 +369,57 @@
 				</ResourceBoundary>
 			{/snippet}
 
-			{#snippet SectionActivityStatuses()}
-				<ActivityPubNotesView
-					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.ActivityPubActor,
-						entityId,
-						fieldName: '$$notes',
-					}}
-					fieldOpen={_open}
-					id={`${idKey}:activity-notes-activityPubActors`}
-				orderByCreatedAt="desc"
-					placeholderText="Loading Mastodon outbox statuses…"
-					title="Outbox"
-				/>
-			{/snippet}
+				{#snippet SectionActivityStatuses()}
+					<ResourceBoundary
+						resource={actor}
+						placeholderText="Loading actor…"
+					>
+						{#snippet children(actor)}
+							<ActivityPubNotesView
+								CollapsibleProps={{ canToggle: false }}
+								entityFieldReference={{
+									entityType: EntityType.ActivityPubActor,
+									entityId: {
+										instanceOrigin: entityId.instanceOrigin,
+										localAccountId: actor.localAccountId,
+									},
+									fieldName: '$$notes',
+								}}
+								fieldOpen={_open}
+								id={`${idKey}:activity-notes-activityPubActors`}
+								orderByCreatedAt="desc"
+								placeholderText="Loading Mastodon outbox statuses…"
+								title="Outbox"
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
 
-			{#snippet SectionMetricSnapshots()}
-				<ActivityPubActor_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.ActivityPubActor,
-						entityId,
-						fieldName: '$$timestamps',
-					}}
-					href={href}
-					id={`${idKey}:metric-snapshots`}
-					title="Metric snapshots"
-				/>
-			{/snippet}
+				{#snippet SectionMetricSnapshots()}
+					<ResourceBoundary
+						resource={actor}
+						placeholderText="Loading actor…"
+					>
+						{#snippet children(actor)}
+							<ActivityPubActor_TimestampsView
+								entityFieldReference={{
+									entityType: EntityType.ActivityPubActor,
+									entityId: {
+										instanceOrigin: entityId.instanceOrigin,
+										localAccountId: actor.localAccountId,
+									},
+									fieldName: '$$timestamps',
+								}}
+								href={resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+									instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
+									localAccountId: actor.localAccountId,
+								})}
+								id={`${idKey}:metric-snapshots`}
+								title="Metric snapshots"
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
 		</CollapsibleTabs>
-		{/snippet}
-	</EntityView>
+	{/snippet}
+</EntityView>

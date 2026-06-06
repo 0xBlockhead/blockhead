@@ -33,13 +33,6 @@ export enum EvmInternalCallType {
 	Unknown = 'Unknown',
 }
 
-export enum EvmLogInterpretationKind {
-	Transfer = 'Transfer',
-	Approval = 'Approval',
-	Swap = 'Swap',
-	Unknown = 'Unknown',
-}
-
 export enum EvmTokenStandard {
 	Erc20 = 'ERC-20',
 	Erc721 = 'ERC-721',
@@ -167,28 +160,6 @@ const evmInternalCallTypes = [
 	label: string
 }[]
 
-const evmLogInterpretationKinds = [
-	{
-		interpretationKind: EvmLogInterpretationKind.Transfer,
-		label: 'Token transfer',
-	},
-	{
-		interpretationKind: EvmLogInterpretationKind.Approval,
-		label: 'Token approval',
-	},
-	{
-		interpretationKind: EvmLogInterpretationKind.Swap,
-		label: 'Swap',
-	},
-	{
-		interpretationKind: EvmLogInterpretationKind.Unknown,
-		label: 'Unknown',
-	},
-] as const satisfies readonly {
-	interpretationKind: EvmLogInterpretationKind
-	label: string
-}[]
-
 const evmTokenStandards = [
 	{
 		standard: EvmTokenStandard.Erc20,
@@ -234,13 +205,6 @@ export const evmTransactionKindByKind = Object.fromEntries(
 export const evmInternalCallTypeByCallType = Object.fromEntries(
 	evmInternalCallTypes.map((row) => [
 		row.callType,
-		row,
-	]),
-)
-
-export const evmLogInterpretationKindByInterpretationKind = Object.fromEntries(
-	evmLogInterpretationKinds.map((row) => [
-		row.interpretationKind,
 		row,
 	]),
 )

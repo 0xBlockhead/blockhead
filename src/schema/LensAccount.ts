@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress, lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -10,17 +10,74 @@ import {
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
+const lowercaseIdentityValue = (value: unknown) => (
+	String(value).toLowerCase()
+)
+
 export default {
 	entityType: EntityType.LensAccount,
 
 	label: 'Lens account',
 	labelPlural: 'Lens accounts',
 
-	id: type({
-		address: EvmAddress,
-	}),
+	id: type.or(
+		type({
+			address: EvmAddress,
+			'+': 'reject',
+		}),
+		type({
+			localName: 'string',
+			'+': 'reject',
+		}),
+		type({
+			legacyProfileId: 'string',
+			'+': 'reject',
+		}),
+	),
+
+	lookups: [
+		{
+			name: 'localName',
+			fields: [
+				{
+					name: 'localName',
+					normalize: lowercaseIdentityValue,
+				},
+			],
+		},
+		{
+			name: 'legacyProfileId',
+			fields: [
+				'legacyProfileId',
+			],
+		},
+	],
+
+	identities: [
+		{
+			name: 'address',
+			fields: [
+				{
+					name: 'address',
+					normalize: lowercaseHexIdentityValue,
+				},
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'address',
+			type: EntityFieldType.Primitive,
+			primitiveType: EvmAddress,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'legacyProfileId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: 'localName',
 			type: EntityFieldType.Primitive,

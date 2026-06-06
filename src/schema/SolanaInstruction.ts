@@ -29,12 +29,6 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'programId',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
 			name: 'parsedType',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
@@ -47,9 +41,9 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'accounts',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			name: '$$accounts',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.SolanaAccount,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

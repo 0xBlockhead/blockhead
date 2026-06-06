@@ -215,6 +215,9 @@ const profileFieldValuesFromMetadata = (
 	metadata: NostrProfileMetadata | undefined,
 	profileEvent: NostrEvent | undefined,
 ) => ({
+	...(normalizePubkey(profileEvent?.pubkey) != null && {
+		pubkey: normalizePubkey(profileEvent?.pubkey),
+	}),
 	displayName: optionalNonemptyString(metadata?.display_name ?? metadata?.name),
 	about: optionalNonemptyString(metadata?.about),
 	nip05: optionalNonemptyString(metadata?.nip05),
@@ -242,9 +245,12 @@ const profileFieldValuesFromMetadata = (
 
 const noteFieldValuesFromEvent = (event: NostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
+	const eventId = normalizeEventId(String(event.id))
 	if (eventPubkey == null) throw new Error('NostrBand_Rest: invalid event pubkey')
+	if (eventId == null) throw new Error('NostrBand_Rest: invalid note event id')
 	return (
 		((replyToEventId, rootEventId) => ({
+			eventId,
 			kind: 1,
 			pubkey: eventPubkey,
 			content: optionalNonemptyString(event.content),
@@ -283,6 +289,9 @@ const repostFieldValuesFromEvent = (event: NostrEvent) => {
 	const repostedArticle = articleRefFromAddressableCoordinate(tagValueFromTags(event.tags, 'a'))
 	return (
 		((repostedEventId) => ({
+			...(normalizeEventId(String(event.id)) != null && {
+				eventId: normalizeEventId(String(event.id)),
+			}),
 			kind,
 			pubkey: eventPubkey,
 			...(event.tags != null && { tags: event.tags }),
@@ -339,6 +348,9 @@ const reactionFieldValuesFromEvent = (event: NostrEvent) => {
 	const targetArticle = articleRefFromAddressableCoordinate(tagValueFromTags(event.tags, 'a'))
 	const targetEventId = reactionTargetEventIdFromTags(event.tags)
 	return {
+		...(normalizeEventId(String(event.id)) != null && {
+			eventId: normalizeEventId(String(event.id)),
+		}),
 		kind: 7,
 		pubkey: eventPubkey,
 		...(event.tags != null && { tags: event.tags }),
@@ -407,6 +419,9 @@ const articleFieldValuesFromEvent = (event: NostrEvent) => {
 		((publishedAt) => ({
 			kind: 30023,
 			pubkey: eventPubkey,
+			...(tagValueFromTags(event.tags, 'd') != null && {
+				identifier: tagValueFromTags(event.tags, 'd'),
+			}),
 			title: optionalNonemptyString(tagValueFromTags(event.tags, 'title')),
 			summary: optionalNonemptyString(tagValueFromTags(event.tags, 'summary')),
 			imageUrl: optionalNonemptyString(tagValueFromTags(event.tags, 'image')),

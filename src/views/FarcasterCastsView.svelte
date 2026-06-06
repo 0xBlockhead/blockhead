@@ -109,8 +109,8 @@
 				href={EntitiesListProps.href}
 				{title}
 				open={true}
-				getKey={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Id])}
-				getSortValue={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Id])}
+				getKey={(farcasterCast) => farcasterCast.result[EntityMetaKey.IdKey]}
+				getSortValue={(farcasterCast) => farcasterCast.result[EntityMetaKey.IdKey]}
 				placeholderText="Loading feed casts (Farcaster FID + cast hash)…"
 				resource={casts}
 			>

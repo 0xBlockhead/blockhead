@@ -20,6 +20,7 @@ import BlobscanRestResolvers from '$/resolvers/Blobscan-Rest.ts'
 import BlockchairRestResolvers from '$/resolvers/Blockchair-Rest.ts'
 import BlockscoutRestResolvers from '$/resolvers/Blockscout-Rest.ts'
 import CaipsGithubResolvers from '$/resolvers/Caips-Github.ts'
+import CashuMintRestResolvers from '$/resolvers/CashuMint-Rest.ts'
 import ChainlistRestResolvers from '$/resolvers/Chainlist-Rest.ts'
 import CoingeckoOpenApiResolvers from '$/resolvers/Coingecko-OpenApi.ts'
 import CoingeckoRestResolvers from '$/resolvers/Coingecko-Rest.ts'
@@ -71,6 +72,7 @@ import NearRpcJsonRpcResolvers from '$/resolvers/NearRpc-JsonRpc.ts'
 import NeynarRestResolvers from '$/resolvers/Neynar-Rest.ts'
 import NostrBandRestResolvers from '$/resolvers/NostrBand-Rest.ts'
 import OpenchainRestResolvers from '$/resolvers/Openchain-Rest.ts'
+import PayjoinDirectoryRestResolvers from '$/resolvers/PayjoinDirectory-Rest.ts'
 import PolkadotJsonRpcResolvers from '$/resolvers/Polkadot-JsonRpc.ts'
 import PolkadotRfcsGithubResolvers from '$/resolvers/PolkadotRfcs-Github.ts'
 import PipedRestResolvers from '$/resolvers/Piped-Rest.ts'
@@ -131,6 +133,7 @@ const enabledResolverModulesAfterSourceGate = (
 		BlockchairRestResolvers,
 		BlockscoutRestResolvers,
 		CaipsGithubResolvers,
+		CashuMintRestResolvers,
 		L2BeatRestResolvers,
 		ChainlistRestResolvers,
 		CoingeckoRestResolvers,
@@ -182,6 +185,7 @@ const enabledResolverModulesAfterSourceGate = (
 		NeynarRestResolvers,
 		NostrBandRestResolvers,
 		OpenchainRestResolvers,
+		PayjoinDirectoryRestResolvers,
 		PolkadotJsonRpcResolvers,
 		PolkadotRfcsGithubResolvers,
 		PipedRestResolvers,
@@ -241,6 +245,18 @@ export const entityFieldResolvers = (
 	))
 )
 
+export const entityFieldCountResolvers = (
+	enabledResolverModulesAfterSourceGate.flatMap((module) => (
+		'entityFieldCountResolvers' in module ?
+			module.entityFieldCountResolvers.map((entityFieldCountResolver) => ({
+				...entityFieldCountResolver,
+				source: module.source,
+			}))
+		:
+			[]
+	))
+)
+
 export const entityLiveResolvers = (
 	enabledResolverModulesAfterSourceGate.flatMap((module) => (
 		'entityLiveResolvers' in module ?
@@ -263,6 +279,11 @@ export const entityFieldResolversByEntityType = Object.groupBy(
 	(fieldResolver) => fieldResolver.entityType,
 )
 
+export const entityFieldCountResolversByEntityType = Object.groupBy(
+	entityFieldCountResolvers,
+	(fieldResolver) => fieldResolver.entityType,
+)
+
 export const entityLiveResolversByEntityType = Object.groupBy(
 	entityLiveResolvers,
 	(entityLiveResolver) => entityLiveResolver.entityType,
@@ -272,6 +293,19 @@ export const entityFieldResolversByEntityTypeAndFieldName: Partial<
 	Record<string, Partial<Record<string, typeof entityFieldResolvers>>>
 > = Object.fromEntries(
 	Object.entries(entityFieldResolversByEntityType)
+		.map(([entityType, resolversForEntity]) => [
+			entityType,
+			Object.groupBy(
+				resolversForEntity,
+				(fieldResolver) => fieldResolver.fieldName,
+			),
+		]),
+)
+
+export const entityFieldCountResolversByEntityTypeAndFieldName: Partial<
+	Record<string, Partial<Record<string, typeof entityFieldCountResolvers>>>
+> = Object.fromEntries(
+	Object.entries(entityFieldCountResolversByEntityType)
 		.map(([entityType, resolversForEntity]) => [
 			entityType,
 			Object.groupBy(

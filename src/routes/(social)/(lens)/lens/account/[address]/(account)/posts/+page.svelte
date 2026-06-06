@@ -1,24 +1,14 @@
 <script lang="ts">
-	// Types/constants
-	import { EntityType } from '$/schema/$EntityType.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		params,
 	} = $props()
 
-
-	// Functions
-	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-
-
 	const entityId = $derived.by(() => {
 		const raw = decodeURIComponent(params.address).trim()
+		if (raw.startsWith('legacy:'))
+			return { legacyProfileId: raw.slice('legacy:'.length) }
+
 		const with0x = raw.startsWith('0x') ? raw : `0x${raw}`
 		const address = (
 			hexLowerOfByteSize(with0x, 20)
@@ -29,29 +19,22 @@
 					undefined
 			)
 		)
-		return address === undefined ? undefined : { address }
+		return address === undefined ? { localName: raw.replace(/^@/, '') } : { address }
 	})
+
+
+	// Functions
+	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import LensPostsView from '$/views/LensPostsView.svelte'
+	import LensAccountView from '$/views/LensAccountView.svelte'
 </script>
 
 
 <Page>
-	{#if entityId}
-	<LensPostsView
-		href={resolve(
-			'/(social)/(lens)/lens/account/[address]/(account)/posts',
-			{ address: entityId.address },
-		)}
-		entityFieldReference={{
-			entityType: EntityType.LensAccount,
-			entityId,
-			fieldName: '$$posts',
-		}}
-		id="lens-account-posts"
+	<LensAccountView
+		{entityId}
 	/>
-	{/if}
 </Page>

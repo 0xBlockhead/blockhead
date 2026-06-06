@@ -6,8 +6,9 @@ import {
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
+	conditionalFieldGroup,
 	type EntityDefinition,
+	type EntityFieldEntry,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -28,14 +29,6 @@ const evmNftDiscriminatorFields = [
 		cardinality: EntityFieldCardinality.One,
 	},
 ] as const satisfies readonly EntityFieldDefinition[]
-
-const eip8004RegistrationCondition = conditionalOn(
-	evmNftDiscriminatorFields,
-	'format',
-	[
-		EvmNftFormat.Eip8004Registration,
-	],
-)
 
 export default {
 	entityType: EntityType.EvmNft,
@@ -74,74 +67,74 @@ export default {
 			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-		{
-			name: 'agentRegistry',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: eip8004RegistrationCondition,
-		},
-		{
-			name: 'agentId',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: eip8004RegistrationCondition,
-		},
-		{
-			name: 'agentUri',
-			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: eip8004RegistrationCondition,
-		},
-		{
-			name: 'contactEndpoint',
-			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: eip8004RegistrationCondition,
-		},
-		{
-			name: '$agentWallet',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: eip8004RegistrationCondition,
-		},
-		{
-			name: 'x402Support',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: eip8004RegistrationCondition,
-		},
-		{
-			name: 'active',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: eip8004RegistrationCondition,
-		},
-		{
-			name: 'supportedTrust',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string[]'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: eip8004RegistrationCondition,
-		},
-		{
-			name: 'registrationTypeIri',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: eip8004RegistrationCondition,
-		},
+		conditionalFieldGroup(
+			evmNftDiscriminatorFields,
+			'format',
+			[
+				EvmNftFormat.Eip8004Registration,
+			],
+			[
+				{
+					name: 'agentRegistry',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('string'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				{
+					name: 'agentId',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('string'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				{
+					name: 'agentUri',
+					type: EntityFieldType.Primitive,
+					primitiveType: UrlString,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				{
+					name: 'contactEndpoint',
+					type: EntityFieldType.Primitive,
+					primitiveType: UrlString,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				{
+					name: '$agentWallet',
+					type: EntityFieldType.EntityReference,
+					entityType: EntityType.EvmAccount,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				{
+					name: 'x402Support',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('boolean'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				{
+					name: 'active',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('boolean'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				{
+					name: 'supportedTrust',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('string[]'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				{
+					name: 'registrationTypeIri',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('string'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+			],
+		),
 		{
 			name: 'fetchedAt',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	] as const satisfies readonly EntityFieldEntry[],
 } as const satisfies EntityDefinition

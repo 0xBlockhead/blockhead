@@ -3,9 +3,11 @@ import type { Type } from 'arktype'
 import {
 	EntityFieldCardinality,
 	type EntityFieldCondition,
+	type EntityFieldConditionKey,
 	EntityFieldType,
 	EntityMetaKey,
 	type EntityDefinition,
+	type EntityFieldDefinitions,
 	type EntityFieldDefinition as EntityFieldDefinitionTemplate,
 } from '$/schema/$EntityDefinition.ts'
 
@@ -26,13 +28,13 @@ export type EntityId<
 export type EntityFieldName<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number]['name']
+> = EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>['name']
 
 export type EntityBaseFieldDefinition<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = Exclude<
-	EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number],
+	EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>,
 	{ when: EntityFieldCondition }
 >
 
@@ -40,7 +42,7 @@ export type EntityConditionalFieldDefinition<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = Extract<
-	EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number],
+	EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>,
 	{ when: EntityFieldCondition }
 >
 
@@ -52,15 +54,41 @@ export type EntityBaseFieldName<
 export type EntityConditionalDiscriminatorName<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = EntityConditionalFieldDefinition<_Schema, _EntityType>['when']['fieldName']
+> = EntityConditionalFieldDefinition<_Schema, _EntityType> extends infer _FieldDefinition ?
+	_FieldDefinition extends {
+		when: infer _Condition extends EntityFieldCondition
+	} ?
+		EntityFieldConditionKey<_Condition>
+	:
+		never
+:
+	never
+
+type EntityConditionalFieldDefinitionForDiscriminator<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+> = EntityConditionalFieldDefinition<_Schema, _EntityType> extends infer _FieldDefinition ?
+	_FieldDefinition extends {
+		when: infer _Condition extends EntityFieldCondition
+	} ?
+		_DiscriminatorName extends EntityFieldConditionKey<_Condition> ?
+			_FieldDefinition
+		:
+			never
+	:
+		never
+:
+	never
 
 export type EntityConditionalDiscriminatorValue<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-> = Extract<
-	EntityConditionalFieldDefinition<_Schema, _EntityType>,
-	{ when: { fieldName: _DiscriminatorName } }
+> = EntityConditionalFieldDefinitionForDiscriminator<
+	_Schema,
+	_EntityType,
+	_DiscriminatorName
 >['when']['values'][number]
 
 export type EntityConditionalFieldName<
@@ -71,13 +99,13 @@ export type EntityConditionalFieldName<
 > = EntityConditionalFieldDefinition<_Schema, _EntityType> extends infer _FieldDefinition ?
 	_FieldDefinition extends {
 		name: infer _FieldName
-		when: {
-			fieldName: _DiscriminatorName
-			values: readonly (string | number)[]
-		}
+		when: infer _Condition extends EntityFieldCondition
 	} ?
-		_DiscriminatorValue extends _FieldDefinition['when']['values'][number] ?
-			_FieldName
+		_DiscriminatorName extends EntityFieldConditionKey<_Condition> ?
+			_DiscriminatorValue extends _Condition['values'][number] ?
+				_FieldName
+			:
+				never
 		:
 			never
 	:
@@ -89,7 +117,7 @@ export type EntityFieldDefinition<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_FieldName extends EntityFieldName<_Schema, _EntityType>,
-> = Extract<EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number], { name: _FieldName }>
+> = Extract<EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>, { name: _FieldName }>
 
 export type EntityFieldValue<
 	_Schema extends Schema,
@@ -104,7 +132,7 @@ export type EntityFieldValue<
 
 export type EntityFieldValueFromDefinition<
 	_Schema extends Schema,
-	_EntityFieldDefinition extends _Schema[number]['fields'][number],
+	_EntityFieldDefinition extends EntityFieldDefinitionTemplate,
 > = (
 	_EntityFieldDefinition extends {
 		type: EntityFieldType.Primitive
@@ -150,7 +178,7 @@ export type EntityFieldValues<
 > = (
 	& {
 		[
-			_FieldDefinition in EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number] as (
+			_FieldDefinition in EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>> as (
 				_FieldDefinition extends { cardinality: EntityFieldCardinality.One | EntityFieldCardinality.Many } ?
 					_FieldDefinition['name']
 				:
@@ -160,7 +188,7 @@ export type EntityFieldValues<
 	}
 	& {
 		[
-			_FieldDefinition in EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number] as (
+			_FieldDefinition in EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>> as (
 				_FieldDefinition extends { cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.ZeroOrOne | EntityFieldCardinality.ZeroOrMany } ?
 					_FieldDefinition['name']
 				:

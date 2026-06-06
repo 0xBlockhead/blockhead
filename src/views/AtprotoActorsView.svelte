@@ -106,8 +106,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-						getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-						getSortValue={(row) => row.value[EntityMetaKey.Id].did}
+					getKey={(row) => row.value[EntityMetaKey.IdKey]}
+					getSortValue={(row) => row.value[EntityMetaKey.Id].did}
 					placeholderText="Loading DID directory…"
 					resource={actors}
 				>

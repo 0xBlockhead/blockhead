@@ -155,9 +155,12 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.SolanaBlock,
-			resolve: async (entityId) => {
-				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				entityType: EntityType.SolanaBlock,
+				resolve: async (entityId) => {
+					if (!('slot' in entityId))
+						throw new Error('ThreeXpl_Rest: SolanaBlock blockHash lookup is unsupported')
+
+					const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
 					block: entityId.slot.toString(),
@@ -313,10 +316,13 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.SolanaBlock,
-			fieldName: '$$transactions',
-			resolve: async (entityId) => {
-				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				entityType: EntityType.SolanaBlock,
+				fieldName: '$$transactions',
+				resolve: async (entityId) => {
+					if (!('slot' in entityId))
+						throw new Error('ThreeXpl_Rest: SolanaBlock.$$transactions blockHash lookup is unsupported')
+
+					const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				return eventTransactions(
 					(
 						await fetchBlock({

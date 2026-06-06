@@ -55,7 +55,7 @@ const lensAnyPostSlugFromWire = (
 
 const lensAccountTimestampFieldsFromWire = (
 	wire: {
-		accountStats: {
+		accountStats?: {
 			graphFollowStats: {
 				followers?: number | null
 				following?: number | null
@@ -63,10 +63,10 @@ const lensAccountTimestampFieldsFromWire = (
 		}
 	},
 ) => ({
-	...(wire.accountStats.graphFollowStats.followers != null && {
+	...(wire.accountStats?.graphFollowStats.followers != null && {
 		followerCount: wire.accountStats.graphFollowStats.followers,
 	}),
-	...(wire.accountStats.graphFollowStats.following != null && {
+	...(wire.accountStats?.graphFollowStats.following != null && {
 		followingCount: wire.accountStats.graphFollowStats.following,
 	}),
 })
@@ -100,7 +100,15 @@ const lensGraphqlResolvers = {
 			resolve: async (entityId, context) => {
 				const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
-				const wire = await singleFlight(queryAccount)(publicEnv, zeroExLowerCase(entityId.address))
+				const wire = await singleFlight(queryAccount)(
+					publicEnv,
+					'address' in entityId ?
+						{
+							address: zeroExLowerCase(entityId.address),
+						}
+					:
+						entityId,
+				)
 				const a = wire.account
 				if (a == null) throw new Error('Lens_Graphql: account not found')
 				const createdAt = optionalTimestampMs(String(a.createdAt))
@@ -109,6 +117,7 @@ const lensGraphqlResolvers = {
 				const bio = optionalNonemptyString(a.metadata?.bio)
 				const pictureUrl = optionalNonemptyString(a.metadata?.picture != null ? String(a.metadata.picture) : null)
 				return {
+					address: lensEvmAddressFromWire(a.address),
 					...(localName != null && { localName }),
 					...(displayName != null && { displayName }),
 					...(bio != null && { bio }),
@@ -201,7 +210,10 @@ const lensGraphqlResolvers = {
 			resolve: async (entityId, context) => {
 				const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
-				const wire = await singleFlight(queryAccount)(publicEnv, zeroExLowerCase(entityId.$account.address))
+				if (!('address' in entityId.$account))
+					throw new Error('Lens_Graphql: LensAccount_Timestamp lookup id is unsupported')
+
+				const wire = await singleFlight(queryAccount)(publicEnv, { address: zeroExLowerCase(entityId.$account.address) })
 				if (wire.account == null) throw new Error('Lens_Graphql: account not found')
 				return lensAccountTimestampFieldsFromWire(wire)
 			},
@@ -321,12 +333,22 @@ const lensGraphqlResolvers = {
 			resolve: async (entityId, context) => {
 				const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
-				const wire = await singleFlight(queryAccount)(publicEnv, zeroExLowerCase(entityId.address))
+				const wire = await singleFlight(queryAccount)(
+					publicEnv,
+					'address' in entityId ?
+						{
+							address: zeroExLowerCase(entityId.address),
+						}
+					:
+						entityId,
+				)
 				if (wire.account == null) throw new Error('Lens_Graphql: account not found')
 				return [
 					{
 						[EntityMetaKey.Id]: {
-							$account: entityId,
+							$account: {
+								address: lensEvmAddressFromWire(wire.account.address),
+							},
 							timestampMs: Date.now(),
 						},
 						...lensAccountTimestampFieldsFromWire(wire),
@@ -341,6 +363,9 @@ const lensGraphqlResolvers = {
 			resolve: async (entityId, context) => {
 				const { queryPostsByAuthor } = await import('$/sources/Lens/Graphql/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
+				if (!('address' in entityId))
+					throw new Error('Lens_Graphql: LensAccount.$$posts lookup id is unsupported')
+
 				const limit = resolverLoadSubsetRowLimit(context)
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 				return (

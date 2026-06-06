@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -49,6 +49,7 @@
 				{
 					createdAt: {},
 					createdBy: {},
+					$$peers: {},
 				}
 			:
 				{}),
@@ -60,6 +61,7 @@
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import BlockheadRoomPeersView from '$/views/BlockheadRoomPeersView.svelte'
 </script>
 
 
@@ -150,5 +152,15 @@
 	{#snippet Details({
 		open,
 	})}
+		{#if open}
+			<BlockheadRoomPeersView
+				entityFieldReference={{
+					entityType: EntityType.BlockheadRoom,
+					entityId,
+					fieldName: '$$peers',
+				}}
+				id={`${entityId.id}:peers`}
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -23,7 +23,32 @@ export default {
 		'hash?': ZeroExHex,
 	}),
 
+	identities: [
+		{
+			name: 'numberHash',
+			fields: [
+				{
+					name: '$network',
+				},
+				{
+					name: 'number',
+					as: 'blockNumber',
+				},
+				{
+					name: 'hash',
+					normalize: lowercaseHexIdentityValue,
+				},
+			],
+		},
+	],
+
 	fields: [
+		{
+			name: 'hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: 'number',
 			type: EntityFieldType.Primitive,

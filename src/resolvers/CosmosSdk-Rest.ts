@@ -186,10 +186,13 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.CosmosBlock,
-			resolve: async (entityId) => {
-				assertCosmosHub(entityId.$network)
-				const { getBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+				entityType: EntityType.CosmosBlock,
+				resolve: async (entityId) => {
+					assertCosmosHub(entityId.$network)
+					if (!('height' in entityId))
+						throw new Error('CosmosSdk_Rest: CosmosBlock hash lookup is unsupported')
+
+					const { getBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				const wireBlock = await getBlock({
 					restBaseUrl: cosmosHubRestBaseUrl,
 					height: entityId.height,
@@ -318,11 +321,19 @@ export default {
 			resolve: async (entityId) => {
 				assertCosmosHub(entityId.$network)
 				const { getModuleAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+				const moduleAccount = await getModuleAccount({
+					restBaseUrl: cosmosHubRestBaseUrl,
+					moduleName: entityId.moduleName,
+				})
 				return {
-					authority: (await getModuleAccount({
-						restBaseUrl: cosmosHubRestBaseUrl,
-						moduleName: entityId.moduleName,
-					})).account?.base_account?.address,
+					...(moduleAccount.account?.base_account?.address != null && {
+						$authority: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								address: moduleAccount.account.base_account.address,
+							},
+						},
+					}),
 				}
 			},
 		}),

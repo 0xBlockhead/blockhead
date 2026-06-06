@@ -48,6 +48,8 @@
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
 			],
+			eventId: {},
+			pubkey: {},
 			createdAt: {},
 			repostedEventId: {},
 			$author: {},
@@ -129,6 +131,27 @@
 
 	{#snippet Content({})}
 		<dl data-column-item="center">
+			{#if open}
+				<div>
+					<dt>Event id</dt>
+					<dd>
+						<ResourceBoundary
+							resource={repost}
+							placeholderText="Loading repost…"
+						>
+							{#snippet children(repost)}
+								{#if repost.eventId}
+									<TruncatedValue
+										value={repost.eventId}
+										format={TruncatedValueFormat.Visual}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
 			<div>
 				<dt>Created</dt>
 				<dd>

@@ -11,8 +11,13 @@
 </script>
 
 
-<Page>
-	<AtprotoActorView
-		entityId={{ did: decodeURIComponent(params.did) }}
-	/>
-</Page>
+	<Page>
+		<AtprotoActorView
+			entityId={
+				decodeURIComponent(params.did).startsWith('did:') ?
+					{ did: decodeURIComponent(params.did) }
+				:
+					{ handle: decodeURIComponent(params.did) }
+			}
+		/>
+	</Page>

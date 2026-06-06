@@ -6,6 +6,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { blockheadFarcasterConnectionAuthMethodByAuthMethod } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 	import { entityResolversByEntityType } from '$/resolvers/index.ts'
@@ -57,6 +58,7 @@
 				{
 					bio: {},
 					custody: {},
+					authMethod: {},
 					signedAt: {},
 				}
 			:
@@ -209,6 +211,18 @@
 								/>
 							{/snippet}
 						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if (
+				open
+				&& connectionRow?.authMethod
+			)}
+				<div>
+					<dt>Auth method</dt>
+					<dd>
+						{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.authMethod].label}
 					</dd>
 				</div>
 			{/if}

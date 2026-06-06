@@ -37,10 +37,13 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.HyperliquidBlock,
-			resolve: async (entityId) => {
-				assertHyperliquidMainnet(entityId.$network)
-				const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+				entityType: EntityType.HyperliquidBlock,
+				resolve: async (entityId) => {
+					assertHyperliquidMainnet(entityId.$network)
+					if (!('height' in entityId))
+						throw new Error('Hyperliquid_JsonRpc: HyperliquidBlock hash lookup is unsupported')
+
+					const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 				const block = await getBlockByNumber({
 					rpcUrl: hyperliquidEvmRpcUrl,
 					height: entityId.height,
@@ -202,11 +205,14 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.HyperliquidBlock,
-			fieldName: '$$transactions',
-			resolve: async (entityId) => {
-				assertHyperliquidMainnet(entityId.$network)
-				const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+				entityType: EntityType.HyperliquidBlock,
+				fieldName: '$$transactions',
+				resolve: async (entityId) => {
+					assertHyperliquidMainnet(entityId.$network)
+					if (!('height' in entityId))
+						throw new Error('Hyperliquid_JsonRpc: HyperliquidBlock.$$transactions hash lookup is unsupported')
+
+					const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 				const block = await getBlockByNumber({
 					rpcUrl: hyperliquidEvmRpcUrl,
 					height: entityId.height,

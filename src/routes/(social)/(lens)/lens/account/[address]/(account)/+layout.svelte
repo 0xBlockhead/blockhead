@@ -1,9 +1,4 @@
 <script lang="ts">
-	// Types/constants
-	import { type as arktype } from 'arktype'
-	import { EvmAddress } from '$/schema/$ZeroExHex.ts'
-
-
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -15,14 +10,30 @@
 	const address = $derived(
 		page.params.address ?? '',
 	)
-	const entityId = $derived(
-		((parsedAddress) => (
-			parsedAddress instanceof arktype.errors ?
-				undefined
-			:
-				{ address: parsedAddress }
-		))(EvmAddress(address)),
-	)
+	const entityId = $derived.by(() => {
+		const raw = decodeURIComponent(address).trim()
+		if (raw.startsWith('legacy:'))
+			return { legacyProfileId: raw.slice('legacy:'.length) }
+
+		const with0x = raw.startsWith('0x') ? raw : `0x${raw}`
+		const parsedAddress = (
+			hexLowerOfByteSize(with0x, 20)
+			?? (
+				/^0x[a-fA-F0-9]{40}$/i.test(with0x) ?
+					hexLowerOfByteSize(`0x${with0x.slice(2).toLowerCase()}`, 20)
+				:
+					undefined
+			)
+		)
+		return parsedAddress === undefined ?
+			{ localName: raw.replace(/^@/, '') }
+		:
+			{ address: parsedAddress }
+	})
+
+
+	// Functions
+	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 
 
 	// Components
@@ -39,12 +50,10 @@
 	id={address}
 >
 	{#snippet Summary({ open: _open })}
-		{#if entityId}
-			<LensAccountView
-				{entityId}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/if}
+		<LensAccountView
+			{entityId}
+			layout={EntityLayout.SummaryInline}
+		/>
 	{/snippet}
 
 	{@render children()}

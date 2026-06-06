@@ -18,10 +18,7 @@
 	// State
 	let {
 		entityId,
-		href = resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-			fid: String(entityId.fid),
-			hash: entityId.hash,
-		}),
+		href,
 		variant = 'hub',
 		open = $bindable(true),
 			...EntityViewProps
@@ -45,7 +42,13 @@
 			$: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
+				Source.Farcaster_Rest,
 			],
+			fid: {},
+			hash: {},
+			username: {},
+			hashPrefix: {},
+			clientUrl: {},
 			text: {},
 			timestamp: {},
 			parentUrl: {},
@@ -108,7 +111,22 @@
 <EntityView
 	entityType={EntityType.FarcasterCast}
 	{entityId}
-	href={href}
+	href={href ?? (
+		'fid' in entityId && 'hash' in entityId ?
+			resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
+				fid: String(entityId.fid),
+				hash: entityId.hash,
+			})
+		: 'username' in entityId && 'hashPrefix' in entityId ?
+			resolve('/(social)/(farcaster)/farcaster/(feed)/c/[fname]/[hash]', {
+				fname: entityId.username,
+				hash: entityId.hashPrefix,
+			})
+		: 'clientUrl' in entityId ?
+			resolve('/(social)/(farcaster)/farcaster/open-cast')
+		:
+			undefined
+	)}
 	bind:open
 	{...EntityViewProps}
 >
@@ -132,12 +150,28 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue
-			value={`FID ${String(entityId.fid)} / ${entityId.hash}`}
-			startLength={18}
-			endLength={10}
-			format={TruncatedValueFormat.Visual}
-		/>
+		<ResourceBoundary
+			resource={cast}
+			placeholderText="Loading Farcaster cast…"
+		>
+			{#snippet children(cast)}
+				<TruncatedValue
+					value={(
+						cast.fid != null && cast.hash != null ?
+							`FID ${String(cast.fid)} / ${cast.hash}`
+						: 'username' in entityId && 'hashPrefix' in entityId ?
+							`@${entityId.username} / ${entityId.hashPrefix}`
+						: 'clientUrl' in entityId ?
+							entityId.clientUrl
+						:
+							stringify(entityId)
+					)}
+					startLength={18}
+					endLength={10}
+					format={TruncatedValueFormat.Visual}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
@@ -448,6 +482,29 @@
 			{/snippet}
 
 			{#snippet SectionCastRecord()}
+				<ResourceBoundary
+					resource={cast}
+					placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+				>
+					{#snippet children(cast)}
+						<div data-column-item="center">
+							<div>
+								<dt>FID</dt>
+								<dd>{String(cast.fid)}</dd>
+							</div>
+
+							<div>
+								<dt>Hash</dt>
+								<dd>
+									<TruncatedValue
+										value={cast.hash}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</dd>
+							</div>
+						</div>
+					{/snippet}
+				</ResourceBoundary>
 			{/snippet}
 
 			{#snippet SectionCastThread()}

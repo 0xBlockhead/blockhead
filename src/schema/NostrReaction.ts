@@ -1,4 +1,5 @@
 import { type } from 'arktype'
+import { lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -25,7 +26,25 @@ export default {
 		eventId: NostrEventId,
 	}),
 
+	identities: [
+		{
+			name: 'canonicalEventId',
+			fields: [
+				{
+					name: 'eventId',
+					normalize: lowercaseHexIdentityValue,
+				},
+			],
+		},
+	],
+
 	fields: [
+		{
+			name: 'eventId',
+			type: EntityFieldType.Primitive,
+			primitiveType: NostrEventId,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'kind',
 			type: EntityFieldType.Primitive,

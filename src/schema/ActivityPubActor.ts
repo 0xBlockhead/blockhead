@@ -9,18 +9,65 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
+const lowercaseIdentityValue = (value: unknown) => (
+	String(value).toLowerCase()
+)
+
 export default {
 	entityType: EntityType.ActivityPubActor,
 
 	label: 'ActivityPub actor',
 	labelPlural: 'ActivityPub actors',
 
-	id: type({
-		instanceOrigin: UrlString,
-		localAccountId: 'string',
-	}),
+	id: type.or(
+		type({
+			instanceOrigin: UrlString,
+			localAccountId: 'string',
+			'+': 'reject',
+		}),
+		type({
+			instanceOrigin: UrlString,
+			acct: 'string',
+			'+': 'reject',
+		}),
+	),
+
+	lookups: [
+		{
+			name: 'acct',
+			fields: [
+				'instanceOrigin',
+				{
+					name: 'acct',
+					normalize: lowercaseIdentityValue,
+				},
+			],
+		},
+	],
+
+	identities: [
+		{
+			name: 'localAccountId',
+			fields: [
+				'instanceOrigin',
+				'localAccountId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'instanceOrigin',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'localAccountId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'username',
 			type: EntityFieldType.Primitive,

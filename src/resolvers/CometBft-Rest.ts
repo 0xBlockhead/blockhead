@@ -24,10 +24,13 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.CosmosBlock,
-			resolve: async (entityId) => {
-				assertCosmosHub(entityId.$network)
-				const { getBlock } = await import('$/sources/CometBft/Rest/queries.ts')
+				entityType: EntityType.CosmosBlock,
+				resolve: async (entityId) => {
+					assertCosmosHub(entityId.$network)
+					if (!('height' in entityId))
+						throw new Error('CometBft_Rest: CosmosBlock hash lookup is unsupported')
+
+					const { getBlock } = await import('$/sources/CometBft/Rest/queries.ts')
 				const wireBlock = await getBlock({
 					restBaseUrl: cosmosHubRpcUrl,
 					height: entityId.height,

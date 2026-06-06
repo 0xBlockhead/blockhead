@@ -56,20 +56,25 @@
 	entityType={EntityType.CosmosBlock}
 	{entityId}
 	href={
-		'networkSlug' in entityId.$network ?
-			`/network/${entityId.$network.networkSlug}/blocks/${entityId.height.toString()}`
+		'height' in entityId ?
+			(
+				'networkSlug' in entityId.$network ?
+					`/network/${entityId.$network.networkSlug}/blocks/${entityId.height.toString()}`
+				:
+					`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/blocks/${entityId.height.toString()}`
+			)
 		:
-			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/blocks/${entityId.height.toString()}`
+			undefined
 	}
-	title={`Block #${entityId.height.toString()}`}
-	idDragPlainText={entityId.height.toString()}
+	title={'height' in entityId ? `Block #${entityId.height.toString()}` : `Block ${entityId.hash}`}
+	idDragPlainText={'height' in entityId ? entityId.height.toString() : entityId.hash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.height.toString()}
+			{'height' in entityId ? `#${entityId.height.toString()}` : entityId.hash}
 		</span>
 	{/snippet}
 

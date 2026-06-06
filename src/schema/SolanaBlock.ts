@@ -15,10 +15,33 @@ export default {
 	label: 'Solana Block',
 	labelPlural: 'Solana Blocks',
 
-	id: type({
-		$network: Network.id,
-		slot: 'bigint',
-	}),
+	id: type.or(
+		type({
+			$network: Network.id,
+			slot: 'bigint',
+		}),
+		type({
+			$network: Network.id,
+			blockHash: 'string',
+		}),
+	),
+
+	identities: [
+		{
+			name: 'slot',
+			fields: [
+				'$network',
+				'slot',
+			],
+		},
+		{
+			name: 'blockHash',
+			fields: [
+				'$network',
+				'blockHash',
+			],
+		},
+	],
 
 	fields: [
 		{

@@ -26,7 +26,7 @@ export default {
 			entityType: EntityType.XUser,
 			resolve: async (entityId) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const response = await singleFlight(getUser)(entityId.id)
+				const response = await singleFlight(getUser)('id' in entityId ? entityId.id : entityId.username)
 				const user = response.user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
 				const createdAt = Date.parse(user.joined ?? '')
@@ -50,6 +50,7 @@ export default {
 				const description = optionalNonemptyString(user.description)
 				const location = optionalNonemptyString(user.location)
 				return {
+					id: user.id,
 					...(username != null && { username }),
 					...(name != null && { name }),
 					...(description != null && { description }),
@@ -128,6 +129,9 @@ export default {
 			entityType: EntityType.XUser_Timestamp,
 			resolve: async (entityId) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				if (!('id' in entityId.$user))
+					throw new Error('X_FxEmbed_Rest: XUser_Timestamp username lookup is unsupported')
+
 				const user = (await singleFlight(getUser)(entityId.$user.id)).user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
 				return {
@@ -226,12 +230,14 @@ export default {
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const user = (await singleFlight(getUser)(entityId.id)).user
+				const user = (await singleFlight(getUser)('id' in entityId ? entityId.id : entityId.username)).user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
 				return [
 					{
 						[EntityMetaKey.Id]: {
-							$user: entityId,
+							$user: {
+								id: user.id,
+							},
 							timestampMs: Date.now(),
 						},
 						followerCount: user.followers,
@@ -249,7 +255,7 @@ export default {
 				const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					((await singleFlight(getUserStatuses)(entityId.id, limit)).results ?? [])
+					((await singleFlight(getUserStatuses)('id' in entityId ? entityId.id : entityId.username, limit)).results ?? [])
 						.flatMap((wirePost) => (
 							wirePost.type === 'status' && wirePost.id != null ?
 								[{

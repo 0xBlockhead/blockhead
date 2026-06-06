@@ -65,7 +65,14 @@ const blockFields = (
 		}),
 		parentHash: rawBlock.parentHash,
 		timestampMs: rawBlock.timestamp,
-		witnessAddress: rawBlock.witness_address,
+		...(rawBlock.witness_address != null && {
+			$witness: {
+				[EntityMetaKey.Id]: {
+					$network: network,
+					address: rawBlock.witness_address,
+				},
+			},
+		}),
 		txTrieRoot: rawBlock.txTrieRoot,
 		version: rawBlock.version,
 		transactionCount: block.transactions?.length,

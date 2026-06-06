@@ -126,8 +126,8 @@ const LensRepostDetail = graphql(`
 	}
 `)
 
-const LensAccountDocument = graphql(`
-	query LensAccount(
+const LensAccountByAddressDocument = graphql(`
+	query LensAccountByAddress(
 		$address: EvmAddress!
 	) {
 		account(
@@ -146,6 +146,71 @@ const LensAccountDocument = graphql(`
 				picture
 			}
 		}
+		accountStats(
+			request: {
+				account: $address
+			}
+		) {
+			graphFollowStats {
+				followers
+				following
+			}
+		}
+	}
+`)
+
+const LensAccountByLocalNameDocument = graphql(`
+	query LensAccountByLocalName(
+		$localName: String!
+	) {
+		account(
+			request: {
+				username: {
+					localName: $localName
+				}
+			}
+		) {
+			address
+			createdAt
+			username {
+				localName
+			}
+			metadata {
+				name
+				bio
+				picture
+			}
+		}
+	}
+`)
+
+const LensAccountByLegacyProfileIdDocument = graphql(`
+	query LensAccountByLegacyProfileId(
+		$legacyProfileId: LegacyProfileId!
+	) {
+		account(
+			request: {
+				legacyProfileId: $legacyProfileId
+			}
+		) {
+			address
+			createdAt
+			username {
+				localName
+			}
+			metadata {
+				name
+				bio
+				picture
+			}
+		}
+	}
+`)
+
+const LensAccountStatsDocument = graphql(`
+	query LensAccountStats(
+		$address: EvmAddress!
+	) {
 		accountStats(
 			request: {
 				account: $address
@@ -268,16 +333,55 @@ const LensLatestPostsDocument = graphql(`
 
 export const queryAccount = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
-	address: `0x${string}`,
-) => (
-	queryLens(
-		publicEnv,
-		LensAccountDocument,
-		{
-			address,
-		},
+	entityId: (
+		| { address: `0x${string}` }
+		| { localName: string }
+		| { legacyProfileId: string }
+	),
+) => {
+	const accountResponse = await (
+		'address' in entityId ?
+			queryLens(
+				publicEnv,
+				LensAccountByAddressDocument,
+				{
+					address: entityId.address,
+				},
+			)
+		: 'localName' in entityId ?
+			queryLens(
+				publicEnv,
+				LensAccountByLocalNameDocument,
+				{
+					localName: entityId.localName,
+				},
+			)
+		:
+			queryLens(
+				publicEnv,
+				LensAccountByLegacyProfileIdDocument,
+				{
+					legacyProfileId: entityId.legacyProfileId,
+				},
+			)
 	)
-)
+
+	return {
+		...accountResponse,
+		...(
+			accountResponse.account?.address != null ?
+				await queryLens(
+					publicEnv,
+					LensAccountStatsDocument,
+					{
+						address: accountResponse.account.address,
+					},
+				)
+			:
+				{}
+		),
+	}
+}
 
 export const queryPost = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,

@@ -37,24 +37,32 @@
 		>
 	> = $props()
 
-	const session = useEntity(
-		EntityType.BlockheadSession,
-		entityId,
-		{
-			$: [
-				Source.Local_Internal,
-			],
-			name: {},
-			status: {},
-			createdAt: {},
-			updatedAt: {},
-			...(open ?
-				{
-					simulationCount: {},
-				}
-			:
-				{}),
-		},
+	const session = $derived(
+		useEntity(
+			EntityType.BlockheadSession,
+			entityId,
+			{
+				$: [
+					Source.Local_Internal,
+				],
+				name: {},
+				status: {},
+				createdAt: {},
+				updatedAt: {},
+				lockedAt: {},
+				...(open ?
+					{
+						simulationCount: {},
+						$$actions: {
+							$: [
+								Source.Local_Internal,
+							],
+						},
+					}
+				:
+					{}),
+			},
+		),
 	)
 
 
@@ -62,6 +70,7 @@
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import BlockheadSessionActionsView from '$/views/BlockheadSessionActionsView.svelte'
 </script>
 
 
@@ -185,6 +194,17 @@
 					</dd>
 				</div>
 
+				{#if session.lockedAt !== undefined}
+					<div>
+						<dt>Locked</dt>
+						<dd>
+							<Timestamp
+								timestamp={session.lockedAt}
+							/>
+						</dd>
+					</div>
+				{/if}
+
 				<div>
 					<dt>Simulation count</dt>
 					<dd>
@@ -207,6 +227,15 @@
 	{#snippet Details({
 		open: _open,
 	})}
-
+		<BlockheadSessionActionsView
+			href={href}
+			entityFieldReference={{
+				entityType: EntityType.BlockheadSession,
+				entityId,
+				fieldName: '$$actions',
+			}}
+			id={`${entityId.id}:actions`}
+			open={_open}
+		/>
 	{/snippet}
 </EntityView>

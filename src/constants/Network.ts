@@ -4,6 +4,7 @@ export enum NetworkNamespace {
 	BitcoinCash = 'BitcoinCash',
 	Cosmos = 'Cosmos',
 	Dogecoin = 'Dogecoin',
+	Elements = 'Elements',
 	Evm = 'Evm',
 	Filecoin = 'Filecoin',
 	Hyperliquid = 'Hyperliquid',
@@ -97,6 +98,12 @@ export const networks = [
 			reference: '1a91e3dace36e2be3bf030a65679fe82',
 		},
 		namespace: NetworkNamespace.Dogecoin,
+		environment: NetworkEnvironment.Mainnet,
+	},
+	{
+		slug: 'liquid',
+		name: 'Liquid Network',
+		namespace: NetworkNamespace.Elements,
 		environment: NetworkEnvironment.Mainnet,
 	},
 	{
@@ -251,6 +258,11 @@ export const networkResourceUrls = [
 		networkSlug: 'lightning',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://mempool.space/lightning',
+	},
+	{
+		networkSlug: 'liquid',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://blockstream.info/liquid/',
 	},
 	{
 		networkSlug: 'litecoin',

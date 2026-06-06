@@ -230,7 +230,12 @@ export default {
 						scriptPubKeyType: output.type,
 					}),
 					...(output.recipient != null && {
-						address: output.recipient,
+						$address: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$transaction.$network,
+								address: output.recipient,
+							},
+						},
 					}),
 					isSpent: output.spending_transaction_hash != null,
 				}
@@ -420,7 +425,12 @@ export default {
 							scriptPubKeyType: output.type,
 						}),
 						...(output.recipient != null && {
-							address: output.recipient,
+							$address: {
+								[EntityMetaKey.Id]: {
+									$network: entityId.$network,
+									address: output.recipient,
+								},
+							},
 						}),
 						isSpent: output.spending_transaction_hash != null,
 					}

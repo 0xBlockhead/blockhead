@@ -22,6 +22,7 @@ import type {
 	EntityCollectionItem,
 	EntityFieldCollectionItem,
 } from '$/collections/$collections.ts'
+import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 
 import type {
 	Entity,
@@ -29,6 +30,7 @@ import type {
 	EntityConditionalDiscriminatorName,
 	EntityConditionalDiscriminatorValue,
 	EntityConditionalFieldName,
+	EntityDefinitionForEntityType,
 	EntityFieldDefinition,
 	EntityFieldName,
 	EntityFieldValue,
@@ -37,8 +39,14 @@ import type {
 	EntityType,
 	Schema,
 } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType, EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { entityCollectionByEntityType, entityFieldCollections } from '$/routes/+layout.svelte'
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
+	entityFieldDefinitions,
+	entityIdentityIdsFromFields,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
+import { entityCollectionByEntityType, entityFieldCollections, entityFieldCountCollections } from '$/routes/+layout.svelte'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -60,6 +68,15 @@ type FieldRowsResource<_EntityType extends EntityType<typeof schema>> = RemoteRe
 		EntityFieldName<typeof schema, _EntityType>
 	>
 }[]>
+
+type EntityFieldCountRow = {
+	[EntityMetaKey.ParentId]: unknown
+	[EntityMetaKey.ParentIdKey]: string
+	[EntityMetaKey.Value]: number
+	[EntityMetaKey.Source]: Source
+	filterKey: string
+	fieldName: string
+}
 
 const partialRecordFromEntries = <_Key extends PropertyKey, _Value>(
 	entries: readonly (readonly [_Key, _Value])[],
@@ -227,11 +244,20 @@ const fieldOrderDepsFingerprint = (
 )
 
 
+const entityDefinitionByEntityType = Object.fromEntries(
+	schema.map((entityDefinition) => [
+		entityDefinition.entityType,
+		entityDefinition,
+	] as const),
+) as {
+	[_EntityType in EntityType<typeof schema>]: EntityDefinitionForEntityType<typeof schema, _EntityType>
+}
+
 const entityFieldDefinitionsByEntityType = Object.fromEntries(
 	schema.map((entityDefinition) => [
 		entityDefinition.entityType,
 		Object.fromEntries(
-			entityDefinition.fields.map((fieldDefinition) => [
+			entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
 				fieldDefinition.name,
 				fieldDefinition,
 			] as const),
@@ -242,7 +268,7 @@ const entityFieldDefinitionsByEntityType = Object.fromEntries(
 const entityFieldNamesByEntityType: Record<string, readonly string[]> = Object.fromEntries(
 	schema.map((entityDefinition) => [
 		entityDefinition.entityType,
-		entityDefinition.fields.map((fieldDefinition) => (
+		entityFieldDefinitions(entityDefinition).map((fieldDefinition) => (
 			fieldDefinition.name
 		)),
 	] as const),
@@ -257,24 +283,64 @@ const selectionFieldName = <
 	fieldName in selection
 )
 
+const entitySelectionKey = <
+	_EntityType extends EntityType<typeof schema>,
+>(
+	entityType: _EntityType,
+	fieldName: string,
+): EntitySelectionKey<_EntityType> | undefined => (
+	(entityFieldNamesByEntityType[entityType] ?? []).includes(fieldName) ?
+		fieldName as EntitySelectionKey<_EntityType>
+	:
+		undefined
+)
+
+const fieldNameFromDiscriminatorCaseKey = (
+	discriminatorName: string,
+) => (
+	discriminatorName.endsWith(']')
+	&& discriminatorName.includes('[') ?
+		discriminatorName.slice(0, discriminatorName.lastIndexOf('['))
+	:
+		discriminatorName
+)
+
 const entitySelectionFieldEntries = <
 	_EntityType extends EntityType<typeof schema>,
 >(
 	entityType: _EntityType,
 	selection: EntitySelection<typeof schema, _EntityType>,
-): readonly EntitySelectionFieldEntry<_EntityType>[] => (
-	(entityFieldNamesByEntityType[entityType] ?? [])
-		.filter((fieldName): fieldName is EntitySelectionKey<_EntityType> => (
-			selectionFieldName(
-				selection,
+): readonly EntitySelectionFieldEntry<_EntityType>[] => {
+	const entries = new Map<EntitySelectionKey<_EntityType>, EntitySelectionMeta | undefined>()
+	for (const fieldName of entityFieldNamesByEntityType[entityType] ?? []) {
+		if (selectionFieldName(selection, fieldName))
+			entries.set(fieldName, selection[fieldName])
+	}
+
+	for (const [discriminatorName, cases] of Object.entries(
+		(selection.$case ?? {}) as Record<string, Record<string, Record<string, EntitySelectionMeta | undefined>>>,
+	)) {
+		const fieldName = entitySelectionKey(
+			entityType,
+			fieldNameFromDiscriminatorCaseKey(discriminatorName),
+		)
+		if (fieldName != null)
+			entries.set(
 				fieldName,
+				selection[fieldName],
 			)
-		))
-		.map((fieldName) => [
-			fieldName,
-			selection[fieldName],
-		] as const)
-)
+
+		for (const caseSelection of Object.values(cases)) {
+			for (const [caseFieldName, fieldSelection] of Object.entries(caseSelection)) {
+				const fieldName = entitySelectionKey(entityType, caseFieldName)
+				if (fieldName != null)
+					entries.set(fieldName, fieldSelection)
+			}
+		}
+	}
+
+	return [...entries.entries()]
+}
 
 const entityFieldDefinitionFor = <
 	_EntityType extends EntityType<typeof schema>,
@@ -458,6 +524,21 @@ export const useEntity3 = <
 			() => stringify(sourcePriority),
 		],
 	)
+	const fieldParentIdKeys = $derived.by(() => {
+		const parentIdKeys = new Set([
+			idKey,
+		])
+		for (const { entityRow } of entityRowsResource.current ?? []) {
+			for (const identityId of entityIdentityIdsFromFields(
+				entityDefinitionByEntityType[entityType],
+				entityRow[EntityMetaKey.Id],
+				entityRow[EntityMetaKey.Fields] as Partial<Record<string, unknown>>,
+			)) {
+				parentIdKeys.add(stringify(identityId))
+			}
+		}
+		return [...parentIdKeys]
+	})
 	const fieldRowsResources = $derived(
 		partialRecordFromEntries(
 			selectedFieldEntries.map(([fieldName, fieldSelection]) => {
@@ -482,7 +563,7 @@ export const useEntity3 = <
 										fieldRow: fieldCollection,
 									})
 									.where(({ fieldRow }) => (
-										eq(fieldRow[EntityMetaKey.ParentIdKey], idKey)
+										inArray(fieldRow[EntityMetaKey.ParentIdKey], fieldParentIdKeys)
 									))
 									.where(({ fieldRow }) => (
 										inArray(fieldRow[EntityMetaKey.Source], fieldSourcesByName[fieldName] ?? [])
@@ -517,7 +598,7 @@ export const useEntity3 = <
 							)
 						},
 						[
-							() => idKey,
+							() => stringify(fieldParentIdKeys),
 							() => stringify(
 								[
 									fieldSourcesByName[fieldName] ?? [],
@@ -659,3 +740,113 @@ export const useEntity3 = <
 }
 
 export const useEntity = useEntity3
+
+export const useEntityFieldCount = <
+	_ListedEntity extends EntityType<typeof schema>,
+>(
+	entityFieldReference: EntityFieldReference<typeof schema, _ListedEntity>,
+	selection: EntitySelectionMeta = {},
+) => {
+	const idKey = $derived(
+		stringify(entityFieldReference.entityId),
+	)
+	const sourcePriority = $derived(
+		selection.$ ?? [],
+	)
+	const entityRowsResource = useLiveQueryResource<{ entityRow: EntityCollectionItem<typeof schema, _ListedEntity> }>(
+		(queryBuilder) => {
+			const base = queryBuilder
+				.from({
+					entityRow: entityCollectionByEntityType[entityFieldReference.entityType] as Collection<
+						EntityCollectionItem<typeof schema, _ListedEntity>,
+						string | number
+					>,
+				})
+				.where(({ entityRow }) => (
+					eq(entityRow[EntityMetaKey.IdKey], idKey)
+				))
+			return (
+				sourcePriority.length > 0 ?
+					base.where(({ entityRow }) => (
+						inArray(entityRow[EntityMetaKey.Source], [...sourcePriority])
+					))
+				:
+					base
+			)
+				.select(({ entityRow }) => ({
+					entityRow,
+				}))
+		},
+		[
+			() => idKey,
+			() => stringify(sourcePriority),
+		],
+	)
+	const parentIdKeys = $derived.by(() => {
+		const keys = new Set([
+			idKey,
+		])
+		for (const { entityRow } of entityRowsResource.current ?? []) {
+			for (const identityId of entityIdentityIdsFromFields(
+				entityDefinitionByEntityType[entityFieldReference.entityType],
+				entityRow[EntityMetaKey.Id],
+				entityRow[EntityMetaKey.Fields] as Partial<Record<string, unknown>>,
+			)) {
+				keys.add(stringify(identityId))
+			}
+		}
+		return [...keys]
+	})
+	const countCollection = $derived(
+		entityFieldCountCollections[entityFieldReference.entityType][entityFieldReference.fieldName] as Collection<
+			EntityFieldCountRow,
+			string | number
+		>,
+	)
+	const countRows = useLiveQueryResource<{
+		countRow: EntityFieldCountRow
+	}>(
+		(queryBuilder) => {
+			const base = queryBuilder
+				.from({
+					countRow: countCollection,
+				})
+				.where(({ countRow }) => (
+					inArray(countRow[EntityMetaKey.ParentIdKey], parentIdKeys)
+				))
+			return (
+				sourcePriority.length > 0 ?
+					base
+						.where(({ countRow }) => (
+							inArray(countRow[EntityMetaKey.Source], [...sourcePriority])
+						))
+						.orderBy(({ countRow }) => (
+							sourcePriority.reduceRight<IR.BasicExpression<number> | number>(
+								(fallback, source, index) => (
+									caseWhen(
+										eq(countRow[EntityMetaKey.Source], source),
+										index,
+										fallback,
+									)
+								),
+								sourcePriority.length,
+							)
+						), 'asc')
+				:
+					base
+			)
+				.select(({ countRow }) => ({
+					countRow,
+				}))
+		},
+		[
+			() => stringify(parentIdKeys),
+			() => stringify(sourcePriority),
+		],
+	)
+
+	return derive(
+		countRows,
+		(rows) => rows[0]?.countRow[EntityMetaKey.Value],
+	)
+}

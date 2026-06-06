@@ -12,12 +12,127 @@ Reference: src/views/MarketVenueView.svelte, src/views/ProposalKindsView.svelte
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import re
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+SHORTHAND_ATTRIBUTES_SCRIPT = r"""
+import { parse } from 'svelte/compiler'
+import { readFileSync, writeFileSync } from 'node:fs'
+
+const config = JSON.parse(process.env.FORMAT_SVELTE_AGENTS_CONFIG)
+
+const rewriteShorthandAttributes = (source, filename) => {
+	const ast = parse(source, {
+		modern: true,
+		filename,
+	})
+	const edits = []
+	const visit = (node) => {
+		if (!node || typeof node !== 'object')
+			return
+
+		if (Array.isArray(node.attributes)) {
+			for (const attribute of node.attributes) {
+				if (
+					attribute.type === 'Attribute'
+					&& /^[A-Za-z_$][\w$]*$/.test(attribute.name)
+					&& attribute.value?.type === 'ExpressionTag'
+					&& attribute.value.expression?.type === 'Identifier'
+					&& attribute.value.expression.name === attribute.name
+				) {
+					edits.push({
+						start: attribute.start,
+						end: attribute.end,
+						text: `{${attribute.name}}`,
+					})
+				}
+			}
+		}
+
+		for (const value of Object.values(node)) {
+			if (Array.isArray(value)) {
+				for (const item of value)
+					visit(item)
+			} else if (value && typeof value === 'object') {
+				visit(value)
+			}
+		}
+	}
+	visit(ast.fragment)
+
+	let output = source
+	for (const edit of edits.sort((a, b) => b.start - a.start))
+		output = `${output.slice(0, edit.start)}${edit.text}${output.slice(edit.end)}`
+	return output
+}
+
+if (config.selfTest) {
+	const cases = [
+		[
+			'plain shorthand',
+			'<a href={href} title={label} />',
+			'<a {href} title={label} />',
+		],
+		[
+			'component shorthand',
+			'<Thing entityId={entityId} data-fit={fit} style:--index={index} />',
+			'<Thing {entityId} data-fit={fit} style:--index={index} />',
+		],
+		[
+			'preserve whitespace',
+			'<Thing\n\tfoo={foo}\n\tbar={baz}\n/>',
+			'<Thing\n\t{foo}\n\tbar={baz}\n/>',
+		],
+	]
+	for (const [name, input, expected] of cases) {
+		const actual = rewriteShorthandAttributes(input)
+		if (actual !== expected) {
+			console.error(name)
+			console.error(`actual:   ${JSON.stringify(actual)}`)
+			console.error(`expected: ${JSON.stringify(expected)}`)
+			process.exit(1)
+		}
+	}
+	console.log('shorthand attribute self-test passed')
+	process.exit(0)
+}
+
+const changed = []
+const failures = []
+for (const file of config.files) {
+	const source = readFileSync(file, 'utf8')
+	let output
+	try {
+		output = rewriteShorthandAttributes(source, file)
+	} catch (error) {
+		failures.push(`${file}: ${error.message}`)
+		continue
+	}
+	if (output !== source) {
+		changed.push(file)
+		if (!config.check)
+			writeFileSync(file, output)
+	}
+}
+
+if (failures.length) {
+	for (const failure of failures)
+		console.error(failure)
+	process.exit(2)
+}
+
+for (const file of changed)
+	console.log(file)
+if (config.check && changed.length)
+	process.exit(1)
+"""
 
 SECTION_ORDER = [
 	'Polyfills',
@@ -432,6 +547,18 @@ def format_file_content(content: str, *, path: Path) -> str:
 	return content
 
 
+def format_file_whitespace(content: str) -> str:
+	if content == '':
+		return ''
+	lines = [
+		line.rstrip()
+		for line in content.splitlines()
+	]
+	while lines and lines[-1] == '':
+		lines.pop()
+	return '\n'.join(lines) + '\n'
+
+
 def main() -> int:
 	parser = argparse.ArgumentParser(description=__doc__)
 	parser.add_argument(
@@ -441,7 +568,53 @@ def main() -> int:
 		help='Files or directories (default: src/views src/components src/routes)',
 	)
 	parser.add_argument('--check', action='store_true', help='Exit 1 if any file would change')
+	parser.add_argument('--self-test', action='store_true', help='Run isolated formatter fixture tests')
+	parser.add_argument('--shorthand-attributes', action='store_true', help='Rewrite attr={attr} to {attr} using Svelte AST spans')
+	parser.add_argument('--file-whitespace', action='store_true', help='Remove trailing spaces and enforce one final newline')
 	args = parser.parse_args()
+
+	if args.self_test:
+		whitespace_cases = [
+			(
+				'trailing spaces and final newline',
+				'a  \n\tb\t\n',
+				'a\n\tb\n',
+			),
+			(
+				'missing final newline',
+				'a',
+				'a\n',
+			),
+			(
+				'collapse extra final newlines',
+				'a\n\n',
+				'a\n',
+			),
+		]
+		for name, raw, expected in whitespace_cases:
+			actual = format_file_whitespace(raw)
+			if actual != expected:
+				print(name, file=sys.stderr)
+				print(repr(actual), file=sys.stderr)
+				print(repr(expected), file=sys.stderr)
+				return 1
+
+		return subprocess.run(
+			[
+				'node',
+				'--input-type=module',
+				'-e',
+				SHORTHAND_ATTRIBUTES_SCRIPT,
+			],
+			cwd=ROOT,
+			env={
+				**os.environ,
+				'FORMAT_SVELTE_AGENTS_CONFIG': json.dumps({
+					'selfTest': True,
+				}),
+			},
+			check=False,
+		).returncode
 
 	if args.paths:
 		targets: list[Path] = []
@@ -457,6 +630,53 @@ def main() -> int:
 			d = ROOT / 'src' / sub
 			if d.is_dir():
 				targets.extend(sorted(d.rglob('*.svelte')))
+
+	if args.file_whitespace:
+		changed: list[Path] = []
+		for path in targets:
+			raw = path.read_text(encoding='utf-8')
+			new = format_file_whitespace(raw)
+			if new != raw:
+				changed.append(path)
+				if not args.check:
+					path.write_text(new, encoding='utf-8')
+
+		if args.check:
+			if changed:
+				for p in changed:
+					print(p.relative_to(ROOT))
+				print(f'{len(changed)} file(s) need whitespace cleanup', file=sys.stderr)
+				return 1
+			print('all files have clean whitespace')
+			return 0
+
+		for p in changed:
+			print(p.relative_to(ROOT))
+		print(f'cleaned whitespace in {len(changed)} / {len(targets)} files')
+		return 0
+
+	if args.shorthand_attributes:
+		return subprocess.run(
+			[
+				'node',
+				'--input-type=module',
+				'-e',
+				SHORTHAND_ATTRIBUTES_SCRIPT,
+			],
+			cwd=ROOT,
+			env={
+				**os.environ,
+				'FORMAT_SVELTE_AGENTS_CONFIG': json.dumps({
+					'check': args.check,
+					'files': [
+						str(path)
+						for path in targets
+						if path.suffix == '.svelte'
+					],
+				}),
+			},
+			check=False,
+		).returncode
 
 	changed: list[Path] = []
 	for path in targets:

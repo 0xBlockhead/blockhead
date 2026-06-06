@@ -10,6 +10,12 @@ import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
 import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationProposal.ts'
 import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
+import { cashuProbeKeysetId, cashuProbeMintUrl } from '$/constants/Cashu.ts'
+import {
+	liquidNetworkId,
+	liquidProbeAssetId,
+} from '$/constants/ElementsNetwork.ts'
+import { ElementsPegDirection } from '$/schema/ElementsPeg.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { EntityId } from '$/schema/$schema.ts'
@@ -139,6 +145,20 @@ const bitcoin = {
 
 const lightning = {
 	networkSlug: 'lightning',
+} as const
+
+const liquid = liquidNetworkId
+
+const cashuProbeMint = {
+	mintUrl: cashuProbeMintUrl,
+} as const
+
+const fedimintProbeFederation = {
+	federationId: 'e2e-probe-federation',
+} as const
+
+const payjoinProbeDirectory = {
+	directoryUrl: 'http://127.0.0.1:8080',
 } as const
 
 const zcash = {
@@ -1360,6 +1380,34 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 		playlistId: YOUTUBE_PROBE_PLAYLIST_ID,
 	},
 	[EntityType.YouTubeVideo]: { videoId: YOUTUBE_PROBE_VIDEO_ID },
+
+	[EntityType.ElementsNetwork]: liquid,
+	[EntityType.ElementsAsset]: {
+		$network: liquid,
+		assetId: liquidProbeAssetId,
+	},
+	[EntityType.ElementsIssuance]: {
+		$transaction: {
+			$network: liquid,
+			txId: 'bd0920db6b1aa557d9e4ebc510e5ccadb56ce4c23770f914ee7d677ce99ba883',
+		},
+		inputIndex: 0,
+	},
+	[EntityType.ElementsPeg]: {
+		$network: liquid,
+		pegTransactionId: 'e2e-probe-elements-peg',
+		direction: ElementsPegDirection.PegIn,
+	},
+
+	[EntityType.CashuMint]: cashuProbeMint,
+	[EntityType.CashuKeyset]: {
+		$mint: cashuProbeMint,
+		keysetId: cashuProbeKeysetId,
+	},
+
+	[EntityType.FedimintFederation]: fedimintProbeFederation,
+
+	[EntityType.PayjoinDirectory]: payjoinProbeDirectory,
 }
 
 
@@ -1639,6 +1687,8 @@ export const parentEntityIdForFieldResolver = (
 		probeEntityIdForType(EntityType.LightningNode)
 	: entityType === EntityType.LightningChannel ?
 		probeEntityIdForType(EntityType.LightningChannel)
+	: entityType === EntityType.ElementsNetwork ?
+		liquid
 	:
 		probeEntityIdForType(entityType)
 )

@@ -74,7 +74,14 @@ const blockFieldsFromTronScanBlock = (
 	}),
 	parentHash: block.parentHash,
 	timestampMs: block.timestamp,
-	witnessAddress: block.witnessAddress,
+	...(block.witnessAddress != null && {
+		$witness: {
+			[EntityMetaKey.Id]: {
+				$network: network,
+				address: block.witnessAddress,
+			},
+		},
+	}),
 	txTrieRoot: block.txTrieRoot,
 	version: block.version,
 	transactionCount: block.transactionCount ?? block.nrOfTrx,

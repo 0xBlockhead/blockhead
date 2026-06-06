@@ -193,7 +193,12 @@ export default {
 					scriptPubKeyHex: output.scriptpubkey,
 					scriptPubKeyType: output.scriptpubkey_type,
 					...(output.scriptpubkey_address != null && {
-						address: output.scriptpubkey_address,
+						$address: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$transaction.$network,
+								address: output.scriptpubkey_address,
+							},
+						},
 					}),
 				}
 			},
@@ -365,7 +370,12 @@ export default {
 						scriptPubKeyHex: output.scriptpubkey,
 						scriptPubKeyType: output.scriptpubkey_type,
 						...(output.scriptpubkey_address != null && {
-							address: output.scriptpubkey_address,
+							$address: {
+								[EntityMetaKey.Id]: {
+									$network: entityId.$network,
+									address: output.scriptpubkey_address,
+								},
+							},
 						}),
 					}
 				))

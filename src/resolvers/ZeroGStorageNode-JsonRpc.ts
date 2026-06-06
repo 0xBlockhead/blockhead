@@ -50,7 +50,11 @@ export default {
 					throw new Error(`ZeroGStorageNode_JsonRpc: local node ${status.networkIdentity.flowAddress} does not match ${entityId.nodeId}`)
 				}
 				return {
-					operatorAddress: status.networkIdentity.flowAddress,
+					$operator: {
+						[EntityMetaKey.Id]: {
+							address: status.networkIdentity.flowAddress,
+						},
+					},
 					endpoint: zeroGStorageNodeDefaultLocalRpcUrl,
 				}
 			},

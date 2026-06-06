@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	let {
 		entityId,
 		layout = EntityLayout.Summary,
@@ -24,42 +25,28 @@
 			title?: string
 			open?: boolean
 		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'showTypeAnnotation'
-		>
+		Pick<ComponentProps<typeof EntityView>, 'showTypeAnnotation'>
 	> = $props()
 
 	const withdrawal = useEntity(
 		EntityType.BeaconWithdrawal,
 		entityId,
-		(
-			open ?
-				{
-					$: [
-						Source.Beacon_Rest,
-					],
+		open
+			? {
+					$: [Source.Beacon_Rest],
 					validatorIndex: {},
-					address: {},
+					$validator: {},
+					$account: {},
 					amountGwei: {},
 				}
-			:
-				{}
-		),
+			: {},
 	)
-
-
-	// (Derived)
-	const title = $derived(
-		titleProp
-		?? `Withdrawal ${entityId.index} in slot ${entityId.slot.toLocaleString()}`
-	)
-
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
@@ -67,16 +54,13 @@
 <EntityView
 	entityType={EntityType.BeaconWithdrawal}
 	{entityId}
-	{title}
+	title={titleProp ?? `Withdrawal ${entityId.index} in slot ${entityId.slot.toLocaleString()}`}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span
-			data-badge="small"
-			data-withdrawal-index={String(entityId.index)}
-		>
+		<span data-badge="small" data-withdrawal-index={String(entityId.index)}>
 			{String(entityId.index)}
 		</span>
 	{/snippet}
@@ -84,12 +68,9 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Withdrawal </span>
-		<span
-			data-badge="small"
-			data-withdrawal-index={String(entityId.index)}
-				>
-			{String(entityId.index)}
-		</span>
+			<span data-badge="small" data-withdrawal-index={String(entityId.index)}>
+				{String(entityId.index)}
+			</span>
 		</span>
 	{/snippet}
 
@@ -108,13 +89,27 @@
 							</div>
 						{/if}
 
-						{#if withdrawal.address !== undefined}
+						{#if withdrawal.$validator !== undefined}
+							<div>
+								<dt>Validator</dt>
+								<dd>
+									<BeaconValidatorView
+										entityId={withdrawal.$validator[EntityMetaKey.Id]}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if withdrawal.$account !== undefined}
 							<div>
 								<dt>Recipient</dt>
 								<dd>
-									<TruncatedValue
-										value={withdrawal.address}
-										format={TruncatedValueFormat.Visual}
+									<EvmAccountView
+										entityId={withdrawal.$account[EntityMetaKey.Id]}
+										layout={EntityLayout.Title}
+										open={false}
 									/>
 								</dd>
 							</div>

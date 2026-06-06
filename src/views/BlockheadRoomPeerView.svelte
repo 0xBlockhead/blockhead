@@ -1,6 +1,6 @@
 	<script lang="ts">
 	// Types/constants
-		import type { ComponentProps, Snippet } from 'svelte'
+		import type { ComponentProps } from 'svelte'
 		import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 		import { EntityType } from '$/schema/$EntityType.ts'
 		import type { EntityId } from '$/schema/$schema.ts'
@@ -55,6 +55,10 @@
 				{
 					$room: {},
 					peerId: {},
+					joinedAt: {},
+					lastSeenAt: {},
+					connectedAt: {},
+					disconnectedAt: {},
 				}
 			:
 				{}),
@@ -64,7 +68,9 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import BlockheadRoomView from '$/views/BlockheadRoomView.svelte'
 </script>
 
 
@@ -140,11 +146,51 @@
 			{#if open}
 				<ResourceBoundary resource={peer}>
 					{#snippet children(peer)}
-						{#if peer.$room?.id != null && peer.$room.id !== ''}
+						{#if peer.$room != null}
 							<div>
 								<dt>Room session</dt>
 								<dd>
-									{peer.$room[EntityMetaKey.Id].id}
+									<BlockheadRoomView
+										entityId={peer.$room[EntityMetaKey.Id]}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if peer.joinedAt != null}
+							<div>
+								<dt>Joined</dt>
+								<dd>
+									<Timestamp timestamp={peer.joinedAt} />
+								</dd>
+							</div>
+						{/if}
+
+						{#if peer.lastSeenAt != null}
+							<div>
+								<dt>Last seen</dt>
+								<dd>
+									<Timestamp timestamp={peer.lastSeenAt} />
+								</dd>
+							</div>
+						{/if}
+
+						{#if peer.connectedAt != null}
+							<div>
+								<dt>Connected</dt>
+								<dd>
+									<Timestamp timestamp={peer.connectedAt} />
+								</dd>
+							</div>
+						{/if}
+
+						{#if peer.disconnectedAt != null}
+							<div>
+								<dt>Disconnected</dt>
+								<dd>
+									<Timestamp timestamp={peer.disconnectedAt} />
 								</dd>
 							</div>
 						{/if}

@@ -73,7 +73,6 @@ const solanaInstructionFields = (
 			programId: instruction.programId,
 		},
 	},
-	programId: instruction.programId,
 	...(instruction.parsed?.type != null && {
 		parsedType: instruction.parsed.type,
 	}),
@@ -81,7 +80,12 @@ const solanaInstructionFields = (
 		data: instruction.data,
 	}),
 	...(instruction.accounts != null && {
-		accounts: instruction.accounts,
+		$$accounts: instruction.accounts.map((pubkey) => ({
+			[EntityMetaKey.Id]: {
+				$network: network,
+				pubkey,
+			},
+		})),
 	}),
 })
 
@@ -166,10 +170,13 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.SolanaBlock,
-			resolve: async (entityId) => {
-				assertSolanaMainnet(entityId.$network)
-				const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
+				entityType: EntityType.SolanaBlock,
+				resolve: async (entityId) => {
+					assertSolanaMainnet(entityId.$network)
+					if (!('slot' in entityId))
+						throw new Error('Solana_JsonRpc: SolanaBlock blockHash lookup is unsupported')
+
+					const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
 				const block = await getBlock({
 					rpcUrl: solanaMainnetRpcUrl,
 					slot: entityId.slot,
@@ -529,11 +536,62 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
+			entityType: EntityType.SolanaNetwork,
+			fieldName: '$$accounts',
+			resolve: async (entityId, context) => {
+				assertSolanaMainnet(entityId)
+				const {
+					getBlock,
+					getBlocks,
+					getSlot,
+				} = await import('$/sources/Solana/JsonRpc/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const endSlot = BigInt(await getSlot({
+					rpcUrl: solanaMainnetRpcUrl,
+				}))
+				return [
+					...new Set(
+						(
+							await Promise.all(
+								(await getBlocks({
+									rpcUrl: solanaMainnetRpcUrl,
+									startSlot: endSlot > 31n ? endSlot - 31n : 0n,
+									endSlot,
+								}))
+									.toReversed()
+									.map(async (slot) => (
+										(await getBlock({
+											rpcUrl: solanaMainnetRpcUrl,
+											slot: BigInt(slot),
+										}))?.transactions
+											.flatMap((transaction) => (
+												transaction.transaction.message.accountKeys.map((accountKey) => accountKey.pubkey)
+											))
+											?? []
+									)),
+							)
+						).flat(),
+					),
+				]
+					.slice(0, limit)
+					.map((pubkey) => ({
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							pubkey,
+						},
+					}))
+			},
+		}),
+
+		defineEntityFieldResolver({
 			entityType: EntityType.SolanaBlock,
-			fieldName: '$$transactions',
-			resolve: async (entityId) => {
-				assertSolanaMainnet(entityId.$network)
-				const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
+				fieldName: '$$transactions',
+				resolve: async (entityId) => {
+					assertSolanaMainnet(entityId.$network)
+					if (!('slot' in entityId))
+						throw new Error('Solana_JsonRpc: SolanaBlock.$$transactions blockHash lookup is unsupported')
+
+					const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
 				const block = await getBlock({
 					rpcUrl: solanaMainnetRpcUrl,
 					slot: entityId.slot,

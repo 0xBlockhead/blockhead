@@ -49,6 +49,7 @@
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
 			],
+			pubkey: {},
 			displayName: {},
 			about: {},
 			nip05: {},
@@ -193,6 +194,28 @@
 						>
 							{#snippet children(profile)}
 								{profile.nip05}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if (
+				open
+				&& profileRow?.pubkey
+			)}
+				<div>
+					<dt>Pubkey</dt>
+					<dd>
+						<ResourceBoundary
+							resource={profile}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(profile)}
+								<TruncatedValue
+									value={profile.pubkey}
+									format={TruncatedValueFormat.Visual}
+								/>
 							{/snippet}
 						</ResourceBoundary>
 					</dd>

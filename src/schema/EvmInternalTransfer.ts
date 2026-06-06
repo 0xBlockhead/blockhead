@@ -4,8 +4,9 @@ import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
+	conditionalFieldGroup,
 	type EntityDefinition,
+	type EntityFieldEntry,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -60,19 +61,21 @@ export default {
 			primitiveType: type('boolean'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-		{
-			name: '$createdContract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmContract,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				evmInternalTransferDiscriminatorFields,
-				'callType',
-				[
-					EvmInternalCallType.Create,
-					EvmInternalCallType.Create2,
-				],
-			),
-		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		conditionalFieldGroup(
+			evmInternalTransferDiscriminatorFields,
+			'callType',
+			[
+				EvmInternalCallType.Create,
+				EvmInternalCallType.Create2,
+			],
+			[
+				{
+					name: '$createdContract',
+					type: EntityFieldType.EntityReference,
+					entityType: EntityType.EvmContract,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+			],
+		),
+	] as const satisfies readonly EntityFieldEntry[],
 } as const satisfies EntityDefinition

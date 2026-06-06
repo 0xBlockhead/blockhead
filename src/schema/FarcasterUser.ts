@@ -1,6 +1,5 @@
 import { type } from 'arktype'
 
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -57,9 +56,9 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'primaryEvmAddress',
-			type: EntityFieldType.Primitive,
-			primitiveType: EvmAddress,
+			name: '$primaryEvmAccount',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

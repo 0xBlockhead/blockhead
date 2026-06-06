@@ -5,9 +5,10 @@ import {
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import Network from '$/schema/Network.ts'
+	} from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import EvmAccount from '$/schema/EvmAccount.ts'
+	import Network from '$/schema/Network.ts'
 
 export default {
 	entityType: EntityType.ZeroGDaNode,
@@ -26,13 +27,14 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGDaQuorum,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'operatorAddress',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
+			},
+			{
+				name: '$operator',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmAccount,
+				entityId: EvmAccount.id,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
 		{
 			name: 'endpoint',
 			type: EntityFieldType.Primitive,

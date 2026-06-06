@@ -5,6 +5,10 @@ export enum NetworkStackId {
 	Ethereum = 'Ethereum',
 	Bitcoin = 'Bitcoin',
 	Lightning = 'Lightning',
+	Elements = 'Elements',
+	Cashu = 'Cashu',
+	Fedimint = 'Fedimint',
+	Payjoin = 'Payjoin',
 	Zcash = 'Zcash',
 	Filecoin = 'Filecoin',
 	Solana = 'Solana',
@@ -41,6 +45,22 @@ const networkStacks = [
 	{
 		networkStackId: NetworkStackId.Lightning,
 		label: 'Lightning Network',
+	},
+	{
+		networkStackId: NetworkStackId.Elements,
+		label: 'Elements',
+	},
+	{
+		networkStackId: NetworkStackId.Cashu,
+		label: 'Cashu',
+	},
+	{
+		networkStackId: NetworkStackId.Fedimint,
+		label: 'Fedimint',
+	},
+	{
+		networkStackId: NetworkStackId.Payjoin,
+		label: 'Payjoin',
 	},
 	{
 		networkStackId: NetworkStackId.Zcash,

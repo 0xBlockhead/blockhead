@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	let {
 		entityId,
 		open = $bindable(true),
@@ -19,27 +20,25 @@
 			entityId: EntityId<typeof schema, EntityType.ZeroGStorageNode>
 			open?: boolean
 		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'layout'
-			| 'showTypeAnnotation'
-		>
+		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const storageNode = useEntity(
-		EntityType.ZeroGStorageNode,
-		entityId,
-		{
-			operatorAddress: {},
-			endpoint: {},
-		},
-	)
+	const storageNode = useEntity(EntityType.ZeroGStorageNode, entityId, {
+		$operator: {},
+		endpoint: {},
+		balance: {},
+		totalReward: {},
+		winCount: {},
+		miningAttempts: {},
+	})
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
@@ -50,7 +49,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Title()}
 		<TruncatedValue
 			value={entityId.nodeId}
@@ -59,9 +57,7 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A 0G storage node stores chunks and participates in storage proof and reward flows.
-		</p>
+		<p>A 0G storage node stores chunks and participates in storage proof and reward flows.</p>
 	{/snippet}
 
 	{#snippet Content()}
@@ -71,13 +67,14 @@
 		>
 			{#snippet children(storageNode)}
 				<dl>
-					{#if storageNode.operatorAddress != null}
+					{#if storageNode.$operator != null}
 						<div>
 							<dt>Operator</dt>
 							<dd>
-								<TruncatedValue
-									value={storageNode.operatorAddress}
-									format={TruncatedValueFormat.Abbr}
+								<EvmAccountView
+									entityId={storageNode.$operator[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
 								/>
 							</dd>
 						</div>
@@ -87,6 +84,34 @@
 						<div>
 							<dt>Endpoint</dt>
 							<dd>{storageNode.endpoint}</dd>
+						</div>
+					{/if}
+
+					{#if storageNode.balance != null}
+						<div>
+							<dt>Balance</dt>
+							<dd>{storageNode.balance}</dd>
+						</div>
+					{/if}
+
+					{#if storageNode.totalReward != null}
+						<div>
+							<dt>Total reward</dt>
+							<dd>{storageNode.totalReward}</dd>
+						</div>
+					{/if}
+
+					{#if storageNode.winCount != null}
+						<div>
+							<dt>Wins</dt>
+							<dd><NumberValue value={storageNode.winCount} /></dd>
+						</div>
+					{/if}
+
+					{#if storageNode.miningAttempts != null}
+						<div>
+							<dt>Mining attempts</dt>
+							<dd><NumberValue value={storageNode.miningAttempts} /></dd>
 						</div>
 					{/if}
 				</dl>

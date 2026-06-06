@@ -125,6 +125,7 @@ export default {
 				)
 
 				return {
+					name: normalizedName,
 					subgraphId: matchingEnsDomain.id,
 					...(matchingEnsDomain.labelName != null
 						&& matchingEnsDomain.labelName !== '' && {

@@ -1,4 +1,5 @@
 import { type } from 'arktype'
+import { lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 
 import {
 	EntityFieldType,
@@ -15,10 +16,36 @@ export default {
 	label: 'Hyperliquid Block',
 	labelPlural: 'Hyperliquid Blocks',
 
-	id: type({
-		$network: Network.id,
-		height: 'bigint',
-	}),
+	id: type.or(
+		type({
+			$network: Network.id,
+			height: 'bigint',
+		}),
+		type({
+			$network: Network.id,
+			hash: 'string',
+		}),
+	),
+
+	identities: [
+		{
+			name: 'height',
+			fields: [
+				'$network',
+				'height',
+			],
+		},
+		{
+			name: 'hash',
+			fields: [
+				'$network',
+				{
+					name: 'hash',
+					normalize: lowercaseHexIdentityValue,
+				},
+			],
+		},
+	],
 
 	fields: [
 		{

@@ -43,12 +43,12 @@ test.describe('assertLoaded verification', () => {
 		const definition = entityDefinitionByType[EntityType._Global]
 		expect(definition).toBeDefined()
 
-		const good = {
-			[EntityMetaKey.Id]: {},
-			[EntityMetaKey.IdKey]: stringify({}),
-			[EntityMetaKey.Source]: Source.Constants_Internal,
-			[EntityMetaKey.Fields]: {},
-		}
+			const good = {
+				[EntityMetaKey.Id]: {},
+				[EntityMetaKey.IdKey]: stringify({}),
+				[EntityMetaKey.Source]: Source.Constants_Internal,
+				[EntityMetaKey.Fields]: {},
+			}
 
 		expect(() => assertEntityResolverResult(definition, good)).not.toThrow()
 

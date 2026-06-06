@@ -13,6 +13,7 @@
 	} from '$/collections/$collections.ts'
 	import { BLOCKHEAD_WA_SQLITE_DATABASE_NAME } from '$/constants/Persistence.ts'
 	import {
+		entityFieldCountResolvers,
 		entityFieldResolvers,
 		entityResolvers,
 	} from '$/resolvers/index.ts'
@@ -28,12 +29,14 @@
 		schema,
 		entityResolvers,
 		entityFieldResolvers,
+		entityFieldCountResolvers,
 		persistence,
-		schemaVersion: 5,
+		schemaVersion: 7,
 	})
 
 	export const entityCollectionByEntityType = entityCollectionsContext.entityCollections
 	export const entityFieldCollections = entityCollectionsContext.entityFieldCollections
+	export const entityFieldCountCollections = entityCollectionsContext.entityFieldCountCollections
 	export const entityCollectionsQueryClient = entityCollectionsContext.queryClient
 </script>
 
@@ -50,6 +53,9 @@
 
 
 	// Context
+	import {
+		mountWalletConnectionRuntime,
+	} from '$/state/wallets/walletConnectionRuntime.svelte.ts'
 	import { useNavigationItems } from './navigationItems.svelte.ts'
 
 
@@ -57,6 +63,13 @@
 	let {
 		children,
 	} = $props()
+
+	$effect(() => (
+		mountWalletConnectionRuntime({
+			entityCollectionByEntityType,
+			entityFieldCollections,
+		}).destroy
+	))
 
 	// Components
 	import Navigation from './Navigation.svelte'
@@ -133,7 +146,7 @@
 			}
 		}
 
-		> .layout-nav :global(nav) {
+		> :global(.layout-nav) {
 			box-shadow: 0 0 0 var(--separator-width) var(--border-color);
 		}
 

@@ -66,5 +66,11 @@ export default {
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
+		{
+			name: '$$actions',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BlockheadSessionAction,
+			cardinality: EntityFieldCardinality.Many,
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

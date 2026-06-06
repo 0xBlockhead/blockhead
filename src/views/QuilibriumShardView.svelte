@@ -31,7 +31,7 @@
 		entityId,
 		{
 			shardKind: {},
-			applicationAddress: {},
+			$applicationAccount: {},
 		},
 	)
 
@@ -40,6 +40,7 @@
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import QuilibriumAccountView from '$/views/QuilibriumAccountView.svelte'
 </script>
 
 
@@ -82,14 +83,15 @@
 						</div>
 					{/if}
 
-					{#if quilibriumShard.applicationAddress != null}
+					{#if quilibriumShard.$applicationAccount != null}
 						<div>
-							<dt>Application Address</dt>
+							<dt>Application Account</dt>
 							<dd>
-								<TruncatedValue
-									value={quilibriumShard.applicationAddress}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								<QuilibriumAccountView
+									entityId={quilibriumShard.$applicationAccount}
+									layout="inline"
+								/>
+							</dd>
 						</div>
 					{/if}
 				</dl>

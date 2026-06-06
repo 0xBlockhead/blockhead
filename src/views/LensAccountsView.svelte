@@ -92,7 +92,7 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getKey={(row) => row[EntityMetaKey.IdKey]}
 					getSortValue={(row) => row[EntityMetaKey.Id].address}
 					placeholderText="Loading Lens network…"
 					resource={accounts}

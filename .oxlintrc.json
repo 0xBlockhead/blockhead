@@ -65,6 +65,15 @@
 		},
 		{
 			"files": [
+				"src/schema/$EntityDefinition.ts"
+			],
+			"rules": {
+				"typescript/no-restricted-types": "off",
+				"no-runtime-shape-guards/guards": "off"
+			}
+		},
+		{
+			"files": [
 				"src/collections/$collections.ts",
 				"src/collections/$queries.svelte.ts",
 				"src/collections/entityQuerySynthesis.ts",

@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -18,12 +18,101 @@ export default {
 	label: 'Farcaster Cast',
 	labelPlural: 'Farcaster Casts',
 
-	id: type({
-		fid: 'number',
-		hash: ZeroExHex,
-	}),
+	id: type.or(
+		type({
+			fid: 'number',
+			hash: ZeroExHex,
+			'+': 'reject',
+		}),
+		type({
+			hash: ZeroExHex,
+			'+': 'reject',
+		}),
+		type({
+			username: 'string',
+			hashPrefix: ZeroExHex,
+			'+': 'reject',
+		}),
+		type({
+			clientUrl: UrlString,
+			'+': 'reject',
+		}),
+	),
+
+	lookups: [
+		{
+			name: 'usernameHashPrefix',
+			fields: [
+				'username',
+				{
+					name: 'hashPrefix',
+					normalize: lowercaseHexIdentityValue,
+				},
+			],
+		},
+		{
+			name: 'clientUrl',
+			fields: [
+				'clientUrl',
+			],
+		},
+	],
+
+	identities: [
+		{
+			name: 'hash',
+			fields: [
+				{
+					name: 'hash',
+					normalize: lowercaseHexIdentityValue,
+				},
+			],
+		},
+		{
+			name: 'fidHash',
+			fields: [
+				{
+					name: 'fid',
+				},
+				{
+					name: 'hash',
+					normalize: lowercaseHexIdentityValue,
+				},
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'fid',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'username',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'hashPrefix',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'clientUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: '$author',
 			type: EntityFieldType.EntityReference,

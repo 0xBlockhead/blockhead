@@ -59,20 +59,25 @@
 	entityType={EntityType.SolanaBlock}
 	{entityId}
 	href={
-		'networkSlug' in entityId.$network ?
-			`/network/${entityId.$network.networkSlug}/blocks/${entityId.slot.toString()}`
+		'slot' in entityId ?
+			(
+				'networkSlug' in entityId.$network ?
+					`/network/${entityId.$network.networkSlug}/blocks/${entityId.slot.toString()}`
+				:
+					`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/blocks/${entityId.slot.toString()}`
+			)
 		:
-			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/blocks/${entityId.slot.toString()}`
+			undefined
 	}
-	title={`Slot #${entityId.slot.toString()}`}
-	idDragPlainText={entityId.slot.toString()}
+	title={'slot' in entityId ? `Slot #${entityId.slot.toString()}` : `Slot ${entityId.blockHash}`}
+	idDragPlainText={'slot' in entityId ? entityId.slot.toString() : entityId.blockHash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.slot.toString()}
+			{'slot' in entityId ? `#${entityId.slot.toString()}` : entityId.blockHash}
 		</span>
 	{/snippet}
 

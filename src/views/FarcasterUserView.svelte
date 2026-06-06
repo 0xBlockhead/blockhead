@@ -57,7 +57,7 @@
 			username: {},
 			bio: {},
 			url: {},
-			primaryEvmAddress: {},
+			$primaryEvmAccount: {},
 			followerCount: {},
 			followingCount: {},
 			$icon: {},
@@ -225,6 +225,29 @@
 							},
 						]}
 					/>
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={farcasterUserResource}
+				placeholderText="Loading Farcaster profile (FID)…"
+			>
+				{#snippet children(farcasterUser)}
+					{#if farcasterUser.$primaryEvmAccount != null}
+						<div>
+							<dt>Primary EVM account</dt>
+							<dd>
+								<EvmAccountView
+									entityId={farcasterUser.$primaryEvmAccount[EntityMetaKey.Id]}
+									href={resolve('/account/[address]', {
+										address: farcasterUser.$primaryEvmAccount[EntityMetaKey.Id].address,
+									})}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
 				{/snippet}
 			</ResourceBoundary>
 

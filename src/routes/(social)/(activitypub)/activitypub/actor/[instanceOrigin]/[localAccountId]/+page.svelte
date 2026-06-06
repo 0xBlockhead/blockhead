@@ -13,10 +13,18 @@
 
 <Page>
 	<ActivityPubActorView
-		entityId={{
-			instanceOrigin: decodeURIComponent(params.instanceOrigin),
-			localAccountId: decodeURIComponent(params.localAccountId),
-		}}
+		entityId={
+			decodeURIComponent(params.localAccountId).includes('@') ?
+				{
+					instanceOrigin: decodeURIComponent(params.instanceOrigin),
+					acct: decodeURIComponent(params.localAccountId),
+				}
+			:
+				{
+					instanceOrigin: decodeURIComponent(params.instanceOrigin),
+					localAccountId: decodeURIComponent(params.localAccountId),
+				}
+		}
 	>
 	</ActivityPubActorView>
 </Page>

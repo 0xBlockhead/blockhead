@@ -4,9 +4,11 @@
 		params,
 	} = $props()
 
-	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 	const entityId = $derived.by(() => {
 		const raw = decodeURIComponent(params.address).trim()
+		if (raw.startsWith('legacy:'))
+			return { legacyProfileId: raw.slice('legacy:'.length) }
+
 		const with0x = raw.startsWith('0x') ? raw : `0x${raw}`
 		const address = (
 			hexLowerOfByteSize(with0x, 20)
@@ -17,8 +19,12 @@
 					undefined
 			)
 		)
-		return address === undefined ? undefined : { address }
+		return address === undefined ? { localName: raw.replace(/^@/, '') } : { address }
 	})
+
+
+	// Functions
+	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 
 
 	// Components
@@ -28,9 +34,7 @@
 
 
 <Page>
-	{#if entityId}
 	<LensAccountView
 		{entityId}
 	/>
-	{/if}
 </Page>

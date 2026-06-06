@@ -228,5 +228,25 @@ export default {
 		}),
 	),
 
+	identities: [
+		{
+			name: 'caip2',
+			fields: [
+				{
+					name: 'caip2',
+				},
+			],
+		},
+		{
+			name: 'networkSlug',
+			fields: [
+				{
+					name: 'slug',
+					as: 'networkSlug',
+				},
+			],
+		},
+	],
+
 	fields: networkFields,
 } as const satisfies EntityDefinition

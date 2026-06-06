@@ -10,3 +10,7 @@ export const ZeroExHex = type(
 export const EvmAddress = type(
 	'/^0x[0-9a-fA-F]{40}$/' as type.cast<`0x${string}`>,
 )
+
+export const lowercaseHexIdentityValue = (value: unknown) => (
+	String(value).toLowerCase()
+)

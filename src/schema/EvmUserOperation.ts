@@ -7,7 +7,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -22,7 +22,31 @@ export default {
 		hash: ZeroExHex,
 	}),
 
+	identities: [
+		{
+			name: 'hash',
+			fields: [
+				{
+					name: '$network',
+				},
+				{
+					name: 'hash',
+					normalize: lowercaseHexIdentityValue,
+				},
+			],
+		},
+	],
+
 	fields: [
+		{
+			name: 'hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
 		{
 			name: '$bundledTransaction',
 			type: EntityFieldType.EntityReference,

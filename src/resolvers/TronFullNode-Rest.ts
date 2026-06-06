@@ -109,33 +109,40 @@ const blockFields = (
 					hash: rawBlock.parentHash,
 				},
 			},
-	}),
-	parentHash: rawBlock.parentHash,
-	timestampMs: rawBlock.timestamp,
-		witnessAddress: rawBlock.witness_address,
+		}),
+		parentHash: rawBlock.parentHash,
+		timestampMs: rawBlock.timestamp,
+		...(rawBlock.witness_address != null && {
+			$witness: {
+				[EntityMetaKey.Id]: {
+					$network: network,
+					address: rawBlock.witness_address,
+				},
+			},
+		}),
 		txTrieRoot: rawBlock.txTrieRoot,
 		version: rawBlock.version,
 		transactionCount: block.transactions?.length,
-	$$transactions: (block.transactions ?? []).flatMap((transaction) => (
-		transaction.txID == null ?
-			[]
-		:
-			[{
-				[EntityMetaKey.Id]: {
-					$network: network,
-					transactionId: transaction.txID,
-				},
-				...transactionFields(
-					network,
-					transaction,
-					{
-						blockNumber: rawBlock.number,
-						blockTimeStamp: rawBlock.timestamp,
+		$$transactions: (block.transactions ?? []).flatMap((transaction) => (
+			transaction.txID == null ?
+				[]
+			:
+				[{
+					[EntityMetaKey.Id]: {
+						$network: network,
+						transactionId: transaction.txID,
 					},
-				),
-			}]
-	)),
-}
+					...transactionFields(
+						network,
+						transaction,
+						{
+							blockNumber: rawBlock.number,
+							blockTimeStamp: rawBlock.timestamp,
+						},
+					),
+				}]
+		)),
+	}
 }
 
 export default {

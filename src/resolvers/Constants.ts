@@ -100,6 +100,7 @@ const networkStackIdByNamespace = {
 	[NetworkNamespace.BitcoinCash]: NetworkStackId.BitcoinCash,
 	[NetworkNamespace.Cosmos]: NetworkStackId.CosmosSdkCometBft,
 	[NetworkNamespace.Dogecoin]: NetworkStackId.Dogecoin,
+	[NetworkNamespace.Elements]: NetworkStackId.Elements,
 	[NetworkNamespace.Evm]: NetworkStackId.Ethereum,
 	[NetworkNamespace.Filecoin]: NetworkStackId.Filecoin,
 	[NetworkNamespace.Hyperliquid]: NetworkStackId.Hyperliquid,
@@ -131,6 +132,9 @@ const executionEnvironmentIdsByNamespace = {
 	],
 	[NetworkNamespace.Dogecoin]: [
 		ExecutionEnvironmentId.BitcoinScript,
+	],
+	[NetworkNamespace.Elements]: [
+		ExecutionEnvironmentId.ElementsScript,
 	],
 	[NetworkNamespace.Evm]: [
 		ExecutionEnvironmentId.Evm,
@@ -191,6 +195,7 @@ const consensusMechanismIdsByNamespace = {
 	[NetworkNamespace.Dogecoin]: [
 		ConsensusMechanismId.DogecoinAuxProofOfWork,
 	],
+	[NetworkNamespace.Elements]: [],
 	[NetworkNamespace.Evm]: [
 		ConsensusMechanismId.EthereumBeaconProofOfStake,
 	],
@@ -239,6 +244,7 @@ const nativeAssetCoinIdByNamespace = {
 	[NetworkNamespace.BitcoinCash]: CoinId.BCH,
 	[NetworkNamespace.Cosmos]: CoinId.ATOM,
 	[NetworkNamespace.Dogecoin]: CoinId.DOGE,
+	[NetworkNamespace.Elements]: CoinId.BTC,
 	[NetworkNamespace.Evm]: CoinId.ETH,
 	[NetworkNamespace.Filecoin]: CoinId.FIL,
 	[NetworkNamespace.Hyperliquid]: CoinId.HYPE,
@@ -651,6 +657,36 @@ export default {
 			resolve: async (entityId) => ({
 				label: networkStackByNetworkStackId[entityId.networkStackId].label,
 			}),
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.ElementsNetwork,
+			resolve: async (entityId) => {
+				const network = (
+					'networkSlug' in entityId ?
+						networkBySlug[entityId.networkSlug]
+					:
+						networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+				)
+				if (network?.slug !== networkBySlug.liquid.slug)
+					throw new Error('Constants_Internal: unsupported Elements network')
+
+				return {
+					$network: {
+						[EntityMetaKey.Id]: {
+							networkSlug: network.slug,
+						},
+					},
+					$settlementNetwork: {
+						[EntityMetaKey.Id]: {
+							networkSlug: 'bitcoin',
+						},
+					},
+					federationName: 'Liquid Federation',
+					blockTimeSeconds: 60,
+					confidentialTransactionsDefault: true,
+				}
+			},
 		}),
 
 		defineEntityResolver({

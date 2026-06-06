@@ -1,33 +1,103 @@
 import { type } from 'arktype'
 
-import { EvmLogInterpretationKind } from '$/constants/Evm.ts'
-import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
+	conditionalFieldGroup,
 	type EntityDefinition,
+	type EntityFieldEntry,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const ERC20_ERC721_TRANSFER_TOPIC = (
-	'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
-)
-const ERC1155_TRANSFER_SINGLE_TOPIC = (
-	'0xc3d58168c5ae7397731d063d5bbf3d89e2dc00c66cb903c17f4a2cd2d1f5f0f0'
-)
-const ERC1155_TRANSFER_BATCH_TOPIC = (
-	'0x4a39dc06d4c0dbc64b70f1d4d6757603d1ef3e8d6935b7f0b4c97fe61e099437'
-)
-
-const evmLogDiscriminatorFields = [
+const evmLogBaseFields = [
 	{
-		name: 'topic0',
+		name: 'txHash',
 		type: EntityFieldType.Primitive,
 		primitiveType: ZeroExHex,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+			Source.Blockscout_Rest,
+		],
+	},
+	{
+		name: 'logIndex',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+			Source.Blockscout_Rest,
+		],
+	},
+	{
+		name: 'topics',
+		type: EntityFieldType.Primitive,
+		primitiveType: ZeroExHex.array(),
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+			Source.Blockscout_Rest,
+		],
+	},
+	{
+		name: 'data',
+		type: EntityFieldType.Primitive,
+		primitiveType: ZeroExHex,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+			Source.Blockscout_Rest,
+		],
+	},
+	{
+		name: 'blockNumber',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+			Source.Blockscout_Rest,
+		],
+	},
+	{
+		name: 'blockHash',
+		type: EntityFieldType.Primitive,
+		primitiveType: ZeroExHex,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+			Source.Blockscout_Rest,
+		],
+	},
+	{
+		name: 'transactionIndex',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+			Source.Blockscout_Rest,
+		],
+	},
+	{
+		name: 'removed',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+			Source.Blockscout_Rest,
+		],
+	},
+	{
+		name: '$emitter',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Voltaire_JsonRpc,
@@ -48,116 +118,49 @@ export default {
 		logIndex: 'number',
 	}),
 
+	identities: [
+		{
+			name: 'txHashLogIndex',
+			fields: [
+				{
+					name: '$network',
+				},
+				{
+					name: 'txHash',
+					normalize: lowercaseHexIdentityValue,
+				},
+				{
+					name: 'logIndex',
+				},
+			],
+		},
+	],
+
 	fields: [
-		{
-			name: 'address',
-			type: EntityFieldType.Primitive,
-			primitiveType: EvmAddress,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
+		...evmLogBaseFields,
+		conditionalFieldGroup(
+			evmLogBaseFields,
+			'topics',
+			[
+				'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+				'0xc3d58168c5ae7397731d063d5bbf3d89e2dc00c66cb903c17f4a2cd2d1f5f0f0',
+				'0x4a39dc06d4c0dbc64b70f1d4d6757603d1ef3e8d6935b7f0b4c97fe61e099437',
 			],
-		},
-		{
-			name: 'topics',
-			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex.array(),
-			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
+			{
+				itemIndex: 0,
+			},
+			[
+				{
+					name: '$$tokenTransfers',
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.EvmTokenTransfer,
+					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [
+						Source.Blockscout_Rest,
+						Source.Etherscan_Rest,
+					],
+				},
 			],
-		},
-		...evmLogDiscriminatorFields,
-		{
-			name: 'data',
-			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
-		},
-		{
-			name: 'blockNumber',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
-		},
-		{
-			name: 'blockHash',
-			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
-		},
-		{
-			name: 'transactionIndex',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
-		},
-		{
-			name: 'removed',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
-		},
-		{
-			name: 'interpretationKind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(EvmLogInterpretationKind),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
-		},
-		{
-			name: '$emitter',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmContract,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-				Source.Blockscout_Rest,
-			],
-		},
-		{
-			name: '$$tokenTransfers',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmTokenTransfer,
-			cardinality: EntityFieldCardinality.Many,
-			when: conditionalOn(
-				evmLogDiscriminatorFields,
-				'topic0',
-				[
-					ERC20_ERC721_TRANSFER_TOPIC,
-					ERC1155_TRANSFER_SINGLE_TOPIC,
-					ERC1155_TRANSFER_BATCH_TOPIC,
-			],
-			),
-			defaultSources: [
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-			],
-		},
-	] as const satisfies readonly EntityFieldDefinition[],
+		),
+	] as const satisfies readonly EntityFieldEntry[],
 } as const satisfies EntityDefinition

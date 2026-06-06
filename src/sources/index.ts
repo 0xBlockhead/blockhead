@@ -28,6 +28,7 @@ import Blockchair from '$/sources/Blockchair/index.ts'
 import Blockscout from '$/sources/Blockscout/index.ts'
 import Caips from '$/sources/Caips/index.ts'
 import Chainlist from '$/sources/Chainlist/index.ts'
+import Cashu from '$/sources/Cashu/index.ts'
 import Coingecko from '$/sources/Coingecko/index.ts'
 import CoinMarketCap from '$/sources/CoinMarketCap/index.ts'
 import Coinpaprika from '$/sources/Coinpaprika/index.ts'
@@ -78,6 +79,7 @@ import NearRpc from '$/sources/NearRpc/index.ts'
 import Neynar from '$/sources/Neynar/index.ts'
 import NostrBand from '$/sources/NostrBand/index.ts'
 import Openchain from '$/sources/Openchain/index.ts'
+import Payjoin from '$/sources/Payjoin/index.ts'
 import Polkadot from '$/sources/Polkadot/index.ts'
 import PolkadotRfcs from '$/sources/PolkadotRfcs/index.ts'
 import Piped from '$/sources/Piped/index.ts'
@@ -132,6 +134,7 @@ const sourceProviderDefinitions = [
 	Blockscout,
 	Caips,
 	Chainlist,
+	Cashu,
 	Coingecko,
 	CoinMarketCap,
 	Coinpaprika,
@@ -182,6 +185,7 @@ const sourceProviderDefinitions = [
 	Neynar,
 	NostrBand,
 	Openchain,
+	Payjoin,
 	Polkadot,
 	PolkadotRfcs,
 	Piped,
@@ -226,18 +230,31 @@ type SchemaEnv<_EnvSchema> = (
 		{}
 )
 
-type SourceToProviderEnvMap = {
-	[_Provider in (typeof sourceProviderDefinitions)[number] as _Provider['sources'][number]['source']]: (
-		_Provider extends { env: infer _Env } ?
-			_Env
+type SourceEnvEntry = (
+	(typeof sourceProviderDefinitions)[number] extends infer _Provider ?
+		_Provider extends SourceProviderDefinition ?
+			_Provider['sources'][number] extends infer _SourceDefinition ?
+				_SourceDefinition extends SourceDefinition ?
+					{
+						source: _SourceDefinition['source']
+						env: (
+							SchemaEnv<_Provider extends { env: infer _ProviderEnv } ? _ProviderEnv : undefined>
+							& SchemaEnv<_SourceDefinition extends { env: infer _SourceEnv } ? _SourceEnv : undefined>
+						)
+					}
+				:
+					never
+			:
+				never
 		:
-			undefined
-	)
-}
+			never
+	:
+		never
+)
 
-/** Public env object shape for a `Source`, derived from its provider's `env` arktype schema. */
+/** Public env object shape for a `Source`, derived from its provider and source env schemas. */
 export type SourcePublicEnvFor<_Source extends Source> = (
-	SchemaEnv<_Source extends keyof SourceToProviderEnvMap ? SourceToProviderEnvMap[_Source] : undefined>
+	Extract<SourceEnvEntry, { source: _Source }>['env']
 )
 
 /** Flattened `$env/dynamic/public` for gating and resolver `context.publicEnv`. */

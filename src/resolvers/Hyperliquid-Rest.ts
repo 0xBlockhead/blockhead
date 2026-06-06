@@ -87,10 +87,20 @@ export default {
 				return {
 					accountRole: userRoleWire.role,
 					...(userRoleWire.role === 'agent' && {
-						masterAddress: userRoleWire.data.user,
+						$masterAccount: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								address: userRoleWire.data.user,
+							},
+						},
 					}),
 					...(userRoleWire.role === 'subAccount' && {
-						masterAddress: userRoleWire.data.master,
+						$masterAccount: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								address: userRoleWire.data.master,
+							},
+						},
 					}),
 				}
 			},
@@ -106,7 +116,12 @@ export default {
 				if (validator == null) throw new Error(`Hyperliquid_Rest: validator not found for ${entityId.validator}`)
 				return {
 					name: validator.name,
-					signer: validator.signer,
+					$signer: {
+						[EntityMetaKey.Id]: {
+							$network: entityId.$network,
+							address: validator.signer,
+						},
+					},
 					commission: validator.commission,
 					recentBlockCount: validator.nRecentBlocks,
 					stake: BigInt(validator.stake),
@@ -172,7 +187,12 @@ export default {
 							validator: validator.validator,
 						},
 						name: validator.name,
-						signer: validator.signer,
+						$signer: {
+							[EntityMetaKey.Id]: {
+								$network: entityId,
+								address: validator.signer,
+							},
+						},
 						commission: validator.commission,
 						recentBlockCount: validator.nRecentBlocks,
 						stake: BigInt(validator.stake),

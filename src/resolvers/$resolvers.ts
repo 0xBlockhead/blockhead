@@ -145,6 +145,30 @@ export type EntityFieldResolverDefinition<
 	_ResolverFieldKey extends string = string,
 > = Omit<EntityFieldResolver<_Schema, _EntityType, _ResolverFieldKey>, 'source'>
 
+export type EntityFieldCountResolver<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_ResolverFieldKey extends string = string,
+> = {
+	entityType: _EntityType
+	fieldName: _ResolverFieldKey
+	source: Source
+	/**
+	 * Must return an exact non-negative integer count for the field under the parent id and filters.
+	 * Do not fetch all field rows only to count them.
+	 */
+	resolve: (
+		scopedEntityId: EntityId<_Schema, _EntityType>,
+		context?: ResolverLoadSubset,
+	) => Promise<number>
+}
+
+export type EntityFieldCountResolverDefinition<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_ResolverFieldKey extends string = string,
+> = Omit<EntityFieldCountResolver<_Schema, _EntityType, _ResolverFieldKey>, 'source'>
+
 export const defineEntityResolver = <_EntityType extends EntityType<typeof schema>>(
 	entityResolver: EntityResolverDefinition<typeof schema, _EntityType>,
 ) => entityResolver
@@ -159,6 +183,17 @@ export const defineEntityFieldResolver = <
 		_ResolverFieldKey
 	>,
 ) => entityFieldResolver
+
+export const defineEntityFieldCountResolver = <
+	_EntityType extends EntityType<typeof schema>,
+	_ResolverFieldKey extends EntityFieldName<typeof schema, _EntityType>,
+>(
+	entityFieldCountResolver: EntityFieldCountResolverDefinition<
+		typeof schema,
+		_EntityType,
+		_ResolverFieldKey
+	>,
+) => entityFieldCountResolver
 
 export const defineEntityLiveResolver = <_EntityType extends EntityType<typeof schema>>(
 	entityLiveResolver: EntityLiveResolverDefinition<typeof schema, _EntityType>,

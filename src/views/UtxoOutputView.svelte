@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	let {
 		entityId,
 		open = $bindable(true),
@@ -19,32 +20,25 @@
 			entityId: EntityId<typeof schema, EntityType.UtxoOutput>
 			open?: boolean
 		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'layout'
-			| 'showTypeAnnotation'
-		>
+		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const utxoOutput = useEntity(
-		EntityType.UtxoOutput,
-		entityId,
-		{
-			valueSats: {},
-			scriptPubKeyAsm: {},
-			scriptPubKeyHex: {},
-			scriptPubKeyType: {},
-			address: {},
-			isSpent: {},
-		},
-	)
+	const utxoOutput = useEntity(EntityType.UtxoOutput, entityId, {
+		valueSats: {},
+		scriptPubKeyAsm: {},
+		scriptPubKeyHex: {},
+		scriptPubKeyType: {},
+		$address: {},
+		isSpent: {},
+	})
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
+	import UtxoAddressView from '$/views/UtxoAddressView.svelte'
 </script>
 
 
@@ -56,7 +50,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Value()}
 		<span data-badge="small">
 			#{entityId.outputIndex.toString()}
@@ -67,8 +60,8 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Output </span>
 			{#if Value}
-			{@render Value()}
-					{/if}
+				{@render Value()}
+			{/if}
 		</span>
 	{/snippet}
 
@@ -93,7 +86,8 @@
 								<TruncatedValue
 									value={utxoOutput.scriptPubKeyAsm}
 									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								/>
+							</dd>
 						</div>
 					{/if}
 
@@ -104,7 +98,8 @@
 								<TruncatedValue
 									value={utxoOutput.scriptPubKeyHex}
 									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								/>
+							</dd>
 						</div>
 					{/if}
 
@@ -115,18 +110,21 @@
 								<TruncatedValue
 									value={utxoOutput.scriptPubKeyType}
 									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								/>
+							</dd>
 						</div>
 					{/if}
 
-					{#if utxoOutput.address != null}
+					{#if utxoOutput.$address}
 						<div>
 							<dt>Address</dt>
 							<dd>
-								<TruncatedValue
-									value={utxoOutput.address}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								<UtxoAddressView
+									entityId={utxoOutput.$address[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
 						</div>
 					{/if}
 

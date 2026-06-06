@@ -1,5 +1,3 @@
-import { type as arktype } from 'arktype'
-
 import { SnapchainReactionType } from '$/constants/Snapchain.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
@@ -83,37 +81,52 @@ export default {
 				])
 				const verifiedAddresses = (
 					(verifications.messages ?? [])
-						.flatMap((message: SnapVerify) => {
+						.flatMap<Entity<typeof schema, EntityType.FarcasterVerifiedAddress>>((message: SnapVerify) => {
 							const body = message.data?.verificationAddAddressBody
 							const address = optionalNonemptyString(body?.address)
-								const protocol = (
-									body?.protocol === 'PROTOCOL_ETHEREUM' ?
-										'ethereum' as const
-									: body?.protocol === 'PROTOCOL_SOLANA' ?
-										'solana' as const
-								:
-									undefined
+							const protocol = (
+								body?.protocol === 'PROTOCOL_ETHEREUM' ?
+									'ethereum' as const
+								: body?.protocol === 'PROTOCOL_SOLANA' ?
+									'solana' as const
+							:
+								undefined
 							)
 							return protocol == null || address == null ?
 								[]
 							:
-								[{
-									[EntityMetaKey.Id]: {
-										fid: entityId.fid,
-										protocol,
-										address,
-									},
-									$user: {
-										[EntityMetaKey.Id]: entityId,
-									},
-									...(protocol === 'ethereum' && {
-										$evmAccount: {
-											[EntityMetaKey.Id]: {
-												address,
-											},
+								protocol === 'ethereum' ?
+									(
+										(evmAddress) => (
+											[{
+													[EntityMetaKey.Id]: {
+														fid: entityId.fid,
+														protocol,
+														address: evmAddress,
+													},
+													$user: {
+														[EntityMetaKey.Id]: entityId,
+													},
+													$evmAccount: {
+														[EntityMetaKey.Id]: {
+															address: evmAddress,
+														},
+													},
+													protocol,
+													address: evmAddress,
+												}]
+										)
+									)(EvmAddress.assert(address))
+							:
+									[{
+										[EntityMetaKey.Id]: {
+											fid: entityId.fid,
+											protocol,
+											address,
 										},
-									}),
-									...(protocol === 'solana' && {
+										$user: {
+											[EntityMetaKey.Id]: entityId,
+										},
 										$solanaAccount: {
 											[EntityMetaKey.Id]: {
 												$network: {
@@ -125,10 +138,9 @@ export default {
 												pubkey: address,
 											},
 										},
-									}),
-									protocol,
-									address,
-								}]
+										protocol,
+										address,
+									}]
 						})
 						.filter((verification, index, verificationsList) => (
 							verificationsList.findIndex((otherVerification) => (
@@ -140,19 +152,18 @@ export default {
 				const primaryVerifiedEvmAddress = verifiedAddresses.find((verification) => (
 					verification[EntityMetaKey.Id].protocol === 'ethereum'
 				))?.[EntityMetaKey.Id].address
-				const verifiedParsed = (
-					primaryVerifiedEvmAddress == null ?
-						arktype.errors
-					:
-						EvmAddress(primaryVerifiedEvmAddress)
-				)
 				const userFields: Partial<UserFields> = {
 					username: optionalNonemptyString(usernameProofs.proofs?.[0]?.name),
 					followerCount,
 					followingCount,
 					$$verifiedAddresses: verifiedAddresses,
 				}
-					if (!(verifiedParsed instanceof arktype.errors)) userFields.primaryEvmAddress = EvmAddress.assert(primaryVerifiedEvmAddress)
+				if (primaryVerifiedEvmAddress != null)
+					userFields.$primaryEvmAccount = {
+						[EntityMetaKey.Id]: {
+							address: EvmAddress.assert(primaryVerifiedEvmAddress),
+						},
+					}
 				for (const message of (userData.messages ?? [])) {
 					const userDataType = message.data?.userDataBody?.type
 					const fieldValue = optionalNonemptyString(message.data?.userDataBody?.value)
@@ -197,6 +208,9 @@ export default {
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
 				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
 				type CastFieldValues = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
+				if (!('fid' in entityId) || !('hash' in entityId)) {
+					throw new Error('Snapchain_Rest: cast id requires fid and hash')
+				}
 				const {
 					getCastById,
 					getCastEngagementCountsForCast,
@@ -220,6 +234,8 @@ export default {
 					throw new Error('Snapchain_Rest: cast missing timestamp')
 				}
 				return {
+					fid: entityId.fid,
+					hash: lowerHex0xCastHash(entityId.hash),
 					$author: {
 						[EntityMetaKey.Id]: {
 							fid: entityId.fid,
@@ -288,6 +304,9 @@ export default {
 					getCastById,
 					getCastEngagementCountsForCast,
 				} = await import('$/sources/Snapchain/Rest/queries.ts')
+				if (!('fid' in entityId.$cast) || !('hash' in entityId.$cast)) {
+					throw new Error('Snapchain_Rest: cast snapshot id requires cast fid and hash')
+				}
 				await singleFlight(getCastById)({
 					fid: entityId.$cast.fid,
 					hash: entityId.$cast.hash,
@@ -489,22 +508,35 @@ export default {
 					getCastById,
 					getCastEngagementCountsForCast,
 				} = await import('$/sources/Snapchain/Rest/queries.ts')
+				const castId = (
+					'fid' in entityId
+					&& 'hash' in entityId ?
+						{
+							fid: entityId.fid,
+							hash: entityId.hash,
+						}
+					:
+						undefined
+				)
+				if (castId === undefined) {
+					throw new Error('Snapchain_Rest: cast timestamps require cast fid and hash')
+				}
 				await singleFlight(getCastById)({
-					fid: entityId.fid,
-					hash: entityId.hash,
+					fid: castId.fid,
+					hash: castId.hash,
 				})
 				return [
-					{
-						[EntityMetaKey.Id]: {
-							$cast: entityId,
-							timestampMs: Date.now(),
-						},
-						...(await getCastEngagementCountsForCast({
-							targetFid: entityId.fid,
-							targetHash: entityId.hash,
-							likeReactionType: SnapchainReactionType.Like,
-							recastReactionType: SnapchainReactionType.Recast,
-						})),
+						{
+							[EntityMetaKey.Id]: {
+								$cast: castId,
+								timestampMs: Date.now(),
+							},
+							...(await getCastEngagementCountsForCast({
+								targetFid: castId.fid,
+								targetHash: castId.hash,
+								likeReactionType: SnapchainReactionType.Like,
+								recastReactionType: SnapchainReactionType.Recast,
+							})),
 					},
 				]
 			},
@@ -539,24 +571,23 @@ export default {
 					pageToken != null
 					&& casts.length < subsetRowLimit
 				)
-				return (
-					casts
-						.map((cast) => {
-							const authorFid = cast.data?.fid
-							return authorFid == null ?
-								undefined
-							:
-								(({
-									[EntityMetaKey.Id]: {
-										fid: authorFid,
-										hash: lowerHex0xCastHash(cast.hash),
-									},
-								}) satisfies CastEntity)
-						})
-						.filter((cast): cast is CastEntity => cast != null)
-				)
-			},
-		}),
+					return (
+						casts
+							.flatMap((cast) => {
+								const authorFid = cast.data?.fid
+								return authorFid == null ?
+									[]
+									:
+										[({
+											[EntityMetaKey.Id]: {
+												fid: authorFid,
+												hash: lowerHex0xCastHash(cast.hash),
+											},
+										}) satisfies CastEntity]
+								})
+					)
+				},
+			}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.FarcasterFeed,
@@ -675,19 +706,18 @@ export default {
 					)
 					return (
 						casts
-							.map((cast) => {
+							.flatMap((cast) => {
 								const authorFid = cast.data?.fid
 								return authorFid == null ?
-										undefined
-									:
-										(({
-											[EntityMetaKey.Id]: {
-												fid: authorFid,
-												hash: lowerHex0xCastHash(cast.hash),
-											},
-										}) satisfies CastEntity)
+									[]
+								:
+									[({
+										[EntityMetaKey.Id]: {
+											fid: authorFid,
+											hash: lowerHex0xCastHash(cast.hash),
+										},
+									}) satisfies CastEntity]
 							})
-							.filter((cast): cast is CastEntity => cast != null)
 					)
 				}
 
@@ -726,19 +756,18 @@ export default {
 				}
 				return (
 					feedCasts
-						.map((cast) => {
+						.flatMap((cast) => {
 							const authorFid = cast.data?.fid
 							return authorFid == null ?
-								undefined
+								[]
 							:
-								(({
+								[({
 									[EntityMetaKey.Id]: {
 										fid: authorFid,
 										hash: lowerHex0xCastHash(cast.hash),
 									},
-								}) satisfies CastEntity)
+								}) satisfies CastEntity]
 						})
-						.filter((cast): cast is CastEntity => cast != null)
 				)
 			},
 		}),

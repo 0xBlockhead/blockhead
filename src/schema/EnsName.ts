@@ -1,4 +1,5 @@
 import { type } from 'arktype'
+import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -8,6 +9,14 @@ import {
 import { EntityType } from '$/schema/$EntityType.ts'
 import { EvmAbi } from '$/schema/$EvmAbi.ts'
 import { Source } from '$/sources/$Source.ts'
+
+const normalizedEnsIdentityValue = (value: unknown) => {
+	try {
+		return ensToString(ensNormalizeNode(String(value)))
+	} catch {
+		return String(value).toLowerCase()
+	}
+}
 
 export default {
 	entityType: EntityType.EnsName,
@@ -19,7 +28,29 @@ export default {
 		name: 'string',
 	}),
 
+	identities: [
+		{
+			name: 'normalizedName',
+			fields: [
+				{
+					name: 'name',
+					normalize: normalizedEnsIdentityValue,
+				},
+			],
+		},
+	],
+
 	fields: [
+		{
+			name: 'name',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.TheGraph_Graphql,
+				Source.Voltaire_JsonRpc,
+			],
+		},
 		{
 			name: 'labelName',
 			type: EntityFieldType.Primitive,

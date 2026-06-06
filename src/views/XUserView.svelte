@@ -20,7 +20,7 @@
 	let {
 		entityId,
 		href = resolve('/(social)/(x)/x/user/[userId]', {
-			userId: entityId.id,
+			userId: 'id' in entityId ? entityId.id : entityId.username,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
@@ -42,9 +42,15 @@
 		entityId,
 		{
 			$: (
-				entityResolversByEntityType[EntityType.XUser]?.map((r) => r.source)
-				?? [Source.Local_Internal]
+				'id' in entityId ?
+					(
+						entityResolversByEntityType[EntityType.XUser]?.map((r) => r.source)
+						?? [Source.Local_Internal]
+					)
+				:
+					[Source.X_FxEmbed_Rest]
 			),
+			id: {},
 			username: {},
 			name: {},
 			description: {},
@@ -111,7 +117,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.id}
+			value={'id' in entityId ? entityId.id : `@${entityId.username}`}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -122,7 +128,7 @@
 			placeholderText="Loading X profile…"
 		>
 			{#snippet children(user)}
-				{user.name ?? user.username ?? entityId.id}
+				{user.name ?? user.username ?? ('id' in entityId ? entityId.id : entityId.username)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -136,7 +142,7 @@
 				{#if (
 					user.username !== undefined
 					&& user.username !== (
-						user.name ?? entityId.id
+						user.name ?? ('id' in entityId ? entityId.id : entityId.username)
 					)
 				)}
 					<span data-text="muted">
@@ -352,38 +358,48 @@
 
 			{#snippet SectionPosts()}
 				<ResourceBoundary resource={user}>
-				{#snippet children(user)}
-					{#if (user.$$posts?.length)}
-						<XPostsView
-							CollapsibleProps={{ canToggle: false }}
-							href={resolve(
-								'/(social)/(x)/x/user/[userId]',
-								{ userId: entityId.id },
-							)}
-							entityFieldReference={{
-								entityType: EntityType.XUser,
-								entityId,
-								fieldName: '$$posts',
-							}}
-							id={`${userIdKey}:posts`}
-							title="Posts"
-						/>
-					{/if}
+					{#snippet children(user)}
+						{#if (user.$$posts?.length)}
+							<XPostsView
+								CollapsibleProps={{ canToggle: false }}
+								href={resolve(
+									'/(social)/(x)/x/user/[userId]',
+									{ userId: user.id },
+								)}
+								entityFieldReference={{
+									entityType: EntityType.XUser,
+									entityId: {
+										id: user.id,
+									},
+									fieldName: '$$posts',
+								}}
+								id={`${userIdKey}:posts`}
+								title="Posts"
+							/>
+						{/if}
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
 
 			{#snippet SectionMetricSnapshots()}
-				<XUser_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.XUser,
-						entityId,
-						fieldName: '$$timestamps',
-					}}
-					href={href}
-					id={`${userIdKey}:metric-snapshots`}
-					title="Metric snapshots"
-				/>
+				<ResourceBoundary resource={user}>
+					{#snippet children(user)}
+						<XUser_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.XUser,
+								entityId: {
+									id: user.id,
+								},
+								fieldName: '$$timestamps',
+							}}
+							href={resolve('/(social)/(x)/x/user/[userId]', {
+								userId: user.id,
+							})}
+							id={`${userIdKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+				</ResourceBoundary>
 			{/snippet}
 		</CollapsibleTabs>
 		{/snippet}

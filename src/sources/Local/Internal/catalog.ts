@@ -1,10 +1,18 @@
 import type { EntityId } from '$/schema/$schema.ts'
+import type { Action } from '$/constants/actions.ts'
+import { ActionType } from '$/constants/actions.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurn.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import { XmtpConversationConsentState } from '$/schema/XmtpConversation.ts'
+import {
+	WalletCapability,
+	WalletDiscoveryKind,
+	WalletProtocol,
+	WalletTransportKind,
+} from '$/constants/Wallet.ts'
 import { schema } from '$/schema/index.ts'
 
 
@@ -22,6 +30,55 @@ export type NormalizedXmtpConversation = {
 
 export type NormalizedBlockheadSource = {
 	id: string
+}
+
+export type NormalizedBlockheadWallet = {
+	id: string
+	name: string
+	icon: string
+	protocol: WalletProtocol
+	discoveryKind: WalletDiscoveryKind
+	transportKind: WalletTransportKind
+	rdns?: string
+	websiteUrl?: string
+	capabilities: readonly WalletCapability[]
+}
+
+export type NormalizedBlockheadWalletAccount = {
+	namespace: string
+	reference: string
+	accountAddress: string
+	label?: string
+	capabilities: readonly WalletCapability[]
+}
+
+export type NormalizedBlockheadWalletConnection = {
+	walletId: string
+	status: 'disconnected' | 'connecting' | 'connected' | 'error'
+	protocol: WalletProtocol
+	transportKind: WalletTransportKind
+	scopes: readonly {
+		namespace: string
+		reference: string
+		methods: readonly string[]
+		events: readonly string[]
+	}[]
+	accountIds: readonly {
+		namespace: string
+		reference: string
+		accountAddress: string
+	}[]
+	activeAccountId?: {
+		namespace: string
+		reference: string
+		accountAddress: string
+	}
+	selected: boolean
+	connectedAt: number
+	disconnectedAt?: number
+	sessionId?: string
+	sessionTopic?: string
+	error?: string
 }
 
 export type NormalizedBlockheadPanelTree = {
@@ -47,6 +104,15 @@ export type NormalizedBlockheadSession = {
 	updatedAt: number
 	lockedAt?: number
 	simulationCount?: number
+}
+
+export type NormalizedBlockheadSessionAction = {
+	sessionId: string
+	actionId: string
+	indexInSequence: number
+	action: Action
+	createdAt: number
+	updatedAt: number
 }
 
 export type NormalizedBlockheadRoomPeer = {
@@ -175,7 +241,11 @@ export type NormalizedLocalInternal = {
 	actors: readonly NormalizedActor[]
 	xmtpConversations: readonly NormalizedXmtpConversation[]
 	blockheadSources: readonly NormalizedBlockheadSource[]
+	blockheadWallets: readonly NormalizedBlockheadWallet[]
+	blockheadWalletConnections: readonly NormalizedBlockheadWalletConnection[]
+	blockheadWalletAccounts: readonly NormalizedBlockheadWalletAccount[]
 	blockheadSessions: readonly NormalizedBlockheadSession[]
+	blockheadSessionActions: readonly NormalizedBlockheadSessionAction[]
 	blockheadPanelTrees: readonly NormalizedBlockheadPanelTree[]
 	blockheadFarcasterAccountConnections: readonly NormalizedBlockheadFarcasterAccountConnection[]
 	blockheadAgentConversations: readonly NormalizedBlockheadAgentConversation[]
@@ -206,6 +276,83 @@ const probeBlockheadSource = {
 	id: 'e2e-probe-source',
 } as const satisfies NormalizedBlockheadSource
 
+const probeBlockheadWallet = {
+	id: 'eip6963:e2e-probe-wallet',
+	name: 'E2E Probe Wallet',
+	icon: '',
+	protocol: WalletProtocol.Eip6963,
+	discoveryKind: WalletDiscoveryKind.InjectedEvent,
+	transportKind: WalletTransportKind.InjectedProvider,
+	rdns: 'dev.blockhead.e2e',
+	capabilities: [
+		WalletCapability.Connect,
+		WalletCapability.Reconnect,
+		WalletCapability.ListAccounts,
+		WalletCapability.WatchAccounts,
+		WalletCapability.WatchScopes,
+		WalletCapability.SignMessage,
+		WalletCapability.SignTransaction,
+	],
+} as const satisfies NormalizedBlockheadWallet
+
+const probeBlockheadWalletAccounts = [
+	{
+		namespace: 'eip155',
+		reference: '1',
+		accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+		label: 'E2E Ethereum account',
+		capabilities: [
+			WalletCapability.SignMessage,
+			WalletCapability.SignTransaction,
+			WalletCapability.SendTransaction,
+			WalletCapability.SignTypedData,
+		],
+	},
+	{
+		namespace: 'solana',
+		reference: 'mainnet',
+		accountAddress: '11111111111111111111111111111111',
+		label: 'E2E Solana account',
+		capabilities: [
+			WalletCapability.SignMessage,
+			WalletCapability.SignTransaction,
+		],
+	},
+] as const satisfies readonly NormalizedBlockheadWalletAccount[]
+
+const probeBlockheadWalletConnection = {
+	walletId: probeBlockheadWallet.id,
+	status: 'connected',
+	protocol: WalletProtocol.Eip6963,
+	transportKind: WalletTransportKind.InjectedProvider,
+	scopes: [
+		{
+			namespace: 'eip155',
+			reference: '1',
+			methods: ['eth_accounts', 'eth_requestAccounts', 'personal_sign', 'eth_sendTransaction'],
+			events: ['accountsChanged', 'chainChanged'],
+		},
+		{
+			namespace: 'solana',
+			reference: 'mainnet',
+			methods: ['signMessage', 'signTransaction'],
+			events: ['change'],
+		},
+	],
+	accountIds: probeBlockheadWalletAccounts.map((account) => ({
+		namespace: account.namespace,
+		reference: account.reference,
+		accountAddress: account.accountAddress,
+	})),
+	activeAccountId: {
+		namespace: probeBlockheadWalletAccounts[0].namespace,
+		reference: probeBlockheadWalletAccounts[0].reference,
+		accountAddress: probeBlockheadWalletAccounts[0].accountAddress,
+	},
+	selected: true,
+	connectedAt: 0,
+} as const satisfies NormalizedBlockheadWalletConnection
+
 const probeBlockheadPanelTree = {
 	id: 'e2e-probe-panel-tree',
 } as const satisfies NormalizedBlockheadPanelTree
@@ -222,6 +369,24 @@ const probeBlockheadSession = {
 	createdAt: 0,
 	updatedAt: 0,
 } as const satisfies NormalizedBlockheadSession
+
+const probeBlockheadSessionAction = {
+	sessionId: probeBlockheadSession.id,
+	actionId: 'e2e-probe-session-action-0',
+	indexInSequence: 0,
+	action: {
+		type: ActionType.Swap,
+		params: {
+			chainId: 1,
+			tokenIn: '0x0000000000000000000000000000000000000000',
+			tokenOut: '0x0000000000000000000000000000000000000000',
+			amount: 0n,
+			slippage: 0.005,
+		},
+	},
+	createdAt: 0,
+	updatedAt: 0,
+} as const satisfies NormalizedBlockheadSessionAction
 
 const probeBlockheadRoomPeer = {
 	id: 'e2e-probe-room-peer',
@@ -430,7 +595,11 @@ const defaultNormalizedLocalInternal: NormalizedLocalInternal = {
 		},
 	],
 	blockheadSources: [probeBlockheadSource],
+	blockheadWallets: [probeBlockheadWallet],
+	blockheadWalletConnections: [probeBlockheadWalletConnection],
+	blockheadWalletAccounts: probeBlockheadWalletAccounts,
 	blockheadSessions: [probeBlockheadSession],
+	blockheadSessionActions: [probeBlockheadSessionAction],
 	blockheadPanelTrees: [probeBlockheadPanelTree],
 	blockheadFarcasterAccountConnections: [
 		{ fid: 3 },

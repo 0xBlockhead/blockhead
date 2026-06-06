@@ -1,5 +1,3 @@
-import { type as arktype } from 'arktype'
-
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
@@ -84,17 +82,18 @@ export default {
 						.filter((address): address is string => address != null)
 						.filter((address, index, addresses) => addresses.indexOf(address) === index)
 				)
-				const ethVerifiedParsed = (
+				const verifiedPart = (
 					ethAddresses.at(0) == null ?
-						arktype.errors
+						{}
 					:
-						EvmAddress(ethAddresses.at(0))
-				)
-					const verifiedPart = (
-						!(ethVerifiedParsed instanceof arktype.errors) && {
-							primaryEvmAddress: EvmAddress.assert(ethAddresses.at(0)),
+						{
+							$primaryEvmAccount: {
+								[EntityMetaKey.Id]: {
+									address: EvmAddress.assert(ethAddresses.at(0)),
+								},
+							},
 						}
-					)
+				)
 				const username = optionalNonemptyString(user.username)
 				const displayName = optionalNonemptyString(user.display_name)
 				const bio = optionalNonemptyString(
@@ -119,23 +118,25 @@ export default {
 					}),
 					...verifiedPart,
 					$$verifiedAddresses: [
-						...ethAddresses.map((address) => ({
+						...ethAddresses.map((address) => (
+							((evmAddress) => ({
 								[EntityMetaKey.Id]: {
 									fid: entityId.fid,
 									protocol: 'ethereum' as const,
-									address,
+									address: evmAddress,
 								},
-							$user: {
-								[EntityMetaKey.Id]: entityId,
-							},
-							$evmAccount: {
-								[EntityMetaKey.Id]: {
-									address,
+								$user: {
+									[EntityMetaKey.Id]: entityId,
 								},
-							},
+								$evmAccount: {
+									[EntityMetaKey.Id]: {
+										address: evmAddress,
+									},
+								},
 								protocol: 'ethereum' as const,
-								address,
-						})),
+								address: evmAddress,
+							}))(EvmAddress.assert(address))
+						)),
 						...solAddresses.map((address) => ({
 								[EntityMetaKey.Id]: {
 									fid: entityId.fid,
@@ -211,22 +212,51 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.FarcasterCast,
 			resolve: async (entityId, context) => {
-				const { getCastByHash } = await import('$/sources/Neynar/Rest/queries.ts')
+				const {
+					getCastByClientUrl,
+					getCastByHash,
+				} = await import('$/sources/Neynar/Rest/queries.ts')
 				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
 				type EntityIdCast = import('$/schema/$schema.ts').EntityId<typeof schema, EntityType.FarcasterCast>
 				type FieldValuesCast = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
 				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
-				const cast = await singleFlight(getCastByHash)(publicEnv, entityId.hash)
-				if (cast == null || zeroXLowerHexCastHash(cast.hash) !== entityId.hash) {
+				const cast = await (
+					'hash' in entityId ?
+						singleFlight(getCastByHash)(
+							publicEnv,
+							zeroXLowerHexCastHash(entityId.hash),
+						)
+					: 'clientUrl' in entityId ?
+						singleFlight(getCastByClientUrl)(publicEnv, entityId.clientUrl)
+					:
+						undefined
+				)
+				if (cast == null) {
 					throw new Error('Neynar_Rest: cast not found')
 				}
-				const castId: EntityIdCast = entityId
+				const castHash = zeroXLowerHexCastHash(cast.hash)
 				const timestamp = Date.parse(cast.timestamp ?? '')
 				if (cast.author?.fid == null) {
 					throw new Error('Neynar_Rest: cast missing author fid')
 				}
+				if (
+					'hash' in entityId
+					&& castHash !== zeroXLowerHexCastHash(entityId.hash)
+				) {
+					throw new Error('Neynar_Rest: cast hash mismatch')
+				}
+				if (
+					'fid' in entityId
+					&& cast.author.fid !== entityId.fid
+				) {
+					throw new Error('Neynar_Rest: cast author mismatch')
+				}
 				if (!Number.isFinite(timestamp)) {
 					throw new Error('Neynar_Rest: cast missing timestamp')
+				}
+				const castId: EntityIdCast = {
+					fid: cast.author.fid,
+					hash: castHash,
 				}
 				const mentionFids = (
 					(cast.mentioned_profiles ?? [])
@@ -244,6 +274,14 @@ export default {
 				const recastCount = cast.recasts ?? cast.reactions?.recasts_count
 				const replyCount = cast.replies?.count
 				return {
+					fid: cast.author.fid,
+					hash: castHash,
+					...(cast.author.username != null && cast.author.username !== '' && {
+						username: cast.author.username,
+					}),
+					...('clientUrl' in entityId && {
+						clientUrl: entityId.clientUrl,
+					}),
 					$author: {
 						[EntityMetaKey.Id]: { fid: cast.author.fid },
 					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,

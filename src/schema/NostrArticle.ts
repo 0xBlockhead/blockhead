@@ -1,4 +1,5 @@
 import { type } from 'arktype'
+import { lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -23,7 +24,32 @@ export default {
 		identifier: 'string',
 	}),
 
+	identities: [
+		{
+			name: 'canonicalCoordinate',
+			fields: [
+				{
+					name: 'pubkey',
+					normalize: lowercaseHexIdentityValue,
+				},
+				'identifier',
+			],
+		},
+	],
+
 	fields: [
+		{
+			name: 'pubkey',
+			type: EntityFieldType.Primitive,
+			primitiveType: NostrPubkey,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'identifier',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'kind',
 			type: EntityFieldType.Primitive,

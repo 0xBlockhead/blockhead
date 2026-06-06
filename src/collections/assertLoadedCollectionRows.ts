@@ -5,6 +5,7 @@ import type { Type } from 'arktype'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
+	entityFieldDefinitions,
 	EntityMetaKey,
 	type EntityDefinition,
 	type EntityFieldDefinition,
@@ -216,7 +217,7 @@ const assertFieldsObjectPrimitives = (
 	entityDefinition: EntityDefinition,
 	fieldsObject: Record<string, unknown>,
 ) => {
-	for (const field of entityDefinition.fields) {
+	for (const field of entityFieldDefinitions(entityDefinition)) {
 		if (field.type !== EntityFieldType.Primitive) continue
 		const v = fieldsObject[field.name]
 		if (v === undefined) continue
@@ -278,7 +279,7 @@ export const assertEntityResolverResult = (
 	const fieldsObject = record[EntityMetaKey.Fields] as Record<string, unknown>
 	assertFieldsObjectPrimitives(path, entityDefinition, fieldsObject)
 
-	for (const field of entityDefinition.fields) {
+	for (const field of entityFieldDefinitions(entityDefinition)) {
 		if (field.type !== EntityFieldType.Primitive) continue
 		const spread = record[field.name]
 		if (spread === undefined) continue

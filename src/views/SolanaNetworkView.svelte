@@ -38,6 +38,9 @@
 			$$blocks: {
 				$limit: 1,
 			},
+			$$accounts: {
+				$limit: 16,
+			},
 			$$timestamps: {
 				$limit: 1,
 			},
@@ -69,6 +72,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AssetInstancesView from '$/views/AssetInstancesView.svelte'
 	import NetworkTransportEndpointsView from '$/views/NetworkTransportEndpointsView.svelte'
+	import SolanaAccountsView from '$/views/SolanaAccountsView.svelte'
 	import SolanaBlockView from '$/views/SolanaBlockView.svelte'
 	import SolanaBlocksView from '$/views/SolanaBlocksView.svelte'
 	import SolanaNetwork_TimestampsView from '$/views/SolanaNetwork_TimestampsView.svelte'
@@ -140,6 +144,13 @@
 							<dt>RPC endpoints</dt>
 							<dd>{network.rpcEndpoints.length}</dd>
 						</div>
+
+						{#if network.$$accounts != null}
+							<div>
+								<dt>Recent accounts</dt>
+								<dd>{network.$$accounts.length}</dd>
+							</div>
+						{/if}
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
@@ -166,6 +177,7 @@
 			sections={[
 				{ id: 'solana-blocks', label: 'Blocks' },
 				{ id: 'solana-transactions', label: 'Transactions' },
+				{ id: 'solana-accounts', label: 'Accounts' },
 				{ id: 'solana-network-snapshots', label: 'Network snapshots' },
 				{ id: 'solana-endpoints', label: 'Endpoints' },
 			]}
@@ -204,6 +216,19 @@
 						fieldName: '$$transactions',
 					}}
 					href={href == null ? '' : `${href}/transactions`}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionSolanaAccounts({ id, label }: { id: string, label: string })}
+				<SolanaAccountsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.SolanaNetwork,
+						entityId,
+						fieldName: '$$accounts',
+					}}
 					id={`${id}-list`}
 					title={label}
 				/>

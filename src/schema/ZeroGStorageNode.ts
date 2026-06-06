@@ -7,6 +7,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import EvmAccount from '$/schema/EvmAccount.ts'
 import Network from '$/schema/Network.ts'
 
 export default {
@@ -22,9 +23,10 @@ export default {
 
 	fields: [
 		{
-			name: 'operatorAddress',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			name: '$operator',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+			entityId: EvmAccount.id,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

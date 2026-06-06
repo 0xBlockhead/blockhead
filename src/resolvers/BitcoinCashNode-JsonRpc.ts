@@ -53,7 +53,12 @@ export default {
 					scriptPubKeyHex: output.scriptPubKey.hex,
 					scriptPubKeyType: output.scriptPubKey.type,
 					...(output.scriptPubKey.address != null && {
-						address: output.scriptPubKey.address,
+						$address: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$transaction.$network,
+								address: output.scriptPubKey.address,
+							},
+						},
 					}),
 					...(output.tokenData?.amount != null && {
 						$bitcoinCashCashTokenFungibleAmount: {

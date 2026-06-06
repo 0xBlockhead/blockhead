@@ -44,18 +44,18 @@
 </script>
 
 
-<EntityView
-	entityType={EntityType.HyperliquidBlock}
-	{entityId}
-	title={`Block #${entityId.height.toString()}`}
-	idDragPlainText={entityId.height.toString()}
+	<EntityView
+		entityType={EntityType.HyperliquidBlock}
+		{entityId}
+		title={'height' in entityId ? `Block #${entityId.height.toString()}` : `Block ${entityId.hash}`}
+		idDragPlainText={'height' in entityId ? entityId.height.toString() : entityId.hash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.height.toString()}
+			{'height' in entityId ? `#${entityId.height.toString()}` : entityId.hash}
 		</span>
 	{/snippet}
 

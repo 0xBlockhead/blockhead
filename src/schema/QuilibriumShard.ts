@@ -28,9 +28,9 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'applicationAddress',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			name: '$applicationAccount',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.QuilibriumAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

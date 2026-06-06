@@ -10,6 +10,7 @@ export enum NetworkNamespace {
 	BitcoinCash = 'BitcoinCash',
 	Cosmos = 'Cosmos',
 	Dogecoin = 'Dogecoin',
+	Elements = 'Elements',
 	Evm = 'Evm',
 	Filecoin = 'Filecoin',
 	Hyperliquid = 'Hyperliquid',
@@ -84,6 +85,15 @@ const networkNamespaces = [
 			ConsensusMechanismId.DogecoinAuxProofOfWork,
 		],
 		nativeAssetCoinId: CoinId.DOGE,
+	},
+	{
+		namespace: NetworkNamespace.Elements,
+		networkStackId: NetworkStackId.Elements,
+		executionEnvironmentIds: [
+			ExecutionEnvironmentId.ElementsScript,
+		],
+		consensusMechanismIds: [],
+		nativeAssetCoinId: CoinId.BTC,
 	},
 	{
 		namespace: NetworkNamespace.Evm,

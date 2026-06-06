@@ -62,12 +62,16 @@ const heliusInstructionRows = (
 				programId: instruction.programId,
 			},
 		},
-		programId: instruction.programId,
 		...(instruction.data != null && {
 			data: instruction.data,
 		}),
 		...(instruction.accounts != null && {
-			accounts: instruction.accounts,
+			$$accounts: instruction.accounts.map((pubkey) => ({
+				[EntityMetaKey.Id]: {
+					$network: transactionId.$network,
+					pubkey,
+				},
+			})),
 		}),
 	}))
 )

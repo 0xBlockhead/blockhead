@@ -1,4 +1,5 @@
 import { type } from 'arktype'
+import { lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 
 import {
 	EntityFieldType,
@@ -8,6 +9,7 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/Network.ts'
+import TronWitness from '$/schema/TronWitness.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const tronPublicBlockSources = [
@@ -26,6 +28,24 @@ export default {
 		height: 'bigint',
 		'hash?': 'string',
 	}),
+
+	identities: [
+		{
+			name: 'heightHash',
+			fields: [
+				{
+					name: '$network',
+				},
+				{
+					name: 'height',
+				},
+				{
+					name: 'hash',
+					normalize: lowercaseHexIdentityValue,
+				},
+			],
+		},
+	],
 
 	fields: [
 		{
@@ -57,9 +77,10 @@ export default {
 			defaultSources: tronPublicBlockSources,
 		},
 		{
-			name: 'witnessAddress',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			name: '$witness',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.TronWitness,
+			entityId: TronWitness.id,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: tronPublicBlockSources,
 		},

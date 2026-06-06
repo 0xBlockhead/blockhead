@@ -1,3 +1,4 @@
+import type { EntityFieldDefinitions } from '$/schema/$EntityDefinition.ts'
 import type { Schema } from '$/schema/$schema.ts'
 
 import _GlobalSchema from '$/schema/_Global.ts'
@@ -37,6 +38,7 @@ import BlockheadPanelTreeSchema from '$/schema/BlockheadPanelTree.ts'
 import BlockheadRoomSchema from '$/schema/BlockheadRoom.ts'
 import BlockheadRoomPeerSchema from '$/schema/BlockheadRoomPeer.ts'
 import BlockheadSessionSchema from '$/schema/BlockheadSession.ts'
+import BlockheadSessionActionSchema from '$/schema/BlockheadSessionAction.ts'
 import BlockheadSessionSimulationSchema from '$/schema/BlockheadSessionSimulation.ts'
 import BlockheadSharedAddressSchema from '$/schema/BlockheadSharedAddress.ts'
 import BlockheadSiweChallengeSchema from '$/schema/BlockheadSiweChallenge.ts'
@@ -44,6 +46,7 @@ import BlockheadSocialPostSessionSchema from '$/schema/BlockheadSocialPostSessio
 import BlockheadSourceSchema from '$/schema/BlockheadSource.ts'
 import BlockheadTransferRequestSchema from '$/schema/BlockheadTransferRequest.ts'
 import BlockheadWalletSchema from '$/schema/BlockheadWallet.ts'
+import BlockheadWalletAccountSchema from '$/schema/BlockheadWalletAccount.ts'
 import BlockheadWalletConnectionSchema from '$/schema/BlockheadWalletConnection.ts'
 import BridgeRouteSchema from '$/schema/BridgeRoute.ts'
 import BridgeRouteStepSchema from '$/schema/BridgeRouteStep.ts'
@@ -123,6 +126,14 @@ import ExecutionEnvironmentSchema from '$/schema/ExecutionEnvironment.ts'
 import ConsensusMechanismSchema from '$/schema/ConsensusMechanism.ts'
 import AssetInstanceSchema from '$/schema/AssetInstance.ts'
 import NetworkUpgradeSchema from '$/schema/NetworkUpgrade.ts'
+import ElementsNetworkSchema from '$/schema/ElementsNetwork.ts'
+import ElementsAssetSchema from '$/schema/ElementsAsset.ts'
+import ElementsIssuanceSchema from '$/schema/ElementsIssuance.ts'
+import ElementsPegSchema from '$/schema/ElementsPeg.ts'
+import CashuMintSchema from '$/schema/CashuMint.ts'
+import CashuKeysetSchema from '$/schema/CashuKeyset.ts'
+import FedimintFederationSchema from '$/schema/FedimintFederation.ts'
+import PayjoinDirectorySchema from '$/schema/PayjoinDirectory.ts'
 import UtxoAddressSchema from '$/schema/UtxoAddress.ts'
 import UtxoNetworkSchema from '$/schema/UtxoNetwork.ts'
 import UtxoNetwork_TimestampSchema from '$/schema/UtxoNetwork_Timestamp.ts'
@@ -342,6 +353,7 @@ export const schema = [
 	BlockheadRoomSchema,
 	BlockheadRoomPeerSchema,
 	BlockheadSessionSchema,
+	BlockheadSessionActionSchema,
 	BlockheadSessionSimulationSchema,
 	BlockheadSharedAddressSchema,
 	BlockheadSiweChallengeSchema,
@@ -349,6 +361,7 @@ export const schema = [
 	BlockheadSourceSchema,
 	BlockheadTransferRequestSchema,
 	BlockheadWalletSchema,
+	BlockheadWalletAccountSchema,
 	BlockheadWalletConnectionSchema,
 	BridgeRouteSchema,
 	BridgeRouteStepSchema,
@@ -428,6 +441,14 @@ export const schema = [
 	ConsensusMechanismSchema,
 	AssetInstanceSchema,
 	NetworkUpgradeSchema,
+	ElementsNetworkSchema,
+	ElementsAssetSchema,
+	ElementsIssuanceSchema,
+	ElementsPegSchema,
+	CashuMintSchema,
+	CashuKeysetSchema,
+	FedimintFederationSchema,
+	PayjoinDirectorySchema,
 	UtxoAddressSchema,
 	UtxoNetworkSchema,
 	UtxoNetwork_TimestampSchema,
@@ -613,7 +634,7 @@ export const schema = [
 export type RegisteredEntityType = (typeof schema)[number]['entityType']
 
 export type EntitySchemaFieldName<_EntityType extends RegisteredEntityType> = (
-	Extract<(typeof schema)[number], { readonly entityType: _EntityType }>['fields'][number]['name']
+	EntityFieldDefinitions<Extract<(typeof schema)[number], { readonly entityType: _EntityType }>>['name']
 )
 
 export const entityDefinitionByType = Object.fromEntries(

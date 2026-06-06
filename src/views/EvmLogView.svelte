@@ -1,19 +1,30 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EvmLogInterpretationKind, evmLogInterpretationKindByInterpretationKind } from '$/constants/Evm.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// State
+	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	let {
 		entityId,
-		href = `/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/tx/${entityId.txHash}/log/${entityId.logIndex}`,
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]', {
+			caip2Namespace: entityId.$network.caip2.namespace,
+			caip2Reference: entityId.$network.caip2.reference,
+			transactionId: entityId.txHash,
+			logIndex: String(entityId.logIndex),
+		}),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -40,9 +51,6 @@
 		>
 	> = $props()
 
-	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const log = useEntity(
 		EntityType.EvmLog,
 		entityId,
@@ -52,11 +60,22 @@
 				Source.Voltaire_JsonRpc,
 			],
 			topics: {},
-			interpretationKind: {},
 			...(open && {
-				address: {},
 				data: {},
 				$emitter: {},
+				$case: {
+					'topics[0]': {
+						'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef': {
+							$$tokenTransfers: {},
+						},
+						'0xc3d58168c5ae7397731d063d5bbf3d89e2dc00c66cb903c17f4a2cd2d1f5f0f0': {
+							$$tokenTransfers: {},
+						},
+						'0x4a39dc06d4c0dbc64b70f1d4d6757603d1ef3e8d6935b7f0b4c97fe61e099437': {
+							$$tokenTransfers: {},
+						},
+					},
+				},
 			}),
 		},
 	)
@@ -68,6 +87,7 @@
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmLogDecode from '$/views/EvmLogDecode.svelte'
+	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 	import EvmTopicView from '$/views/EvmTopicView.svelte'
 </script>
 
@@ -135,7 +155,11 @@
 						<dd>
 							<a
 								data-text="font-monospace"
-								href={`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/tx/${entityId.txHash}`}
+								href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+									caip2Namespace: entityId.$network.caip2.namespace,
+									caip2Reference: entityId.$network.caip2.reference,
+									transactionId: entityId.txHash,
+								})}
 							>
 								<TruncatedValue
 									value={entityId.txHash}
@@ -151,99 +175,95 @@
 					placeholderText="Loading receipt log…"
 				>
 					{#snippet children(log)}
-					{#if log.interpretationKind != null && log.interpretationKind !== EvmLogInterpretationKind.Unknown}
-						<div>
-							<dt>Interpretation</dt>
-							<dd>{evmLogInterpretationKindByInterpretationKind[log.interpretationKind].label}</dd>
-						</div>
-					{/if}
-					{#if log.$emitter}
-						<div>
-							<dt>Emitter contract</dt>
-							<dd>
-								<EvmContractView
-									entityId={log.$emitter[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{:else if log.address}
-						<div>
-							<dt>Emitter contract</dt>
-							<dd>
-								<EvmContractView
-									entityId={{
-										$network: entityId.$network,
-										address: log.address,
-									}}
-									layout={EntityLayout.Value}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if log.topics?.length}
-						<div>
-							<dt>Topics</dt>
-							<dd>
-								<ul>
-									{#each log.topics as topic, topicIndex (`${topicIndex}:${topic ?? ''}`)}
-										<li>
-											<span data-text="muted">topic {topicIndex}</span>
-											{#if topic?.startsWith('0x')}
-												{@const topicHex = normalizeEvmTopicHex(topic)}
-												{#if topicIndex === 0 && summaryUsesHeading}
-													<TruncatedValue
-														value={topic}
-														format={TruncatedValueFormat.Abbr}
-													/>
-												{:else}
-													<a
-														data-text="font-monospace"
-														href={getEvmTopicPath(topicHex)}
-													>
+						{#if log.$emitter}
+							<div>
+								<dt>Emitter contract</dt>
+								<dd>
+									<EvmContractView
+										entityId={log.$emitter[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+										showTypeAnnotation={false}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if log.topics?.length}
+							<div>
+								<dt>Topics</dt>
+								<dd>
+									<ul>
+										{#each log.topics as topic, topicIndex (`${topicIndex}:${topic ?? ''}`)}
+											<li>
+												<span data-text="muted">topic {topicIndex}</span>
+												{#if topic?.startsWith('0x')}
+													{@const topicHex = normalizeEvmTopicHex(topic)}
+													{#if topicIndex === 0 && summaryUsesHeading}
 														<TruncatedValue
 															value={topic}
 															format={TruncatedValueFormat.Abbr}
 														/>
-													</a>
+													{:else}
+														<a data-text="font-monospace" href={getEvmTopicPath(topicHex)}>
+															<TruncatedValue
+																value={topic}
+																format={TruncatedValueFormat.Abbr}
+															/>
+														</a>
+													{/if}
+												{:else if topic != null}
+													<code>{topic}</code>
 												{/if}
-											{:else if topic != null}
-												<code>{topic}</code>
-											{/if}
-										</li>
-									{/each}
-								</ul>
-							</dd>
-						</div>
-					{/if}
-					{#if log.data}
-						<div>
-							<dt>Data</dt>
-							<dd>
-								<TruncatedValue
-									value={log.data}
-									format={TruncatedValueFormat.Visual}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if log.topics?.length && log.data != null && contentOpen}
-						<div>
-							<dt>ABI decode</dt>
-							<dd>
-								<EvmLogDecode
-									topics={log.topics}
-									data={log.data}
-									emitterContractId={log.$emitter?.[EntityMetaKey.Id]}
-									open={contentOpen}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+											</li>
+										{/each}
+									</ul>
+								</dd>
+							</div>
+						{/if}
+
+						{#if log.data}
+							<div>
+								<dt>Data</dt>
+								<dd>
+									<TruncatedValue
+										value={log.data}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if log.$$tokenTransfers?.length}
+							<div>
+								<dt>Token transfers</dt>
+								<dd>
+									<EvmTokenTransfersView
+										entityFieldReference={{
+											entityType: EntityType.EvmLog,
+											entityId,
+											fieldName: '$$tokenTransfers',
+										}}
+										open={true}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if log.topics?.length && log.data != null && contentOpen}
+							<div>
+								<dt>ABI decode</dt>
+								<dd>
+									<EvmLogDecode
+										topics={log.topics}
+										data={log.data}
+										emitterContractId={log.$emitter?.[EntityMetaKey.Id]}
+										open={contentOpen}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			</dl>
 		</div>
 	{/snippet}

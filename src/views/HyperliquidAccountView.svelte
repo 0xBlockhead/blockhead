@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	let {
 		entityId,
 		open = $bindable(true),
@@ -19,26 +20,18 @@
 			entityId: EntityId<typeof schema, EntityType.HyperliquidAccount>
 			open?: boolean
 		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'layout'
-			| 'showTypeAnnotation'
-		>
+		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const hyperliquidAccount = useEntity(
-		EntityType.HyperliquidAccount,
-		entityId,
-		{
-			accountRole: {},
-			masterAddress: {},
-			agentAddress: {},
-		},
-	)
+	const hyperliquidAccount = useEntity(EntityType.HyperliquidAccount, entityId, {
+		accountRole: {},
+		$masterAccount: {},
+		$agentAccount: {},
+	})
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
@@ -51,7 +44,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Title()}
 		<TruncatedValue
 			value={entityId.address}
@@ -73,26 +65,29 @@
 						</div>
 					{/if}
 
-					{#if hyperliquidAccount.masterAddress != null}
+					{#if hyperliquidAccount.$masterAccount != null}
 						<div>
-							<dt>Master Address</dt>
+							<dt>Master account</dt>
 							<dd>
-								<TruncatedValue
-									value={hyperliquidAccount.masterAddress}
-									format={TruncatedValueFormat.Abbr}
+								<HyperliquidAccountView
+									entityId={hyperliquidAccount.$masterAccount[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidAccount.agentAddress != null}
+					{#if hyperliquidAccount.$agentAccount != null}
 						<div>
-							<dt>Agent Address</dt>
+							<dt>Agent account</dt>
 							<dd>
-								<TruncatedValue
-									value={hyperliquidAccount.agentAddress}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								<HyperliquidAccountView
+									entityId={hyperliquidAccount.$agentAccount[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
 						</div>
 					{/if}
 				</dl>

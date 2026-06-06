@@ -1,8 +1,5 @@
 import { CoinId } from '$/constants/Coin.ts'
-import {
-	MarketAssetKind,
-	MarketKind,
-} from '$/constants/Market.ts'
+import { MarketKind } from '$/constants/Market.ts'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
@@ -30,23 +27,9 @@ export default {
 				const { getProCurrentPrices } = await import('$/sources/Defillama/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Defillama_Rest)
 				const apiKey = publicEnv.PUBLIC_DEFILLAMA_PRO_API_KEY
-				if (apiKey == null || apiKey.trim() === '') {
-					throw new Error('Defillama_Rest: PUBLIC_DEFILLAMA_PRO_API_KEY is missing')
-				}
-				const coinId = (
-					entityId.$market.$base.kind === MarketAssetKind.Coin ?
-						entityId.$market.$base.$coin.coinId
-					:
-						undefined
-				)
 				const llamaId = (
 					entityId.feedKey?.trim()
-					?? (
-						coinId != null ?
-							defillamaCurrentPriceIdByCoinId[coinId]
-						:
-							undefined
-					)
+					?? defillamaCurrentPriceIdByCoinId[entityId.$market.$base.$coin.coinId]
 				)
 				if (llamaId == null) throw new Error('Defillama_Rest: no price id')
 				const priceRow = (
@@ -59,11 +42,11 @@ export default {
 				if (entityId.timestampMs !== timestampMs) {
 					throw new Error('Defillama_Rest: Market_Timestamp id does not match price clock')
 				}
-					return {
-						price: BigInt(Math.round(priceRow.price * 1e8)),
-						transport: 'defillama-pro-current-usd-1e8',
-						providerAssetId: llamaId,
-					}
+				return {
+					price: BigInt(Math.round(priceRow.price * 1e8)),
+					transport: 'defillama-pro-current-usd-1e8',
+					providerAssetId: llamaId,
+				}
 			},
 		}),
 	],
@@ -80,32 +63,19 @@ export default {
 				const { getProCurrentPrices } = await import('$/sources/Defillama/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Defillama_Rest)
 				const apiKey = publicEnv.PUBLIC_DEFILLAMA_PRO_API_KEY
-				if (apiKey == null || apiKey.trim() === '') {
-					throw new Error('Defillama_Rest: PUBLIC_DEFILLAMA_PRO_API_KEY is missing')
-				}
-				const coinId = (
-					entityId.$market.$base.kind === MarketAssetKind.Coin ?
-							entityId.$market.$base.$coin.coinId
-						:
-							undefined
-					)
-					if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
-						return []
-					}
-					const llamaId = (
-						entityId.feedKey?.trim()
-						?? (
-							entityId.$network != null ?
-								(
-									coinId === CoinId.ETH && entityId.$network.caip2.reference === '1' ?
-										defillamaCurrentPriceIdByCoinId[CoinId.ETH]
+				const coinId = entityId.$market.$base.$coin.coinId
+				const llamaId = (
+					entityId.feedKey?.trim()
+					?? (
+						entityId.$network != null ?
+							(
+								coinId === CoinId.ETH && entityId.$network.caip2.reference === '1' ?
+									defillamaCurrentPriceIdByCoinId[CoinId.ETH]
 								:
 									undefined
 							)
-						: coinId != null ?
-							defillamaCurrentPriceIdByCoinId[coinId]
-						:
-							undefined
+					:
+						defillamaCurrentPriceIdByCoinId[coinId]
 					)
 				)
 				if (llamaId == null) throw new Error('Defillama_Rest: no price id')

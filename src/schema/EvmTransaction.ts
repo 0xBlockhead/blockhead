@@ -1,11 +1,12 @@
 import { type } from 'arktype'
 
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
+	conditionalFieldGroup,
 	type EntityDefinition,
+	type EntityFieldEntry,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -39,7 +40,28 @@ export default {
 		txHash: ZeroExHex,
 	}),
 
+	identities: [
+		{
+			name: 'txHash',
+			fields: [
+				{
+					name: '$network',
+				},
+				{
+					name: 'txHash',
+					normalize: lowercaseHexIdentityValue,
+				},
+			],
+		},
+	],
+
 	fields: [
+		{
+			name: 'txHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: '$block',
 			type: EntityFieldType.EntityReference,
@@ -149,84 +171,65 @@ export default {
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-		{
-			name: 'maxFeePerGas',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				evmTransactionDiscriminatorFields,
-				'envelopeType',
-				[
-					EvmTransactionEnvelopeType.FeeMarket,
-					EvmTransactionEnvelopeType.Blob,
-					EvmTransactionEnvelopeType.SetCode,
-				],
-			),
-		},
-		{
-			name: 'maxPriorityFeePerGas',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				evmTransactionDiscriminatorFields,
-				'envelopeType',
-				[
-					EvmTransactionEnvelopeType.FeeMarket,
-					EvmTransactionEnvelopeType.Blob,
-					EvmTransactionEnvelopeType.SetCode,
-				],
-			),
-		},
-		{
-			name: 'blobGasUsed',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				evmTransactionDiscriminatorFields,
-				'envelopeType',
-				[
-					EvmTransactionEnvelopeType.Blob,
-				],
-			),
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
+		conditionalFieldGroup(
+			evmTransactionDiscriminatorFields,
+			'envelopeType',
+			[
+				EvmTransactionEnvelopeType.FeeMarket,
+				EvmTransactionEnvelopeType.Blob,
+				EvmTransactionEnvelopeType.SetCode,
 			],
-		},
-		{
-			name: 'maxFeePerBlobGas',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				evmTransactionDiscriminatorFields,
-				'envelopeType',
-				[
-					EvmTransactionEnvelopeType.Blob,
-				],
-			),
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
+			[
+				{
+					name: 'maxFeePerGas',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('bigint'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				{
+					name: 'maxPriorityFeePerGas',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('bigint'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
 			],
-		},
-		{
-			name: '$$blobs',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmBlob,
-			cardinality: EntityFieldCardinality.Many,
-			when: conditionalOn(
-				evmTransactionDiscriminatorFields,
-				'envelopeType',
-				[
-					EvmTransactionEnvelopeType.Blob,
-				],
-			),
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
+		),
+		conditionalFieldGroup(
+			evmTransactionDiscriminatorFields,
+			'envelopeType',
+			[
+				EvmTransactionEnvelopeType.Blob,
 			],
-		},
+			[
+				{
+					name: 'blobGasUsed',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('bigint'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [
+						Source.Voltaire_JsonRpc,
+					],
+				},
+				{
+					name: 'maxFeePerBlobGas',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('bigint'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [
+						Source.Voltaire_JsonRpc,
+					],
+				},
+				{
+					name: '$$blobs',
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.EvmBlob,
+					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [
+						Source.Voltaire_JsonRpc,
+					],
+				},
+			],
+		),
 		{
 			name: '$$userOperations',
 			type: EntityFieldType.EntitiesReference,
@@ -286,5 +289,5 @@ export default {
 				Source.Voltaire_JsonRpc,
 			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	] as const satisfies readonly EntityFieldEntry[],
 } as const satisfies EntityDefinition

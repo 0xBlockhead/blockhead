@@ -1,7 +1,7 @@
 import { type } from 'arktype'
 
 // EIP-4844-style execution blob sidecar: versioned commitment tied to a blob tx hash, not contract storage or IPFS blobs.
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -33,7 +33,43 @@ export default {
 		blobIndex: 'number',
 	}),
 
+	identities: [
+		{
+			name: 'txHashBlobIndex',
+			fields: [
+				{
+					name: '$network',
+				},
+				{
+					name: 'txHash',
+					normalize: lowercaseHexIdentityValue,
+				},
+				{
+					name: 'blobIndex',
+				},
+			],
+		},
+	],
+
 	fields: [
+		{
+			name: 'txHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
+			name: 'blobIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
+		},
 		{
 			name: 'versionedHash',
 			type: EntityFieldType.Primitive,

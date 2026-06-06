@@ -1,4 +1,5 @@
-import type { Type as ArktypeType } from 'arktype'
+import { type as arktype, type Type as ArktypeType } from 'arktype'
+import { stringify } from 'devalue'
 import type { EntityType } from '$/schema/$EntityType.ts'
 import type { Source } from '$/sources/index.ts'
 
@@ -18,13 +19,62 @@ export enum EntityFieldType {
 	EntitiesReference = 'EntitiesReference',
 }
 
+export enum EntityFieldEntryKind {
+	Group = 'Group',
+}
+
 export type EntityDefinition = {
 	readonly entityType: EntityType
 	readonly label: string
 	readonly labelPlural: string
 	readonly id: ArktypeType<any, any>
-	readonly fields: readonly EntityFieldDefinition[]
+	readonly lookups?: readonly EntityLookupDefinition[]
+	readonly identities?: readonly EntityIdentityDefinition[]
+	readonly fields: readonly EntityFieldEntry[]
 }
+
+export type EntityLookupDefinition = {
+	readonly name: string
+	readonly fields: readonly EntityIdentityFieldDefinition[]
+}
+
+export type EntityIdentityDefinition = {
+	readonly name: string
+	readonly fields: readonly EntityIdentityFieldDefinition[]
+}
+
+export type EntityIdentityFieldDefinition = (
+	| string
+	| {
+		readonly name: string
+		readonly as?: string
+		readonly normalize?: EntityIdentityValueNormalizer
+	}
+)
+
+export type EntityIdentityValueNormalizer = (
+	(value: unknown) => unknown
+)
+
+const entityIdentityFieldName = (
+	field: EntityIdentityFieldDefinition,
+) => (
+	// oxlint-disable-next-line no-runtime-shape-guards/guards -- Schema identity config intentionally supports string shorthand field definitions.
+	typeof field === 'string' ?
+		field
+	:
+		field.name
+)
+
+const entityIdentityFieldKey = (
+	field: EntityIdentityFieldDefinition,
+) => (
+	// oxlint-disable-next-line no-runtime-shape-guards/guards -- Schema identity config intentionally supports string shorthand field definitions.
+	typeof field === 'string' ?
+		field
+	:
+		field.as ?? field.name
+)
 
 export enum EntityFieldCardinality {
 	Zero = 'Zero',
@@ -39,8 +89,27 @@ export type EntityFieldCondition<
 	_Value extends string | number = string | number,
 > = {
 	readonly fieldName: _FieldName
+	readonly itemIndex?: number
 	readonly values: readonly _Value[]
 }
+
+export type EntityFieldConditionKey<_Condition extends EntityFieldCondition> = (
+	_Condition extends {
+		itemIndex: infer _ItemIndex extends number
+	} ?
+		`${_Condition['fieldName']}[${_ItemIndex}]`
+	:
+		_Condition['fieldName']
+)
+
+export const entityFieldConditionKey = (
+	condition: EntityFieldCondition,
+) => (
+	condition.itemIndex == null ?
+		condition.fieldName
+	:
+		`${condition.fieldName}[${condition.itemIndex}]`
+)
 
 type EntityFieldDefinitionBase = {
 	defaultSources?: Source[]
@@ -58,21 +127,156 @@ export type EntityFieldDefinition = (
 		name: `$${string}`
 		type: EntityFieldType.EntityReference
 		entityType: EntityType
+		entityId?: ArktypeType<any, any>
 		cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne
 	})
 	| (EntityFieldDefinitionBase & {
 		name: `$$${string}`
 		type: EntityFieldType.EntitiesReference
 		entityType: EntityType
+		entityId?: ArktypeType<any, any>
 		cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
 	})
 )
+
+export type EntityFieldGroupDefinition = {
+	readonly kind: EntityFieldEntryKind.Group
+	readonly when: EntityFieldCondition
+	readonly fields: readonly EntityFieldDefinition[]
+}
+
+export type EntityFieldEntry = (
+	| EntityFieldDefinition
+	| EntityFieldGroupDefinition
+)
+
+export type EntityFieldDefinitionFromEntry<_Entry> = (
+	_Entry extends EntityFieldGroupDefinition ?
+		_Entry['fields'][number] & {
+			readonly when: _Entry['when']
+		}
+	:
+		_Entry
+)
+
+export type EntityFieldDefinitions<_EntityDefinition extends EntityDefinition> = (
+	EntityFieldDefinitionFromEntry<_EntityDefinition['fields'][number]>
+)
+
+export function entityFieldDefinitionsFromEntries<
+	const _Fields extends readonly EntityFieldEntry[],
+>(
+	fields: _Fields,
+): readonly EntityFieldDefinitionFromEntry<_Fields[number]>[]
+
+export function entityFieldDefinitionsFromEntries(
+	fields: readonly EntityFieldEntry[],
+): readonly EntityFieldDefinition[] {
+	return fields.flatMap((entry) => {
+		if ('name' in entry)
+			return [entry]
+
+		return entry.fields.map((field) => ({
+			...field,
+			when: entry.when,
+		}))
+	})
+}
+
+export function entityFieldDefinitions<
+	const _EntityDefinition extends EntityDefinition,
+>(
+	entityDefinition: _EntityDefinition,
+): readonly EntityFieldDefinitions<_EntityDefinition>[]
+
+export function entityFieldDefinitions(
+	entityDefinition: EntityDefinition,
+): readonly EntityFieldDefinition[] {
+	return entityFieldDefinitionsFromEntries(entityDefinition.fields)
+}
 
 export type EntityIdFromDefinition<_EntityDefinition extends EntityDefinition> = (
 	_EntityDefinition['id']['infer']
 )
 
-type NonConditionalPrimitiveFieldName<
+const entityIdentityObjectRecord = (value: unknown): Record<string, unknown> => (
+	value != null
+	&& typeof value === 'object'
+	&& !Array.isArray(value) ?
+		Object.fromEntries(Object.entries(value))
+	:
+		{}
+)
+
+const entityIdentityValue = (
+	fieldName: string,
+	value: unknown,
+) => (
+	fieldName.startsWith('$')
+	&& value != null
+	&& typeof value === 'object'
+	&& !Array.isArray(value)
+	&& EntityMetaKey.Id in value ?
+		value[EntityMetaKey.Id]
+	:
+		value
+)
+
+export const entityIdentityIdsFromFields = <const _EntityId>(
+	entityDefinition: EntityDefinition,
+	entityId: _EntityId,
+	fields: Partial<Record<string, unknown>>,
+): _EntityId[] => {
+	const fieldValueByName = {
+		...entityIdentityObjectRecord(entityId),
+		...fields,
+	}
+	const identityIds = [
+		entityId,
+		...(entityDefinition.identities ?? []).flatMap((identity) => {
+			const idValue = Object.fromEntries(
+				identity.fields.flatMap((field) => {
+					const fieldName = entityIdentityFieldName(field)
+					const fieldValue = entityIdentityValue(
+						fieldName,
+						fieldValueByName[fieldName],
+					)
+					return fieldValue === undefined ?
+						[]
+					:
+						[[
+							entityIdentityFieldKey(field),
+							// oxlint-disable-next-line no-runtime-shape-guards/guards -- Schema identity config intentionally supports string shorthand field definitions.
+							typeof field === 'string' || field.normalize == null ?
+								fieldValue
+							:
+								field.normalize(fieldValue),
+						]]
+				}),
+			)
+
+			if (Object.keys(idValue).length !== identity.fields.length)
+				return []
+
+			const identityId = entityDefinition.id(idValue)
+			return identityId instanceof arktype.errors ?
+				[]
+			:
+				[identityId as _EntityId]
+		}),
+	]
+	const idKeys = new Set<string>()
+	return identityIds.flatMap((identityId) => {
+		const idKey = stringify(identityId)
+		if (idKeys.has(idKey))
+			return []
+
+		idKeys.add(idKey)
+		return [identityId]
+	})
+}
+
+type NonConditionalScalarPrimitiveFieldName<
 	_Fields extends readonly EntityFieldDefinition[],
 > = Exclude<
 	_Fields[number],
@@ -87,11 +291,30 @@ type NonConditionalPrimitiveFieldName<
 	} ?
 		_FieldName
 	:
+	never
+:
+	never
+
+type NonConditionalArrayPrimitiveFieldName<
+	_Fields extends readonly EntityFieldDefinition[],
+> = Exclude<
+	_Fields[number],
+	{ when: EntityFieldCondition }
+> extends infer _Field ?
+	_Field extends {
+		name: infer _FieldName extends string
+		type: EntityFieldType.Primitive
+		primitiveType: {
+			infer: readonly (string | number)[]
+		}
+	} ?
+		_FieldName
+	:
 		never
 :
 	never
 
-type PrimitiveFieldValue<
+type ScalarPrimitiveFieldValue<
 	_Fields extends readonly EntityFieldDefinition[],
 	_FieldName extends string,
 > = _Fields[number] extends infer _Field ?
@@ -104,19 +327,151 @@ type PrimitiveFieldValue<
 	} ?
 		_Value
 	:
+	never
+:
+	never
+
+type ArrayPrimitiveFieldItemValue<
+	_Fields extends readonly EntityFieldDefinition[],
+	_FieldName extends string,
+> = _Fields[number] extends infer _Field ?
+	_Field extends {
+		name: _FieldName
+		type: EntityFieldType.Primitive
+		primitiveType: {
+			infer: readonly (infer _Value extends string | number)[]
+		}
+	} ?
+		_Value
+	:
 		never
 :
 	never
 
-export const conditionalOn = <
+export function conditionalOn<
 	const _Fields extends readonly EntityFieldDefinition[],
-	const _FieldName extends NonConditionalPrimitiveFieldName<_Fields>,
-	const _Values extends readonly PrimitiveFieldValue<_Fields, _FieldName>[],
+	const _FieldName extends NonConditionalScalarPrimitiveFieldName<_Fields>,
+	const _Values extends readonly ScalarPrimitiveFieldValue<_Fields, _FieldName>[],
 >(
 	_fields: _Fields,
 	fieldName: _FieldName,
 	values: _Values,
-) => ({
-	fieldName,
-	values,
-})
+): {
+	fieldName: _FieldName
+	values: _Values
+}
+
+export function conditionalOn<
+	const _Fields extends readonly EntityFieldDefinition[],
+	const _FieldName extends NonConditionalArrayPrimitiveFieldName<_Fields>,
+	const _Values extends readonly ArrayPrimitiveFieldItemValue<_Fields, _FieldName>[],
+	const _ItemIndex extends number,
+>(
+	_fields: _Fields,
+	fieldName: _FieldName,
+	values: _Values,
+	options: {
+		itemIndex: _ItemIndex
+	},
+): {
+	fieldName: _FieldName
+	itemIndex: _ItemIndex
+	values: _Values
+}
+
+export function conditionalOn(
+	_fields: readonly EntityFieldDefinition[],
+	fieldName: string,
+	values: readonly (string | number)[],
+	options?: {
+		itemIndex?: number
+	},
+) {
+	return {
+		fieldName,
+		...(options?.itemIndex != null && {
+			itemIndex: options.itemIndex,
+		}),
+		values,
+	}
+}
+
+export function conditionalFieldGroup<
+	const _Fields extends readonly EntityFieldDefinition[],
+	const _FieldName extends NonConditionalScalarPrimitiveFieldName<_Fields>,
+	const _Values extends readonly ScalarPrimitiveFieldValue<_Fields, _FieldName>[],
+	const _ConditionalFields extends readonly EntityFieldDefinition[],
+>(
+	fields: _Fields,
+	fieldName: _FieldName,
+	values: _Values,
+	conditionalFields: _ConditionalFields,
+): {
+	readonly kind: EntityFieldEntryKind.Group
+	readonly when: {
+		readonly fieldName: _FieldName
+		readonly values: _Values
+	}
+	readonly fields: _ConditionalFields
+}
+
+export function conditionalFieldGroup<
+	const _Fields extends readonly EntityFieldDefinition[],
+	const _FieldName extends NonConditionalArrayPrimitiveFieldName<_Fields>,
+	const _Values extends readonly ArrayPrimitiveFieldItemValue<_Fields, _FieldName>[],
+	const _ItemIndex extends number,
+	const _ConditionalFields extends readonly EntityFieldDefinition[],
+>(
+	fields: _Fields,
+	fieldName: _FieldName,
+	values: _Values,
+	options: {
+		itemIndex: _ItemIndex
+	},
+	conditionalFields: _ConditionalFields,
+): {
+	readonly kind: EntityFieldEntryKind.Group
+	readonly when: {
+		readonly fieldName: _FieldName
+		readonly itemIndex: _ItemIndex
+		readonly values: _Values
+	}
+	readonly fields: _ConditionalFields
+}
+
+export function conditionalFieldGroup(
+	_fields: readonly EntityFieldDefinition[],
+	fieldName: string,
+	values: readonly (string | number)[],
+	optionsOrConditionalFields: {
+		itemIndex: number
+	} | readonly EntityFieldDefinition[],
+	conditionalFields?: readonly EntityFieldDefinition[],
+) {
+	if (conditionalFields == null) {
+		if ('itemIndex' in optionsOrConditionalFields)
+			throw new Error('conditionalFieldGroup: missing conditional fields')
+
+		return {
+			kind: EntityFieldEntryKind.Group,
+			when: {
+				fieldName,
+				values,
+			},
+			fields: optionsOrConditionalFields,
+		}
+	}
+
+	if (!('itemIndex' in optionsOrConditionalFields))
+		throw new Error('conditionalFieldGroup: missing item index')
+
+	return {
+		kind: EntityFieldEntryKind.Group,
+		when: {
+			fieldName,
+			itemIndex: optionsOrConditionalFields.itemIndex,
+			values,
+		},
+		fields: conditionalFields,
+	}
+}

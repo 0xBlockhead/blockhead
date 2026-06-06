@@ -8,6 +8,7 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import Transaction from '$/schema/UtxoTransaction.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.UtxoOutput,
@@ -46,10 +47,73 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'address',
+			name: '$address',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.UtxoAddress,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$elementsAsset',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.ElementsAsset,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Esplora_Rest,
+			],
+		},
+		{
+			name: 'assetCommitment',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Esplora_Rest,
+			],
+		},
+		{
+			name: 'valueCommitment',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Esplora_Rest,
+			],
+		},
+		{
+			name: 'nonceCommitment',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Esplora_Rest,
+			],
+		},
+		{
+			name: 'surjectionProof',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Esplora_Rest,
+			],
+		},
+		{
+			name: 'rangeProof',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Esplora_Rest,
+			],
+		},
+		{
+			name: 'isConfidential',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Esplora_Rest,
+			],
 		},
 		{
 			name: 'isSpent',

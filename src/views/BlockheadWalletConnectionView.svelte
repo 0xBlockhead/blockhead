@@ -1,13 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { blockheadWalletConnectionStatusByStatus } from '$/constants/Blockhead.ts'
-	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { blockheadWalletConnectionStatusByStatus } from '$/constants/Blockhead.ts'
+	import { walletProtocolByProtocol } from '$/constants/Wallet.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
 
@@ -18,51 +18,47 @@
 
 	// State
 	let {
-		icon,
-		accounts,
-		chainId,
-		status,
-		error,
 		onRemove,
 		entityId,
-		href = resolve(`/~/accounts/connections/connection/${encodeURIComponent(entityId.$wallet.rdns)}`),
-		title,
+		href = resolve(`/~/accounts/connections/connection/${encodeURIComponent(entityId.$wallet.id)}`),
 		open = $bindable(true),
-		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			icon?: string
-			accounts: `0x${string}`[]
-			chainId: number | null
-			status: BlockheadConnectionStatus
-			error: string | null
-			onRemove: () => void
+			onRemove?: () => void
 			entityId: EntityId<typeof schema, EntityType.BlockheadWalletConnection>
 			href?: string
-			title: string
 			open?: boolean
-			collapsible?: boolean
 		},
-		never
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'layout'
+			| 'collapsible'
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
-	const walletConnection = useEntity(
+	const walletConnection = $derived(useEntity(
 		EntityType.BlockheadWalletConnection,
 		entityId,
 		{
 			$: [
 				Source.Local_Internal,
 			],
-			...(open ?
-				{
-					selected: {},
-					connectedAt: {},
-				}
-				:
-				{}),
+			status: {},
+			protocol: {},
+			transportKind: {},
+			scopes: {},
+			$$connectedAccounts: {},
+			$activeAccount: {},
+			selected: {},
+			connectedAt: {},
+			disconnectedAt: {},
+			sessionId: {},
+			sessionTopic: {},
+			error: {},
 		},
-	)
+	))
 
 
 	// (Derived)
@@ -73,13 +69,12 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
-	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import BlockheadWalletAccountView from '$/views/BlockheadWalletAccountView.svelte'
 </script>
 
 
@@ -87,190 +82,196 @@
 	entityType={EntityType.BlockheadWalletConnection}
 	bind:open
 	{entityId}
-	href={href}
-	{title}
+	{href}
+	title={entityId.$wallet.id}
 	{...EntityViewProps}
 >
-	{#snippet Icon()}
-		{#if icon}
-			<IconComponent
-				src={icon}
-				alt={title}
-			/>
-		{/if}
-	{/snippet}
-
 	{#snippet Value()}
 		<span>
-			{entityId.$wallet.rdns}
+			{entityId.$wallet.id}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
-		{title}
+		{entityId.$wallet.id}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			EIP-1193 exposes the wallet’s selected accounts and current chain id to the page; dapps read them when constructing transactions.
+			Wallet sessions are persisted as protocol-neutral authorization scopes and CAIP-10 accounts.
 		</p>
 		<p>
-			Those handles are not Farcaster FIDs, on-chain contract labels, or a general-purpose contact book.
+			Live provider handles stay in the browser runtime and are never stored in OPFS.
 		</p>
 	{/snippet}
 
-	{#snippet Content({})}
-		<div data-column="gap-1">
+	{#snippet Content()}
+		<ResourceBoundary
+			resource={walletConnection}
+			placeholderText="Loading wallet connection…"
+		>
+			{#snippet children(walletConnection)}
+				<dl data-column-item="center">
+					<div>
+						<dt>Status</dt>
+						<dd>{blockheadWalletConnectionStatusByStatus[walletConnection.status].label}</dd>
+					</div>
 
-			<dl data-column-item="center">
+					<div>
+						<dt>Protocol</dt>
+						<dd>{walletProtocolByProtocol[walletConnection.protocol].label}</dd>
+					</div>
 
-				<div>
-					<dt>Status</dt>
-					<dd>{blockheadWalletConnectionStatusByStatus[status].label}</dd>
-				</div>
+					<div>
+						<dt>Transport</dt>
+						<dd>{walletConnection.transportKind}</dd>
+					</div>
 
-				{#if accounts[0]}
-				<div>
-					<dt>Primary account</dt>
-					<dd>
-						{#if chainId !== null}
-							<EvmNetworkAccountView
-								entityId={{
-									$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
-									$actor: {
-										address: accounts[0],
-									},
-								}}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						{:else}
-							<EvmAccountView
-								entityId={{
-									address: accounts[0],
-								}}
-								href={resolve('/account/[address]', {
-									address: accounts[0],
-								})}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						{/if}
-					</dd>
-				</div>
-				{/if}
+					{#if walletConnection.$activeAccount}
+						<div>
+							<dt>Active account</dt>
+							<dd>
+								<BlockheadWalletAccountView
+									entityId={walletConnection.$activeAccount.__id}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
 
-				{#if chainId !== null}
-				<div>
-					<dt>Chain</dt>
-					<dd>{String(chainId)}</dd>
-				</div>
-				{/if}
+					{#if open}
+						<div>
+							<dt>Selected</dt>
+							<dd>{walletConnection.selected ? 'Yes' : 'No'}</dd>
+						</div>
+					{/if}
 
-					<ResourceBoundary
-						resource={walletConnection}
-						placeholderText="Loading wallet connection…"
-					>
-						{#snippet children(walletConnection)}
-							{#if open}
-								<div>
-									<dt>Selected</dt>
-									<dd>{walletConnection.selected ? 'Yes' : 'No'}</dd>
-								</div>
-							{/if}
+					{#if open}
+						<div>
+							<dt>Connected at</dt>
+							<dd>
+								<Timestamp timestamp={walletConnection.connectedAt} />
+							</dd>
+						</div>
+					{/if}
 
-							{#if open}
-								<div>
-									<dt>Connected at</dt>
-									<dd>
-										<Timestamp
-											timestamp={walletConnection.connectedAt}
-										/>
-									</dd>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{#if open && walletConnection.disconnectedAt != null}
+						<div>
+							<dt>Disconnected at</dt>
+							<dd>
+								<Timestamp timestamp={walletConnection.disconnectedAt} />
+							</dd>
+						</div>
+					{/if}
+
+					{#if open && walletConnection.sessionId != null}
+						<div>
+							<dt>Session ID</dt>
+							<dd>
+								<TruncatedValue
+									value={walletConnection.sessionId}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if open && walletConnection.sessionTopic != null}
+						<div>
+							<dt>Session topic</dt>
+							<dd>
+								<TruncatedValue
+									value={walletConnection.sessionTopic}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							</dd>
+						</div>
+					{/if}
 				</dl>
-		</div>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
-		{#if error}
-			<p
-				role="alert"
-			>
-				{error}
-			</p>
-		{/if}
-
-		<CollapsibleTabs
-			id={`${walletConnectionKey}:carousel-wallet`}
-			sectionIdPrefix={walletConnectionKey}
-			sections={[
-				{ id: 'wallet-accounts', label: 'Accounts' },
-				{ id: 'wallet-actions', label: 'Actions' },
-			]}
-			data-card
+	{#snippet Details()}
+		<ResourceBoundary
+			resource={walletConnection}
+			placeholderText="Loading wallet connection…"
 		>
-			{#snippet Summary({ open: _isOpen })}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>
-						Wallet connection
-					</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionWalletAccounts()}
-				{#if accounts.length}
-					<ul
-						data-column="gap-1"
-						data-blockheadWalletConnections="unstyled"
-					>
-						{#each accounts as address (address)}
-							<li>
-								{#if chainId !== null}
-									<EvmNetworkAccountView
-										entityId={{
-											$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
-											$actor: { address },
-										}}
-									/>
-								{:else}
-									<EvmAccountView
-										entityId={{ address }}
-										href={resolve('/account/[address]', {
-											address: address,
-										})}
-									/>
-								{/if}
-							</li>
-						{/each}
-					</ul>
-				{:else}
-					<p data-text="muted">
-						No accounts are connected to this wallet yet.
+			{#snippet children(walletConnection)}
+				{#if walletConnection.error}
+					<p role="alert">
+						{walletConnection.error}
 					</p>
 				{/if}
-			{/snippet}
 
-			{#snippet SectionWalletActions()}
-				<div data-row>
-					<button
-						type="button"
-						onclick={onRemove}
-					>
-						Remove
-					</button>
-				</div>
+				<CollapsibleTabs
+					id={`${walletConnectionKey}:carousel-wallet`}
+					sectionIdPrefix={walletConnectionKey}
+					sections={[
+						{ id: 'wallet-accounts', label: 'Accounts' },
+						{ id: 'wallet-scopes', label: 'Scopes' },
+						{ id: 'wallet-actions', label: 'Actions' },
+					]}
+					data-card
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>
+								Wallet connection
+							</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet SectionWalletAccounts()}
+						{#if walletConnection.$$connectedAccounts.length}
+							<ul data-column="gap-1">
+								{#each walletConnection.$$connectedAccounts as account (stringify(account))}
+									<li>
+										<BlockheadWalletAccountView entityId={account.__id} />
+									</li>
+								{/each}
+							</ul>
+						{:else}
+							<p data-text="muted">
+								No accounts are connected to this wallet yet.
+							</p>
+						{/if}
+					{/snippet}
+
+					{#snippet SectionWalletScopes()}
+						{#if walletConnection.scopes.length}
+							<ul data-column="gap-1">
+								{#each walletConnection.scopes as scope (`${scope.namespace}:${scope.reference}`)}
+									<li>
+										<code>{scope.namespace}:{scope.reference}</code>
+									</li>
+								{/each}
+							</ul>
+						{:else}
+							<p data-text="muted">
+								No signing scopes are connected yet.
+							</p>
+						{/if}
+					{/snippet}
+
+					{#snippet SectionWalletActions()}
+						{#if onRemove}
+							<div data-row>
+								<button
+									type="button"
+									onclick={onRemove}
+								>
+									Remove
+								</button>
+							</div>
+						{:else}
+							<p data-text="muted">
+								No runtime action is available for this persisted connection.
+							</p>
+						{/if}
+					{/snippet}
+				</CollapsibleTabs>
 			{/snippet}
-	</CollapsibleTabs>
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>
-
-
-<style>
-
-</style>

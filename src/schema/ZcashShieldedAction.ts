@@ -3,8 +3,9 @@ import { type } from 'arktype'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
+	conditionalFieldGroup,
 	type EntityDefinition,
+	type EntityFieldEntry,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -47,39 +48,43 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		...zcashShieldedActionDiscriminatorFields,
-		{
-			name: 'nullifier',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				zcashShieldedActionDiscriminatorFields,
-				'actionKind',
-				[
-					ZcashShieldedActionKind.Spend,
-					ZcashShieldedActionKind.Action,
-				],
-			),
-		},
-		{
-			name: 'noteCommitment',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				zcashShieldedActionDiscriminatorFields,
-				'actionKind',
-				[
-					ZcashShieldedActionKind.Output,
-					ZcashShieldedActionKind.Action,
-				],
-			),
-		},
+		conditionalFieldGroup(
+			zcashShieldedActionDiscriminatorFields,
+			'actionKind',
+			[
+				ZcashShieldedActionKind.Spend,
+				ZcashShieldedActionKind.Action,
+			],
+			[
+				{
+					name: 'nullifier',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('string'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+			],
+		),
+		conditionalFieldGroup(
+			zcashShieldedActionDiscriminatorFields,
+			'actionKind',
+			[
+				ZcashShieldedActionKind.Output,
+				ZcashShieldedActionKind.Action,
+			],
+			[
+				{
+					name: 'noteCommitment',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('string'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+			],
+		),
 		{
 			name: 'valueCommitment',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	] as const satisfies readonly EntityFieldEntry[],
 } as const satisfies EntityDefinition

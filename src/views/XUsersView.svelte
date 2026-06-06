@@ -98,7 +98,7 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getKey={(row) => row.value[EntityMetaKey.IdKey]}
 				getSortValue={(row) => row.value[EntityMetaKey.Id].id}
 				resource={users}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}

@@ -1,5 +1,6 @@
 import { type } from 'arktype'
 
+import { canonicalIpfsCidString } from '$/lib/multiformats.ts'
 import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldCardinality,
@@ -10,6 +11,10 @@ import {
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
+
+const canonicalIpfsIdentityValue = (value: unknown) => (
+	canonicalIpfsCidString(String(value)) ?? value
+)
 
 export default {
 	entityType: EntityType.IpfsResource,
@@ -23,7 +28,48 @@ export default {
 		contentPath: 'string',
 	}),
 
+	identities: [
+		{
+			name: 'resourceAddress',
+			fields: [
+				'namespace',
+				{
+					name: 'target',
+					normalize: canonicalIpfsIdentityValue,
+				},
+				'contentPath',
+			],
+		},
+	],
+
 	fields: [
+		{
+			name: 'namespace',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('"ipfs" | "ipns"'),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Ipfs_Rest,
+			],
+		},
+		{
+			name: 'target',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Ipfs_Rest,
+			],
+		},
+		{
+			name: 'contentPath',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Ipfs_Rest,
+			],
+		},
 		{
 			name: 'canonicalUri',
 			type: EntityFieldType.Primitive,

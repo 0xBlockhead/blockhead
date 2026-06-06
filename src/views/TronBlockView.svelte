@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	let {
 		entityId,
 		open = $bindable(true),
@@ -19,36 +20,29 @@
 			entityId: EntityId<typeof schema, EntityType.TronBlock>
 			open?: boolean
 		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'layout'
-			| 'showTypeAnnotation'
-		>
+		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const block = useEntity(
-		EntityType.TronBlock,
-		entityId,
-		{
-			hash: {},
-			timestampMs: {},
-			transactionCount: {},
-			...open && {
-				parentHash: {},
-				witnessAddress: {},
-				txTrieRoot: {},
-				version: {},
-			},
-		},
-	)
+	const block = useEntity(EntityType.TronBlock, entityId, {
+		hash: {},
+		timestampMs: {},
+		transactionCount: {},
+		...(open && {
+			parentHash: {},
+			$witness: {},
+			txTrieRoot: {},
+			version: {},
+		}),
+	})
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
+	import TronWitnessView from '$/views/TronWitnessView.svelte'
 </script>
 
 
@@ -60,7 +54,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Value()}
 		<span data-badge="small">
 			#{entityId.height.toString()}
@@ -71,15 +64,13 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Block </span>
 			{#if Value}
-			{@render Value()}
-					{/if}
+				{@render Value()}
+			{/if}
 		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-		<p>
-			TRON blocks are DPoS-produced ledger blocks; TVM execution is modeled separately as the network execution environment.
-		</p>
+		<p>TRON blocks are DPoS-produced ledger blocks; TVM execution is modeled separately as the network execution environment.</p>
 	{/snippet}
 
 	{#snippet Content()}
@@ -127,13 +118,14 @@
 						</div>
 					{/if}
 
-					{#if open && block.witnessAddress != null}
+					{#if open && block.$witness != null}
 						<div>
 							<dt>Witness</dt>
 							<dd>
-								<TruncatedValue
-									value={block.witnessAddress}
-									format={TruncatedValueFormat.Abbr}
+								<TronWitnessView
+									entityId={block.$witness[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
 								/>
 							</dd>
 						</div>

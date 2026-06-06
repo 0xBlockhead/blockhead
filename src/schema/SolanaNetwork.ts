@@ -83,6 +83,15 @@ export default {
 			],
 		},
 		{
+			name: '$$accounts',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.SolanaAccount,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Solana_JsonRpc,
+			],
+		},
+		{
 			name: '$$validators',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SolanaValidator,

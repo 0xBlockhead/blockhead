@@ -1,4 +1,5 @@
 import { type } from 'arktype'
+import { lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
@@ -22,7 +23,38 @@ export default {
 		contentPath: 'string',
 	}),
 
+	identities: [
+		{
+			name: 'resourceAddress',
+			fields: [
+				{
+					name: 'reference',
+					normalize: lowercaseHexIdentityValue,
+				},
+				'contentPath',
+			],
+		},
+	],
+
 	fields: [
+		{
+			name: 'reference',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Swarm_Rest,
+			],
+		},
+		{
+			name: 'contentPath',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Swarm_Rest,
+			],
+		},
 		{
 			name: 'canonicalUri',
 			type: EntityFieldType.Primitive,

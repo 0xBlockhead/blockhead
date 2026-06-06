@@ -1,39 +1,25 @@
-<script lang="ts">
-	// Types/constants
-	import { EntityType } from '$/schema/$EntityType.ts'
+	<script lang="ts">
+		// State
+		let {
+			params,
+		} = $props()
+
+		const entityId = $derived(
+			decodeURIComponent(params.did).startsWith('did:') ?
+				{ did: decodeURIComponent(params.did) }
+			:
+				{ handle: decodeURIComponent(params.did) },
+		)
 
 
-	// Context
-	import { resolve } from '$app/paths'
+		// Components
+		import Page from '$/components/Page.svelte'
+		import AtprotoActorView from '$/views/AtprotoActorView.svelte'
+	</script>
 
 
-	// State
-	let {
-		params,
-	} = $props()
-
-	const entityId = $derived(
-		{ did: decodeURIComponent(params.did) },
-	)
-
-
-	// Components
-	import Page from '$/components/Page.svelte'
-	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
-</script>
-
-
-<Page>
-	<AtprotoPostsView
-		href={resolve(
-			'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
-			{ did: encodeURIComponent(entityId.did) },
-		)}
-		entityFieldReference={{
-			entityType: EntityType.AtprotoActor,
-			entityId,
-			fieldName: '$$posts',
-		}}
-		id="atproto-actor-posts"
-	/>
-</Page>
+	<Page>
+		<AtprotoActorView
+			{entityId}
+		/>
+	</Page>

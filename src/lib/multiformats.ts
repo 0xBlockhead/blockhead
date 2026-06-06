@@ -72,6 +72,17 @@ export const decodeIpfsCid = (value: string): DecodedIpfsCid | null => {
 	}
 }
 
+export const canonicalIpfsCidString = (value: string): string | null => {
+	const cid = parseIpfsCid(value)
+	if (cid == null) return null
+
+	try {
+		return cid.toV1().toString(bases.base32)
+	} catch {
+		return cid.toString()
+	}
+}
+
 export const getAllIpfsCidEncodings = (cid: CID): IpfsCidEncodingRow[] => (
 	[
 		{

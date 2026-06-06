@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	let {
 		entityId,
 		open = $bindable(true),
@@ -19,28 +20,23 @@
 			entityId: EntityId<typeof schema, EntityType.ZeroGServiceProvider>
 			open?: boolean
 		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'layout'
-			| 'showTypeAnnotation'
-		>
+		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const serviceProvider = useEntity(
-		EntityType.ZeroGServiceProvider,
-		entityId,
-		{
-			serviceKind: {},
-			operatorAddress: {},
-			verificationMethod: {},
-		},
-	)
+	const serviceProvider = useEntity(EntityType.ZeroGServiceProvider, entityId, {
+		serviceKind: {},
+		$operator: {},
+		verificationMethod: {},
+		$$requests: {},
+	})
 
 
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import ZeroGServiceRequestView from '$/views/ZeroGServiceRequestView.svelte'
 </script>
 
 
@@ -51,7 +47,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Title()}
 		<TruncatedValue
 			value={entityId.providerId}
@@ -60,9 +55,7 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A 0G service provider offers serving, inference, or related AI service capacity with verifiable settlement metadata.
-		</p>
+		<p>A 0G service provider offers serving, inference, or related AI service capacity with verifiable settlement metadata.</p>
 	{/snippet}
 
 	{#snippet Content()}
@@ -79,13 +72,14 @@
 						</div>
 					{/if}
 
-					{#if serviceProvider.operatorAddress != null}
+					{#if serviceProvider.$operator != null}
 						<div>
 							<dt>Operator</dt>
 							<dd>
-								<TruncatedValue
-									value={serviceProvider.operatorAddress}
-									format={TruncatedValueFormat.Abbr}
+								<EvmAccountView
+									entityId={serviceProvider.$operator[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
 								/>
 							</dd>
 						</div>
@@ -95,6 +89,25 @@
 						<div>
 							<dt>Verification</dt>
 							<dd>{serviceProvider.verificationMethod}</dd>
+						</div>
+					{/if}
+
+					{#if serviceProvider.$$requests.length}
+						<div>
+							<dt>Requests</dt>
+							<dd>
+								<ul>
+									{#each serviceProvider.$$requests as request (request[EntityMetaKey.Id].requestId)}
+										<li>
+											<ZeroGServiceRequestView
+												entityId={request[EntityMetaKey.Id]}
+												layout={EntityLayout.Title}
+												open={false}
+											/>
+										</li>
+									{/each}
+								</ul>
+							</dd>
 						</div>
 					{/if}
 				</dl>

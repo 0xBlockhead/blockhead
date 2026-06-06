@@ -44,7 +44,7 @@
 			$icon: {},
 			bio: {},
 			url: {},
-			primaryEvmAddress: {},
+			$primaryEvmAccount: {},
 			$$verifiedAddresses: {},
 		},
 	)
@@ -164,6 +164,31 @@
 									href={farcasterUser.url}
 									data-text="muted"
 								>{farcasterUser.url}</a>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if farcasterUserRow?.$primaryEvmAccount != null}
+				<div>
+					<dt>Primary EVM account</dt>
+					<dd>
+						<ResourceBoundary
+							resource={farcasterUser}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(farcasterUser)}
+								{#if farcasterUser.$primaryEvmAccount != null}
+									<EvmAccountView
+										entityId={farcasterUser.$primaryEvmAccount[EntityMetaKey.Id]}
+										href={resolve('/account/[address]', {
+											address: farcasterUser.$primaryEvmAccount[EntityMetaKey.Id].address,
+										})}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>

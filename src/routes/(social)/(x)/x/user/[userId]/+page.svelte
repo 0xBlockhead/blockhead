@@ -13,7 +13,16 @@
 
 <Page>
 	<XUserView
-		entityId={{ id: decodeURIComponent(params.userId) }}
+		entityId={
+			/^\d+$/.test(decodeURIComponent(params.userId)) ?
+				{
+					id: decodeURIComponent(params.userId),
+				}
+			:
+				{
+					username: decodeURIComponent(params.userId).replace(/^@/, ''),
+				}
+		}
 	>
 	</XUserView>
 </Page>

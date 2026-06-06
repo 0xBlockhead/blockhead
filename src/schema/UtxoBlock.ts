@@ -1,4 +1,5 @@
 import { type } from 'arktype'
+import { lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 
 import {
 	EntityFieldType,
@@ -20,6 +21,24 @@ export default {
 		height: 'bigint',
 		'hash?': 'string',
 	}),
+
+	identities: [
+		{
+			name: 'heightHash',
+			fields: [
+				{
+					name: '$network',
+				},
+				{
+					name: 'height',
+				},
+				{
+					name: 'hash',
+					normalize: lowercaseHexIdentityValue,
+				},
+			],
+		},
+	],
 
 	fields: [
 		{

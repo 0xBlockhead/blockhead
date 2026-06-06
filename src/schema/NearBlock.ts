@@ -21,6 +21,23 @@ export default {
 		'hash?': 'string',
 	}),
 
+	identities: [
+		{
+			name: 'heightHash',
+			fields: [
+				{
+					name: '$network',
+				},
+				{
+					name: 'height',
+				},
+				{
+					name: 'hash',
+				},
+			],
+		},
+	],
+
 	fields: [
 		{
 			name: 'hash',

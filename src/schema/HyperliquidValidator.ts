@@ -28,9 +28,9 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'signer',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			name: '$signer',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.HyperliquidAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import EvmAccount from '$/schema/EvmAccount.ts'
 import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -32,9 +33,19 @@ export default {
 			],
 		},
 		{
-			name: 'address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			name: '$validator',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.BeaconValidator,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		{
+			name: '$account',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+			entityId: EvmAccount.id,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Beacon_Rest,

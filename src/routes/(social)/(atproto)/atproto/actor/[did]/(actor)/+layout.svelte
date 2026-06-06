@@ -25,11 +25,16 @@
 	})}
 	id={did}
 >
-	{#snippet Summary({ open: _open })}
-		<AtprotoActorView
-			entityId={{ did: decodeURIComponent(did) }}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#snippet Summary({ open: _open })}
+			<AtprotoActorView
+				entityId={
+					decodeURIComponent(did).startsWith('did:') ?
+						{ did: decodeURIComponent(did) }
+					:
+						{ handle: decodeURIComponent(did) }
+				}
+				layout={EntityLayout.SummaryInline}
+			/>
 	{/snippet}
 
 	{@render children()}

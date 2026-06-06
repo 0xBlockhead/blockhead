@@ -1,12 +1,13 @@
 import { type } from 'arktype'
 
 import { EvmTokenStandard } from '$/constants/Evm.ts'
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
+	conditionalFieldGroup,
 	type EntityDefinition,
+	type EntityFieldEntry,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -35,8 +36,47 @@ export default {
 		transferIndex: 'number',
 	}),
 
+	identities: [
+		{
+			name: 'txHashLogTransferIndex',
+			fields: [
+				{
+					name: '$network',
+				},
+				{
+					name: 'txHash',
+					normalize: lowercaseHexIdentityValue,
+				},
+				{
+					name: 'logIndex',
+				},
+				{
+					name: 'transferIndex',
+				},
+			],
+		},
+	],
+
 	fields: [
 		...evmTokenTransferDiscriminatorFields,
+		{
+			name: 'txHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'logIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'transferIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: '$from',
 			type: EntityFieldType.EntityReference,
@@ -67,20 +107,22 @@ export default {
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.One,
 		},
-		{
-			name: 'tokenId',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			when: conditionalOn(
-				evmTokenTransferDiscriminatorFields,
-				'standard',
-				[
-					EvmTokenStandard.Erc721,
-					EvmTokenStandard.Erc1155,
-				],
-			),
-		},
+		conditionalFieldGroup(
+			evmTokenTransferDiscriminatorFields,
+			'standard',
+			[
+				EvmTokenStandard.Erc721,
+				EvmTokenStandard.Erc1155,
+			],
+			[
+				{
+					name: 'tokenId',
+					type: EntityFieldType.Primitive,
+					primitiveType: type('bigint'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+			],
+		),
 		{
 			name: 'tokenSymbol',
 			type: EntityFieldType.Primitive,
@@ -111,5 +153,5 @@ export default {
 				Source.Etherscan_Rest,
 			],
 		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	] as const satisfies readonly EntityFieldEntry[],
 } as const satisfies EntityDefinition

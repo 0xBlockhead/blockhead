@@ -170,6 +170,27 @@ export default {
 			defaultSources: [Source.Local_Internal],
 		},
 		{
+			name: '$$blockheadWallets',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BlockheadWallet,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Local_Internal],
+		},
+		{
+			name: '$$blockheadWalletConnections',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BlockheadWalletConnection,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Local_Internal],
+		},
+		{
+			name: '$$blockheadWalletAccounts',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BlockheadWalletAccount,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Local_Internal],
+		},
+		{
 			name: '$$blockheadSessions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BlockheadSession,

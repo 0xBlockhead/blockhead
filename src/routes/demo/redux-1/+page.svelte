@@ -255,7 +255,6 @@
 		toArray,
 	} from '@tanstack/svelte-db'
 	import { stringify, parse } from 'devalue'
-
 	const createEntityCollection = <
 		_Schema extends Schema,
 		_EntityType extends EntityType<_Schema>,

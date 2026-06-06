@@ -64,6 +64,7 @@
 				Source.Voltaire_JsonRpc,
 				Source.TheGraph_Graphql,
 			],
+			name: {},
 			labelName: {},
 			$resolvedActor: {},
 			$subgraphResolvedActor: {},
@@ -72,30 +73,31 @@
 			isMigrated: {},
 			expiryDate: {},
 			contentHash: {},
-			...(open ? {
-				labelhash: {},
-				subgraphId: {},
-				$resolverContract: {},
-				$ownerActor: {},
-				$subgraphOwnerActor: {},
-				$registrantActor: {},
-				$wrappedOwnerActor: {},
-				$parent: {},
-				$$subdomains: {},
-				coinAddresses: {},
-				resolverAbi: {},
-				resolverTextKeys: {},
-				resolverCoinTypes: {},
-				ttl: {},
-				createdAt: {},
-				wrappedExpiryDate: {},
-				wrappedFuses: {},
-				registrationDate: {},
-				registrationCost: {},
-				registrationExpiryDate: {},
-			}
-		:
-			{}),
+			...(open ?
+				{
+					labelhash: {},
+					subgraphId: {},
+					$resolverContract: {},
+					$ownerActor: {},
+					$subgraphOwnerActor: {},
+					$registrantActor: {},
+					$wrappedOwnerActor: {},
+					$parent: {},
+					$$subdomains: {},
+					coinAddresses: {},
+					resolverAbi: {},
+					resolverTextKeys: {},
+					resolverCoinTypes: {},
+					ttl: {},
+					createdAt: {},
+					wrappedExpiryDate: {},
+					wrappedFuses: {},
+					registrationDate: {},
+					registrationCost: {},
+					registrationExpiryDate: {},
+				}
+			:
+				{}),
 		},
 	)
 
@@ -584,6 +586,17 @@
 										value={ens.subgraphId}
 										format={TruncatedValueFormat.Visual}
 									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if ens.name != null && ens.name !== entityId.name}
+							<div>
+								<dt>Normalized name</dt>
+								<dd>
+									<span data-text="font-monospace">
+										{ens.name}
+									</span>
 								</dd>
 							</div>
 						{/if}

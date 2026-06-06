@@ -25,13 +25,17 @@ import { stringify, parse } from 'devalue'
 import { assertEntityFieldResolverResult } from '$/collections/assertLoadedCollectionRows.ts'
 
 import {
+	type EntityDefinition,
+	type EntityFieldCondition,
 	EntityFieldCardinality,
+	type EntityFieldDefinition,
+	entityFieldDefinitions,
+	entityIdentityIdsFromFields,
 	EntityMetaKey,
 } from '$/schema/$EntityDefinition.ts'
 import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 import type {
-	EntityDefinitionForEntityType,
-	EntityFieldDefinition,
+	EntityFieldDefinition as SchemaEntityFieldDefinition,
 	EntityFieldName,
 	EntityFieldValue,
 	EntityFieldValues,
@@ -40,6 +44,7 @@ import type {
 	Schema,
 } from '$/schema/$schema.ts'
 import type {
+	EntityFieldCountResolver,
 	EntityFieldResolver,
 	EntityResolver,
 } from '$/resolvers/$resolvers.ts'
@@ -100,6 +105,17 @@ type EntityFieldCollectionUtils<
 	unknown
 >
 
+type EntityFieldCountCollectionUtils<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_EntityFieldName extends EntityFieldName<_Schema, _EntityType>,
+> = QueryCollectionUtils<
+	EntityFieldCountCollectionItem<_Schema, _EntityType, _EntityFieldName>,
+	string | number,
+	EntityFieldCountCollectionItem<_Schema, _EntityType, _EntityFieldName>,
+	unknown
+>
+
 const hasEntityValueId = <_Value extends object>(
 	value: _Value,
 ): value is _Value & { [EntityMetaKey.Id]: EntityFieldCollectionValueId<_Value> } => (
@@ -123,6 +139,19 @@ export const entityFieldCollectionItemKey = <_Value>(entityFieldItem: {
 			:
 				entityFieldItem[EntityMetaKey.Value],
 		),
+	]
+		.join('\x1E')
+)
+
+export const entityFieldCountCollectionItemKey = (entityFieldCountItem: {
+	[EntityMetaKey.Source]: Source
+	[EntityMetaKey.ParentIdKey]: string
+	filterKey: string
+}) => (
+	[
+		entityFieldCountItem[EntityMetaKey.Source],
+		entityFieldCountItem[EntityMetaKey.ParentIdKey],
+		entityFieldCountItem.filterKey,
 	]
 		.join('\x1E')
 )
@@ -166,6 +195,19 @@ export type EntityFieldCollectionItem<
 	[EntityMetaKey.Source]: Source
 }
 
+export type EntityFieldCountCollectionItem<
+	_Schema extends Schema,
+	_ParentEntityType extends EntityType<_Schema>,
+	_EntityFieldName extends EntityFieldName<_Schema, _ParentEntityType>,
+> = {
+	[EntityMetaKey.ParentId]: EntityId<_Schema, _ParentEntityType>
+	[EntityMetaKey.ParentIdKey]: string
+	[EntityMetaKey.Value]: number
+	[EntityMetaKey.Source]: Source
+	filterKey: string
+	fieldName: _EntityFieldName
+}
+
 type EntityCollectionResult<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
@@ -174,8 +216,14 @@ type EntityCollectionResult<
 type EntityFieldCollectionResult<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-	_FieldDefinition extends EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number],
+	_FieldDefinition extends EntityFieldDefinition,
 > = ReturnType<typeof createEntityFieldCollection<_Schema, _EntityType, _FieldDefinition>>
+
+type EntityFieldCountCollectionResult<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FieldDefinition extends EntityFieldDefinition,
+> = ReturnType<typeof createEntityFieldCountCollection<_Schema, _EntityType, _FieldDefinition>>
 
 export type EntityCollections<_Schema extends Schema> = {
 	[_EntityType in EntityType<_Schema>]: EntityCollectionResult<_Schema, _EntityType>
@@ -186,9 +234,19 @@ export type EntityFieldCollections<_Schema extends Schema> = {
 		[_EntityFieldName in EntityFieldName<_Schema, _EntityType>]: EntityFieldCollectionResult<
 			_Schema,
 			_EntityType,
-			EntityFieldDefinition<_Schema, _EntityType, _EntityFieldName>
+			SchemaEntityFieldDefinition<_Schema, _EntityType, _EntityFieldName>
 		>
 	}
+}
+
+export type EntityFieldCountCollections<_Schema extends Schema> = {
+	[_EntityType in EntityType<_Schema>]: Partial<{
+		[_EntityFieldName in EntityFieldName<_Schema, _EntityType>]: EntityFieldCountCollectionResult<
+			_Schema,
+			_EntityType,
+			SchemaEntityFieldDefinition<_Schema, _EntityType, _EntityFieldName>
+		>
+	}>
 }
 
 export type EntityFieldCollectionForReference<
@@ -412,6 +470,20 @@ const loadedSubsetMetadataKey = (loadSubsetOptions: LoadSubsetOptions) => (
 			})),
 			limit: loadSubsetOptions.limit,
 			sorts: parseLoadSubsetForQueryFn(loadSubsetOptions).sorts,
+		}),
+	]
+		.join(':')
+)
+
+const countSubsetMetadataKey = (loadSubsetOptions: LoadSubsetOptions | undefined) => (
+	[
+		'blockhead:field-count-subset:v1',
+		stringify({
+			filters: parseLoadSubsetForQueryFn(loadSubsetOptions).filters.map((filter) => ({
+				field: filter.field.map((part) => String(part)),
+				operator: filter.operator,
+				value: filter.value,
+			})),
 		}),
 	]
 		.join(':')
@@ -801,12 +873,14 @@ const createEntityCollection = <
 >({
 	entityResolvers,
 	entityType,
+	entityDefinition,
 	persistence,
 	queryClient,
 	schemaVersion,
 }: {
 	entityResolvers: EntityResolver<_Schema, _EntityType>[]
 	entityType: _EntityType
+	entityDefinition: EntityDefinition
 	persistence: PersistedCollectionPersistence
 	queryClient: QueryClient
 	schemaVersion: number
@@ -934,13 +1008,26 @@ const createEntityCollection = <
 												},
 											)
 
-											return {
-												...fields,
-												[EntityMetaKey.Id]: entityId,
-												[EntityMetaKey.IdKey]: stringify(entityId),
-												[EntityMetaKey.Source]: entityResolver.source,
-												[EntityMetaKey.Fields]: fields,
-											}
+											const rowIdKeys = new Set<string>()
+											return entityIdentityIdsFromFields(
+												entityDefinition,
+												entityId,
+												fields,
+											)
+												.flatMap((resolvedEntityId) => {
+													const rowIdKey = stringify(resolvedEntityId)
+													if (rowIdKeys.has(rowIdKey))
+														return []
+
+													rowIdKeys.add(rowIdKey)
+													return [{
+														...fields,
+														[EntityMetaKey.Id]: resolvedEntityId,
+														[EntityMetaKey.IdKey]: rowIdKey,
+														[EntityMetaKey.Source]: entityResolver.source,
+														[EntityMetaKey.Fields]: fields,
+													}]
+												})
 										}),
 								)
 
@@ -952,7 +1039,8 @@ const createEntityCollection = <
 									rows: fulfilledOrThrow(
 										settled,
 										`All ${settled.length} resolver(s) failed for ${stringify(entityId)}`,
-									),
+									)
+										.flat(),
 								}
 							}),
 						)
@@ -1001,7 +1089,7 @@ const createEntityCollection = <
 const createEntityFieldCollection = <
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-	_FieldDefinition extends EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number],
+	_FieldDefinition extends EntityFieldDefinition,
 >({
 	allEntityFieldResolvers,
 	entityResolvers,
@@ -1034,18 +1122,39 @@ const createEntityFieldCollection = <
 		schema.map((entityDefinition) => [
 			entityDefinition.entityType,
 			Object.fromEntries(
-				entityDefinition.fields.map((field) => [
+				entityFieldDefinitions(entityDefinition).map((field) => [
 					field.name,
 					field,
 				]),
 			),
 		]),
 	)
+	const discriminatorValueFromFieldValue = (
+		condition: EntityFieldCondition<EntityFieldName<_Schema, _EntityType>>,
+		value: unknown,
+	): string | number | undefined => {
+		const discriminatorValue = (
+			condition.itemIndex == null ?
+				value
+			: Array.isArray(value) ?
+				value[condition.itemIndex]
+			:
+				undefined
+		)
+		return (
+			typeof discriminatorValue === 'string'
+			|| typeof discriminatorValue === 'number' ?
+				discriminatorValue
+			:
+				undefined
+		)
+	}
 	const resolveDiscriminatorValue = async (
 		parentEntityId: EntityId<_Schema, _EntityType>,
-		fieldName: EntityFieldName<_Schema, _EntityType>,
+		condition: EntityFieldCondition<EntityFieldName<_Schema, _EntityType>>,
 		subsetBase: ReturnType<typeof parseLoadSubsetForQueryFn>,
 	): Promise<string | number> => {
+		const { fieldName } = condition
 		const discriminatorField = fieldDefinitionByName[entityType][fieldName]
 		if ('when' in discriminatorField && discriminatorField.when != null) {
 			throw new Error(`${String(entityType)}.${fieldDefinition.name}: discriminator field ${fieldName} cannot be conditional`)
@@ -1055,11 +1164,11 @@ const createEntityFieldCollection = <
 			&& typeof parentEntityId === 'object'
 			&& fieldName in parentEntityId
 		) {
-			const discriminatorValue = parentEntityId[fieldName as keyof typeof parentEntityId]
-			if (
-				typeof discriminatorValue === 'string'
-				|| typeof discriminatorValue === 'number'
-			) {
+			const discriminatorValue = discriminatorValueFromFieldValue(
+				condition,
+				parentEntityId[fieldName as keyof typeof parentEntityId],
+			)
+			if (discriminatorValue != null) {
 				return discriminatorValue
 			}
 		}
@@ -1075,13 +1184,16 @@ const createEntityFieldCollection = <
 						publicEnv: resolverPublicEnvBySource.get(entityResolver.source) ?? {},
 					},
 				)
-				return entityRow[fieldName as keyof typeof entityRow]
+				return discriminatorValueFromFieldValue(
+					condition,
+					entityRow[fieldName as keyof typeof entityRow],
+				)
 			}),
 		)
 		for (const result of entitySettled) {
 			if (
 				result.status === 'fulfilled'
-				&& (typeof result.value === 'string' || typeof result.value === 'number')
+				&& result.value != null
 			) {
 				return result.value
 			}
@@ -1106,11 +1218,16 @@ const createEntityFieldCollection = <
 				)),
 		)
 		for (const result of fieldSettled) {
+			const discriminatorValue = (
+				result.status === 'fulfilled' ?
+					discriminatorValueFromFieldValue(condition, result.value)
+				:
+					undefined
+			)
 			if (
-				result.status === 'fulfilled'
-				&& (typeof result.value === 'string' || typeof result.value === 'number')
+				discriminatorValue != null
 			) {
-				return result.value
+				return discriminatorValue
 			}
 		}
 
@@ -1212,12 +1329,12 @@ const createEntityFieldCollection = <
 
 						const globalRootIdKey = stringify({})
 
-						const parentEntityIds = (
-							[...parentIdKeyFilterValues]
-								.map((value) => (
-									subsetFilterEntityId(value) as EntityId<_Schema, _EntityType>
-								))
-						)
+							const parentEntityIds = (
+								[...parentIdKeyFilterValues]
+									.map((value) => (
+										subsetFilterEntityId(value) as EntityId<_Schema, _EntityType>
+									))
+							)
 
 						const parentsForResolvers = (
 							(
@@ -1242,13 +1359,13 @@ const createEntityFieldCollection = <
 								))
 						)
 
-						const resolvedFieldRows = await Promise.all(
+						const settledParentFieldRows = await Promise.allSettled(
 							parentsForResolvers
 								.map(async (parentEntityId) => {
 									if ('when' in fieldDefinition && fieldDefinition.when != null) {
 										const discriminatorValue = await resolveDiscriminatorValue(
 											parentEntityId,
-											fieldDefinition.when.fieldName,
+											fieldDefinition.when,
 											subsetBase,
 										)
 										if (!fieldDefinition.when.values.includes(discriminatorValue)) {
@@ -1331,6 +1448,10 @@ const createEntityFieldCollection = <
 									}
 								}),
 						)
+						const resolvedFieldRows = fulfilledOrThrow(
+							settledParentFieldRows,
+							`All ${settledParentFieldRows.length} parent id shape(s) failed for ${String(entityType)}.${fieldDefinition.name}`,
+						)
 
 						if (queryContext.meta?.loadSubsetOptions != null) {
 							const loadedKey = loadedSubsetMetadataKey(queryContext.meta.loadSubsetOptions)
@@ -1341,7 +1462,10 @@ const createEntityFieldCollection = <
 									[
 										loadedKey,
 										parentsForResolvers.length > 0
-										&& resolvedFieldRows.every((result) => result.complete),
+										&& settledParentFieldRows.every((result) => (
+											result.status === 'fulfilled'
+											&& result.value.complete
+										)),
 									],
 								]),
 							)
@@ -1376,12 +1500,244 @@ const createEntityFieldCollection = <
 	return collection
 }
 
+const entityFieldCardinalityIsMultiple = (
+	cardinality: EntityFieldCardinality,
+) => (
+	cardinality === EntityFieldCardinality.Many
+	|| cardinality === EntityFieldCardinality.ZeroOrMany
+)
+
+const createEntityFieldCountCollection = <
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FieldDefinition extends EntityFieldDefinition,
+>({
+	entityFieldCountResolvers,
+	entityType,
+	fieldDefinition,
+	persistence,
+	queryClient,
+	schemaVersion,
+}: {
+	entityFieldCountResolvers: EntityFieldCountResolver<_Schema, _EntityType, _FieldDefinition['name']>[]
+	entityType: _EntityType
+	fieldDefinition: _FieldDefinition
+	persistence: PersistedCollectionPersistence
+	queryClient: QueryClient
+	schemaVersion: number
+}) => {
+	const entityFieldCountCollectionId = `EntityFieldCountCollection:${entityType}:${fieldDefinition.name}`
+	const collection = createCollection(
+		persistedCollectionOptions<
+			EntityFieldCountCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
+			string | number,
+			never,
+			EntityFieldCountCollectionUtils<_Schema, _EntityType, _FieldDefinition['name']>
+		>({
+			...persistOnDemandSubsets<
+				EntityFieldCountCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
+				string | number,
+				CollectionConfig<
+					EntityFieldCountCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
+					string | number,
+					never,
+					EntityFieldCountCollectionUtils<_Schema, _EntityType, _FieldDefinition['name']>
+				>
+			>(queryCollectionOptions<
+				EntityFieldCountCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
+				unknown,
+				CollectionQueryKey,
+				string | number
+			>({
+				queryKey: (loadSubsetOptions) => [
+					entityFieldCountCollectionId,
+					...(
+						Object.keys(loadSubsetOptions).length === 0 ?
+							[]
+						:
+							[
+								{
+									filters: parseLoadSubsetForQueryFn(loadSubsetOptions).filters.map((filter) => ({
+										field: filter.field.map((part) => String(part)),
+										operator: filter.operator,
+										value: filter.value,
+									})),
+									limit: undefined,
+									sorts: [],
+								},
+							]
+					),
+				],
+
+				syncMode: 'on-demand',
+
+				autoIndex: 'eager',
+				defaultIndexType: BasicIndex,
+
+				persistedGcTime: collectionPersistedGcTime,
+
+				staleTime: collectionStaleTime,
+
+				queryFn: wrapQueryFnWithPersistenceProbe(
+					entityFieldCountCollectionId,
+					async (queryContext) => {
+						if (!entityFieldCardinalityIsMultiple(fieldDefinition.cardinality))
+							return []
+
+						const subsetBase = parseLoadSubsetForQueryFn(queryContext.meta?.loadSubsetOptions)
+						const { filters } = subsetBase
+						const filterKey = countSubsetMetadataKey(queryContext.meta?.loadSubsetOptions)
+
+						const sources = new Set(
+							[
+								...(
+									filters
+										.filter((clause) => (
+											clause.field[clause.field.length - 1] === EntityMetaKey.Source
+											&& (clause.operator === 'in' || clause.operator === 'eq')
+										))
+										.flatMap((clause) => (
+											clause.operator === 'eq' ?
+												[clause.value]
+											: Array.isArray(clause.value) ?
+												clause.value
+											:
+												[clause.value]
+										))
+								) as Source[],
+							],
+						)
+						const parentIdKeyFilterValues = new Set(
+							filters
+								.filter((clause) => (
+									String(clause.field[clause.field.length - 1] ?? '') === EntityMetaKey.ParentIdKey
+									&& (clause.operator === 'eq' || clause.operator === 'in')
+								))
+								.flatMap((clause) => (
+									clause.operator === 'eq' ?
+										[clause.value]
+									: Array.isArray(clause.value) ?
+										clause.value
+									:
+										[clause.value]
+								))
+						)
+
+						const globalRootIdKey = stringify({})
+
+							const parentEntityIds = (
+								[...parentIdKeyFilterValues]
+									.map((value) => (
+										subsetFilterEntityId(value) as EntityId<_Schema, _EntityType>
+									))
+							)
+
+						const parentsForResolvers = (
+							(
+								parentEntityIds.length > 0 ?
+									parentEntityIds
+								: entityType === '_Global' ?
+									[{} as EntityId<_Schema, _EntityType>]
+								:
+									parentEntityIds
+							)
+								.map((parentEntityId) => (
+									entityType === '_Global'
+									&& typeof parentEntityId === 'string'
+									&& parentEntityId === globalRootIdKey ?
+										({} as EntityId<_Schema, _EntityType>)
+									:
+										parentEntityId
+								))
+						)
+
+						const resolvedCountRows = (
+							await Promise.all(
+								parentsForResolvers.map(async (parentEntityId) => {
+									const resolvers = (
+										sources.size ?
+											entityFieldCountResolvers.filter((fieldResolver) => (
+												sources.has(fieldResolver.source)
+											))
+										:
+											entityFieldCountResolvers
+									)
+									const settled = await Promise.allSettled(
+										resolvers.map(async (fieldResolver) => {
+											const count = await fieldResolver.resolve(
+												parentEntityId,
+												{
+													filters: subsetBase.filters,
+													sorts: [],
+													publicEnv: resolverPublicEnvBySource.get(fieldResolver.source) ?? {},
+												},
+											)
+											if (!Number.isInteger(count) || count < 0)
+												throw new Error(`${String(entityType)}.${fieldDefinition.name}: count resolver returned ${count.toString()}`)
+
+											return {
+												[EntityMetaKey.ParentId]: parentEntityId,
+												[EntityMetaKey.ParentIdKey]: stringify(parentEntityId),
+												[EntityMetaKey.Source]: fieldResolver.source,
+												[EntityMetaKey.Value]: count,
+												filterKey,
+												fieldName: fieldDefinition.name,
+											}
+										}),
+									)
+
+									return fulfilledOrThrow(
+										settled,
+										`All ${settled.length} count resolver(s) failed for parent ${stringify(parentEntityId)}`,
+									)
+								}),
+							)
+						)
+						return resolvedCountRows.flat() as EntityFieldCountCollectionItem<
+							_Schema,
+							_EntityType,
+							_FieldDefinition['name']
+						>[]
+					},
+				),
+
+				getKey: (entityFieldCountItem) => entityFieldCountCollectionItemKey(entityFieldCountItem),
+
+				queryClient,
+			}), entityFieldCountCollectionId),
+
+			id: entityFieldCountCollectionId,
+
+			persistence,
+			schemaVersion,
+		}),
+	)
+
+	collection.createIndex(
+		(entityFieldCountItem) => entityFieldCountItem[EntityMetaKey.ParentIdKey],
+		{ name: `${collection.id}:parentIdKey` },
+	)
+
+	collection.createIndex(
+		(entityFieldCountItem) => entityFieldCountItem[EntityMetaKey.Source],
+		{ name: `${collection.id}:source` },
+	)
+
+	collection.createIndex(
+		(entityFieldCountItem) => entityFieldCountItem.filterKey,
+		{ name: `${collection.id}:filterKey` },
+	)
+
+	return collection
+}
+
 export const createCollectionsFromSchema = <
 	_Schema extends Schema,
 >({
 	schema,
 	entityResolvers,
 	entityFieldResolvers,
+	entityFieldCountResolvers,
 	persistence,
 	schemaVersion = 1,
 }: {
@@ -1391,6 +1747,13 @@ export const createCollectionsFromSchema = <
 	}[EntityType<_Schema>][]
 	entityFieldResolvers: {
 		[_ResolvedEntityType in EntityType<_Schema>]: EntityFieldResolver<
+			_Schema,
+			_ResolvedEntityType,
+			EntityFieldName<_Schema, _ResolvedEntityType>
+		>
+	}[EntityType<_Schema>][]
+	entityFieldCountResolvers: {
+		[_ResolvedEntityType in EntityType<_Schema>]: EntityFieldCountResolver<
 			_Schema,
 			_ResolvedEntityType,
 			EntityFieldName<_Schema, _ResolvedEntityType>
@@ -1414,6 +1777,7 @@ export const createCollectionsFromSchema = <
 						entityResolver.entityType === entityType
 					)),
 					entityType,
+					entityDefinition: definition,
 					persistence,
 					queryClient,
 					schemaVersion,
@@ -1427,14 +1791,17 @@ export const createCollectionsFromSchema = <
 	const entityFieldCollections: {
 		[_EntityType in EntityType<_Schema>]?: Partial<EntityFieldCollections<_Schema>[_EntityType]>
 	} = {}
+	const entityFieldCountCollections: Partial<EntityFieldCountCollections<_Schema>> = {}
 
 	for (const definition of schema) {
 		const entityType = definition.entityType
 		const fieldCollections: Partial<EntityFieldCollections<_Schema>[typeof entityType]> = {}
+		const fieldCountCollections: EntityFieldCountCollections<_Schema>[typeof entityType] = {}
 
-		for (const field of definition.fields) {
+		for (const field of entityFieldDefinitions(definition)) {
 			const fieldName = field.name
 			let cached: EntityFieldCollectionResult<_Schema, typeof entityType, typeof field> | undefined
+			let cachedCount: EntityFieldCountCollectionResult<_Schema, typeof entityType, typeof field> | undefined
 
 			Object.defineProperty(fieldCollections, fieldName, {
 				get: () => (
@@ -1464,14 +1831,42 @@ export const createCollectionsFromSchema = <
 				enumerable: true,
 				configurable: true,
 			})
+
+			if (entityFieldCardinalityIsMultiple(field.cardinality)) {
+				Object.defineProperty(fieldCountCollections, fieldName, {
+					get: () => (
+						cachedCount ??= createEntityFieldCountCollection({
+							entityFieldCountResolvers: entityFieldCountResolvers.filter((
+								entityFieldCountResolver,
+							): entityFieldCountResolver is EntityFieldCountResolver<
+								_Schema,
+								typeof entityType,
+								typeof fieldName
+							> => (
+								entityFieldCountResolver.entityType === entityType
+								&& entityFieldCountResolver.fieldName === fieldName
+							)),
+							entityType,
+							fieldDefinition: field,
+							persistence,
+							queryClient,
+							schemaVersion,
+						})
+					),
+					enumerable: true,
+					configurable: true,
+				})
+			}
 		}
 
 		entityFieldCollections[entityType as EntityType<_Schema>] = fieldCollections
+		entityFieldCountCollections[entityType as EntityType<_Schema>] = fieldCountCollections
 	}
 
 	return {
 		entityCollections: entityCollections as EntityCollections<_Schema>,
 		entityFieldCollections: entityFieldCollections as EntityFieldCollections<_Schema>,
+		entityFieldCountCollections: entityFieldCountCollections as EntityFieldCountCollections<_Schema>,
 		queryClient,
 	}
 }

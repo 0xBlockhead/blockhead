@@ -162,6 +162,8 @@ const activityPubActorFieldsFromMastodonAccount = (
 	const website = optionalNonemptyString(account.website ?? undefined)
 	const createdAt = optionalTimestampMs(account.created_at)
 	return {
+		instanceOrigin,
+		localAccountId: String(account.id),
 		...(username != null && { username }),
 		...(acct != null && { acct }),
 		...(displayName != null && { displayName }),
@@ -217,7 +219,7 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const a = await singleFlight(getAccount)(publicEnv, entityId.localAccountId)
+				const a = await singleFlight(getAccount)(publicEnv, 'localAccountId' in entityId ? entityId.localAccountId : entityId.acct)
 				return activityPubActorFieldsFromMastodonAccount(
 					a,
 					entityId.instanceOrigin,
@@ -246,6 +248,9 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.$actor.instanceOrigin)
+				if (!('localAccountId' in entityId.$actor))
+					throw new Error('Fedi_Rest: ActivityPubActor_Timestamp acct lookup is unsupported')
+
 				const account = await singleFlight(getAccount)(publicEnv, entityId.$actor.localAccountId)
 				return {
 					...(account.followers_count != null && { followersCount: account.followers_count }),
@@ -369,11 +374,14 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const account = await singleFlight(getAccount)(publicEnv, entityId.localAccountId)
+				const account = await singleFlight(getAccount)(publicEnv, 'localAccountId' in entityId ? entityId.localAccountId : entityId.acct)
 				return [
 					{
 						[EntityMetaKey.Id]: {
-							$actor: entityId,
+							$actor: {
+								instanceOrigin: entityId.instanceOrigin,
+								localAccountId: String(account.id),
+							},
 							timestampMs: Date.now(),
 						},
 						...(account.followers_count != null && { followersCount: account.followers_count }),
@@ -391,6 +399,9 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const { assertInstanceMatches, listAccountStatuses } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
+				if (!('localAccountId' in entityId))
+					throw new Error('Fedi_Rest: ActivityPubActor.$$notes acct lookup is unsupported')
+
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
 					(await singleFlight(listAccountStatuses)(publicEnv, entityId.localAccountId, limit))
