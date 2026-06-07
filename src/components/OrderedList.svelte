@@ -397,6 +397,9 @@
 			),
 		]
 	)
+	const isEmpty = $derived(
+		allRows.length === 0 && virtualRows.length === 0,
+	)
 	const rowLimit = $derived(
 		limit ?? (onLoadMorePlaceholders ? 200 : 100)
 	)

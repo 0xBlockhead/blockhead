@@ -1,11 +1,13 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -13,9 +15,10 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	source: Source.Rss_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.RssFeed,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
 				const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
@@ -33,10 +36,20 @@ export default {
 					...(feed.imageUrl != null && { imageUrl: feed.imageUrl }),
 				}
 			},
+			fields: {
+			title: (snapshot) => snapshot.title,
+			description: (snapshot) => snapshot.description,
+			link: (snapshot) => snapshot.link,
+			siteUrl: (snapshot) => snapshot.siteUrl,
+			language: (snapshot) => snapshot.language,
+			lastBuildDate: (snapshot) => snapshot.lastBuildDate,
+			imageUrl: (snapshot) => snapshot.imageUrl,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.RssItem,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					normalizeRssFeedUrl,
@@ -71,20 +84,31 @@ export default {
 					},
 				}
 			},
+			fields: {
+			title: (snapshot) => snapshot.title,
+			link: (snapshot) => snapshot.link,
+			description: (snapshot) => snapshot.description,
+			content: (snapshot) => snapshot.content,
+			author: (snapshot) => snapshot.author,
+			publishedAt: (snapshot) => snapshot.publishedAt,
+			updatedAt: (snapshot) => snapshot.updatedAt,
+			categories: (snapshot) => snapshot.categories,
+			enclosureUrl: (snapshot) => snapshot.enclosureUrl,
+			commentsUrl: (snapshot) => snapshot.commentsUrl,
+			$feed: (snapshot) => snapshot.$feed,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.RssNetwork,
-			fieldName: '$$rssItems',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const {
 					normalizeRssFeedUrl,
 					rssItemGuidFromParts,
 				} = await import('$/sources/Rss/Rest/constants.ts')
 				const { listFeedItems } = await import('$/sources/Rss/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const perFeedLimit = Math.max(1, Math.ceil(limit / rssNetworkSeedFeeds.length))
 				const refs: { [EntityMetaKey.Id]: { feedUrl: string, guid: string } }[] = []
 				for (const seedFeed of rssNetworkSeedFeeds) {
@@ -103,11 +127,14 @@ export default {
 				}
 				return refs.slice(0, limit)
 			},
+			fields: {
+			$$rssItems: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.RssFeed,
-			fieldName: '$$items',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					normalizeRssFeedUrl,
@@ -115,7 +142,7 @@ export default {
 				} = await import('$/sources/Rss/Rest/constants.ts')
 				const { listFeedItems } = await import('$/sources/Rss/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					(await singleFlight(listFeedItems)(feedUrl, limit))
 						.map((feedItem) => ({
@@ -126,6 +153,9 @@ export default {
 						}))
 				)
 			},
+			fields: {
+			$$items: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

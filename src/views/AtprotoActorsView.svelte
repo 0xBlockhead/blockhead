@@ -106,8 +106,10 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => row.value[EntityMetaKey.IdKey]}
-					getSortValue={(row) => row.value[EntityMetaKey.Id].did}
+					getSortValue={(row) => {
+						const actorId = row.value[EntityMetaKey.Id]
+						return 'did' in actorId ? actorId.did : actorId.handle
+					}}
 					placeholderText="Loading DID directory…"
 					resource={actors}
 				>
@@ -120,7 +122,7 @@
 					{#snippet Item({ item })}
 						{@const actorId = item.value[EntityMetaKey.Id]}
 						<AtprotoActorView
-							entityId={{ did: actorId.did }}
+							entityId={actorId}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

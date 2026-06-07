@@ -5,10 +5,12 @@ import {
 	quilibriumServiceLayers,
 } from '$/constants/QuilibriumNetwork.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -32,9 +34,10 @@ const quilibriumDocumentRows = async () => {
 export default {
 	source: Source.QuilibriumDocs_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.QuilibriumNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				return {
@@ -59,10 +62,18 @@ export default {
 					},
 				}
 			},
+			fields: {
+			docsEndpoints: (snapshot) => snapshot.docsEndpoints,
+			nodeInterfaces: (snapshot) => snapshot.nodeInterfaces,
+			protocolFacts: (snapshot) => snapshot.protocolFacts,
+			serviceLayers: (snapshot) => snapshot.serviceLayers,
+			$protocolDocument: (snapshot) => snapshot.$protocolDocument,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationProposal,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Quilibrium || entityId.category !== ProposalCategory.ProtocolDocument) {
@@ -72,13 +83,17 @@ export default {
 				if (document == null) throw new Error(`QuilibriumDocs_Rest: document not found ${entityId.number.toString()}`)
 				return document
 			},
+			fields: {
+			documentCategory: (snapshot) => snapshot.documentCategory,
+			documentTitle: (snapshot) => snapshot.documentTitle,
+			documentStatus: (snapshot) => snapshot.documentStatus,
+			documentBody: (snapshot) => snapshot.documentBody,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.QuilibriumNetwork,
-			fieldName: '$protocolDocument',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				return {
@@ -89,32 +104,44 @@ export default {
 					},
 				}
 			},
+			fields: {
+			$protocolDocument: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: quilibriumDocumentRows,
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Quilibrium) throw new Error('QuilibriumDocs_Rest: $$proposals only supports Quilibrium')
 				return quilibriumDocumentRows()
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Quilibrium || entityId.category !== ProposalCategory.ProtocolDocument) throw new Error('QuilibriumDocs_Rest: $$proposals only supports Quilibrium protocol documents')
 				return quilibriumDocumentRows()
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

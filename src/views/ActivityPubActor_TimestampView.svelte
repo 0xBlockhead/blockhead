@@ -18,7 +18,10 @@
 		entityId,
 		href = resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
 			instanceOrigin: encodeURIComponent(entityId.$actor.instanceOrigin),
-			localAccountId: entityId.$actor.localAccountId,
+			localAccountId: 'localAccountId' in entityId.$actor ?
+				entityId.$actor.localAccountId
+			:
+				entityId.$actor.acct,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(false),

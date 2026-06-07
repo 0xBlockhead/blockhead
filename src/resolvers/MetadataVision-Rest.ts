@@ -1,19 +1,23 @@
 import { mediaFromUrl } from '$/lib/media.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
-import { defineEntityResolver } from '$/resolvers/$resolvers.ts'
+import {
+	defineResolver,
+} from '$/resolvers/$resolvers.ts'
 import { schema } from '$/schema/index.ts'
 import type { EntityFieldValues } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
 import { Source } from '$/sources/$Source.ts'
 
 
 export default {
 	source: Source.MetadataVision_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.Url,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
 				try {
@@ -50,8 +54,13 @@ export default {
 					)
 				}
 			},
+			fields: {
+			openGraphTitle: (snapshot) => snapshot.openGraphTitle,
+			openGraphDescription: (snapshot) => snapshot.openGraphDescription,
+			publisher: (snapshot) => snapshot.publisher,
+			$openGraphImage: (snapshot) => snapshot.$openGraphImage,
+			$siteIcon: (snapshot) => snapshot.$siteIcon,
+		}
 		}),
 	],
-
-	entityFieldResolvers: [],
 }

@@ -1,8 +1,11 @@
 import {
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -10,9 +13,10 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	source: Source.Swarm_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.SwarmResource,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { swarmOnlyReferencePattern } = await import('$/sources/Swarm/Rest/constants.ts')
 				const normalizedReference = (
@@ -88,8 +92,21 @@ export default {
 					...(mediaEntity != null && { $media: mediaEntity }),
 				}
 			},
+			fields: {
+			reference: (snapshot) => snapshot.reference,
+			contentPath: (snapshot) => snapshot.contentPath,
+			canonicalUri: (snapshot) => snapshot.canonicalUri,
+			gatewayOrigin: (snapshot) => snapshot.gatewayOrigin,
+			gatewayUrl: (snapshot) => snapshot.gatewayUrl,
+			fileName: (snapshot) => snapshot.fileName,
+			extension: (snapshot) => snapshot.extension,
+			contentType: (snapshot) => snapshot.contentType,
+			contentLength: (snapshot) => snapshot.contentLength,
+			displayType: (snapshot) => snapshot.displayType,
+			isContentTypeInferred: (snapshot) => snapshot.isContentTypeInferred,
+			text: (snapshot) => snapshot.text,
+			$media: (snapshot) => snapshot.$media,
+		}
 		}),
 	],
-
-	entityFieldResolvers: [],
 }

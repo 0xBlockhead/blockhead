@@ -1,10 +1,12 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { regex } from 'arkregex'
 import { singleFlight } from '$/lib/singleFlight.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -32,9 +34,10 @@ const litecoinLipRows = async (entries: { type: string, name: string }[]) => {
 export default {
 	source: Source.LitecoinLips_Github,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.SpecificationProposal,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Litecoin || entityId.category !== ProposalCategory.Lip) {
@@ -49,39 +52,52 @@ export default {
 					documentBody: text,
 				}
 			},
+			fields: {
+			documentCategory: (snapshot) => snapshot.documentCategory,
+			documentTitle: (snapshot) => snapshot.documentTitle,
+			documentStatus: (snapshot) => snapshot.documentStatus,
+			documentBody: (snapshot) => snapshot.documentBody,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Litecoin) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin')
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Litecoin || entityId.category !== ProposalCategory.Lip) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin LIPs')
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

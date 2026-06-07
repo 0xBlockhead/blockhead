@@ -51,7 +51,7 @@
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const _entityId = $derived(
+	const _entityId: EntityId<typeof schema, EntityType.EvmNetwork> = $derived(
 		'chainId' in entityId ?
 			{
 				caip2: {
@@ -60,7 +60,7 @@
 				},
 			}
 		:
-			entityId
+		entityId
 	)
 
 	const chainId = $derived(
@@ -871,7 +871,10 @@
 						{#snippet SectionExecutionBlocks({ id })}
 							<EvmBlocksView
 								CollapsibleProps={{ canToggle: false }}
-								href={`/network/${_entityId.caip2.namespace}:${_entityId.caip2.reference}/blocks`}
+									href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/blocks', {
+										caip2Namespace: _entityId.caip2.namespace,
+										caip2Reference: _entityId.caip2.reference,
+									})}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
 									entityId: _entityId,
@@ -884,7 +887,10 @@
 						{#snippet SectionExecutionTransactions({ id })}
 							<EvmTransactionsView
 								CollapsibleProps={{ canToggle: false }}
-								href={`/network/${_entityId.caip2.namespace}:${_entityId.caip2.reference}/transactions`}
+									href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/transactions', {
+										caip2Namespace: _entityId.caip2.namespace,
+										caip2Reference: _entityId.caip2.reference,
+									})}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
 									entityId: _entityId,
@@ -899,7 +905,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId,
+									entityId: _entityId,
 									fieldName: '$$txpoolTimestamps',
 								}}
 								id={`${id}-list`}
@@ -912,7 +918,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId,
+									entityId: _entityId,
 									fieldName: '$$gasFeeBlocks',
 								}}
 								id={`${id}-list`}
@@ -925,7 +931,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId,
+									entityId: _entityId,
 									fieldName: '$$gasEstimateTimestamps',
 								}}
 								id={`${id}-list`}
@@ -940,7 +946,7 @@
 								emptyText="No execution endpoints listed for this network yet."
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId,
+									entityId: _entityId,
 									fieldName: '$$rpcUrls',
 								}}
 								fieldSources={[
@@ -1191,7 +1197,10 @@
 							entityId: _entityId,
 							fieldName: '$$blobs',
 						}}
-						href={`/network/${_entityId.caip2.namespace}:${_entityId.caip2.reference}/blobs`}
+							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/blobs', {
+								caip2Namespace: _entityId.caip2.namespace,
+								caip2Reference: _entityId.caip2.reference,
+							})}
 						id={`${id}-list`}
 						title={label}
 					/>
@@ -1236,7 +1245,10 @@
 						{#snippet SectionContractsAccountsContracts({ id })}
 							<EvmContractsView
 								CollapsibleProps={{ canToggle: false }}
-								href={`/network/${_entityId.caip2.namespace}:${_entityId.caip2.reference}/contracts`}
+									href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/contracts', {
+										caip2Namespace: _entityId.caip2.namespace,
+										caip2Reference: _entityId.caip2.reference,
+									})}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
 									entityId: _entityId,

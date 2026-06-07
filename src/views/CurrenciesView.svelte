@@ -10,11 +10,24 @@
 	import { Source } from '$/sources/$Source.ts'
 
 	type CurrencyOrderFieldRow = {
+		$$timestamps?: {
+			0?: {
+				marketCap?: bigint
+			}
+		}
+		marketCap?: bigint
+		[EntityMetaKey.Id]: {
+			iso4217: string
+		}
 		[EntityMetaKey.Value]: {
 			[EntityMetaKey.Id]: {
 				iso4217: string
 			}
-			$$timestamps?: { marketCap?: bigint }[]
+			$$timestamps?: {
+				0?: {
+					marketCap?: bigint
+				}
+			}
 			marketCap?: bigint
 		}
 	}
@@ -48,16 +61,15 @@
 		[
 			[
 				({ fieldRow }) => (
-					fieldRow[EntityMetaKey.Value].$$timestamps?.[0]?.marketCap
+					fieldRow.$$timestamps?.[0]?.marketCap
 				),
 				{
 					direction: 'desc',
-					nulls: 'last',
 				},
 			],
 			[
 				({ fieldRow }) => (
-					fieldRow[EntityMetaKey.Value][EntityMetaKey.Id].iso4217
+					fieldRow[EntityMetaKey.Id].iso4217
 				),
 				'asc',
 			],
@@ -68,11 +80,10 @@
 		[
 			[
 				({ fieldRow }) => (
-					fieldRow[EntityMetaKey.Value].marketCap
+					fieldRow.marketCap
 				),
 				{
 					direction: 'desc',
-					nulls: 'last',
 				},
 			],
 		] as const satisfies DeclarativeOrderBy<CurrencyOrderFieldRow>

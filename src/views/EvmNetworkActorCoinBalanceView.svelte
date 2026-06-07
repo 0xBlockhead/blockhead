@@ -13,6 +13,8 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const
+
 
 	// State
 	let {
@@ -47,8 +49,6 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { formatValue } from '$/lib/number.ts'
-
-	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const
 
 	const actorCoinDetailAnchorKey = stringify(entityId)
 

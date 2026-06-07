@@ -75,7 +75,7 @@
 							<dt>Program</dt>
 							<dd>
 								<SolanaProgramView
-									entityId={solanaInstruction.$program}
+									entityId={solanaInstruction.$program[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -102,7 +102,7 @@
 						</div>
 					{/if}
 
-					{#if solanaInstruction.$$accounts.length}
+					{#if solanaInstruction.$$accounts != null && solanaInstruction.$$accounts.length}
 						<div>
 							<dt>Accounts</dt>
 							<dd>

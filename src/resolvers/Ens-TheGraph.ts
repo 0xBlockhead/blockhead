@@ -1,13 +1,14 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
-	sourcePublicEnv,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -62,16 +63,16 @@ const actorEntityFromSubgraphAccount = (
 export default {
 	source: Source.TheGraph_Graphql,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.EnsName,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.TheGraph_Graphql)
 				const normalizedName = ensToString(ensNormalizeNode(entityId.name))
 				const matchingEnsDomain = (
 					await singleFlight(getName)({
-						publicEnv,
+						publicEnv: context.publicEnv,
 						name: normalizedName,
 					})
 				).find((candidate) => candidate.name === normalizedName)
@@ -171,27 +172,51 @@ export default {
 					}),
 				}
 			},
-		}),
+				fields: {
+					name: (ensName) => ensName.name,
+					subgraphId: (ensName) => ensName.subgraphId,
+					labelName: (ensName) => ensName.labelName,
+					labelhash: (ensName) => ensName.labelhash,
+					$parent: (ensName) => ensName.$parent,
+					$$subdomains: (ensName) => ensName.$$subdomains,
+					subdomainCount: (ensName) => ensName.subdomainCount,
+					$subgraphResolvedActor: (ensName) => ensName.$subgraphResolvedActor,
+					$subgraphOwnerActor: (ensName) => ensName.$subgraphOwnerActor,
+					$registrantActor: (ensName) => ensName.$registrantActor,
+					$wrappedOwnerActor: (ensName) => ensName.$wrappedOwnerActor,
+					wrappedExpiryDate: (ensName) => ensName.wrappedExpiryDate,
+					contentHash: (ensName) => ensName.contentHash,
+					resolverTextKeys: (ensName) => ensName.resolverTextKeys,
+					resolverCoinTypes: (ensName) => ensName.resolverCoinTypes,
+					ttl: (ensName) => ensName.ttl,
+					isMigrated: (ensName) => ensName.isMigrated,
+					createdAt: (ensName) => ensName.createdAt,
+					expiryDate: (ensName) => ensName.expiryDate,
+					wrappedFuses: (ensName) => ensName.wrappedFuses,
+					registrationDate: (ensName) => ensName.registrationDate,
+					registrationCost: (ensName) => ensName.registrationCost,
+					registrationExpiryDate: (ensName) => ensName.registrationExpiryDate,
+				}
+			}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EnsSearch,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				normalizedEnsSearchQuery(entityId.query)
 				return {}
 			},
+				fields: {},
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmAccount,
-			fieldName: '$$ensNamesOwned',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getDomainsByOwner } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.TheGraph_Graphql)
 				return (
 					(await singleFlight(getDomainsByOwner)({
-						publicEnv,
+						publicEnv: context.publicEnv,
 						owner: zeroExLowerCase(entityId.address),
 					}))
 						.flatMap((domain) => (
@@ -206,18 +231,21 @@ export default {
 						))
 				)
 			},
-		}),
-		defineEntityFieldResolver({
+				fields: {
+					$$ensNamesOwned: (ensNamesOwned) => ensNamesOwned,
+				}
+			}),
+
+		defineResolver({
 			entityType: EntityType.EnsSearch,
-			fieldName: '$$ensNames',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getDomainsContaining } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.TheGraph_Graphql)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const query = normalizedEnsSearchQuery(entityId.query)
 				return (
 					(await singleFlight(getDomainsContaining)({
-						publicEnv,
+						publicEnv: context.publicEnv,
 						query,
 						limit,
 					}))
@@ -233,6 +261,9 @@ export default {
 						))
 				)
 			},
+			fields: {
+			$$ensNames: (ensNames) => ensNames,
+		}
 		}),
 	],
 }

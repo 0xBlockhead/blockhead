@@ -245,7 +245,7 @@ export const assertLoadedValue = (
 }
 
 
-export const assertEntityResolverResult = (
+export const assertResolverDefinitionResult = (
 	entityDefinition: EntityDefinition,
 	row: unknown,
 ): void => {
@@ -304,7 +304,7 @@ export const assertEntityResolverResult = (
 }
 
 
-export const assertEntityFieldResolverResult = (
+export const assertResolverValuePartResult = (
 	entityTypeLabel: string,
 	fieldDefinition: EntityFieldDefinition,
 	row: unknown,

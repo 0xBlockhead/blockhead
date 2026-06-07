@@ -1,8 +1,7 @@
 import { nostrNetworkSeedRelays } from '$/constants/Social/Nostr.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
@@ -11,7 +10,10 @@ import {
 	timestampMsFromUnixSeconds,
 } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -572,9 +574,10 @@ const relayFieldValuesFromWire = (relay: NostrBandRelayStats) => ({
 export default {
 	source: Source.NostrBand_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.NostrProfile,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getProfileByPubkey } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const profileWire = await singleFlight(getProfileByPubkey)(entityId.pubkey)
@@ -587,10 +590,23 @@ export default {
 					eventFromWire(profileWire),
 				)
 			},
+			fields: {
+				pubkey: (profile) => profile.pubkey,
+				displayName: (profile) => profile.displayName,
+				about: (profile) => profile.about,
+				nip05: (profile) => profile.nip05,
+				lud16: (profile) => profile.lud16,
+				lud06: (profile) => profile.lud06,
+				website: (profile) => profile.website,
+				metadataUpdatedAt: (profile) => profile.metadataUpdatedAt,
+				$icon: (profile) => profile.$icon,
+				$banner: (profile) => profile.$banner,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NostrNote,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const event = eventFromWire(await singleFlight(getEventById)(entityId.eventId))
@@ -603,10 +619,23 @@ export default {
 				}
 				return noteFieldValuesFromEvent(event)
 			},
+			fields: {
+				eventId: (note) => note.eventId,
+				kind: (note) => note.kind,
+				pubkey: (note) => note.pubkey,
+				content: (note) => note.content,
+				createdAt: (note) => note.createdAt,
+				tags: (note) => note.tags,
+				$author: (note) => note.$author,
+				replyToEventId: (note) => note.replyToEventId,
+				rootEventId: (note) => note.rootEventId,
+				$replyToNote: (note) => note.$replyToNote,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NostrRelay,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listTopRelays } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const relayUrl = normalizeRelayUrl(entityId.relayUrl)
@@ -631,10 +660,20 @@ export default {
 				}
 				throw new Error('NostrBand_Rest: relay not found')
 			},
+			fields: {
+				name: (relay) => relay.name,
+				description: (relay) => relay.description,
+				software: (relay) => relay.software,
+				version: (relay) => relay.version,
+				supportedNipCount: (relay) => relay.supportedNipCount,
+				isPaid: (relay) => relay.isPaid,
+				limit: (relay) => relay.limit,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NostrRepost,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const event = eventFromWire(await singleFlight(getEventById)(entityId.eventId))
@@ -653,10 +692,22 @@ export default {
 					eventFromWire(await singleFlight(getEventById)(targetEventId)),
 				)
 			},
+			fields: {
+				eventId: (repost) => repost.eventId,
+				kind: (repost) => repost.kind,
+				pubkey: (repost) => repost.pubkey,
+				createdAt: (repost) => repost.createdAt,
+				tags: (repost) => repost.tags,
+				repostedEventId: (repost) => repost.repostedEventId,
+				$author: (repost) => repost.$author,
+				$repostedNote: (repost) => repost.$repostedNote,
+				$repostedArticle: (repost) => repost.$repostedArticle,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NostrReaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const event = eventFromWire(await singleFlight(getEventById)(entityId.eventId))
@@ -675,10 +726,22 @@ export default {
 					eventFromWire(await singleFlight(getEventById)(targetEventId)),
 				)
 			},
+			fields: {
+				eventId: (reaction) => reaction.eventId,
+				kind: (reaction) => reaction.kind,
+				pubkey: (reaction) => reaction.pubkey,
+				createdAt: (reaction) => reaction.createdAt,
+				tags: (reaction) => reaction.tags,
+				$author: (reaction) => reaction.$author,
+				$targetNote: (reaction) => reaction.$targetNote,
+				$targetArticle: (reaction) => reaction.$targetArticle,
+				content: (reaction) => reaction.content,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NostrArticle,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listAuthorArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const pubkey = normalizePubkey(entityId.pubkey)
@@ -686,7 +749,7 @@ export default {
 				if (pubkey == null || identifier === '') {
 					throw new Error('NostrBand_Rest: article id invalid')
 				}
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const event = (
 					((await singleFlight(listAuthorArticles)(pubkey, limit)).events ?? [])
 						.find((noteEvent) => (
@@ -710,16 +773,26 @@ export default {
 				}
 				return articleFieldValuesFromEvent(event)
 			},
+			fields: {
+				pubkey: (article) => article.pubkey,
+				identifier: (article) => article.identifier,
+				kind: (article) => article.kind,
+				title: (article) => article.title,
+				summary: (article) => article.summary,
+				imageUrl: (article) => article.imageUrl,
+				content: (article) => article.content,
+				publishedAt: (article) => article.publishedAt,
+				tags: (article) => article.tags,
+				$author: (article) => article.$author,
+			},
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrProfiles',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { listTopProfiles } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listTopProfiles)(limit)).profiles ?? [])
 						.flatMap((topProfile) => {
@@ -736,14 +809,17 @@ export default {
 						})
 				)
 			},
+			fields: {
+				$$nostrProfiles: (profiles) => profiles,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrNotes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { listRecentTextNotes } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listRecentTextNotes)(limit)).events ?? [])
 						.flatMap((event) => (
@@ -758,14 +834,17 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$nostrNotes: (notes) => notes,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrRelays',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { listTopRelays } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listTopRelays)(limit)).relays ?? [])
 						.flatMap((relay) => {
@@ -777,14 +856,17 @@ export default {
 						})
 				)
 			},
+			fields: {
+				$$nostrRelays: (relays) => relays,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrReposts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { listRecentReposts } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listRecentReposts)(limit)).events ?? [])
 						.flatMap((event) => (
@@ -799,27 +881,33 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$nostrReposts: (reposts) => reposts,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrArticles',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { listRecentArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listRecentArticles)(limit)).events ?? [])
 						.flatMap((event) => articleRefFromEvent(event))
 				)
 			},
+			fields: {
+				$$nostrArticles: (articles) => articles,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrProfile,
-			fieldName: '$$notes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listAuthorTextNotes } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listAuthorTextNotes)(entityId.pubkey, limit)).events ?? [])
 						.flatMap((event) => (
@@ -834,27 +922,33 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$notes: (notes) => notes,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrProfile,
-			fieldName: '$$articles',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listAuthorArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listAuthorArticles)(entityId.pubkey, limit)).events ?? [])
 						.flatMap((event) => articleRefFromEvent(event))
 				)
 			},
+			fields: {
+				$$articles: (articles) => articles,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrProfile,
-			fieldName: '$$reposts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listAuthorReposts } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listAuthorReposts)(entityId.pubkey, limit)).events ?? [])
 						.flatMap((event) => (
@@ -869,11 +963,14 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$reposts: (reposts) => reposts,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrProfile,
-			fieldName: 'website',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getProfileByPubkey } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const metadata = profileMetadataFromProfileWire(
@@ -883,11 +980,14 @@ export default {
 				metadata?.website,
 			)
 			},
+			fields: {
+				website: (website) => website,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrProfile,
-			fieldName: '$banner',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getProfileByPubkey } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const metadata = profileMetadataFromProfileWire(
@@ -900,14 +1000,17 @@ export default {
 				MediaType.Image,
 			)
 			},
+			fields: {
+				$banner: (banner) => banner,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNote,
-			fieldName: '$$replies',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listNoteReplies } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listNoteReplies)(entityId.eventId, limit)).events ?? [])
 						.flatMap((event) => (
@@ -922,14 +1025,17 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$replies: (replies) => replies,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNote,
-			fieldName: '$$reactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listNoteReactions } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listNoteReactions)(entityId.eventId, limit)).events ?? [])
 						.flatMap((event) => (
@@ -944,11 +1050,14 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$reactions: (reactions) => reactions,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNote,
-			fieldName: '$replyToNote',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const event = eventFromWire(await singleFlight(getEventById)(entityId.eventId))
@@ -962,8 +1071,11 @@ export default {
 					:
 						{
 								[EntityMetaKey.Id]: { eventId: normalizedReplyTo },
-							}
+						}
 				)
+			},
+			fields: {
+				$replyToNote: (replyToNote) => replyToNote,
 			},
 		}),
 	],

@@ -1,12 +1,14 @@
 import {
-	defineEntityResolver,
-	sourcePublicEnv,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import {
 	polkadotMainnetCaip2,
 	subscanPolkadotRestBaseUrl,
 } from '$/constants/PolkadotNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -25,16 +27,17 @@ const assertPolkadotMainnet = (network: NetworkId) => {
 export default {
 	source: Source.Subscan_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertPolkadotMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/Subscan/Rest/queries.ts')
 				const block = (await getBlock({
 					restBaseUrl: subscanPolkadotRestBaseUrl,
 					height: entityId.blockNumber,
-					publicEnv: sourcePublicEnv(context, Source.Subscan_Rest),
+					publicEnv: context.publicEnv,
 				})).data
 				return {
 					hash: block.block_hash,
@@ -51,17 +54,24 @@ export default {
 					extrinsicsRoot: block.extrinsics_root,
 				}
 			},
+			fields: {
+			hash: (snapshot) => snapshot.hash,
+			$parent: (snapshot) => snapshot.$parent,
+			stateRoot: (snapshot) => snapshot.stateRoot,
+			extrinsicsRoot: (snapshot) => snapshot.extrinsicsRoot,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotExtrinsic,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertPolkadotMainnet(entityId.$block.$network)
 				const { getExtrinsic } = await import('$/sources/Subscan/Rest/queries.ts')
 				const extrinsic = (await getExtrinsic({
 					restBaseUrl: subscanPolkadotRestBaseUrl,
 					extrinsicIndex: `${entityId.$block.blockNumber.toString()}-${entityId.extrinsicIndex}`,
-					publicEnv: sourcePublicEnv(context, Source.Subscan_Rest),
+					publicEnv: context.publicEnv,
 				})).data
 				return {
 					...(extrinsic.extrinsic_hash != null && {
@@ -85,8 +95,13 @@ export default {
 					success: extrinsic.success,
 				}
 			},
+			fields: {
+			hash: (snapshot) => snapshot.hash,
+			$signer: (snapshot) => snapshot.$signer,
+			$pallet: (snapshot) => snapshot.$pallet,
+			callName: (snapshot) => snapshot.callName,
+			success: (snapshot) => snapshot.success,
+		}
 		}),
 	],
-
-	entityFieldResolvers: [],
 }

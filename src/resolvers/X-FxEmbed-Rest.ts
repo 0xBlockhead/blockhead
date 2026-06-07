@@ -1,29 +1,27 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { type } from 'arktype'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type {
-	FxEmbedTwitterStatus,
-	FxEmbedUser,
-} from '$/sources/FxEmbed/Rest/types.ts'
-
 
 export default {
 	source: Source.X_FxEmbed_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.XUser,
+			accepts: [EntityIdProjection.Identity, 'id'],
 			resolve: async (entityId) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const response = await singleFlight(getUser)('id' in entityId ? entityId.id : entityId.username)
@@ -72,10 +70,25 @@ export default {
 					))(mediaFromUrl(user.avatar_url ?? undefined, MediaType.Image)),
 				}
 			},
+			fields: {
+			id: (snapshot) => snapshot.id,
+			username: (snapshot) => snapshot.username,
+			name: (snapshot) => snapshot.name,
+			description: (snapshot) => snapshot.description,
+			location: (snapshot) => snapshot.location,
+			verified: (snapshot) => snapshot.verified,
+			createdAt: (snapshot) => snapshot.createdAt,
+			websiteUrl: (snapshot) => snapshot.websiteUrl,
+			followerCount: (snapshot) => snapshot.followerCount,
+			followingCount: (snapshot) => snapshot.followingCount,
+			tweetCount: (snapshot) => snapshot.tweetCount,
+			$icon: (snapshot) => snapshot.$icon,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.XPost,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const response = await singleFlight(getStatus)(entityId.id)
@@ -123,10 +136,23 @@ export default {
 					),
 				}
 			},
+			fields: {
+			text: (snapshot) => snapshot.text,
+			createdAt: (snapshot) => snapshot.createdAt,
+			postUrl: (snapshot) => snapshot.postUrl,
+			likeCount: (snapshot) => snapshot.likeCount,
+			retweetCount: (snapshot) => snapshot.retweetCount,
+			replyCount: (snapshot) => snapshot.replyCount,
+			quoteCount: (snapshot) => snapshot.quoteCount,
+			$replyToPost: (snapshot) => snapshot.$replyToPost,
+			$quotedPost: (snapshot) => snapshot.$quotedPost,
+			$author: (snapshot) => snapshot.$author,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.XUser_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				if (!('id' in entityId.$user))
@@ -140,10 +166,16 @@ export default {
 					tweetCount: user.statuses,
 				}
 			},
+			fields: {
+			followerCount: (snapshot) => snapshot.followerCount,
+			followingCount: (snapshot) => snapshot.followingCount,
+			tweetCount: (snapshot) => snapshot.tweetCount,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.XPost_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const status = (await singleFlight(getStatus)(entityId.$post.id)).status
@@ -157,16 +189,20 @@ export default {
 					quoteCount: status.quotes,
 				}
 			},
+			fields: {
+			likeCount: (snapshot) => snapshot.likeCount,
+			retweetCount: (snapshot) => snapshot.retweetCount,
+			replyCount: (snapshot) => snapshot.replyCount,
+			quoteCount: (snapshot) => snapshot.quoteCount,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XNetwork,
-			fieldName: '$$xUsers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const statusSearchResponse = await singleFlight(searchStatuses)(limit)
 				return (
 					(statusSearchResponse.results ?? [])
@@ -179,14 +215,17 @@ export default {
 						})
 				)
 			},
+			fields: {
+			$$xUsers: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XNetwork,
-			fieldName: '$$xPosts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(searchStatuses)(limit)).results ?? [])
 						.flatMap((wirePost) => (
@@ -199,11 +238,14 @@ export default {
 						))
 				)
 			},
+			fields: {
+			$$xPosts: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XPost,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const status = (await singleFlight(getStatus)(entityId.id)).status
@@ -217,17 +259,20 @@ export default {
 							timestampMs: Date.now(),
 						},
 						likeCount: status.likes,
-					retweetCount: status.reposts,
-					replyCount: status.replies,
-					quoteCount: status.quotes,
+						retweetCount: status.reposts,
+						replyCount: status.replies,
+						quoteCount: status.quotes,
 					},
 				]
 			},
+			fields: {
+			$$timestamps: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XUser,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity, 'id'],
 			resolve: async (entityId) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const user = (await singleFlight(getUser)('id' in entityId ? entityId.id : entityId.username)).user
@@ -246,14 +291,17 @@ export default {
 					},
 				]
 			},
+			fields: {
+			$$timestamps: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XUser,
-			fieldName: '$$posts',
+			accepts: [EntityIdProjection.Identity, 'id'],
 			resolve: async (entityId, context) => {
 				const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(getUserStatuses)('id' in entityId ? entityId.id : entityId.username, limit)).results ?? [])
 						.flatMap((wirePost) => (
@@ -266,6 +314,9 @@ export default {
 						))
 				)
 			},
+			fields: {
+			$$posts: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

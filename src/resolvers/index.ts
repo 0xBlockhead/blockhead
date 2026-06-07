@@ -1,5 +1,16 @@
 import { Source } from '$/sources/$Source.ts'
 import { enabledSources } from '$/sources/index.ts'
+import type {
+	ResolverPart,
+	SourceResolverDefinition,
+} from '$/resolvers/$resolvers.ts'
+import {
+	entityFieldConditionKey,
+	entityFieldDefinitions,
+	entityIdProjectionNames,
+	EntityFieldCardinality,
+} from '$/schema/$EntityDefinition.ts'
+import { schema } from '$/schema/index.ts'
 
 import MevRelayRestResolvers from '$/resolvers/MevRelay-Rest.ts'
 import MastodonRestResolvers from '$/resolvers/Mastodon-Rest.ts'
@@ -224,109 +235,194 @@ const enabledResolverModulesAfterSourceGate = (
 		ZeroGDocsRestResolvers,
 		ZeroGStorageNodeJsonRpcResolvers,
 		ZeroGStorageScanRestResolvers,
-	] satisfies readonly { source: Source }[]
+	] satisfies readonly {
+		source: Source
+		resolvers: readonly Omit<SourceResolverDefinition, 'definitionIndex' | 'source'>[]
+	}[]
 ).filter((module) => enabledSources.has(module.source))
 
-export const entityResolvers = (
+export const resolverDefinitions: SourceResolverDefinition[] = (
 	enabledResolverModulesAfterSourceGate.flatMap((module) => (
-		module.entityResolvers.map((entityResolver) => ({
-			...entityResolver,
+		module.resolvers.map((resolver) => ({
+			...resolver,
 			source: module.source,
 		}))
 	))
-)
-
-export const entityFieldResolvers = (
-	enabledResolverModulesAfterSourceGate.flatMap((module) => (
-		module.entityFieldResolvers.map((entityFieldResolver) => ({
-			...entityFieldResolver,
-			source: module.source,
+		.map((resolver, definitionIndex) => ({
+			...resolver,
+			definitionIndex,
 		}))
-	))
 )
 
-export const entityFieldCountResolvers = (
-	enabledResolverModulesAfterSourceGate.flatMap((module) => (
-		'entityFieldCountResolvers' in module ?
-			module.entityFieldCountResolvers.map((entityFieldCountResolver) => ({
-				...entityFieldCountResolver,
-				source: module.source,
-			}))
-		:
-			[]
-	))
+const fieldDefinitionByEntityTypeAndFieldName = Object.fromEntries(
+	schema.map((entityDefinition) => [
+		entityDefinition.entityType,
+		Object.fromEntries(
+			entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
+				fieldDefinition.name,
+				fieldDefinition,
+			]),
+		),
+	]),
 )
 
-export const entityLiveResolvers = (
-	enabledResolverModulesAfterSourceGate.flatMap((module) => (
-		'entityLiveResolvers' in module ?
-			module.entityLiveResolvers.map((entityLiveResolver) => ({
-				...entityLiveResolver,
-				source: module.source,
-			}))
-		:
-			[]
-	))
+const entityIdProjectionNamesByEntityType = Object.fromEntries(
+	schema.map((entityDefinition) => [
+		entityDefinition.entityType,
+		new Set(entityIdProjectionNames(entityDefinition)),
+	]),
 )
 
-export const entityResolversByEntityType = Object.groupBy(
-	entityResolvers,
-	(entityResolver) => entityResolver.entityType,
+for (const resolver of resolverDefinitions) {
+	for (const acceptedProjectionName of resolver.accepts) {
+		if (!entityIdProjectionNamesByEntityType[resolver.entityType]?.has(acceptedProjectionName))
+			throw new Error(`${resolver.source}:${resolver.entityType} references unknown id projection ${acceptedProjectionName}`)
+	}
+
+	for (const [fieldName, fieldSelector] of Object.entries(resolver.fields)) {
+		if (fieldSelector == null || typeof fieldSelector === 'function')
+			continue
+
+		for (const acceptedParentProjectionName of fieldSelector.acceptsParent ?? []) {
+			if (!entityIdProjectionNamesByEntityType[resolver.entityType]?.has(acceptedParentProjectionName))
+				throw new Error(`${resolver.source}:${resolver.entityType}.${fieldName} references unknown parent id projection ${acceptedParentProjectionName}`)
+		}
+	}
+}
+
+export const resolverDefinitionsByEntityType = Object.groupBy(
+	resolverDefinitions,
+	(resolver) => resolver.entityType,
 )
 
-export const entityFieldResolversByEntityType = Object.groupBy(
-	entityFieldResolvers,
-	(fieldResolver) => fieldResolver.entityType,
+const resolverParts: ResolverPart[] = resolverDefinitions.flatMap((resolver) => (
+	Object.entries(resolver.fields)
+		.flatMap(([fieldName, fieldSelector], partIndex) => {
+			if (fieldSelector == null)
+				return []
+
+			const fieldDefinition = fieldDefinitionByEntityTypeAndFieldName[resolver.entityType]?.[fieldName]
+			if (fieldDefinition == null)
+				throw new Error(`${resolver.source}:${resolver.entityType} references unknown field ${fieldName}`)
+
+			const selector = (
+				typeof fieldSelector === 'function' ?
+					{
+						select: fieldSelector,
+					}
+				:
+					fieldSelector
+			)
+			return [
+				{
+					resolver,
+					partIndex,
+					source: resolver.source,
+					entityType: resolver.entityType,
+					fieldName: fieldName as ResolverPart['fieldName'],
+					...selector,
+				},
+			]
+		})
+))
+
+export const resolverPartsKey = (
+	entityType: string,
+	fieldName: string,
+) => `${entityType}\x1E${fieldName}`
+
+export const resolverValuePartsByEntityTypeAndFieldName = Object.groupBy(
+	resolverParts.filter((resolverPart) => resolverPart.select != null),
+	(resolverPart) => resolverPartsKey(
+		resolverPart.entityType,
+		resolverPart.fieldName,
+	),
 )
 
-export const entityFieldCountResolversByEntityType = Object.groupBy(
-	entityFieldCountResolvers,
-	(fieldResolver) => fieldResolver.entityType,
+export const resolverCountPartsByEntityTypeAndFieldName = Object.groupBy(
+	resolverParts.filter((resolverPart) => {
+		if (resolverPart.resolveCount == null) return false
+		const fieldDefinition = fieldDefinitionByEntityTypeAndFieldName[
+			resolverPart.entityType
+		]?.[resolverPart.fieldName]
+		if (
+			!(
+				fieldDefinition?.cardinality === EntityFieldCardinality.Many
+				|| fieldDefinition?.cardinality === EntityFieldCardinality.ZeroOrMany
+			)
+		)
+			throw new Error(`${resolverPart.entityType}.${resolverPart.fieldName} has resolveCount but is not multiple-cardinality`)
+
+		return true
+	}),
+	(resolverPart) => resolverPartsKey(
+		resolverPart.entityType,
+		resolverPart.fieldName,
+	),
 )
 
-export const entityLiveResolversByEntityType = Object.groupBy(
-	entityLiveResolvers,
-	(entityLiveResolver) => entityLiveResolver.entityType,
+export const resolverLivePartsByEntityTypeAndFieldName = Object.groupBy(
+	resolverParts.filter((resolverPart) => resolverPart.resolveLive != null),
+	(resolverPart) => resolverPartsKey(
+		resolverPart.entityType,
+		resolverPart.fieldName,
+	),
 )
 
-export const entityFieldResolversByEntityTypeAndFieldName: Partial<
-	Record<string, Partial<Record<string, typeof entityFieldResolvers>>>
-> = Object.fromEntries(
-	Object.entries(entityFieldResolversByEntityType)
-		.map(([entityType, resolversForEntity]) => [
-			entityType,
-			Object.groupBy(
-				resolversForEntity,
-				(fieldResolver) => fieldResolver.fieldName,
-			),
-		]),
+export const resolverRootLivePartsByEntityType = Object.groupBy(
+	resolverDefinitions.filter((resolver) => resolver.resolveLive != null),
+	(resolver) => resolver.entityType,
 )
 
-export const entityFieldCountResolversByEntityTypeAndFieldName: Partial<
-	Record<string, Partial<Record<string, typeof entityFieldCountResolvers>>>
-> = Object.fromEntries(
-	Object.entries(entityFieldCountResolversByEntityType)
-		.map(([entityType, resolversForEntity]) => [
-			entityType,
-			Object.groupBy(
-				resolversForEntity,
-				(fieldResolver) => fieldResolver.fieldName,
-			),
-		]),
-)
-
-export const entityFieldNamesWithResolveLiveByEntityType: Partial<
+export const fieldNamesWithLiveResolverByEntityType: Partial<
 	Record<string, string[]>
 > = Object.fromEntries(
-	Object.entries(entityFieldResolversByEntityType)
-		.map(([entityType, resolversForEntity]) => [
+	Object.entries(Object.groupBy(
+		[
+			...Object.values(resolverRootLivePartsByEntityType)
+				.flat()
+				.flatMap((resolver) => (
+					resolver.resolveLive!.fields.map((fieldName) => ({
+						entityType: resolver.entityType,
+						fieldName,
+					}))
+				)),
+			...Object.values(resolverLivePartsByEntityTypeAndFieldName)
+				.flat()
+				.map((resolverPart) => ({
+					entityType: resolverPart.entityType,
+					fieldName: resolverPart.fieldName,
+				})),
+		],
+		(liveField) => liveField.entityType,
+	))
+		.map(([entityType, liveFields]) => [
 			entityType,
-			[
-				...new Set(
-					resolversForEntity
-						.filter((r) => r.resolveLive != null)
-						.map((r) => r.fieldName),
-				),
-			],
+			[...new Set(liveFields.map((liveField) => liveField.fieldName))],
 		]),
+)
+
+export const resolverDiscriminatorPartsByEntityTypeAndConditionKey: Partial<
+	Record<string, Partial<Record<string, typeof resolverParts>>>
+> = Object.fromEntries(
+	schema.map((entityDefinition) => [
+		entityDefinition.entityType,
+		Object.fromEntries(
+			entityFieldDefinitions(entityDefinition)
+				.flatMap((fieldDefinition) => {
+					const when = 'when' in fieldDefinition ? fieldDefinition.when : undefined
+					return (
+						when == null ?
+							[]
+						:
+							[[
+								entityFieldConditionKey(when),
+								resolverValuePartsByEntityTypeAndFieldName[
+									resolverPartsKey(entityDefinition.entityType, when.fieldName)
+								] ?? [],
+							]]
+					)
+				}),
+		),
+	]),
 )

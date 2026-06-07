@@ -194,16 +194,23 @@
 					</dd>
 				</div>
 
-				{#if session.lockedAt !== undefined}
-					<div>
-						<dt>Locked</dt>
-						<dd>
-							<Timestamp
-								timestamp={session.lockedAt}
-							/>
-						</dd>
-					</div>
-				{/if}
+				<div>
+					<dt>Locked</dt>
+					<dd>
+						<ResourceBoundary
+							resource={session}
+							placeholderText="Loading session…"
+						>
+							{#snippet children(session)}
+								{#if session.lockedAt !== undefined}
+									<Timestamp
+										timestamp={session.lockedAt}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
 				<div>
 					<dt>Simulation count</dt>

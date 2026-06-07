@@ -1,14 +1,15 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
-	sourcePublicEnv,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { EntityFieldValues } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
@@ -212,11 +213,12 @@ const mastodonAvatarUrl = (
 export default {
 	source: Source.Mastodon_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.ActivityPubActor,
+			accepts: [EntityIdProjection.Identity, 'localAccountId', 'acct'],
 			resolve: async (entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
 				const a = await singleFlight(getAccount)(publicEnv, 'localAccountId' in entityId ? entityId.localAccountId : entityId.acct)
@@ -226,12 +228,32 @@ export default {
 					mastodonAvatarUrl,
 				)
 			},
+			fields: {
+				instanceOrigin: (actor) => actor.instanceOrigin,
+				localAccountId: (actor) => actor.localAccountId,
+				username: (actor) => actor.username,
+				acct: (actor) => actor.acct,
+				displayName: (actor) => actor.displayName,
+				note: (actor) => actor.note,
+				$icon: (actor) => actor.$icon,
+				$headerImage: (actor) => actor.$headerImage,
+				profileUrl: (actor) => actor.profileUrl,
+				activityStreamsUri: (actor) => actor.activityStreamsUri,
+				website: (actor) => actor.website,
+				followersCount: (actor) => actor.followersCount,
+				followingCount: (actor) => actor.followingCount,
+				statusesCount: (actor) => actor.statusesCount,
+				bot: (actor) => actor.bot,
+				locked: (actor) => actor.locked,
+				createdAt: (actor) => actor.createdAt,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubNote,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const {
 					assertInstanceMatches,
 					getStatus,
@@ -240,12 +262,31 @@ export default {
 				const s = await singleFlight(getStatus)(publicEnv, entityId.localStatusId)
 				return activityPubNoteFieldsFromMastodonStatus(s, entityId.instanceOrigin)
 			},
+			fields: {
+				content: (note) => note.content,
+				createdAt: (note) => note.createdAt,
+				editedAt: (note) => note.editedAt,
+				favouriteCount: (note) => note.favouriteCount,
+				reblogCount: (note) => note.reblogCount,
+				replyCount: (note) => note.replyCount,
+				visibility: (note) => note.visibility,
+				sensitive: (note) => note.sensitive,
+				language: (note) => note.language,
+				spoilerText: (note) => note.spoilerText,
+				statusUrl: (note) => note.statusUrl,
+				activityStreamsUri: (note) => note.activityStreamsUri,
+				$$media: (note) => note.$$media,
+				$author: (note) => note.$author,
+				$inReplyTo: (note) => note.$inReplyTo,
+				$reblogOf: (note) => note.$reblogOf,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubActor_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.$actor.instanceOrigin)
 				if (!('localAccountId' in entityId.$actor))
@@ -258,12 +299,18 @@ export default {
 					...(account.statuses_count != null && { statusesCount: account.statuses_count }),
 				}
 			},
+			fields: {
+				followersCount: (timestamp) => timestamp.followersCount,
+				followingCount: (timestamp) => timestamp.followingCount,
+				statusesCount: (timestamp) => timestamp.statusesCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubNote_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const {
 					assertInstanceMatches,
 					getStatus,
@@ -276,26 +323,31 @@ export default {
 					...(status.replies_count != null && { replyCount: status.replies_count }),
 				}
 			},
+			fields: {
+				favouriteCount: (timestamp) => timestamp.favouriteCount,
+				reblogCount: (timestamp) => timestamp.reblogCount,
+				replyCount: (timestamp) => timestamp.replyCount,
+			},
 		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			fieldName: 'instanceTitle',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
 				const instance = await singleFlight(getInstance)(publicEnv)
 				return optionalNonemptyString(instance.title)
 			},
+			fields: {
+				instanceTitle: (network) => network,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			fieldName: 'instanceDescription',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
 				const instance = await singleFlight(getInstance)(publicEnv)
 				return (
@@ -303,27 +355,33 @@ export default {
 					?? optionalNonemptyString(instance.short_description)
 				)
 			},
+			fields: {
+				instanceDescription: (network) => network,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			fieldName: 'instanceVersion',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
 				const instance = await singleFlight(getInstance)(publicEnv)
 				return optionalNonemptyString(instance.version)
 			},
+			fields: {
+				instanceVersion: (network) => network,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			fieldName: '$$activityPubActors',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const { mastodonInstanceOrigin } = await import('$/sources/Mastodon/Rest/constants.ts')
 				const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					(await singleFlight(listPublicTimeline)(publicEnv, limit))
 						.flatMap((status) => {
@@ -338,16 +396,19 @@ export default {
 						})
 				)
 			},
+			fields: {
+				$$activityPubActors: (network) => network,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			fieldName: '$$activityPubNotes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const { mastodonInstanceOrigin } = await import('$/sources/Mastodon/Rest/constants.ts')
 				const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					(await singleFlight(listPublicTimeline)(publicEnv, limit))
 						.flatMap((status) => (
@@ -365,13 +426,16 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$activityPubNotes: (network) => network,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubActor,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity, 'localAccountId', 'acct'],
 			resolve: async (entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
 				const account = await singleFlight(getAccount)(publicEnv, 'localAccountId' in entityId ? entityId.localAccountId : entityId.acct)
@@ -390,19 +454,22 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (actor) => actor,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubActor,
-			fieldName: '$$notes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, listAccountStatuses } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
 				if (!('localAccountId' in entityId))
 					throw new Error('Mastodon_Rest: ActivityPubActor.$$notes acct lookup is unsupported')
 
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					(await singleFlight(listAccountStatuses)(publicEnv, entityId.localAccountId, limit))
 						.flatMap((s) => (
@@ -420,13 +487,16 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$notes: (actor) => actor,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubNote,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const {
 					assertInstanceMatches,
 					getStatus,
@@ -445,13 +515,16 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (note) => note,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubNote,
-			fieldName: '$$thread',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
-				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const publicEnv = context.publicEnv
 				const {
 					assertInstanceMatches,
 					getStatusContext,
@@ -474,6 +547,9 @@ export default {
 							]
 						))
 				)
+			},
+			fields: {
+				$$thread: (note) => note,
 			},
 		}),
 	],

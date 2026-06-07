@@ -1,13 +1,14 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
-	sourcePublicEnv,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -15,17 +16,18 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	source: Source.Rss2Json_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.RssFeed,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
 				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
 				const response = await singleFlight(getFeed)(
-						feedUrl,
-						1,
-						sourcePublicEnv(context, Source.Rss2Json_Rest),
+					feedUrl,
+					1,
+					context.publicEnv,
 				)
 				const feed = response.feed
 				if (feed == null) throw new Error('Rss2Json_Rest: feed not found')
@@ -42,10 +44,18 @@ export default {
 					...(imageUrl != null && { imageUrl }),
 				}
 			},
+			fields: {
+			title: (snapshot) => snapshot.title,
+			description: (snapshot) => snapshot.description,
+			link: (snapshot) => snapshot.link,
+			siteUrl: (snapshot) => snapshot.siteUrl,
+			imageUrl: (snapshot) => snapshot.imageUrl,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.RssItem,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					normalizeRssFeedUrl,
@@ -55,7 +65,7 @@ export default {
 				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
 				const feedItem = (
-						(await singleFlight(getFeed)(feedUrl, 50, sourcePublicEnv(context, Source.Rss2Json_Rest))).items ?? []
+					(await singleFlight(getFeed)(feedUrl, 50, context.publicEnv)).items ?? []
 				).find((candidate) => (
 					rssItemGuidFromParts(candidate.guid, candidate.link, candidate.title) === entityId.guid
 				))
@@ -83,28 +93,37 @@ export default {
 					},
 				}
 			},
+			fields: {
+			title: (snapshot) => snapshot.title,
+			link: (snapshot) => snapshot.link,
+			description: (snapshot) => snapshot.description,
+			content: (snapshot) => snapshot.content,
+			author: (snapshot) => snapshot.author,
+			publishedAt: (snapshot) => snapshot.publishedAt,
+			categories: (snapshot) => snapshot.categories,
+			enclosureUrl: (snapshot) => snapshot.enclosureUrl,
+			$feed: (snapshot) => snapshot.$feed,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.RssNetwork,
-			fieldName: '$$rssItems',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const {
 					normalizeRssFeedUrl,
 					rssItemGuidFromParts,
 				} = await import('$/sources/Rss/Rest/constants.ts')
 				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const perFeedLimit = Math.max(1, Math.ceil(limit / rssNetworkSeedFeeds.length))
 				const refs: { [EntityMetaKey.Id]: { feedUrl: string, guid: string } }[] = []
 				for (const seedFeed of rssNetworkSeedFeeds) {
 					const feedUrl = normalizeRssFeedUrl(seedFeed.feedUrl)
 					for (const feedItem of (await singleFlight(getFeed)(
-							feedUrl,
-							perFeedLimit,
-							sourcePublicEnv(context, Source.Rss2Json_Rest),
+						feedUrl,
+						perFeedLimit,
+						context.publicEnv,
 					)).items ?? []) {
 						const guid = rssItemGuidFromParts(feedItem.guid, feedItem.link, feedItem.title)
 						refs.push({
@@ -119,11 +138,14 @@ export default {
 				}
 				return refs.slice(0, limit)
 			},
+			fields: {
+			$$rssItems: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.RssFeed,
-			fieldName: '$$items',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					normalizeRssFeedUrl,
@@ -131,9 +153,9 @@ export default {
 				} = await import('$/sources/Rss/Rest/constants.ts')
 				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
-						((await singleFlight(getFeed)(feedUrl, limit, sourcePublicEnv(context, Source.Rss2Json_Rest))).items ?? [])
+					((await singleFlight(getFeed)(feedUrl, limit, context.publicEnv)).items ?? [])
 						.map((feedItem) => ({
 							[EntityMetaKey.Id]: {
 								feedUrl,
@@ -142,6 +164,9 @@ export default {
 						}))
 				)
 			},
+			fields: {
+			$$items: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

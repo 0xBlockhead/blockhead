@@ -4,27 +4,29 @@ import {
 	NetworkNamespace,
 } from '$/constants/Network.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
 	source: Source.Superchain_Github,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await singleFlight(fetchNetworks)()
 				const network = networks.find((candidate) => candidate.chainId === Number(entityId.caip2.reference))
-				if (network == null) throw new Error('Superchain_Github: network not in chainList.json')
+				if (network == null) return {}
 				return {
-					[EntityMetaKey.Id]: entityId,
 					name: network.name,
 					namespace: NetworkNamespace.Evm,
 					environment: (
@@ -42,7 +44,7 @@ export default {
 								},
 							},
 						},
-		}),
+					}),
 					layerNumber: (() => {
 						let layerNumber = 1
 						let parentChainId = network.parentChainId
@@ -55,37 +57,42 @@ export default {
 						}
 						return layerNumber
 					})(),
+					$mainnet: (() => {
+						if (network.namespace === superchainMainnetIdentifier) return undefined
+
+						const mainnet = networks.find((candidate) => (
+							candidate.namespace === superchainMainnetIdentifier
+							&& candidate.slug === network.slug
+						))
+						return (
+							mainnet == null ?
+								undefined
+							:
+								{
+									[EntityMetaKey.Id]: {
+										caip2: {
+											namespace: 'eip155',
+											reference: String(mainnet.chainId),
+										},
+									},
+								}
+						)
+					})(),
 				}
 			},
-		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
-			entityType: EntityType.EvmNetwork,
-			fieldName: '$parent',
-			resolve: async (entityId) => {
-				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-				const network = (await singleFlight(fetchNetworks)()).find((candidate) => candidate.chainId === Number(entityId.caip2.reference))
-				return (
-					network?.parentChainId == null ?
-						undefined
-					:
-						{
-							[EntityMetaKey.Id]: {
-								caip2: {
-									namespace: 'eip155',
-									reference: String(network.parentChainId),
-								},
-							},
-						}
-				)
-			},
+			fields: {
+			name: (snapshot) => snapshot.name,
+			namespace: (snapshot) => snapshot.namespace,
+			environment: (snapshot) => snapshot.environment,
+			$parent: (snapshot) => snapshot.$parent,
+			layerNumber: (snapshot) => snapshot.layerNumber,
+			$mainnet: (snapshot) => snapshot.$mainnet,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$childLayers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					superchainMainnetIdentifier,
@@ -119,63 +126,38 @@ export default {
 						}]
 				))
 			},
+			fields: {
+			$$childLayers: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
-			entityType: EntityType.EvmNetwork,
-			fieldName: '$$testnets',
-			resolve: async (entityId) => {
-				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
-				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-				const networks = await singleFlight(fetchNetworks)()
-				const network = networks.find((candidate) => candidate.chainId === Number(entityId.caip2.reference))
-				if (network == null || network.namespace !== superchainMainnetIdentifier) {
-					throw new Error('Superchain_Github: $$testnets only for Superchain mainnet networks')
-				}
-				return networks.flatMap((candidate) => (
-					candidate.namespace === superchainMainnetIdentifier
-					|| candidate.slug !== network.slug ?
-						[]
-					:
-						[{
-							[EntityMetaKey.Id]: {
-								caip2: {
-									namespace: 'eip155',
-									reference: String(candidate.chainId),
+			defineResolver({
+				entityType: EntityType.EvmNetwork,
+				accepts: [EntityIdProjection.Identity],
+				resolve: async (entityId) => {
+					const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
+					const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
+					const networks = await singleFlight(fetchNetworks)()
+					const network = networks.find((candidate) => candidate.chainId === Number(entityId.caip2.reference))
+					if (network == null || network.namespace !== superchainMainnetIdentifier) return []
+					return networks.flatMap((candidate) => (
+						candidate.namespace === superchainMainnetIdentifier
+						|| candidate.slug !== network.slug ?
+							[]
+						:
+							[{
+								[EntityMetaKey.Id]: {
+									caip2: {
+										namespace: 'eip155',
+										reference: String(candidate.chainId),
+									},
 								},
-							},
-						}]
-				))
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.EvmNetwork,
-			fieldName: '$mainnet',
-			resolve: async (entityId) => {
-				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
-				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-				const networks = await singleFlight(fetchNetworks)()
-				const network = networks.find((candidate) => candidate.chainId === Number(entityId.caip2.reference))
-				if (network == null || network.namespace === superchainMainnetIdentifier) return undefined
-				const mainnet = networks.find((candidate) => (
-					candidate.namespace === superchainMainnetIdentifier
-					&& candidate.slug === network.slug
-				))
-				return (
-					mainnet == null ?
-						undefined
-					:
-						{
-							[EntityMetaKey.Id]: {
-								caip2: {
-									namespace: 'eip155',
-									reference: String(mainnet.chainId),
-								},
-							},
-						}
-				)
-			},
+							}]
+					))
+				},
+			fields: {
+				$$testnets: (snapshot) => snapshot,
+			}
 		}),
 	],
 }

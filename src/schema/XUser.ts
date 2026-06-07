@@ -4,12 +4,13 @@ import {
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
+	type EntityIdentityValueNormalizer,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const lowercaseIdentityValue = (value: unknown) => (
+const lowercaseIdentityValue: EntityIdentityValueNormalizer = (value) => (
 	String(value).toLowerCase()
 )
 

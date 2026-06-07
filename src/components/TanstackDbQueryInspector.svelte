@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import { useLiveQuery } from '@tanstack/svelte-db'
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { schema } from '$/schema/index.ts'
 
@@ -26,13 +27,15 @@
 					.from({ entity: entityCollectionByEntityType[entityDefinition.entityType] })
 					.select(({ entity }) => ({ entity }))
 			)),
-			fieldRows: entityDefinition.fields.map((field) => (
+			fieldRows: Object.keys(entityFieldCollections[entityDefinition.entityType]).map((fieldName) => (
 				{
-					field,
+					field: {
+						name: fieldName,
+					},
 					entityFieldQuery: useLiveQuery((queryBuilder) => (
 						queryBuilder
 							.from({
-								entityField: entityFieldCollections[entityDefinition.entityType][field.name],
+								entityField: entityFieldCollections[entityDefinition.entityType][fieldName],
 							})
 							.select(({ entityField }) => ({ entityField }))
 					)),

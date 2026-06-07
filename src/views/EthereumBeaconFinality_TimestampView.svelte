@@ -8,10 +8,17 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// State
 	let {
 		entityId,
-		href = `/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`,
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]', {
+			caip2Namespace: entityId.$network.caip2.namespace,
+			caip2Reference: entityId.$network.caip2.reference,
+		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps

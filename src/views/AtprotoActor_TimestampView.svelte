@@ -17,7 +17,10 @@
 	let {
 		entityId,
 		href = resolve('/(social)/(atproto)/atproto/actor/[did]', {
-			did: entityId.$actor.did,
+			did: 'did' in entityId.$actor ?
+				entityId.$actor.did
+			:
+				entityId.$actor.handle,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(false),

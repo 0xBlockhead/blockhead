@@ -105,6 +105,7 @@
 	// Components
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import Self from '$/views/EvmContractView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -234,7 +235,7 @@
 							<div>
 								<dt>Implementation</dt>
 								<dd>
-									<EvmContractView
+									<Self
 										entityId={contract.$implementation[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
@@ -290,11 +291,4 @@
 		</div>
 	{/snippet}
 
-	{#snippet Details({
-		open,
-	})}
-		{#if _children}
-			{@render _children()}
-		{/if}
-	{/snippet}
 </EntityView>

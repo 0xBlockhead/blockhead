@@ -1,14 +1,16 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import {
 	hyperliquidMainnetRestBaseUrl,
 	hyperliquidMainnetRestEndpoints,
 } from '$/constants/HyperliquidNetwork.ts'
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -23,9 +25,10 @@ const assertHyperliquidMainnet = (network: NetworkId) => {
 export default {
 	source: Source.Hyperliquid_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId)
 				return {
@@ -35,10 +38,15 @@ export default {
 					restEndpoints: [...hyperliquidMainnetRestEndpoints],
 				}
 			},
+			fields: {
+			$network: (snapshot) => snapshot.$network,
+			restEndpoints: (snapshot) => snapshot.restEndpoints,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.HyperliquidPerpMarket,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId.$network)
 				const { getMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
@@ -53,10 +61,15 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			maxLeverage: (snapshot) => snapshot.maxLeverage,
+			onlyIsolated: (snapshot) => snapshot.onlyIsolated,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.HyperliquidSpotAsset,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId.$network)
 				const { getSpotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
@@ -73,10 +86,17 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			name: (snapshot) => snapshot.name,
+			szDecimals: (snapshot) => snapshot.szDecimals,
+			weiDecimals: (snapshot) => snapshot.weiDecimals,
+			tokenId: (snapshot) => snapshot.tokenId,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.HyperliquidAccount,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId.$network)
 				const { getUserRole } = await import('$/sources/Hyperliquid/Rest/queries.ts')
@@ -104,10 +124,15 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			accountRole: (snapshot) => snapshot.accountRole,
+			$masterAccount: (snapshot) => snapshot.$masterAccount,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.HyperliquidValidator,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId.$network)
 				const { getValidatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
@@ -129,13 +154,20 @@ export default {
 					isJailed: validator.isJailed,
 				}
 			},
+			fields: {
+			name: (snapshot) => snapshot.name,
+			$signer: (snapshot) => snapshot.$signer,
+			commission: (snapshot) => snapshot.commission,
+			recentBlockCount: (snapshot) => snapshot.recentBlockCount,
+			stake: (snapshot) => snapshot.stake,
+			isActive: (snapshot) => snapshot.isActive,
+			isJailed: (snapshot) => snapshot.isJailed,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId)
 				const {
@@ -171,16 +203,19 @@ export default {
 					},
 				]
 			},
+			fields: {
+			$$timestamps: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
-			fieldName: '$$validators',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertHyperliquidMainnet(entityId)
 				const { getValidatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 				return (await getValidatorSummaries({ restBaseUrl: hyperliquidMainnetRestBaseUrl }))
-					.slice(0, resolverLoadSubsetRowLimit(context))
+					.slice(0, resolverContextRowLimit(context))
 					.map((validator) => ({
 						[EntityMetaKey.Id]: {
 							$network: entityId,
@@ -200,16 +235,19 @@ export default {
 						isJailed: validator.isJailed,
 					}))
 			},
+			fields: {
+			$$validators: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
-			fieldName: '$$perpMarkets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertHyperliquidMainnet(entityId)
 				const { getMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 				return (await getMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl })).universe
-					.slice(0, resolverLoadSubsetRowLimit(context))
+					.slice(0, resolverContextRowLimit(context))
 					.map((market) => ({
 						[EntityMetaKey.Id]: {
 							$network: entityId,
@@ -221,16 +259,19 @@ export default {
 						}),
 					}))
 			},
+			fields: {
+			$$perpMarkets: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
-			fieldName: '$$spotAssets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertHyperliquidMainnet(entityId)
 				const { getSpotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 				return (await getSpotMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl })).tokens
-					.slice(0, resolverLoadSubsetRowLimit(context))
+					.slice(0, resolverContextRowLimit(context))
 					.map((token) => ({
 						[EntityMetaKey.Id]: {
 							$network: entityId,
@@ -244,6 +285,9 @@ export default {
 						}),
 					}))
 			},
+			fields: {
+			$$spotAssets: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

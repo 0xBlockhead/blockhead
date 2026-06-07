@@ -1,14 +1,16 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { atprotoNetworkSeedActors } from '$/constants/Social/Atproto.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -17,9 +19,10 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	source: Source.Atproto_BskySocial_Xrpc,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.AtprotoActor,
+			accepts: [EntityIdProjection.Identity, 'did'],
 			resolve: async (entityId) => {
 				const { getProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const profile = await singleFlight(getProfile)('did' in entityId ? entityId.did : entityId.handle)
@@ -51,10 +54,23 @@ export default {
 					...(description != null && { description }),
 				}
 			},
+			fields: {
+			did: (actor) => actor.did,
+			displayName: (actor) => actor.displayName,
+			handle: (actor) => actor.handle,
+			$icon: (actor) => actor.$icon,
+			$banner: (actor) => actor.$banner,
+			followersCount: (actor) => actor.followersCount,
+			followsCount: (actor) => actor.followsCount,
+			postsCount: (actor) => actor.postsCount,
+			indexedAt: (actor) => actor.indexedAt,
+			description: (actor) => actor.description,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.AtprotoPost,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const postView = (await singleFlight(getPosts)([entityId.uri])).posts.at(0)
@@ -85,10 +101,25 @@ export default {
 					...(rootUri != null && { $root: { [EntityMetaKey.Id]: { uri: rootUri } } }),
 				}
 			},
+			fields: {
+			$author: (post) => post.$author,
+			text: (post) => post.text,
+			createdAt: (post) => post.createdAt,
+			indexedAt: (post) => post.indexedAt,
+			likeCount: (post) => post.likeCount,
+			repostCount: (post) => post.repostCount,
+			replyCount: (post) => post.replyCount,
+			quoteCount: (post) => post.quoteCount,
+			langs: (post) => post.langs,
+			selfLabelValues: (post) => post.selfLabelValues,
+			$parent: (post) => post.$parent,
+			$root: (post) => post.$root,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.AtprotoActor_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (!('did' in entityId.$actor))
 					throw new Error('Atproto_BskySocial_Xrpc: AtprotoActor_Timestamp handle lookup is unsupported')
@@ -101,10 +132,16 @@ export default {
 					...(profile.postsCount != null && { postsCount: profile.postsCount }),
 				}
 			},
+			fields: {
+			followersCount: (timestamp) => timestamp.followersCount,
+			followsCount: (timestamp) => timestamp.followsCount,
+			postsCount: (timestamp) => timestamp.postsCount,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.AtprotoPost_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const postView = (await singleFlight(getPosts)([entityId.$post.uri])).posts.at(0)
@@ -116,16 +153,20 @@ export default {
 					...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
 				}
 			},
+			fields: {
+			likeCount: (timestamp) => timestamp.likeCount,
+			repostCount: (timestamp) => timestamp.repostCount,
+			replyCount: (timestamp) => timestamp.replyCount,
+			quoteCount: (timestamp) => timestamp.quoteCount,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.AtprotoNetwork,
-			fieldName: '$$atprotoActors',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { searchActorsTypeahead } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const refs: { [EntityMetaKey.Id]: { did: string } }[] = [
 					...atprotoNetworkSeedActors.flatMap((seed) => (
 						'did' in seed ?
@@ -147,19 +188,25 @@ export default {
 				]
 				return refs.slice(0, limit)
 			},
+			fields: {
+			$$atprotoActors: (actors) => actors,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.AtprotoNetwork,
-			fieldName: '$$atprotoPosts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				throw new Error('Atproto_BskySocial_Xrpc: $$atprotoPosts is unsupported; use $$atprotoActors and AtprotoActor.$$posts')
 			},
+			fields: {
+			$$atprotoPosts: (posts) => posts,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.AtprotoActor,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity, 'did'],
 			resolve: async (entityId) => {
 				if (!('did' in entityId))
 					throw new Error('Atproto_BskySocial_Xrpc: AtprotoActor.$$timestamps handle lookup is unsupported')
@@ -180,17 +227,20 @@ export default {
 					},
 				]
 			},
+			fields: {
+			$$timestamps: (timestamps) => timestamps,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.AtprotoActor,
-			fieldName: '$$posts',
+			accepts: [EntityIdProjection.Identity, 'did'],
 			resolve: async (entityId, context) => {
 				if (!('did' in entityId))
 					throw new Error('Atproto_BskySocial_Xrpc: AtprotoActor.$$posts handle lookup is unsupported')
 
 				const { getAuthorFeed } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const { feed } = await singleFlight(getAuthorFeed)({
 					actor: entityId.did,
 					limit,
@@ -204,11 +254,14 @@ export default {
 						})
 				)
 			},
+			fields: {
+			$$posts: (posts) => posts,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.AtprotoPost,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const postView = (await singleFlight(getPosts)([entityId.uri])).posts.at(0)
@@ -226,14 +279,17 @@ export default {
 					},
 				]
 			},
+			fields: {
+			$$timestamps: (timestamps) => timestamps,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.AtprotoPost,
-			fieldName: '$$thread',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 					const { getPostThread } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-					const limit = resolverLoadSubsetRowLimit(context)
+					const limit = resolverContextRowLimit(context)
 					const { thread } = await singleFlight(getPostThread)(entityId.uri)
 					if (thread == null)
 						throw new Error(`Atproto_BskySocial_Xrpc: post thread not found for ${entityId.uri}`)
@@ -265,6 +321,9 @@ export default {
 				walkReplies(thread)
 				return [...ancestors, ...descendants].slice(0, limit)
 			},
+			fields: {
+			$$thread: (thread) => thread,
+		}
 		}),
 	],
 }

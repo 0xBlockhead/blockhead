@@ -315,7 +315,7 @@
 						{#snippet SectionCoinInstances({ id, label })}
 							<EvmCoinInstancesView
 								CollapsibleProps={{ canToggle: false }}
-								href="/coins"
+								href={resolve('/coins')}
 								entityFieldReference={{
 									entityType: EntityType.Coin,
 									entityId,
@@ -332,7 +332,7 @@
 							))}
 								<EvmCoinInstancesView
 									CollapsibleProps={{ canToggle: false }}
-									href="/coins"
+									href={resolve('/coins')}
 									entityFieldReference={{
 										entityType: EntityType.Coin,
 										entityId,
@@ -349,7 +349,7 @@
 							{#if (coin.$$bridgeCapabilities ?? []).length}
 								<CoinBridgeCapabilitiesView
 									CollapsibleProps={{ canToggle: false }}
-									href="/bridge"
+									href={resolve('/bridge')}
 									entityFieldReference={{
 										entityType: EntityType.Coin,
 										entityId,
@@ -411,7 +411,7 @@
 						{#snippet SectionMarketsAsBase({ id, label })}
 							<MarketsView
 								CollapsibleProps={{ canToggle: false }}
-								href="/markets"
+								href={resolve('/markets')}
 								entityFieldReference={{
 									entityType: EntityType.Coin,
 									entityId,
@@ -425,7 +425,7 @@
 						{#snippet SectionMarketsAsQuote({ id, label })}
 							<MarketsView
 								CollapsibleProps={{ canToggle: false }}
-								href="/markets"
+								href={resolve('/markets')}
 								entityFieldReference={{
 									entityType: EntityType.Coin,
 									entityId,

@@ -1,8 +1,10 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -17,9 +19,10 @@ const assertZeroGMainnet = (network: NetworkId) => {
 export default {
 	source: Source.ZeroGChainScan_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId)
 				return {
@@ -31,10 +34,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+			$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGConsensusNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId.$network)
 				if (entityId.consensusNetworkId !== '0g-chain' && entityId.consensusNetworkId !== ('networkSlug' in entityId.$network ? entityId.$network.networkSlug : entityId.$network.caip2.reference)) {
@@ -45,22 +52,9 @@ export default {
 					sharedStakingStatusSource: getInfo().url,
 				}
 			},
-		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
-			entityType: EntityType.ZeroGNetwork,
-			fieldName: '$consensusNetwork',
-			resolve: async (entityId) => {
-				assertZeroGMainnet(entityId)
-				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId,
-						consensusNetworkId: '0g-chain',
-					},
-				}
-			},
+			fields: {
+			sharedStakingStatusSource: (snapshot) => snapshot.sharedStakingStatusSource,
+		}
 		}),
 	],
 }

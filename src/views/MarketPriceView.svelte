@@ -246,7 +246,7 @@
 		open: _open,
 	})}
 		<Market_TimestampsView
-			href="/markets"
+			href={resolve('/markets')}
 			collapsible={false}
 			entityFieldReference={{
 				entityType: EntityType.MarketPrice,

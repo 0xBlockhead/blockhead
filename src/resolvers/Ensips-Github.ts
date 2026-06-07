@@ -1,11 +1,13 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { regex } from 'arkregex'
 import { singleFlight } from '$/lib/singleFlight.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -41,9 +43,10 @@ const githubEnsipProposalIndexRows = async (
 export default {
 	source: Source.Ensips_Github,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.SpecificationProposal,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				const {
@@ -67,22 +70,29 @@ export default {
 					documentBody: body.length > 0 ? body : undefined,
 				}
 			},
+			fields: {
+			documentCategory: (snapshot) => snapshot.documentCategory,
+			documentTitle: (snapshot) => snapshot.documentTitle,
+			documentStatus: (snapshot) => snapshot.documentStatus,
+			documentBody: (snapshot) => snapshot.documentBody,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				const { getContents } = await import('$/sources/Ensips/Github/queries.ts')
 				return githubEnsipProposalIndexRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Ens) {
@@ -91,11 +101,14 @@ export default {
 				const { getContents } = await import('$/sources/Ensips/Github/queries.ts')
 				return githubEnsipProposalIndexRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Ens || entityId.category !== ProposalCategory.Ensip) {
@@ -104,6 +117,9 @@ export default {
 				const { getContents } = await import('$/sources/Ensips/Github/queries.ts')
 				return githubEnsipProposalIndexRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

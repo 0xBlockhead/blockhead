@@ -1,22 +1,23 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
-import type { EntityId } from '$/schema/$schema.ts'
-import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
 	source: Source.Dexscreener_OpenApi,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.LiquidityPool,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
 				const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
@@ -77,10 +78,30 @@ export default {
 					...(latestDexPair.txns?.h24.sells != null && { transactionSells24h: latestDexPair.txns.h24.sells }),
 				}
 			},
+			fields: {
+			$baseToken: (snapshot) => snapshot.$baseToken,
+			$quoteToken: (snapshot) => snapshot.$quoteToken,
+			baseTokenSymbol: (snapshot) => snapshot.baseTokenSymbol,
+			quoteTokenSymbol: (snapshot) => snapshot.quoteTokenSymbol,
+			volumeUSD: (snapshot) => snapshot.volumeUSD,
+			totalValueLockedUSD: (snapshot) => snapshot.totalValueLockedUSD,
+			marketCapUsd: (snapshot) => snapshot.marketCapUsd,
+			fdvUsd: (snapshot) => snapshot.fdvUsd,
+			pairCreatedAtMs: (snapshot) => snapshot.pairCreatedAtMs,
+			dexscreenerLabels: (snapshot) => snapshot.dexscreenerLabels,
+			dexId: (snapshot) => snapshot.dexId,
+			dexscreenerPairUrl: (snapshot) => snapshot.dexscreenerPairUrl,
+			baseTokenPriceUsd: (snapshot) => snapshot.baseTokenPriceUsd,
+			baseTokenPriceQuote: (snapshot) => snapshot.baseTokenPriceQuote,
+			priceChangePercent24h: (snapshot) => snapshot.priceChangePercent24h,
+			transactionBuys24h: (snapshot) => snapshot.transactionBuys24h,
+			transactionSells24h: (snapshot) => snapshot.transactionSells24h,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LiquidityPool_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
 				const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
@@ -114,18 +135,24 @@ export default {
 					transport: 'Dexscreener OpenAPI',
 				}
 			},
+			fields: {
+			priceUsd: (snapshot) => snapshot.priceUsd,
+			priceNative: (snapshot) => snapshot.priceNative,
+			liquidityUsd: (snapshot) => snapshot.liquidityUsd,
+			volumeUsd24h: (snapshot) => snapshot.volumeUsd24h,
+			priceChangePercent24h: (snapshot) => snapshot.priceChangePercent24h,
+			transactionBuys24h: (snapshot) => snapshot.transactionBuys24h,
+			transactionSells24h: (snapshot) => snapshot.transactionSells24h,
+			marketCapUsd: (snapshot) => snapshot.marketCapUsd,
+			fdvUsd: (snapshot) => snapshot.fdvUsd,
+			transport: (snapshot) => snapshot.transport,
+		}
 		}),
 
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$liquidityPools',
-			resolve: async (
-				_scopedEntityId: EntityId<typeof schema, EntityType._Global>,
-				context?,
-			) => {
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (_entityId, context) => {
 				const { numericChainIdByDexscreenerApiChainLabel } = await import(
 					'$/sources/Dexscreener/OpenApi/constants.ts',
 				)
@@ -167,13 +194,16 @@ export default {
 				if (liquidityPools.length === 0)
 					throw new Error('Dexscreener_OpenApi: pair search "WETH USDC uniswap" returned no liquidity pools')
 
-				return liquidityPools.slice(0, resolverLoadSubsetRowLimit(context))
+				return liquidityPools.slice(0, resolverContextRowLimit(context))
 			},
+			fields: {
+			$$liquidityPools: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LiquidityPool,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => [
 				{
 					[EntityMetaKey.Id]: {
@@ -183,15 +213,20 @@ export default {
 					},
 				},
 			],
+			fields: {
+			$$timestamps: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LiquidityPool_Timestamp,
-			fieldName: '$parentLiquidityPool',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => ({
 				[EntityMetaKey.Id]: entityId.$liquidityPool,
 			}),
+			fields: {
+			$parentLiquidityPool: (snapshot) => snapshot,
+		}
 		}),
-
 	],
 }

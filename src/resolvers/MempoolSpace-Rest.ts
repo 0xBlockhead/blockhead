@@ -1,13 +1,15 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import {
 	bitcoinMainnetCaip2,
 	mempoolSpaceBitcoinMainnetRestBaseUrl,
 } from '$/constants/BitcoinNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -40,9 +42,10 @@ const getTransaction = async (entityId: {
 export default {
 	source: Source.MempoolSpace_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.UtxoNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertBitcoinMainnet(entityId)
 				return {
@@ -51,10 +54,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+			$network: (network) => network.$network,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertBitcoinMainnet(entityId.$network)
 				const {
@@ -88,10 +95,22 @@ export default {
 					transactionCount: block.tx_count,
 				}
 			},
+			fields: {
+			hash: (block) => block.hash,
+			$parent: (block) => block.$parent,
+			timestampMs: (block) => block.timestampMs,
+			merkleRoot: (block) => block.merkleRoot,
+			nonce: (block) => block.nonce,
+			difficulty: (block) => block.difficulty,
+			sizeBytes: (block) => block.sizeBytes,
+			weightUnits: (block) => block.weightUnits,
+			transactionCount: (block) => block.transactionCount,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const transaction = await getTransaction(entityId)
 				return {
@@ -121,10 +140,21 @@ export default {
 					isCoinbase: transaction.vin.some((input) => input.is_coinbase),
 				}
 			},
+			fields: {
+			$block: (transaction) => transaction.$block,
+			version: (transaction) => transaction.version,
+			lockTime: (transaction) => transaction.lockTime,
+			sizeBytes: (transaction) => transaction.sizeBytes,
+			weightUnits: (transaction) => transaction.weightUnits,
+			virtualSizeBytes: (transaction) => transaction.virtualSizeBytes,
+			feeSats: (transaction) => transaction.feeSats,
+			isCoinbase: (transaction) => transaction.isCoinbase,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoInput,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const input = (await getTransaction(entityId.$transaction)).vin[entityId.inputIndex]
 				return {
@@ -155,10 +185,18 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			$spentOutput: (input) => input.$spentOutput,
+			coinbaseScript: (input) => input.coinbaseScript,
+			scriptSigAsm: (input) => input.scriptSigAsm,
+			sequence: (input) => input.sequence,
+			witness: (input) => input.witness,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoAddress,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertBitcoinMainnet(entityId.$network)
 				const { getAddress } = await import('$/sources/MempoolSpace/Rest/queries.ts')
@@ -175,10 +213,18 @@ export default {
 					totalSpentSats: BigInt(chainStats.spent_txo_sum),
 				}
 			},
+			fields: {
+			balanceSats: (address) => address.balanceSats,
+			transactionCount: (address) => address.transactionCount,
+			unspentOutputCount: (address) => address.unspentOutputCount,
+			totalReceivedSats: (address) => address.totalReceivedSats,
+			totalSpentSats: (address) => address.totalSpentSats,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoOutput,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const output = (await getTransaction(entityId.$transaction)).vout[entityId.outputIndex]
 				return {
@@ -202,24 +248,32 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			valueSats: (output) => output.valueSats,
+			scriptPubKeyAsm: (output) => output.scriptPubKeyAsm,
+			scriptPubKeyHex: (output) => output.scriptPubKeyHex,
+			scriptPubKeyType: (output) => output.scriptPubKeyType,
+			$address: (output) => output.$address,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			fieldName: '$network',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertBitcoinMainnet(entityId)
 				return {
 					[EntityMetaKey.Id]: entityId,
 				}
 			},
+			fields: {
+			$network: (network) => network,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertBitcoinMainnet(entityId)
 				const {
@@ -248,16 +302,19 @@ export default {
 					},
 				]
 			},
+			fields: {
+			$$timestamps: (timestamps) => timestamps,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			fieldName: '$$blocks',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertBitcoinMainnet(entityId)
 				const { getBlocks } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const blocks = await getBlocks({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
-				return blocks.slice(0, resolverLoadSubsetRowLimit(context)).map((block) => ({
+				return blocks.slice(0, resolverContextRowLimit(context)).map((block) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId,
 						height: BigInt(block.height),
@@ -273,27 +330,33 @@ export default {
 					transactionCount: block.tx_count,
 				}))
 			},
+			fields: {
+			$$blocks: (blocks) => blocks,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			fieldName: '$$transactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertBitcoinMainnet(entityId)
 				const { getMempoolTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const txids = await getMempoolTxids({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
-				return txids.slice(0, resolverLoadSubsetRowLimit(context)).map((txId) => ({
+				return txids.slice(0, resolverContextRowLimit(context)).map((txId) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId,
 						txId,
 					},
 				}))
 			},
+			fields: {
+			$$transactions: (transactions) => transactions,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
-			fieldName: '$$transactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertBitcoinMainnet(entityId.$network)
 				const {
@@ -315,11 +378,14 @@ export default {
 					},
 				}))
 			},
+			fields: {
+			$$transactions: (transactions) => transactions,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			fieldName: '$$inputs',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => (
 				(await getTransaction(entityId)).vin.map((input, inputIndex) => (
 					{
@@ -351,11 +417,14 @@ export default {
 					}
 				))
 			),
+			fields: {
+			$$inputs: (inputs) => inputs,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			fieldName: '$$outputs',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => (
 				(await getTransaction(entityId)).vout.map((output, outputIndex) => (
 					{
@@ -380,6 +449,9 @@ export default {
 					}
 				))
 			),
+			fields: {
+			$$outputs: (outputs) => outputs,
+		}
 		}),
 	],
 }

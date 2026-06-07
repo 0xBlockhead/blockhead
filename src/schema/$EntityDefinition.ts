@@ -56,6 +56,12 @@ export type EntityIdentityValueNormalizer = (
 	(value: unknown) => unknown
 )
 
+export type EntityIdProjectionName = string
+
+export const EntityIdProjection = {
+	Identity: 'Identity',
+} as const
+
 const entityIdentityFieldName = (
 	field: EntityIdentityFieldDefinition,
 ) => (
@@ -221,6 +227,48 @@ const entityIdentityValue = (
 	:
 		value
 )
+
+export const entityIdProjectionNames = (
+	entityDefinition: EntityDefinition,
+): readonly EntityIdProjectionName[] => [
+	EntityIdProjection.Identity,
+	...(entityDefinition.identities ?? []).map((identity) => identity.name),
+	...(entityDefinition.lookups ?? []).map((lookup) => lookup.name),
+]
+
+const entityIdHasOnlyKeys = (
+	entityId: Record<string, unknown>,
+	keys: readonly string[],
+) => (
+	Object.keys(entityId).length === keys.length
+	&& keys.every((key) => key in entityId)
+)
+
+export const entityIdProjectionNameForId = (
+	entityDefinition: EntityDefinition,
+	entityId: unknown,
+): EntityIdProjectionName | undefined => {
+	if (entityDefinition.id(entityId) instanceof arktype.errors)
+		return undefined
+
+	const entityIdObject = entityIdentityObjectRecord(entityId)
+	const lookup = (entityDefinition.lookups ?? []).find((candidate) => (
+		entityIdHasOnlyKeys(
+			entityIdObject,
+			candidate.fields.map(entityIdentityFieldKey),
+		)
+	))
+	if (lookup != null)
+		return lookup.name
+
+	const identity = (entityDefinition.identities ?? []).find((candidate) => (
+		entityIdHasOnlyKeys(
+			entityIdObject,
+			candidate.fields.map(entityIdentityFieldKey),
+		)
+	))
+	return identity?.name ?? EntityIdProjection.Identity
+}
 
 export const entityIdentityIdsFromFields = <const _EntityId>(
 	entityDefinition: EntityDefinition,

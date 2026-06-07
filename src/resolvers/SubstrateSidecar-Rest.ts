@@ -1,12 +1,14 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import {
 	polkadotMainnetCaip2,
 	substrateSidecarDefaultLocalRestUrl,
 } from '$/constants/PolkadotNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -30,9 +32,10 @@ const assertPolkadotMainnet = (network: NetworkId) => {
 export default {
 	source: Source.SubstrateSidecar_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
@@ -131,10 +134,19 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			hash: (block) => block.hash,
+			$parent: (block) => block.$parent,
+			stateRoot: (block) => block.stateRoot,
+			extrinsicsRoot: (block) => block.extrinsicsRoot,
+			$$extrinsics: (block) => block.$$extrinsics,
+			$$events: (block) => block.$$events,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotExtrinsic,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$block.$network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
@@ -170,10 +182,18 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			hash: (extrinsic) => extrinsic.hash,
+			$signer: (extrinsic) => extrinsic.$signer,
+			$pallet: (extrinsic) => extrinsic.$pallet,
+			callName: (extrinsic) => extrinsic.callName,
+			success: (extrinsic) => extrinsic.success,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotEvent,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$block.$network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
@@ -220,10 +240,16 @@ export default {
 					eventName: eventName,
 				}
 			},
+			fields: {
+			$extrinsic: (event) => event.$extrinsic,
+			$pallet: (event) => event.$pallet,
+			eventName: (event) => event.eventName,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotAccount,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const { getAccountBalanceInfo } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
@@ -240,10 +266,15 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			nonce: (account) => account.nonce,
+			freeBalancePlancks: (account) => account.freeBalancePlancks,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotPallet,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const { getRuntimeMetadata } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
@@ -254,10 +285,14 @@ export default {
 					index: pallet.index,
 				}
 			},
+			fields: {
+			index: (pallet) => pallet.index,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotValidator,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
@@ -285,13 +320,16 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			$controller: (validator) => validator.$controller,
+			commissionPerBillion: (validator) => validator.commissionPerBillion,
+			totalStakePlancks: (validator) => validator.totalStakePlancks,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotNetwork,
-			fieldName: '$$validators',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId)
 				const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
@@ -326,11 +364,14 @@ export default {
 							]
 					})
 			},
+			fields: {
+			$$validators: (validators) => validators,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
-			fieldName: '$parent',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
@@ -347,11 +388,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+			$parent: (parent) => parent,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
-			fieldName: '$$extrinsics',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
@@ -391,11 +435,14 @@ export default {
 					}),
 				}))
 			},
+			fields: {
+			$$extrinsics: (extrinsics) => extrinsics,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
-			fieldName: '$$events',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
@@ -449,6 +496,9 @@ export default {
 					}
 				})
 			},
+			fields: {
+			$$events: (events) => events,
+		}
 		}),
 	],
 }

@@ -104,7 +104,7 @@
 		open: _open,
 	})}
 		<MarketsView
-			href="/markets"
+			href={resolve('/markets')}
 			entityFieldReference={{
 				entityType: EntityType.MarketVenue,
 				entityId,

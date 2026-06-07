@@ -1,13 +1,15 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import {
 	filecoinMainnetCaip2,
 	filfoxMainnetRestBaseUrl,
 } from '$/constants/FilecoinNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -26,9 +28,10 @@ const assertFilecoinMainnet = (network: NetworkId) => {
 export default {
 	source: Source.Filfox_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.FilecoinTipset,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const {
@@ -81,10 +84,17 @@ export default {
 					})),
 				}
 			},
+			fields: {
+			$parent: (snapshot) => snapshot.$parent,
+			parentWeight: (snapshot) => snapshot.parentWeight,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			$$blocks: (snapshot) => snapshot.$$blocks,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FilecoinBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const {
@@ -118,10 +128,16 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			$tipset: (snapshot) => snapshot.$tipset,
+			$miner: (snapshot) => snapshot.$miner,
+			winCount: (snapshot) => snapshot.winCount,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FilecoinMessage,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getMessage } = await import('$/sources/Filfox/Rest/queries.ts')
@@ -152,10 +168,19 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			$from: (snapshot) => snapshot.$from,
+			$to: (snapshot) => snapshot.$to,
+			method: (snapshot) => snapshot.method,
+			nonce: (snapshot) => snapshot.nonce,
+			valueAttoFil: (snapshot) => snapshot.valueAttoFil,
+			gasLimit: (snapshot) => snapshot.gasLimit,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FilecoinActor,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getAddress } = await import('$/sources/Filfox/Rest/queries.ts')
@@ -167,10 +192,14 @@ export default {
 					balanceAttoFil: BigInt(address.balance),
 				}
 			},
+			fields: {
+			balanceAttoFil: (snapshot) => snapshot.balanceAttoFil,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FilecoinMiner,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getAddress } = await import('$/sources/Filfox/Rest/queries.ts')
@@ -202,22 +231,24 @@ export default {
 					qualityAdjustedPower: BigInt(address.miner.qualityAdjPower),
 				}
 			},
+			fields: {
+			$owner: (snapshot) => snapshot.$owner,
+			$worker: (snapshot) => snapshot.$worker,
+			peerId: (snapshot) => snapshot.peerId,
+			qualityAdjustedPower: (snapshot) => snapshot.qualityAdjustedPower,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-
-
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FilecoinBlock,
-			fieldName: '$$messages',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getBlockMessages } = await import('$/sources/Filfox/Rest/queries.ts')
 				return (await getBlockMessages({
 					restBaseUrl: filfoxMainnetRestBaseUrl,
 					blockCid: entityId.cid,
-					pageSize: resolverLoadSubsetRowLimit(context),
+					pageSize: resolverContextRowLimit(context),
 				})).messages.map((message) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId.$network,
@@ -239,6 +270,9 @@ export default {
 					valueAttoFil: BigInt(message.value),
 				}))
 			},
+			fields: {
+			$$messages: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

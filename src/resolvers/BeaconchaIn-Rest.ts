@@ -1,17 +1,18 @@
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
-	defineEntityResolver,
-	sourcePublicEnv,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
 	source: Source.BeaconchaIn_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.BeaconEpoch,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					beaconchaInApiBaseByExecutionChainId,
@@ -20,7 +21,7 @@ export default {
 					getEpoch,
 				} = await import('$/sources/BeaconchaIn/Rest/queries.ts')
 				const epoch = await singleFlight(getEpoch)(
-					sourcePublicEnv(context, Source.BeaconchaIn_Rest),
+					context.publicEnv,
 					{
 						apiBase: beaconchaInApiBaseByExecutionChainId[Number(entityId.$network.caip2.reference)],
 						epoch: entityId.epoch,
@@ -39,8 +40,15 @@ export default {
 					...(epoch.withdrawalcount != null && { withdrawalsCount: epoch.withdrawalcount }),
 				}
 			},
+			fields: {
+			finalized: (snapshot) => snapshot.finalized,
+			globalParticipationRate: (snapshot) => snapshot.globalParticipationRate,
+			validatorsCount: (snapshot) => snapshot.validatorsCount,
+			attestationsCount: (snapshot) => snapshot.attestationsCount,
+			attesterSlashingsCount: (snapshot) => snapshot.attesterSlashingsCount,
+			proposerSlashingsCount: (snapshot) => snapshot.proposerSlashingsCount,
+			withdrawalsCount: (snapshot) => snapshot.withdrawalsCount,
+		}
 		}),
 	],
-
-	entityFieldResolvers: [],
 }

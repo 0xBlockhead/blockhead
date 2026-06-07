@@ -4,7 +4,7 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -41,7 +41,7 @@
 		entityId,
 		{
 			$: (
-				entityResolversByEntityType[EntityType.XPost_Timestamp]?.map((resolver) => resolver.source)
+				resolverDefinitionsByEntityType[EntityType.XPost_Timestamp]?.map((resolver) => resolver.source)
 				?? [Source.Local_Internal]
 			),
 			likeCount: {},

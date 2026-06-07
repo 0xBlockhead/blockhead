@@ -85,7 +85,6 @@
 				id={`${id}-items`}
 				href={href}
 				getKey={(block) => stringify(block[EntityMetaKey.Id])}
-				getSortValue={(block) => -Number(block[EntityMetaKey.Id].height)}
 				open={true}
 				resource={blocks}
 				{title}
@@ -95,8 +94,8 @@
 					<p data-text="muted">No recent blocks yet.</p>
 				{/snippet}
 
-				{#snippet Item(context)}
-					<CosmosBlockView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+				{#snippet Item({ item })}
+					<CosmosBlockView entityId={item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
 				{/snippet}
 			</EntitiesList>
 		{/if}

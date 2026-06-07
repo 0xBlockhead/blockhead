@@ -1,10 +1,12 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { zeroGStorageNodeDefaultLocalRpcUrl } from '$/constants/ZeroGNetwork.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -39,9 +41,10 @@ const fileInfoForDataBlob = async (entityId: {
 export default {
 	source: Source.ZeroGStorageNode_JsonRpc,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.ZeroGStorageNode,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId.$network)
 				const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
@@ -58,17 +61,36 @@ export default {
 					endpoint: zeroGStorageNodeDefaultLocalRpcUrl,
 				}
 			},
+			fields: {
+			$operator: (snapshot) => snapshot.$operator,
+			endpoint: (snapshot) => snapshot.endpoint,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGDataBlob,
-			resolve: async (entityId) => ({
-				sizeBytes: BigInt((await fileInfoForDataBlob(entityId)).tx.size),
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId) => {
+				const fileInfo = await fileInfoForDataBlob(entityId)
+				return {
+					sizeBytes: BigInt(fileInfo.tx.size),
+					$$chunks: fileInfo.tx.streamIds.map((_chunkRoot, chunkIndex) => ({
+						[EntityMetaKey.Id]: {
+							$dataBlob: entityId,
+							chunkIndex,
+						},
+					})),
+				}
+			},
+			fields: {
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			$$chunks: (snapshot) => snapshot.$$chunks,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGDataChunk,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const fileInfo = await fileInfoForDataBlob(entityId.$dataBlob)
 				const chunkRoot = fileInfo.tx.streamIds.at(entityId.chunkIndex)
@@ -83,21 +105,10 @@ export default {
 					chunkRoot,
 				}
 			},
-		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
-			entityType: EntityType.ZeroGDataBlob,
-			fieldName: '$$chunks',
-			resolve: async (entityId) => (
-				(await fileInfoForDataBlob(entityId)).tx.streamIds.map((_chunkRoot, chunkIndex) => ({
-					[EntityMetaKey.Id]: {
-						$dataBlob: entityId,
-						chunkIndex,
-					},
-				}))
-			),
+			fields: {
+			$storageNode: (snapshot) => snapshot.$storageNode,
+			chunkRoot: (snapshot) => snapshot.chunkRoot,
+		}
 		}),
 	],
 }

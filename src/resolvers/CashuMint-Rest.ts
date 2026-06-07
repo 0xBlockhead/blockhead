@@ -1,18 +1,21 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
 	source: Source.CashuMint_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.CashuMint,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getMintInfo } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 				const info = await getMintInfo({ mintUrl: entityId.mintUrl })
@@ -27,10 +30,21 @@ export default {
 					...(info.time != null && { timeMs: info.time * 1000 }),
 				}
 			},
+			fields: {
+			name: (snapshot) => snapshot.name,
+			pubkey: (snapshot) => snapshot.pubkey,
+			version: (snapshot) => snapshot.version,
+			description: (snapshot) => snapshot.description,
+			motd: (snapshot) => snapshot.motd,
+			iconUrl: (snapshot) => snapshot.iconUrl,
+			tosUrl: (snapshot) => snapshot.tosUrl,
+			timeMs: (snapshot) => snapshot.timeMs,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.CashuKeyset,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					getMintKeysets,
@@ -57,19 +71,23 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			unit: (snapshot) => snapshot.unit,
+			active: (snapshot) => snapshot.active,
+			inputFeePpk: (snapshot) => snapshot.inputFeePpk,
+			keysByAmountJson: (snapshot) => snapshot.keysByAmountJson,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.CashuMint,
-			fieldName: '$$keysets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 				return (await getMintKeysets({
 					mintUrl: entityId.mintUrl,
 				})).keysets
-					.slice(0, resolverLoadSubsetRowLimit(context))
+					.slice(0, resolverContextRowLimit(context))
 					.map((keyset) => ({
 						[EntityMetaKey.Id]: {
 							$mint: entityId,
@@ -80,6 +98,9 @@ export default {
 						...(keyset.input_fee_ppk != null && { inputFeePpk: keyset.input_fee_ppk }),
 					}))
 			},
+			fields: {
+			$$keysets: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

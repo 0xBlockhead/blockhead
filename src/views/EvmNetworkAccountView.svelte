@@ -11,11 +11,19 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// State
 	let {
 		pageContent,
 		entityId,
-		href = `/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/account/${entityId.$actor.address}`,
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(accounts)/account/[address]', {
+			caip2Namespace: entityId.$network.caip2.namespace,
+			caip2Reference: entityId.$network.caip2.reference,
+			address: entityId.$actor.address,
+		}),
 		title = 'Network account',
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -176,7 +184,10 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<TruncatedValue
+			format={TruncatedValueFormat.Visual}
+			value={entityId.$actor.address}
+		/>
 
 		<small data-row="inline align-center wrap" data-text="muted">
 			{' '}on{' '}

@@ -30,6 +30,15 @@
 
 	const emptyTopicHex: `0x${string}` = '0x0000000000000000000000000000000000000000000000000000000000000000'
 
+
+	// (Derived)
+	const topic0Hex = $derived(
+		topics[0]?.startsWith('0x') ?
+			normalizeEvmTopicHex(topics[0] as `0x${string}`)
+		:
+			null,
+	)
+
 	const topic = useEntity(
 		EntityType.EvmTopic,
 		(
@@ -68,14 +77,6 @@
 		},
 	)
 
-
-	// (Derived)
-	const topic0Hex = $derived(
-		topics[0]?.startsWith('0x') ?
-			normalizeEvmTopicHex(topics[0] as `0x${string}`)
-		:
-			null,
-	)
 
 	const decodedLog = $derived.by(() => {
 		if (!open || topic0Hex == null || data == null)

@@ -3,6 +3,7 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -117,7 +118,7 @@
 							<dt>Network</dt>
 							<dd>
 								<NetworkView
-									entityId={walletAccount.$network}
+									entityId={walletAccount.$network[EntityMetaKey.Id]}
 									open={false}
 									layout={EntityLayout.Value}
 								/>

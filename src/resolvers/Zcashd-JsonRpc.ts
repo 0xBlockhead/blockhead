@@ -1,12 +1,14 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import {
 	zcashMainnetCaip2,
 	zcashdDefaultLocalRpcUrl,
 } from '$/constants/BitcoinNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
@@ -100,9 +102,10 @@ const getTransaction = async (entityId: {
 export default {
 	source: Source.Zcashd_JsonRpc,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.ZcashShieldedPool,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZcashMainnet(entityId.$network)
 				return (
@@ -118,9 +121,14 @@ export default {
 						}
 				)
 			},
+			fields: {
+			activationNetworkUpgrade: (snapshot) => snapshot.activationNetworkUpgrade,
+			noteProtocol: (snapshot) => snapshot.noteProtocol,
+		}
 		}),
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const transaction = await getTransaction(entityId)
 				return {
@@ -134,10 +142,18 @@ export default {
 					),
 				}
 			},
+			fields: {
+			version: (snapshot) => snapshot.version,
+			lockTime: (snapshot) => snapshot.lockTime,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			weightUnits: (snapshot) => snapshot.weightUnits,
+			$$zcashShieldedActions: (snapshot) => snapshot.$$zcashShieldedActions,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ZcashShieldedAction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const shieldedAction = zcashShieldedActionRows(
 					entityId.$transaction,
@@ -150,19 +166,13 @@ export default {
 				if (shieldedAction == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${entityId.$transaction.txId}`)
 				return shieldedAction
 			},
-		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
-			entityType: EntityType.UtxoTransaction,
-			fieldName: '$$zcashShieldedActions',
-			resolve: async (entityId) => (
-				zcashShieldedActionRows(
-					entityId,
-					await getTransaction(entityId),
-				)
-			),
+			fields: {
+			$pool: (snapshot) => snapshot.$pool,
+			actionKind: (snapshot) => snapshot.actionKind,
+			nullifier: (snapshot) => snapshot.nullifier,
+			noteCommitment: (snapshot) => snapshot.noteCommitment,
+			valueCommitment: (snapshot) => snapshot.valueCommitment,
+		}
 		}),
 	],
 }

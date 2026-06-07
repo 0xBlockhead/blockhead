@@ -1,14 +1,15 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
-	sourcePublicEnv,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import type { CastHash } from '$/schema/FarcasterCast.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
@@ -45,14 +46,14 @@ const neynarPfpHttpUrl = (
 export default {
 	source: Source.Neynar_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
 				const bulkUsers = await singleFlight(getBulkUsers)({
-					publicEnv,
+					publicEnv: context.publicEnv,
 					fids: [entityId.fid],
 				})
 				const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === entityId.fid)
@@ -163,15 +164,25 @@ export default {
 					],
 				}
 			},
+			fields: {
+				username: (user) => user.username,
+				displayName: (user) => user.displayName,
+				$icon: (user) => user.$icon,
+				bio: (user) => user.bio,
+				$primaryEvmAccount: (user) => user.$primaryEvmAccount,
+				$$verifiedAddresses: (user) => user.$$verifiedAddresses,
+				followerCount: (user) => user.followerCount,
+				followingCount: (user) => user.followingCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
 				const bulkUsers = await singleFlight(getBulkUsers)({
-					publicEnv,
+					publicEnv: context.publicEnv,
 					fids: [entityId.fid],
 				})
 				const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === entityId.fid)
@@ -207,10 +218,18 @@ export default {
 					...(ethList.length > 0 && { verifications: ethList }),
 				}
 			},
+			fields: {
+				username: (connection) => connection.username,
+				displayName: (connection) => connection.displayName,
+				$icon: (connection) => connection.$icon,
+				bio: (connection) => connection.bio,
+				verifications: (connection) => connection.verifications,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterCast,
+			accepts: [EntityIdProjection.Identity, 'usernameHashPrefix', 'clientUrl'],
 			resolve: async (entityId, context) => {
 				const {
 					getCastByClientUrl,
@@ -219,15 +238,14 @@ export default {
 				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
 				type EntityIdCast = import('$/schema/$schema.ts').EntityId<typeof schema, EntityType.FarcasterCast>
 				type FieldValuesCast = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
-				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
 				const cast = await (
 					'hash' in entityId ?
 						singleFlight(getCastByHash)(
-							publicEnv,
+							context.publicEnv,
 							zeroXLowerHexCastHash(entityId.hash),
 						)
 					: 'clientUrl' in entityId ?
-						singleFlight(getCastByClientUrl)(publicEnv, entityId.clientUrl)
+						singleFlight(getCastByClientUrl)(context.publicEnv, entityId.clientUrl)
 					:
 						undefined
 				)
@@ -369,20 +387,38 @@ export default {
 					),
 				} satisfies Partial<FieldValuesCast>
 			},
+			fields: {
+				fid: (cast) => cast.fid,
+				hash: (cast) => cast.hash,
+				username: (cast) => cast.username,
+				clientUrl: (cast) => cast.clientUrl,
+				$author: (cast) => cast.$author,
+				$postedViaApp: (cast) => cast.$postedViaApp,
+				text: (cast) => cast.text,
+				$parentCast: (cast) => cast.$parentCast,
+				parentUrl: (cast) => cast.parentUrl,
+				timestamp: (cast) => cast.timestamp,
+				mentions: (cast) => cast.mentions,
+				mentionedProfileFids: (cast) => cast.mentionedProfileFids,
+				mentionedChannelIds: (cast) => cast.mentionedChannelIds,
+				$$embeds: (cast) => cast.$$embeds,
+				likeCount: (cast) => cast.likeCount,
+				recastCount: (cast) => cast.recastCount,
+				replyCount: (cast) => cast.replyCount,
+				threadHash: (cast) => cast.threadHash,
+				$channel: (cast) => cast.$channel,
+			},
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterFeed,
-			fieldName: '$$entries',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				if (entityId.variant === 'trending') {
 					const page = await singleFlight(getFeed)(
-						publicEnv,
+						context.publicEnv,
 						{
 							feedType: 'filter',
 							filterType: 'global_trending',
@@ -408,7 +444,7 @@ export default {
 				}
 				if (entityId.variant === 'byUser') {
 					const page = await singleFlight(getFeed)(
-						publicEnv,
+						context.publicEnv,
 						{
 							feedType: 'filter',
 							filterType: 'fids',
@@ -435,7 +471,7 @@ export default {
 				}
 				if (entityId.variant === 'byChannel') {
 					const page = await singleFlight(getFeed)(
-						publicEnv,
+						context.publicEnv,
 						{
 							feedType: 'filter',
 							filterType: 'channel_id',
@@ -461,7 +497,7 @@ export default {
 					)
 				}
 					const page = await singleFlight(getFeed)(
-						publicEnv,
+						context.publicEnv,
 						{
 							feedType: 'following',
 							fid: entityId.viewerFid,
@@ -485,17 +521,19 @@ export default {
 							))
 					)
 			},
+			fields: {
+				$$entries: (entries) => entries,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
-			fieldName: '$$casts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const page = await singleFlight(getFeed)(
-					publicEnv,
+					context.publicEnv,
 					{
 						feedType: 'filter',
 						filterType: 'fids',
@@ -520,17 +558,19 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$casts: (casts) => casts,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterChannel,
-			fieldName: '$$casts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const page = await singleFlight(getFeed)(
-					publicEnv,
+					context.publicEnv,
 					{
 						feedType: 'filter',
 						filterType: 'channel_id',
@@ -554,6 +594,9 @@ export default {
 								} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
 						))
 				)
+			},
+			fields: {
+				$$casts: (casts) => casts,
 			},
 		}),
 

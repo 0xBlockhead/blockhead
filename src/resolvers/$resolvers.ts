@@ -1,39 +1,29 @@
 import type { QueryClient } from '@tanstack/query-core'
-import { parseLoadSubsetOptions } from '@tanstack/svelte-db'
 
-import type {
-	EntityFieldValue,
-	EntityFieldValues,
-	EntityFieldName,
-	EntityId,
-	EntityType,
-	Schema,
-} from '$/schema/$schema.ts'
-import { schema } from '$/schema/index.ts'
+import type { EntityIdProjectionName } from '$/schema/$EntityDefinition.ts'
+import type { EntityFieldName, EntityId, EntityType, Schema } from '$/schema/$schema.ts'
+import type { schema } from '$/schema/index.ts'
 import type { Source } from '$/sources/$Source.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
 
-export type ResolverLoadSubset<_Source extends Source = Source> = ReturnType<typeof parseLoadSubsetOptions> & {
-	/** Keys validated by provider+source env schemas for this resolver’s source (empty object when no env schema exists). */
-	publicEnv: SourcePublicEnvFor<_Source>
+export type ResolverContext = {
+	filters: readonly ResolverFilter[]
+	sorts: readonly unknown[]
+	limit?: number
+	publicEnv: any
 }
 
-/** When hydrate/live-query omits `LIMIT`, list field resolvers still need a cap (aligned with `useEntity` field `$limit` default). */
-export const defaultResolverLoadSubsetRowLimit = 64
+export type ResolverFilter = {
+	field: readonly (string | number)[]
+	operator: string
+	value?: unknown
+}
 
-/** Row cap from load subset; never undefined — uses {@link defaultResolverLoadSubsetRowLimit} when the query omitted LIMIT. */
-export const resolverLoadSubsetRowLimit = (
-	context: ResolverLoadSubset | undefined,
-): number => context?.limit ?? defaultResolverLoadSubsetRowLimit
+/** When hydrate/live-query omits `LIMIT`, list field resolvers still need a cap. */
+export const defaultResolverContextRowLimit = 64
 
-export const sourcePublicEnv = <_Source extends Source>(
-	context: ResolverLoadSubset | undefined,
-	_source: _Source,
-): SourcePublicEnvFor<_Source> => (
-	// Empty object is a valid wire shape when a source has no env keys; SourcePublicEnvFor is a per-source record.
-	// oxlint-disable-next-line typescript/consistent-type-assertions -- `{}` is not inferred as each branch of the conditional env type
-	(context?.publicEnv ?? {}) as SourcePublicEnvFor<_Source>
-)
+export const resolverContextRowLimit = (
+	context: ResolverContext,
+) => context.limit ?? defaultResolverContextRowLimit
 
 export type ResolveLiveContext<
 	_Schema extends Schema,
@@ -42,159 +32,121 @@ export type ResolveLiveContext<
 	parentEntityId: EntityId<_Schema, _EntityType>
 	queryClient: QueryClient
 	signal: AbortSignal
-	invalidate: (
-		fieldNames: readonly string[],
-		options?: {
-			parentEntityIds?: readonly EntityId<_Schema, _EntityType>[]
-			sources?: readonly Source[]
-		},
-	) => void | Promise<void>
-	/**
-	 * Deletes entity-field rows for the given field whose parent matches `parentEntityIds`
-	 * (default: current `parentEntityId`) and optional `sources` filter.
-	 */
-	deleteEntityFieldRows: (
-		fieldName: string,
-		options?: {
-			parentEntityIds?: readonly EntityId<_Schema, _EntityType>[]
-			sources?: readonly Source[]
-		},
-	) => void
-	/** Direct TanStack DB query-collection upserts (no refetch). */
-	writeEntityFieldUpserts: (
-		fieldName: string,
-		rows: readonly {
-			parentEntityId?: EntityId<_Schema, _EntityType>
-			parentIdKey?: string
-			source: Source
-			value: unknown
-		}[],
-	) => void
+	invalidateFields: (fieldNames: readonly string[]) => void
+	invalidateCounts: (fieldNames: readonly string[]) => void
+	writeFieldRows: (fieldName: EntityFieldName<_Schema, _EntityType>, rows: readonly {
+		source: Source
+		value: unknown
+	}[]) => void
+	writeFieldCounts: (fieldName: EntityFieldName<_Schema, _EntityType>, rows: readonly {
+		source: Source
+		value: number
+	}[]) => void
 }
 
-export type EntityLiveResolver<
+type FieldSelectorObject<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
+	_Snapshot,
 > = {
-	entityType: _EntityType
-	source: Source
-	resolveLive: (ctx: ResolveLiveContext<_Schema, _EntityType>) => (
-		void
-		| Promise<void>
-		| (() => void)
-		| Promise<() => void>
-	)
+	acceptsParent?: readonly EntityIdProjectionName[]
+	select?: (
+		snapshot: _Snapshot,
+		entityId: EntityId<_Schema, _EntityType>,
+		context: ResolverContext,
+	) => unknown
+	resolveCount?: (
+		snapshot: _Snapshot,
+		entityId: EntityId<_Schema, _EntityType>,
+		context: ResolverContext,
+	) => number
+	resolveLive?: (
+		context: ResolveLiveContext<_Schema, _EntityType>,
+	) => void | (() => void) | Promise<void | (() => void)>
 }
 
-export type EntityLiveResolverDefinition<
+export type FieldSelector<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = Omit<EntityLiveResolver<_Schema, _EntityType>, 'source'>
+	_Snapshot,
+> = (
+	| ((
+		snapshot: _Snapshot,
+		entityId: EntityId<_Schema, _EntityType>,
+		context: ResolverContext,
+	) => unknown)
+	| FieldSelectorObject<_Schema, _EntityType, _Snapshot>
+)
 
-export type EntityResolver<
+export type ResolverDefinition<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
+	_Snapshot,
 > = {
 	entityType: _EntityType
-	source: Source
-	/**
-	 * Must **throw** when the entity cannot be resolved under the given `entityId` / `context` (missing transport, missing upstream row, etc.).
-	 * Do not return `{}` or other empty shapes to mean failure.
-	 */
+	accepts: readonly EntityIdProjectionName[]
 	resolve: (
 		entityId: EntityId<_Schema, _EntityType>,
-		context?: ResolverLoadSubset,
-	) => Promise<Partial<EntityFieldValues<_Schema, _EntityType>>>
+		context: ResolverContext,
+	) => Promise<_Snapshot>
+	fields: Partial<Record<EntityFieldName<_Schema, _EntityType>, FieldSelector<_Schema, _EntityType, _Snapshot>>>
+	resolveLive?: {
+		fields: readonly EntityFieldName<_Schema, _EntityType>[]
+		run: (
+			context: ResolveLiveContext<_Schema, _EntityType>,
+		) => void | (() => void) | Promise<void | (() => void)>
+	}
 }
 
-export type EntityResolverDefinition<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-> = Omit<EntityResolver<_Schema, _EntityType>, 'source'>
-
-export type EntityFieldResolver<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_ResolverFieldKey extends string = string,
-> = {
-	entityType: _EntityType
-	fieldName: _ResolverFieldKey
-	source: Source
-	/** Long-running sync; wire via `mountEntityResolveLive` / `startEntityFieldResolveLiveForParent` in `$/lib/db/resolveLive.svelte.ts` (default field list: `entityFieldNamesWithResolveLiveByEntityType` from `$/resolvers/index.ts`). */
-	resolveLive?: (ctx: ResolveLiveContext<_Schema, _EntityType>) => (
-		void
-		| Promise<void>
-		| (() => void)
-		| Promise<() => void>
-	)
-	/**
-	 * Must **throw** when the field cannot be resolved (unsupported parent scope, missing API mapping, missing `context.limit` when the source requires a bounded page, etc.).
-	 * Do not return `[]` / `undefined` / `{}` to mean “could not resolve”.
-	 *
-	 * Apply **no** client-side filter / sort / offset pagination that duplicates `ResolverLoadSubset`. Pass `filters` / `sorts` / `limit` through to source `queries` only where that transport documents support.
-	 */
+export type SourceResolverDefinition = {
+	definitionIndex: number
+	entityType: EntityType<typeof schema>
+	accepts: readonly EntityIdProjectionName[]
 	resolve: (
-		scopedEntityId: EntityId<_Schema, _EntityType>,
-		context?: ResolverLoadSubset,
-	) => Promise<EntityFieldValue<_Schema, _EntityType, _ResolverFieldKey>>
-}
-
-export type EntityFieldResolverDefinition<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_ResolverFieldKey extends string = string,
-> = Omit<EntityFieldResolver<_Schema, _EntityType, _ResolverFieldKey>, 'source'>
-
-export type EntityFieldCountResolver<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_ResolverFieldKey extends string = string,
-> = {
-	entityType: _EntityType
-	fieldName: _ResolverFieldKey
+		entityId: any,
+		context: ResolverContext,
+	) => Promise<any>
+	fields: Partial<Record<string, any>>
+	resolveLive?: {
+		fields: readonly EntityFieldName<typeof schema, EntityType<typeof schema>>[]
+		run: (
+			context: ResolveLiveContext<typeof schema, EntityType<typeof schema>>,
+		) => void | (() => void) | Promise<void | (() => void)>
+	}
 	source: Source
-	/**
-	 * Must return an exact non-negative integer count for the field under the parent id and filters.
-	 * Do not fetch all field rows only to count them.
-	 */
-	resolve: (
-		scopedEntityId: EntityId<_Schema, _EntityType>,
-		context?: ResolverLoadSubset,
-	) => Promise<number>
 }
 
-export type EntityFieldCountResolverDefinition<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_ResolverFieldKey extends string = string,
-> = Omit<EntityFieldCountResolver<_Schema, _EntityType, _ResolverFieldKey>, 'source'>
+export type ResolverPart = {
+	resolver: SourceResolverDefinition
+	partIndex: number
+	source: Source
+	entityType: EntityType<typeof schema>
+	fieldName: EntityFieldName<typeof schema, EntityType<typeof schema>>
+	acceptsParent?: readonly EntityIdProjectionName[]
+	select?: FieldSelectorObject<typeof schema, EntityType<typeof schema>, any>['select']
+	resolveCount?: FieldSelectorObject<typeof schema, EntityType<typeof schema>, any>['resolveCount']
+	resolveLive?: FieldSelectorObject<typeof schema, EntityType<typeof schema>, any>['resolveLive']
+}
 
-export const defineEntityResolver = <_EntityType extends EntityType<typeof schema>>(
-	entityResolver: EntityResolverDefinition<typeof schema, _EntityType>,
-) => entityResolver
-
-export const defineEntityFieldResolver = <
-	_EntityType extends EntityType<typeof schema>,
-	_ResolverFieldKey extends EntityFieldName<typeof schema, _EntityType>,
+export const defineResolver = <
+	const _EntityType extends EntityType<typeof schema>,
 >(
-	entityFieldResolver: EntityFieldResolverDefinition<
-		typeof schema,
-		_EntityType,
-		_ResolverFieldKey
-	>,
-) => entityFieldResolver
-
-export const defineEntityFieldCountResolver = <
-	_EntityType extends EntityType<typeof schema>,
-	_ResolverFieldKey extends EntityFieldName<typeof schema, _EntityType>,
->(
-	entityFieldCountResolver: EntityFieldCountResolverDefinition<
-		typeof schema,
-		_EntityType,
-		_ResolverFieldKey
-	>,
-) => entityFieldCountResolver
-
-export const defineEntityLiveResolver = <_EntityType extends EntityType<typeof schema>>(
-	entityLiveResolver: EntityLiveResolverDefinition<typeof schema, _EntityType>,
-) => entityLiveResolver
+	resolver: {
+		entityType: _EntityType
+		accepts: readonly EntityIdProjectionName[]
+		resolve: (
+			entityId: EntityId<typeof schema, _EntityType>,
+			context: ResolverContext,
+		) => Promise<any>
+		fields: Partial<Record<
+			EntityFieldName<typeof schema, _EntityType>,
+			FieldSelector<typeof schema, _EntityType, any>
+		>>
+		resolveLive?: {
+			fields: readonly EntityFieldName<typeof schema, _EntityType>[]
+			run: (
+				context: ResolveLiveContext<typeof schema, _EntityType>,
+			) => void | (() => void) | Promise<void | (() => void)>
+		}
+	},
+) => resolver

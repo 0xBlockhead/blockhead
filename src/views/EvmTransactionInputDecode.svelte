@@ -25,6 +25,15 @@
 
 	const emptySelectorHex: `0x${string}` = '0x00000000'
 
+
+	// (Derived)
+	const selectorHex = $derived(
+		input.startsWith('0x') && input.length >= 10 ?
+			normalizeEvmSelectorHex(input)
+		:
+			null,
+	)
+
 	const selector = useEntity(
 		EntityType.EvmSelector,
 		(
@@ -41,14 +50,6 @@
 		},
 	)
 
-
-	// (Derived)
-	const selectorHex = $derived(
-		input.startsWith('0x') && input.length >= 10 ?
-			normalizeEvmSelectorHex(input)
-		:
-			null,
-	)
 
 	const decodedCall = $derived.by(() => {
 		if (!open)

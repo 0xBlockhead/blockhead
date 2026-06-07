@@ -156,7 +156,7 @@
 
 	{#snippet Details({ open })}
 		<ProposalsView
-			href="/proposals"
+			href={resolve('/proposals')}
 			entityFieldReference={{
 				entityType: EntityType.EthereumExecutionUpgrade,
 				entityId,

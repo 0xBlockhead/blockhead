@@ -1,8 +1,10 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { ThreeXplBlockEvent } from '$/sources/ThreeXpl/Rest/types.ts'
@@ -46,9 +48,10 @@ const eventTransactions = (events: Record<string, ThreeXplBlockEvent[]> | undefi
 export default {
 	source: Source.ThreeXpl_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.MoneroBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireBlock = await fetchBlock({
@@ -70,10 +73,16 @@ export default {
 					}),
 				}
 			},
+			fields: {
+				hash: (block) => block.hash,
+				$parent: (block) => block.$parent,
+				timestampMs: (block) => block.timestampMs,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.MoneroTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireTransaction = await fetchTransaction({
@@ -91,10 +100,14 @@ export default {
 					}),
 				}
 			},
+			fields: {
+				$block: (transaction) => transaction.$block,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NearBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireBlock = await fetchBlock({
@@ -116,10 +129,16 @@ export default {
 					}),
 				}
 			},
+			fields: {
+				hash: (block) => block.hash,
+				$parent: (block) => block.$parent,
+				timestampMs: (block) => block.timestampMs,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NearTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				await fetchTransaction({
@@ -128,10 +147,12 @@ export default {
 				})
 				return {}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireBlock = await fetchBlock({
@@ -152,10 +173,15 @@ export default {
 					}),
 				}
 			},
+			fields: {
+				hash: (block) => block.hash,
+				$parent: (block) => block.$parent,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 				entityType: EntityType.SolanaBlock,
+				accepts: [EntityIdProjection.Identity],
 				resolve: async (entityId) => {
 					if (!('slot' in entityId))
 						throw new Error('ThreeXpl_Rest: SolanaBlock blockHash lookup is unsupported')
@@ -175,10 +201,16 @@ export default {
 					transactionCount: wireBlock.data.block?.events?.transactions,
 				}
 			},
+			fields: {
+				blockHash: (block) => block.blockHash,
+				timestampMs: (block) => block.timestampMs,
+				transactionCount: (block) => block.transactionCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SolanaTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireTransaction = await fetchTransaction({
@@ -197,10 +229,15 @@ export default {
 					}),
 				}
 			},
+			fields: {
+				$block: (transaction) => transaction.$block,
+				slot: (transaction) => transaction.slot,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.TronBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireBlock = await fetchBlock({
@@ -223,10 +260,17 @@ export default {
 					transactionCount: wireBlock.data.block?.events?.transactions,
 				}
 			},
+			fields: {
+				hash: (block) => block.hash,
+				$parent: (block) => block.$parent,
+				timestampMs: (block) => block.timestampMs,
+				transactionCount: (block) => block.transactionCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.TronTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireTransaction = await fetchTransaction({
@@ -248,10 +292,16 @@ export default {
 					}),
 				}
 			},
+			fields: {
+				$block: (transaction) => transaction.$block,
+				blockHeight: (transaction) => transaction.blockHeight,
+				timestampMs: (transaction) => transaction.timestampMs,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireBlock = await fetchBlock({
@@ -266,10 +316,16 @@ export default {
 					transactionCount: wireBlock.data.block?.events?.transactions,
 				}
 			},
+			fields: {
+				hash: (block) => block.hash,
+				timestampMs: (block) => block.timestampMs,
+				transactionCount: (block) => block.transactionCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireTransaction = await fetchTransaction({
@@ -287,13 +343,14 @@ export default {
 					}),
 				}
 			},
+			fields: {
+				$block: (transaction) => transaction.$block,
+			},
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.MoneroBlock,
-			fieldName: '$$transactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				return eventTransactions(
@@ -313,11 +370,14 @@ export default {
 					},
 				}))
 			},
+			fields: {
+				$$transactions: (transactions) => transactions,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 				entityType: EntityType.SolanaBlock,
-				fieldName: '$$transactions',
+				accepts: [EntityIdProjection.Identity],
 				resolve: async (entityId) => {
 					if (!('slot' in entityId))
 						throw new Error('ThreeXpl_Rest: SolanaBlock.$$transactions blockHash lookup is unsupported')
@@ -341,11 +401,14 @@ export default {
 					slot: entityId.slot,
 				}))
 			},
+			fields: {
+				$$transactions: (transactions) => transactions,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.TronBlock,
-			fieldName: '$$transactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				return eventTransactions(
@@ -366,11 +429,14 @@ export default {
 					blockHeight: entityId.height,
 				}))
 			},
+			fields: {
+				$$transactions: (transactions) => transactions,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
-			fieldName: '$$transactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				return eventTransactions(
@@ -389,6 +455,9 @@ export default {
 						[EntityMetaKey.Id]: entityId,
 					},
 				}))
+			},
+			fields: {
+				$$transactions: (transactions) => transactions,
 			},
 		}),
 	],

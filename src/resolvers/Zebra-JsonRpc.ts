@@ -1,12 +1,14 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import {
 	zebraDefaultLocalRpcUrl,
 	zcashMainnetCaip2,
 } from '$/constants/BitcoinNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -37,9 +39,10 @@ const getTransaction = async (entityId: {
 export default {
 	source: Source.Zebra_JsonRpc,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZcashMainnet(entityId.$network)
 				const {
@@ -75,31 +78,122 @@ export default {
 						weightUnits: block.weight,
 					}),
 					transactionCount: block.nTx,
+					$$transactions: block.tx.map((transaction) => (
+						typeof transaction === 'string' ?
+							{
+								[EntityMetaKey.Id]: {
+									$network: entityId.$network,
+									txId: transaction,
+								},
+							}
+						:
+							{
+								[EntityMetaKey.Id]: {
+									$network: entityId.$network,
+									txId: transaction.txid,
+								},
+								version: transaction.version,
+								lockTime: transaction.locktime,
+								sizeBytes: transaction.size,
+								virtualSizeBytes: transaction.vsize,
+								weightUnits: transaction.weight,
+								isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+							}
+					)),
 				}
 			},
+			fields: {
+			hash: (snapshot) => snapshot.hash,
+			$parent: (snapshot) => snapshot.$parent,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			merkleRoot: (snapshot) => snapshot.merkleRoot,
+			nonce: (snapshot) => snapshot.nonce,
+			difficulty: (snapshot) => snapshot.difficulty,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			weightUnits: (snapshot) => snapshot.weightUnits,
+			transactionCount: (snapshot) => snapshot.transactionCount,
+			$$transactions: (snapshot) => snapshot.$$transactions,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const transaction = await getTransaction(entityId)
 				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
-						txId: transaction.txid,
-					},
 					version: transaction.version,
 					lockTime: transaction.locktime,
 					sizeBytes: transaction.size,
 					virtualSizeBytes: transaction.vsize,
 					weightUnits: transaction.weight,
 					isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+					$$inputs: transaction.vin.map((input, inputIndex) => (
+						{
+							[EntityMetaKey.Id]: {
+								$transaction: entityId,
+								inputIndex,
+							},
+							...(input.txid != null && input.vout != null && {
+								$spentOutput: {
+									[EntityMetaKey.Id]: {
+										$transaction: {
+											$network: entityId.$network,
+											txId: input.txid,
+										},
+										outputIndex: input.vout,
+									},
+								},
+							}),
+							...(input.coinbase != null && {
+								coinbaseScript: input.coinbase,
+							}),
+							...(input.scriptSig != null && {
+								scriptSigAsm: input.scriptSig.asm,
+							}),
+							sequence: input.sequence,
+							...(input.txinwitness != null && {
+								witness: input.txinwitness,
+							}),
+						}
+					)),
+					$$outputs: transaction.vout.map((output, outputIndex) => (
+						{
+							[EntityMetaKey.Id]: {
+								$transaction: entityId,
+								outputIndex,
+							},
+							valueSats: valueSatsFromZec(output.value),
+							scriptPubKeyAsm: output.scriptPubKey.asm,
+							scriptPubKeyHex: output.scriptPubKey.hex,
+							scriptPubKeyType: output.scriptPubKey.type,
+							...(output.scriptPubKey.address != null && {
+								$address: {
+									[EntityMetaKey.Id]: {
+										$network: entityId.$network,
+										address: output.scriptPubKey.address,
+									},
+								},
+							}),
+						}
+					)),
 				}
 			},
+			fields: {
+			version: (snapshot) => snapshot.version,
+			lockTime: (snapshot) => snapshot.lockTime,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
+			weightUnits: (snapshot) => snapshot.weightUnits,
+			isCoinbase: (snapshot) => snapshot.isCoinbase,
+			$$inputs: (snapshot) => snapshot.$$inputs,
+			$$outputs: (snapshot) => snapshot.$$outputs,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoInput,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const input = (await getTransaction(entityId.$transaction)).vin[entityId.inputIndex]
 				return {
@@ -130,10 +224,18 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			$spentOutput: (snapshot) => snapshot.$spentOutput,
+			coinbaseScript: (snapshot) => snapshot.coinbaseScript,
+			scriptSigAsm: (snapshot) => snapshot.scriptSigAsm,
+			sequence: (snapshot) => snapshot.sequence,
+			witness: (snapshot) => snapshot.witness,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoOutput,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const output = (await getTransaction(entityId.$transaction)).vout[entityId.outputIndex]
 				return {
@@ -155,113 +257,13 @@ export default {
 					}),
 				}
 			},
-		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
-			entityType: EntityType.UtxoBlock,
-			fieldName: '$$transactions',
-			resolve: async (entityId) => {
-				assertZcashMainnet(entityId.$network)
-				const {
-					getBlock,
-					getBlockHash,
-				} = await import('$/sources/Zebra/JsonRpc/queries.ts')
-				return (
-					await getBlock({
-						rpcUrl: zebraDefaultLocalRpcUrl,
-						blockHash: entityId.hash ?? await getBlockHash({
-							rpcUrl: zebraDefaultLocalRpcUrl,
-							height: entityId.height,
-						}),
-					})
-				).tx.map((transaction) => (
-					typeof transaction === 'string' ?
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								txId: transaction,
-							},
-						}
-					:
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								txId: transaction.txid,
-							},
-							version: transaction.version,
-							lockTime: transaction.locktime,
-							sizeBytes: transaction.size,
-							virtualSizeBytes: transaction.vsize,
-							weightUnits: transaction.weight,
-							isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-						}
-				))
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.UtxoTransaction,
-			fieldName: '$$inputs',
-			resolve: async (entityId) => (
-				(await getTransaction(entityId)).vin.map((input, inputIndex) => (
-					{
-						[EntityMetaKey.Id]: {
-							$transaction: entityId,
-							inputIndex,
-						},
-						...(input.txid != null && input.vout != null && {
-							$spentOutput: {
-								[EntityMetaKey.Id]: {
-									$transaction: {
-										$network: entityId.$network,
-										txId: input.txid,
-									},
-									outputIndex: input.vout,
-								},
-							},
-						}),
-						...(input.coinbase != null && {
-							coinbaseScript: input.coinbase,
-						}),
-						...(input.scriptSig != null && {
-							scriptSigAsm: input.scriptSig.asm,
-						}),
-						sequence: input.sequence,
-						...(input.txinwitness != null && {
-							witness: input.txinwitness,
-						}),
-					}
-				))
-			),
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.UtxoTransaction,
-			fieldName: '$$outputs',
-			resolve: async (entityId) => (
-				(await getTransaction(entityId)).vout.map((output, outputIndex) => (
-					{
-						[EntityMetaKey.Id]: {
-							$transaction: entityId,
-							outputIndex,
-						},
-						valueSats: valueSatsFromZec(output.value),
-						scriptPubKeyAsm: output.scriptPubKey.asm,
-						scriptPubKeyHex: output.scriptPubKey.hex,
-						scriptPubKeyType: output.scriptPubKey.type,
-						...(output.scriptPubKey.address != null && {
-							$address: {
-								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
-									address: output.scriptPubKey.address,
-								},
-							},
-						}),
-					}
-				))
-			),
+			fields: {
+			valueSats: (snapshot) => snapshot.valueSats,
+			scriptPubKeyAsm: (snapshot) => snapshot.scriptPubKeyAsm,
+			scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
+			scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
+			$address: (snapshot) => snapshot.$address,
+		}
 		}),
 	],
 }

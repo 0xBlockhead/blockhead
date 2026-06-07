@@ -9,7 +9,7 @@
 	import { blockheadFarcasterConnectionAuthMethodByAuthMethod } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
-	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 
 
 	// Context
@@ -46,7 +46,7 @@
 		entityId,
 		{
 			$: (
-				entityResolversByEntityType[EntityType.BlockheadFarcasterAccountConnection]?.map((r) => r.source)
+				resolverDefinitionsByEntityType[EntityType.BlockheadFarcasterAccountConnection]?.map((r) => r.source)
 				?? [
 					Source.Neynar_Rest,
 				]
@@ -222,7 +222,17 @@
 				<div>
 					<dt>Auth method</dt>
 					<dd>
-						{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.authMethod].label}
+						<ResourceBoundary
+							resource={connection}
+							placeholderText="Loading profile…"
+						>
+							{#snippet Pending()}{/snippet}
+							{#snippet children(connection)}
+								{#if connection.authMethod !== undefined}
+									{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.authMethod].label}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}

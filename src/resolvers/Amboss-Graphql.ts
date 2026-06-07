@@ -1,10 +1,12 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { lightningNetworkId } from '$/constants/LightningNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -20,9 +22,10 @@ const assertLightningNetwork = (network: NetworkId) => {
 export default {
 	source: Source.Amboss_Graphql,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.LightningNode,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertLightningNetwork(entityId.$network)
 				const { getNode } = await import('$/sources/Amboss/Graphql/queries.ts')
@@ -59,10 +62,21 @@ export default {
 					),
 				}
 			},
+			fields: {
+			alias: (snapshot) => snapshot.alias,
+			color: (snapshot) => snapshot.color,
+			capacitySats: (snapshot) => snapshot.capacitySats,
+			channelCount: (snapshot) => snapshot.channelCount,
+			updatedAtMs: (snapshot) => snapshot.updatedAtMs,
+			countryCode: (snapshot) => snapshot.countryCode,
+			city: (snapshot) => snapshot.city,
+			networkAddresses: (snapshot) => snapshot.networkAddresses,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LightningChannel,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertLightningNetwork(entityId.$network)
 				const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
@@ -111,19 +125,25 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			shortChannelId: (snapshot) => snapshot.shortChannelId,
+			status: (snapshot) => snapshot.status,
+			capacitySats: (snapshot) => snapshot.capacitySats,
+			$node0: (snapshot) => snapshot.$node0,
+			$node1: (snapshot) => snapshot.$node1,
+			feeRatePpm: (snapshot) => snapshot.feeRatePpm,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
-			fieldName: '$$nodes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const { getPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')
 				const pubkeys = await getPopularNodePubkeys()
 				return pubkeys
-					.slice(0, resolverLoadSubsetRowLimit(context))
+					.slice(0, resolverContextRowLimit(context))
 					.map((publicKey) => ({
 						[EntityMetaKey.Id]: {
 							$network: lightningNetworkId,
@@ -131,6 +151,9 @@ export default {
 						},
 					}))
 			},
+			fields: {
+			$$nodes: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

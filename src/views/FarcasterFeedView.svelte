@@ -46,13 +46,6 @@
 		>
 	> = $props()
 
-	import { mountEntityResolveLive } from '$/lib/db/resolveLive.svelte.ts'
-
-	mountEntityResolveLive({
-		entityType: EntityType.FarcasterFeed,
-		entityId: () => entityId,
-	})
-
 	const feed = useEntity(
 		EntityType.FarcasterFeed,
 		entityId,

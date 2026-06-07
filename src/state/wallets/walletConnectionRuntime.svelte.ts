@@ -15,7 +15,7 @@ import { createEip6963Adapter } from './adapters/eip6963.ts'
 import { createPolkadotInjectedWeb3Adapter } from './adapters/polkadotInjectedWeb3.ts'
 import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
 import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
-import type { WalletAdapter, WalletCandidate, WalletConnection } from './adapters/types.ts'
+import type { WalletAccount, WalletAdapter, WalletCandidate, WalletConnection } from './adapters/types.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
 
 type WalletRuntimeContext = {

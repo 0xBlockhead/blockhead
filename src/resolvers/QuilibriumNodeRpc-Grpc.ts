@@ -1,8 +1,10 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -17,9 +19,10 @@ const assertQuilibriumMainnet = (network: NetworkId) => {
 export default {
 	source: Source.QuilibriumNodeRpc_Grpc,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.QuilibriumFrame,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertQuilibriumMainnet(entityId.$network)
 				return {
@@ -31,43 +34,56 @@ export default {
 					},
 				}
 			},
+			fields: {
+			$shard: (snapshot) => snapshot.$shard,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.QuilibriumShard,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertQuilibriumMainnet(entityId.$network)
 				return {
 					...(entityId.shardKey === 'master' && { shardKind: 'master' }),
 				}
 			},
+			fields: {
+			shardKind: (snapshot) => snapshot.shardKind,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.QuilibriumAccount,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertQuilibriumMainnet(entityId.$network)
 				return {
 					accountKind: entityId.accountAddress.startsWith('0x') ? 'implicit' : 'originated',
 				}
 			},
+			fields: {
+			accountKind: (snapshot) => snapshot.accountKind,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.QuilibriumPendingTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertQuilibriumMainnet(entityId.$network)
 				return {
 					transactionType: 'pending',
 				}
 			},
+			fields: {
+			transactionType: (snapshot) => snapshot.transactionType,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.QuilibriumNetwork,
-			fieldName: '$masterShard',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertQuilibriumMainnet(entityId)
 				return {
@@ -79,6 +95,9 @@ export default {
 					},
 				}
 			},
+			fields: {
+			$masterShard: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

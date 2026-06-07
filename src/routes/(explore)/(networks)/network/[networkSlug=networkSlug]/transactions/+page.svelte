@@ -6,6 +6,7 @@
 
 
 	// Context
+	import { resolve } from '$app/paths'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
@@ -40,14 +41,15 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			(
-				{@const entityId = network.caip2 == null ?
-					{ networkSlug: network.slug }
-				:
-					{ caip2: network.caip2 }}
-					{@const href = `/network/${params.networkSlug}/transactions`}
-					{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
-					<UtxoTransactionsView
+			{@const entityId = network.caip2 == null ?
+				{ networkSlug: network.slug }
+			:
+				{ caip2: network.caip2 }}
+			{@const href = resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions', {
+				networkSlug: params.networkSlug,
+			})}
+			{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
+				<UtxoTransactionsView
 					entityFieldReference={{
 						entityType: EntityType.UtxoNetwork,
 						entityId,
@@ -55,24 +57,24 @@
 					}}
 					{href}
 					id="transactions"
-					/>
-					{:else if network.namespace === NetworkNamespace.Solana && network.caip2 != null}
-					<SolanaTransactionsView
+				/>
+			{:else if network.namespace === NetworkNamespace.Solana && network.caip2 != null}
+				<SolanaTransactionsView
 					entityFieldReference={{
 						entityType: EntityType.SolanaNetwork,
 						entityId: {
-						caip2: {
-						namespace: 'solana',
-						reference: network.caip2.reference,
-						},
+							caip2: {
+								namespace: 'solana',
+								reference: network.caip2.reference,
+							},
 						},
 						fieldName: '$$transactions',
 					}}
 					{href}
 					id="transactions"
-					/>
-					{:else if network.namespace === NetworkNamespace.Hyperliquid}
-					<HyperliquidTransactionsView
+				/>
+			{:else if network.namespace === NetworkNamespace.Hyperliquid}
+				<HyperliquidTransactionsView
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
 						entityId,
@@ -80,11 +82,10 @@
 					}}
 					{href}
 					id="transactions"
-					/>
-					{:else}
-					<p data-text="muted">This network does not expose a network-level transactions route yet.</p>
-					{/if}
-			)
+				/>
+			{:else}
+				<p data-text="muted">This network does not expose a network-level transactions route yet.</p>
+			{/if}
 		{/snippet}
 	</ResourceBoundary>
 </Page>

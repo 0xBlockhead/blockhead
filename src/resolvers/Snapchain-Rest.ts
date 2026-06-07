@@ -4,11 +4,13 @@ import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import { type Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
@@ -55,9 +57,10 @@ const snapchainUserDataPfpHttpUrl = (value: string | null | undefined) => {
 export default {
 	source: Source.Snapchain_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				type UserFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterUser>
 				type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
@@ -178,10 +181,22 @@ export default {
 				}
 				return userFields
 			},
+			fields: {
+				username: (user) => user.username,
+				displayName: (user) => user.displayName,
+				$icon: (user) => user.$icon,
+				bio: (user) => user.bio,
+				url: (user) => user.url,
+				$primaryEvmAccount: (user) => user.$primaryEvmAccount,
+				$$verifiedAddresses: (user) => user.$$verifiedAddresses,
+				followerCount: (user) => user.followerCount,
+				followingCount: (user) => user.followingCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterUser_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const [followerCount, followingCount] = await Promise.all([
@@ -200,10 +215,15 @@ export default {
 					followingCount,
 				}
 			},
+			fields: {
+				followerCount: (timestamp) => timestamp.followerCount,
+				followingCount: (timestamp) => timestamp.followingCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterCast,
+			accepts: [EntityIdProjection.Identity, 'hash', 'fidHash'],
 			resolve: async (entityId) => {
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
 				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
@@ -295,10 +315,26 @@ export default {
 					replyCount,
 				} satisfies Partial<CastFieldValues>
 			},
+			fields: {
+				fid: (cast) => cast.fid,
+				hash: (cast) => cast.hash,
+				$author: (cast) => cast.$author,
+				text: (cast) => cast.text,
+				$parentCast: (cast) => cast.$parentCast,
+				parentUrl: (cast) => cast.parentUrl,
+				timestamp: (cast) => cast.timestamp,
+				mentions: (cast) => cast.mentions,
+				$channel: (cast) => cast.$channel,
+				$$embeds: (cast) => cast.$$embeds,
+				likeCount: (cast) => cast.likeCount,
+				recastCount: (cast) => cast.recastCount,
+				replyCount: (cast) => cast.replyCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterCast_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					getCastById,
@@ -318,10 +354,16 @@ export default {
 					recastReactionType: SnapchainReactionType.Recast,
 				})
 			},
+			fields: {
+				likeCount: (timestamp) => timestamp.likeCount,
+				recastCount: (timestamp) => timestamp.recastCount,
+				replyCount: (timestamp) => timestamp.replyCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				type ConnectionFields = import('$/schema/$schema.ts').EntityFieldValues<
 					typeof schema,
@@ -372,13 +414,19 @@ export default {
 				}
 				return connectionFields
 			},
+			fields: {
+				username: (connection) => connection.username,
+				displayName: (connection) => connection.displayName,
+				$icon: (connection) => connection.$icon,
+				bio: (connection) => connection.bio,
+				verifications: (connection) => connection.verifications,
+				custody: (connection) => connection.custody,
+			},
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
-			fieldName: '$icon',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const { userData } = await singleFlight(getUserBundleByFid)({
@@ -396,17 +444,20 @@ export default {
 				}
 				return undefined
 			},
+			fields: {
+				$icon: (icon) => icon,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterNetwork,
-			fieldName: '$$users',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 				type UserEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterUser>
 				const { getFids } = await import('$/sources/Snapchain/Rest/queries.ts')
-				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
+				const subsetRowLimit = resolverContextRowLimit(context)
 				const fids: number[] = []
 				let pageToken: string | undefined
 				do {
@@ -430,11 +481,14 @@ export default {
 					}) satisfies UserEntity))
 				)
 			},
+			fields: {
+				$$users: (users) => users,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const [followerCount, followingCount] = await Promise.all([
@@ -459,18 +513,21 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (timestamps) => timestamps,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
-			fieldName: '$$casts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
 				type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
 				const { getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
+				const subsetRowLimit = resolverContextRowLimit(context)
 				const casts: SnapCast[] = []
 				let pageToken: string | undefined
 				do {
@@ -498,11 +555,14 @@ export default {
 						}) satisfies CastEntity))
 				)
 			},
+			fields: {
+				$$casts: (casts) => casts,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterCast,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity, 'hash', 'fidHash'],
 			resolve: async (entityId) => {
 				const {
 					getCastById,
@@ -540,11 +600,14 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (timestamps) => timestamps,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterChannel,
-			fieldName: '$$casts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
@@ -554,7 +617,7 @@ export default {
 				const { getCastsByParent } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const channel = await singleFlight(getChannel)(entityId.id)
 				const channelPageUrl = optionalNonemptyString(channel?.url) ?? `https://warpcast.com/~/channel/${entityId.id}`
-				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
+				const subsetRowLimit = resolverContextRowLimit(context)
 				const casts: SnapCast[] = []
 				let pageToken: string | undefined
 				do {
@@ -587,17 +650,20 @@ export default {
 								})
 					)
 				},
-			}),
+			fields: {
+				$$casts: (casts) => casts,
+			},
+		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterFeed,
-			fieldName: '$$entries',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
 				type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
-				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
+				const subsetRowLimit = resolverContextRowLimit(context)
 
 				if (entityId.variant === 'following') {
 					const { getCastsByFid, getLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
@@ -769,6 +835,9 @@ export default {
 								}) satisfies CastEntity]
 						})
 				)
+			},
+			fields: {
+				$$entries: (entries) => entries,
 			},
 		}),
 

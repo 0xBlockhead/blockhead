@@ -338,7 +338,7 @@
 										cast.$parentCast[EntityMetaKey.Id]
 								)}
 								{@const parentCastHrefOpen = (
-									parentCastIdOpen === undefined ?
+									parentCastIdOpen === undefined || !('fid' in parentCastIdOpen) || !('hash' in parentCastIdOpen) ?
 										undefined
 									:
 										resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
@@ -434,7 +434,7 @@
 									})()
 								)}
 								{@const warpcastThreadHrefOpen = (
-									threadNormOpen !== undefined && threadNormOpen !== entityId.hash ?
+									threadNormOpen !== undefined && threadNormOpen !== cast.hash ?
 										`https://warpcast.com/~/conversations/${threadNormOpen}`
 									:
 										undefined
@@ -569,7 +569,7 @@
 												<strong>
 													{authorDisplayName ?? authorUsername ?? (
 														authorId === undefined ?
-															`FID ${String(entityId.fid)}`
+															`FID ${String(cast.fid)}`
 														:
 															`FID ${String(authorId.fid)}`
 													)}
@@ -727,7 +727,7 @@
 													</blockquote>
 												{/if}
 
-												{#if embeddedCastId !== undefined}
+												{#if embeddedCastId !== undefined && 'fid' in embeddedCastId && 'hash' in embeddedCastId}
 													<p>
 														<a href={resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
 															fid: String(embeddedCastId.fid),
@@ -784,7 +784,7 @@
 						entityId,
 						fieldName: '$$timestamps',
 					}}
-					href={href}
+					href={href ?? '#'}
 					id={`${castDetailKey}:metric-snapshots`}
 					title="Metric snapshots"
 				/>

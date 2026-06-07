@@ -221,7 +221,7 @@
 				{:else}
 					<MarketsView
 						CollapsibleProps={{ canToggle: false }}
-						href="/markets"
+						href={resolve('/markets')}
 						entityFieldReference={{
 							entityType: EntityType.Currency,
 							entityId,
@@ -236,7 +236,7 @@
 			{#snippet SectionMarketsAsQuote({ id, label })}
 				<MarketsView
 					CollapsibleProps={{ canToggle: false }}
-					href="/markets"
+					href={resolve('/markets')}
 					entityFieldReference={{
 						entityType: EntityType.Currency,
 						entityId,

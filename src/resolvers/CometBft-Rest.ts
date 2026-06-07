@@ -1,9 +1,11 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { cosmosHubCaip2, cosmosHubRpcUrl } from '$/constants/CosmosNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -22,15 +24,16 @@ const assertCosmosHub = (network: NetworkId) => {
 export default {
 	source: Source.CometBft_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
-				entityType: EntityType.CosmosBlock,
-				resolve: async (entityId) => {
-					assertCosmosHub(entityId.$network)
-					if (!('height' in entityId))
-						throw new Error('CometBft_Rest: CosmosBlock hash lookup is unsupported')
+	resolvers: [
+		defineResolver({
+			entityType: EntityType.CosmosBlock,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId) => {
+				assertCosmosHub(entityId.$network)
+				if (!('height' in entityId))
+					throw new Error('CometBft_Rest: CosmosBlock hash lookup is unsupported')
 
-					const { getBlock } = await import('$/sources/CometBft/Rest/queries.ts')
+				const { getBlock } = await import('$/sources/CometBft/Rest/queries.ts')
 				const wireBlock = await getBlock({
 					restBaseUrl: cosmosHubRpcUrl,
 					height: entityId.height,
@@ -41,10 +44,16 @@ export default {
 					timestampMs: Date.parse(wireBlock.result.block.header.time),
 				}
 			},
+			fields: {
+			hash: (snapshot) => snapshot.hash,
+			proposerConsensusAddress: (snapshot) => snapshot.proposerConsensusAddress,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.CosmosTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertCosmosHub(entityId.$network)
 				const { getTx } = await import('$/sources/CometBft/Rest/queries.ts')
@@ -64,26 +73,12 @@ export default {
 					gasUsed: BigInt(wireTransaction.result.tx_result.gas_used),
 				}
 			},
-		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
-			entityType: EntityType.CosmosTransaction,
-			fieldName: '$block',
-			resolve: async (entityId) => {
-				assertCosmosHub(entityId.$network)
-				const { getTx } = await import('$/sources/CometBft/Rest/queries.ts')
-				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
-						height: BigInt((await getTx({
-							restBaseUrl: cosmosHubRpcUrl,
-							txHash: entityId.txHash.replace(/^0x/i, '').toUpperCase(),
-						})).result.height),
-					},
-				}
-			},
+			fields: {
+			$block: (snapshot) => snapshot.$block,
+			code: (snapshot) => snapshot.code,
+			gasWanted: (snapshot) => snapshot.gasWanted,
+			gasUsed: (snapshot) => snapshot.gasUsed,
+		}
 		}),
 	],
 }

@@ -1,17 +1,17 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import {
 	polkadotMainnetCaip2,
 	polkadotMainnetRpcUrl,
 } from '$/constants/PolkadotNetwork.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { PolkadotRpcBlock } from '$/sources/Polkadot/JsonRpc/types.ts'
 
@@ -47,9 +47,10 @@ const polkadotExtrinsicRows = (
 export default {
 	source: Source.Polkadot_JsonRpc,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.PolkadotNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId)
 				return {
@@ -65,10 +66,15 @@ export default {
 					],
 				}
 			},
+			fields: {
+			$network: (network) => network.$network,
+			rpcEndpoints: (network) => network.rpcEndpoints,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotNetwork_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const {
@@ -109,10 +115,23 @@ export default {
 					shouldHavePeers: systemHealth.shouldHavePeers,
 				}
 			},
+			fields: {
+			finalizedBlockNumber: (timestamp) => timestamp.finalizedBlockNumber,
+			finalizedBlockHash: (timestamp) => timestamp.finalizedBlockHash,
+			finalizedExtrinsicCount: (timestamp) => timestamp.finalizedExtrinsicCount,
+			runtimeSpecName: (timestamp) => timestamp.runtimeSpecName,
+			runtimeSpecVersion: (timestamp) => timestamp.runtimeSpecVersion,
+			transactionVersion: (timestamp) => timestamp.transactionVersion,
+			stateVersion: (timestamp) => timestamp.stateVersion,
+			peerCount: (timestamp) => timestamp.peerCount,
+			isSyncing: (timestamp) => timestamp.isSyncing,
+			shouldHavePeers: (timestamp) => timestamp.shouldHavePeers,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const {
@@ -146,10 +165,18 @@ export default {
 					),
 				}
 			},
+			fields: {
+			hash: (block) => block.hash,
+			$parent: (block) => block.$parent,
+			stateRoot: (block) => block.stateRoot,
+			extrinsicsRoot: (block) => block.extrinsicsRoot,
+			$$extrinsics: (block) => block.$$extrinsics,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotExtrinsic,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$block.$network)
 				const {
@@ -168,14 +195,13 @@ export default {
 				}
 				return {}
 			},
+			fields: {}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotNetwork,
-			fieldName: 'rpcEndpoints',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.PolkadotNetwork>) => {
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId)
 				return [
 					{
@@ -185,12 +211,15 @@ export default {
 					},
 				]
 			},
+			fields: {
+			rpcEndpoints: (rpcEndpoints) => rpcEndpoints,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotNetwork,
-			fieldName: '$$timestamps',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.PolkadotNetwork>) => {
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId)
 				return [
 					{
@@ -201,12 +230,15 @@ export default {
 					},
 				]
 			},
+			fields: {
+			$$timestamps: (timestamps) => timestamps,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotNetwork,
-			fieldName: '$$blocks',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.PolkadotNetwork>, context) => {
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId, context) => {
 				assertPolkadotMainnet(entityId)
 				const {
 					getFinalizedHead,
@@ -220,7 +252,7 @@ export default {
 				return Array.from({
 					length: Math.min(
 						Number(finalizedBlockNumber + 1n),
-						resolverLoadSubsetRowLimit(context),
+						resolverContextRowLimit(context),
 					),
 				}, (_value, blockOffset) => ({
 					[EntityMetaKey.Id]: {
@@ -232,11 +264,14 @@ export default {
 					},
 				}))
 			},
+			fields: {
+			$$blocks: (blocks) => blocks,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
-			fieldName: '$parent',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				if (entityId.blockNumber === 0n) throw new Error('Polkadot_JsonRpc: genesis block has no parent')
@@ -259,11 +294,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+			$parent: (parent) => parent,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
-			fieldName: '$$extrinsics',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const {
@@ -281,6 +319,9 @@ export default {
 					}),
 				)
 			},
+			fields: {
+			$$extrinsics: (extrinsics) => extrinsics,
+		}
 		}),
 	],
 }

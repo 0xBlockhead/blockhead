@@ -1,11 +1,13 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
-	sourcePublicEnv,
+	defineResolver,
+	resolverContextRowLimit,
+	type ResolverContext,
 } from '$/resolvers/$resolvers.ts'
 import { lightningNetworkId } from '$/constants/LightningNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
 import { LightningHtlcDirection } from '$/schema/LightningHtlc.ts'
@@ -89,13 +91,9 @@ const paymentStatusFromLnd = (status: string | null | undefined): LightningPayme
 		LightningPaymentStatus.Unknown
 )
 
-const lndEnv = (context: Parameters<typeof sourcePublicEnv>[0]) => (
-	sourcePublicEnv(context, Source.LightningLnd_Rest)
-)
-
-const lndTransport = (context: Parameters<typeof sourcePublicEnv>[0]) => ({
-	restBaseUrl: lndEnv(context).PUBLIC_LND_REST_BASE_URL,
-	macaroonHex: lndEnv(context).PUBLIC_LND_MACAROON_HEX,
+const lndTransport = (context: ResolverContext) => ({
+	restBaseUrl: context.publicEnv.PUBLIC_LND_REST_BASE_URL,
+	macaroonHex: context.publicEnv.PUBLIC_LND_MACAROON_HEX,
 })
 
 const channelFieldsFromLndChannel = (
@@ -195,12 +193,12 @@ const htlcFieldsFromLndHtlc = (
 	state: htlc.state,
 })
 
-const lndChannels = async (context: Parameters<typeof sourcePublicEnv>[0]) => {
+const lndChannels = async (context: ResolverContext) => {
 	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return (await listChannels(lndTransport(context))).channels ?? []
 }
 
-const lndInfo = async (context: Parameters<typeof sourcePublicEnv>[0]) => {
+const lndInfo = async (context: ResolverContext) => {
 	const { getInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return getInfo(lndTransport(context))
 }
@@ -208,9 +206,10 @@ const lndInfo = async (context: Parameters<typeof sourcePublicEnv>[0]) => {
 export default {
 	source: Source.LightningLnd_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertLightningNetwork(entityId.$network)
 				return {
@@ -225,10 +224,15 @@ export default {
 					},
 				}
 			},
+			fields: {
+				name: (network) => network.name,
+				$settlementNetwork: (network) => network.$settlementNetwork,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LightningNode,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const info = await lndInfo(context)
@@ -248,10 +252,17 @@ export default {
 					channelCount: channels.filter((channel) => channel.remote_pubkey === entityId.publicKey).length,
 				}
 			},
+			fields: {
+				alias: (node) => node.alias,
+				color: (node) => node.color,
+				channelCount: (node) => node.channelCount,
+				networkAddresses: (node) => node.networkAddresses,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LightningChannel,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const info = await lndInfo(context)
@@ -261,10 +272,25 @@ export default {
 				}
 				return channelFieldsFromLndChannel(channel, info.identity_pubkey)
 			},
+			fields: {
+				status: (channel) => channel.status,
+				$node0: (channel) => channel.$node0,
+				$node1: (channel) => channel.$node1,
+				capacitySats: (channel) => channel.capacitySats,
+				localBalanceSats: (channel) => channel.localBalanceSats,
+				remoteBalanceSats: (channel) => channel.remoteBalanceSats,
+				unsettledBalanceSats: (channel) => channel.unsettledBalanceSats,
+				fundingTransactionId: (channel) => channel.fundingTransactionId,
+				fundingOutputIndex: (channel) => channel.fundingOutputIndex,
+				active: (channel) => channel.active,
+				private: (channel) => channel.private,
+				initiator: (channel) => channel.initiator,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LightningInvoice,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
@@ -276,10 +302,24 @@ export default {
 				}
 				return invoiceFieldsFromLndInvoice(invoice)
 			},
+			fields: {
+				paymentRequest: (invoice) => invoice.paymentRequest,
+				memo: (invoice) => invoice.memo,
+				valueMsat: (invoice) => invoice.valueMsat,
+				amountPaidMsat: (invoice) => invoice.amountPaidMsat,
+				createdAtMs: (invoice) => invoice.createdAtMs,
+				settledAtMs: (invoice) => invoice.settledAtMs,
+				state: (invoice) => invoice.state,
+				expirySeconds: (invoice) => invoice.expirySeconds,
+				private: (invoice) => invoice.private,
+				addIndex: (invoice) => invoice.addIndex,
+				settleIndex: (invoice) => invoice.settleIndex,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LightningPayment,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
@@ -291,10 +331,21 @@ export default {
 				}
 				return paymentFieldsFromLndPayment(payment)
 			},
+			fields: {
+				paymentRequest: (payment) => payment.paymentRequest,
+				valueMsat: (payment) => payment.valueMsat,
+				feeMsat: (payment) => payment.feeMsat,
+				createdAtMs: (payment) => payment.createdAtMs,
+				status: (payment) => payment.status,
+				failureReason: (payment) => payment.failureReason,
+				preimage: (payment) => payment.preimage,
+				paymentIndex: (payment) => payment.paymentIndex,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LightningHtlc,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$channel.$network)
 				const channel = (await lndChannels(context)).find((channel) => channel.chan_id === entityId.$channel.channelId)
@@ -307,13 +358,18 @@ export default {
 				}
 				return htlcFieldsFromLndHtlc(channel, htlc, entityId.htlcIndex)
 			},
+			fields: {
+				direction: (htlc) => htlc.direction,
+				amountMsat: (htlc) => htlc.amountMsat,
+				expiryHeight: (htlc) => htlc.expiryHeight,
+				hashLock: (htlc) => htlc.hashLock,
+				state: (htlc) => htlc.state,
+			},
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
-			fieldName: '$$nodes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const info = await lndInfo(context)
@@ -330,30 +386,36 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$nodes: (nodes) => nodes,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
-			fieldName: '$$channels',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const info = await lndInfo(context)
 				return (await lndChannels(context))
-					.slice(0, resolverLoadSubsetRowLimit(context))
+					.slice(0, resolverContextRowLimit(context))
 					.map((channel) => channelFieldsFromLndChannel(channel, info.identity_pubkey))
+			},
+			fields: {
+				$$channels: (channels) => channels,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
-			fieldName: '$$invoices',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
 				return (
 					(await listInvoices({
 						...lndTransport(context),
-						numMaxInvoices: resolverLoadSubsetRowLimit(context),
+						numMaxInvoices: resolverContextRowLimit(context),
 					})).invoices ?? []
 				).flatMap((invoice) => (
 					invoicePaymentHash(invoice) == null ?
@@ -362,26 +424,32 @@ export default {
 						[invoiceFieldsFromLndInvoice(invoice)]
 				))
 			},
+			fields: {
+				$$invoices: (invoices) => invoices,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
-			fieldName: '$$payments',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
 				return (
 					(await listPayments({
 						...lndTransport(context),
-						maxPayments: resolverLoadSubsetRowLimit(context),
+						maxPayments: resolverContextRowLimit(context),
 					})).payments ?? []
 				).map(paymentFieldsFromLndPayment)
 			},
+			fields: {
+				$$payments: (payments) => payments,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LightningNode,
-			fieldName: '$$channels',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const info = await lndInfo(context)
@@ -390,14 +458,17 @@ export default {
 						entityId.publicKey === info.identity_pubkey
 						|| entityId.publicKey === channel.remote_pubkey
 					))
-					.slice(0, resolverLoadSubsetRowLimit(context))
+					.slice(0, resolverContextRowLimit(context))
 					.map((channel) => channelFieldsFromLndChannel(channel, info.identity_pubkey))
+			},
+			fields: {
+				$$channels: (channels) => channels,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LightningChannel,
-			fieldName: '$$htlcs',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const channel = (await lndChannels(context)).find((channel) => channel.chan_id === entityId.channelId)
@@ -407,6 +478,9 @@ export default {
 				return (channel.pending_htlcs ?? []).map((htlc, htlcIndex) => (
 					htlcFieldsFromLndHtlc(channel, htlc, htlcIndex)
 				))
+			},
+			fields: {
+				$$htlcs: (htlcs) => htlcs,
 			},
 		}),
 	],

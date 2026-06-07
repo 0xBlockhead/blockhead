@@ -11,11 +11,17 @@
 
 
 	// Context
+	import { resolve } from '$app/paths'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+
 	// State
 	let {
 		entityId,
-		href = `/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`,
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=caip2Namespace]:[caip2Reference=caip2Reference]', {
+			caip2Namespace: entityId.$network.caip2.namespace,
+			caip2Reference: entityId.$network.caip2.reference,
+		}),
 		layout,
 		open = $bindable(true),
 		collapsible = true,

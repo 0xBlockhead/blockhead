@@ -1,10 +1,12 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { tronScanRestBaseUrl } from '$/constants/TronNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { TronTokenStandard } from '$/schema/TronToken.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -277,9 +279,10 @@ const tokenTransferFieldsFromTronScanTransfer = (
 export default {
 	source: Source.TronScan_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.TronBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertTronMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/TronScan/Rest/queries.ts')
@@ -290,10 +293,21 @@ export default {
 				if (block == null) throw new Error(`TronScan_Rest: block not found for ${entityId.height.toString()}`)
 				return blockFieldsFromTronScanBlock(entityId.$network, block)
 			},
+			fields: {
+			hash: (block) => block.hash,
+			$parent: (block) => block.$parent,
+			parentHash: (block) => block.parentHash,
+			timestampMs: (block) => block.timestampMs,
+			$witness: (block) => block.$witness,
+			txTrieRoot: (block) => block.txTrieRoot,
+			version: (block) => block.version,
+			transactionCount: (block) => block.transactionCount,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.TronAccount,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertTronMainnet(entityId.$network)
 				const { getAccount } = await import('$/sources/TronScan/Rest/queries.ts')
@@ -322,10 +336,22 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			name: (account) => account.name,
+			balanceSun: (account) => account.balanceSun,
+			createdTimestampMs: (account) => account.createdTimestampMs,
+			latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
+			totalTransactionCount: (account) => account.totalTransactionCount,
+			bandwidthRemaining: (account) => account.bandwidthRemaining,
+			energyRemaining: (account) => account.energyRemaining,
+			isContract: (account) => account.isContract,
+			$contract: (account) => account.$contract,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.TronTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertTronMainnet(entityId.$network)
 				const { getTransaction } = await import('$/sources/TronScan/Rest/queries.ts')
@@ -338,10 +364,24 @@ export default {
 					detail.data?.[0] ?? detail,
 				)
 			},
+			fields: {
+			$block: (transaction) => transaction.$block,
+			blockHeight: (transaction) => transaction.blockHeight,
+			timestampMs: (transaction) => transaction.timestampMs,
+			contractType: (transaction) => transaction.contractType,
+			result: (transaction) => transaction.result,
+			feeSun: (transaction) => transaction.feeSun,
+			$owner: (transaction) => transaction.$owner,
+			$to: (transaction) => transaction.$to,
+			$contract: (transaction) => transaction.$contract,
+			amountSun: (transaction) => transaction.amountSun,
+			assetName: (transaction) => transaction.assetName,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.TronContract,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertTronMainnet(entityId.$network)
 				const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
@@ -352,10 +392,22 @@ export default {
 				if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${entityId.address}`)
 				return contractFieldsFromTronScanContract(entityId.$network, entityId.address, contract)
 			},
+			fields: {
+			$account: (contract) => contract.$account,
+			name: (contract) => contract.name,
+			compiler: (contract) => contract.compiler,
+			verifyStatus: (contract) => contract.verifyStatus,
+			isProxy: (contract) => contract.isProxy,
+			$implementation: (contract) => contract.$implementation,
+			$creator: (contract) => contract.$creator,
+			$creationTransaction: (contract) => contract.$creationTransaction,
+			$$tokens: (contract) => contract.$$tokens,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.TronToken,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertTronMainnet(entityId.$network)
 				const {
@@ -374,10 +426,22 @@ export default {
 				)
 				return tokenFieldsFromTronScanToken(entityId.$network, token)
 			},
+			fields: {
+			standard: (token) => token.standard,
+			name: (token) => token.name,
+			symbol: (token) => token.symbol,
+			decimals: (token) => token.decimals,
+			totalSupply: (token) => token.totalSupply,
+			$owner: (token) => token.$owner,
+			$contract: (token) => token.$contract,
+			createdTimestampMs: (token) => token.createdTimestampMs,
+			holderCount: (token) => token.holderCount,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.TronTokenTransfer,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertTronMainnet(entityId.$network)
 				const { getTrc20Transfers } = await import('$/sources/TronScan/Rest/queries.ts')
@@ -396,20 +460,27 @@ export default {
 					entityId.transferIndex,
 				)
 			},
+			fields: {
+			$transaction: (transfer) => transfer.$transaction,
+			$token: (transfer) => transfer.$token,
+			standard: (transfer) => transfer.standard,
+			$from: (transfer) => transfer.$from,
+			$to: (transfer) => transfer.$to,
+			amount: (transfer) => transfer.amount,
+			timestampMs: (transfer) => transfer.timestampMs,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.TronAccount,
-			fieldName: '$$tokens',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertTronMainnet(entityId.$network)
 				const { getAccountTokens } = await import('$/sources/TronScan/Rest/queries.ts')
 				return (await getAccountTokens({
 					restBaseUrl: tronScanRestBaseUrl,
 					address: entityId.address,
-					limit: resolverLoadSubsetRowLimit(context),
+					limit: resolverContextRowLimit(context),
 				})).data.flatMap((token) => {
 					const tokenId = tokenIdFromTronScanToken(token)
 					return (
@@ -428,11 +499,14 @@ export default {
 					)
 				})
 			},
+			fields: {
+			$$tokens: (tokens) => tokens,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.TronContract,
-			fieldName: '$$tokens',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertTronMainnet(entityId.$network)
 				const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
@@ -443,11 +517,14 @@ export default {
 				if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${entityId.address}`)
 				return contractFieldsFromTronScanContract(entityId.$network, entityId.address, contract).$$tokens
 			},
+			fields: {
+			$$tokens: (tokens) => tokens,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.TronTransaction,
-			fieldName: '$$tokenTransfers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertTronMainnet(entityId.$network)
 				const { getTrc20Transfers } = await import('$/sources/TronScan/Rest/queries.ts')
@@ -455,7 +532,7 @@ export default {
 					(await getTrc20Transfers({
 						restBaseUrl: tronScanRestBaseUrl,
 						transactionId: entityId.transactionId,
-						limit: resolverLoadSubsetRowLimit(context),
+						limit: resolverContextRowLimit(context),
 					})).token_transfers
 					?? []
 				).map((transfer, transferIndex) => (
@@ -466,6 +543,9 @@ export default {
 					)
 				))
 			},
+			fields: {
+			$$tokenTransfers: (tokenTransfers) => tokenTransfers,
+		}
 		}),
 	],
 }

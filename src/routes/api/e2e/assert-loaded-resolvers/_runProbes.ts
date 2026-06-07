@@ -1,13 +1,14 @@
 import { stringify } from 'devalue'
 
 import {
-	assertEntityFieldResolverResult,
-	assertEntityResolverResult,
+	assertResolverDefinitionResult,
+	assertResolverValuePartResult,
 } from '$/collections/assertLoadedCollectionRows.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	entityFieldDefinitions,
+	entityIdProjectionNameForId,
 	EntityMetaKey,
 	type EntityDefinition,
 	type EntityFieldDefinition,
@@ -16,10 +17,14 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { entityDefinitionByType } from '$/schema/index.ts'
 import { schema } from '$/schema/index.ts'
 import {
-	entityFieldResolvers,
-	entityResolvers,
+	resolverDefinitions,
+	resolverCountPartsByEntityTypeAndFieldName,
+	resolverDiscriminatorPartsByEntityTypeAndConditionKey,
+	resolverLivePartsByEntityTypeAndFieldName,
+	resolverRootLivePartsByEntityType,
+	resolverValuePartsByEntityTypeAndFieldName,
 } from '$/resolvers/index.ts'
-import type { ResolverLoadSubset } from '$/resolvers/$resolvers.ts'
+import type { ResolverContext } from '$/resolvers/$resolvers.ts'
 import { Source } from '$/sources/$Source.ts'
 import type {
 	EntityId,
@@ -32,7 +37,7 @@ import {
 	classifyAssertLoadedResolverProbeCase,
 	entityFieldValueForAssert,
 	isExpectedAssertLoadedResolverProbeFailure,
-	parentEntityIdForFieldResolver,
+	parentEntityIdForResolverValuePart,
 	probeEntityIdByType,
 	resolveProbeEntityId,
 	type AssertLoadedResolverProbeCategory,
@@ -48,6 +53,12 @@ const resolverContext = {
 }
 
 const probeTimeoutMs = 30_000
+
+const entityDefinitionAcceptsEntityId = (
+	entityDefinition: EntityDefinition,
+	accepts: readonly string[],
+	entityId: unknown,
+) => accepts.includes(entityIdProjectionNameForId(entityDefinition, entityId) ?? '')
 
 
 const withProbeTimeout = async <_Value>(
@@ -72,24 +83,63 @@ const withProbeTimeout = async <_Value>(
 	}
 }
 
-type ProbeEntityResolver<_EntityType extends SchemaEntityType<typeof schema>> = {
+type ProbeResolverDefinition<_EntityType extends SchemaEntityType<typeof schema>> = {
+	index: number
 	entityType: _EntityType
 	source: Source
 	resolve(
 		entityId: EntityId<typeof schema, _EntityType>,
-		context?: ResolverLoadSubset,
+		context: ResolverContext,
 	): Promise<unknown>
 }
 
-type ProbeEntityFieldResolver<_EntityType extends SchemaEntityType<typeof schema>> = {
+type ProbeResolverValuePart<_EntityType extends SchemaEntityType<typeof schema>> = {
+	index: number
 	entityType: _EntityType
 	fieldName: string
 	source: Source
 	resolve(
 		scopedEntityId: EntityId<typeof schema, _EntityType>,
-		context?: ResolverLoadSubset,
+		context: ResolverContext,
 	): Promise<unknown>
 }
+
+const resolverDefinitionProbes = resolverDefinitions.map((resolver, index) => ({
+	...resolver,
+	index,
+}))
+
+const resolverValuePartProbes = Object.values(resolverValuePartsByEntityTypeAndFieldName)
+	.flatMap((parts) => (
+		parts.flatMap((part, index) => (
+			part.select == null ?
+				[]
+			:
+				[{
+					index,
+					entityType: part.entityType,
+					fieldName: part.fieldName,
+					source: part.source,
+					resolve: async (
+						entityId: EntityId<typeof schema, SchemaEntityType<typeof schema>>,
+						context: ResolverContext,
+				) => {
+					if (!entityDefinitionAcceptsEntityId(
+						entityDefinitionByType[part.entityType],
+						part.acceptsParent ?? part.resolver.accepts,
+						entityId,
+					))
+						throw new Error(`resolver probe skipped unsupported parent ${stringify(entityId)}`)
+
+					return part.select!(
+						await part.resolver.resolve(entityId, context),
+						entityId,
+						context,
+					)
+				},
+				}]
+		))
+	))
 
 
 export type AssertLoadedResolverProbeCase = {
@@ -106,8 +156,14 @@ export type AssertLoadedResolverProbeCase = {
 export type AssertLoadedResolverProbeResult = {
 	cases: AssertLoadedResolverProbeCase[]
 	/** Resolvers exercised (same process as probes); `cases.length` must equal the sum. */
-	entityResolverCount: number
-	fieldResolverCount: number
+	resolverDefinitionCount: number
+	resolverValuePartCount: number
+	conditionalScalarDiscriminatorCount: number
+	conditionalItemDiscriminatorCount: number
+	countResolverPartCount: number
+	countResolverFields: string[]
+	fieldLiveResolverPartCount: number
+	rootLiveResolverCount: number
 	assertOk: number
 	resolveOk: number
 	/** Resolve succeeded but assertLoaded* failed — excludes classified expected gaps. */
@@ -200,7 +256,7 @@ const fieldResolvePayloadEmptyForProbe = (
 
 
 export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResolverProbeResult> => {
-	for (const resolver of entityResolvers) {
+	for (const resolver of resolverDefinitionProbes) {
 		if (
 			probeEntityIdByType[resolver.entityType] === undefined
 			&& resolver.entityType !== EntityType.Coin_Timestamp
@@ -212,18 +268,18 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 	}
 
 	const entityCases = await Promise.all(
-			entityResolvers.map(async (resolver: ProbeEntityResolver<
+			resolverDefinitionProbes.map(async (resolver: ProbeResolverDefinition<
 				SchemaEntityType<typeof schema>
 			>) => {
 			let entityId: Awaited<ReturnType<typeof resolveProbeEntityId>>
 			try {
 				entityId = await resolveProbeEntityId(resolver.entityType)
 			} catch (error) {
-				return finalizeProbeCase({
-					kind: 'entity',
-					key: `entity:${resolver.entityType}:${resolver.source}`,
-					resolveRejected: true,
-					resolveError: error instanceof Error ? error.message : String(error),
+					return finalizeProbeCase({
+						kind: 'entity',
+						key: `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`,
+						resolveRejected: true,
+						resolveError: error instanceof Error ? error.message : String(error),
 					assertThrew: false,
 				})
 			}
@@ -232,7 +288,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 				throw new Error(`No entityDefinitionByType[${resolver.entityType}]`)
 			}
 
-			const key = `entity:${resolver.entityType}:${resolver.source}`
+				const key = `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`
 
 			let fields: unknown
 			try {
@@ -285,7 +341,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			}
 
 			try {
-				assertEntityResolverResult(entityDef, row)
+				assertResolverDefinitionResult(entityDef, row)
 			} catch (error) {
 				return finalizeProbeCase({
 					kind: 'entity',
@@ -306,15 +362,15 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 	)
 
 	const fieldCases = await Promise.all(
-			entityFieldResolvers.map(async (fieldResolver: ProbeEntityFieldResolver<
+			resolverValuePartProbes.map(async (fieldResolver: ProbeResolverValuePart<
 				SchemaEntityType<typeof schema>
 			>) => {
-			const parentEntityId = parentEntityIdForFieldResolver(fieldResolver.entityType)
+				const parentEntityId = parentEntityIdForResolverValuePart(fieldResolver.entityType)
 			const entityDef = entityDefinitionByType[fieldResolver.entityType]
 			if (entityDef == null) {
 				throw new Error(`No entityDefinitionByType[${fieldResolver.entityType}]`)
 			}
-			const fieldDef = entityDef.fields.find((field: EntityFieldDefinition) => (
+				const fieldDef = entityFieldDefinitions(entityDef).find((field: EntityFieldDefinition) => (
 				field.name === fieldResolver.fieldName
 	))
 			if (fieldDef == null) {
@@ -323,9 +379,9 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 				)
 			}
 
-			const key = (
-				`field:${fieldResolver.entityType}.${String(fieldResolver.fieldName)}:${fieldResolver.source}`
-			)
+				const key = (
+					`field:${fieldResolver.index}:${fieldResolver.entityType}.${String(fieldResolver.fieldName)}:${fieldResolver.source}`
+				)
 
 			let raw: unknown
 			try {
@@ -388,7 +444,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 					[EntityMetaKey.Value]: value,
 				}
 				try {
-					assertEntityFieldResolverResult(
+					assertResolverValuePartResult(
 						String(fieldResolver.entityType),
 						fieldDef,
 						row,
@@ -438,8 +494,36 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 
 	return {
 		cases,
-		entityResolverCount: entityResolvers.length,
-		fieldResolverCount: entityFieldResolvers.length,
+		resolverDefinitionCount: resolverDefinitionProbes.length,
+		resolverValuePartCount: resolverValuePartProbes.length,
+		conditionalScalarDiscriminatorCount: Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey)
+			.flatMap((partsByConditionKey) => Object.entries(partsByConditionKey ?? {}))
+			.filter(([conditionKey, parts]) => (
+				!conditionKey.includes('[')
+				&& parts.length > 0
+			))
+			.length,
+		conditionalItemDiscriminatorCount: Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey)
+			.flatMap((partsByConditionKey) => Object.entries(partsByConditionKey ?? {}))
+			.filter(([conditionKey, parts]) => (
+				conditionKey.includes('[')
+				&& parts.length > 0
+			))
+			.length,
+		countResolverPartCount: Object.values(resolverCountPartsByEntityTypeAndFieldName)
+			.flatMap((parts) => parts)
+			.length,
+		countResolverFields: Object.entries(resolverCountPartsByEntityTypeAndFieldName)
+			.flatMap(([key, parts]) => (
+				parts.length === 0 ? [] : [String(key).replace('\x1E', '.')]
+			))
+			.sort(),
+		fieldLiveResolverPartCount: Object.values(resolverLivePartsByEntityTypeAndFieldName)
+			.flatMap((parts) => parts)
+			.length,
+		rootLiveResolverCount: Object.values(resolverRootLivePartsByEntityType)
+			.flatMap((resolvers) => resolvers)
+			.length,
 		assertOk,
 		resolveOk,
 		fulfilledButAssertFailed,

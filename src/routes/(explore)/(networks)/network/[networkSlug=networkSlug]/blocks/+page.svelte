@@ -6,6 +6,7 @@
 
 
 	// Context
+	import { resolve } from '$app/paths'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
@@ -47,19 +48,18 @@
 
 <Page>
 	<ResourceBoundary resource={network}>
-			{#snippet children(network)}
-				(
-					{@const entityId = network.caip2 == null ?
-						{ networkSlug: network.slug }
-					:
-						{ caip2: network.caip2 }}
-						{@const href = `/network/${params.networkSlug}/blocks`}
-				)
+		{#snippet children(network)}
+			{@const href = resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/blocks', {
+				networkSlug: params.networkSlug,
+			})}
 			{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
 				<UtxoBlocksView
 					entityFieldReference={{
 						entityType: EntityType.UtxoNetwork,
-						entityId,
+						entityId: network.caip2 == null ?
+							{ networkSlug: network.slug }
+						:
+							{ caip2: network.caip2 },
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -84,7 +84,10 @@
 				<CosmosBlocksView
 					entityFieldReference={{
 						entityType: EntityType.CosmosNetwork,
-						entityId,
+						entityId: network.caip2 == null ?
+							{ networkSlug: network.slug }
+						:
+							{ caip2: network.caip2 },
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -94,7 +97,10 @@
 				<FilecoinTipsetsView
 					entityFieldReference={{
 						entityType: EntityType.FilecoinNetwork,
-						entityId,
+						entityId: network.caip2 == null ?
+							{ networkSlug: network.slug }
+						:
+							{ caip2: network.caip2 },
 						fieldName: '$$tipsets',
 					}}
 					{href}
@@ -105,7 +111,10 @@
 				<PolkadotBlocksView
 					entityFieldReference={{
 						entityType: EntityType.PolkadotNetwork,
-						entityId,
+						entityId: network.caip2 == null ?
+							{ networkSlug: network.slug }
+						:
+							{ caip2: network.caip2 },
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -125,7 +134,10 @@
 				<TronBlocksView
 					entityFieldReference={{
 						entityType: EntityType.TronNetwork,
-						entityId,
+						entityId: network.caip2 == null ?
+							{ networkSlug: network.slug }
+						:
+							{ caip2: network.caip2 },
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -135,7 +147,10 @@
 				<MoneroBlocksView
 					entityFieldReference={{
 						entityType: EntityType.MoneroNetwork,
-						entityId,
+						entityId: network.caip2 == null ?
+							{ networkSlug: network.slug }
+						:
+							{ caip2: network.caip2 },
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -145,7 +160,10 @@
 				<HyperliquidBlocksView
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
-						entityId,
+						entityId: network.caip2 == null ?
+							{ networkSlug: network.slug }
+						:
+							{ caip2: network.caip2 },
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -155,7 +173,10 @@
 				<BittensorBlocksView
 					entityFieldReference={{
 						entityType: EntityType.BittensorNetwork,
-						entityId,
+						entityId: network.caip2 == null ?
+							{ networkSlug: network.slug }
+						:
+							{ caip2: network.caip2 },
 						fieldName: '$$blocks',
 					}}
 					{href}

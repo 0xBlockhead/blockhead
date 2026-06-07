@@ -1,30 +1,31 @@
+import { Iso4217 } from '$/constants/Currency.ts'
 import {
 	MarketAssetKind,
 	MarketKind,
 } from '$/constants/Market.ts'
 import {
 	catalogCoinUsdMarketIdByCoinId,
-	catalogSpotMarketsWithCurrencyAsBase,
 	catalogMarketsWithCurrencyAsQuoteUsd,
+	catalogSpotMarketsWithCurrencyAsBase,
 } from '$/constants/MarketCatalog.ts'
-import { Iso4217 } from '$/constants/Currency.ts'
-import { stringify } from 'devalue'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
+import { stringify } from 'devalue'
 
 export default {
 	source: Source.TradingView_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.Market_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('TradingView_Rest: Market_Timestamp is spot-only')
@@ -37,61 +38,37 @@ export default {
 				}
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const { getCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
-				const coinId = entityId.$market.$base.$coin.coinId
-				const market = tradingViewMarketByCoinId[coinId]
+				const market = tradingViewMarketByCoinId[entityId.$market.$base.$coin.coinId]
 				if (market == null) throw new Error('TradingView_Rest: coin market not mapped')
 				const quote = (await getCryptoQuotes([market.ticker])).find((cryptoQuote) => cryptoQuote.ticker === market.ticker)
 				if (quote == null) throw new Error('TradingView_Rest: quote not returned')
 
 				return {
-					[EntityMetaKey.Id]: entityId,
 					price: BigInt(Math.round(quote.price * 1e8)),
 					transport: 'tradingview-crypto-quotes-usd-1e8',
 					providerAssetId: market.ticker,
 				}
 			},
+			fields: {
+			price: (snapshot) => snapshot.price,
+			transport: (snapshot) => snapshot.transport,
+			providerAssetId: (snapshot) => snapshot.providerAssetId,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$markets',
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
-					return (
-						Object.entries(tradingViewMarketByCoinId)
-							.flatMap(([coinId, market]) => market == null ? [] : [{
+				return Object.entries(tradingViewMarketByCoinId)
+					.flatMap(([coinId, market]) => (
+						market == null ?
+							[]
+						:
+							[{
 								[EntityMetaKey.Id]: {
 									$base: {
-										kind: MarketAssetKind.Coin,
-									$coin: { coinId },
-								},
-								$quote: {
-									kind: MarketAssetKind.Currency,
-									$currency: { iso4217: Iso4217.USD },
-								},
-								$marketVenue: {
-									marketVenueId: market.marketVenueId,
-									},
-									marketKind: MarketKind.Spot,
-								} as const,
-							}])
-					)
-				},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType._Global,
-			fieldName: '$$marketPrices',
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
-				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
-					return (
-						Object.entries(tradingViewMarketByCoinId)
-							.flatMap(([coinId, market]) => market == null ? [] : [{
-								[EntityMetaKey.Id]: {
-									$market: {
-										$base: {
 										kind: MarketAssetKind.Coin,
 										$coin: { coinId },
 									},
@@ -102,18 +79,55 @@ export default {
 									$marketVenue: {
 										marketVenueId: market.marketVenueId,
 									},
+									marketKind: MarketKind.Spot,
+								} as const,
+							}]
+					))
+			},
+			fields: {
+			$$markets: (snapshot) => snapshot,
+		}
+		}),
+
+		defineResolver({
+			entityType: EntityType._Global,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
+				return Object.entries(tradingViewMarketByCoinId)
+					.flatMap(([coinId, market]) => (
+						market == null ?
+							[]
+						:
+							[{
+								[EntityMetaKey.Id]: {
+									$market: {
+										$base: {
+											kind: MarketAssetKind.Coin,
+											$coin: { coinId },
+										},
+										$quote: {
+											kind: MarketAssetKind.Currency,
+											$currency: { iso4217: Iso4217.USD },
+										},
+										$marketVenue: {
+											marketVenueId: market.marketVenueId,
+										},
 										marketKind: MarketKind.Spot,
 									} as const,
 								},
-							}])
-					)
-				},
+							}]
+					))
+			},
+			fields: {
+			$$marketPrices: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Coin,
-			fieldName: '$$marketsWithCoinAsBase',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId) => {
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const market = tradingViewMarketByCoinId[entityId.coinId]
 				if (market == null) {
@@ -138,20 +152,26 @@ export default {
 					},
 				]
 			},
+			fields: {
+			$$marketsWithCoinAsBase: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Coin,
-			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId) => {
 				throw new Error(`TradingView_Rest: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
 			},
+			fields: {
+			$$marketsWithCoinAsQuote: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Currency,
-			fieldName: '$$marketsWithCurrencyAsQuote',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId) => {
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const markets = (
 					entityId.iso4217 === Iso4217.USD ?
@@ -168,27 +188,33 @@ export default {
 				}
 				return markets
 			},
+			fields: {
+			$$marketsWithCurrencyAsQuote: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Currency,
-			fieldName: '$$marketsWithCurrencyAsBase',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId) => {
 				const markets = catalogSpotMarketsWithCurrencyAsBase
-						.filter((catalogMarket) => catalogMarket.iso4217 === entityId.iso4217)
-						.map((catalogMarket) => ({
-							[EntityMetaKey.Id]: catalogMarket.marketId,
-						}))
+					.filter((catalogMarket) => catalogMarket.iso4217 === entityId.iso4217)
+					.map((catalogMarket) => ({
+						[EntityMetaKey.Id]: catalogMarket.marketId,
+					}))
 				if (markets.length === 0) {
 					throw new Error(`TradingView_Rest: no catalog markets with ${entityId.iso4217} as base`)
 				}
 				return markets
 			},
+			fields: {
+			$$marketsWithCurrencyAsBase: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$$quotes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('TradingView_Rest: MarketPrice $$quotes is spot-only')
@@ -201,8 +227,7 @@ export default {
 				}
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const { getCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
-				const coinId = entityId.$market.$base.$coin.coinId
-				const market = tradingViewMarketByCoinId[coinId]
+				const market = tradingViewMarketByCoinId[entityId.$market.$base.$coin.coinId]
 				if (market == null) throw new Error('TradingView_Rest: coin market not mapped')
 				const quote = (await getCryptoQuotes([market.ticker])).find((cryptoQuote) => cryptoQuote.ticker === market.ticker)
 				if (quote == null) throw new Error('TradingView_Rest: quote not returned')
@@ -216,7 +241,9 @@ export default {
 					},
 				]
 			},
+			fields: {
+			$$quotes: (snapshot) => snapshot,
+		}
 		}),
-
 	],
 }

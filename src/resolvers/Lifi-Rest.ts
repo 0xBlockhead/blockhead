@@ -5,12 +5,14 @@ import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	sourcePublicEnv,
+	defineResolver,
+	type ResolverContext,
 } from '$/resolvers/$resolvers.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import type { EntityId } from '$/schema/$schema.ts'
@@ -143,18 +145,9 @@ const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
 	}
 }
 
-const globalNetworkEntitiesFieldResolver = defineEntityFieldResolver({
-	entityType: EntityType._Global,
-	fieldName: '$$evmNetworks',
-	resolve: async () => {
-		const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
-		return (await singleFlight(fetchChains)()).chains.map(networkEntityFieldsFromLifiChain)
-	},
-})
-
 const coinBridgeCapabilityRowsForCoin = async (
 	entityId: EntityId<typeof schema, EntityType.Coin>,
-	context: Parameters<typeof sourcePublicEnv>[0],
+	context: ResolverContext,
 ) => {
 	const { fetchTools } = await import('$/sources/Lifi/Rest/queries.ts')
 	const { fetchCoinBridgeCapabilityRowsForCoin } = await import(
@@ -162,7 +155,7 @@ const coinBridgeCapabilityRowsForCoin = async (
 	)
 	return fetchCoinBridgeCapabilityRowsForCoin(
 		entityId.coinId,
-		sourcePublicEnv(context, Source.Coingecko_Rest),
+		context.publicEnv,
 		await singleFlight(fetchTools)(),
 	)
 }
@@ -170,19 +163,26 @@ const coinBridgeCapabilityRowsForCoin = async (
 export default {
 	source: Source.Lifi_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
 					const lifiChain = (await singleFlight(fetchChains)()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entityId.caip2.reference))
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
 				return networkEntityFieldsFromLifiChain(lifiChain)
 			},
+			fields: {
+				$icon: (network) => network.$icon,
+				executionEndpoints: (network) => network.executionEndpoints,
+				$$rpcUrls: (network) => network.$$rpcUrls,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.CoinBridgeCapability,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const coinBridgeCapabilityFields = bridgeToolByKey[entityId.toolKey]
 				if (coinBridgeCapabilityFields == null) {
@@ -193,20 +193,40 @@ export default {
 					...coinBridgeCapabilityFields,
 				}
 			},
+			fields: {
+				toolKey: (capability) => capability.toolKey,
+				railId: (capability) => capability.railId,
+				settlementModel: (capability) => capability.settlementModel,
+				verificationModel: (capability) => capability.verificationModel,
+				assetOutcome: (capability) => capability.assetOutcome,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BridgeRoute,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
 				)
 				return (await singleFlight(fetchBridgeRouteBundleForQuoteId)(entityId)).routeFields
 			},
+			fields: {
+				$$steps: (route) => route.$$steps,
+				$fromNetwork: (route) => route.$fromNetwork,
+				$toNetwork: (route) => route.$toNetwork,
+				fromAmount: (route) => route.fromAmount,
+				toAmount: (route) => route.toAmount,
+				toAmountMin: (route) => route.toAmountMin,
+				estimatedCostUsd: (route) => route.estimatedCostUsd,
+				estimatedDurationSeconds: (route) => route.estimatedDurationSeconds,
+				tags: (route) => route.tags,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BridgeRouteStep,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
@@ -221,24 +241,46 @@ export default {
 				const { [EntityMetaKey.Id]: _id, ...fields } = step
 				return fields
 			},
-		}),
-
-	],
-
-	entityFieldResolvers: [
-		globalNetworkEntitiesFieldResolver,
-
-		defineEntityFieldResolver({
-			entityType: EntityType.Coin,
-			fieldName: '$$bridgeCapabilities',
-			resolve: async (entityId, context) => {
-				return coinBridgeCapabilityRowsForCoin(entityId, context)
+			fields: {
+				stepType: (step) => step.stepType,
+				tool: (step) => step.tool,
+				$fromNetwork: (step) => step.$fromNetwork,
+				$toNetwork: (step) => step.$toNetwork,
+				$fromToken: (step) => step.$fromToken,
+				$toToken: (step) => step.$toToken,
+				railId: (step) => step.railId,
+				settlementModel: (step) => step.settlementModel,
+				verificationModel: (step) => step.verificationModel,
+				assetOutcome: (step) => step.assetOutcome,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType._Global,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
+				return (await singleFlight(fetchChains)()).chains.map(networkEntityFieldsFromLifiChain)
+			},
+			fields: {
+				$$evmNetworks: (networks) => networks,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Coin,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId, context) => {
+				return coinBridgeCapabilityRowsForCoin(entityId, context)
+			},
+			fields: {
+				$$bridgeCapabilities: (capabilities) => capabilities,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			fieldName: '$$outboundBridgeCapabilities',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { resolveCoinIdForCoinInstanceEntityId } = await import(
 					'$/sources/Coingecko/Rest/coinInstances.ts'
@@ -248,7 +290,7 @@ export default {
 				)
 				const coinId = await resolveCoinIdForCoinInstanceEntityId(
 					entityId,
-					sourcePublicEnv(context, Source.Coingecko_Rest),
+					context.publicEnv,
 				)
 				if (coinId == null) {
 					throw new Error('Lifi_Rest: coin instance not mapped to catalog coin')
@@ -256,11 +298,14 @@ export default {
 				const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
 				return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entityId, 'outbound')
 			},
+			fields: {
+				$$outboundBridgeCapabilities: (capabilities) => capabilities,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			fieldName: '$$inboundBridgeCapabilities',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { resolveCoinIdForCoinInstanceEntityId } = await import(
 					'$/sources/Coingecko/Rest/coinInstances.ts'
@@ -270,7 +315,7 @@ export default {
 				)
 				const coinId = await resolveCoinIdForCoinInstanceEntityId(
 					entityId,
-					sourcePublicEnv(context, Source.Coingecko_Rest),
+					context.publicEnv,
 				)
 				if (coinId == null) {
 					throw new Error('Lifi_Rest: coin instance not mapped to catalog coin')
@@ -278,22 +323,28 @@ export default {
 				const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
 				return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entityId, 'inbound')
 			},
+			fields: {
+				$$inboundBridgeCapabilities: (capabilities) => capabilities,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.BridgeRoute,
-			fieldName: '$$steps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
 				)
 				return (await singleFlight(fetchBridgeRouteBundleForQuoteId)(entityId)).steps
 			},
+			fields: {
+				$$steps: (steps) => steps,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$blockExplorerUrls',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, _context) => {
 				const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
 					const lifiChain = (await singleFlight(fetchChains)()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entityId.caip2.reference))
@@ -309,6 +360,9 @@ export default {
 						infoURL: undefined,
 					}),
 				)
+			},
+			fields: {
+				$$blockExplorerUrls: (urls) => urls,
 			},
 		}),
 	],

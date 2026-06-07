@@ -87,7 +87,6 @@
 				id={`${id}-items`}
 				href={href}
 				getKey={(block) => stringify(block[EntityMetaKey.Id])}
-				getSortValue={(block) => -Number(block[EntityMetaKey.Id].slot)}
 				open={true}
 				resource={blocks}
 				{title}
@@ -99,9 +98,9 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(context)}
+				{#snippet Item({ item })}
 					<SolanaBlockView
-						entityId={context!.item[EntityMetaKey.Id]}
+						entityId={item[EntityMetaKey.Id]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

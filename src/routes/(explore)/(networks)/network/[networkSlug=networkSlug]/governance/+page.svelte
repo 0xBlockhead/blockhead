@@ -6,6 +6,7 @@
 
 
 	// Context
+	import { resolve } from '$app/paths'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	// State
 	let {
@@ -46,7 +47,9 @@
 						},
 						fieldName: '$$governanceProposals',
 					}}
-					href={`/network/${params.networkSlug}/governance`}
+						href={resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/governance', {
+							networkSlug: params.networkSlug,
+						})}
 					id="governance"
 					title="Governance"
 				/>

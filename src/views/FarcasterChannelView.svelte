@@ -333,20 +333,40 @@
 
 			{#if open}
 				<div>
-									<dt>External link title</dt>
-									<dd>{channel.externalLinkTitle}</dd>
-								</div>
+					<dt>External link title</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.externalLinkTitle !== undefined}
+									{channel.externalLinkTitle}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
 			{#if open}
 				<div>
-									<dt>External link URL</dt>
-									<dd>
-										<a href={channel.externalLinkUrl}>
-											{channel.externalLinkUrl}
-										</a>
-									</dd>
-								</div>
+					<dt>External link URL</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.externalLinkUrl !== undefined}
+									<a href={channel.externalLinkUrl}>
+										{channel.externalLinkUrl}
+									</a>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
 			{#if open}

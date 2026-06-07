@@ -1,9 +1,11 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -58,9 +60,10 @@ const zeroGStorageTimestampFields = async () => {
 export default {
 	source: Source.ZeroGStorageScan_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId)
 				const {
@@ -119,18 +122,40 @@ export default {
 					})),
 				}
 			},
+			fields: {
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+			$$storageNodes: (snapshot) => snapshot.$$storageNodes,
+			$$dataBlobs: (snapshot) => snapshot.$$dataBlobs,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId.$network)
 				return zeroGStorageTimestampFields()
 			},
+			fields: {
+			storageLogSyncHeight: (snapshot) => snapshot.storageLogSyncHeight,
+			storageLayer1LogSyncHeight: (snapshot) => snapshot.storageLayer1LogSyncHeight,
+			storageTransactionCount: (snapshot) => snapshot.storageTransactionCount,
+			latestDataRoot: (snapshot) => snapshot.latestDataRoot,
+			latestDataSizeBytes: (snapshot) => snapshot.latestDataSizeBytes,
+			latestStorageTxHash: (snapshot) => snapshot.latestStorageTxHash,
+			storageMinerCount: (snapshot) => snapshot.storageMinerCount,
+			latestStorageMiner: (snapshot) => snapshot.latestStorageMiner,
+			storageFeeTotal: (snapshot) => snapshot.storageFeeTotal,
+			storageRewardTotal: (snapshot) => snapshot.storageRewardTotal,
+			storageTotalWinCount: (snapshot) => snapshot.storageTotalWinCount,
+			expiredFileCount: (snapshot) => snapshot.expiredFileCount,
+			prunedFileCount: (snapshot) => snapshot.prunedFileCount,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGStorageNode,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId.$network)
 				const { getStorageMiner } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
@@ -147,10 +172,16 @@ export default {
 					totalReward: miner.totalReward,
 				}
 			},
+			fields: {
+			$operator: (snapshot) => snapshot.$operator,
+			balance: (snapshot) => snapshot.balance,
+			totalReward: (snapshot) => snapshot.totalReward,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGDataBlob,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId.$network)
 				const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
@@ -190,10 +221,16 @@ export default {
 					},
 				}
 			},
+			fields: {
+			$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			$storageLogEntry: (snapshot) => snapshot.$storageLogEntry,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGStorageLogEntry,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId.$network)
 				const { getStorageTransaction } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
@@ -221,13 +258,17 @@ export default {
 					commitment: transaction.rootHash,
 				}
 			},
+			fields: {
+			$dataBlob: (snapshot) => snapshot.$dataBlob,
+			$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
+			sequenceNumber: (snapshot) => snapshot.sequenceNumber,
+			commitment: (snapshot) => snapshot.commitment,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId)
 				return [
@@ -240,16 +281,19 @@ export default {
 					},
 				]
 			},
+			fields: {
+			$$timestamps: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			fieldName: '$$storageNodes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertZeroGMainnet(entityId)
 				const { listStorageMiners } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 				return (await listStorageMiners({
-					limit: resolverLoadSubsetRowLimit(context),
+					limit: resolverContextRowLimit(context),
 				})).list.map((miner) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId,
@@ -265,16 +309,19 @@ export default {
 					miningAttempts: miner.miningAttempts,
 				}))
 			},
+			fields: {
+			$$storageNodes: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			fieldName: '$$dataBlobs',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertZeroGMainnet(entityId)
 				const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 				return (await listStorageTransactions({
-					limit: resolverLoadSubsetRowLimit(context),
+					limit: resolverContextRowLimit(context),
 				})).list.map((transaction) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId,
@@ -289,6 +336,9 @@ export default {
 					},
 				}))
 			},
+			fields: {
+			$$dataBlobs: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

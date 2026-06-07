@@ -291,10 +291,22 @@ const bridgeRouteEthMainnetToOptimism = {
 } as const
 
 /**
- * Probe entity ids for `entityResolvers` smoke shapes; must match each type’s Arktype `id`.
+ * Probe entity ids for `resolverDefinitionProbes` smoke shapes; must match each type’s Arktype `id`.
  */
 export const probeEntityIdByType: ProbeEntityIdByType = {
 	[EntityType._Global]: { scope: 'global' },
+
+	[EntityType.BlockheadWallet]: { id: 'eip6963:e2e-probe-wallet' },
+	[EntityType.BlockheadWalletAccount]: {
+		caip10: {
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: VITALIK_ADDRESS,
+		},
+	},
+	[EntityType.BlockheadWalletConnection]: {
+		$wallet: { id: 'eip6963:e2e-probe-wallet' },
+	},
 
 	[EntityType.ActivityPubActor]: {
 		instanceOrigin: 'https://mastodon.social',
@@ -407,6 +419,10 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	[EntityType.BlockheadPanelTree]: { id: 'e2e-probe-panel-tree' },
 	[EntityType.BlockheadRoom]: { id: 'e2e-probe-room' },
 	[EntityType.BlockheadSession]: { id: 'e2e-probe-session' },
+	[EntityType.BlockheadSessionAction]: {
+		sessionId: 'e2e-probe-session',
+		actionId: 'e2e-probe-session-action-0',
+	},
 	[EntityType.BlockheadRoomPeer]: { id: 'e2e-probe-room-peer' },
 	[EntityType.BlockheadSharedAddress]: { id: 'e2e-probe-shared-address' },
 	[EntityType.StateChannel]: { id: 'e2e-probe-state-channel' },
@@ -1605,7 +1621,7 @@ export const resolveProbeEntityId = async (
 }
 
 
-export const parentEntityIdForFieldResolver = (
+export const parentEntityIdForResolverValuePart = (
 	entityType: EntityType,
 ): EntityId<typeof schema, EntityType> => (
 	entityType === EntityType._Global ?

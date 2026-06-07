@@ -1,12 +1,14 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { farcasterNetworkFieldValues, farcasterPlaceholderIconUrlFragments } from '$/constants/Social/Farcaster.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import type { CastHash } from '$/schema/FarcasterCast.ts'
@@ -49,9 +51,10 @@ const farcasterCastTimestampMs = (timestamp: number | undefined) => (
 export default {
 	source: Source.Farcaster_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getPrimaryAddress } = await import('$/sources/Farcaster/Rest/queries.ts')
 				const ethRaw = await singleFlight(getPrimaryAddress)({ fid: entityId.fid })
@@ -123,10 +126,15 @@ export default {
 					$$verifiedAddresses: verifiedAddresses,
 				}
 			},
+			fields: {
+				$primaryEvmAccount: (user) => user.$primaryEvmAccount,
+				$$verifiedAddresses: (user) => user.$$verifiedAddresses,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterChannel,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
 				const channel = await singleFlight(getChannel)(entityId.id)
@@ -206,10 +214,29 @@ export default {
 					...(followedAt != null && { followedAt }),
 				}
 			},
+			fields: {
+				name: (channel) => channel.name,
+				url: (channel) => channel.url,
+				description: (channel) => channel.description,
+				$icon: (channel) => channel.$icon,
+				$headerImage: (channel) => channel.$headerImage,
+				$lead: (channel) => channel.$lead,
+				$moderator: (channel) => channel.$moderator,
+				$$moderators: (channel) => channel.$$moderators,
+				createdAt: (channel) => channel.createdAt,
+				followerCount: (channel) => channel.followerCount,
+				memberCount: (channel) => channel.memberCount,
+				pinnedCastHash: (channel) => channel.pinnedCastHash,
+				publicCasting: (channel) => channel.publicCasting,
+				externalLinkTitle: (channel) => channel.externalLinkTitle,
+				externalLinkUrl: (channel) => channel.externalLinkUrl,
+				followedAt: (channel) => channel.followedAt,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterChannel_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					getChannelFollowersCount,
@@ -228,10 +255,15 @@ export default {
 					memberCount,
 				}
 			},
+			fields: {
+				followerCount: (timestamp) => timestamp.followerCount,
+				memberCount: (timestamp) => timestamp.memberCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterCast,
+			accepts: ['usernameHashPrefix'],
 			resolve: async (entityId) => {
 				if (!('username' in entityId) || !('hashPrefix' in entityId)) {
 					throw new Error('Farcaster_Rest: cast id requires username and hash prefix')
@@ -283,17 +315,39 @@ export default {
 					}),
 				}
 			},
+			fields: {
+				fid: (cast) => cast.fid,
+				hash: (cast) => cast.hash,
+				username: (cast) => cast.username,
+				hashPrefix: (cast) => cast.hashPrefix,
+				$author: (cast) => cast.$author,
+				text: (cast) => cast.text,
+				timestamp: (cast) => cast.timestamp,
+				likeCount: (cast) => cast.likeCount,
+				recastCount: (cast) => cast.recastCount,
+				replyCount: (cast) => cast.replyCount,
+				threadHash: (cast) => cast.threadHash,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				farcasterNetworkFieldValues
 			),
+			fields: {
+				protocolName: (network) => network.protocolName,
+				homeUrl: (network) => network.homeUrl,
+				docsUrl: (network) => network.docsUrl,
+				registryLabel: (network) => network.registryLabel,
+				topology: (network) => network.topology,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterFeed,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => (
 				entityId.variant === 'trending' ?
 					{ label: 'Trending' }
@@ -304,13 +358,14 @@ export default {
 				:
 					{ label: 'Following' }
 			),
+			fields: {
+				label: (feed) => feed.label,
+			},
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterChannel,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					getChannelFollowersCount,
@@ -335,33 +390,42 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (timestamps) => timestamps,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterChannel,
-			fieldName: 'followerCount',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getChannelFollowersCount } = await import('$/sources/Farcaster/Rest/queries.ts')
 				return getChannelFollowersCount({
 					channelId: entityId.id,
 				})
 			},
+			fields: {
+				followerCount: (followerCount) => followerCount,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterChannel,
-			fieldName: 'memberCount',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getChannelMembersCount } = await import('$/sources/Farcaster/Rest/queries.ts')
 				return getChannelMembersCount({
 					channelId: entityId.id,
 				})
 			},
+			fields: {
+				memberCount: (memberCount) => memberCount,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterNetwork,
-			fieldName: '$$feeds',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				[
 					{
@@ -371,11 +435,14 @@ export default {
 					},
 				]
 			),
+			fields: {
+				$$feeds: (feeds) => feeds,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.FarcasterNetwork,
-			fieldName: '$$channels',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				const { getAllChannels } = await import('$/sources/Farcaster/Rest/queries.ts')
 				return (await singleFlight(getAllChannels)())
@@ -384,6 +451,9 @@ export default {
 							id: farcasterChannel.id,
 						},
 					}))
+			},
+			fields: {
+				$$channels: (channels) => channels,
 			},
 		}),
 	],

@@ -200,7 +200,6 @@
 									}}
 									layout={EntityLayout.Title}
 									open={false}
-									showTypeAnnotation={false}
 								/>
 							{/if}
 						{/snippet}
@@ -405,10 +404,7 @@
 								{#snippet Item({ item })}
 									{@const castId = item.result[EntityMetaKey.Id]}
 									<FarcasterCastView
-										entityId={{
-											fid: castId.fid,
-											hash: castId.hash,
-										}}
+										entityId={castId}
 										layout={EntityLayout.Summary}
 										variant="feed"
 									/>

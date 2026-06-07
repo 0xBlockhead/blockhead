@@ -1,11 +1,13 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { bitcoinMainnetCaip2 } from '$/constants/BitcoinNetwork.ts'
 import { lightningMempoolSpaceRestBaseUrl, lightningNetworkId } from '$/constants/LightningNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -165,9 +167,10 @@ const timestampFieldsFromMempoolSpaceStatistics = (
 export default {
 	source: Source.LightningMempoolSpace_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertLightningNetwork(entityId.$network)
 				return {
@@ -177,10 +180,15 @@ export default {
 					},
 				}
 			},
+			fields: {
+			name: (snapshot) => snapshot.name,
+			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LightningNetwork_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertLightningNetwork(entityId.$lightningNetwork.$network)
 				const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
@@ -190,10 +198,23 @@ export default {
 					})).latest,
 				)
 			},
+			fields: {
+			nodeCount: (snapshot) => snapshot.nodeCount,
+			channelCount: (snapshot) => snapshot.channelCount,
+			totalCapacitySats: (snapshot) => snapshot.totalCapacitySats,
+			torNodeCount: (snapshot) => snapshot.torNodeCount,
+			clearnetNodeCount: (snapshot) => snapshot.clearnetNodeCount,
+			unannouncedNodeCount: (snapshot) => snapshot.unannouncedNodeCount,
+			averageCapacitySats: (snapshot) => snapshot.averageCapacitySats,
+			medianCapacitySats: (snapshot) => snapshot.medianCapacitySats,
+			averageFeeRatePpm: (snapshot) => snapshot.averageFeeRatePpm,
+			medianFeeRatePpm: (snapshot) => snapshot.medianFeeRatePpm,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LightningNode,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertLightningNetwork(entityId.$network)
 				const { getLightningNode } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
@@ -204,10 +225,22 @@ export default {
 					}),
 				)
 			},
+			fields: {
+			alias: (snapshot) => snapshot.alias,
+			color: (snapshot) => snapshot.color,
+			capacitySats: (snapshot) => snapshot.capacitySats,
+			channelCount: (snapshot) => snapshot.channelCount,
+			firstSeenMs: (snapshot) => snapshot.firstSeenMs,
+			updatedAtMs: (snapshot) => snapshot.updatedAtMs,
+			countryCode: (snapshot) => snapshot.countryCode,
+			city: (snapshot) => snapshot.city,
+			networkAddresses: (snapshot) => snapshot.networkAddresses,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LightningChannel,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertLightningNetwork(entityId.$network)
 				const { getLightningChannel } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
@@ -218,15 +251,27 @@ export default {
 					}),
 				)
 			},
+			fields: {
+			shortChannelId: (snapshot) => snapshot.shortChannelId,
+			status: (snapshot) => snapshot.status,
+			capacitySats: (snapshot) => snapshot.capacitySats,
+			fundingTransactionId: (snapshot) => snapshot.fundingTransactionId,
+			fundingOutputIndex: (snapshot) => snapshot.fundingOutputIndex,
+			closingTransactionId: (snapshot) => snapshot.closingTransactionId,
+			closingFeeSats: (snapshot) => snapshot.closingFeeSats,
+			closingReason: (snapshot) => snapshot.closingReason,
+			closedAtMs: (snapshot) => snapshot.closedAtMs,
+			openedAtMs: (snapshot) => snapshot.openedAtMs,
+			updatedAtMs: (snapshot) => snapshot.updatedAtMs,
+			feeRatePpm: (snapshot) => snapshot.feeRatePpm,
+			$node0: (snapshot) => snapshot.$node0,
+			$node1: (snapshot) => snapshot.$node1,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-
-
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertLightningNetwork(entityId.$network)
 				const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
@@ -238,11 +283,14 @@ export default {
 					),
 				]
 			},
+			fields: {
+			$$timestamps: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
-			fieldName: '$$nodes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const { getTopLightningNodesByConnectivity } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
@@ -250,13 +298,16 @@ export default {
 					await getTopLightningNodesByConnectivity({
 						restBaseUrl: lightningMempoolSpaceRestBaseUrl,
 					})
-				).slice(0, resolverLoadSubsetRowLimit(context)).map(nodeReferenceFromMempoolSpaceRankedNode)
+				).slice(0, resolverContextRowLimit(context)).map(nodeReferenceFromMempoolSpaceRankedNode)
 			},
+			fields: {
+			$$nodes: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
-			fieldName: '$$channels',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const {
@@ -271,7 +322,7 @@ export default {
 						restBaseUrl: lightningMempoolSpaceRestBaseUrl,
 						publicKey: nodes[0].publicKey,
 					})
-				).slice(0, resolverLoadSubsetRowLimit(context)).map((channel) => ({
+				).slice(0, resolverContextRowLimit(context)).map((channel) => ({
 					[EntityMetaKey.Id]: {
 						$network: lightningNetworkId,
 						channelId: channel.id,
@@ -285,11 +336,14 @@ export default {
 					}),
 				}))
 			},
+			fields: {
+			$$channels: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LightningNode,
-			fieldName: '$$channels',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const { getLightningNodeChannels } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
@@ -298,7 +352,7 @@ export default {
 						restBaseUrl: lightningMempoolSpaceRestBaseUrl,
 						publicKey: entityId.publicKey,
 					})
-				).slice(0, resolverLoadSubsetRowLimit(context)).map((channel) => ({
+				).slice(0, resolverContextRowLimit(context)).map((channel) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId.$network,
 						channelId: channel.id,
@@ -312,6 +366,9 @@ export default {
 					}),
 				}))
 			},
+			fields: {
+			$$channels: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

@@ -1,8 +1,9 @@
 import { mediaFromUrl } from '$/lib/media.ts'
 import {
-	defineEntityFieldResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -47,12 +48,10 @@ const trustWalletChain = (
 export default {
 	source: Source.TrustWalletAssets_Github,
 
-	entityResolvers: [],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.Network,
-			fieldName: '$icon',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const chain = trustWalletChain(entityId)
 				if (chain == null) throw new Error('TrustWalletAssets_Github: network not mapped')
@@ -61,11 +60,14 @@ export default {
 				if (iconMedia == null) throw new Error(`TrustWalletAssets_Github: invalid logo URL for ${chain}`)
 				return iconMedia
 			},
+			fields: {
+			$icon: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.AssetInstance,
-			fieldName: '$icon',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (entityId.kind !== AssetInstanceKind.Native) throw new Error('TrustWalletAssets_Github: only native assets are mapped')
 				const chain = trustWalletChain(entityId.$network)
@@ -75,6 +77,9 @@ export default {
 				if (iconMedia == null) throw new Error(`TrustWalletAssets_Github: invalid native asset logo URL for ${chain}`)
 				return iconMedia
 			},
+			fields: {
+			$icon: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

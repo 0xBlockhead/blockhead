@@ -1,10 +1,12 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -42,9 +44,10 @@ const parsePayloadBlockNumber = (payload: ProposerPayloadDelivered): bigint | un
 export default {
 	source: Source.MevRelay_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const wantHash = hexLowerOfByteSize(entityId.blockHash, 32)
 				if (wantHash == null) throw new Error('MevRelay_Rest: invalid block hash in entity id')
@@ -68,21 +71,28 @@ export default {
 					...(builderPubkey != null && builderPubkey !== '' && { builderPubkey }),
 					...(valueWei != null && { value: valueWei }),
 					...(blockNumber != null && {
-							blockNumber,
-							$executionBlock: {
-								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
-									blockNumber,
-								},
-								number: blockNumber,
-							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
-						}),
+						blockNumber,
+						$executionBlock: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								blockNumber,
+							},
+							number: blockNumber,
+						} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+					}),
 				}
 			},
+			fields: {
+			builderPubkey: (snapshot) => snapshot.builderPubkey,
+			value: (snapshot) => snapshot.value,
+			blockNumber: (snapshot) => snapshot.blockNumber,
+			$executionBlock: (snapshot) => snapshot.$executionBlock,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.MevBuilder,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
@@ -99,13 +109,14 @@ export default {
 					deliveredPayloadCount,
 				}
 			},
+			fields: {
+			deliveredPayloadCount: (snapshot) => snapshot.deliveredPayloadCount,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$mevProposerPayloadDelivered',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
@@ -118,7 +129,7 @@ export default {
 						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`,
 					)
 				}
-				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
+				const subsetRowLimit = resolverContextRowLimit(context)
 				const hosts = [...hostsForChain]
 				const out: {
 					[EntityMetaKey.Id]: {
@@ -156,11 +167,14 @@ export default {
 				}
 				return out
 			},
+			fields: {
+			$$mevProposerPayloadDelivered: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$mevBuilders',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
@@ -173,7 +187,7 @@ export default {
 						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`,
 					)
 				}
-				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
+				const subsetRowLimit = resolverContextRowLimit(context)
 				const seen = new Set<string>()
 				for (const relayHost of hostsForChain) {
 					const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(relayHost, {
@@ -194,6 +208,9 @@ export default {
 					},
 				}))
 			},
+			fields: {
+			$$mevBuilders: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

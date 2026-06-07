@@ -10,6 +10,8 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
+	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const
+
 
 	// Context
 	import { resolve } from '$app/paths'
@@ -50,8 +52,6 @@
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const
 
 	const allowanceAnchorKey = stringify(entityId)
 

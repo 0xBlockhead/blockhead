@@ -1,11 +1,13 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { regex } from 'arkregex'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -29,9 +31,10 @@ const nearNepRows = async (entries: { type: string, name: string }[]) => {
 export default {
 	source: Source.NearNeps_Github,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.SpecificationProposal,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Near || entityId.category !== ProposalCategory.Nep) {
@@ -48,39 +51,52 @@ export default {
 					documentBody: body,
 				}
 			},
+			fields: {
+			documentCategory: (snapshot) => snapshot.documentCategory,
+			documentTitle: (snapshot) => snapshot.documentTitle,
+			documentStatus: (snapshot) => snapshot.documentStatus,
+			documentBody: (snapshot) => snapshot.documentBody,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
 				return nearNepRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Near) throw new Error('NearNeps_Github: $$proposals only supports NEAR')
 				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
 				return nearNepRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Near || entityId.category !== ProposalCategory.Nep) throw new Error('NearNeps_Github: $$proposals only supports NEAR NEPs')
 				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
 				return nearNepRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

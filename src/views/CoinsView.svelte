@@ -15,8 +15,10 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	type CoinOrderFieldRow = {
+		marketCapRank?: number
+		marketCapUsd?: number
+		[EntityMetaKey.IdKey]: string
 		[EntityMetaKey.Value]: {
-			[EntityMetaKey.IdKey]: string
 			marketCapRank?: number
 			marketCapUsd?: number
 		}
@@ -66,25 +68,23 @@
 		[
 			[
 				({ fieldRow }) => (
-					fieldRow[EntityMetaKey.Value].marketCapRank
+					fieldRow.marketCapRank
 				),
 				{
 					direction: 'asc',
-					nulls: 'last',
 				},
 			],
 			[
 				({ fieldRow }) => (
-					fieldRow[EntityMetaKey.Value].marketCapUsd
+					fieldRow.marketCapUsd
 				),
 				{
 					direction: 'desc',
-					nulls: 'last',
 				},
 			],
 			[
 				({ fieldRow }) => (
-					fieldRow[EntityMetaKey.Value][EntityMetaKey.IdKey]
+					fieldRow[EntityMetaKey.IdKey]
 				),
 				'asc',
 			],

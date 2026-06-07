@@ -1,6 +1,9 @@
 import { singleFlight } from '$/lib/singleFlight.ts'
-import { defineEntityFieldResolver } from '$/resolvers/$resolvers.ts'
+import {
+	defineResolver,
+} from '$/resolvers/$resolvers.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
 import { Source } from '$/sources/$Source.ts'
 
 
@@ -35,19 +38,21 @@ const blobscanBlobDetail = async (entityId: {
 export default {
 	source: Source.Blobscan_Rest,
 
-	entityResolvers: [],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.EvmBlob,
-			fieldName: 'kzgCommitment',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, _context) => {
 				return (await blobscanBlobDetail(entityId))?.blob?.commitment
 			},
+			fields: {
+			kzgCommitment: (snapshot) => snapshot,
+		}
 		}),
-		defineEntityFieldResolver({
+
+		defineResolver({
 			entityType: EntityType.EvmBlob,
-			fieldName: 'blobDataStorageReferences',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, _context) => {
 				return (await blobscanBlobDetail(entityId))?.blobDataStorage
 					?.flatMap((reference) => (
@@ -60,6 +65,9 @@ export default {
 							[]
 					))
 			},
+			fields: {
+			blobDataStorageReferences: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

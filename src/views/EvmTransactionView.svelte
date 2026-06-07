@@ -137,13 +137,17 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.transactionId}
+			value={entityId.txHash}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
 
 	{#snippet Title()}
-		Transaction {@render Value()}
+		Transaction
+		<TruncatedValue
+			value={entityId.txHash}
+			format={TruncatedValueFormat.Abbr}
+		/>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

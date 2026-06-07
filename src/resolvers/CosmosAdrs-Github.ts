@@ -1,10 +1,12 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { regex } from 'arkregex'
 import { singleFlight } from '$/lib/singleFlight.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -35,9 +37,10 @@ const cosmosAdrRows = async (entries: { type: string, name: string }[]) => {
 export default {
 	source: Source.CosmosAdrs_Github,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.SpecificationProposal,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Cosmos || entityId.category !== ProposalCategory.Adr) {
@@ -52,39 +55,52 @@ export default {
 					documentBody: text,
 				}
 			},
+			fields: {
+			documentCategory: (snapshot) => snapshot.documentCategory,
+			documentTitle: (snapshot) => snapshot.documentTitle,
+			documentStatus: (snapshot) => snapshot.documentStatus,
+			documentBody: (snapshot) => snapshot.documentBody,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
 				return cosmosAdrRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Cosmos) throw new Error('CosmosAdrs_Github: $$proposals only supports Cosmos')
 				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
 				return cosmosAdrRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Cosmos || entityId.category !== ProposalCategory.Adr) throw new Error('CosmosAdrs_Github: $$proposals only supports Cosmos ADRs')
 				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
 				return cosmosAdrRows(await getContents())
 			},
+			fields: {
+			$$proposals: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

@@ -27,7 +27,9 @@
 	// State
 	let {
 		entityId,
-		href = `/ens/name/${encodeURIComponent(entityId.name)}`,
+		href = resolve('/(explore)/(ens)/ens/name/[ensName]', {
+			ensName: entityId.name,
+		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps

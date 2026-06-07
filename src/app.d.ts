@@ -10,20 +10,4 @@ declare global {
 	}
 }
 
-declare module '$/routes/+layout.svelte' {
-	import type { QueryClient } from '@tanstack/query-core'
-
-	import type {
-		EntityCollections,
-		EntityFieldCountCollections,
-		EntityFieldCollections,
-	} from '$/collections/$collections.ts'
-	import type { schema } from '$/schema/index.ts'
-
-	export const entityCollectionByEntityType: EntityCollections<typeof schema>
-	export const entityFieldCollections: EntityFieldCollections<typeof schema>
-	export const entityFieldCountCollections: EntityFieldCountCollections<typeof schema>
-	export const entityCollectionsQueryClient: QueryClient
-}
-
 export {}

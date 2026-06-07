@@ -1,11 +1,13 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { caip2ByNetworkSlug } from '$/constants/Network.ts'
 import { solanaMainnetRpcEndpoints } from '$/constants/SolanaNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import type {
@@ -168,9 +170,10 @@ const solanaValidatorRows = (
 export default {
 	source: Source.Solana_JsonRpc,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 				entityType: EntityType.SolanaBlock,
+				accepts: [EntityIdProjection.Identity],
 				resolve: async (entityId) => {
 					assertSolanaMainnet(entityId.$network)
 					if (!('slot' in entityId))
@@ -220,10 +223,21 @@ export default {
 					}),
 				}
 			},
+			fields: {
+				blockHeight: (block) => block.blockHeight,
+				blockHash: (block) => block.blockHash,
+				previousBlockHash: (block) => block.previousBlockHash,
+				$parent: (block) => block.$parent,
+				parentSlot: (block) => block.parentSlot,
+				timestampMs: (block) => block.timestampMs,
+				transactionCount: (block) => block.transactionCount,
+				$$transactions: (block) => block.$$transactions,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SolanaNetwork_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertSolanaMainnet(entityId.$network)
 				const {
@@ -273,10 +287,25 @@ export default {
 					health,
 				}
 			},
+			fields: {
+				absoluteSlot: (timestamp) => timestamp.absoluteSlot,
+				blockHeight: (timestamp) => timestamp.blockHeight,
+				epoch: (timestamp) => timestamp.epoch,
+				slotIndex: (timestamp) => timestamp.slotIndex,
+				slotsInEpoch: (timestamp) => timestamp.slotsInEpoch,
+				transactionCount: (timestamp) => timestamp.transactionCount,
+				currentValidatorCount: (timestamp) => timestamp.currentValidatorCount,
+				delinquentValidatorCount: (timestamp) => timestamp.delinquentValidatorCount,
+				totalActivatedStakeLamports: (timestamp) => timestamp.totalActivatedStakeLamports,
+				solanaCoreVersion: (timestamp) => timestamp.solanaCoreVersion,
+				featureSet: (timestamp) => timestamp.featureSet,
+				health: (timestamp) => timestamp.health,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SolanaTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const transaction = await getTransaction(entityId)
 				return {
@@ -292,10 +321,20 @@ export default {
 					),
 				}
 			},
+			fields: {
+				$block: (transaction) => transaction.$block,
+				$feePayer: (transaction) => transaction.$feePayer,
+				slot: (transaction) => transaction.slot,
+				feeLamports: (transaction) => transaction.feeLamports,
+				computeUnitsConsumed: (transaction) => transaction.computeUnitsConsumed,
+				status: (transaction) => transaction.status,
+				$$instructions: (transaction) => transaction.$$instructions,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SolanaInstruction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const transaction = await getTransaction(entityId.$transaction)
 				const instruction = (
@@ -312,10 +351,17 @@ export default {
 					instruction,
 				)
 			},
+			fields: {
+				$program: (instruction) => instruction.$program,
+				parsedType: (instruction) => instruction.parsedType,
+				data: (instruction) => instruction.data,
+				$$accounts: (instruction) => instruction.$$accounts,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SolanaAccount,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertSolanaMainnet(entityId.$network)
 				const { getAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
@@ -337,10 +383,18 @@ export default {
 					dataEncoding: accountInfo.value.data[1],
 				}
 			},
+			fields: {
+				$ownerProgram: (account) => account.$ownerProgram,
+				lamports: (account) => account.lamports,
+				rentEpoch: (account) => account.rentEpoch,
+				executable: (account) => account.executable,
+				dataEncoding: (account) => account.dataEncoding,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SolanaProgram,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertSolanaMainnet(entityId.$network)
 				return {
@@ -352,10 +406,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+				$programAccount: (program) => program.$programAccount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SolanaTokenMint,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertSolanaMainnet(entityId.$network)
 				const { getParsedTokenMintAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
@@ -385,10 +443,17 @@ export default {
 					}),
 				}
 			},
+			fields: {
+				supply: (mint) => mint.supply,
+				decimals: (mint) => mint.decimals,
+				$mintAuthority: (mint) => mint.$mintAuthority,
+				$freezeAuthority: (mint) => mint.$freezeAuthority,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SolanaValidator,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertSolanaMainnet(entityId.$network)
 				const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
@@ -411,14 +476,17 @@ export default {
 					delinquent: delinquentVoteAccount != null,
 				}
 			},
+			fields: {
+				nodePubkey: (validator) => validator.nodePubkey,
+				activatedStakeLamports: (validator) => validator.activatedStakeLamports,
+				commission: (validator) => validator.commission,
+				delinquent: (validator) => validator.delinquent,
+			},
 		}),
-	],
 
-	entityFieldResolvers: [
-
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SolanaNetwork,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertSolanaMainnet(entityId)
 				return [
@@ -430,18 +498,21 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (timestamps) => timestamps,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SolanaNetwork,
-			fieldName: '$$blocks',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertSolanaMainnet(entityId)
 				const {
 					getBlocks,
 					getSlot,
 				} = await import('$/sources/Solana/JsonRpc/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const endSlot = BigInt(await getSlot({
 					rpcUrl: solanaMainnetRpcUrl,
 				}))
@@ -462,11 +533,14 @@ export default {
 						},
 					}))
 			},
+			fields: {
+				$$blocks: (blocks) => blocks,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SolanaNetwork,
-			fieldName: '$$validators',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertSolanaMainnet(entityId)
 				const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
@@ -477,11 +551,14 @@ export default {
 					}),
 				)
 			},
+			fields: {
+				$$validators: (validators) => validators,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SolanaNetwork,
-			fieldName: '$$transactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertSolanaMainnet(entityId)
 				const {
@@ -489,7 +566,7 @@ export default {
 					getBlocks,
 					getSlot,
 				} = await import('$/sources/Solana/JsonRpc/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const endSlot = BigInt(await getSlot({
 					rpcUrl: solanaMainnetRpcUrl,
 				}))
@@ -533,11 +610,14 @@ export default {
 					))
 					.slice(0, limit)
 			},
+			fields: {
+				$$transactions: (transactions) => transactions,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SolanaNetwork,
-			fieldName: '$$accounts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertSolanaMainnet(entityId)
 				const {
@@ -545,7 +625,7 @@ export default {
 					getBlocks,
 					getSlot,
 				} = await import('$/sources/Solana/JsonRpc/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const endSlot = BigInt(await getSlot({
 					rpcUrl: solanaMainnetRpcUrl,
 				}))
@@ -581,11 +661,14 @@ export default {
 						},
 					}))
 			},
+			fields: {
+				$$accounts: (accounts) => accounts,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SolanaBlock,
-				fieldName: '$$transactions',
+				accepts: [EntityIdProjection.Identity],
 				resolve: async (entityId) => {
 					assertSolanaMainnet(entityId.$network)
 					if (!('slot' in entityId))
@@ -617,11 +700,14 @@ export default {
 					]
 					})
 			},
+			fields: {
+				$$transactions: (transactions) => transactions,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SolanaTransaction,
-			fieldName: '$$instructions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => (
 				solanaInstructionRows(
 					entityId.$network,
@@ -629,6 +715,9 @@ export default {
 					await getTransaction(entityId),
 				)
 			),
+			fields: {
+				$$instructions: (instructions) => instructions,
+			},
 		}),
 	],
 }

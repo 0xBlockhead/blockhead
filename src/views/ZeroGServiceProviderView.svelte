@@ -92,7 +92,7 @@
 						</div>
 					{/if}
 
-					{#if serviceProvider.$$requests.length}
+					{#if serviceProvider.$$requests != null && serviceProvider.$$requests.length}
 						<div>
 							<dt>Requests</dt>
 							<dd>

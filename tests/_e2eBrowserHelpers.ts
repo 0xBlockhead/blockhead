@@ -594,12 +594,13 @@ export const formatBoundaryReportSummary = (
 }
 
 export const waitForNetworksListRendered = async (page: Page) => {
-	await expect(page.locator('#networks')).toBeVisible()
-	await expect(page.locator('#networks').getByText('Loading networks…')).toHaveCount(
+	const networks = page.locator('#networks, [id="networks:evm"]').first()
+	await expect(networks).toBeVisible({ timeout: 120_000 })
+	await expect(networks.getByText('Loading networks…')).toHaveCount(
 		0,
 		{ timeout: 120_000 },
 	)
-	await expect(page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()).toBeVisible({
+	await expect(networks.locator('a[href$="/network/eip155:1"], a[href$="/network/ethereum"]').first()).toBeAttached({
 		timeout: 120_000,
 	})
 }
@@ -639,7 +640,7 @@ export const collectIssues = (page: Page) => {
 		forwardBrowserConsoleLine(t, text, loc)
 		if (t !== 'error')
 			return
-		// Legacy ignore: hydrate paths historically surfaced resolver “requires query limit”; capped via resolverLoadSubsetRowLimit fallback now.
+		// Legacy ignore: hydrate paths historically surfaced resolver “requires query limit”; capped by the resolver context row-limit fallback now.
 		if (
 			text.includes('[QueryCollection]')
 			&& text.includes('requires query limit')

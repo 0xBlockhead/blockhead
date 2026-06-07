@@ -1,11 +1,13 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { hyperliquidMainnetRpcEndpoints } from '$/constants/HyperliquidNetwork.ts'
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -22,9 +24,10 @@ const hexToBigInt = (hex: string) => BigInt(hex)
 export default {
 	source: Source.Hyperliquid_JsonRpc,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId)
 				return {
@@ -34,16 +37,21 @@ export default {
 					rpcEndpoints: [...hyperliquidMainnetRpcEndpoints],
 				}
 			},
+			fields: {
+			$network: (snapshot) => snapshot.$network,
+			rpcEndpoints: (snapshot) => snapshot.rpcEndpoints,
+		}
 		}),
 
-		defineEntityResolver({
-				entityType: EntityType.HyperliquidBlock,
-				resolve: async (entityId) => {
-					assertHyperliquidMainnet(entityId.$network)
-					if (!('height' in entityId))
-						throw new Error('Hyperliquid_JsonRpc: HyperliquidBlock hash lookup is unsupported')
+		defineResolver({
+			entityType: EntityType.HyperliquidBlock,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId) => {
+				assertHyperliquidMainnet(entityId.$network)
+				if (!('height' in entityId))
+					throw new Error('Hyperliquid_JsonRpc: HyperliquidBlock hash lookup is unsupported')
 
-					const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+				const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 				const block = await getBlockByNumber({
 					rpcUrl: hyperliquidEvmRpcUrl,
 					height: entityId.height,
@@ -78,10 +86,16 @@ export default {
 					})),
 				}
 			},
+			fields: {
+			hash: (snapshot) => snapshot.hash,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			$$transactions: (snapshot) => snapshot.$$transactions,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.HyperliquidTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId.$network)
 				const {
@@ -120,13 +134,17 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			$block: (snapshot) => snapshot.$block,
+			$account: (snapshot) => snapshot.$account,
+			actionType: (snapshot) => snapshot.actionType,
+			status: (snapshot) => snapshot.status,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
-			fieldName: '$$blocks',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertHyperliquidMainnet(entityId)
 				const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
@@ -136,7 +154,7 @@ export default {
 				return Array.from({
 					length: Math.min(
 						Number(headBlockHeight + 1n),
-						resolverLoadSubsetRowLimit(context),
+						resolverContextRowLimit(context),
 					),
 				}, (_value, blockOffset) => ({
 					[EntityMetaKey.Id]: {
@@ -145,11 +163,14 @@ export default {
 					},
 				}))
 			},
+			fields: {
+			$$blocks: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
-			fieldName: '$$transactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertHyperliquidMainnet(entityId)
 				const {
@@ -200,49 +221,11 @@ export default {
 							}),
 						})) ?? []
 					))
-					.slice(0, resolverLoadSubsetRowLimit(context))
+					.slice(0, resolverContextRowLimit(context))
 			},
-		}),
-
-		defineEntityFieldResolver({
-				entityType: EntityType.HyperliquidBlock,
-				fieldName: '$$transactions',
-				resolve: async (entityId) => {
-					assertHyperliquidMainnet(entityId.$network)
-					if (!('height' in entityId))
-						throw new Error('Hyperliquid_JsonRpc: HyperliquidBlock.$$transactions hash lookup is unsupported')
-
-					const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-				const block = await getBlockByNumber({
-					rpcUrl: hyperliquidEvmRpcUrl,
-					height: entityId.height,
-					includeTransactions: true,
-				})
-				if (block == null) throw new Error(`Hyperliquid_JsonRpc: block not found for ${entityId.height.toString()}`)
-				return block.transactions.map((transaction) => ({
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
-						txHash: transaction.hash,
-					},
-					actionType: 'evm',
-					...(transaction.blockNumber != null && {
-						$block: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								height: hexToBigInt(transaction.blockNumber),
-							},
-						},
-					}),
-					...(transaction.from != null && {
-						$account: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								address: transaction.from,
-							},
-						},
-					}),
-				}))
-			},
+			fields: {
+			$$transactions: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

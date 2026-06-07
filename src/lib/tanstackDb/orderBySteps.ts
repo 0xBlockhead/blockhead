@@ -6,10 +6,9 @@ import {
 	extractFieldPath,
 	type Collection,
 	type Context,
-	type OrderByCallback,
-	type OrderByDirection,
-	type OrderByOptions,
 	type QueryBuilder,
+	type Ref,
+	type RefsForContext,
 	type Source,
 } from '@tanstack/svelte-db'
 
@@ -30,11 +29,25 @@ type FieldRowContext<_FieldRow> = Context & {
 }
 
 export type OrderByStep<_FieldRow> = readonly [
-	orderBy: OrderByCallback<FieldRowContext<_FieldRow>>,
-	options?: OrderByDirection | OrderByOptions,
+	orderBy: (
+		refs: { fieldRow: Ref<_FieldRow> }
+	) => unknown,
+	options?: 'asc' | 'desc' | {
+		direction?: 'asc' | 'desc'
+	}
 ]
 
-export type DeclarativeOrderBy<_FieldRow> = readonly OrderByStep<_FieldRow>[]
+export type DeclarativeOrderBy<_FieldRow> = (
+	[_FieldRow] extends [never] ?
+		readonly (readonly [
+			orderBy: (
+				refs: any
+			) => unknown,
+			options?: OrderByStep<any>[1],
+		])[]
+	:
+		readonly OrderByStep<_FieldRow>[]
+)
 
 type BuilderWithInternalQuery = InstanceType<typeof BaseQueryBuilder> & {
 	_getQuery(): { orderBy?: IR.OrderBy },
@@ -47,15 +60,21 @@ export const foldOrderBySteps = <
 	qb: _QueryBuilder,
 	steps: readonly OrderByStep<_FieldRow>[],
 ): _QueryBuilder => (
-	steps.reduce(
-		(acc, step) => (
-			step[1] === undefined ?
-				acc.orderBy(step[0])
-			:
-				acc.orderBy(step[0], step[1])
-		),
-		qb,
-	) as _QueryBuilder
+	(() => {
+		let ordered = qb
+		for (const step of steps) {
+			ordered = (
+				step[1] === undefined ?
+					ordered.orderBy(step[0] as (refs: RefsForContext<FieldRowContext<_FieldRow>>) => unknown)
+				:
+					ordered.orderBy(
+						step[0] as (refs: RefsForContext<FieldRowContext<_FieldRow>>) => unknown,
+						step[1],
+					)
+			) as _QueryBuilder
+		}
+		return ordered
+	})()
 )
 
 /** Compile steps using the same builder IR TanStack uses internally (requires a real `from` source). */
@@ -63,8 +82,10 @@ export const orderByIrFromSteps = (
 	from: Source,
 	steps: DeclarativeOrderBy<any>,
 ) => {
-	let qb = new BaseQueryBuilder().from(from) as unknown as BuilderWithInternalQuery
-	qb = foldOrderBySteps(qb, steps)
+	const qb = foldOrderBySteps(
+		new BaseQueryBuilder().from(from) as never,
+		steps,
+	) as BuilderWithInternalQuery
 	return qb._getQuery().orderBy ?? []
 }
 

@@ -15,9 +15,9 @@
 
 	const slotEntityId = $derived(
 		{
-			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
+			$network: { caip2: { namespace: 'eip155', reference: params.caip2Reference } },
 			slot: Number(params.slotNumber),
-		},
+		} as const,
 	)
 
 

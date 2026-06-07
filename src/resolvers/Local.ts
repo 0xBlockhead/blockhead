@@ -1,10 +1,12 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
-	type ResolverLoadSubset,
+	defineResolver,
+	resolverContextRowLimit,
+	type ResolverContext,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
@@ -14,9 +16,9 @@ import { Source } from '$/sources/$Source.ts'
 
 const sliceNormalizedRowsForSubset = <_Row>(
 	normalizedCatalogRows: readonly _Row[],
-	context: ResolverLoadSubset | undefined,
+	context: ResolverContext,
 ): readonly _Row[] => (
-	normalizedCatalogRows.slice(0, resolverLoadSubsetRowLimit(context))
+	normalizedCatalogRows.slice(0, resolverContextRowLimit(context))
 )
 
 const readNormalizedLocalInternal = async () => (
@@ -45,14 +47,17 @@ const coinInstanceIdForNormalizedStateChannelRow = async (
 export default {
 	source: Source.Local_Internal,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType._Global,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => ({}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BridgeTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				if (await findNormalizedBridgeTransactionRow(catalog, entityId) == null) {
@@ -60,10 +65,12 @@ export default {
 				}
 				return {}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.XmtpConversation,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const conversationId = entityId.id
 				if (conversationId === '') throw new Error('Local_Internal: XMTP conversation id is empty')
@@ -79,10 +86,17 @@ export default {
 					...(xmtpConversation.consentState != null && { consentState: xmtpConversation.consentState }),
 				}
 			},
+			fields: {
+				peerInboxId: (conversation) => conversation.peerInboxId,
+				topic: (conversation) => conversation.topic,
+				createdAtMs: (conversation) => conversation.createdAtMs,
+				consentState: (conversation) => conversation.consentState,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadSource,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				if (!catalog.blockheadSources.some((blockheadSource) => blockheadSource.id === entityId.id)) {
@@ -90,10 +104,12 @@ export default {
 				}
 				return {}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadWallet,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadWallet = catalog.blockheadWallets.find((candidate) => candidate.id === entityId.id)
@@ -109,10 +125,21 @@ export default {
 					capabilities: [...blockheadWallet.capabilities],
 				}
 			},
+			fields: {
+				name: (wallet) => wallet.name,
+				icon: (wallet) => wallet.icon,
+				protocol: (wallet) => wallet.protocol,
+				discoveryKind: (wallet) => wallet.discoveryKind,
+				transportKind: (wallet) => wallet.transportKind,
+				rdns: (wallet) => wallet.rdns,
+				websiteUrl: (wallet) => wallet.websiteUrl,
+				capabilities: (wallet) => wallet.capabilities,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadWalletAccount,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadWalletAccount = catalog.blockheadWalletAccounts.find((candidate) => (
@@ -135,10 +162,17 @@ export default {
 					capabilities: [...blockheadWalletAccount.capabilities],
 				}
 			},
+			fields: {
+				$network: (account) => account.$network,
+				address: (account) => account.address,
+				label: (account) => account.label,
+				capabilities: (account) => account.capabilities,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadWalletConnection,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadWalletConnection = catalog.blockheadWalletConnections.find((candidate) => candidate.walletId === entityId.$wallet.id)
@@ -173,10 +207,25 @@ export default {
 					...(blockheadWalletConnection.error != null && { error: blockheadWalletConnection.error }),
 				}
 			},
+			fields: {
+				status: (connection) => connection.status,
+				protocol: (connection) => connection.protocol,
+				transportKind: (connection) => connection.transportKind,
+				scopes: (connection) => connection.scopes,
+				$$connectedAccounts: (connection) => connection.$$connectedAccounts,
+				$activeAccount: (connection) => connection.$activeAccount,
+				selected: (connection) => connection.selected,
+				connectedAt: (connection) => connection.connectedAt,
+				disconnectedAt: (connection) => connection.disconnectedAt,
+				sessionId: (connection) => connection.sessionId,
+				sessionTopic: (connection) => connection.sessionTopic,
+				error: (connection) => connection.error,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadPanelTree,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				if (!catalog.blockheadPanelTrees.some((blockheadPanelTree) => blockheadPanelTree.id === entityId.id)) {
@@ -184,10 +233,12 @@ export default {
 				}
 				return {}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadRoom,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadRoom = catalog.blockheadRooms.find((candidate) => candidate.id === entityId.id)
@@ -198,10 +249,16 @@ export default {
 					...(blockheadRoom.name != null && { name: blockheadRoom.name }),
 				}
 			},
+			fields: {
+				createdAt: (room) => room.createdAt,
+				createdBy: (room) => room.createdBy,
+				name: (room) => room.name,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadSession,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadSession = catalog.blockheadSessions.find((candidate) => candidate.id === entityId.id)
@@ -215,10 +272,19 @@ export default {
 					...(blockheadSession.simulationCount != null && { simulationCount: blockheadSession.simulationCount }),
 				}
 			},
+			fields: {
+				name: (session) => session.name,
+				status: (session) => session.status,
+				createdAt: (session) => session.createdAt,
+				updatedAt: (session) => session.updatedAt,
+				lockedAt: (session) => session.lockedAt,
+				simulationCount: (session) => session.simulationCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadSessionAction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadSessionAction = catalog.blockheadSessionActions.find((candidate) => (
@@ -238,10 +304,18 @@ export default {
 					updatedAt: blockheadSessionAction.updatedAt,
 				}
 			},
+			fields: {
+				$session: (action) => action.$session,
+				indexInSequence: (action) => action.indexInSequence,
+				action: (action) => action.action,
+				createdAt: (action) => action.createdAt,
+				updatedAt: (action) => action.updatedAt,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadRoomPeer,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadRoomPeer = catalog.blockheadRoomPeers.find((candidate) => candidate.id === entityId.id)
@@ -257,10 +331,21 @@ export default {
 					isConnected: blockheadRoomPeer.isConnected,
 				}
 			},
+			fields: {
+				$room: (peer) => peer.$room,
+				peerId: (peer) => peer.peerId,
+				displayName: (peer) => peer.displayName,
+				joinedAt: (peer) => peer.joinedAt,
+				lastSeenAt: (peer) => peer.lastSeenAt,
+				connectedAt: (peer) => peer.connectedAt,
+				disconnectedAt: (peer) => peer.disconnectedAt,
+				isConnected: (peer) => peer.isConnected,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadSharedAddress,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadSharedAddress = catalog.blockheadSharedAddresses.find((candidate) => candidate.id === entityId.id)
@@ -276,10 +361,19 @@ export default {
 						sharedAt: blockheadSharedAddress.sharedAt,
 					}
 			},
+			fields: {
+				$network: (address) => address.$network,
+				$room: (address) => address.$room,
+				peerId: (address) => address.peerId,
+				$account: (address) => address.$account,
+				targetPeerIds: (address) => address.targetPeerIds,
+				sharedAt: (address) => address.sharedAt,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.StateChannel,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === entityId.id)
@@ -300,10 +394,25 @@ export default {
 					updatedAt: stateChannel.updatedAt,
 				}
 			},
+			fields: {
+				$network: (channel) => channel.$network,
+				$participant0: (channel) => channel.$participant0,
+				$participant1: (channel) => channel.$participant1,
+				$asset: (channel) => channel.$asset,
+				totalDeposited: (channel) => channel.totalDeposited,
+				balance0: (channel) => channel.balance0,
+				balance1: (channel) => channel.balance1,
+				turnNum: (channel) => channel.turnNum,
+				status: (channel) => channel.status,
+				$room: (channel) => channel.$room,
+				createdAt: (channel) => channel.createdAt,
+				updatedAt: (channel) => channel.updatedAt,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.StateChannelDeposit,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => candidate.id === entityId.id)
@@ -319,10 +428,19 @@ export default {
 						lastUpdated: stateChannelDeposit.lastUpdated,
 				}
 			},
+			fields: {
+				$channel: (deposit) => deposit.$channel,
+				$network: (deposit) => deposit.$network,
+				$account: (deposit) => deposit.$account,
+				availableBalance: (deposit) => deposit.availableBalance,
+				lockedBalance: (deposit) => deposit.lockedBalance,
+				lastUpdated: (deposit) => deposit.lastUpdated,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.StateChannelTransfer,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const stateChannelTransfer = catalog.stateChannelTransfers.find((candidate) => candidate.id === entityId.id)
@@ -339,10 +457,20 @@ export default {
 					status: stateChannelTransfer.status,
 				}
 			},
+			fields: {
+				$channel: (transfer) => transfer.$channel,
+				$from: (transfer) => transfer.$from,
+				$to: (transfer) => transfer.$to,
+				amount: (transfer) => transfer.amount,
+				turnNum: (transfer) => transfer.turnNum,
+				timestamp: (transfer) => transfer.timestamp,
+				status: (transfer) => transfer.status,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.StateChannelState,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const stateChannelState = catalog.stateChannelStates.find((candidate) => candidate.id === entityId.id)
@@ -364,10 +492,21 @@ export default {
 					timestamp: stateChannelState.timestamp,
 				}
 			},
+			fields: {
+				$channel: (state) => state.$channel,
+				intent: (state) => state.intent,
+				version: (state) => state.version,
+				stateData: (state) => state.stateData,
+				allocations: (state) => state.allocations,
+				signatures: (state) => state.signatures,
+				isFinal: (state) => state.isFinal,
+				timestamp: (state) => state.timestamp,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadAgentConversation,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadAgentConversation = catalog.blockheadAgentConversations.find((candidate) => candidate.id === entityId.id)
@@ -384,10 +523,20 @@ export default {
 					updatedAt: blockheadAgentConversation.updatedAt,
 				}
 			},
+			fields: {
+				name: (conversation) => conversation.name,
+				pinned: (conversation) => conversation.pinned,
+				systemPrompt: (conversation) => conversation.systemPrompt,
+				defaultConnectionId: (conversation) => conversation.defaultConnectionId,
+				defaultModelId: (conversation) => conversation.defaultModelId,
+				createdAt: (conversation) => conversation.createdAt,
+				updatedAt: (conversation) => conversation.updatedAt,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadAgentConversationTurn,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadAgentConversationTurn = catalog.blockheadAgentConversationTurns.find((candidate) => candidate.id === entityId.id)
@@ -408,29 +557,42 @@ export default {
 					promptVersion: blockheadAgentConversationTurn.promptVersion,
 				}
 			},
+			fields: {
+				$conversation: (turn) => turn.$conversation,
+				parentId: (turn) => turn.parentId,
+				userPrompt: (turn) => turn.userPrompt,
+				assistantText: (turn) => turn.assistantText,
+				providerId: (turn) => turn.providerId,
+				status: (turn) => turn.status,
+				error: (turn) => turn.error,
+				createdAt: (turn) => turn.createdAt,
+				promptVersion: (turn) => turn.promptVersion,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmContract,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => ({}),
+			fields: {},
 		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$actors',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 					sliceNormalizedRowsForSubset((await readNormalizedLocalInternal()).actors, context)
 						.map((actor) => ({
 							[EntityMetaKey.Id]: { address: EvmAddress.assert(actor.address) },
 						}))
 				),
-			}),
+			fields: {
+				$$actors: (entity) => entity,
+			},
+		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$xmtpConversations',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).xmtpConversations,
@@ -440,11 +602,14 @@ export default {
 						[EntityMetaKey.Id]: { id: xmtpConversation.id },
 					}))
 			),
+			fields: {
+				$$xmtpConversations: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XmtpNetwork,
-			fieldName: '$$xmtpConversations',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType.XmtpNetwork>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).xmtpConversations,
@@ -454,11 +619,14 @@ export default {
 						[EntityMetaKey.Id]: { id: xmtpConversation.id },
 					}))
 			),
+			fields: {
+				$$xmtpConversations: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$blockheadSources',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadSources,
@@ -468,11 +636,14 @@ export default {
 						[EntityMetaKey.Id]: { id: blockheadSource.id },
 					}))
 			),
+			fields: {
+				$$blockheadSources: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$blockheadWallets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadWallets,
@@ -482,11 +653,14 @@ export default {
 						[EntityMetaKey.Id]: { id: blockheadWallet.id },
 					}))
 			),
+			fields: {
+				$$blockheadWallets: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$blockheadWalletConnections',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadWalletConnections,
@@ -500,11 +674,14 @@ export default {
 						},
 					}))
 			),
+			fields: {
+				$$blockheadWalletConnections: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$blockheadWalletAccounts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadWalletAccounts,
@@ -520,11 +697,14 @@ export default {
 						},
 					}))
 			),
+			fields: {
+				$$blockheadWalletAccounts: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$blockheadSessions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadSessions,
@@ -534,11 +714,14 @@ export default {
 						[EntityMetaKey.Id]: { id: blockheadSession.id },
 					}))
 			),
+			fields: {
+				$$blockheadSessions: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadSession,
-			fieldName: '$$actions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (
 				scopedEntityId: EntityId<typeof schema, EntityType.BlockheadSession>,
 				context,
@@ -556,11 +739,14 @@ export default {
 						},
 					}))
 			),
+			fields: {
+				$$actions: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$blockheadPanelTrees',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadPanelTrees,
@@ -570,11 +756,14 @@ export default {
 						[EntityMetaKey.Id]: { id: blockheadPanelTree.id },
 					}))
 			),
+			fields: {
+				$$blockheadPanelTrees: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$blockheadFarcasterAccountConnections',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadFarcasterAccountConnections,
@@ -584,11 +773,14 @@ export default {
 						[EntityMetaKey.Id]: { fid: blockheadFarcasterAccountConnection.fid },
 					}))
 			),
+			fields: {
+				$$blockheadFarcasterAccountConnections: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$blockheadAgentConversations',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadAgentConversations,
@@ -598,11 +790,14 @@ export default {
 						[EntityMetaKey.Id]: { id: blockheadAgentConversation.id },
 					}))
 			),
+			fields: {
+				$$blockheadAgentConversations: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadAgentConversation,
-			fieldName: '$$turns',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (
 				scopedEntityId: EntityId<typeof schema, EntityType.BlockheadAgentConversation>,
 				context,
@@ -616,11 +811,14 @@ export default {
 						[EntityMetaKey.Id]: { id: conversationTurn.id },
 					}))
 			),
+			fields: {
+				$$turns: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$bridgeTransactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).bridgeTransactions,
@@ -637,11 +835,14 @@ export default {
 						},
 					}))
 			),
+			fields: {
+				$$bridgeTransactions: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.BlockheadRoom,
-			fieldName: '$$peers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadRoomPeers.filter((roomPeer) => (
@@ -653,11 +854,14 @@ export default {
 						[EntityMetaKey.Id]: { id: roomPeer.id },
 					}))
 			),
+			fields: {
+				$$peers: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$blockheadRoomPeers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadRoomPeers,
@@ -667,11 +871,14 @@ export default {
 						[EntityMetaKey.Id]: { id: blockheadRoomPeer.id },
 					}))
 			),
+			fields: {
+				$$blockheadRoomPeers: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$blockheadRooms',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadRooms,
@@ -681,11 +888,14 @@ export default {
 						[EntityMetaKey.Id]: { id: blockheadRoom.id },
 					}))
 			),
+			fields: {
+				$$blockheadRooms: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$stateChannels',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).stateChannels,
@@ -695,11 +905,14 @@ export default {
 						[EntityMetaKey.Id]: { id: stateChannel.id },
 					}))
 			),
+			fields: {
+				$$stateChannels: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.StateChannel,
-			fieldName: '$$transfers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (
 				scopedEntityId: EntityId<typeof schema, EntityType.StateChannel>,
 				context,
@@ -713,11 +926,14 @@ export default {
 						[EntityMetaKey.Id]: { id: stateChannelTransfer.id },
 					}))
 			),
+			fields: {
+				$$transfers: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.StateChannel,
-			fieldName: '$$states',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (
 				scopedEntityId: EntityId<typeof schema, EntityType.StateChannel>,
 				context,
@@ -731,11 +947,14 @@ export default {
 						[EntityMetaKey.Id]: { id: stateChannelState.id },
 					}))
 			),
+			fields: {
+				$$states: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.StateChannel,
-			fieldName: '$$deposits',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (
 				scopedEntityId: EntityId<typeof schema, EntityType.StateChannel>,
 				context,
@@ -749,11 +968,14 @@ export default {
 						[EntityMetaKey.Id]: { id: stateChannelDeposit.id },
 					}))
 			),
+			fields: {
+				$$deposits: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$blockheadSharedAddresses',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadSharedAddresses,
@@ -763,11 +985,14 @@ export default {
 						[EntityMetaKey.Id]: { id: blockheadSharedAddress.id },
 					}))
 			),
+			fields: {
+				$$blockheadSharedAddresses: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmProtocol,
-			fieldName: '$$evmSelectors',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmSelectors,
@@ -777,11 +1002,14 @@ export default {
 						[EntityMetaKey.Id]: { hex: evmSelector.hex },
 					}))
 			),
+			fields: {
+				$$evmSelectors: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmProtocol,
-			fieldName: '$$evmTopics',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmTopics,
@@ -791,11 +1019,14 @@ export default {
 						[EntityMetaKey.Id]: { hex: evmTopic.hex },
 					}))
 			),
+			fields: {
+				$$evmTopics: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmProtocol,
-			fieldName: '$$evmErrors',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmErrors,
@@ -805,6 +1036,9 @@ export default {
 						[EntityMetaKey.Id]: { hex: evmError.hex },
 					}))
 			),
+			fields: {
+				$$evmErrors: (entity) => entity,
+			},
 		}),
 	],
 }

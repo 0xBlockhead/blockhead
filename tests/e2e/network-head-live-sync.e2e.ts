@@ -33,17 +33,20 @@ test.describe('Network head resolveLive (Voltaire block stream)', () => {
 			join(thisDir, '../../src/resolvers/index.ts'),
 			'utf8',
 		)
-		const hook = readFileSync(
-			join(thisDir, '../../src/lib/db/resolveLive.svelte.ts'),
+		const collections = readFileSync(
+			join(thisDir, '../../src/collections/$collections.ts'),
 			'utf8',
 		)
 		expect(source, networkPagePath).toContain('caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference }')
 		expect(source).toContain('NetworkView')
 		expect(networkViewSource).toContain('EvmNetworkView')
-		expect(hook).toContain('$effect')
-		expect(hook).toContain('startEntityFieldResolveLiveForParent')
-		expect(resolvers).toContain('entityFieldNamesWithResolveLiveByEntityType')
-		expect(hook).toContain('entityFieldResolversByEntityTypeAndFieldName')
+		expect(collections).toContain('createSharedResolveLiveSubscription')
+		expect(collections).toContain('resolverRootLiveDefinitions')
+		expect(collections).toContain('resolverLiveParts')
+		expect(resolvers).toContain('fieldNamesWithLiveResolverByEntityType')
+		expect(resolvers).toContain('resolverPartsKey')
+		expect(resolvers).not.toContain('resolverPartsByEntityTypeAndFieldName')
+		expect(collections).not.toContain('resolveLive.svelte')
 	})
 
 	test('(browser) /network/eip155:1: main settled, [Voltaire] block stream watch start, no page errors', async ({ page }) => {

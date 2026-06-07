@@ -84,6 +84,54 @@ const partialRecordFromEntries = <_Key extends PropertyKey, _Value>(
 	Object.fromEntries<_Key, _Value>(entries)
 )
 
+const entityCollectionFor = <_EntityType extends EntityType<typeof schema>>(
+	entityType: _EntityType,
+) => (
+	entityCollectionByEntityType[entityType] as Collection<
+		EntityCollectionItem<typeof schema, _EntityType>,
+		string | number
+	>
+)
+
+const entityFieldCollectionFor = <
+	_EntityType extends EntityType<typeof schema>,
+	_FieldName extends EntityFieldName<typeof schema, _EntityType>,
+>(
+	entityType: _EntityType,
+	fieldName: _FieldName,
+): Collection<
+	EntityFieldCollectionItem<typeof schema, _EntityType, _FieldName>,
+	string | number
+> => (
+	(
+		entityFieldCollections[entityType] as Record<
+			_FieldName,
+			Collection<
+				EntityFieldCollectionItem<typeof schema, _EntityType, _FieldName>,
+				string | number
+			>
+		>
+	)[fieldName]
+)
+
+const entityFieldCountCollectionFor = <
+	_EntityType extends EntityType<typeof schema>,
+	_FieldName extends EntityFieldName<typeof schema, _EntityType>,
+>(
+	entityType: _EntityType,
+	fieldName: _FieldName,
+) => (
+	(
+		entityFieldCountCollections[entityType] as Partial<Record<
+			_FieldName,
+			Collection<
+				EntityFieldCountRow,
+				string | number
+			>
+		>>
+	)[fieldName]
+)
+
 const dedupeEntityReferenceManyField = <_Value>(
 	values: _Value[],
 ) => {
@@ -106,14 +154,15 @@ const dedupeEntityReferenceManyField = <_Value>(
 }
 
 
-type EntitySelectionMeta = {
+export type EntitySelectionMeta = {
 	/** Root source priority; nested field selections inherit this when their own `$` is omitted. */
 	$?: readonly Source[]
 	$limit?: number
 	/** Same tuples as chained `.orderBy(callback, options?)` on `{ fieldRow }`. */
-	$orderBy?: DeclarativeOrderBy<any>
+	$orderBy?: DeclarativeOrderBy<never>
 	/** When clauses aren't fingerprintable (e.g. non-field-ref expressions), set for live-query deps. */
 	$orderByDep?: string
+	$count?: true
 }
 
 type EntitySelectionCase<
@@ -333,8 +382,10 @@ const entitySelectionFieldEntries = <
 		for (const caseSelection of Object.values(cases)) {
 			for (const [caseFieldName, fieldSelection] of Object.entries(caseSelection)) {
 				const fieldName = entitySelectionKey(entityType, caseFieldName)
-				if (fieldName != null)
-					entries.set(fieldName, fieldSelection)
+				if (fieldName === undefined)
+					continue
+
+				entries.set(fieldName, fieldSelection)
 			}
 		}
 	}
@@ -492,10 +543,7 @@ export const useEntity3 = <
 		(queryBuilder) => (
 			queryBuilder
 				.from({
-					entityRow: entityCollectionByEntityType[entityType] as Collection<
-						EntityCollectionItem<typeof schema, _EntityType>,
-						string | number
-					>,
+					entityRow: entityCollectionFor(entityType),
 				})
 				.where(({ entityRow }) => (
 					eq(entityRow[EntityMetaKey.IdKey], idKey)
@@ -542,10 +590,10 @@ export const useEntity3 = <
 	const fieldRowsResources = $derived(
 		partialRecordFromEntries(
 			selectedFieldEntries.map(([fieldName, fieldSelection]) => {
-				const fieldCollection = entityFieldCollections[entityType][fieldName] as Collection<
-					EntityFieldCollectionItem<typeof schema, _EntityType, EntityFieldName<typeof schema, _EntityType>>,
-					string | number
-				>
+				const fieldCollection = entityFieldCollectionFor(
+					entityType,
+					fieldName,
+				)
 				return [
 					fieldName,
 					useLiveQueryResource<{
@@ -741,90 +789,63 @@ export const useEntity3 = <
 
 export const useEntity = useEntity3
 
-export const useEntityFieldCount = <
+export const useEntityField = <
 	_ListedEntity extends EntityType<typeof schema>,
 >(
 	entityFieldReference: EntityFieldReference<typeof schema, _ListedEntity>,
 	selection: EntitySelectionMeta = {},
-) => {
+): RemoteResource<{
+	values: EntityFieldCollectionItem<
+		typeof schema,
+		_ListedEntity,
+		EntityFieldName<typeof schema, _ListedEntity>
+	>[]
+	totalCount?: number
+}> => {
 	const idKey = $derived(
 		stringify(entityFieldReference.entityId),
 	)
 	const sourcePriority = $derived(
 		selection.$ ?? [],
 	)
-	const entityRowsResource = useLiveQueryResource<{ entityRow: EntityCollectionItem<typeof schema, _ListedEntity> }>(
-		(queryBuilder) => {
-			const base = queryBuilder
-				.from({
-					entityRow: entityCollectionByEntityType[entityFieldReference.entityType] as Collection<
-						EntityCollectionItem<typeof schema, _ListedEntity>,
-						string | number
-					>,
-				})
-				.where(({ entityRow }) => (
-					eq(entityRow[EntityMetaKey.IdKey], idKey)
-				))
-			return (
-				sourcePriority.length > 0 ?
-					base.where(({ entityRow }) => (
-						inArray(entityRow[EntityMetaKey.Source], [...sourcePriority])
-					))
-				:
-					base
-			)
-				.select(({ entityRow }) => ({
-					entityRow,
-				}))
-		},
-		[
-			() => idKey,
-			() => stringify(sourcePriority),
-		],
+	const parentIdKeys = $derived(
+		[idKey],
 	)
-	const parentIdKeys = $derived.by(() => {
-		const keys = new Set([
-			idKey,
-		])
-		for (const { entityRow } of entityRowsResource.current ?? []) {
-			for (const identityId of entityIdentityIdsFromFields(
-				entityDefinitionByEntityType[entityFieldReference.entityType],
-				entityRow[EntityMetaKey.Id],
-				entityRow[EntityMetaKey.Fields] as Partial<Record<string, unknown>>,
-			)) {
-				keys.add(stringify(identityId))
-			}
-		}
-		return [...keys]
-	})
-	const countCollection = $derived(
-		entityFieldCountCollections[entityFieldReference.entityType][entityFieldReference.fieldName] as Collection<
-			EntityFieldCountRow,
-			string | number
-		>,
+	const fieldCollection = $derived(
+		entityFieldCollectionFor(
+			entityFieldReference.entityType,
+			entityFieldReference.fieldName,
+		),
 	)
-	const countRows = useLiveQueryResource<{
-		countRow: EntityFieldCountRow
+	const fieldRows = useLiveQueryResource<{
+		fieldRow: EntityFieldCollectionItem<
+			typeof schema,
+			_ListedEntity,
+			EntityFieldName<typeof schema, _ListedEntity>
+		>
 	}>(
 		(queryBuilder) => {
-			const base = queryBuilder
-				.from({
-					countRow: countCollection,
-				})
-				.where(({ countRow }) => (
-					inArray(countRow[EntityMetaKey.ParentIdKey], parentIdKeys)
-				))
+			const base = foldOrderBySteps(
+				queryBuilder
+					.from({
+						fieldRow: fieldCollection,
+					})
+					.where(({ fieldRow }) => (
+						inArray(fieldRow[EntityMetaKey.ParentIdKey], parentIdKeys)
+					)),
+				selection.$orderBy ?? [],
+			)
 			return (
 				sourcePriority.length > 0 ?
 					base
-						.where(({ countRow }) => (
-							inArray(countRow[EntityMetaKey.Source], [...sourcePriority])
+						.where(({ fieldRow }) => (
+							inArray(fieldRow[EntityMetaKey.Source], [...sourcePriority])
 						))
-						.orderBy(({ countRow }) => (
+						.orderBy(({ fieldRow }) => (
 							sourcePriority.reduceRight<IR.BasicExpression<number> | number>(
 								(fallback, source, index) => (
 									caseWhen(
-										eq(countRow[EntityMetaKey.Source], source),
+										eq(fieldRow[EntityMetaKey.Source], source),
 										index,
 										fallback,
 									)
@@ -835,18 +856,122 @@ export const useEntityFieldCount = <
 				:
 					base
 			)
-				.select(({ countRow }) => ({
-					countRow,
+				.limit(selection.$limit ?? defaultEntityFieldLiveQueryLimit)
+				.select(({ fieldRow }) => ({
+					fieldRow,
 				}))
 		},
 		[
 			() => stringify(parentIdKeys),
 			() => stringify(sourcePriority),
+			() => stringify([
+				selection.$limit,
+				fieldOrderDepsFingerprint(
+					fieldCollection,
+					selection.$orderBy ?? [],
+					selection.$orderByDep,
+				),
+			]),
 		],
 	)
+	const countCollection = $derived(
+		entityFieldCountCollectionFor(
+			entityFieldReference.entityType,
+			entityFieldReference.fieldName,
+		),
+	)
+	const countRows = (
+		selection.$count === true && countCollection !== undefined ?
+			useLiveQueryResource<{
+				countRow: EntityFieldCountRow
+			}>(
+				(queryBuilder) => {
+					const base = queryBuilder
+						.from({
+							countRow: countCollection,
+						})
+						.where(({ countRow }) => (
+							inArray(countRow[EntityMetaKey.ParentIdKey], parentIdKeys)
+						))
+					return (
+						sourcePriority.length > 0 ?
+							base
+								.where(({ countRow }) => (
+									inArray(countRow[EntityMetaKey.Source], [...sourcePriority])
+								))
+								.orderBy(({ countRow }) => (
+									sourcePriority.reduceRight<IR.BasicExpression<number> | number>(
+										(fallback, source, index) => (
+											caseWhen(
+												eq(countRow[EntityMetaKey.Source], source),
+												index,
+												fallback,
+											)
+										),
+										sourcePriority.length,
+									)
+								), 'asc')
+						:
+							base
+					)
+						.select(({ countRow }) => ({
+							countRow,
+						}))
+				},
+				[
+					() => stringify(parentIdKeys),
+					() => stringify(sourcePriority),
+				],
+			)
+		:
+			undefined
+	)
 
-	return derive(
-		countRows,
-		(rows) => rows[0]?.countRow[EntityMetaKey.Value],
+	return reduce<
+		Partial<{
+			values: EntityFieldCollectionItem<
+				typeof schema,
+				_ListedEntity,
+				EntityFieldName<typeof schema, _ListedEntity>
+			>[]
+			totalCount?: number
+		}>,
+		{
+			values: EntityFieldCollectionItem<
+				typeof schema,
+				_ListedEntity,
+				EntityFieldName<typeof schema, _ListedEntity>
+			>[]
+			totalCount?: number
+		}
+	>(
+		[
+			derive(
+				fieldRows,
+				(rows) => ({
+					values: rows.map((row) => row.fieldRow),
+				}),
+			),
+			...(
+				countRows === undefined ?
+					[]
+				:
+					[
+						derive(
+							countRows,
+							(rows) => ({
+								totalCount: rows[0]?.countRow[EntityMetaKey.Value],
+							}),
+						),
+					]
+			),
+		],
+		(accumulator, value) => ({
+			...accumulator,
+			...value,
+		}),
+		{
+			values: [],
+		},
 	)
 }

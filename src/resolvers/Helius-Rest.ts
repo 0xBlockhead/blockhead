@@ -1,10 +1,11 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	sourcePublicEnv,
-	type ResolverLoadSubset,
+	defineResolver,
+	type ResolverContext,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
@@ -81,13 +82,13 @@ const getTransaction = async (
 		$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 		signature: string
 	},
-	context: ResolverLoadSubset | undefined,
+	context: ResolverContext,
 ) => {
 	assertSolanaMainnet(entityId.$network)
 	const { getEnhancedTransactions } = await import('$/sources/Helius/Rest/queries.ts')
 	const transaction = (await getEnhancedTransactions({
 		signatures: [entityId.signature],
-		publicEnv: sourcePublicEnv(context, Source.Helius_Rest),
+		publicEnv: context.publicEnv,
 	})).find((enhancedTransaction) => enhancedTransaction.signature === entityId.signature)
 	if (transaction == null) throw new Error(`Helius_Rest: transaction not found for signature ${entityId.signature}`)
 	return transaction
@@ -96,9 +97,10 @@ const getTransaction = async (
 export default {
 	source: Source.Helius_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.SolanaTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const transaction = await getTransaction(
 					entityId,
@@ -115,10 +117,19 @@ export default {
 					),
 				}
 			},
+			fields: {
+			$block: (transaction) => transaction.$block,
+			slot: (transaction) => transaction.slot,
+			$feePayer: (transaction) => transaction.$feePayer,
+			feeLamports: (transaction) => transaction.feeLamports,
+			status: (transaction) => transaction.status,
+			$$instructions: (transaction) => transaction.$$instructions,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SolanaInstruction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const transaction = await getTransaction(
 					entityId.$transaction,
@@ -131,13 +142,16 @@ export default {
 				if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${entityId.$transaction.signature}:${entityId.instructionIndex}`)
 				return instruction
 			},
+			fields: {
+			$program: (instruction) => instruction.$program,
+			data: (instruction) => instruction.data,
+			$$accounts: (instruction) => instruction.$$accounts,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SolanaTransaction,
-			fieldName: '$$instructions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => (
 				heliusInstructionRows(
 					entityId,
@@ -147,6 +161,9 @@ export default {
 					),
 				)
 			),
+			fields: {
+			$$instructions: (instructions) => instructions,
+		}
 		}),
 	],
 }

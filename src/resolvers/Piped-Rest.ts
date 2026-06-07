@@ -1,14 +1,15 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
-	sourcePublicEnv,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { type } from 'arktype'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
@@ -17,12 +18,13 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	source: Source.Piped_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.YouTubeChannel,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getChannel } = await import('$/sources/Piped/Rest/queries.ts')
-				const d = await singleFlight(getChannel)(sourcePublicEnv(context, Source.Piped_Rest), entityId.channelId)
+				const d = await singleFlight(getChannel)(context.publicEnv, entityId.channelId)
 				if (d.id == null) throw new Error('Piped_Rest: channel not found')
 				return {
 					title: optionalNonemptyString(d.name),
@@ -37,16 +39,23 @@ export default {
 					))(mediaFromUrl(optionalNonemptyString(d.avatarUrl), MediaType.Image)),
 				}
 			},
+			fields: {
+				title: (channel) => channel.title,
+				description: (channel) => channel.description,
+				subscriberCount: (channel) => channel.subscriberCount,
+				$icon: (channel) => channel.$icon,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeVideo,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					getChannelIdFromUploaderUrl,
 					getStream,
 				} = await import('$/sources/Piped/Rest/queries.ts')
-				const d = await singleFlight(getStream)(sourcePublicEnv(context, Source.Piped_Rest), entityId.videoId)
+				const d = await singleFlight(getStream)(context.publicEnv, entityId.videoId)
 				if (optionalNonemptyString(d.title) == null) throw new Error('Piped_Rest: video not found')
 				const channelId = getChannelIdFromUploaderUrl(d.uploaderUrl)
 				const thumbnailUrl = (
@@ -89,13 +98,25 @@ export default {
 					...(thumbnailUrl != null && { thumbnailUrl }),
 				}
 			},
+			fields: {
+				title: (video) => video.title,
+				description: (video) => video.description,
+				publishedAt: (video) => video.publishedAt,
+				viewCount: (video) => video.viewCount,
+				likeCount: (video) => video.likeCount,
+				durationSeconds: (video) => video.durationSeconds,
+				liveBroadcastContent: (video) => video.liveBroadcastContent,
+				$author: (video) => video.$author,
+				thumbnailUrl: (video) => video.thumbnailUrl,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.YouTubePlaylist,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getChannelIdFromUploaderUrl, getPlaylist } = await import('$/sources/Piped/Rest/queries.ts')
-				const d = await singleFlight(getPlaylist)(sourcePublicEnv(context, Source.Piped_Rest), entityId.playlistId)
+				const d = await singleFlight(getPlaylist)(context.publicEnv, entityId.playlistId)
 				if (optionalNonemptyString(d.name) == null) throw new Error('Piped_Rest: playlist not found')
 				const channelId = getChannelIdFromUploaderUrl(d.uploaderUrl)
 				return {
@@ -111,14 +132,20 @@ export default {
 					),
 				}
 			},
+			fields: {
+				title: (playlist) => playlist.title,
+				itemCount: (playlist) => playlist.itemCount,
+				$channel: (playlist) => playlist.$channel,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeComment,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listComments } = await import('$/sources/Piped/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Piped_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const publicEnv = context.publicEnv
+				const limit = resolverContextRowLimit(context)
 				const page = await singleFlight(listComments)(publicEnv, entityId.videoId, limit)
 				if (page.disabled === true) {
 					throw new Error(`Piped_Rest: comments disabled for video ${entityId.videoId}`)
@@ -145,39 +172,58 @@ export default {
 					},
 				}
 			},
+			fields: {
+				text: (comment) => comment.text,
+				authorDisplayName: (comment) => comment.authorDisplayName,
+				authorChannelId: (comment) => comment.authorChannelId,
+				$author: (comment) => comment.$author,
+				likeCount: (comment) => comment.likeCount,
+				publishedAt: (comment) => comment.publishedAt,
+				$video: (comment) => comment.$video,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeChannel_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getChannel } = await import('$/sources/Piped/Rest/queries.ts')
-				const channel = await singleFlight(getChannel)(sourcePublicEnv(context, Source.Piped_Rest), entityId.$channel.channelId)
+				const channel = await singleFlight(getChannel)(context.publicEnv, entityId.$channel.channelId)
 				if (channel.id == null) throw new Error('Piped_Rest: channel not found')
 				return {
 					...(channel.subscriberCount != null && { subscriberCount: channel.subscriberCount }),
 				}
 			},
+			fields: {
+				subscriberCount: (timestamp) => timestamp.subscriberCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeVideo_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getStream } = await import('$/sources/Piped/Rest/queries.ts')
-				const stream = await singleFlight(getStream)(sourcePublicEnv(context, Source.Piped_Rest), entityId.$video.videoId)
+				const stream = await singleFlight(getStream)(context.publicEnv, entityId.$video.videoId)
 				if (optionalNonemptyString(stream.title) == null) throw new Error('Piped_Rest: video not found')
 				return {
 					...(stream.views != null && { viewCount: stream.views }),
 					...(stream.likes != null && { likeCount: stream.likes }),
 				}
 			},
+			fields: {
+				viewCount: (timestamp) => timestamp.viewCount,
+				likeCount: (timestamp) => timestamp.likeCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeComment_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listComments } = await import('$/sources/Piped/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Piped_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const publicEnv = context.publicEnv
+				const limit = resolverContextRowLimit(context)
 				const page = await singleFlight(listComments)(publicEnv, entityId.$comment.videoId, limit)
 				if (page.disabled === true) {
 					throw new Error(`Piped_Rest: comments disabled for video ${entityId.$comment.videoId}`)
@@ -190,29 +236,33 @@ export default {
 					...(comment.likeCount != null && { likeCount: comment.likeCount }),
 				}
 			},
+			fields: {
+				likeCount: (timestamp) => timestamp.likeCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.YouTubePlaylist_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getPlaylist } = await import('$/sources/Piped/Rest/queries.ts')
-				const playlist = await singleFlight(getPlaylist)(sourcePublicEnv(context, Source.Piped_Rest), entityId.$playlist.playlistId)
+				const playlist = await singleFlight(getPlaylist)(context.publicEnv, entityId.$playlist.playlistId)
 				if (optionalNonemptyString(playlist.name) == null) throw new Error('Piped_Rest: playlist not found')
 				return {
 					...(playlist.videos != null && { itemCount: playlist.videos }),
 				}
 			},
+			fields: {
+				itemCount: (timestamp) => timestamp.itemCount,
+			},
 		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeNetwork,
-			fieldName: '$$youtubeChannels',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { getChannelIdFromUploaderUrl, listTrending } = await import('$/sources/Piped/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Piped_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const publicEnv = context.publicEnv
+				const limit = resolverContextRowLimit(context)
 				return (
 					(await singleFlight(listTrending)(publicEnv, limit))
 						.flatMap((video) => {
@@ -226,15 +276,18 @@ export default {
 						})
 				)
 			},
+			fields: {
+				$$youtubeChannels: (network) => network,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeNetwork,
-			fieldName: '$$youtubeVideos',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { listTrending, getVideoIdFromUrl } = await import('$/sources/Piped/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Piped_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const publicEnv = context.publicEnv
+				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listTrending)(publicEnv, limit)))
 						.flatMap((video) => (
@@ -249,22 +302,28 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$youtubeVideos: (network) => network,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeNetwork,
-			fieldName: '$$youtubePlaylists',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				[]
 			),
+			fields: {
+				$$youtubePlaylists: (network) => network,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeChannel,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getChannel } = await import('$/sources/Piped/Rest/queries.ts')
-				const channel = await singleFlight(getChannel)(sourcePublicEnv(context, Source.Piped_Rest), entityId.channelId)
+				const channel = await singleFlight(getChannel)(context.publicEnv, entityId.channelId)
 				if (channel.id == null) throw new Error('Piped_Rest: channel not found')
 				return [
 					{
@@ -276,15 +335,18 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (channel) => channel,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeChannel,
-			fieldName: '$$videos',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listChannelVideos, getVideoIdFromUrl } = await import('$/sources/Piped/Rest/queries.ts')
-					const publicEnv = sourcePublicEnv(context, Source.Piped_Rest)
-					const limit = resolverLoadSubsetRowLimit(context)
+					const publicEnv = context.publicEnv
+					const limit = resolverContextRowLimit(context)
 					return (
 						(await singleFlight(listChannelVideos)(publicEnv, entityId.channelId, limit)).items
 							.flatMap((video) => (
@@ -299,18 +361,21 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$videos: (channel) => channel,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeChannel,
-			fieldName: '$$playlists',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					listChannelPlaylists,
 					getPlaylistIdFromUrl,
 				} = await import('$/sources/Piped/Rest/queries.ts')
-					const publicEnv = sourcePublicEnv(context, Source.Piped_Rest)
-					const limit = resolverLoadSubsetRowLimit(context)
+					const publicEnv = context.publicEnv
+					const limit = resolverContextRowLimit(context)
 					return (
 						(await singleFlight(listChannelPlaylists)(publicEnv, entityId.channelId, limit)).items
 							.flatMap((video) => (
@@ -325,14 +390,17 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$playlists: (channel) => channel,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubePlaylist,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getPlaylist } = await import('$/sources/Piped/Rest/queries.ts')
-				const playlist = await singleFlight(getPlaylist)(sourcePublicEnv(context, Source.Piped_Rest), entityId.playlistId)
+				const playlist = await singleFlight(getPlaylist)(context.publicEnv, entityId.playlistId)
 				if (optionalNonemptyString(playlist.name) == null) throw new Error('Piped_Rest: playlist not found')
 				return [
 					{
@@ -344,15 +412,18 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (playlist) => playlist,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubePlaylist,
-			fieldName: '$$videos',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listPlaylistVideos, getVideoIdFromUrl } = await import('$/sources/Piped/Rest/queries.ts')
-					const publicEnv = sourcePublicEnv(context, Source.Piped_Rest)
-					const limit = resolverLoadSubsetRowLimit(context)
+					const publicEnv = context.publicEnv
+					const limit = resolverContextRowLimit(context)
 					return (
 						(await singleFlight(listPlaylistVideos)(publicEnv, entityId.playlistId, limit)).items
 							.flatMap((video) => (
@@ -367,14 +438,17 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$videos: (playlist) => playlist,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeVideo,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getStream } = await import('$/sources/Piped/Rest/queries.ts')
-				const stream = await singleFlight(getStream)(sourcePublicEnv(context, Source.Piped_Rest), entityId.videoId)
+				const stream = await singleFlight(getStream)(context.publicEnv, entityId.videoId)
 				if (optionalNonemptyString(stream.title) == null) throw new Error('Piped_Rest: video not found')
 				return [
 					{
@@ -387,15 +461,18 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (video) => video,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeVideo,
-			fieldName: '$$comments',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listComments } = await import('$/sources/Piped/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Piped_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const publicEnv = context.publicEnv
+				const limit = resolverContextRowLimit(context)
 				const page = await singleFlight(listComments)(publicEnv, entityId.videoId, limit)
 				if (page.disabled === true) {
 					throw new Error(`Piped_Rest: comments disabled for video ${entityId.videoId}`)
@@ -416,15 +493,18 @@ export default {
 						})
 				)
 			},
+			fields: {
+				$$comments: (video) => video,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeComment,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { listComments } = await import('$/sources/Piped/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Piped_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const publicEnv = context.publicEnv
+				const limit = resolverContextRowLimit(context)
 				const page = await singleFlight(listComments)(publicEnv, entityId.videoId, limit)
 				if (page.disabled === true) {
 					throw new Error(`Piped_Rest: comments disabled for video ${entityId.videoId}`)
@@ -443,13 +523,19 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (comment) => comment,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.YouTubeComment,
-			fieldName: '$$replies',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, _context) => {
 				throw new Error(`Piped_Rest: $$replies unsupported for comment ${entityId.commentId}`)
+			},
+			fields: {
+				$$replies: (comment) => comment,
 			},
 		}),
 	],

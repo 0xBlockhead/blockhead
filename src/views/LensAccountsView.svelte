@@ -92,8 +92,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => row[EntityMetaKey.IdKey]}
-					getSortValue={(row) => row[EntityMetaKey.Id].address}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
 					placeholderText="Loading Lens network…"
 					resource={accounts}
 				>
@@ -105,7 +105,7 @@
 
 					{#snippet Item({ item })}
 						<LensAccountView
-							entityId={{ address: item[EntityMetaKey.Id].address }}
+							entityId={item[EntityMetaKey.Id]}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

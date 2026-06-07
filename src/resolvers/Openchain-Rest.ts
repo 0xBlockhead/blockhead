@@ -1,14 +1,18 @@
-import { defineEntityResolver } from '$/resolvers/$resolvers.ts'
+import {
+	defineResolver,
+} from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
 	source: Source.Openchain_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.EvmSelector,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getFunctionEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
@@ -17,10 +21,14 @@ export default {
 					),
 				}
 			},
+			fields: {
+			signatures: (snapshot) => snapshot.signatures,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmTopic,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getEventEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
@@ -29,10 +37,14 @@ export default {
 					),
 				}
 			},
+			fields: {
+			signatures: (snapshot) => snapshot.signatures,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmError,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getErrorEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
@@ -41,8 +53,9 @@ export default {
 					),
 				}
 			},
+			fields: {
+			signatures: (snapshot) => snapshot.signatures,
+		}
 		}),
 	],
-
-	entityFieldResolvers: [],
 }

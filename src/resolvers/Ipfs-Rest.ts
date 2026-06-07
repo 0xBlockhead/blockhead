@@ -1,10 +1,13 @@
 import {
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { canonicalIpfsCidString, decodeIpfsCid } from '$/lib/multiformats.ts'
 import { ipfsResourceCanonicalUri } from '$/lib/ipfs.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -12,9 +15,10 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	source: Source.Ipfs_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.IpfsResource,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { fetchBrowseResult } = await import('$/sources/Ipfs/Rest/queries.ts')
 				const browseResult = await fetchBrowseResult({
@@ -94,8 +98,28 @@ export default {
 					...(mediaEntity != null && { $media: mediaEntity }),
 				}
 			},
+			fields: {
+			namespace: (snapshot) => snapshot.namespace,
+			target: (snapshot) => snapshot.target,
+			contentPath: (snapshot) => snapshot.contentPath,
+			canonicalUri: (snapshot) => snapshot.canonicalUri,
+			gatewayOrigin: (snapshot) => snapshot.gatewayOrigin,
+			gatewayUrl: (snapshot) => snapshot.gatewayUrl,
+			fileName: (snapshot) => snapshot.fileName,
+			extension: (snapshot) => snapshot.extension,
+			contentType: (snapshot) => snapshot.contentType,
+			contentLength: (snapshot) => snapshot.contentLength,
+			displayType: (snapshot) => snapshot.displayType,
+			isContentTypeInferred: (snapshot) => snapshot.isContentTypeInferred,
+			text: (snapshot) => snapshot.text,
+			cidVersion: (snapshot) => snapshot.cidVersion,
+			cidMultibase: (snapshot) => snapshot.cidMultibase,
+			cidMulticodecCode: (snapshot) => snapshot.cidMulticodecCode,
+			cidMultihashCode: (snapshot) => snapshot.cidMultihashCode,
+			cidMultihashDigestHex: (snapshot) => snapshot.cidMultihashDigestHex,
+			isCidSubdomainSafe: (snapshot) => snapshot.isCidSubdomainSafe,
+			$media: (snapshot) => snapshot.$media,
+		}
 		}),
 	],
-
-	entityFieldResolvers: [],
 }

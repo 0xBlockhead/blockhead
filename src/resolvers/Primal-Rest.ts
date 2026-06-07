@@ -1,8 +1,6 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
-	sourcePublicEnv,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { nostrNetworkSeedProfiles } from '$/constants/Social/Nostr.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
@@ -12,7 +10,10 @@ import {
 	timestampMsFromUnixSeconds,
 } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -576,12 +577,13 @@ const eventsFromTimelineResponse = (response: JsonValue | undefined): PrimalNost
 export default {
 	source: Source.Primal_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.NostrProfile,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getProfile } = await import('$/sources/Primal/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
+				const publicEnv = context.publicEnv
 				const wire = await singleFlight(getProfile)(publicEnv, entityId.pubkey)
 				const event = profileEventFromWire(wire)
 				if (event == null) throw new Error('Primal_Rest: profile not found')
@@ -595,13 +597,26 @@ export default {
 					event,
 				)
 			},
+			fields: {
+				pubkey: (profile) => profile.pubkey,
+				displayName: (profile) => profile.displayName,
+				about: (profile) => profile.about,
+				nip05: (profile) => profile.nip05,
+				lud16: (profile) => profile.lud16,
+				lud06: (profile) => profile.lud06,
+				website: (profile) => profile.website,
+				metadataUpdatedAt: (profile) => profile.metadataUpdatedAt,
+				$icon: (profile) => profile.$icon,
+				$banner: (profile) => profile.$banner,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NostrNote,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
+				const publicEnv = context.publicEnv
 				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, entityId.eventId))
 				if (event == null || event.kind !== 1) {
 					throw new Error('Primal_Rest: note not found')
@@ -612,20 +627,35 @@ export default {
 				}
 				return noteFieldValuesFromEvent(event)
 			},
-		}),
-
-		defineEntityResolver({
-			entityType: EntityType.NostrRelay,
-			resolve: async () => {
-				throw new Error('Primal_Rest: NostrRelay is unsupported')
+			fields: {
+				eventId: (note) => note.eventId,
+				kind: (note) => note.kind,
+				pubkey: (note) => note.pubkey,
+				content: (note) => note.content,
+				tags: (note) => note.tags,
+				createdAt: (note) => note.createdAt,
+				$author: (note) => note.$author,
+				replyToEventId: (note) => note.replyToEventId,
+				rootEventId: (note) => note.rootEventId,
+				$replyToNote: (note) => note.$replyToNote,
 			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
+			entityType: EntityType.NostrRelay,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Primal_Rest: NostrRelay is unsupported')
+			},
+			fields: {},
+		}),
+
+		defineResolver({
 			entityType: EntityType.NostrRepost,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
+				const publicEnv = context.publicEnv
 				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, entityId.eventId))
 				if (event == null || !isNostrRepostKind(event.kind)) {
 					throw new Error('Primal_Rest: repost not found')
@@ -642,13 +672,25 @@ export default {
 					eventFromWire(await singleFlight(getEventById)(publicEnv, targetEventId)),
 				)
 			},
+			fields: {
+				eventId: (repost) => repost.eventId,
+				kind: (repost) => repost.kind,
+				pubkey: (repost) => repost.pubkey,
+				tags: (repost) => repost.tags,
+				createdAt: (repost) => repost.createdAt,
+				$author: (repost) => repost.$author,
+				repostedEventId: (repost) => repost.repostedEventId,
+				$repostedNote: (repost) => repost.$repostedNote,
+				$repostedArticle: (repost) => repost.$repostedArticle,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NostrReaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
+				const publicEnv = context.publicEnv
 				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, entityId.eventId))
 				if (event == null || event.kind !== 7) {
 					throw new Error('Primal_Rest: reaction not found')
@@ -669,19 +711,31 @@ export default {
 				}
 				return values
 			},
+			fields: {
+				eventId: (reaction) => reaction.eventId,
+				kind: (reaction) => reaction.kind,
+				pubkey: (reaction) => reaction.pubkey,
+				tags: (reaction) => reaction.tags,
+				createdAt: (reaction) => reaction.createdAt,
+				$author: (reaction) => reaction.$author,
+				$targetArticle: (reaction) => reaction.$targetArticle,
+				$targetNote: (reaction) => reaction.$targetNote,
+				content: (reaction) => reaction.content,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NostrArticle,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getProfileArticles } = await import('$/sources/Primal/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
+				const publicEnv = context.publicEnv
 				const pubkey = normalizePubkey(entityId.pubkey)
 				const identifier = entityId.identifier
 				if (pubkey == null || identifier === '') {
 					throw new Error('Primal_Rest: article id invalid')
 				}
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const event = (
 					eventsFromTimelineResponse(
 						await singleFlight(getProfileArticles)(publicEnv, pubkey, limit),
@@ -697,51 +751,72 @@ export default {
 				}
 				return articleFieldValuesFromEvent(event)
 			},
+			fields: {
+				kind: (article) => article.kind,
+				pubkey: (article) => article.pubkey,
+				identifier: (article) => article.identifier,
+				title: (article) => article.title,
+				summary: (article) => article.summary,
+				imageUrl: (article) => article.imageUrl,
+				content: (article) => article.content,
+				tags: (article) => article.tags,
+				publishedAt: (article) => article.publishedAt,
+				$author: (article) => article.$author,
+			},
 		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrProfiles',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				nostrNetworkSeedProfiles.map((seedProfile) => ({
 					[EntityMetaKey.Id]: seedProfile,
 				}))
 			),
+			fields: {
+				$$nostrProfiles: (network) => network,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrNotes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				throw new Error('Primal_Rest: $$nostrNotes is unsupported; use NostrProfile.$$notes')
 			},
+			fields: {
+				$$nostrNotes: (network) => network,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrReposts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				throw new Error('Primal_Rest: $$nostrReposts is unsupported; use NostrProfile.$$reposts')
 			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrArticles',
-			resolve: async () => {
-				throw new Error('Primal_Rest: $$nostrArticles is unsupported; use NostrProfile.$$articles')
+			fields: {
+				$$nostrReposts: (network) => network,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType.NostrNetwork,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Primal_Rest: $$nostrArticles is unsupported; use NostrProfile.$$articles')
+			},
+			fields: {
+				$$nostrArticles: (network) => network,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.NostrProfile,
-			fieldName: '$$notes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getProfileNotes } = await import('$/sources/Primal/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const publicEnv = context.publicEnv
+				const limit = resolverContextRowLimit(context)
 				return (
 					eventsFromTimelineResponse(
 						await singleFlight(getProfileNotes)(publicEnv, entityId.pubkey, limit),
@@ -758,15 +833,18 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$notes: (profile) => profile,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrProfile,
-			fieldName: '$$reposts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getProfileReposts } = await import('$/sources/Primal/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const publicEnv = context.publicEnv
+				const limit = resolverContextRowLimit(context)
 				return (
 					eventsFromTimelineResponse(
 						await singleFlight(getProfileReposts)(publicEnv, entityId.pubkey, limit),
@@ -783,15 +861,18 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$reposts: (profile) => profile,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrProfile,
-			fieldName: '$$articles',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getProfileArticles } = await import('$/sources/Primal/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const publicEnv = context.publicEnv
+				const limit = resolverContextRowLimit(context)
 				return (
 					eventsFromTimelineResponse(
 						await singleFlight(getProfileArticles)(publicEnv, entityId.pubkey, limit),
@@ -799,15 +880,18 @@ export default {
 						.flatMap((event) => articleRefFromEvent(event))
 				)
 			},
+			fields: {
+				$$articles: (profile) => profile,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNote,
-			fieldName: '$$replies',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getNoteReplies } = await import('$/sources/Primal/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const publicEnv = context.publicEnv
+				const limit = resolverContextRowLimit(context)
 				return (
 					eventsFromTimelineResponse(
 						await singleFlight(getNoteReplies)(publicEnv, entityId.eventId, limit),
@@ -824,15 +908,18 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$replies: (note) => note,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNote,
-			fieldName: '$$reactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getNoteReactions } = await import('$/sources/Primal/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const publicEnv = context.publicEnv
+				const limit = resolverContextRowLimit(context)
 				return (
 					eventsFromTimelineResponse(
 						await singleFlight(getNoteReactions)(publicEnv, entityId.eventId, limit),
@@ -849,14 +936,17 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$reactions: (note) => note,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNote,
-			fieldName: '$replyToNote',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Primal_Rest)
+				const publicEnv = context.publicEnv
 				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, entityId.eventId))
 				if (event == null || event.kind !== 1) {
 					throw new Error('Primal_Rest: note not found for reply target')
@@ -870,6 +960,9 @@ export default {
 							[EntityMetaKey.Id]: { eventId: normalizedReplyTo },
 						}
 				)
+			},
+			fields: {
+				$replyToNote: (note) => note,
 			},
 		}),
 	],

@@ -24,14 +24,18 @@ vi.mock('$/lib/singleFlight.ts', () => ({
 
 const { default: ensTheGraphResolvers } = await import('$/resolvers/Ens-TheGraph.ts')
 
-const ensNameResolver = ensTheGraphResolvers.entityResolvers.find((
+const ensNameResolver = ensTheGraphResolvers.resolvers.find((
 	resolver,
 ) => resolver.entityType === EntityType.EnsName)
 
-const ensNamesOwnedResolver = ensTheGraphResolvers.entityFieldResolvers.find((
+const ensNamesOwnedResolver = ensTheGraphResolvers.resolvers.find((
 	resolver,
-) => (
+): resolver is Extract<
+	typeof ensTheGraphResolvers.resolvers[number],
+	{ entityType: EntityType.EvmAccount }
+> => (
 	resolver.entityType === EntityType.EvmAccount
+	&& resolver.fields.$$ensNamesOwned != null
 ))
 
 const resolverContext = {
@@ -159,15 +163,15 @@ describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 			},
 		])
 
-		const resolvedEntity = await ensNamesOwnedResolver!.resolve(
-			{ address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045' },
-			resolverContext,
-		)
+			const resolvedEntity = await ensNamesOwnedResolver!.resolve(
+				{ address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045' },
+				resolverContext,
+			)
 
-		expect(resolvedEntity).toEqual([
-			{
-				[EntityMetaKey.Id]: {
-					name: 'owned.eth',
+			expect(resolvedEntity).toEqual([
+				{
+					[EntityMetaKey.Id]: {
+						name: 'owned.eth',
 				},
 			},
 		])

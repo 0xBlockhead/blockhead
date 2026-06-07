@@ -2,15 +2,22 @@ import { stringify } from 'devalue'
 import { expect, test } from '@playwright/test'
 
 import {
-	assertEntityResolverResult,
 	assertLoadedValue,
+	assertResolverDefinitionResult,
 } from '$/collections/assertLoadedCollectionRows.ts'
 import {
 	assertLoadedResolverProbeCategories,
 	isExpectedAssertLoadedResolverProbeFailure,
 } from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
 import type { AssertLoadedResolverProbeResult } from '$/routes/api/e2e/assert-loaded-resolvers/_runProbes.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import RedditPublicJson from '$/resolvers/Reddit-PublicJson.ts'
+import RedditRest from '$/resolvers/Reddit-Rest.ts'
+import YoutubeRest from '$/resolvers/Youtube-Rest.ts'
+import {
+	EntityMetaKey,
+	entityFieldConditionKey,
+	entityFieldDefinitions,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { entityDefinitionByType } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -39,23 +46,74 @@ test.describe('assertLoaded verification', () => {
 		})).toThrow()
 	})
 
-	test('assertEntityResolverResult accepts minimal Global row then rejects invalid __id', () => {
+	test('assertResolverDefinitionResult accepts minimal Global row then rejects invalid __id', () => {
 		const definition = entityDefinitionByType[EntityType._Global]
 		expect(definition).toBeDefined()
 
-			const good = {
-				[EntityMetaKey.Id]: {},
-				[EntityMetaKey.IdKey]: stringify({}),
-				[EntityMetaKey.Source]: Source.Constants_Internal,
-				[EntityMetaKey.Fields]: {},
-			}
+		const good = {
+			[EntityMetaKey.Id]: { scope: 'e2e' },
+			[EntityMetaKey.IdKey]: stringify({ scope: 'e2e' }),
+			[EntityMetaKey.Source]: Source.Constants_Internal,
+			[EntityMetaKey.Fields]: {},
+		}
 
-		expect(() => assertEntityResolverResult(definition, good)).not.toThrow()
+		expect(() => assertResolverDefinitionResult(definition, good)).not.toThrow()
 
-		expect(() => assertEntityResolverResult(definition, {
+		expect(() => assertResolverDefinitionResult(definition, {
 			...good,
 			[EntityMetaKey.Id]: null,
 		})).toThrow()
+	})
+
+	test('schema exposes scalar and array-item conditional fields', () => {
+		const blobGasUsed = entityFieldDefinitions(entityDefinitionByType[EntityType.EvmTransaction])
+			.find((field) => field.name === 'blobGasUsed')
+		const tokenTransfers = entityFieldDefinitions(entityDefinitionByType[EntityType.EvmLog])
+			.find((field) => field.name === '$$tokenTransfers')
+
+		expect(blobGasUsed).toBeDefined()
+		expect(tokenTransfers).toBeDefined()
+		if (blobGasUsed == null || tokenTransfers == null)
+			throw new Error('Missing conditional field definitions')
+
+		expect('when' in blobGasUsed && blobGasUsed.when.fieldName).toBe('envelopeType')
+		expect('when' in tokenTransfers && entityFieldConditionKey(tokenTransfers.when)).toBe('topics[0]')
+	})
+
+	test('YouTube list fields expose provider totals through count selectors', () => {
+		expect(YoutubeRest.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.YouTubeChannel
+			&& typeof resolver.fields.$$videos === 'object'
+			&& 'resolveCount' in resolver.fields.$$videos
+		))).toBe(true)
+		expect(YoutubeRest.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.YouTubePlaylist
+			&& typeof resolver.fields.$$videos === 'object'
+			&& 'resolveCount' in resolver.fields.$$videos
+		))).toBe(true)
+		expect(YoutubeRest.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.YouTubeVideo
+			&& typeof resolver.fields.$$comments === 'object'
+			&& 'resolveCount' in resolver.fields.$$comments
+		))).toBe(true)
+		expect(YoutubeRest.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.YouTubeComment
+			&& typeof resolver.fields.$$replies === 'object'
+			&& 'resolveCount' in resolver.fields.$$replies
+		))).toBe(true)
+	})
+
+	test('Reddit link comments expose provider totals through count selectors', () => {
+		for (const sourceResolvers of [
+			RedditPublicJson,
+			RedditRest,
+		]) {
+			expect(sourceResolvers.resolvers.some((resolver) => (
+				resolver.entityType === EntityType.RedditLink
+				&& typeof resolver.fields.$$comments === 'object'
+				&& 'resolveCount' in resolver.fields.$$comments
+			))).toBe(true)
+		}
 	})
 
 	test('GET /api/e2e/assert-loaded-resolvers: probe covers every resolver with consistent case metadata', async ({
@@ -69,28 +127,41 @@ test.describe('assertLoaded verification', () => {
 
 		const body: AssertLoadedResolverProbeResult = JSON.parse(text)
 
-		const { cases, entityResolverCount, fieldResolverCount } = body
+		const { cases, resolverDefinitionCount, resolverValuePartCount } = body
 
 		expect(
-			entityResolverCount,
-			'probe runner must report entityResolverCount',
+			resolverDefinitionCount,
+			'probe runner must report resolverDefinitionCount',
 		).toBeGreaterThan(0)
 
 		expect(
-			fieldResolverCount,
-			'probe runner must report fieldResolverCount',
+			resolverValuePartCount,
+			'probe runner must report resolverValuePartCount',
 		).toBeGreaterThan(0)
+
+		expect(body.conditionalScalarDiscriminatorCount).toBeGreaterThan(0)
+		expect(body.conditionalItemDiscriminatorCount).toBeGreaterThan(0)
+		expect(body.countResolverPartCount).toBeGreaterThan(0)
+		expect(body.countResolverFields).toEqual(expect.arrayContaining([
+			'EvmBlock.$$transactions',
+			'EvmNetwork.$$blocks',
+			'EvmNetwork.$$transactions',
+			'EvmNetworkAccount.$$tokenTransfers',
+			'EvmNetworkAccount.$$transactions',
+			'RedditLink.$$comments',
+		]))
+		expect(body.rootLiveResolverCount).toBeGreaterThan(0)
 
 		expect(
 			cases.length,
 			'one case per entity resolver + one per field resolver',
-		).toBe(entityResolverCount + fieldResolverCount)
+		).toBe(resolverDefinitionCount + resolverValuePartCount)
 
 		const entityCases = cases.filter((c) => c.kind === 'entity')
 		const fieldCases = cases.filter((c) => c.kind === 'field')
 
-		expect(entityCases.length, 'entity case count').toBe(entityResolverCount)
-		expect(fieldCases.length, 'field case count').toBe(fieldResolverCount)
+		expect(entityCases.length, 'entity case count').toBe(resolverDefinitionCount)
+		expect(fieldCases.length, 'field case count').toBe(resolverValuePartCount)
 
 		expect(
 			new Set(cases.map((c) => c.key)).size,

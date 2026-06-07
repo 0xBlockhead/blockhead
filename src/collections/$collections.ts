@@ -13,6 +13,7 @@ import {
 } from '@tanstack/db-sqlite-persistence-core'
 import {
 	BasicIndex,
+	type Collection,
 	type CollectionConfig,
 	createCollection,
 	type LoadSubsetOptions,
@@ -22,7 +23,7 @@ import {
 } from '@tanstack/svelte-db'
 import { stringify, parse } from 'devalue'
 
-import { assertEntityFieldResolverResult } from '$/collections/assertLoadedCollectionRows.ts'
+import { assertResolverValuePartResult } from '$/collections/assertLoadedCollectionRows.ts'
 
 import {
 	type EntityDefinition,
@@ -30,6 +31,7 @@ import {
 	EntityFieldCardinality,
 	type EntityFieldDefinition,
 	entityFieldDefinitions,
+	entityIdProjectionNameForId,
 	entityIdentityIdsFromFields,
 	EntityMetaKey,
 } from '$/schema/$EntityDefinition.ts'
@@ -44,12 +46,18 @@ import type {
 	Schema,
 } from '$/schema/$schema.ts'
 import type {
-	EntityFieldCountResolver,
-	EntityFieldResolver,
-	EntityResolver,
+	ResolverContext,
+	ResolverPart,
+	ResolveLiveContext,
+	SourceResolverDefinition,
 } from '$/resolvers/$resolvers.ts'
+import { schema as appSchema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
 import { resolverPublicEnvBySource } from '$/sources/index.ts'
+
+
+const resolverSnapshotOrdinalByDefinition = new WeakMap<SourceResolverDefinition, number>()
+let resolverSnapshotOrdinal = 0
 
 
 export type EntityCollectionItem<
@@ -325,6 +333,12 @@ const subsetFilterEntityId = (value: unknown): unknown => (
 		value
 )
 
+const entityDefinitionAcceptsEntityId = (
+	entityDefinition: EntityDefinition,
+	accepts: readonly string[],
+	entityId: unknown,
+) => accepts.includes(entityIdProjectionNameForId(entityDefinition, entityId) ?? '')
+
 /**
  * `persistOnDemandSubsets` short-circuits warm-reload `loadSubset` calls when OPFS rows
  * (or the loaded-subset metadata marker) cover the request. Keeping `staleTime` infinite
@@ -488,6 +502,349 @@ const countSubsetMetadataKey = (loadSubsetOptions: LoadSubsetOptions | undefined
 	]
 		.join(':')
 )
+
+const defaultFieldCountFilterKey = countSubsetMetadataKey(undefined)
+
+type ResolveLiveFunction = (
+	context: ResolveLiveContext<typeof appSchema, EntityType<typeof appSchema>>
+) => void | (() => void) | Promise<void | (() => void)>
+
+type SharedResolveLiveSubscription = {
+	dispose: () => void
+}
+
+const sharedResolveLiveSubscriptionsByQueryClient = new WeakMap<
+	QueryClient,
+	Map<string, SharedResolveLiveSubscription>
+>()
+
+const entityFieldCollectionForName = <
+	_EntityType extends EntityType<typeof appSchema>,
+>(
+	entityFieldCollections: EntityFieldCollections<typeof appSchema>,
+	entityType: _EntityType,
+	fieldName: string,
+) => (
+	(
+		entityFieldCollections[entityType] as Partial<Record<
+			string,
+			Collection<
+				EntityFieldCollectionItem<typeof appSchema, _EntityType, EntityFieldName<typeof appSchema, _EntityType>>,
+				string | number
+			>
+		>>
+	)[fieldName]
+)
+
+const entityFieldCountCollectionForName = <
+	_EntityType extends EntityType<typeof appSchema>,
+>(
+	entityFieldCountCollections: EntityFieldCountCollections<typeof appSchema>,
+	entityType: _EntityType,
+	fieldName: string,
+) => (
+	(
+		entityFieldCountCollections[entityType] as Partial<Record<
+			string,
+			Collection<
+				EntityFieldCountCollectionItem<typeof appSchema, _EntityType, EntityFieldName<typeof appSchema, _EntityType>>,
+				string | number
+			>
+		>>
+	)[fieldName]
+)
+
+const deleteEntityFieldRowsForContext = <_EntityType extends EntityType<typeof appSchema>>({
+	entityFieldCollections,
+	entityType,
+	fieldName,
+	parentEntityIds,
+	sources,
+}: {
+	entityFieldCollections: EntityFieldCollections<typeof appSchema>
+	entityType: _EntityType
+	fieldName: string
+	parentEntityIds: readonly EntityId<typeof appSchema, _EntityType>[]
+	sources?: readonly Source[]
+}) => {
+	const fieldCollection = entityFieldCollectionForName(
+		entityFieldCollections,
+		entityType,
+		fieldName,
+	)
+	if (fieldCollection == null) return
+
+	const parentIdKeys = new Set(parentEntityIds.map((id) => stringify(id)))
+	const sourceKeys = sources == null ? null : new Set(sources.map(String))
+	const keysToDelete = (
+		[...fieldCollection.entries()]
+			.flatMap(([rowKey, row]) => (
+				parentIdKeys.has(String(row[EntityMetaKey.ParentIdKey]))
+				&& (sourceKeys == null || sourceKeys.has(String(row[EntityMetaKey.Source]))) ?
+					[rowKey]
+				:
+					[]
+			))
+	)
+	if (keysToDelete.length === 0) return
+	fieldCollection.utils.writeBatch(() => {
+		for (const key of keysToDelete) {
+			fieldCollection.utils.writeDelete(key)
+		}
+	})
+}
+
+const writeEntityFieldUpsertsForContext = <_EntityType extends EntityType<typeof appSchema>>({
+	entityFieldCollections,
+	entityType,
+	fieldName,
+	rows,
+	defaultParentEntityId,
+}: {
+	entityFieldCollections: EntityFieldCollections<typeof appSchema>
+	entityType: _EntityType
+	fieldName: string
+	rows: readonly {
+		parentEntityId?: EntityId<typeof appSchema, _EntityType>
+		parentIdKey?: string
+		source: Source
+		value: unknown
+	}[]
+	defaultParentEntityId: EntityId<typeof appSchema, _EntityType>
+}) => {
+	const fieldCollection = entityFieldCollectionForName(
+		entityFieldCollections,
+		entityType,
+		fieldName,
+	)
+	if (fieldCollection == null || rows.length === 0) return
+	fieldCollection.utils.writeBatch(() => {
+		for (const row of rows) {
+			const parentEntityId = row.parentEntityId ?? defaultParentEntityId
+			fieldCollection.utils.writeUpsert({
+				[EntityMetaKey.ParentId]: parentEntityId,
+				[EntityMetaKey.ParentIdKey]: row.parentIdKey ?? stringify(parentEntityId),
+				[EntityMetaKey.Source]: row.source,
+				[EntityMetaKey.Value]: entityFieldCollectionValue(row.value),
+			})
+		}
+	})
+}
+
+const deleteEntityFieldCountRowsForContext = <_EntityType extends EntityType<typeof appSchema>>({
+	entityFieldCountCollections,
+	entityType,
+	fieldName,
+	parentEntityIds,
+	sources,
+	filterKey = defaultFieldCountFilterKey,
+}: {
+	entityFieldCountCollections: EntityFieldCountCollections<typeof appSchema>
+	entityType: _EntityType
+	fieldName: string
+	parentEntityIds: readonly EntityId<typeof appSchema, _EntityType>[]
+	sources?: readonly Source[]
+	filterKey?: string
+}) => {
+	const countCollection = entityFieldCountCollectionForName(
+		entityFieldCountCollections,
+		entityType,
+		fieldName,
+	)
+	if (countCollection == null) return
+
+	const parentIdKeys = new Set(parentEntityIds.map((id) => stringify(id)))
+	const sourceKeys = sources == null ? null : new Set(sources.map(String))
+	const keysToDelete = (
+		[...countCollection.entries()]
+			.flatMap(([rowKey, row]) => (
+				parentIdKeys.has(String(row[EntityMetaKey.ParentIdKey]))
+				&& row.filterKey === filterKey
+				&& (sourceKeys == null || sourceKeys.has(String(row[EntityMetaKey.Source]))) ?
+					[rowKey]
+				:
+					[]
+			))
+	)
+	if (keysToDelete.length === 0) return
+	countCollection.utils.writeBatch(() => {
+		for (const key of keysToDelete) {
+			countCollection.utils.writeDelete(key)
+		}
+	})
+}
+
+const writeEntityFieldCountUpsertsForContext = <_EntityType extends EntityType<typeof appSchema>>({
+	entityFieldCountCollections,
+	entityType,
+	fieldName,
+	rows,
+	defaultParentEntityId,
+}: {
+	entityFieldCountCollections: EntityFieldCountCollections<typeof appSchema>
+	entityType: _EntityType
+	fieldName: string
+	rows: readonly {
+		parentEntityId?: EntityId<typeof appSchema, _EntityType>
+		parentIdKey?: string
+		source: Source
+		value: number
+		filterKey?: string
+	}[]
+	defaultParentEntityId: EntityId<typeof appSchema, _EntityType>
+}) => {
+	const countCollection = entityFieldCountCollectionForName(
+		entityFieldCountCollections,
+		entityType,
+		fieldName,
+	)
+	if (countCollection == null || rows.length === 0) return
+	countCollection.utils.writeBatch(() => {
+		for (const row of rows) {
+			const parentEntityId = row.parentEntityId ?? defaultParentEntityId
+			const countRow = {
+				[EntityMetaKey.ParentId]: parentEntityId,
+				[EntityMetaKey.ParentIdKey]: row.parentIdKey ?? stringify(parentEntityId),
+				[EntityMetaKey.Source]: row.source,
+				[EntityMetaKey.Value]: row.value,
+				filterKey: row.filterKey ?? defaultFieldCountFilterKey,
+				fieldName,
+			}
+			countCollection.utils.writeUpsert(countRow, entityFieldCountCollectionItemKey(countRow))
+		}
+	})
+}
+
+const createSharedResolveLiveSubscription = ({
+	entityFieldCollections,
+	entityFieldCountCollections,
+	entityType,
+	parentEntityId,
+	queryClient,
+	resolveLive,
+	scopeKey,
+	source,
+}: {
+	entityFieldCollections: EntityFieldCollections<typeof appSchema>
+	entityFieldCountCollections: EntityFieldCountCollections<typeof appSchema>
+	entityType: EntityType<typeof appSchema>
+	parentEntityId: EntityId<typeof appSchema, EntityType<typeof appSchema>>
+	queryClient: QueryClient
+	resolveLive: ResolveLiveFunction
+	scopeKey: string
+	source: Source
+}) => {
+	const sharedSubscriptionsByKey = (
+		sharedResolveLiveSubscriptionsByQueryClient.get(queryClient)
+		?? new Map<string, SharedResolveLiveSubscription>()
+	)
+	sharedResolveLiveSubscriptionsByQueryClient.set(queryClient, sharedSubscriptionsByKey)
+
+	if (sharedSubscriptionsByKey.has(scopeKey)) return
+
+	const ac = new AbortController()
+	const cleanups = new Set<() => void>()
+	let disposed = false
+	const runCleanup = (cleanup: (() => void) | undefined) => {
+		if (cleanup == null) return
+		try {
+			cleanup()
+		} catch (error) {
+			console.error('resolveLive cleanup failed', {
+				entityType,
+				parentEntityId,
+				scopeKey,
+				source,
+			}, error)
+		}
+	}
+	const dispose = () => {
+		if (disposed) return
+		disposed = true
+		ac.abort()
+		for (const cleanup of cleanups) {
+			runCleanup(cleanup)
+		}
+		cleanups.clear()
+		sharedSubscriptionsByKey.delete(scopeKey)
+	}
+
+	sharedSubscriptionsByKey.set(scopeKey, { dispose })
+
+	void Promise.resolve(
+		resolveLive({
+			invalidateFields: (fieldNames) => {
+				void Promise.all(fieldNames.map((fieldName) => (
+					queryClient.invalidateQueries({
+						queryKey: [entityFieldCollectionQueryKeyBase(String(entityType)), fieldName],
+						refetchType: 'all',
+					})
+				)))
+			},
+			invalidateCounts: (fieldNames) => {
+				void Promise.all(fieldNames.map((fieldName) => (
+					queryClient.invalidateQueries({
+						queryKey: [`EntityFieldCountCollection:${String(entityType)}:${fieldName}`],
+						refetchType: 'all',
+					})
+				)))
+			},
+			writeFieldRows: (fieldName, rows) => {
+				deleteEntityFieldRowsForContext({
+					entityFieldCollections,
+					entityType,
+					fieldName,
+					parentEntityIds: [parentEntityId],
+					sources: rows.map((row) => row.source),
+				})
+				writeEntityFieldUpsertsForContext({
+					entityFieldCollections,
+					entityType,
+					fieldName,
+					rows,
+					defaultParentEntityId: parentEntityId,
+				})
+			},
+			writeFieldCounts: (fieldName, rows) => {
+				deleteEntityFieldCountRowsForContext({
+					entityFieldCountCollections,
+					entityType,
+					fieldName,
+					parentEntityIds: [parentEntityId],
+					sources: rows.map((row) => row.source),
+				})
+				writeEntityFieldCountUpsertsForContext({
+					entityFieldCountCollections,
+					entityType,
+					fieldName,
+					rows,
+					defaultParentEntityId: parentEntityId,
+				})
+			},
+			parentEntityId,
+			queryClient,
+			signal: ac.signal,
+		}),
+	)
+		.then((cleanup) => {
+			if (typeof cleanup !== 'function') return
+			if (disposed) {
+				runCleanup(cleanup)
+				return
+			}
+			cleanups.add(cleanup)
+		})
+		.catch((error) => {
+			if (ac.signal.aborted) return
+			dispose()
+			console.error('resolveLive failed', {
+				entityType,
+				parentEntityId,
+				scopeKey,
+				source,
+			}, error)
+		})
+}
 
 type BlockheadPersistenceProbeDecision = (
 	| 'hydrated-rows'
@@ -871,14 +1228,16 @@ const createEntityCollection = <
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 >({
-	entityResolvers,
+	resolverDefinitions,
+	resolverPartsByResolver,
 	entityType,
 	entityDefinition,
 	persistence,
 	queryClient,
 	schemaVersion,
 }: {
-	entityResolvers: EntityResolver<_Schema, _EntityType>[]
+	resolverDefinitions: SourceResolverDefinition[]
+	resolverPartsByResolver: Map<SourceResolverDefinition, ResolverPart[]>
 	entityType: _EntityType
 	entityDefinition: EntityDefinition
 	persistence: PersistedCollectionPersistence
@@ -989,23 +1348,58 @@ const createEntityCollection = <
 							entityIds.map(async (entityId) => {
 								const resolvers = (
 									sources.size ?
-										entityResolvers
-											.filter((entityResolver) => sources.has(entityResolver.source))
+										resolverDefinitions
+											.filter((resolver) => (
+												sources.has(resolver.source)
+												&& entityDefinitionAcceptsEntityId(
+													entityDefinition,
+													resolver.accepts,
+													entityId,
+												)
+											))
 									:
-										entityResolvers
+										resolverDefinitions.filter((resolver) => (
+											entityDefinitionAcceptsEntityId(
+												entityDefinition,
+												resolver.accepts,
+												entityId,
+											)
+										))
 								)
 
 								const settled = await Promise.allSettled(
 									resolvers
-										.map(async (entityResolver) => {
-											const fields = await entityResolver.resolve(
-												entityId,
+										.map(async (resolver) => {
+											const snapshot = await resolveSnapshot(
+												resolver,
+												entityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
 												{
 													filters: subsetBase.filters,
 													sorts: subsetBase.sorts,
 													limit: subsetBase.limit,
-													publicEnv: resolverPublicEnvBySource.get(entityResolver.source) ?? {},
+													publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
 												},
+												queryClient,
+											)
+											const fields = Object.fromEntries(
+												(resolverPartsByResolver.get(resolver) ?? []).flatMap((resolverPart) => (
+													resolverPart.select == null ?
+														[]
+													:
+														[[
+															resolverPart.fieldName,
+															resolverPart.select(
+																snapshot,
+																entityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+																{
+																	filters: subsetBase.filters,
+																	sorts: subsetBase.sorts,
+																	limit: subsetBase.limit,
+																	publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
+																},
+															),
+														]]
+												)),
 											)
 
 											const rowIdKeys = new Set<string>()
@@ -1024,7 +1418,7 @@ const createEntityCollection = <
 														...fields,
 														[EntityMetaKey.Id]: resolvedEntityId,
 														[EntityMetaKey.IdKey]: rowIdKey,
-														[EntityMetaKey.Source]: entityResolver.source,
+														[EntityMetaKey.Source]: resolver.source,
 														[EntityMetaKey.Fields]: fields,
 													}]
 												})
@@ -1091,9 +1485,13 @@ const createEntityFieldCollection = <
 	_EntityType extends EntityType<_Schema>,
 	_FieldDefinition extends EntityFieldDefinition,
 >({
-	allEntityFieldResolvers,
-	entityResolvers,
-	entityFieldResolvers,
+	allResolverValueParts,
+	entityFieldCollections,
+	entityFieldCountCollections,
+	resolverDefinitions,
+	resolverLiveParts,
+	resolverRootLiveDefinitions,
+	resolverValueParts,
 	entityType,
 	fieldDefinition,
 	persistence,
@@ -1101,15 +1499,13 @@ const createEntityFieldCollection = <
 	schema,
 	schemaVersion,
 }: {
-	allEntityFieldResolvers: {
-		[_ResolvedEntityType in EntityType<_Schema>]: EntityFieldResolver<
-			_Schema,
-			_ResolvedEntityType,
-			EntityFieldName<_Schema, _ResolvedEntityType>
-		>
-	}[EntityType<_Schema>][]
-	entityResolvers: EntityResolver<_Schema, _EntityType>[]
-	entityFieldResolvers: EntityFieldResolver<_Schema, _EntityType, _FieldDefinition['name']>[]
+	allResolverValueParts: ResolverPart[]
+	entityFieldCollections: () => EntityFieldCollections<typeof appSchema>
+	entityFieldCountCollections: () => EntityFieldCountCollections<typeof appSchema>
+	resolverDefinitions: SourceResolverDefinition[]
+	resolverLiveParts: ResolverPart[]
+	resolverRootLiveDefinitions: SourceResolverDefinition[]
+	resolverValueParts: ResolverPart[]
 	entityType: _EntityType
 	fieldDefinition: _FieldDefinition
 	persistence: PersistedCollectionPersistence
@@ -1174,20 +1570,35 @@ const createEntityFieldCollection = <
 		}
 
 		const entitySettled = await Promise.allSettled(
-			entityResolvers.map(async (entityResolver) => {
-				const entityRow = await entityResolver.resolve(
-					parentEntityId,
-					{
-						filters: subsetBase.filters,
-						sorts: subsetBase.sorts,
-						limit: subsetBase.limit,
-						publicEnv: resolverPublicEnvBySource.get(entityResolver.source) ?? {},
-					},
+			resolverDefinitions.map(async (resolver) => {
+				const context = {
+					filters: subsetBase.filters,
+					sorts: subsetBase.sorts,
+					limit: subsetBase.limit,
+					publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
+				}
+				const snapshot = await resolveSnapshot(
+					resolver,
+					parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+					context,
+					queryClient,
 				)
-				return discriminatorValueFromFieldValue(
-					condition,
-					entityRow[fieldName as keyof typeof entityRow],
-				)
+				const valuePart = allResolverValueParts.find((resolverPart) => (
+					resolverPart.resolver === resolver
+					&& resolverPart.fieldName === fieldName
+					&& resolverPart.select != null
+				))
+				return valuePart?.select == null ?
+					undefined
+				:
+					discriminatorValueFromFieldValue(
+						condition,
+						valuePart.select(
+							snapshot,
+							parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+							context,
+						),
+					)
 			}),
 		)
 		for (const result of entitySettled) {
@@ -1200,22 +1611,31 @@ const createEntityFieldCollection = <
 		}
 
 		const fieldSettled = await Promise.allSettled(
-			allEntityFieldResolvers
-				.filter((entityFieldResolver) => (
-					entityFieldResolver.entityType === entityType
-					&& entityFieldResolver.fieldName === fieldName
+			allResolverValueParts
+				.filter((resolverPart) => (
+					resolverPart.entityType === entityType
+					&& resolverPart.fieldName === fieldName
+					&& resolverPart.select != null
 				))
-				.map(async (entityFieldResolver) => (
-					entityFieldResolver.resolve(
-						parentEntityId,
-						{
-							filters: subsetBase.filters,
-							sorts: subsetBase.sorts,
-							limit: subsetBase.limit,
-							publicEnv: resolverPublicEnvBySource.get(entityFieldResolver.source) ?? {},
-						},
+				.map(async (resolverPart) => {
+					const context = {
+						filters: subsetBase.filters,
+						sorts: subsetBase.sorts,
+						limit: subsetBase.limit,
+						publicEnv: resolverPublicEnvBySource.get(resolverPart.source) ?? {},
+					}
+					const snapshot = await resolveSnapshot(
+						resolverPart.resolver,
+						parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+						context,
+						queryClient,
 					)
-				)),
+					return resolverPart.select!(
+						snapshot,
+						parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+						context,
+					)
+				}),
 		)
 		for (const result of fieldSettled) {
 			const discriminatorValue = (
@@ -1359,6 +1779,57 @@ const createEntityFieldCollection = <
 								))
 						)
 
+						for (const parentEntityId of parentsForResolvers) {
+							for (const resolver of resolverRootLiveDefinitions.filter((resolverDefinition) => (
+								resolverDefinition.entityType === entityType
+								&& resolverDefinition.resolveLive?.fields.includes(fieldDefinition.name as EntityFieldName<typeof appSchema, EntityType<typeof appSchema>>)
+								&& (sources.size === 0 || sources.has(resolverDefinition.source))
+							))) {
+								createSharedResolveLiveSubscription({
+									entityFieldCollections: entityFieldCollections(),
+									entityFieldCountCollections: entityFieldCountCollections(),
+									entityType: entityType as EntityType<typeof appSchema>,
+									parentEntityId: parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+									queryClient,
+									resolveLive: resolver.resolveLive!.run,
+									scopeKey: [
+										'root',
+										String(resolver.definitionIndex),
+										String(entityType),
+										resolver.source,
+										stringify(parentEntityId),
+									].join('\x1E'),
+									source: resolver.source,
+								})
+							}
+
+							for (const resolverPart of resolverLiveParts.filter((part) => (
+								part.entityType === entityType
+								&& part.fieldName === fieldDefinition.name
+								&& part.resolveLive != null
+								&& (sources.size === 0 || sources.has(part.source))
+							))) {
+								createSharedResolveLiveSubscription({
+									entityFieldCollections: entityFieldCollections(),
+									entityFieldCountCollections: entityFieldCountCollections(),
+									entityType: entityType as EntityType<typeof appSchema>,
+									parentEntityId: parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+									queryClient,
+									resolveLive: resolverPart.resolveLive!,
+									scopeKey: [
+										'field',
+										String(resolverPart.resolver.definitionIndex),
+										String(resolverPart.partIndex),
+										String(entityType),
+										String(fieldDefinition.name),
+										resolverPart.source,
+										stringify(parentEntityId),
+									].join('\x1E'),
+									source: resolverPart.source,
+								})
+							}
+						}
+
 						const settledParentFieldRows = await Promise.allSettled(
 							parentsForResolvers
 								.map(async (parentEntityId) => {
@@ -1378,24 +1849,42 @@ const createEntityFieldCollection = <
 
 									const resolvers = (
 										sources.size ?
-											entityFieldResolvers.filter((fieldResolver) => (
-												sources.has(fieldResolver.source)
+											resolverValueParts.filter((resolverPart) => (
+												sources.has(resolverPart.source)
+												&& entityDefinitionAcceptsEntityId(
+													entityDefinition,
+													resolverPart.acceptsParent ?? resolverPart.resolver.accepts,
+													parentEntityId,
+												)
 											))
 										:
-											entityFieldResolvers
+											resolverValueParts.filter((resolverPart) => (
+												entityDefinitionAcceptsEntityId(
+													entityDefinition,
+													resolverPart.acceptsParent ?? resolverPart.resolver.accepts,
+													parentEntityId,
+												)
+											))
 									)
 
 									const settled = await Promise.allSettled(
 										resolvers
-											.map(async (fieldResolver) => {
-												const value = await fieldResolver.resolve(
-													parentEntityId,
-													{
-														filters: subsetBase.filters,
-														sorts: subsetBase.sorts,
-														limit: subsetBase.limit,
-														publicEnv: resolverPublicEnvBySource.get(fieldResolver.source) ?? {},
-													},
+											.map(async (resolverPart) => {
+												const context = {
+													filters: subsetBase.filters,
+													sorts: subsetBase.sorts,
+													limit: subsetBase.limit,
+													publicEnv: resolverPublicEnvBySource.get(resolverPart.source) ?? {},
+												}
+												const value = resolverPart.select!(
+													await resolveSnapshot(
+														resolverPart.resolver,
+														parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+														context,
+														queryClient,
+													),
+													parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+													context,
 												)
 
 												const innerValues = (
@@ -1418,7 +1907,7 @@ const createEntityFieldCollection = <
 												return (
 													innerValues.map((innerValue) => (
 														(row) => (
-															assertEntityFieldResolverResult(
+															assertResolverValuePartResult(
 																String(entityType),
 																fieldDefinition,
 																row,
@@ -1426,12 +1915,12 @@ const createEntityFieldCollection = <
 															row
 														)
 													)({
-														[EntityMetaKey.ParentId]: parentEntityId,
-														[EntityMetaKey.ParentIdKey]: stringify(parentEntityId),
-														[EntityMetaKey.Source]: fieldResolver.source,
-														[EntityMetaKey.Value]: entityFieldCollectionValue(innerValue),
-													}))
-												)
+													[EntityMetaKey.ParentId]: parentEntityId,
+													[EntityMetaKey.ParentIdKey]: stringify(parentEntityId),
+													[EntityMetaKey.Source]: resolverPart.source,
+													[EntityMetaKey.Value]: entityFieldCollectionValue(innerValue),
+												}))
+											)
 											}),
 									)
 
@@ -1512,14 +2001,14 @@ const createEntityFieldCountCollection = <
 	_EntityType extends EntityType<_Schema>,
 	_FieldDefinition extends EntityFieldDefinition,
 >({
-	entityFieldCountResolvers,
+	resolverCountParts,
 	entityType,
 	fieldDefinition,
 	persistence,
 	queryClient,
 	schemaVersion,
 }: {
-	entityFieldCountResolvers: EntityFieldCountResolver<_Schema, _EntityType, _FieldDefinition['name']>[]
+	resolverCountParts: ResolverPart[]
 	entityType: _EntityType
 	fieldDefinition: _FieldDefinition
 	persistence: PersistedCollectionPersistence
@@ -1656,21 +2145,39 @@ const createEntityFieldCountCollection = <
 								parentsForResolvers.map(async (parentEntityId) => {
 									const resolvers = (
 										sources.size ?
-											entityFieldCountResolvers.filter((fieldResolver) => (
-												sources.has(fieldResolver.source)
+											resolverCountParts.filter((resolverPart) => (
+												sources.has(resolverPart.source)
+												&& entityDefinitionAcceptsEntityId(
+													entityDefinition,
+													resolverPart.acceptsParent ?? resolverPart.resolver.accepts,
+													parentEntityId,
+												)
 											))
 										:
-											entityFieldCountResolvers
+											resolverCountParts.filter((resolverPart) => (
+												entityDefinitionAcceptsEntityId(
+													entityDefinition,
+													resolverPart.acceptsParent ?? resolverPart.resolver.accepts,
+													parentEntityId,
+												)
+											))
 									)
 									const settled = await Promise.allSettled(
-										resolvers.map(async (fieldResolver) => {
-											const count = await fieldResolver.resolve(
-												parentEntityId,
-												{
+										resolvers.map(async (resolverPart) => {
+											const context = {
 													filters: subsetBase.filters,
 													sorts: [],
-													publicEnv: resolverPublicEnvBySource.get(fieldResolver.source) ?? {},
-												},
+													publicEnv: resolverPublicEnvBySource.get(resolverPart.source) ?? {},
+												}
+											const count = resolverPart.resolveCount!(
+												await resolveSnapshot(
+													resolverPart.resolver,
+													parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+													context,
+													queryClient,
+												),
+												parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+												context,
 											)
 											if (!Number.isInteger(count) || count < 0)
 												throw new Error(`${String(entityType)}.${fieldDefinition.name}: count resolver returned ${count.toString()}`)
@@ -1678,7 +2185,7 @@ const createEntityFieldCountCollection = <
 											return {
 												[EntityMetaKey.ParentId]: parentEntityId,
 												[EntityMetaKey.ParentIdKey]: stringify(parentEntityId),
-												[EntityMetaKey.Source]: fieldResolver.source,
+												[EntityMetaKey.Source]: resolverPart.source,
 												[EntityMetaKey.Value]: count,
 												filterKey,
 												fieldName: fieldDefinition.name,
@@ -1731,38 +2238,96 @@ const createEntityFieldCountCollection = <
 	return collection
 }
 
+const resolverSnapshotQueryKey = (
+	resolver: SourceResolverDefinition,
+	entityId: unknown,
+	context: ResolverContext,
+) => [
+	'ResolverSnapshot',
+	(() => {
+		let ordinal = resolverSnapshotOrdinalByDefinition.get(resolver)
+		if (ordinal === undefined) {
+			ordinal = resolverSnapshotOrdinal++
+			resolverSnapshotOrdinalByDefinition.set(resolver, ordinal)
+		}
+
+		return ordinal
+	})(),
+	stringify(entityId),
+	stringify({
+		filters: context.filters,
+		sorts: context.sorts,
+		limit: context.limit,
+	}),
+]
+
+const resolveSnapshot = (
+	resolver: SourceResolverDefinition,
+	entityId: EntityId<typeof appSchema, EntityType<typeof appSchema>>,
+	context: ResolverContext,
+	queryClient: QueryClient,
+) => queryClient.fetchQuery({
+	queryKey: resolverSnapshotQueryKey(
+		resolver,
+		entityId,
+		context,
+	),
+	queryFn: async () => (
+		await resolver.resolve(
+			entityId,
+			context,
+		)
+		?? null
+	),
+})
+
 export const createCollectionsFromSchema = <
 	_Schema extends Schema,
 >({
 	schema,
-	entityResolvers,
-	entityFieldResolvers,
-	entityFieldCountResolvers,
+	resolverDefinitions,
 	persistence,
 	schemaVersion = 1,
 }: {
 	schema: _Schema
-	entityResolvers: {
-		[_ResolvedEntityType in EntityType<_Schema>]: EntityResolver<_Schema, _ResolvedEntityType>
-	}[EntityType<_Schema>][]
-	entityFieldResolvers: {
-		[_ResolvedEntityType in EntityType<_Schema>]: EntityFieldResolver<
-			_Schema,
-			_ResolvedEntityType,
-			EntityFieldName<_Schema, _ResolvedEntityType>
-		>
-	}[EntityType<_Schema>][]
-	entityFieldCountResolvers: {
-		[_ResolvedEntityType in EntityType<_Schema>]: EntityFieldCountResolver<
-			_Schema,
-			_ResolvedEntityType,
-			EntityFieldName<_Schema, _ResolvedEntityType>
-		>
-	}[EntityType<_Schema>][]
+	resolverDefinitions: readonly SourceResolverDefinition[]
 	persistence: PersistedCollectionPersistence
 	schemaVersion?: number
 }) => {
 	const queryClient = new QueryClient()
+	const resolverParts = resolverDefinitions.flatMap((resolver) => (
+		Object.entries(resolver.fields)
+			.flatMap(([fieldName, fieldSelector], partIndex) => {
+				if (fieldSelector == null)
+					return []
+
+				const selector = (
+					typeof fieldSelector === 'function' ?
+						{
+							select: fieldSelector,
+						}
+					:
+						fieldSelector
+				)
+
+				return [{
+					resolver,
+					partIndex,
+					source: resolver.source,
+					entityType: resolver.entityType,
+					fieldName: fieldName as EntityFieldName<typeof appSchema, EntityType<typeof appSchema>>,
+					...selector,
+				}]
+			})
+	))
+	const resolverPartsByResolver = Map.groupBy(
+		resolverParts,
+		(resolverPart) => resolverPart.resolver,
+	)
+	const resolverValueParts = resolverParts.filter((resolverPart) => resolverPart.select != null)
+	const resolverCountParts = resolverParts.filter((resolverPart) => resolverPart.resolveCount != null)
+	const resolverLiveParts = resolverParts.filter((resolverPart) => resolverPart.resolveLive != null)
+	const resolverRootLiveDefinitions = resolverDefinitions.filter((resolver) => resolver.resolveLive != null)
 
 	const entityCollections: Partial<EntityCollections<_Schema>> = {}
 
@@ -1773,9 +2338,10 @@ export const createCollectionsFromSchema = <
 		Object.defineProperty(entityCollections, entityType, {
 			get: () => (
 				cached ??= createEntityCollection({
-					entityResolvers: entityResolvers.filter((entityResolver) => (
-						entityResolver.entityType === entityType
+					resolverDefinitions: resolverDefinitions.filter((resolver) => (
+						resolver.entityType === entityType
 					)),
+					resolverPartsByResolver,
 					entityType,
 					entityDefinition: definition,
 					persistence,
@@ -1806,19 +2372,17 @@ export const createCollectionsFromSchema = <
 			Object.defineProperty(fieldCollections, fieldName, {
 				get: () => (
 					cached ??= createEntityFieldCollection({
-						allEntityFieldResolvers: entityFieldResolvers,
-						entityResolvers: entityResolvers.filter((entityResolver) => (
-							entityResolver.entityType === entityType
+						allResolverValueParts: resolverValueParts,
+						entityFieldCollections: () => entityFieldCollections as EntityFieldCollections<typeof appSchema>,
+						entityFieldCountCollections: () => entityFieldCountCollections as EntityFieldCountCollections<typeof appSchema>,
+						resolverDefinitions: resolverDefinitions.filter((resolver) => (
+							resolver.entityType === entityType
 						)),
-						entityFieldResolvers: entityFieldResolvers.filter((
-							entityFieldResolver,
-						): entityFieldResolver is EntityFieldResolver<
-							_Schema,
-							typeof entityType,
-							typeof fieldName
-						> => (
-							entityFieldResolver.entityType === entityType
-							&& entityFieldResolver.fieldName === fieldName
+						resolverLiveParts,
+						resolverRootLiveDefinitions,
+						resolverValueParts: resolverValueParts.filter((resolverPart) => (
+							resolverPart.entityType === entityType
+							&& resolverPart.fieldName === fieldName
 						)),
 						entityType,
 						fieldDefinition: field,
@@ -1836,15 +2400,9 @@ export const createCollectionsFromSchema = <
 				Object.defineProperty(fieldCountCollections, fieldName, {
 					get: () => (
 						cachedCount ??= createEntityFieldCountCollection({
-							entityFieldCountResolvers: entityFieldCountResolvers.filter((
-								entityFieldCountResolver,
-							): entityFieldCountResolver is EntityFieldCountResolver<
-								_Schema,
-								typeof entityType,
-								typeof fieldName
-							> => (
-								entityFieldCountResolver.entityType === entityType
-								&& entityFieldCountResolver.fieldName === fieldName
+							resolverCountParts: resolverCountParts.filter((resolverPart) => (
+								resolverPart.entityType === entityType
+								&& resolverPart.fieldName === fieldName
 							)),
 							entityType,
 							fieldDefinition: field,

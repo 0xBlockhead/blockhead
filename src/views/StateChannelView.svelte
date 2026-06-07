@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { stateChannelStatusByStatus } from '$/constants/StateChannel.ts'
-	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
@@ -44,7 +44,7 @@
 		entityId,
 		{
 			$: (
-				entityResolversByEntityType[EntityType.StateChannel]?.map((resolver) => resolver.source)
+				resolverDefinitionsByEntityType[EntityType.StateChannel]?.map((resolver) => resolver.source)
 				?? [Source.Local_Internal]
 			),
 			status: {},

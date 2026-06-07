@@ -77,11 +77,13 @@ import {
 import { xNetworkFieldValues, xNetworkSeedUsers } from '$/constants/Social/X.ts'
 import { xmtpNetworkFieldValues } from '$/constants/Social/Xmtp.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
@@ -286,9 +288,10 @@ const networkResourceUrlEntityIds = (
 export default {
 	source: Source.Constants_Internal,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.EthereumNetworkUpgrade,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					networkUpgradeByChainIdAndUpgradeId,
@@ -347,10 +350,12 @@ export default {
 					...(proposals.length > 0 && { $$proposals: proposals }),
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EthereumExecutionUpgrade,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import(
 					'$/constants/EthereumNetworkUpgrades.ts'
@@ -361,10 +366,12 @@ export default {
 
 				return { ...networkExecutionUpgrade }
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EthereumConsensusUpgrade,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { networkConsensusUpgradeByChainIdAndUpgradeId } = await import(
 					'$/constants/EthereumNetworkUpgrades.ts'
@@ -375,20 +382,24 @@ export default {
 
 				return { ...networkConsensusUpgrade }
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.MarketVenue,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { marketVenueById } = await import('$/constants/MarketVenue.ts')
 				return {
 					label: marketVenueById[entityId.marketVenueId].label,
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Currency,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const currency = currencyByIso4217[entityId.iso4217]
 				if (currency == null) {
@@ -400,10 +411,12 @@ export default {
 					minorUnitExponent: currency.minorUnitExponent,
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Currency_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const currency = currencyByIso4217[entityId.$currency.iso4217]
 				if (currency == null) {
@@ -416,15 +429,19 @@ export default {
 					marketCap: BigInt(currency.marketCapUsd),
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Market,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId) => ({}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmContract,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const address = hexLowerOfByteSize(entityId.address, 20)
 				if (address == null) {
@@ -444,10 +461,12 @@ export default {
 					precompileName,
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Coin,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const coin = coinById[entityId.coinId]
@@ -455,10 +474,12 @@ export default {
 					symbol: coin.symbol,
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (
 					entityId.type !== CoinInstanceType.NativeCurrency
@@ -473,10 +494,12 @@ export default {
 					representation: CoinInstanceRepresentation.IssuerNative,
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.CoinBridgeCapability,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const coinBridgeCapabilityFields = bridgeToolByKey[entityId.toolKey]
 				if (coinBridgeCapabilityFields == null) {
@@ -487,27 +510,35 @@ export default {
 					...coinBridgeCapabilityFields,
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.MarketPrice,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId) => ({}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId) => ({}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Url,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId) => (
 				{}
 			),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
 				const { executionEndpointsByChainId } = await import('$/constants/ExecutionEndpoints.ts')
@@ -534,17 +565,21 @@ export default {
 					),
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.MevRelay,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => ({
 				url: `https://${entityId.host}`,
 			}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Network,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = (
 					'networkSlug' in entityId ?
@@ -565,10 +600,12 @@ export default {
 					environment: network.environment,
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NearNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkBySlug[entityId.networkSlug]
 				if (network == null) throw new Error('Constants_Internal: NearNetwork not found')
@@ -585,10 +622,12 @@ export default {
 					],
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkBySlug[entityId.networkSlug]
 				if (network == null) throw new Error('Constants_Internal: ZeroGNetwork not found')
@@ -615,10 +654,12 @@ export default {
 					},
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.QuilibriumNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkBySlug[entityId.networkSlug]
 				if (network == null) throw new Error('Constants_Internal: QuilibriumNetwork not found')
@@ -632,10 +673,12 @@ export default {
 					environment: network.environment,
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SolanaNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
 				if (!('caip2' in network)) throw new Error('Constants_Internal: SolanaNetwork missing CAIP-2')
@@ -650,17 +693,21 @@ export default {
 					],
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NetworkStack,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => ({
 				label: networkStackByNetworkStackId[entityId.networkStackId].label,
 			}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ElementsNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = (
 					'networkSlug' in entityId ?
@@ -687,58 +734,74 @@ export default {
 					confidentialTransactionsDefault: true,
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ExecutionEnvironment,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => ({
 				label: executionEnvironmentByExecutionEnvironmentId[entityId.executionEnvironmentId].label,
 			}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ConsensusMechanism,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => ({
 				label: consensusMechanismById[entityId.consensusMechanismId].label,
 			}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.AssetInstance,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => ({
 				...(entityId.kind === AssetInstanceKind.Native && {
 					name: entityId.assetKey,
 					symbol: entityId.assetKey,
 				}),
 			}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BittensorSubnet,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => ({
 				name: entityId.netuid === 0 ? 'Root' : `Subnet ${entityId.netuid}`,
 			}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NetworkUpgrade,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => ({
 				name: entityId.upgradeId,
 			}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.CosmosGovernanceProposal,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId) => ({}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.PolkadotReferendum,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId) => ({}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationRealm,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => ({
 				label: specificationRealmById[entityId.realm].label,
 				...(specificationRealmById[entityId.realm].labelPlural != null && {
@@ -746,10 +809,12 @@ export default {
 				}),
 				slug: specificationRealmById[entityId.realm].slug,
 			}),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => (
 				{
 					label: proposalCategoryById[entityId.category].label,
@@ -757,78 +822,180 @@ export default {
 					slug: proposalCategoryById[entityId.category].slug,
 				}
 			),
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-				resolve: async () => activityPubNetworkFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => activityPubNetworkFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.AtprotoNetwork,
-				resolve: async () => atprotoNetworkFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => atprotoNetworkFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EnsProtocol,
-				resolve: async () => ensProtocolFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => ensProtocolFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmProtocol,
-				resolve: async () => evmProtocolFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => evmProtocolFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.IpfsProtocol,
-				resolve: async () => ipfsProtocolFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => ipfsProtocolFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.SwarmProtocol,
-				resolve: async () => swarmProtocolFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => swarmProtocolFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LensNetwork,
-				resolve: async () => lensNetworkFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => lensNetworkFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-				resolve: async () => nostrNetworkFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => nostrNetworkFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.RedditNetwork,
-				resolve: async () => redditNetworkFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => redditNetworkFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.RssNetwork,
-				resolve: async () => rssNetworkFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => rssNetworkFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.XNetwork,
-				resolve: async () => xNetworkFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => xNetworkFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.XmtpNetwork,
-				resolve: async () => xmtpNetworkFieldValues,
-			}),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => xmtpNetworkFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
 
-		defineEntityResolver({
-				entityType: EntityType.YouTubeNetwork,
-				resolve: async () => youtubeNetworkFieldValues,
-			}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType.YouTubeNetwork,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => youtubeNetworkFieldValues,
+			fields: {
+				protocolName: (entity) => entity.protocolName,
+				homeUrl: (entity) => entity.homeUrl,
+				docsUrl: (entity) => entity.docsUrl,
+				registryLabel: (entity) => entity.registryLabel,
+				topology: (entity) => entity.topology,
+			},
+		}),
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$networks',
+			accepts: [EntityIdProjection.Identity],
 				resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
 					[...networks].map((network) => ({
 						[EntityMetaKey.Id]: {
@@ -836,11 +1003,14 @@ export default {
 					},
 				}))
 			),
+			fields: {
+				$$networks: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$networkUpgrades',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const {
 					networkUpgrades,
@@ -895,33 +1065,39 @@ export default {
 						...(proposals.length > 0 && { $$proposals: proposals }),
 						[EntityMetaKey.Id]: networkUpgrade[EntityMetaKey.Id],
 					}
-				})
+					})
+					},
+					fields: {
+						$$networkUpgrades: (entity) => entity,
+					},
+				}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
+				const network = (
+					'networkSlug' in entityId ?
+						networkBySlug[entityId.networkSlug]
+					:
+						networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+				)
+				if (network == null) return undefined
+				const namespace: NetworkNamespace = network.namespace
+				return {
+					[EntityMetaKey.Id]: {
+						networkStackId: networkStackIdByNamespace[namespace],
+					},
+				}
+				},
+				fields: {
+					$networkStack: (entity) => entity,
 				},
 			}),
 
-		defineEntityFieldResolver({
-			entityType: EntityType.Network,
-			fieldName: '$networkStack',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
-				const network = (
-					'networkSlug' in entityId ?
-						networkBySlug[entityId.networkSlug]
-					:
-						networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
-				)
-				if (network == null) return undefined
-				const namespace: NetworkNamespace = network.namespace
-				return {
-					[EntityMetaKey.Id]: {
-						networkStackId: networkStackIdByNamespace[namespace],
-					},
-				}
-			},
-		}),
-
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			fieldName: '$networkStack',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkBySlug[entityId.networkSlug]
 				if (network == null) return undefined
@@ -932,11 +1108,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+				$networkStack: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.QuilibriumNetwork,
-			fieldName: '$networkStack',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkBySlug[entityId.networkSlug]
 				if (network == null) return undefined
@@ -947,11 +1126,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+				$networkStack: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Network,
-			fieldName: '$$executionEnvironments',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
 				const network = (
 					'networkSlug' in entityId ?
@@ -967,11 +1149,14 @@ export default {
 					},
 				}))
 			},
+			fields: {
+				$$executionEnvironments: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			fieldName: '$$executionEnvironments',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkBySlug[entityId.networkSlug]
 				if (network == null) return []
@@ -982,11 +1167,14 @@ export default {
 					},
 				}))
 			},
+			fields: {
+				$$executionEnvironments: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.QuilibriumNetwork,
-			fieldName: '$$executionEnvironments',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkBySlug[entityId.networkSlug]
 				if (network == null) return []
@@ -997,11 +1185,14 @@ export default {
 					},
 				}))
 			},
+			fields: {
+				$$executionEnvironments: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Network,
-			fieldName: '$$consensusMechanisms',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
 				const network = (
 					'networkSlug' in entityId ?
@@ -1017,11 +1208,14 @@ export default {
 					},
 				}))
 			},
+			fields: {
+				$$consensusMechanisms: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			fieldName: '$$consensusMechanisms',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkBySlug[entityId.networkSlug]
 				if (network == null) return []
@@ -1032,11 +1226,14 @@ export default {
 					},
 				}))
 			},
+			fields: {
+				$$consensusMechanisms: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.QuilibriumNetwork,
-			fieldName: '$$consensusMechanisms',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkBySlug[entityId.networkSlug]
 				if (network == null) return []
@@ -1047,11 +1244,14 @@ export default {
 					},
 				}))
 			},
+			fields: {
+				$$consensusMechanisms: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Network,
-			fieldName: '$$nativeAssets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
 				const network = (
 					'networkSlug' in entityId ?
@@ -1075,11 +1275,14 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$nativeAssets: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Network,
-			fieldName: '$$faucetUrls',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
 				const network = (
 					'networkSlug' in entityId ?
@@ -1093,11 +1296,14 @@ export default {
 					NetworkResourceKind.Faucet,
 				)
 			},
+			fields: {
+				$$faucetUrls: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Network,
-			fieldName: '$$blockExplorerUrls',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
 				const network = (
 					'networkSlug' in entityId ?
@@ -1111,11 +1317,14 @@ export default {
 					NetworkResourceKind.BlockExplorer,
 				)
 			},
+			fields: {
+				$$blockExplorerUrls: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$specificationRealms',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
 				specificationRealmById == null ?
 					[]
@@ -1126,21 +1335,27 @@ export default {
 						},
 					}))
 			),
+			fields: {
+				$$specificationRealms: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$proposalKinds',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
 				proposalKindIds.map((proposalKindId) => ({
 					[EntityMetaKey.Id]: proposalKindId,
 				}))
 			),
+			fields: {
+				$$proposalKinds: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			fieldName: '$$proposalKinds',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.SpecificationRealm>) => (
 				proposalKindIds
 					.filter((proposalKindId) => (
@@ -1150,11 +1365,14 @@ export default {
 						[EntityMetaKey.Id]: proposalKindId,
 					}))
 			),
+			fields: {
+				$$proposalKinds: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			fieldName: '$specificationRealm',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.SpecificationProposalKind>) => (
 				{
 					[EntityMetaKey.Id]: {
@@ -1162,11 +1380,14 @@ export default {
 					},
 				}
 			),
+			fields: {
+				$specificationRealm: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$coins',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coins } = await import('$/constants/Coin.ts')
 				return [
@@ -1179,11 +1400,14 @@ export default {
 					)),
 				]
 			},
+			fields: {
+				$$coins: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$marketVenues',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { marketVenues } = await import('$/constants/MarketVenue.ts')
 					return [...marketVenues].map((marketVenue) => (
@@ -1194,11 +1418,14 @@ export default {
 					}
 				))
 			},
+			fields: {
+				$$marketVenues: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.MarketVenue,
-			fieldName: '$$markets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketVenue>) => {
 				const { coins } = await import('$/constants/Coin.ts')
 				return (
@@ -1217,11 +1444,14 @@ export default {
 					})
 				)
 			},
+			fields: {
+				$$markets: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$currencies',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
 					[...currencies].map((currency) => (
 					{
@@ -1231,11 +1461,14 @@ export default {
 					}
 				))
 			),
+			fields: {
+				$$currencies: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Currency,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
 				const currency = currencyByIso4217[entityId.iso4217]
 				if (currency == null) return []
@@ -1249,11 +1482,14 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$markets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coins } = await import('$/constants/Coin.ts')
 				return (
@@ -1264,11 +1500,14 @@ export default {
 					))
 				)
 			},
+			fields: {
+				$$markets: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$marketPrices',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coins } = await import('$/constants/Coin.ts')
 				return (
@@ -1281,11 +1520,14 @@ export default {
 					))
 				)
 			},
+			fields: {
+				$$marketPrices: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Coin,
-			fieldName: '$$marketsWithCoinAsBase',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => (
 				[
 					{
@@ -1293,71 +1535,89 @@ export default {
 					},
 				]
 			),
+			fields: {
+				$$marketsWithCoinAsBase: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Coin,
-			fieldName: '$$marketsWithCoinAsQuote',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => (
 				(catalogMarketsWithCoinAsQuoteByQuoteCoinId[entityId.coinId] ).map((marketId) => ({
 					[EntityMetaKey.Id]: marketId,
 				}))
 			),
+			fields: {
+				$$marketsWithCoinAsQuote: (entity) => entity,
+			},
 		}),
 
-				defineEntityFieldResolver({
-					entityType: EntityType.Coin,
-					fieldName: '$$coinInstances',
-					resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
-						if (entityId.coinId !== CoinId.ETH) return []
-						const ethNativeCoinInstance: Entity<typeof schema, EntityType.EvmCoinInstance> = {
-							[EntityMetaKey.Id]: {
-								$network: {
-									caip2: {
-										namespace: 'eip155',
-										reference: '1',
-									},
+			defineResolver({
+				entityType: EntityType.Coin,
+				accepts: [EntityIdProjection.Identity],
+				resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+					if (entityId.coinId !== CoinId.ETH) return []
+					const ethNativeCoinInstance: Entity<typeof schema, EntityType.EvmCoinInstance> = {
+						[EntityMetaKey.Id]: {
+							$network: {
+								caip2: {
+									namespace: 'eip155',
+									reference: '1',
 								},
-								type: CoinInstanceType.NativeCurrency,
 							},
-							coinId: CoinId.ETH,
-							symbol: 'ETH',
-							decimals: 18,
-							representation: CoinInstanceRepresentation.IssuerNative,
-						}
-						return [
-							ethNativeCoinInstance,
-						]
-					},
-				}),
+							type: CoinInstanceType.NativeCurrency,
+						},
+						coinId: CoinId.ETH,
+						symbol: 'ETH',
+						decimals: 18,
+						representation: CoinInstanceRepresentation.IssuerNative,
+					}
+					return [
+						ethNativeCoinInstance,
+					]
+				},
+				fields: {
+					$$coinInstances: (entity) => entity,
+				},
+			}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			fieldName: '$$outboundBridgeCapabilities',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				throw new Error('Constants_Internal: $$outboundBridgeCapabilities is not implemented')
 			},
+			fields: {
+				$$outboundBridgeCapabilities: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			fieldName: '$$inboundBridgeCapabilities',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				throw new Error('Constants_Internal: $$inboundBridgeCapabilities is not implemented')
 			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.EvmCoinInstance,
-			fieldName: '$canonicalInstance',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $canonicalInstance is unsupported')
+			fields: {
+				$$inboundBridgeCapabilities: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			fieldName: 'representation',
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $canonicalInstance is unsupported')
+			},
+			fields: {
+				$canonicalInstance: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmCoinInstance,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (
 					entityId.type === CoinInstanceType.NativeCurrency
@@ -1367,11 +1627,14 @@ export default {
 				}
 				throw new Error('Constants_Internal: CoinInstance representation unsupported')
 			},
+			fields: {
+				representation: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Market,
-			fieldName: '$baseCoin',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
 				entityId.$base.kind === MarketAssetKind.Coin ?
 					{
@@ -1382,11 +1645,14 @@ export default {
 				:
 					undefined
 			),
+			fields: {
+				$baseCoin: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Market,
-			fieldName: '$$marketPrices',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
 				(
 					entityId.$base.kind === MarketAssetKind.Coin
@@ -1402,55 +1668,73 @@ export default {
 				:
 					[]
 			),
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.Market,
-			fieldName: '$$marketTimeIntervalTimestamps',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$marketTimeIntervalTimestamps is not implemented')
+			fields: {
+				$$marketPrices: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType.Market,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$marketTimeIntervalTimestamps is not implemented')
+			},
+			fields: {
+				$$marketTimeIntervalTimestamps: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$parentMarket',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}
 			),
+			fields: {
+				$parentMarket: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			fieldName: '$parentMarket',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}
 			),
+			fields: {
+				$parentMarket: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			fieldName: '$$marketsWithInstanceAsBase',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				throw new Error('Constants_Internal: $$marketsWithInstanceAsBase is unsupported')
 			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.EvmCoinInstance,
-			fieldName: '$$marketsWithInstanceAsQuote',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$marketsWithInstanceAsQuote is unsupported')
+			fields: {
+				$$marketsWithInstanceAsBase: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType.EvmCoinInstance,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$marketsWithInstanceAsQuote is unsupported')
+			},
+			fields: {
+				$$marketsWithInstanceAsQuote: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: 'hasBlobParameterExecutionUpgrade',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { networkExecutionUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
 				return (
@@ -1460,20 +1744,26 @@ export default {
 					))
 				)
 			},
+			fields: {
+				hasBlobParameterExecutionUpgrade: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: 'consensusProtocol',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
 				return beaconRestBaseByExecutionChainId[Number(entityId.caip2.reference)]?.consensusProtocol
 			},
+			fields: {
+				consensusProtocol: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$mevRelays',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const chainId = Number(entityId.caip2.reference)
@@ -1489,11 +1779,14 @@ export default {
 						}))
 				)
 			},
+			fields: {
+				$$mevRelays: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$upgrades',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					networkUpgrades,
@@ -1554,11 +1847,14 @@ export default {
 						}
 					})
 			},
+			fields: {
+				$$upgrades: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$executionUpgrades',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { networkExecutionUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
 				return networkExecutionUpgrades
@@ -1567,11 +1863,14 @@ export default {
 					))
 					.map((networkExecutionUpgrade) => ({ ...networkExecutionUpgrade }))
 			},
+			fields: {
+				$$executionUpgrades: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$consensusUpgrades',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { networkConsensusUpgrades } = await import('$/constants/EthereumNetworkUpgrades.ts')
 				return networkConsensusUpgrades
@@ -1580,11 +1879,14 @@ export default {
 					))
 					.map((networkConsensusUpgrade) => ({ ...networkConsensusUpgrade }))
 			},
+			fields: {
+				$$consensusUpgrades: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 				entityType: EntityType.EthereumNetworkUpgrade,
-				fieldName: '$networkExecutionUpgrade',
+				accepts: [EntityIdProjection.Identity],
 				resolve: async (entityId) => {
 					const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 					const networkUpgrade = networkUpgradeByChainIdAndUpgradeId[`${entityId.$network.caip2.reference}:${entityId.upgradeId}`]
@@ -1595,11 +1897,14 @@ export default {
 						{ ...networkUpgrade.$networkExecutionUpgrade }
 					)
 				},
+			fields: {
+				$networkExecutionUpgrade: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EthereumNetworkUpgrade,
-			fieldName: '$networkConsensusUpgrade',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 				const networkUpgrade = networkUpgradeByChainIdAndUpgradeId[`${entityId.$network.caip2.reference}:${entityId.upgradeId}`]
@@ -1610,11 +1915,14 @@ export default {
 						{ ...networkUpgrade.$networkConsensusUpgrade }
 				)
 			},
+			fields: {
+				$networkConsensusUpgrade: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EthereumNetworkUpgrade,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					networkUpgradeByChainIdAndUpgradeId,
@@ -1649,11 +1957,14 @@ export default {
 				}
 				return proposals
 			},
+			fields: {
+				$$proposals: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EthereumExecutionUpgrade,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 				const networkExecutionUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[`${entityId.$network.caip2.reference}:${entityId.upgradeId}`]
@@ -1663,11 +1974,14 @@ export default {
 				}
 				return proposals
 			},
+			fields: {
+				$$proposals: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EthereumConsensusUpgrade,
-			fieldName: '$$proposals',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					networkConsensusUpgradeByChainIdAndUpgradeId,
@@ -1712,209 +2026,278 @@ export default {
 				}
 				throw new Error(`Constants_Internal: NetworkConsensusUpgrade ${entityId.upgradeId} has no $$proposals`)
 			},
+			fields: {
+				$$proposals: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LensNetwork,
-			fieldName: '$$lensAccounts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				lensNetworkSeedAccounts.map((account) => ({
 					[EntityMetaKey.Id]: account,
 				}))
 			),
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.LensNetwork,
-			fieldName: '$$lensPosts',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$lensPosts is unsupported')
+			fields: {
+				$$lensAccounts: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType.LensNetwork,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$lensPosts is unsupported')
+			},
+			fields: {
+				$$lensPosts: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrProfiles',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				nostrNetworkSeedProfiles.map((profile) => ({
 					[EntityMetaKey.Id]: profile,
 				}))
 			),
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrNotes',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$nostrNotes is unsupported')
+			fields: {
+				$$nostrProfiles: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrRelays',
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$nostrNotes is unsupported')
+			},
+			fields: {
+				$$nostrNotes: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.NostrNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				nostrNetworkSeedRelays.map((relay) => ({
 					[EntityMetaKey.Id]: relay,
 				}))
 			),
+			fields: {
+				$$nostrRelays: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrReposts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				throw new Error('Constants_Internal: $$nostrReposts is unsupported')
 			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.NostrNetwork,
-			fieldName: '$$nostrArticles',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$nostrArticles is unsupported')
+			fields: {
+				$$nostrReposts: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType.NostrNetwork,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$nostrArticles is unsupported')
+			},
+			fields: {
+				$$nostrArticles: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.AtprotoNetwork,
-			fieldName: '$$atprotoActors',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				atprotoNetworkSeedActors.map((actor) => ({
 					[EntityMetaKey.Id]: actor,
 				}))
 			),
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.AtprotoNetwork,
-			fieldName: '$$atprotoPosts',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$atprotoPosts is unsupported')
+			fields: {
+				$$atprotoActors: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType.AtprotoNetwork,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$atprotoPosts is unsupported')
+			},
+			fields: {
+				$$atprotoPosts: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			fieldName: '$$activityPubActors',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				activityPubNetworkSeedActors.map((actor) => ({
 					[EntityMetaKey.Id]: actor,
 				}))
 			),
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.ActivityPubNetwork,
-			fieldName: '$$activityPubNotes',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$activityPubNotes is unsupported')
+			fields: {
+				$$activityPubActors: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType.ActivityPubNetwork,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$activityPubNotes is unsupported')
+			},
+			fields: {
+				$$activityPubNotes: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.RedditNetwork,
-			fieldName: '$$redditSubreddits',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				redditNetworkSeedSubreddits.map((subreddit) => ({
 					[EntityMetaKey.Id]: subreddit,
 				}))
 			),
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.RedditNetwork,
-			fieldName: '$$redditLinks',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$redditLinks is unsupported')
+			fields: {
+				$$redditSubreddits: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType.RedditNetwork,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$redditLinks is unsupported')
+			},
+			fields: {
+				$$redditLinks: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.RssNetwork,
-			fieldName: '$$rssFeeds',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				rssNetworkSeedFeeds.map((feed) => ({
 					[EntityMetaKey.Id]: feed,
 				}))
 			),
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.RssNetwork,
-			fieldName: '$$rssItems',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$rssItems is unsupported')
+			fields: {
+				$$rssFeeds: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType.RssNetwork,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$rssItems is unsupported')
+			},
+			fields: {
+				$$rssItems: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.XNetwork,
-			fieldName: '$$xUsers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => (
 				xNetworkSeedUsers.map((user) => ({
 					[EntityMetaKey.Id]: user,
 				}))
 			),
+			fields: {
+				$$xUsers: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XNetwork,
-			fieldName: '$$xPosts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				throw new Error('Constants_Internal: $$xPosts is unsupported')
 			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.XmtpNetwork,
-			fieldName: '$$xmtpConversations',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$xmtpConversations is unsupported')
+			fields: {
+				$$xPosts: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType.XmtpNetwork,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$xmtpConversations is unsupported')
+			},
+			fields: {
+				$$xmtpConversations: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
 				entityType: EntityType.YouTubeNetwork,
-				fieldName: '$$youtubeChannels',
+				accepts: [EntityIdProjection.Identity],
 				resolve: async () => (
 					[...youtubeNetworkSeedChannels].map((channel) => ({
 						[EntityMetaKey.Id]: channel,
 					}))
 				),
+			fields: {
+				$$youtubeChannels: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 				entityType: EntityType.YouTubeNetwork,
-				fieldName: '$$youtubeVideos',
+				accepts: [EntityIdProjection.Identity],
 				resolve: async () => (
 					[...youtubeNetworkSeedVideos].map((video) => ({
 						[EntityMetaKey.Id]: video,
 					}))
 				),
+			fields: {
+				$$youtubeVideos: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 				entityType: EntityType.YouTubeNetwork,
-				fieldName: '$$youtubePlaylists',
+				accepts: [EntityIdProjection.Identity],
 				resolve: async () => (
 					[...youtubeNetworkSeedPlaylists].map((playlist) => ({
 						[EntityMetaKey.Id]: playlist,
 					}))
 				),
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType._Global,
-			fieldName: '$$liquidityPositions',
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
-				throw new Error('Constants_Internal: $$liquidityPositions is unsupported')
+			fields: {
+				$$youtubePlaylists: (entity) => entity,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
+			entityType: EntityType._Global,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+				throw new Error('Constants_Internal: $$liquidityPositions is unsupported')
+			},
+			fields: {
+				$$liquidityPositions: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.EvmContract,
-			fieldName: 'precompileName',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const address = hexLowerOfByteSize(entityId.address, 20)
 				if (address == null) {
@@ -1928,13 +2311,16 @@ export default {
 					precompile.address.toLowerCase() === address.toLowerCase()
 				))?.name
 			},
+			fields: {
+				precompileName: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$contracts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
 					precompilesByChainId[Number(entityId.caip2.reference)]
 					?? standardPrecompiles
@@ -1953,11 +2339,14 @@ export default {
 						}]
 					})
 			},
+			fields: {
+				$$contracts: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			fieldName: '$$nativeAssets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkBySlug[entityId.networkSlug]
 				if (network == null) return []
@@ -1978,11 +2367,14 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$nativeAssets: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.QuilibriumNetwork,
-			fieldName: '$$nativeAssets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const network = networkBySlug[entityId.networkSlug]
 				if (network == null) return []
@@ -2001,6 +2393,9 @@ export default {
 						coinId,
 					},
 				]
+			},
+			fields: {
+				$$nativeAssets: (entity) => entity,
 			},
 		}),
 	],

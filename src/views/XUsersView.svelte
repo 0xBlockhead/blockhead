@@ -98,8 +98,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(row) => row.value[EntityMetaKey.IdKey]}
-				getSortValue={(row) => row.value[EntityMetaKey.Id].id}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => stringify(row.value[EntityMetaKey.Id])}
 				resource={users}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -112,7 +112,7 @@
 
 				{#snippet Item({ item })}
 						<XUserView
-							entityId={{ id: item.value[EntityMetaKey.Id].id }}
+							entityId={item.value[EntityMetaKey.Id]}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

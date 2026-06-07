@@ -46,6 +46,7 @@
 				Source.Atproto_Xrpc,
 				Source.Atproto_BskySocial_Xrpc,
 			],
+			did: {},
 			displayName: {},
 			handle: {},
 			$icon: {},

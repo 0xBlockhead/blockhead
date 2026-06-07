@@ -1,7 +1,8 @@
 import {
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
 import { Source } from '$/sources/$Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
@@ -15,9 +16,10 @@ const assertLogosStack = (network: NetworkId) => {
 export default {
 	source: Source.LogosDocs_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.LogosZone,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertLogosStack(entityId.$network)
 				const { getNetworkSummary } = await import('$/sources/LogosDocs/Rest/queries.ts')
@@ -36,24 +38,31 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			zoneKind: (snapshot) => snapshot.zoneKind,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LogosAccount,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertLogosStack(entityId.$network)
 				return {}
 			},
+			fields: {
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LogosTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertLogosStack(entityId.$network)
 				return {}
 			},
+			fields: {
+		}
 		}),
 	],
-
-	entityFieldResolvers: [],
 }

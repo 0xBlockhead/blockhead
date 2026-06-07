@@ -13,9 +13,7 @@
 	} from '$/collections/$collections.ts'
 	import { BLOCKHEAD_WA_SQLITE_DATABASE_NAME } from '$/constants/Persistence.ts'
 	import {
-		entityFieldCountResolvers,
-		entityFieldResolvers,
-		entityResolvers,
+		resolverDefinitions,
 	} from '$/resolvers/index.ts'
 	import { schema } from '$/schema/index.ts'
 
@@ -27,9 +25,7 @@
 	// Global context
 	const entityCollectionsContext = createCollectionsFromSchema({
 		schema,
-		entityResolvers,
-		entityFieldResolvers,
-		entityFieldCountResolvers,
+		resolverDefinitions,
 		persistence,
 		schemaVersion: 7,
 	})

@@ -6,7 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -44,7 +44,7 @@
 			$: (
 				'id' in entityId ?
 					(
-						entityResolversByEntityType[EntityType.XUser]?.map((r) => r.source)
+						resolverDefinitionsByEntityType[EntityType.XUser]?.map((r) => r.source)
 						?? [Source.Local_Internal]
 					)
 				:
@@ -64,7 +64,7 @@
 			listedCount: {},
 			$$timestamps: {
 				$: (
-					entityResolversByEntityType[EntityType.XUser_Timestamp]?.map((r) => r.source)
+					resolverDefinitionsByEntityType[EntityType.XUser_Timestamp]?.map((r) => r.source)
 					?? [Source.Local_Internal]
 				),
 				$limit: 1,

@@ -1,9 +1,12 @@
 import {
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { nearBlocksMainnetRestBaseUrl } from '$/constants/NearNetwork.ts'
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -16,9 +19,10 @@ const assertNearMainnet = (network: { caip2: { namespace: string; reference: str
 export default {
 	source: Source.NearBlocks_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.NearAccount,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertNearMainnet(entityId.$network)
 				const { getAccount } = await import('$/sources/NearBlocks/Rest/queries.ts')
@@ -36,10 +40,15 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			amountYoctoNear: (snapshot) => snapshot.amountYoctoNear,
+			storageUsageBytes: (snapshot) => snapshot.storageUsageBytes,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NearBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertNearMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/NearBlocks/Rest/queries.ts')
@@ -65,10 +74,17 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			hash: (snapshot) => snapshot.hash,
+			$parent: (snapshot) => snapshot.$parent,
+			epochId: (snapshot) => snapshot.epochId,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.NearTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertNearMainnet(entityId.$network)
 				const { getTransaction } = await import('$/sources/NearBlocks/Rest/queries.ts')
@@ -134,8 +150,13 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			$signer: (snapshot) => snapshot.$signer,
+			$receiver: (snapshot) => snapshot.$receiver,
+			nonce: (snapshot) => snapshot.nonce,
+			$$actions: (snapshot) => snapshot.$$actions,
+			$$executionOutcomes: (snapshot) => snapshot.$$executionOutcomes,
+		}
 		}),
 	],
-
-	entityFieldResolvers: [],
 }

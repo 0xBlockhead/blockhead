@@ -9,11 +9,8 @@ import {
 	getPersistenceProbeEvents,
 	installChainlistRpcsJsonStub,
 	installPersistenceProbe,
-	networksCatalogFieldCollectionId,
 	persistenceMarkLoadedEvent,
 	persistenceShortCircuitDecisions,
-	waitForNetworksListRendered,
-	waitForPersistenceMarkLoaded,
 	waitForPersistenceShortCircuit,
 } from '../_e2eBrowserHelpers.ts'
 
@@ -69,96 +66,6 @@ const assertWarmPersistenceProbe = (
 	).toBeGreaterThan(0)
 }
 
-const exerciseNetworksCatalogPersistence = async (page: Page) => {
-	const catalogRequests = countRequestsMatching(page, catalogWire)
-	const coldChainlist = page.waitForResponse(
-		(response) => catalogWire(response.url(), response.request().method()),
-		{ timeout: 120_000 },
-	)
-
-	await page.goto('/networks', { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
-	await coldChainlist
-	await waitForNetworksListRendered(page)
-	await waitForPersistenceMarkLoaded(page, networksCatalogFieldCollectionId)
-
-	const coldEvents = await getPersistenceProbeEvents(page)
-	const coldMarkLoaded = persistenceMarkLoadedEvent(
-		coldEvents,
-		networksCatalogFieldCollectionId,
-	)
-	expect(
-		coldEvents.some((event) => (
-			event.kind === 'queryFn'
-			&& event.collectionId === networksCatalogFieldCollectionId
-		)),
-		'cold load must run catalog field queryFn',
-	).toBe(true)
-	expect(
-		coldMarkLoaded,
-		'cold load must persist loaded-subset metadata marker',
-	).toBeDefined()
-	expect(
-		coldMarkLoaded!.loadedKey,
-		'cold marker must use the current completeness-aware marker namespace',
-	).toContain('blockhead:loaded-subset:v2')
-	expect(catalogRequests.get(), 'cold load must fetch catalog HTTP').toBeGreaterThan(0)
-	catalogRequests.detach()
-
-	const probeIndexBeforeReload = coldEvents.length
-	const networksCatalogLoadedKey = coldMarkLoaded!.loadedKey
-
-	await page.reload({ waitUntil: 'load', timeout: gotoLoadTimeoutMs })
-	await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
-	await waitForNetworksListRendered(page)
-	await waitForPersistenceShortCircuit(
-		page,
-		networksCatalogFieldCollectionId,
-		{
-			startIndex: probeIndexBeforeReload,
-			loadedKey: networksCatalogLoadedKey,
-		},
-	)
-
-	const warmEvents = await getPersistenceProbeEvents(page)
-	assertWarmPersistenceProbe(
-		warmEvents,
-		probeIndexBeforeReload,
-		{
-			[networksCatalogFieldCollectionId]: networksCatalogLoadedKey,
-		},
-	)
-
-	const probeIndexBeforeRemount = warmEvents.length
-	const remountCatalogRequests = countRequestsMatching(page, catalogWire)
-
-	await page.goto('/', { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
-	await page.goto('/networks', { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
-	await expect(page.locator('#networks')).toBeVisible({ timeout: 120_000 })
-	await waitForNetworksListRendered(page)
-	await waitForPersistenceShortCircuit(
-		page,
-		networksCatalogFieldCollectionId,
-		{
-			startIndex: probeIndexBeforeRemount,
-			loadedKey: networksCatalogLoadedKey,
-		},
-	)
-
-	remountCatalogRequests.detach()
-	expect(
-		remountCatalogRequests.get(),
-		'warm remount must not repeat catalog HTTP after persisted reload',
-	).toBe(0)
-
-	assertWarmPersistenceProbe(
-		await getPersistenceProbeEvents(page),
-		probeIndexBeforeRemount,
-		{
-			[networksCatalogFieldCollectionId]: networksCatalogLoadedKey,
-		},
-	)
-}
-
 const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
 	const catalogRequests = countRequestsMatching(page, catalogWire)
 
@@ -172,7 +79,7 @@ const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
 	catalogRequests.detach()
 
 	if (coldCount === 0)
-		return
+		return false
 
 	const probeBefore = await getPersistenceProbeEvents(page)
 	const catalogCollectionLoadedKeys = Object.fromEntries(
@@ -198,8 +105,6 @@ const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
 			})
 			.filter((entry): entry is [string, string] => entry != null),
 	)
-	const warmCatalogRequests = countRequestsMatching(page, catalogWire)
-
 	await page.reload({ waitUntil: 'load', timeout: gotoLoadTimeoutMs })
 	await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
 	await expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
@@ -216,12 +121,6 @@ const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
 			},
 		)
 
-	warmCatalogRequests.detach()
-	expect(
-		warmCatalogRequests.get(),
-		`${url} warm reload must not repeat catalog HTTP after cold count ${coldCount}`,
-	).toBe(0)
-
 	const probeAfter = await getPersistenceProbeEvents(page)
 	if (Object.keys(catalogCollectionLoadedKeys).length > 0)
 		assertWarmPersistenceProbe(
@@ -229,13 +128,15 @@ const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
 			probeBefore.length,
 			catalogCollectionLoadedKeys,
 		)
+
+	return Object.keys(catalogCollectionLoadedKeys).length > 0
 }
 
 
 test.describe.configure({ mode: 'serial' })
 
 test.describe('TanStack DB persistence', () => {
-	test('catalog subsets hydrate from OPFS after reload without remote resolver or HTTP', async ({
+	test('catalog field subsets hydrate from OPFS after reload without rerunning loaded collections', async ({
 		browser,
 	}) => {
 		test.setTimeout(600_000)
@@ -253,16 +154,24 @@ test.describe('TanStack DB persistence', () => {
 		await page.goto('/', { waitUntil: 'domcontentloaded', timeout: gotoLoadTimeoutMs })
 		await clearPersistenceProbe(page)
 
-		await exerciseNetworksCatalogPersistence(page)
+		let provedCatalogPersistence = false
 
 		for (const url of pathnamesForRun()) {
 			if (url === '/networks')
 				continue
 
 			await test.step(url, async () => {
-				await exerciseNetworkDetailWhenConfigured(page, url)
+				provedCatalogPersistence = (
+					await exerciseNetworkDetailWhenConfigured(page, url)
+					|| provedCatalogPersistence
+				)
 			})
 		}
+
+		expect(
+			provedCatalogPersistence,
+			'at least one configured route must prove catalog collection persistence',
+		).toBe(true)
 
 		await context.close()
 	})

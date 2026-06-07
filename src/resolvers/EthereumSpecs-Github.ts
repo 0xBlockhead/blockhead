@@ -1,19 +1,20 @@
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { ethereumReferenceForkMetadataChainIds } from '$/constants/EthereumSpecs.ts'
-import { defineEntityFieldResolver } from '$/resolvers/$resolvers.ts'
+import {
+	defineResolver,
+} from '$/resolvers/$resolvers.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
 import { Source } from '$/sources/$Source.ts'
 
 
 export default {
 	source: Source.EthereumSpecs_Github,
 
-	entityResolvers: [],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: 'consensusSpecsConfigYaml',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const preset = (
 					Number(entityId.caip2.reference) === 1 ?
@@ -33,11 +34,14 @@ export default {
 				const { fetchConsensusSpecsConfigYaml } = await import('$/sources/EthereumSpecs/Github/queries.ts')
 				return singleFlight(fetchConsensusSpecsConfigYaml)({ preset })
 			},
+			fields: {
+			consensusSpecsConfigYaml: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: 'goEthereumParamsConfigGo',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (!ethereumReferenceForkMetadataChainIds.some((chainId) => chainId === Number(entityId.caip2.reference))) {
 					throw new Error(
@@ -47,11 +51,14 @@ export default {
 				const { fetchGoEthereumParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')
 				return singleFlight(fetchGoEthereumParamsConfigGo)()
 			},
+			fields: {
+			goEthereumParamsConfigGo: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EthereumExecutionUpgrade,
-			fieldName: 'executionSpecsMainnetUpgradeMarkdown',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 				const networkUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[
@@ -62,6 +69,9 @@ export default {
 				const { fetchExecutionSpecsMainnetUpgradeMarkdown } = await import('$/sources/EthereumSpecs/Github/queries.ts')
 				return singleFlight(fetchExecutionSpecsMainnetUpgradeMarkdown)({ filename })
 			},
+			fields: {
+			executionSpecsMainnetUpgradeMarkdown: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

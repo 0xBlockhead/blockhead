@@ -109,8 +109,8 @@
 				href={EntitiesListProps.href}
 				{title}
 				open={true}
-				getKey={(farcasterCast) => farcasterCast.result[EntityMetaKey.IdKey]}
-				getSortValue={(farcasterCast) => farcasterCast.result[EntityMetaKey.IdKey]}
+				getKey={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Id])}
+				getSortValue={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Id])}
 				placeholderText="Loading feed casts (Farcaster FID + cast hash)…"
 				resource={casts}
 			>
@@ -123,10 +123,7 @@
 				{#snippet Item({ item })}
 					{@const castId = item.result[EntityMetaKey.Id]}
 					<FarcasterCastView
-						entityId={{
-							fid: castId.fid,
-							hash: castId.hash,
-						}}
+						entityId={castId}
 						layout={EntityLayout.Summary}
 						open={false}
 						variant="feed"

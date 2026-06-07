@@ -1,10 +1,12 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { NetworkEnvironment } from '$/constants/Network.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
@@ -59,9 +61,10 @@ const assetInstanceRows = (
 export default {
 	source: Source.CosmosChainRegistry_Github,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.Network,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertCosmosRegistryNetwork(entityId)
 				const { getChain } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
@@ -75,10 +78,16 @@ export default {
 					...(iconMedia != null && { $icon: iconMedia }),
 				}
 			},
+			fields: {
+			name: (snapshot) => snapshot.name,
+			environment: (snapshot) => snapshot.environment,
+			$icon: (snapshot) => snapshot.$icon,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.AssetInstance,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertCosmosRegistryNetwork(entityId.$network)
 				if (entityId.kind !== AssetInstanceKind.Denom) throw new Error('CosmosChainRegistry_Github: only denom asset instances are supported')
@@ -89,13 +98,16 @@ export default {
 				if (asset == null) throw new Error(`CosmosChainRegistry_Github: asset not found for ${entityId.assetKey}`)
 				return assetInstanceFields(asset)
 			},
+			fields: {
+			name: (snapshot) => snapshot.name,
+			symbol: (snapshot) => snapshot.symbol,
+			decimals: (snapshot) => snapshot.decimals,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Network,
-			fieldName: '$$nativeAssets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertCosmosRegistryNetwork(entityId)
 				const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
@@ -106,6 +118,9 @@ export default {
 					}),
 				)
 			},
+			fields: {
+			$$nativeAssets: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

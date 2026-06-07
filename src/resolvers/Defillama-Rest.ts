@@ -1,11 +1,12 @@
 import { CoinId } from '$/constants/Coin.ts'
-import { MarketKind } from '$/constants/Market.ts'
+import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	sourcePublicEnv,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -16,20 +17,23 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	source: Source.Defillama_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.Market_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Defillama_Rest: Market_Timestamp is spot-only')
 				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
-				const { getProCurrentPrices } = await import('$/sources/Defillama/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Defillama_Rest)
-				const apiKey = publicEnv.PUBLIC_DEFILLAMA_PRO_API_KEY
-				const llamaId = (
-					entityId.feedKey?.trim()
-					?? defillamaCurrentPriceIdByCoinId[entityId.$market.$base.$coin.coinId]
+					const { getProCurrentPrices } = await import('$/sources/Defillama/Rest/queries.ts')
+					const apiKey = context.publicEnv.PUBLIC_DEFILLAMA_PRO_API_KEY
+					if (entityId.$market.$base.kind !== MarketAssetKind.Coin)
+						throw new Error('Defillama_Rest: Market_Timestamp base asset is not a coin')
+
+					const llamaId = (
+						entityId.feedKey?.trim()
+						?? defillamaCurrentPriceIdByCoinId[entityId.$market.$base.$coin.coinId]
 				)
 				if (llamaId == null) throw new Error('Defillama_Rest: no price id')
 				const priceRow = (
@@ -47,23 +51,28 @@ export default {
 					transport: 'defillama-pro-current-usd-1e8',
 					providerAssetId: llamaId,
 				}
-			},
-		}),
-	],
+				},
+				fields: {
+					price: (snapshot) => snapshot.price,
+					transport: (snapshot) => snapshot.transport,
+					providerAssetId: (snapshot) => snapshot.providerAssetId,
+				},
+			}),
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$$quotes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Defillama_Rest: MarketPrice $$quotes is spot-only')
 				}
-				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
-				const { getProCurrentPrices } = await import('$/sources/Defillama/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Defillama_Rest)
-				const apiKey = publicEnv.PUBLIC_DEFILLAMA_PRO_API_KEY
-				const coinId = entityId.$market.$base.$coin.coinId
+					const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
+					const { getProCurrentPrices } = await import('$/sources/Defillama/Rest/queries.ts')
+					const apiKey = context.publicEnv.PUBLIC_DEFILLAMA_PRO_API_KEY
+					if (entityId.$market.$base.kind !== MarketAssetKind.Coin)
+						throw new Error('Defillama_Rest: MarketPrice base asset is not a coin')
+
+					const coinId = entityId.$market.$base.$coin.coinId
 				const llamaId = (
 					entityId.feedKey?.trim()
 					?? (
@@ -95,16 +104,20 @@ export default {
 					},
 				]
 			},
+			fields: {
+			$$quotes: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$parentMarket',
-			resolve: async (entityId) => (
-				{
-					[EntityMetaKey.Id]: entityId.$market,
-				}
-			),
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId) => ({
+				[EntityMetaKey.Id]: entityId.$market,
+			}),
+			fields: {
+			$parentMarket: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

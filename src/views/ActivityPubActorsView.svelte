@@ -98,10 +98,12 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(activityPubActor) => activityPubActor[EntityMetaKey.IdKey]}
 					getSortValue={(activityPubActor) => {
 						const actorId = activityPubActor[EntityMetaKey.Id]
-						return `${actorId.instanceOrigin}\0${actorId.localAccountId}`
+						return 'localAccountId' in actorId ?
+							`${actorId.instanceOrigin}\0${actorId.localAccountId}`
+						:
+							`${actorId.instanceOrigin}\0${actorId.acct}`
 					}}
 					placeholderText="Loading Mastodon actor directory…"
 					resource={actors}
@@ -115,10 +117,7 @@
 					{#snippet Item({ item })}
 						{@const actorId = item[EntityMetaKey.Id]}
 						<ActivityPubActorView
-							entityId={{
-								instanceOrigin: actorId.instanceOrigin,
-								localAccountId: actorId.localAccountId,
-							}}
+							entityId={actorId}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

@@ -32,6 +32,7 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import Self from '$/views/HyperliquidAccountView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
@@ -69,7 +70,7 @@
 						<div>
 							<dt>Master account</dt>
 							<dd>
-								<HyperliquidAccountView
+								<Self
 									entityId={hyperliquidAccount.$masterAccount[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
@@ -82,7 +83,7 @@
 						<div>
 							<dt>Agent account</dt>
 							<dd>
-								<HyperliquidAccountView
+								<Self
 									entityId={hyperliquidAccount.$agentAccount[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}

@@ -17,10 +17,17 @@
 
 	// Context
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { resolve } from '$app/paths'
+
+
 	// State
 	let {
 		entityId,
-		href = `/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/tx/${entityId.txHash}`,
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+			caip2Namespace: entityId.$network.caip2.namespace,
+			caip2Reference: entityId.$network.caip2.reference,
+			transactionId: entityId.txHash,
+		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
@@ -119,9 +126,13 @@
 						<div>
 							<dt>Transaction</dt>
 							<dd>
-								<a
-									href={`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/tx/${entityId.txHash}`}
-								>
+									<a
+										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+											caip2Namespace: entityId.$network.caip2.namespace,
+											caip2Reference: entityId.$network.caip2.reference,
+											transactionId: entityId.txHash,
+										})}
+									>
 									<TruncatedValue
 										value={entityId.txHash}
 										format={TruncatedValueFormat.Abbr}

@@ -6,12 +6,13 @@ import { optionalNonemptyString } from '$/lib/string.ts'
 import { hexLowerOfByteSize, with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
-	defineEntityFieldCountResolver,
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { schema } from '$/schema/index.ts'
 import type { Entity, EntityId } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -810,9 +811,10 @@ const erc4337RegistryEntitiesFromBlockscoutWires = <
 export default {
 	source: Source.Blockscout_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.EvmBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -959,25 +961,27 @@ export default {
 									number: parentBlockNumber,
 								} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 							}),
-						...(miner != null && {
-								$miner: {
-									[EntityMetaKey.Id]: {
-										address: miner,
+							...(miner != null && {
+									$miner: {
+										[EntityMetaKey.Id]: {
+											address: miner,
+										},
 									},
-								},
-							}),
+								}),
+						}
 					}
-				}
 				return evmBlockEntityFromRpcHeaderWire({
 					chainId: chainIdFromEvmNetworkId(entityId.$network),
 					blockNumber: entityId.blockNumber,
 					wire: header,
 				})
 			},
+				fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1235,11 +1239,13 @@ export default {
 					))(createdContractAddress)),
 					traceUnavailable: true,
 				}
-			},
-		}),
+				},
+				fields: {},
+			}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmLog,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1264,10 +1270,14 @@ export default {
 				}
 				return evmLogEntityFromIdAndWire(entityId, log)
 			},
-		}),
+				fields: {
+					topics: (entity) => entity.topics,
+				},
+			}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmTokenTransfer,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1303,10 +1313,12 @@ export default {
 				}
 				return entity
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmInternalTransfer,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1341,10 +1353,12 @@ export default {
 				}
 				return entity
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Erc4337SmartAccount,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1385,10 +1399,12 @@ export default {
 					}),
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Erc4337Bundler,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1412,10 +1428,12 @@ export default {
 					wire,
 				)
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Erc4337Paymaster,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1442,10 +1460,12 @@ export default {
 					...erc4337ContractField(entityId),
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Erc4337AccountFactory,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1472,10 +1492,12 @@ export default {
 					...erc4337ContractField(entityId),
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmUserOperation,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1674,10 +1696,12 @@ export default {
 					}
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1728,10 +1752,12 @@ export default {
 					},
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Market_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Blockscout_Rest: Market_Timestamp is spot-only')
@@ -1760,10 +1786,12 @@ export default {
 					providerAssetId: coinId,
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId(entityId.$network))
 				if (stats == null) {
@@ -1785,10 +1813,12 @@ export default {
 					transport: observation.transport,
 				}
 			},
+			fields: {},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Coin_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const stats = await blockscoutStatsForNativeCoinId(entityId.$coin.coinId)
 				if (stats == null) {
@@ -1817,13 +1847,11 @@ export default {
 					providerAssetId: entityId.$coin.coinId,
 				}
 			},
-		}),
-	],
-
-	entityFieldCountResolvers: [
-		defineEntityFieldCountResolver({
+			fields: {},
+			}),
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$transactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId(entityId))
 				if (stats == null)
@@ -1834,11 +1862,16 @@ export default {
 					'total_transactions',
 				)
 			},
-		}),
+				fields: {
+					$$transactions: {
+						resolveCount: (count) => count,
+					},
+				},
+			}),
 
-		defineEntityFieldCountResolver({
-			entityType: EntityType.EvmNetwork,
-			fieldName: '$$blocks',
+			defineResolver({
+				entityType: EntityType.EvmNetwork,
+				accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId(entityId))
 				if (stats == null)
@@ -1849,11 +1882,16 @@ export default {
 					'total_blocks',
 				)
 			},
-		}),
+				fields: {
+					$$blocks: {
+						resolveCount: (count) => count,
+					},
+				},
+			}),
 
-		defineEntityFieldCountResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
-			fieldName: '$$transactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getAddressCounters } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
@@ -1869,11 +1907,16 @@ export default {
 					'transactions_count',
 				)
 			},
-		}),
+				fields: {
+					$$transactions: {
+						resolveCount: (count) => count,
+					},
+				},
+			}),
 
-		defineEntityFieldCountResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
-			fieldName: '$$tokenTransfers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getAddressCounters } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
@@ -1889,11 +1932,16 @@ export default {
 					'token_transfers_count',
 				)
 			},
-		}),
+				fields: {
+					$$tokenTransfers: {
+						resolveCount: (count) => count,
+					},
+				},
+			}),
 
-		defineEntityFieldCountResolver({
+		defineResolver({
 			entityType: EntityType.EvmBlock,
-			fieldName: '$$transactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
@@ -1908,13 +1956,15 @@ export default {
 
 				return header.transactions.length
 			},
-		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+			fields: {
+				$$transactions: {
+					resolveCount: (count) => count,
+				},
+			},
+			}),
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$blocks',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1922,7 +1972,7 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const { getBlocks } = await import('$/sources/Blockscout/Rest/queries.ts')
@@ -2008,13 +2058,16 @@ export default {
 							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 						]
 					})
-				)
-			},
-		}),
+					)
+				},
+				fields: {
+					$$blocks: (entity) => entity,
+				},
+			}),
 
-		defineEntityFieldResolver({
-			entityType: EntityType.EvmNetwork,
-			fieldName: '$$transactions',
+			defineResolver({
+				entityType: EntityType.EvmNetwork,
+				accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2022,7 +2075,7 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const { getTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
@@ -2055,13 +2108,16 @@ export default {
 									}]
 							)
 						})
-				)
-			},
-		}),
+					)
+				},
+				fields: {
+					$$transactions: (entity) => entity,
+				},
+			}),
 
-		defineEntityFieldResolver({
-			entityType: EntityType.EvmNetworkAccount,
-			fieldName: '$$transactions',
+			defineResolver({
+				entityType: EntityType.EvmNetworkAccount,
+				accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2069,7 +2125,7 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const { getAddressTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
@@ -2110,13 +2166,16 @@ export default {
 									}]
 							)
 						})
-				)
-			},
-		}),
+					)
+				},
+				fields: {
+					$$transactions: (entity) => entity,
+				},
+			}),
 
-		defineEntityFieldResolver({
-			entityType: EntityType.EvmNetworkAccount,
-			fieldName: '$$tokenTransfers',
+			defineResolver({
+				entityType: EntityType.EvmNetworkAccount,
+				accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2127,7 +2186,7 @@ export default {
 					getAddressTokenTransfers,
 				} = await import('$/sources/Blockscout/Rest/queries.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
@@ -2155,14 +2214,17 @@ export default {
 						.map((entity) => ({
 							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
 						}))
-				)
-				return entities
-			},
-		}),
+					)
+					return entities
+				},
+				fields: {
+					$$tokenTransfers: (entity) => entity,
+				},
+			}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
-			fieldName: '$$internalTransfers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2173,7 +2235,7 @@ export default {
 					getAddressInternalTransactions,
 				} = await import('$/sources/Blockscout/Rest/queries.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
@@ -2204,21 +2266,27 @@ export default {
 				)
 				return entities
 			},
+			fields: {
+				$$internalTransfers: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
-			fieldName: '$$erc20TokenAllowances',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				throw new Error(
 					`Blockscout_Rest: $$erc20TokenAllowances unsupported for ${entityId.$actor.address} on chain ${chainIdFromEvmNetworkId(entityId.$network)}; Blockscout token-transfers omit ERC-20 Approval events`,
 				)
 			},
+			fields: {
+				$$erc20TokenAllowances: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$erc20TokenTransfers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2239,7 +2307,7 @@ export default {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
 				}
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const tokenTransfers: Entity<typeof schema, EntityType.EvmTokenTransfer>[] = []
@@ -2268,11 +2336,14 @@ export default {
 				}
 				return tokenTransfers
 			},
+			fields: {
+				$$erc20TokenTransfers: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$nftTokenTransfers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2293,7 +2364,7 @@ export default {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
 				}
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const tokenTransfers: Entity<typeof schema, EntityType.EvmTokenTransfer>[] = []
@@ -2325,11 +2396,14 @@ export default {
 				}
 				return tokenTransfers
 			},
+			fields: {
+				$$nftTokenTransfers: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$contracts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2337,7 +2411,7 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const {
@@ -2370,11 +2444,14 @@ export default {
 				)
 				return entities
 			},
+			fields: {
+				$$contracts: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$erc4337SmartAccounts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2382,7 +2459,7 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const { getErc4337SmartAccountList } = await import('$/sources/Blockscout/Rest/queries.ts')
@@ -2403,11 +2480,14 @@ export default {
 					items: wires,
 				})
 			},
+			fields: {
+				$$erc4337SmartAccounts: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$erc4337Bundlers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2415,7 +2495,7 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const { getErc4337BundlerList } = await import('$/sources/Blockscout/Rest/queries.ts')
@@ -2441,11 +2521,14 @@ export default {
 					items: wires,
 				})
 			},
+			fields: {
+				$$erc4337Bundlers: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$erc4337Paymasters',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2453,7 +2536,7 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const { getErc4337PaymasterList } = await import('$/sources/Blockscout/Rest/queries.ts')
@@ -2479,11 +2562,14 @@ export default {
 					items: wires,
 				})
 			},
+			fields: {
+				$$erc4337Paymasters: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$erc4337AccountFactories',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2491,7 +2577,7 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const { getErc4337AccountFactoryList } = await import('$/sources/Blockscout/Rest/queries.ts')
@@ -2517,11 +2603,14 @@ export default {
 					items: wires,
 				})
 			},
+			fields: {
+				$$erc4337AccountFactories: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$userOperations',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2529,7 +2618,7 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const { getUserOperationsPage } = await import('$/sources/Blockscout/Rest/queries.ts')
@@ -2562,11 +2651,14 @@ export default {
 				)
 				return entities
 			},
+			fields: {
+				$$userOperations: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$gasEstimateTimestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId(entityId))
 				if (stats == null) {
@@ -2585,11 +2677,14 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$gasEstimateTimestamps: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Coin,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const stats = await blockscoutStatsForNativeCoinId(entityId.coinId)
 				if (stats == null) {
@@ -2616,11 +2711,14 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$$quotes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Blockscout_Rest: MarketPrice $$quotes is spot-only')
@@ -2664,11 +2762,14 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$quotes: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
-			fieldName: '$$logs',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2704,11 +2805,14 @@ export default {
 						})
 				)
 			},
+			fields: {
+				$$logs: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
-			fieldName: '$$tokenTransfers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2717,7 +2821,7 @@ export default {
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const { getTransactionTokenTransfers } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
@@ -2744,11 +2848,14 @@ export default {
 						}))
 				)
 			},
+			fields: {
+				$$tokenTransfers: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
-			fieldName: '$$internalTransfers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2757,7 +2864,7 @@ export default {
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const { getTransactionInternalTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
@@ -2784,11 +2891,14 @@ export default {
 						}))
 				)
 			},
+			fields: {
+				$$internalTransfers: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
-			fieldName: '$$userOperations',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2800,7 +2910,7 @@ export default {
 					throw new Error(`Blockscout_Rest: ERC-4337 user operations not supported for chain ${chainIdFromEvmNetworkId(entityId.$network)}`)
 				}
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const { getUserOperationsByTransaction } = await import('$/sources/Blockscout/Rest/queries.ts')
@@ -2836,11 +2946,14 @@ export default {
 					})
 				)
 			},
+			fields: {
+				$$userOperations: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
-			entityType: EntityType.EvmBlock,
-			fieldName: '$$transactions',
+			defineResolver({
+				entityType: EntityType.EvmBlock,
+				accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -2848,7 +2961,7 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
+					resolverContextRowLimit(context),
 					blockscoutV2ItemsCountMax,
 				)
 				const { getBlockTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
@@ -2883,13 +2996,16 @@ export default {
 									},
 								}]
 						})
-				)
-			},
-		}),
+					)
+				},
+				fields: {
+					$$transactions: (entity) => entity,
+				},
+			}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmContract,
-			fieldName: '$deployer',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getAddressDetails } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
@@ -2911,11 +3027,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+				$deployer: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmContract,
-			fieldName: '$creationTransaction',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getAddressDetails } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
@@ -2938,11 +3057,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+				$creationTransaction: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmContract,
-			fieldName: '$implementation',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getAddressDetails } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
@@ -2982,11 +3104,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+				$implementation: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmContract,
-			fieldName: 'abi',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getContractAbiJsonString } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
@@ -3000,11 +3125,14 @@ export default {
 				})
 				return abi == null ? undefined : evmAbiFromJsonString(abi)
 			},
+			fields: {
+				abi: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmContract,
-			fieldName: 'code',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getCode } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
@@ -3019,11 +3147,14 @@ export default {
 				if (codeHex == null) return undefined
 				return evmContractRuntimeCodeFromGetCodeHex(codeHex)
 			},
+			fields: {
+				code: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmContract,
-			fieldName: 'codeHash',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getCode } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId(entityId.$network))
@@ -3038,11 +3169,14 @@ export default {
 				if (codeHex == null) return undefined
 				return evmContractBytecodeHashFromGetCodeHex(codeHex)
 			},
+			fields: {
+				codeHash: (entity) => entity,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmContract,
-			fieldName: 'storageSlotReads',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -3061,7 +3195,7 @@ export default {
 				if (address == null) {
 					throw new Error('Blockscout_Rest: EvmContract address not normalized')
 				}
-				const depth = Math.min(32, Math.max(1, resolverLoadSubsetRowLimit(context)))
+				const depth = Math.min(32, Math.max(1, resolverContextRowLimit(context)))
 				return evmContractStorageSlotReadsFromEthGetStorageAt({
 					address,
 					depth,
@@ -3076,6 +3210,9 @@ export default {
 						})
 					),
 				})
+			},
+			fields: {
+				storageSlotReads: (entity) => entity,
 			},
 		}),
 	],

@@ -82,7 +82,6 @@
 				id={`${id}-items`}
 				href={href}
 				getKey={(block) => stringify(block[EntityMetaKey.Id])}
-				getSortValue={(block) => -Number(block[EntityMetaKey.Id].height)}
 				open={true}
 				resource={blocks}
 				{title}
@@ -92,9 +91,9 @@
 					<p data-text="muted">No recent blocks yet.</p>
 				{/snippet}
 
-				{#snippet Item(context)}
+				{#snippet Item({ item })}
 					<HyperliquidBlockView
-						entityId={context!.item[EntityMetaKey.Id]}
+						entityId={item[EntityMetaKey.Id]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

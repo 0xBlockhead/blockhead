@@ -1,7 +1,8 @@
 import {
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
 import { Source } from '$/sources/$Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
@@ -15,9 +16,10 @@ const assertBitcoinCashMainnet = (network: NetworkId) => {
 export default {
 	source: Source.BitcoinCashBcmr_Github,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.BitcoinCashBcmrMetadata,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertBitcoinCashMainnet(entityId.$network)
 				const { getRegistry } = await import('$/sources/BitcoinCashBcmr/Github/queries.ts')
@@ -38,8 +40,12 @@ export default {
 					...(latestRevision.token?.decimals != null && { decimals: latestRevision.token.decimals }),
 				}
 			},
+			fields: {
+			name: (snapshot) => snapshot.name,
+			description: (snapshot) => snapshot.description,
+			symbol: (snapshot) => snapshot.symbol,
+			decimals: (snapshot) => snapshot.decimals,
+		}
 		}),
 	],
-
-	entityFieldResolvers: [],
 }

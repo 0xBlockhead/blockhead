@@ -7,12 +7,13 @@ import {
 	EntityFieldType,
 	type EntityDefinition,
 	type EntityFieldDefinition,
+	type EntityIdentityValueNormalizer,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const canonicalIpfsIdentityValue = (value: unknown) => (
+const canonicalIpfsIdentityValue: EntityIdentityValueNormalizer = (value) => (
 	canonicalIpfsCidString(String(value)) ?? value
 )
 

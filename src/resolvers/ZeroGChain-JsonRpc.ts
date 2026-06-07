@@ -5,12 +5,14 @@ import {
 } from '$/constants/Evm.ts'
 import { zeroGChainId } from '$/constants/ZeroGNetwork.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { RpcBlockHeader } from '$/sources/Evm/JsonRpc/types.ts'
@@ -91,17 +93,20 @@ const transactionKind = ({
 export default {
 	source: Source.ZeroGChain_JsonRpc,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId)
 				return {}
 			},
+			fields: {}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnetChain(entityId.$network)
 				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
@@ -141,10 +146,23 @@ export default {
 					...(block.transactions != null && { transactionCount: block.transactions.length }),
 				}
 			},
+			fields: {
+			number: (block) => block.number,
+			$parent: (block) => block.$parent,
+			timestamp: (block) => block.timestamp,
+			$miner: (block) => block.$miner,
+			gasUsed: (block) => block.gasUsed,
+			gasLimit: (block) => block.gasLimit,
+			baseFeePerGas: (block) => block.baseFeePerGas,
+			blobGasUsed: (block) => block.blobGasUsed,
+			excessBlobGas: (block) => block.excessBlobGas,
+			transactionCount: (block) => block.transactionCount,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnetChain(entityId.$network)
 				const {
@@ -226,13 +244,33 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			$block: (transaction) => transaction.$block,
+			$from: (transaction) => transaction.$from,
+			$to: (transaction) => transaction.$to,
+			$contract: (transaction) => transaction.$contract,
+			transactionIndex: (transaction) => transaction.transactionIndex,
+			value: (transaction) => transaction.value,
+			nonce: (transaction) => transaction.nonce,
+			input: (transaction) => transaction.input,
+			gas: (transaction) => transaction.gas,
+			kind: (transaction) => transaction.kind,
+			envelopeType: (transaction) => transaction.envelopeType,
+			executionStatus: (transaction) => transaction.executionStatus,
+			gasPrice: (transaction) => transaction.gasPrice,
+			gasUsed: (transaction) => transaction.gasUsed,
+			cumulativeGasUsed: (transaction) => transaction.cumulativeGasUsed,
+			effectiveGasPrice: (transaction) => transaction.effectiveGasPrice,
+			maxFeePerGas: (transaction) => transaction.maxFeePerGas,
+			maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
+			blobGasUsed: (transaction) => transaction.blobGasUsed,
+			maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId)
 				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
@@ -262,11 +300,14 @@ export default {
 					},
 				]
 			},
+			fields: {
+			$$timestamps: (timestamps) => timestamps,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			fieldName: '$$blocks',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				assertZeroGMainnet(entityId)
 				const { getBlockNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
@@ -274,7 +315,7 @@ export default {
 				return Array.from({
 					length: Math.min(
 						Number(headBlockNumber + 1n),
-						resolverLoadSubsetRowLimit(context),
+						resolverContextRowLimit(context),
 					),
 				}, (_value, blockOffset) => ({
 					[EntityMetaKey.Id]: {
@@ -283,11 +324,14 @@ export default {
 					},
 				}))
 			},
+			fields: {
+			$$blocks: (blocks) => blocks,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmBlock,
-			fieldName: '$$transactions',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertZeroGMainnetChain(entityId.$network)
 				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
@@ -310,6 +354,9 @@ export default {
 						}]
 				})
 			},
+			fields: {
+			$$transactions: (transactions) => transactions,
+		}
 		}),
 	],
 }

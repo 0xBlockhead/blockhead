@@ -10,16 +10,12 @@
 
 	// Context
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-			fid: String(entityId.$cast.fid),
-			hash: entityId.$cast.hash,
-		}),
+		href,
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps

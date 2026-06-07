@@ -5,7 +5,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -44,7 +44,7 @@
 		entityId,
 		{
 			$: (
-				entityResolversByEntityType[EntityType.LiquidityPool]?.map((resolver) => resolver.source)
+				resolverDefinitionsByEntityType[EntityType.LiquidityPool]?.map((resolver) => resolver.source)
 				?? [Source.Dexscreener_OpenApi]
 			),
 			$baseToken: {},

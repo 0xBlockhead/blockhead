@@ -19,12 +19,14 @@ import {
 } from '$/lib/marketOhlcCandles.ts'
 import { stringify } from 'devalue'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -35,9 +37,10 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	source: Source.Defillama_OpenApi,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.Market_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Defillama_OpenApi: Market_Timestamp is spot-only')
@@ -67,10 +70,16 @@ export default {
 					providerAssetId: llamaId,
 				}
 			},
+			fields: {
+				price: (timestamp) => timestamp.price,
+				transport: (timestamp) => timestamp.transport,
+				providerAssetId: (timestamp) => timestamp.providerAssetId,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, _context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Defillama_OpenApi: OHLC is spot-only')
@@ -103,13 +112,21 @@ export default {
 					)
 				)
 			},
+			fields: {
+				open: (timestamp) => timestamp.open,
+				high: (timestamp) => timestamp.high,
+				low: (timestamp) => timestamp.low,
+				close: (timestamp) => timestamp.close,
+				volume: (timestamp) => timestamp.volume,
+				quoteVolume: (timestamp) => timestamp.quoteVolume,
+				tradeCount: (timestamp) => timestamp.tradeCount,
+				vwap: (timestamp) => timestamp.vwap,
+			},
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$markets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				return (
@@ -126,19 +143,25 @@ export default {
 						))
 				)
 			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType._Global,
-			fieldName: '$$marketTimeIntervalTimestamps',
-			resolve: async () => {
-				throw new Error('Defillama_OpenApi: $$marketTimeIntervalTimestamps is not implemented')
+			fields: {
+				$$markets: (markets) => markets,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$marketPrices',
+			accepts: [EntityIdProjection.Identity],
+			resolve: async () => {
+				throw new Error('Defillama_OpenApi: $$marketTimeIntervalTimestamps is not implemented')
+			},
+			fields: {
+				$$marketTimeIntervalTimestamps: (timestamps) => timestamps,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType._Global,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				return (
@@ -157,11 +180,14 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$marketPrices: (marketPrices) => marketPrices,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Coin,
-			fieldName: '$$marketsWithCoinAsBase',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				return (
@@ -175,11 +201,14 @@ export default {
 						[]
 				)
 			},
+			fields: {
+				$$marketsWithCoinAsBase: (markets) => markets,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Coin,
-			fieldName: '$$marketsWithCoinAsQuote',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				if (defillamaCurrentPriceIdByCoinId[entityId.coinId] == null) {
@@ -199,11 +228,14 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$marketsWithCoinAsQuote: (markets) => markets,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Currency,
-			fieldName: '$$marketsWithCurrencyAsQuote',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				return (
@@ -219,11 +251,14 @@ export default {
 					}))
 				)
 			},
+			fields: {
+				$$marketsWithCurrencyAsQuote: (markets) => markets,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Currency,
-			fieldName: '$$marketsWithCurrencyAsBase',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
 				const markets = catalogSpotMarketsWithCurrencyAsBase
 						.filter((catalogMarket) => catalogMarket.iso4217 === entityId.iso4217)
@@ -235,11 +270,14 @@ export default {
 				}
 				return markets
 			},
+			fields: {
+				$$marketsWithCurrencyAsBase: (markets) => markets,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Market,
-			fieldName: '$$marketTimeIntervalTimestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
 				if (entityId.marketKind !== MarketKind.Spot) {
 					return []
@@ -257,7 +295,7 @@ export default {
 					throw new Error('Defillama_OpenApi: OHLC coin not mapped')
 				}
 				const llamaId = defillamaCurrentPriceIdByCoinId[coinId]
-				const lim = resolverLoadSubsetRowLimit(context)
+				const lim = resolverContextRowLimit(context)
 				const candles = []
 				for (const value of coingeckoOhlcDayWindowLengths) {
 					const timeInterval = (
@@ -282,11 +320,14 @@ export default {
 					candles.slice(0, lim)
 				)
 			},
+			fields: {
+				$$marketTimeIntervalTimestamps: (timestamps) => timestamps,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$$quotes',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					return []
@@ -326,31 +367,40 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$quotes: (quotes) => quotes,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$parentMarket',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}
 			),
+			fields: {
+				$parentMarket: (market) => market,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			fieldName: '$parentMarket',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}
 			),
+			fields: {
+				$parentMarket: (market) => market,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$icon',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const { getChainSlugByChainId, getChainIconUrl } = await import('$/sources/Defillama/OpenApi/queries.ts')
 				const slug = getChainSlugByChainId[Number(entityId.caip2.reference)]
@@ -358,6 +408,9 @@ export default {
 				const iconMedia = mediaFromUrl(getChainIconUrl(slug), MediaType.Image)
 				if (iconMedia == null) throw new Error(`Defillama_OpenApi: invalid icon URL for chain ${entityId.caip2.reference}`)
 				return iconMedia
+			},
+			fields: {
+				$icon: (icon) => icon,
 			},
 		}),
 	],

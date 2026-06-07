@@ -1,7 +1,6 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import {
 	bitcoinMainnetCaip2,
@@ -12,7 +11,10 @@ import {
 	liquidMainnetEsploraRestBaseUrl,
 	liquidNetworkId,
 } from '$/constants/ElementsNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { EsploraAsset } from '$/sources/Esplora/Rest/types.ts'
@@ -69,9 +71,10 @@ const elementsAssetRowFromWire = (
 export default {
 	source: Source.Esplora_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const restBaseUrl = esploraRestBaseUrlForNetwork(entityId.$network)
 				const {
@@ -105,10 +108,22 @@ export default {
 					transactionCount: block.tx_count,
 				}
 			},
+			fields: {
+			hash: (snapshot) => snapshot.hash,
+			$parent: (snapshot) => snapshot.$parent,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			merkleRoot: (snapshot) => snapshot.merkleRoot,
+			nonce: (snapshot) => snapshot.nonce,
+			difficulty: (snapshot) => snapshot.difficulty,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			weightUnits: (snapshot) => snapshot.weightUnits,
+			transactionCount: (snapshot) => snapshot.transactionCount,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const restBaseUrl = esploraRestBaseUrlForNetwork(entityId.$network)
 				const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
@@ -139,10 +154,21 @@ export default {
 					isCoinbase: transaction.vin.some((input) => input.is_coinbase),
 				}
 			},
+			fields: {
+			$block: (snapshot) => snapshot.$block,
+			version: (snapshot) => snapshot.version,
+			lockTime: (snapshot) => snapshot.lockTime,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			weightUnits: (snapshot) => snapshot.weightUnits,
+			virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
+			feeSats: (snapshot) => snapshot.feeSats,
+			isCoinbase: (snapshot) => snapshot.isCoinbase,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.ElementsAsset,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (
 					!('networkSlug' in entityId.$network)
@@ -160,13 +186,22 @@ export default {
 
 				return elementsAssetFieldsFromWire(asset)
 			},
+			fields: {
+			name: (snapshot) => snapshot.name,
+			ticker: (snapshot) => snapshot.ticker,
+			precision: (snapshot) => snapshot.precision,
+			entityDomain: (snapshot) => snapshot.entityDomain,
+			contractJson: (snapshot) => snapshot.contractJson,
+			issuedAmount: (snapshot) => snapshot.issuedAmount,
+			burnedAmount: (snapshot) => snapshot.burnedAmount,
+			hasBlindedIssuances: (snapshot) => snapshot.hasBlindedIssuances,
+			reissuanceTokenCount: (snapshot) => snapshot.reissuanceTokenCount,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ElementsNetwork,
-			fieldName: '$nativeAsset',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				if (
 					!('networkSlug' in entityId)
@@ -180,13 +215,16 @@ export default {
 					assetId: liquidBitcoinAssetId,
 				})
 
-				return elementsAssetRowFromWire(entityId, asset)
+					return elementsAssetRowFromWire(liquidNetworkId, asset)
 			},
+			fields: {
+			$nativeAsset: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.ElementsNetwork,
-			fieldName: '$$assets',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				if (
 					!('networkSlug' in entityId)
@@ -198,9 +236,12 @@ export default {
 				return (await listRegistryAssets({
 					restBaseUrl: liquidMainnetEsploraRestBaseUrl,
 				}))
-					.slice(0, resolverLoadSubsetRowLimit(context))
-					.map((asset) => elementsAssetRowFromWire(entityId, asset))
+					.slice(0, resolverContextRowLimit(context))
+						.map((asset) => elementsAssetRowFromWire(liquidNetworkId, asset))
 			},
+			fields: {
+			$$assets: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

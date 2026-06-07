@@ -1,27 +1,30 @@
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
 	source: Source.L2Beat_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.EvmRollup,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					l2beatHostChainToParentChainId,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
-					const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-					const summary = await singleFlight(fetchScalingSummary)()
-					const project = summary.projects[entityId.projectId]
-					if (project == null) throw new Error('L2Beat_Rest: rollup project not found')
-					const settlementChainId = l2beatHostChainToParentChainId[project.hostChain]
+				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
+				const summary = await singleFlight(fetchScalingSummary)()
+				const project = summary.projects[entityId.projectId]
+				if (project == null) throw new Error('L2Beat_Rest: rollup project not found')
+				const settlementChainId = l2beatHostChainToParentChainId[project.hostChain]
 				return {
 					name: project.name,
 					slug: project.slug,
@@ -31,18 +34,32 @@ export default {
 					...(project.isArchived != null && { isArchived: project.isArchived }),
 					...(project.isUpcoming != null && { isUpcoming: project.isUpcoming }),
 					...(project.isUnderReview != null && { isUnderReview: project.isUnderReview }),
-						$settlementNetwork: {
-						[EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(settlementChainId) } },
+					$settlementNetwork: {
+						[EntityMetaKey.Id]: {
+							caip2: {
+								namespace: 'eip155' as const,
+								reference: String(settlementChainId),
+							},
 						},
+					},
 				}
 			},
+			fields: {
+			name: (snapshot) => snapshot.name,
+			slug: (snapshot) => snapshot.slug,
+			type: (snapshot) => snapshot.type,
+			category: (snapshot) => snapshot.category,
+			hostChain: (snapshot) => snapshot.hostChain,
+			isArchived: (snapshot) => snapshot.isArchived,
+			isUpcoming: (snapshot) => snapshot.isUpcoming,
+			isUnderReview: (snapshot) => snapshot.isUnderReview,
+			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
+		}
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$evmNetworks',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async () => {
 				const {
 					chainIdByL2BeatProjectId,
@@ -65,21 +82,24 @@ export default {
 									[]
 								:
 									[
-									{
-										[EntityMetaKey.Id]: {
+										{
+											[EntityMetaKey.Id]: {
 												...{ caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
+											},
 										},
-									},
-								]
+									]
 							)
 						}),
 				]
 			},
+			fields: {
+			$$evmNetworks: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$parent',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					l2beatHostChainToParentChainId,
@@ -99,11 +119,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+			$parent: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$rollup',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					l2BeatProjectIdByChainId,
@@ -121,11 +144,14 @@ export default {
 					},
 				}
 			},
+			fields: {
+			$rollup: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$settledRollups',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					chainIdByL2BeatProjectId,
@@ -168,11 +194,14 @@ export default {
 					})
 				)
 			},
+			fields: {
+			$$settledRollups: (snapshot) => snapshot,
+		}
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			fieldName: '$$childLayers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const {
 					chainIdByL2BeatProjectId,
@@ -207,6 +236,9 @@ export default {
 					},
 				}))
 			},
+			fields: {
+			$$childLayers: (snapshot) => snapshot,
+		}
 		}),
 	],
 }

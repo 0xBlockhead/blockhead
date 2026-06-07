@@ -1,11 +1,14 @@
 import {
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import {
 	bitcoinCashMainnetCaip2,
 	bitcoinCashNodeDefaultLocalRpcUrl,
 } from '$/constants/BitcoinNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -42,9 +45,10 @@ const getOutput = async (entityId: {
 export default {
 	source: Source.BitcoinCashNode_JsonRpc,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.UtxoOutput,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const output = await getOutput(entityId)
 				return {
@@ -76,10 +80,20 @@ export default {
 					}),
 				}
 			},
+			fields: {
+			valueSats: (snapshot) => snapshot.valueSats,
+			scriptPubKeyAsm: (snapshot) => snapshot.scriptPubKeyAsm,
+			scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
+			scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
+			$address: (snapshot) => snapshot.$address,
+			$bitcoinCashCashTokenFungibleAmount: (snapshot) => snapshot.$bitcoinCashCashTokenFungibleAmount,
+			$bitcoinCashCashTokenNft: (snapshot) => snapshot.$bitcoinCashCashTokenNft,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const output = await getOutput(entityId.$output)
 				if (output.tokenData?.amount == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken fungible amount')
@@ -93,10 +107,15 @@ export default {
 					amount: BigInt(output.tokenData.amount),
 				}
 			},
+			fields: {
+			$category: (snapshot) => snapshot.$category,
+			amount: (snapshot) => snapshot.amount,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BitcoinCashCashTokenNft,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const output = await getOutput(entityId.$output)
 				if (output.tokenData?.nft == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken NFT')
@@ -115,10 +134,16 @@ export default {
 					capability: output.tokenData.nft.capability,
 				}
 			},
+			fields: {
+			$category: (snapshot) => snapshot.$category,
+			$commitment: (snapshot) => snapshot.$commitment,
+			capability: (snapshot) => snapshot.capability,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.BitcoinCashCashTokenCommitment,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				const output = await getOutput(entityId.$output)
 				if (output.tokenData?.nft == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken NFT commitment')
@@ -126,8 +151,9 @@ export default {
 					commitmentHex: output.tokenData.nft.commitment,
 				}
 			},
+			fields: {
+			commitmentHex: (snapshot) => snapshot.commitmentHex,
+		}
 		}),
 	],
-
-	entityFieldResolvers: [],
 }

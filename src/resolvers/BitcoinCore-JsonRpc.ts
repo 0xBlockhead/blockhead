@@ -1,12 +1,14 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
+	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import {
 	bitcoinCoreDefaultLocalRpcUrl,
 	bitcoinMainnetCaip2,
 } from '$/constants/BitcoinNetwork.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -23,9 +25,10 @@ const assertBitcoinMainnet = (network: { caip2: { namespace: string; reference: 
 export default {
 	source: Source.BitcoinCore_JsonRpc,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertBitcoinMainnet(entityId.$network)
 				const {
@@ -64,12 +67,47 @@ export default {
 						weightUnits: block.weight,
 					}),
 					transactionCount: block.nTx,
+					$$transactions: block.tx.map((transaction) => (
+						typeof transaction === 'string' ?
+							{
+								[EntityMetaKey.Id]: {
+									$network: entityId.$network,
+									txId: transaction,
+								},
+							}
+						:
+							{
+								[EntityMetaKey.Id]: {
+									$network: entityId.$network,
+									txId: transaction.txid,
+								},
+								version: transaction.version,
+								lockTime: transaction.locktime,
+								sizeBytes: transaction.size,
+								virtualSizeBytes: transaction.vsize,
+								weightUnits: transaction.weight,
+								isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+							}
+					)),
 				}
 			},
+			fields: {
+			hash: (snapshot) => snapshot.hash,
+			$parent: (snapshot) => snapshot.$parent,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			merkleRoot: (snapshot) => snapshot.merkleRoot,
+			nonce: (snapshot) => snapshot.nonce,
+			difficulty: (snapshot) => snapshot.difficulty,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			weightUnits: (snapshot) => snapshot.weightUnits,
+			transactionCount: (snapshot) => snapshot.transactionCount,
+			$$transactions: (snapshot) => snapshot.$$transactions,
+		}
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId) => {
 				assertBitcoinMainnet(entityId.$network)
 				const { getRawTransaction } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
@@ -93,52 +131,14 @@ export default {
 					isCoinbase: transaction.vin.some((input) => input.coinbase != null),
 				}
 			},
-		}),
-	],
-
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
-			entityType: EntityType.UtxoBlock,
-			fieldName: '$$transactions',
-			resolve: async (entityId) => {
-				assertBitcoinMainnet(entityId.$network)
-				const {
-					getBlock,
-					getBlockHash,
-				} = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
-				const block = await getBlock({
-					rpcUrl: bitcoinCoreDefaultLocalRpcUrl,
-					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: bitcoinCoreDefaultLocalRpcUrl,
-						height: entityId.height,
-					}),
-				})
-				if (typeof block === 'string') {
-					throw new Error('BitcoinCore_JsonRpc: expected verbose block')
-				}
-				return block.tx.map((transaction) => (
-					typeof transaction === 'string' ?
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								txId: transaction,
-							},
-						}
-					:
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								txId: transaction.txid,
-							},
-							version: transaction.version,
-							lockTime: transaction.locktime,
-							sizeBytes: transaction.size,
-							virtualSizeBytes: transaction.vsize,
-							weightUnits: transaction.weight,
-							isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-						}
-				))
-			},
+			fields: {
+			version: (snapshot) => snapshot.version,
+			lockTime: (snapshot) => snapshot.lockTime,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
+			weightUnits: (snapshot) => snapshot.weightUnits,
+			isCoinbase: (snapshot) => snapshot.isCoinbase,
+		}
 		}),
 	],
 }

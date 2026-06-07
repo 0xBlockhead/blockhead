@@ -5,7 +5,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -42,7 +42,7 @@
 		entityId,
 		{
 			$: (
-				entityResolversByEntityType[EntityType.LiquidityPosition]?.map((r) => r.source)
+				resolverDefinitionsByEntityType[EntityType.LiquidityPosition]?.map((r) => r.source)
 				?? []
 			),
 			$pool: {},

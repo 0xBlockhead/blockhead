@@ -319,9 +319,9 @@ export const sources = (
 
 /** Per-source public env passed to resolvers: validated subset when provider/source declare `env`; otherwise full {@link resolverPublicEnv}. */
 export const resolverPublicEnvBySource: ReadonlyMap<Source, SourcePublicEnv> = new Map(
-	enabledSourceEntries.map(([sourceDefinition, sourcePublicEnv]) => ([
+	enabledSourceEntries.map(([sourceDefinition, publicEnv]) => ([
 		sourceDefinition.source,
-		sourcePublicEnv,
+		publicEnv,
 	])),
 )
 

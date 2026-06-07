@@ -423,7 +423,7 @@ If a lower layer starts importing a higher one, move the shared code down into `
 Definitions in `$/schema/*.ts`; register in `$/schema/index.ts`. ArkType types entity ids and primitives; child rows use `$$…` entity-reference fields.
 
 - Timestamped observations: As-of metrics (quotes, gas tiers, mempool counts, OHLC, …) live on `*_Timestamp` entities (`timestampMs` in the id; extra id keys when needed, e.g. `feedKey?`, candle `timeInterval`). Parents hold stable identity only—no snapshot scalars such as `price` or tiered gas on the header row. If an endpoint’s stats are deterministic for the entity id itself, such as Beaconcha.in epoch overview stats keyed by epoch rather than an observation time, model those fields on the owning entity instead of inventing a timestamp row.
-- Resolvers / views: `defineEntityResolver` per snapshot; parent `defineEntityFieldResolver` returns entity refs. When upstream exposes one stats clock, `entityId.timestampMs` must match it. Latest row: sort `$$…` by `timestampMs`, nest `*_TimestampView`; history: `*_TimestampsView`.
+- Resolvers / views: use one `defineResolver` per snapshot, with `fields` selectors for entity fields, list refs, counts, and live facets. When upstream exposes one stats clock, `entityId.timestampMs` must match it. Latest row: sort `$$…` by `timestampMs`, nest `*_TimestampView`; history: `*_TimestampsView`.
 - Examples: `MarketPrice` / `$$quotes` → `Market_Timestamp`; `Coin` / `$$timestamps` → `Coin_Timestamp`; `Market` → `Market_Timestamp`, `Market_TimeInterval_Timestamp`; `Network` / `$$gasEstimateTimestamps` → `Network_GasEstimate_Timestamp`, `$$txpoolTimestamps` → `Network_Txpool_Timestamp`; `Currency` / `$$timestamps` → `Currency_Timestamp`.
 - Lifecycle timestamps: `createdAt`, `updatedAt`, etc. on sessions, social, bridges, ENS stay on the owning record—they are not metric streams.
 
@@ -476,9 +476,9 @@ Source definition shape:
 }
 ```
 
-`$/resolvers/index.ts` imports `enabledSources` and keeps only resolver modules whose exported `source` is in that set; it then attaches `source` onto each resolver entry when flattening `entityResolvers` / `entityFieldResolvers`.
+`$/resolvers/index.ts` imports `enabledSources` and keeps only resolver modules whose exported `source` is in that set; it then attaches `source` onto each resolver entry when flattening `resolvers`.
 
-Transport folders continue to hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). In resolvers, load `queries.ts` / `constants.ts` via inline `await import(...)` inside each `resolve(...)` instead of top-level imports. Stable wire shapes or resolver-facing types live in `types.ts` (not `queries.ts`). Import `sourcePublicEnv` from `$/resolvers/$resolvers.ts` at module top (do not dynamically import `$resolvers` inside `resolve`).
+Transport folders continue to hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). In resolvers, load `queries.ts` / `constants.ts` via inline `await import(...)` inside each `resolve(...)` instead of top-level imports. Stable wire shapes or resolver-facing types live in `types.ts` (not `queries.ts`). Use `context.publicEnv` inside `resolve` when a source query needs public environment values.
 
 - **`queries.ts` export naming:** Exports must start with a verb (usually `get`, `fetch`, `list`, `search`, `query`, `collect`, `stream`, `normalize`, `parse`, `iterate`, `lookup`, `count`, `narrow`, `debug`, `subscribe`). Do **not** include the source or transport name as a namespace-style prefix — the import path already provides that context (e.g. write `getProfile`, not `bskyGetProfile`; write `getCoin`, not `getCoingeckoCoin`; write `getBlockByNumber`, not `getBlockByNumberBlockscout` or `ethGetBlockByNumber`).
 
@@ -500,7 +500,7 @@ Use this when asked to verify that `src/sources/**` generated or manually implem
 	- Update constants/client code only for documented drift; keep provider-specific transport behavior in `src/sources/**` and avoid new wrapper layers.
 	- If a provider has no stable official public API documentation for the endpoint in use, say that explicitly in the handoff and avoid speculative rewrites.
 - Resolver wiring:
-	- Trace every downstream resolver that imports the touched `queries.ts` and confirm it loads source modules with inline `await import(...)`, threads `sourcePublicEnv(context, Source...)` when required, and maps wire data into schema-shaped fields/refs.
+		- Trace every downstream resolver that imports the touched `queries.ts` and confirm it loads source modules with inline `await import(...)`, passes `context.publicEnv` when required, and maps wire data into schema-shaped fields/refs.
 	- Validate entity ids, timestamp clocks, market/chain predicates, and optional-vs-required schema fields at resolver boundaries. Resolver output should be schema-shaped, not provider-shaped.
 	- When a generated GraphQL client has a colocated `graphql-env.d.ts`, its `queries.ts` must import `graphql` from the same folder’s `client.ts`; do not reuse a neighboring provider’s gql.tada instance even if schemas currently match.
 - Selective checks:
@@ -599,16 +599,16 @@ Replication checklist:
 
 Resolvers are the bridge between `sources/` and the TanStack DB collections.
 
-- Module shape:
-	- Use `defineEntityResolver` / `defineEntityFieldResolver` from `$/resolvers/$resolvers.ts`.
-	- Each provider module exports only `default { source, entityResolvers, entityFieldResolvers }`; do not export individual resolvers for other modules to call.
+	- Module shape:
+		- Use `defineResolver` from `$/resolvers/$resolvers.ts`.
+		- Each provider module exports only `default { source, resolvers }`; do not export individual resolvers for other modules to call.
 	- Register new modules in `$/resolvers/index.ts`; each default export includes `source: Source`, and the registry filters modules by `enabledSources` from `$/sources/index.ts`.
 - Source boundary:
 	- Put all `fetch` / HTTP / provider transport logic under `src/sources/**`. Resolvers call source query functions; they do not fetch external URLs directly.
 	- **singleFlight:** Do not use in `src/sources/**` (plain async `queries.ts` exports only—no `*Once` helpers or `export const x = singleFlight(fn)`). In `src/resolvers/**`, dedupe at the call site with `await singleFlight(queryFn)(...)`; do not bind `singleFlight(queryFn)` to a module-level constant.
 	- In resolvers, do not top-level import `$/sources//queries.ts` or `$/sources//constants.ts`; load them with inline `await import(...)` inside each `resolve(...)`.
 	- Resolver-only type imports for wire payloads should prefer `$/sources/**/types.ts` (or generated OpenAPI components), not `queries.ts`.
-	- `ResolverLoadSubset` (from `$/resolvers/$resolvers.ts`) includes `publicEnv`, the per-source slice from `resolverPublicEnvBySource` or full `resolverPublicEnv`. `$/collections/$collections.ts` passes it on every `resolve()` call; prefer `context.publicEnv` over `import.meta.env` so behavior matches source gating.
+		- `ResolverContext` (from `$/resolvers/$resolvers.ts`) includes `publicEnv`, the per-source slice from `resolverPublicEnvBySource` or full `resolverPublicEnv`. `$/collections/$collections.ts` passes it on every `resolve()` call; prefer `context.publicEnv` over `import.meta.env` so behavior matches source gating.
 	- Thread `context` into source queries when the upstream API supports filtering, sorting, or limits (`filters` / `sorts` / `limit`).
 - Resolver boundaries:
 	- `resolve(...)` returns schema-shaped field data, not raw wire payloads.
@@ -622,14 +622,14 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 - Do not create resolver waterfalls. If a second request enriches only a specific field, move that work to a field resolver or the owning `sources/**/queries.ts` function.
 - Do not call another resolver's `resolve(...)`. If two resolvers need the same provider data, both should call the appropriate source query, or the shared transport logic belongs in `src/sources/**`.
 - **`Source.Constants_Internal`:** Checked-in catalogs in `src/constants/**` are the snapshot. Load them with inline `await import(...)` and return lookup hits; throw when the id is missing. Small synchronous joins from other catalog lookup maps are OK when a schema row is a view over linked catalog rows, but keep that logic visible in the specific resolver body or build it into the canonical catalog row. Do not add RPC or other remote fetches to fill gaps in static catalog fields at resolve time. Do not extract catalog resolve/enrich/denormalize layers into `src/lib/**` or module-scope helpers, and avoid `Promise.all` over catalog lists only to backfill static fields—build those fields when the catalog rows are constructed.
-- Entity vs field resolvers:
-	- Entity resolvers own full entity mapping.
-	- Entity field resolvers that return many entities should normally return entity IDs / references, not fully mapped child entities.
-	- Use field resolvers for truly field-scoped data only; avoid repeating identical endpoint calls across many fields for one entity.
-	- Entity field collections apply the same optional `Source` filter as entity collections when the live query includes a `Source` `in` clause, so field resolvers for disabled or filtered-out sources are not invoked.
-- Failure behavior (required — see JSDoc on `EntityResolver` / `EntityFieldResolver` in `$/resolvers/$resolvers.ts`):
+	- Entity snapshots vs field facets:
+		- A resolver owns one snapshot fetch for an entity type and exposes entity fields through its `fields` selectors.
+		- Field facets that return many entities should normally return entity IDs / references, not fully mapped child entities.
+		- Use field facets for truly field-scoped data only; avoid repeating identical endpoint calls across many fields for one entity.
+		- Entity field collections apply the same optional `Source` filter as entity collections when the live query includes a `Source` `in` clause, so field facets for disabled or filtered-out sources are not invoked.
+	- Failure behavior:
 	- **Throw** when the entity or field cannot be resolved under the given id / parent scope / source mapping. Do not return `{}`, `[]`, or `undefined` to mean failure, unsupported scope, missing API mapping, or swallowed fetch/parse errors.
-	- Validate predicate-scoped support (chain, variant, id shape, realm/category, market kind, …) **before** upstream requests. Mirror the entity resolver’s throw on the same file/source when a field resolver hits the same unsupported predicate.
+		- Validate predicate-scoped support (chain, variant, id shape, realm/category, market kind, …) **before** upstream requests. Mirror the entity resolver’s throw on the same file/source when a field facet hits the same unsupported predicate.
 	- Error messages: `` `{Source}_{Transport}: <predicate>` `` (e.g. `` `Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}` ``, `` `Coingecko_OpenApi: OHLC is spot-only` ``). Reuse the message already thrown by a sibling resolver on that source when possible.
 	- Do not `catch` and return empty data. Rethrow or wrap with `{ cause }` and a source-prefixed message.
 	- Do not return partial placeholder entity rows (e.g. only `{ epoch }` when header fetch was skipped, or `{}` when REST base is missing).
@@ -638,13 +638,13 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 		- `[]` when upstream successfully returns zero child rows for a supported parent (e.g. mainnet with no paired testnets).
 		- `{}` on entity `resolve` after existence validation when the schema entity has no scalar fields beyond its id (catalog/local rows).
 		- `undefined` on optional schema fields when this source’s **successful** scoped call confirms upstream has no value (ENS reverse miss, missing deployer on explorer row, optional metadata slice)—not when the chain/transport/field is unsupported for this source.
-	- Multi-source optional fields: returning `undefined` because “not from this source” is OK only when views intentionally merge providers; if this source owns the field and would throw on entity resolve for the same predicate, field resolvers must throw too.
+		- Multi-source optional fields: returning `undefined` because “not from this source” is OK only when views intentionally merge providers; if this source owns the field and would throw on entity resolve for the same predicate, field facets must throw too.
 	- Removing/resolving: delete or never add stub resolvers; unimplemented field paths must throw (see existing `` `… is not implemented` `` / `` `… unsupported` `` patterns in `Constants.ts` and market providers)—never silently return empty.
 - Live resolvers:
-	- Optional `resolveLive` on an `EntityFieldResolver` (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`) handles push-driven refresh from WebSockets or streams.
+		- Optional `resolveLive` on a `defineResolver` field facet (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`) handles push-driven refresh from WebSockets or streams.
 	- Keep `resolve` as the snapshot implementation.
-	- `resolveLive` typically calls `invalidateEntityFieldQueries` from `$/lib/db/resolveLive.svelte.ts` so the existing field-collection `queryFn` re-runs.
-	- `mountEntityResolveLive` in `$/lib/db/resolveLive.svelte.ts` mounts entity and entity-field live resolvers from `$effect`; `startEntityFieldResolveLiveForParent` discovers field hooks for a parent id + field list.
+		- `resolveLive` typically calls `invalidateFields` or `invalidateCounts` so the existing collection `queryFn` re-runs.
+		- `mountEntityResolveLive` in `$/lib/db/resolveLive.svelte.ts` mounts resolver live facets from `$effect`; `startEntityFieldResolveLiveForParent` discovers field hooks for a parent id + field list.
 	- One live resolver may invalidate sibling fields, such as Voltaire `Network` `blockHeight` `resolveLive` refreshing `$$blocks` and `$$transactions`.
 
 
@@ -708,7 +708,7 @@ Regression history (do not reintroduce):
 3. **Unfiltered catalog subsets** — Global `$$networks` and similar lists have `filters.length === 0`; `collectionHasHydratedSubset` alone is insufficient. `markLoaded()` must persist the `blockhead:loaded-subset:…` metadata marker after a successful remote load.
 4. **`schemaVersion` bumps** (`+layout.svelte`) — intentional OPFS wipe; first visit after bump will refetch catalogs. Bump only when persisted row shape changes, not for unrelated features.
 5. **Stale reused Vite dev server during Playwright** — `playwright.config.ts` notes mid-HMR `.svelte-kit/generated` can 500; use `PLAYWRIGHT_DEDICATED_SERVER=1` (or stop port 5173) for persistence runs. Do not use page-wide catalog HTTP count on `/networks` warm reload as the persistence signal — list rows mount summary `NetworkView` instances that fetch per-network catalog fields independently; rely on the probe for `$$networks` instead.
-6. **Live `resolveLive` invalidations** — Voltaire block streams call `invalidateEntityFieldQueries` for head block / tx lists; that is expected live refresh, not catalog persistence failure. Do not confuse with Chainlist / EthereumLists refetch.
+6. **Live `resolveLive` invalidations** — Voltaire block streams invalidate head block / tx lists; that is expected live refresh, not catalog persistence failure. Do not confuse with Chainlist / EthereumLists refetch.
 
 Change checklist (any edit touching collections, layout persistence, or catalog field queries):
 

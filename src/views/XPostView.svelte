@@ -6,7 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -41,7 +41,7 @@
 		entityId,
 		{
 			$: (
-				entityResolversByEntityType[EntityType.XPost]?.map((r) => r.source)
+				resolverDefinitionsByEntityType[EntityType.XPost]?.map((r) => r.source)
 				?? [Source.Local_Internal]
 			),
 			text: {},
@@ -58,7 +58,7 @@
 					quoteCount: {},
 					$$timestamps: {
 						$: (
-							entityResolversByEntityType[EntityType.XPost_Timestamp]?.map((r) => r.source)
+							resolverDefinitionsByEntityType[EntityType.XPost_Timestamp]?.map((r) => r.source)
 							?? [Source.Local_Internal]
 						),
 						$limit: 1,

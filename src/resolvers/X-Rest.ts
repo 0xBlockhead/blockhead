@@ -1,14 +1,15 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
-	sourcePublicEnv,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { type } from 'arktype'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -21,15 +22,16 @@ import type {
 export default {
 	source: Source.X_Rest,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.XUser,
+			accepts: [EntityIdProjection.Identity, 'id'],
 			resolve: async (entityId, context) => {
 				const { getUser } = await import('$/sources/X/Rest/queries.ts')
 				if (!('id' in entityId))
 					throw new Error('X_Rest: XUser username lookup is unsupported')
 
-				const xUser = (await singleFlight(getUser)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
+				const xUser = (await singleFlight(getUser)(context.publicEnv, entityId.id)).data
 				if (xUser == null) throw new Error('X_Rest: user not found')
 				const createdAt = Date.parse(xUser.created_at ?? '')
 				const websiteUrl = (
@@ -88,13 +90,30 @@ export default {
 					))(mediaFromUrl(xUser.profile_banner_url, MediaType.Image)),
 				}
 			},
+			fields: {
+				id: (user) => user.id,
+				username: (user) => user.username,
+				name: (user) => user.name,
+				description: (user) => user.description,
+				location: (user) => user.location,
+				verified: (user) => user.verified,
+				createdAt: (user) => user.createdAt,
+				websiteUrl: (user) => user.websiteUrl,
+				followerCount: (user) => user.followerCount,
+				followingCount: (user) => user.followingCount,
+				tweetCount: (user) => user.tweetCount,
+				listedCount: (user) => user.listedCount,
+				$icon: (user) => user.$icon,
+				$profileBanner: (user) => user.$profileBanner,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.XPost,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getTweet } = await import('$/sources/X/Rest/queries.ts')
-				const response = await singleFlight(getTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.id)
+				const response = await singleFlight(getTweet)(context.publicEnv, entityId.id)
 				const tweet = response.data
 				if (tweet == null) throw new Error('X_Rest: post not found')
 				const mediaByKey = new Map(
@@ -160,16 +179,31 @@ export default {
 					),
 				}
 			},
+			fields: {
+				text: (post) => post.text,
+				createdAt: (post) => post.createdAt,
+				conversationId: (post) => post.conversationId,
+				likeCount: (post) => post.likeCount,
+				retweetCount: (post) => post.retweetCount,
+				replyCount: (post) => post.replyCount,
+				quoteCount: (post) => post.quoteCount,
+				$replyToPost: (post) => post.$replyToPost,
+				$quotedPost: (post) => post.$quotedPost,
+				postUrl: (post) => post.postUrl,
+				$$media: (post) => post.$$media,
+				$author: (post) => post.$author,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.XUser_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getUser } = await import('$/sources/X/Rest/queries.ts')
 				if (!('id' in entityId.$user))
 					throw new Error('X_Rest: XUser_Timestamp username lookup is unsupported')
 
-				const user = (await singleFlight(getUser)(sourcePublicEnv(context, Source.X_Rest), entityId.$user.id)).data
+				const user = (await singleFlight(getUser)(context.publicEnv, entityId.$user.id)).data
 				if (user == null) throw new Error('X_Rest: user not found')
 				return {
 					followerCount: user.public_metrics?.followers_count,
@@ -178,13 +212,20 @@ export default {
 					listedCount: user.public_metrics?.listed_count,
 				}
 			},
+			fields: {
+				followerCount: (timestamp) => timestamp.followerCount,
+				followingCount: (timestamp) => timestamp.followingCount,
+				tweetCount: (timestamp) => timestamp.tweetCount,
+				listedCount: (timestamp) => timestamp.listedCount,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.XPost_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getTweet } = await import('$/sources/X/Rest/queries.ts')
-				const tweet = (await singleFlight(getTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.$post.id)).data
+				const tweet = (await singleFlight(getTweet)(context.publicEnv, entityId.$post.id)).data
 				if (tweet == null) throw new Error('X_Rest: post not found')
 				return {
 					likeCount: tweet.public_metrics?.like_count,
@@ -193,18 +234,21 @@ export default {
 					quoteCount: tweet.public_metrics?.quote_count,
 				}
 			},
+			fields: {
+				likeCount: (timestamp) => timestamp.likeCount,
+				retweetCount: (timestamp) => timestamp.retweetCount,
+				replyCount: (timestamp) => timestamp.replyCount,
+				quoteCount: (timestamp) => timestamp.quoteCount,
+			},
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XNetwork,
-			fieldName: '$$xUsers',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { searchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.X_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
-				const tweetSearchResponse = await singleFlight(searchRecentTweets)(publicEnv, limit)
+				const limit = resolverContextRowLimit(context)
+				const tweetSearchResponse = await singleFlight(searchRecentTweets)(context.publicEnv, limit)
 				return [
 					...(tweetSearchResponse.includes?.users ?? [])
 						.flatMap((user) => {
@@ -221,20 +265,22 @@ export default {
 							return [{
 								[EntityMetaKey.Id]: { id: authorId },
 							}]
-						}),
+					}),
 				]
+			},
+			fields: {
+				$$xUsers: (users) => users,
 			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XNetwork,
-			fieldName: '$$xPosts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { searchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.X_Rest)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(searchRecentTweets)(publicEnv, limit)).data ?? [])
+					((await singleFlight(searchRecentTweets)(context.publicEnv, limit)).data ?? [])
 						.flatMap((wirePost) => (
 							wirePost.id == null ?
 								[]
@@ -245,14 +291,17 @@ export default {
 						))
 				)
 			},
+			fields: {
+				$$xPosts: (posts) => posts,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XPost,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { getTweet } = await import('$/sources/X/Rest/queries.ts')
-				const tweet = (await singleFlight(getTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
+				const tweet = (await singleFlight(getTweet)(context.publicEnv, entityId.id)).data
 				if (tweet == null) throw new Error('X_Rest: post not found')
 				return [
 					{
@@ -267,17 +316,20 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (timestamps) => timestamps,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XUser,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity, 'id'],
 			resolve: async (entityId, context) => {
 				const { getUser } = await import('$/sources/X/Rest/queries.ts')
 				if (!('id' in entityId))
 					throw new Error('X_Rest: XUser.$$timestamps username lookup is unsupported')
 
-				const user = (await singleFlight(getUser)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
+				const user = (await singleFlight(getUser)(context.publicEnv, entityId.id)).data
 				if (user == null) throw new Error('X_Rest: user not found')
 				return [
 					{
@@ -292,18 +344,21 @@ export default {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (timestamps) => timestamps,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.XUser,
-			fieldName: '$$posts',
+			accepts: [EntityIdProjection.Identity, 'id'],
 			resolve: async (entityId, context) => {
 				const { listUserTweets } = await import('$/sources/X/Rest/queries.ts')
 				if (!('id' in entityId))
 					throw new Error('X_Rest: XUser.$$posts username lookup is unsupported')
 
-				const limit = resolverLoadSubsetRowLimit(context)
-				const { data = [] } = await singleFlight(listUserTweets)(sourcePublicEnv(context, Source.X_Rest), entityId.id, limit)
+				const limit = resolverContextRowLimit(context)
+				const { data = [] } = await singleFlight(listUserTweets)(context.publicEnv, entityId.id, limit)
 				return (
 					data
 						.flatMap((wirePost) => (
@@ -315,6 +370,9 @@ export default {
 								}]
 						))
 				)
+			},
+			fields: {
+				$$posts: (posts) => posts,
 			},
 		}),
 	],

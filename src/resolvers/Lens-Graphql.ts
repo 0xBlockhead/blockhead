@@ -1,15 +1,16 @@
 import {
-	defineEntityFieldResolver,
-	defineEntityResolver,
-	resolverLoadSubsetRowLimit,
-	sourcePublicEnv,
+	defineResolver,
+	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -94,14 +95,14 @@ const lensPostTimestampFieldsFromWire = (
 const lensGraphqlResolvers = {
 	source: Source.Lens_Graphql,
 
-	entityResolvers: [
-		defineEntityResolver({
+	resolvers: [
+		defineResolver({
 			entityType: EntityType.LensAccount,
+			accepts: [EntityIdProjection.Identity, 'address', 'localName', 'legacyProfileId'],
 			resolve: async (entityId, context) => {
 				const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
 				const wire = await singleFlight(queryAccount)(
-					publicEnv,
+					context.publicEnv,
 					'address' in entityId ?
 						{
 							address: zeroExLowerCase(entityId.address),
@@ -132,14 +133,24 @@ const lensGraphqlResolvers = {
 					))(mediaFromUrl(pictureUrl, MediaType.Image)),
 				}
 			},
+			fields: {
+				address: (account) => account.address,
+				localName: (account) => account.localName,
+				displayName: (account) => account.displayName,
+				bio: (account) => account.bio,
+				createdAt: (account) => account.createdAt,
+				followerCount: (account) => account.followerCount,
+				followingCount: (account) => account.followingCount,
+				$icon: (account) => account.$icon,
+			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
 			entityType: EntityType.LensPost,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
-				const p = (await singleFlight(queryPost)(publicEnv, entityId.id)).post
+				const p = (await singleFlight(queryPost)(context.publicEnv, entityId.id)).post
 				if (p == null) throw new Error('Lens_Graphql: post not found')
 
 				if (p.__typename === 'Repost') {
@@ -203,46 +214,72 @@ const lensGraphqlResolvers = {
 					},
 				}
 			},
-		}),
-
-		defineEntityResolver({
-			entityType: EntityType.LensAccount_Timestamp,
-			resolve: async (entityId, context) => {
-				const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
-				if (!('address' in entityId.$account))
-					throw new Error('Lens_Graphql: LensAccount_Timestamp lookup id is unsupported')
-
-				const wire = await singleFlight(queryAccount)(publicEnv, { address: zeroExLowerCase(entityId.$account.address) })
-				if (wire.account == null) throw new Error('Lens_Graphql: account not found')
-				return lensAccountTimestampFieldsFromWire(wire)
+			fields: {
+				text: (post) => post.text,
+				timestamp: (post) => post.timestamp,
+				isEdited: (post) => post.isEdited,
+				isDeleted: (post) => post.isDeleted,
+				commentCount: (post) => post.commentCount,
+				repostCount: (post) => post.repostCount,
+				quoteCount: (post) => post.quoteCount,
+				bookmarkCount: (post) => post.bookmarkCount,
+				collectCount: (post) => post.collectCount,
+				reactionCount: (post) => post.reactionCount,
+				$commentOn: (post) => post.$commentOn,
+				$quoteOf: (post) => post.$quoteOf,
+				$repostOf: (post) => post.$repostOf,
+				$root: (post) => post.$root,
+				$author: (post) => post.$author,
 			},
 		}),
 
-		defineEntityResolver({
+		defineResolver({
+			entityType: EntityType.LensAccount_Timestamp,
+			accepts: [EntityIdProjection.Identity],
+			resolve: async (entityId, context) => {
+				const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
+				if (!('address' in entityId.$account))
+					throw new Error('Lens_Graphql: LensAccount_Timestamp lookup id is unsupported')
+
+				const wire = await singleFlight(queryAccount)(context.publicEnv, { address: zeroExLowerCase(entityId.$account.address) })
+				if (wire.account == null) throw new Error('Lens_Graphql: account not found')
+				return lensAccountTimestampFieldsFromWire(wire)
+			},
+			fields: {
+				followerCount: (timestamp) => timestamp.followerCount,
+				followingCount: (timestamp) => timestamp.followingCount,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.LensPost_Timestamp,
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
-				const p = (await singleFlight(queryPost)(publicEnv, entityId.$post.id)).post
+				const p = (await singleFlight(queryPost)(context.publicEnv, entityId.$post.id)).post
 				if (p == null) throw new Error('Lens_Graphql: post not found')
 				if (p.__typename !== 'Post') return {}
 				return lensPostTimestampFieldsFromWire(p)
 			},
+			fields: {
+				commentCount: (timestamp) => timestamp.commentCount,
+				repostCount: (timestamp) => timestamp.repostCount,
+				quoteCount: (timestamp) => timestamp.quoteCount,
+				bookmarkCount: (timestamp) => timestamp.bookmarkCount,
+				collectCount: (timestamp) => timestamp.collectCount,
+				reactionCount: (timestamp) => timestamp.reactionCount,
+			},
 		}),
-	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LensNetwork,
-			fieldName: '$$lensAccounts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 				return (
-					((await singleFlight(queryLatestPosts)(publicEnv, pageSize)).posts.items )
+					((await singleFlight(queryLatestPosts)(context.publicEnv, pageSize)).posts.items )
 						.flatMap((lensPost) => {
 							const address = lensPost.author.address
 							if (!/^0x[a-fA-F0-9]{40}$/.test(String(address))) return []
@@ -253,18 +290,20 @@ const lensGraphqlResolvers = {
 						})
 				)
 			},
+			fields: {
+				$$lensAccounts: (accounts) => accounts,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LensNetwork,
-			fieldName: '$$lensPosts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (_entityId, context) => {
 				const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 				return (
-					((await singleFlight(queryLatestPosts)(publicEnv, pageSize)).posts.items )
+					((await singleFlight(queryLatestPosts)(context.publicEnv, pageSize)).posts.items )
 						.flatMap((lensPost) => (
 							((postSlug) => (
 								postSlug != null ?
@@ -279,15 +318,17 @@ const lensGraphqlResolvers = {
 						))
 				)
 			},
+			fields: {
+				$$lensPosts: (posts) => posts,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LensPost,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
-				const p = (await singleFlight(queryPost)(publicEnv, entityId.id)).post
+				const p = (await singleFlight(queryPost)(context.publicEnv, entityId.id)).post
 				if (p == null) throw new Error('Lens_Graphql: post not found')
 				return [
 					{
@@ -299,18 +340,20 @@ const lensGraphqlResolvers = {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (timestamps) => timestamps,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LensPost,
-			fieldName: '$$comments',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { queryPostComments } = await import('$/sources/Lens/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 				return (
-					((await singleFlight(queryPostComments)(publicEnv, entityId.id, pageSize)).postReferences.items )
+					((await singleFlight(queryPostComments)(context.publicEnv, entityId.id, pageSize)).postReferences.items )
 						.flatMap((lensPost) => (
 							((postSlug) => (
 								postSlug != null ?
@@ -325,16 +368,18 @@ const lensGraphqlResolvers = {
 						))
 				)
 			},
+			fields: {
+				$$comments: (comments) => comments,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LensAccount,
-			fieldName: '$$timestamps',
+			accepts: [EntityIdProjection.Identity, 'address', 'localName', 'legacyProfileId'],
 			resolve: async (entityId, context) => {
 				const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
 				const wire = await singleFlight(queryAccount)(
-					publicEnv,
+					context.publicEnv,
 					'address' in entityId ?
 						{
 							address: zeroExLowerCase(entityId.address),
@@ -355,21 +400,23 @@ const lensGraphqlResolvers = {
 					},
 				]
 			},
+			fields: {
+				$$timestamps: (timestamps) => timestamps,
+			},
 		}),
 
-		defineEntityFieldResolver({
+		defineResolver({
 			entityType: EntityType.LensAccount,
-			fieldName: '$$posts',
+			accepts: [EntityIdProjection.Identity],
 			resolve: async (entityId, context) => {
 				const { queryPostsByAuthor } = await import('$/sources/Lens/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
 				if (!('address' in entityId))
 					throw new Error('Lens_Graphql: LensAccount.$$posts lookup id is unsupported')
 
-				const limit = resolverLoadSubsetRowLimit(context)
+				const limit = resolverContextRowLimit(context)
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 				return (
-					((await singleFlight(queryPostsByAuthor)(publicEnv, zeroExLowerCase(entityId.address), pageSize)).posts.items )
+					((await singleFlight(queryPostsByAuthor)(context.publicEnv, zeroExLowerCase(entityId.address), pageSize)).posts.items )
 						.flatMap((lensPost) => (
 							((postSlug) => (
 								postSlug != null ?
@@ -383,6 +430,9 @@ const lensGraphqlResolvers = {
 							))(lensAnyPostSlugFromWire(lensPost))
 						))
 				)
+			},
+			fields: {
+				$$posts: (posts) => posts,
 			},
 		}),
 	],

@@ -13,6 +13,12 @@ type WalletStandardRegisterWalletEvent = CustomEvent<{
 	register(wallet: WalletStandardWallet): void
 }>
 
+declare global {
+	interface WindowEventMap {
+		'wallet-standard:register-wallet': WalletStandardRegisterWalletEvent
+	}
+}
+
 export const createWalletStandardAdapter = (): WalletAdapter => ({
 	id: 'wallet-standard',
 	start: (updateCandidates) => {
@@ -40,7 +46,7 @@ export const createWalletStandardAdapter = (): WalletAdapter => ({
 			}))
 		)
 		const onRegisterWallet = (event: WalletStandardRegisterWalletEvent) => {
-			event.detail.register((wallet) => {
+			event.detail.register((wallet: WalletStandardWallet) => {
 				walletByName.set(wallet.name, wallet)
 				emitCandidates()
 			})

@@ -5,12 +5,15 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+
 	// State
 	let {
 		params,
 	} = $props()
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	const network = useEntity(
@@ -49,7 +52,9 @@
 						},
 						fieldName: '$$invoices',
 					}}
-					href={`/network/${params.networkSlug}/invoices`}
+						href={resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/invoices', {
+							networkSlug: params.networkSlug,
+						})}
 					id="invoices"
 				/>
 			{:else}

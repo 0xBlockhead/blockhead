@@ -12,6 +12,9 @@
 
 	// Context
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { resolve } from '$app/paths'
+
+
 	// State
 	let {
 		title = 'MEV-Boost deliveries',
@@ -107,9 +110,12 @@
 					{@const row = item.value}
 					{@const rowId = row[EntityMetaKey.Id]}
 					<MevRelay_ProposerPayloadDeliveredView
-						entityId={rowId}
-						href={`/network/${rowId.$network.caip2.namespace}:${rowId.$network.caip2.reference}`}
-						layout={EntityLayout.Summary}
+							entityId={rowId}
+							href={resolve('/(explore)/(networks)/network/[caip2Namespace=caip2Namespace]:[caip2Reference=caip2Reference]', {
+								caip2Namespace: rowId.$network.caip2.namespace,
+								caip2Reference: rowId.$network.caip2.reference,
+							})}
+							layout={EntityLayout.Summary}
 						open={false}
 					/>
 				{/snippet}

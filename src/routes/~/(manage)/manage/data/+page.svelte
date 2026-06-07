@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityMetaKey, entityFieldDefinitions } from '$/schema/$EntityDefinition.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { enabledSources } from '$/sources/index.ts'
@@ -27,7 +27,7 @@
 	const collectionEntityDefinitions: readonly CollectionEntityDefinition[] = schema.map((entityDefinition) => ({
 		entityType: entityDefinition.entityType,
 		label: entityDefinition.label,
-		fields: entityDefinition.fields.map((field) => ({
+		fields: entityFieldDefinitions(entityDefinition).map((field) => ({
 			name: field.name,
 		})),
 	}))
@@ -41,7 +41,7 @@
 
 	const fieldCaches: Record<string, CollectionCache> = Object.fromEntries(
 		schema.flatMap((entityDefinition) => (
-			entityDefinition.fields.map((field) => [
+			entityFieldDefinitions(entityDefinition).map((field) => [
 				`${entityDefinition.entityType}\0${field.name}`,
 				useCollectionCache(
 					inspectableEntityFieldCollections[entityDefinition.entityType][field.name],

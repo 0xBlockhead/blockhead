@@ -22,9 +22,9 @@ export const load: PageLoad = ({ params }) => {
 	}
 	return {
 		entityId: {
-			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
+			$network: { caip2: { namespace: 'eip155', reference: params.caip2Reference } },
 			txHash,
 			blobIndex,
-		},
+		} as const,
 	}
 }
