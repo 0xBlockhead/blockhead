@@ -46,7 +46,7 @@ import {
 	entityIdentityIdsFromFields,
 	EntityMetaKey,
 } from '$/schema/$EntityDefinition.ts'
-import { entityCollectionByEntityType, entityFieldCollections } from '$/routes/+layout.svelte'
+import { entityCollectionByEntityType, entityFieldCollections, entityFieldCountCollections } from '$/routes/+layout.svelte'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -68,6 +68,15 @@ type FieldRowsResource<_EntityType extends EntityType<typeof schema>> = RemoteRe
 		EntityFieldName<typeof schema, _EntityType>
 	>
 }[]>
+
+type EntityFieldCountRow = {
+	[EntityMetaKey.ParentId]: unknown
+	[EntityMetaKey.ParentIdKey]: string
+	[EntityMetaKey.Value]: number
+	[EntityMetaKey.Source]: Source
+	filterKey: string
+	fieldName: string
+}
 
 const partialRecordFromEntries = <_Key extends PropertyKey, _Value>(
 	entries: readonly (readonly [_Key, _Value])[],
@@ -102,6 +111,24 @@ const entityFieldCollectionFor = <
 				string | number
 			>
 		>
+	)[fieldName]
+)
+
+const entityFieldCountCollectionFor = <
+	_EntityType extends EntityType<typeof schema>,
+	_FieldName extends EntityFieldName<typeof schema, _EntityType>,
+>(
+	entityType: _EntityType,
+	fieldName: _FieldName,
+) => (
+	(
+		entityFieldCountCollections[entityType] as Partial<Record<
+			_FieldName,
+			Collection<
+				EntityFieldCountRow,
+				string | number
+			>
+		>>
 	)[fieldName]
 )
 
@@ -637,6 +664,71 @@ export const useEntity = <
 			}),
 		),
 	)
+	const fieldCountRowsResources = $derived(
+		partialRecordFromEntries(
+			selectedFieldEntries.flatMap(([fieldName, fieldSelection]) => {
+				const fieldDefinition = entityFieldDefinitionFor(entityType, fieldName)
+				const countCollection = entityFieldCountCollectionFor(
+					entityType,
+					fieldName,
+				)
+				return (
+					fieldSelection?.$count === true
+					&& (
+						fieldDefinition.cardinality === EntityFieldCardinality.Many
+						|| fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany
+					)
+					&& countCollection !== undefined ?
+						[[
+							fieldName,
+							useLiveQueryResource<{
+								countRow: EntityFieldCountRow
+							}>(
+								(queryBuilder) => {
+									const base = queryBuilder
+										.from({
+											countRow: countCollection,
+										})
+										.where(({ countRow }) => (
+											inArray(countRow[EntityMetaKey.ParentIdKey], fieldParentIdKeys)
+										))
+									return (
+										(fieldSourcesByName[fieldName] ?? []).length > 0 ?
+											base
+												.where(({ countRow }) => (
+													inArray(countRow[EntityMetaKey.Source], fieldSourcesByName[fieldName] ?? [])
+												))
+												.orderBy(({ countRow }) => (
+													(fieldSourcesByName[fieldName] ?? []).reduceRight<IR.BasicExpression<number> | number>(
+														(fallback, source, index) => (
+															caseWhen(
+																eq(countRow[EntityMetaKey.Source], source),
+																index,
+																fallback,
+															)
+														),
+														(fieldSourcesByName[fieldName] ?? []).length,
+													)
+												), 'asc')
+										:
+											base
+									)
+										.select(({ countRow }) => ({
+											countRow,
+										}))
+								},
+								[
+									() => stringify(fieldParentIdKeys),
+									() => stringify(fieldSourcesByName[fieldName] ?? []),
+								],
+							),
+						] as const]
+					:
+						[]
+				)
+			}),
+		),
+	)
 	const emptyAccum: {
 		entityRows: { entityRow: EntityCollectionItem<typeof schema, _EntityType> }[]
 		fieldRowsByField: Partial<Record<string, {
@@ -646,9 +738,11 @@ export const useEntity = <
 				EntityFieldName<typeof schema, _EntityType>
 			>
 		}[]>>
+		fieldCountByField: Partial<Record<string, number>>
 	} = {
 		entityRows: [],
 		fieldRowsByField: {},
+		fieldCountByField: {},
 	}
 	const mergedAccum = $derived.by(() => (
 		reduce<Partial<typeof emptyAccum>, typeof emptyAccum>(
@@ -671,6 +765,18 @@ export const useEntity = <
 							})),
 						]
 				)),
+				...selectedFieldEntries.flatMap(([fieldName]) => (
+					fieldCountRowsResources[fieldName] === undefined ?
+						[]
+					:
+						[
+							derive(fieldCountRowsResources[fieldName], (rows) => ({
+								fieldCountByField: {
+									[fieldName]: rows[0]?.countRow[EntityMetaKey.Value],
+								},
+							})),
+						]
+				)),
 			],
 			(
 				acc,
@@ -682,13 +788,17 @@ export const useEntity = <
 					...acc.fieldRowsByField,
 					...(part.fieldRowsByField ?? {}),
 				},
+				fieldCountByField: {
+					...acc.fieldCountByField,
+					...(part.fieldCountByField ?? {}),
+				},
 			}),
 			emptyAccum,
 		)
 	))
 
 	const mergedEntity = $derived.by(() => {
-		const { entityRows, fieldRowsByField } = mergedAccum.current ?? emptyAccum
+		const { entityRows, fieldRowsByField, fieldCountByField } = mergedAccum.current ?? emptyAccum
 
 		return {
 			[EntityMetaKey.Id]: entityId,
@@ -700,7 +810,24 @@ export const useEntity = <
 							fieldName,
 							fieldDefinition.cardinality === EntityFieldCardinality.Many
 							|| fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany ?
-								dedupeEntityReferenceManyField([
+								(
+									(values) => (
+										Object.assign(
+											values,
+											fieldCountByField[fieldName] !== undefined ?
+												{
+													totalCount: fieldCountByField[fieldName],
+												}
+											: (selection[fieldName]?.$count === true
+												&& (selection[fieldName]?.$limit ?? selection.$limit) === undefined) ?
+												{
+													totalCount: values.length,
+												}
+											:
+												{},
+										)
+									)
+								)(dedupeEntityReferenceManyField([
 									...entityRows.flatMap(({ entityRow }) => (
 										Array.isArray(entityRow[EntityMetaKey.Fields][fieldName]) ?
 											entityRow[EntityMetaKey.Fields][fieldName]
@@ -710,7 +837,7 @@ export const useEntity = <
 									...(fieldRowsByField[fieldName] ?? []).map(({ fieldRow }) => (
 										fieldRow[EntityMetaKey.Value]
 									)),
-								])
+								]))
 							:
 								[
 									...entityRows.map(({ entityRow }) => (

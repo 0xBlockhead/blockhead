@@ -42,6 +42,8 @@ const sourceFiles = (
 		.flatMap((entry) => (
 			entry.isDirectory() ?
 				sourceFiles(join(directory, entry.name))
+			: /\.(?:test|spec)\.ts$/.test(entry.name) ?
+				[]
 			: /\.(?:svelte|ts)$/.test(entry.name) ?
 				[join(directory, entry.name)]
 			:
@@ -94,6 +96,10 @@ describe('useEntity resolver architecture', () => {
 			join(srcPath, 'collections', '$queries.svelte.ts'),
 			'utf8',
 		)).toContain('orderByIrFromSteps')
+		expect(readFileSync(
+			join(srcPath, 'collections', '$queries.svelte.ts'),
+			'utf8',
+		)).toContain('fieldCountRowsResources')
 	})
 
 	it('does not retain field-specific resolver entry points or context compatibility aliases', () => {
@@ -139,6 +145,18 @@ describe('useEntity resolver architecture', () => {
 				))?.cardinality,
 			)
 		}
+	})
+
+	it('keeps count fields in the unified useEntity result with known-length fallback', () => {
+		const queryPipeline = readFileSync(
+			join(srcPath, 'collections', '$queries.svelte.ts'),
+			'utf8',
+		)
+
+		expect(queryPipeline).toContain('totalCount: fieldCountByField[fieldName]')
+		expect(queryPipeline).toContain('totalCount: values.length')
+		expect(queryPipeline).toContain('selection[fieldName]?.$count === true')
+		expect(queryPipeline).not.toMatch(/\bexport const useEntityField(?:Count)?\b/)
 	})
 
 	it('keeps conditional and live resolver registration explicit in the real registry', () => {
