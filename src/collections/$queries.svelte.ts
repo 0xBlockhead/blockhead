@@ -46,7 +46,7 @@ import {
 	entityIdentityIdsFromFields,
 	EntityMetaKey,
 } from '$/schema/$EntityDefinition.ts'
-import { entityCollectionByEntityType, entityFieldCollections, entityFieldCountCollections } from '$/routes/+layout.svelte'
+import { entityCollectionByEntityType, entityFieldCollections, entityFieldCountCollections } from '$/collections/$entityCollections.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
 

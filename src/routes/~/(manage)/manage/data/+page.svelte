@@ -55,7 +55,7 @@
 	import {
 		entityCollectionByEntityType,
 		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
+	} from '$/collections/$entityCollections.ts'
 
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>

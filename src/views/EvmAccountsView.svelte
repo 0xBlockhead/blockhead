@@ -18,7 +18,7 @@
 	import {
 		entityCollectionByEntityType,
 		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
+	} from '$/collections/$entityCollections.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 

@@ -16,7 +16,7 @@
 	import {
 		entityCollectionByEntityType,
 		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
+	} from '$/collections/$entityCollections.ts'
 
 
 	const inspectionRows = schema.map((entityDefinition) => (

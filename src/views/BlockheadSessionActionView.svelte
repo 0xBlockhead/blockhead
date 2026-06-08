@@ -13,7 +13,7 @@
 
 
 	// Context
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { entityCollectionByEntityType } from '$/collections/$entityCollections.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
