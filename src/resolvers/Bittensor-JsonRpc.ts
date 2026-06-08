@@ -46,15 +46,16 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.BittensorNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertBittensorMainnet(entityId)
 					return {
 						$network: {
 							[EntityMetaKey.Id]: entityId,
 						},
 					}
-				},
+				}
+			},
 			fields: {
 					$network: (network) => network.$network,
 				}
@@ -62,8 +63,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BittensorNetwork_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertBittensorMainnet(entityId.$network)
 					const {
 						getMainnetRpcUrl,
@@ -107,7 +108,8 @@ export default {
 						dynamicInfoByteLength: dynamicInfo.length,
 						metagraphsByteLength: metagraphs.length,
 					}
-				},
+				}
+			},
 			fields: {
 					finalizedBlockHash: (timestamp) => timestamp.finalizedBlockHash,
 					finalizedBlockNumber: (timestamp) => timestamp.finalizedBlockNumber,
@@ -126,8 +128,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BittensorBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertBittensorMainnet(entityId.$network)
 					const {
 						getMainnetRpcUrl,
@@ -157,7 +159,8 @@ export default {
 						extrinsicsRoot: block.block.header.extrinsicsRoot,
 						extrinsicCount: block.block.extrinsics.length,
 					}
-				},
+				}
+			},
 			fields: {
 					hash: (block) => block.hash,
 					$parent: (block) => block.$parent,
@@ -169,8 +172,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BittensorSubnet,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertBittensorMainnet(entityId.$network)
 					const {
 						getMainnetRpcUrl,
@@ -202,7 +205,8 @@ export default {
 						dynamicInfoByteLength: dynamicInfo.length,
 						hyperparamsByteLength: hyperparams.length,
 					}
-				},
+				}
+			},
 			fields: {
 					netuid: (subnet) => subnet.netuid,
 					subnetInfoByteLength: (subnet) => subnet.subnetInfoByteLength,
@@ -213,8 +217,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BittensorMetagraph_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertBittensorMainnet(entityId.$subnet.$network)
 					const {
 						getMainnetRpcUrl,
@@ -226,7 +230,8 @@ export default {
 							netuid: entityId.$subnet.netuid,
 						})).length,
 					}
-				},
+				}
+			},
 			fields: {
 					metagraphByteLength: (timestamp) => timestamp.metagraphByteLength,
 				}
@@ -234,13 +239,14 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BittensorNeuron,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertBittensorMainnet(entityId.$subnet.$network)
 					return {
 						uid: entityId.uid,
 					}
-				},
+				}
+			},
 			fields: {
 					uid: (neuron) => neuron.uid,
 				}
@@ -248,8 +254,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BittensorNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertBittensorMainnet(entityId)
 					return [
 						{
@@ -259,7 +265,8 @@ export default {
 							},
 						},
 					]
-				},
+				}
+			},
 			fields: {
 					$$timestamps: (timestamps) => timestamps,
 				}
@@ -267,8 +274,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BittensorNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 					assertBittensorMainnet(entityId)
 					const {
 						getMainnetRpcUrl,
@@ -296,7 +303,8 @@ export default {
 							}),
 						},
 					}))
-				},
+				}
+			},
 			fields: {
 					$$blocks: (blocks) => blocks,
 				}
@@ -304,8 +312,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BittensorNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertBittensorMainnet(entityId)
 					const {
 						getMainnetRpcUrl,
@@ -321,7 +329,8 @@ export default {
 							netuid,
 						},
 					}))
-				},
+				}
+			},
 			fields: {
 					$$subnets: (subnets) => subnets,
 				}
@@ -329,8 +338,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BittensorSubnet,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertBittensorMainnet(entityId.$network)
 					return [
 						{
@@ -340,7 +349,8 @@ export default {
 							},
 						},
 					]
-				},
+				}
+			},
 			fields: {
 					$$metagraphTimestamps: (timestamps) => timestamps,
 				}
@@ -348,11 +358,12 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BittensorSubnet,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertBittensorMainnet(entityId.$network)
 					return []
-				},
+				}
+			},
 			fields: {
 					$$neurons: (neurons) => neurons,
 				}

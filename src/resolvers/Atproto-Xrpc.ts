@@ -20,8 +20,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.AtprotoActor,
-			accepts: [EntityIdProjection.Identity, 'did'],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 				const profile = await singleFlight(getProfile)('did' in entityId ? entityId.did : entityId.handle)
 				const displayName = optionalNonemptyString(profile.displayName)
@@ -52,6 +52,38 @@ export default {
 					...(description != null && { description }),
 				}
 			},
+				['did']: async (entityId) => {
+				const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const profile = await singleFlight(getProfile)('did' in entityId ? entityId.did : entityId.handle)
+				const displayName = optionalNonemptyString(profile.displayName)
+				const description = optionalNonemptyString(profile.description)
+				const indexedAt = optionalTimestampMs(profile.indexedAt)
+				return {
+					did: profile.did,
+					...(displayName != null && { displayName }),
+					handle: profile.handle,
+					...((
+						iconMedia,
+					) => (
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
+					))(mediaFromUrl(profile.avatar, MediaType.Image)),
+					...((
+						bannerMedia,
+					) => (
+						bannerMedia != null && {
+							$banner: bannerMedia,
+						}
+					))(mediaFromUrl(profile.banner, MediaType.Image)),
+					...(profile.followersCount != null && { followersCount: profile.followersCount }),
+					...(profile.followsCount != null && { followsCount: profile.followsCount }),
+					...(profile.postsCount != null && { postsCount: profile.postsCount }),
+					...(indexedAt != null && { indexedAt }),
+					...(description != null && { description }),
+				}
+			}
+			},
 			fields: {
 			did: (actor) => actor.did,
 			displayName: (actor) => actor.displayName,
@@ -68,8 +100,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.AtprotoPost,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 				const postView = (await singleFlight(getPosts)([entityId.uri])).posts.at(0)
 				if (postView == null) throw new Error('Atproto_Xrpc: post not found')
@@ -98,6 +130,7 @@ export default {
 					...(parentUri != null && { $parent: { [EntityMetaKey.Id]: { uri: parentUri } } }),
 					...(rootUri != null && { $root: { [EntityMetaKey.Id]: { uri: rootUri } } }),
 				}
+			}
 			},
 			fields: {
 			$author: (post) => post.$author,
@@ -117,8 +150,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.AtprotoActor_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				if (!('did' in entityId.$actor))
 					throw new Error('Atproto_Xrpc: AtprotoActor_Timestamp handle lookup is unsupported')
 
@@ -129,6 +162,7 @@ export default {
 					...(profile.followsCount != null && { followsCount: profile.followsCount }),
 					...(profile.postsCount != null && { postsCount: profile.postsCount }),
 				}
+			}
 			},
 			fields: {
 			followersCount: (timestamp) => timestamp.followersCount,
@@ -139,8 +173,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.AtprotoPost_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 				const postView = (await singleFlight(getPosts)([entityId.$post.uri])).posts.at(0)
 				if (postView == null) throw new Error('Atproto_Xrpc: post not found')
@@ -150,6 +184,7 @@ export default {
 					...(postView.replyCount != null && { replyCount: postView.replyCount }),
 					...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
 				}
+			}
 			},
 			fields: {
 			likeCount: (timestamp) => timestamp.likeCount,
@@ -161,8 +196,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.AtprotoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { searchActorsTypeahead } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				const refs: { [EntityMetaKey.Id]: { did: string } }[] = [
@@ -185,6 +220,7 @@ export default {
 						}),
 				]
 				return refs.slice(0, limit)
+			}
 			},
 			fields: {
 			$$atprotoActors: (actors) => actors,
@@ -193,9 +229,10 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.AtprotoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				throw new Error('Atproto_Xrpc: $$atprotoPosts is unsupported; use $$atprotoActors and AtprotoActor.$$posts')
+			}
 			},
 			fields: {
 			$$atprotoPosts: (posts) => posts,
@@ -204,8 +241,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.AtprotoActor,
-			accepts: [EntityIdProjection.Identity, 'did'],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				if (!('did' in entityId))
 					throw new Error('Atproto_Xrpc: AtprotoActor.$$timestamps handle lookup is unsupported')
 
@@ -225,6 +262,27 @@ export default {
 					},
 				]
 			},
+				['did']: async (entityId) => {
+				if (!('did' in entityId))
+					throw new Error('Atproto_Xrpc: AtprotoActor.$$timestamps handle lookup is unsupported')
+
+				const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const profile = await singleFlight(getProfile)(entityId.did)
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$actor: {
+								did: profile.did,
+							},
+							timestampMs: Date.now(),
+						},
+						...(profile.followersCount != null && { followersCount: profile.followersCount }),
+						...(profile.followsCount != null && { followsCount: profile.followsCount }),
+						...(profile.postsCount != null && { postsCount: profile.postsCount }),
+					},
+				]
+			}
+			},
 			fields: {
 			$$timestamps: (timestamps) => timestamps,
 		}
@@ -232,8 +290,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.AtprotoActor,
-			accepts: [EntityIdProjection.Identity, 'did'],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (!('did' in entityId))
 					throw new Error('Atproto_Xrpc: AtprotoActor.$$posts handle lookup is unsupported')
 
@@ -252,6 +310,26 @@ export default {
 						})
 				)
 			},
+				['did']: async (entityId, context) => {
+				if (!('did' in entityId))
+					throw new Error('Atproto_Xrpc: AtprotoActor.$$posts handle lookup is unsupported')
+
+				const { getAuthorFeed } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const limit = resolverContextRowLimit(context)
+				const { feed } = await singleFlight(getAuthorFeed)({
+					actor: entityId.did,
+					limit,
+					includePins: true,
+				})
+				return (
+					feed
+						.flatMap((feedItem) => {
+							if (feedItem.post.author.did !== entityId.did) return []
+							return [{ [EntityMetaKey.Id]: { uri: feedItem.post.uri } }]
+						})
+				)
+			}
+			},
 			fields: {
 			$$posts: (posts) => posts,
 		}
@@ -259,8 +337,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.AtprotoPost,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 				const postView = (await singleFlight(getPosts)([entityId.uri])).posts.at(0)
 				if (postView == null) throw new Error('Atproto_Xrpc: post not found')
@@ -276,6 +354,7 @@ export default {
 						...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
 					},
 				]
+			}
 			},
 			fields: {
 			$$timestamps: (timestamps) => timestamps,
@@ -284,8 +363,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.AtprotoPost,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 					const { getPostThread } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					const { thread } = await singleFlight(getPostThread)(entityId.uri)
@@ -318,6 +397,7 @@ export default {
 				}
 				walkReplies(thread)
 				return [...ancestors, ...descendants].slice(0, limit)
+			}
 			},
 			fields: {
 			$$thread: (thread) => thread,

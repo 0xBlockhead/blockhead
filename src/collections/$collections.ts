@@ -336,9 +336,24 @@ const subsetFilterEntityId = (value: unknown): unknown => (
 
 const entityDefinitionAcceptsEntityId = (
 	entityDefinition: EntityDefinition,
-	accepts: readonly string[],
+	projectionNames: readonly string[],
 	entityId: unknown,
-) => accepts.includes(entityIdProjectionNameForId(entityDefinition, entityId) ?? '')
+) => projectionNames.includes(entityIdProjectionNameForId(entityDefinition, entityId) ?? '')
+
+const resolverProjectionNameForEntityId = (
+	entityDefinition: EntityDefinition,
+	resolver: SourceResolverDefinition,
+	entityId: unknown,
+) => {
+	const projectionName = entityIdProjectionNameForId(entityDefinition, entityId)
+	return (
+		projectionName != null
+		&& resolver.resolve[projectionName] != null ?
+			projectionName
+		:
+			undefined
+	)
+}
 
 /**
  * `persistOnDemandSubsets` short-circuits warm-reload `loadSubset` calls when OPFS rows
@@ -1411,31 +1426,37 @@ const createEntityCollection = <
 										resolverDefinitions
 											.filter((resolver) => (
 												sources.has(resolver.source)
-												&& entityDefinitionAcceptsEntityId(
+												&& resolverProjectionNameForEntityId(
 													entityDefinition,
-													resolver.accepts,
+													resolver,
 													entityId,
-												)
+												) != null
 											))
 									:
 										resolverDefinitions.filter((resolver) => (
-											entityDefinitionAcceptsEntityId(
+											resolverProjectionNameForEntityId(
 												entityDefinition,
-												resolver.accepts,
+												resolver,
 												entityId,
-											)
+											) != null
 										))
 								)
 
 								const settled = await Promise.allSettled(
 									resolvers
 										.map(async (resolver) => {
+											const projectionName = resolverProjectionNameForEntityId(
+												entityDefinition,
+												resolver,
+												entityId,
+											)!
 											const context = resolverContextFromSubset(
 												subsetBase,
 												resolver.source,
 											)
 											const snapshot = await resolveSnapshot(
 												resolver,
+												projectionName,
 												entityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
 												context,
 												queryClient,
@@ -1629,12 +1650,21 @@ const createEntityFieldCollection = <
 
 		const entitySettled = await Promise.allSettled(
 			resolverDefinitions.map(async (resolver) => {
+				const projectionName = resolverProjectionNameForEntityId(
+					entityDefinition,
+					resolver,
+					parentEntityId,
+				)
+				if (projectionName == null)
+					return undefined
+
 				const context = resolverContextFromSubset(
 					subsetBase,
 					resolver.source,
 				)
 				const snapshot = await resolveSnapshot(
 					resolver,
+					projectionName,
 					parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
 					context,
 					queryClient,
@@ -1672,6 +1702,11 @@ const createEntityFieldCollection = <
 					resolverPart.entityType === entityType
 					&& resolverPart.fieldName === fieldName
 					&& resolverPart.select != null
+					&& resolverProjectionNameForEntityId(
+						entityDefinition,
+						resolverPart.resolver,
+						parentEntityId,
+					) != null
 				))
 				.map(async (resolverPart) => {
 					const context = resolverContextFromSubset(
@@ -1680,6 +1715,11 @@ const createEntityFieldCollection = <
 					)
 					const snapshot = await resolveSnapshot(
 						resolverPart.resolver,
+						resolverProjectionNameForEntityId(
+							entityDefinition,
+							resolverPart.resolver,
+							parentEntityId,
+						)!,
 						parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
 						context,
 						queryClient,
@@ -1907,7 +1947,7 @@ const createEntityFieldCollection = <
 												sources.has(resolverPart.source)
 												&& entityDefinitionAcceptsEntityId(
 													entityDefinition,
-													resolverPart.acceptsParent ?? resolverPart.resolver.accepts,
+													resolverPart.parentSelectors ?? Object.keys(resolverPart.resolver.resolve),
 													parentEntityId,
 												)
 											))
@@ -1915,7 +1955,7 @@ const createEntityFieldCollection = <
 											resolverValueParts.filter((resolverPart) => (
 												entityDefinitionAcceptsEntityId(
 													entityDefinition,
-													resolverPart.acceptsParent ?? resolverPart.resolver.accepts,
+													resolverPart.parentSelectors ?? Object.keys(resolverPart.resolver.resolve),
 													parentEntityId,
 												)
 											))
@@ -1931,6 +1971,11 @@ const createEntityFieldCollection = <
 												const value = resolverPart.select!(
 													await resolveSnapshot(
 														resolverPart.resolver,
+														resolverProjectionNameForEntityId(
+															entityDefinition,
+															resolverPart.resolver,
+															parentEntityId,
+														)!,
 														parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
 														context,
 														queryClient,
@@ -2207,7 +2252,7 @@ const createEntityFieldCountCollection = <
 												sources.has(resolverPart.source)
 												&& entityDefinitionAcceptsEntityId(
 													entityDefinition,
-													resolverPart.acceptsParent ?? resolverPart.resolver.accepts,
+													resolverPart.parentSelectors ?? Object.keys(resolverPart.resolver.resolve),
 													parentEntityId,
 												)
 											))
@@ -2215,7 +2260,7 @@ const createEntityFieldCountCollection = <
 											resolverCountParts.filter((resolverPart) => (
 												entityDefinitionAcceptsEntityId(
 													entityDefinition,
-													resolverPart.acceptsParent ?? resolverPart.resolver.accepts,
+													resolverPart.parentSelectors ?? Object.keys(resolverPart.resolver.resolve),
 													parentEntityId,
 												)
 											))
@@ -2232,6 +2277,11 @@ const createEntityFieldCountCollection = <
 											const count = resolverPart.resolveCount!(
 												await resolveSnapshot(
 													resolverPart.resolver,
+													resolverProjectionNameForEntityId(
+														entityDefinition,
+														resolverPart.resolver,
+														parentEntityId,
+													)!,
 													parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
 													context,
 													queryClient,
@@ -2300,6 +2350,7 @@ const createEntityFieldCountCollection = <
 
 const resolverSnapshotQueryKey = (
 	resolver: SourceResolverDefinition,
+	projectionName: string,
 	entityId: unknown,
 	context: ResolverContext,
 ) => [
@@ -2313,6 +2364,7 @@ const resolverSnapshotQueryKey = (
 
 		return ordinal
 	})(),
+	projectionName,
 	stringify(entityId),
 	stringify({
 		Filters: context.Filters,
@@ -2326,17 +2378,19 @@ const resolverSnapshotQueryKey = (
 
 const resolveSnapshot = (
 	resolver: SourceResolverDefinition,
+	projectionName: string,
 	entityId: EntityId<typeof appSchema, EntityType<typeof appSchema>>,
 	context: ResolverContext,
 	queryClient: QueryClient,
 ) => queryClient.fetchQuery({
 	queryKey: resolverSnapshotQueryKey(
 		resolver,
+		projectionName,
 		entityId,
 		context,
 	),
 	queryFn: async () => (
-		await resolver.resolve(
+		await resolver.resolve[projectionName]!(
 			entityId,
 			context,
 		)

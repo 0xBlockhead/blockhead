@@ -66,8 +66,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.EnsName,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				const normalizedName = ensToString(ensNormalizeNode(entityId.name))
 				const matchingEnsDomain = (
@@ -171,6 +171,7 @@ export default {
 						registrationExpiryDate: registrationExpiryDateBigInt,
 					}),
 				}
+			}
 			},
 				fields: {
 					name: (ensName) => ensName.name,
@@ -201,18 +202,19 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EnsSearch,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				normalizedEnsSearchQuery(entityId.query)
 				return {}
+			}
 			},
 				fields: {},
 		}),
 
 		defineResolver({
 			entityType: EntityType.EvmAccount,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getDomainsByOwner } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				return (
 					(await singleFlight(getDomainsByOwner)({
@@ -230,6 +232,7 @@ export default {
 								[]
 						))
 				)
+			}
 			},
 				fields: {
 					$$ensNamesOwned: (ensNamesOwned) => ensNamesOwned,
@@ -238,8 +241,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EnsSearch,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getDomainsContaining } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				const query = normalizedEnsSearchQuery(entityId.query)
@@ -260,6 +263,7 @@ export default {
 								[]
 						))
 				)
+			}
 			},
 			fields: {
 			$$ensNames: (ensNames) => ensNames,

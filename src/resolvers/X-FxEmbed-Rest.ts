@@ -21,8 +21,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.XUser,
-			accepts: [EntityIdProjection.Identity, 'id'],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const response = await singleFlight(getUser)('id' in entityId ? entityId.id : entityId.username)
 				const user = response.user
@@ -70,6 +70,55 @@ export default {
 					))(mediaFromUrl(user.avatar_url ?? undefined, MediaType.Image)),
 				}
 			},
+				['id']: async (entityId) => {
+				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const response = await singleFlight(getUser)('id' in entityId ? entityId.id : entityId.username)
+				const user = response.user
+				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
+				const createdAt = Date.parse(user.joined ?? '')
+				const websiteUrl = (
+					((urlString) => (
+						urlString == null ?
+							undefined
+						:
+							(
+								(parsed) => (
+									parsed instanceof type.errors ?
+										undefined
+									:
+										parsed
+								)
+							)(UrlString(urlString))
+					))(optionalNonemptyString(user.url))
+				)
+				const username = optionalNonemptyString(user.screen_name)
+				const name = optionalNonemptyString(user.name)
+				const description = optionalNonemptyString(user.description)
+				const location = optionalNonemptyString(user.location)
+				return {
+					id: user.id,
+					...(username != null && { username }),
+					...(name != null && { name }),
+					...(description != null && { description }),
+					...(location != null && { location }),
+					...(user.verification?.verified != null && {
+						verified: user.verification.verified,
+					}),
+					...(Number.isFinite(createdAt) && { createdAt }),
+					...(websiteUrl != null && { websiteUrl }),
+					...(user.followers != null && { followerCount: user.followers }),
+					...(user.following != null && { followingCount: user.following }),
+					...(user.statuses != null && { tweetCount: user.statuses }),
+					...((
+						iconMedia,
+					) => (
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
+					))(mediaFromUrl(user.avatar_url ?? undefined, MediaType.Image)),
+				}
+			}
+			},
 			fields: {
 			id: (snapshot) => snapshot.id,
 			username: (snapshot) => snapshot.username,
@@ -88,8 +137,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.XPost,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const response = await singleFlight(getStatus)(entityId.id)
 				const status = response.status
@@ -135,6 +184,7 @@ export default {
 							}
 					),
 				}
+			}
 			},
 			fields: {
 			text: (snapshot) => snapshot.text,
@@ -152,8 +202,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.XUser_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				if (!('id' in entityId.$user))
 					throw new Error('X_FxEmbed_Rest: XUser_Timestamp username lookup is unsupported')
@@ -165,6 +215,7 @@ export default {
 					followingCount: user.following,
 					tweetCount: user.statuses,
 				}
+			}
 			},
 			fields: {
 			followerCount: (snapshot) => snapshot.followerCount,
@@ -175,8 +226,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.XPost_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const status = (await singleFlight(getStatus)(entityId.$post.id)).status
 				if (status?.type !== 'status' || status.id == null) {
@@ -188,6 +239,7 @@ export default {
 					replyCount: status.replies,
 					quoteCount: status.quotes,
 				}
+			}
 			},
 			fields: {
 			likeCount: (snapshot) => snapshot.likeCount,
@@ -199,8 +251,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.XNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				const statusSearchResponse = await singleFlight(searchStatuses)(limit)
@@ -214,6 +266,7 @@ export default {
 							}]
 						})
 				)
+			}
 			},
 			fields: {
 			$$xUsers: (snapshot) => snapshot,
@@ -222,8 +275,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.XNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
@@ -237,6 +290,7 @@ export default {
 								[]
 						))
 				)
+			}
 			},
 			fields: {
 			$$xPosts: (snapshot) => snapshot,
@@ -245,8 +299,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.XPost,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const status = (await singleFlight(getStatus)(entityId.id)).status
 				if (status?.type !== 'status' || status.id == null) {
@@ -264,6 +318,7 @@ export default {
 						quoteCount: status.quotes,
 					},
 				]
+			}
 			},
 			fields: {
 			$$timestamps: (snapshot) => snapshot,
@@ -272,8 +327,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.XUser,
-			accepts: [EntityIdProjection.Identity, 'id'],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const user = (await singleFlight(getUser)('id' in entityId ? entityId.id : entityId.username)).user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
@@ -291,6 +346,25 @@ export default {
 					},
 				]
 			},
+				['id']: async (entityId) => {
+				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const user = (await singleFlight(getUser)('id' in entityId ? entityId.id : entityId.username)).user
+				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$user: {
+								id: user.id,
+							},
+							timestampMs: Date.now(),
+						},
+						followerCount: user.followers,
+						followingCount: user.following,
+						tweetCount: user.statuses,
+					},
+				]
+			}
+			},
 			fields: {
 			$$timestamps: (snapshot) => snapshot,
 		}
@@ -298,8 +372,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.XUser,
-			accepts: [EntityIdProjection.Identity, 'id'],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
@@ -313,6 +387,22 @@ export default {
 								[]
 						))
 				)
+			},
+				['id']: async (entityId, context) => {
+				const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const limit = resolverContextRowLimit(context)
+				return (
+					((await singleFlight(getUserStatuses)('id' in entityId ? entityId.id : entityId.username, limit)).results ?? [])
+						.flatMap((wirePost) => (
+							wirePost.type === 'status' && wirePost.id != null ?
+								[{
+									[EntityMetaKey.Id]: { id: wirePost.id },
+								}]
+							:
+								[]
+						))
+				)
+			}
 			},
 			fields: {
 			$$posts: (snapshot) => snapshot,

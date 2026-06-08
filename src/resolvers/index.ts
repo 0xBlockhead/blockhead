@@ -274,16 +274,16 @@ const entityIdProjectionNamesByEntityType = Object.fromEntries(
 )
 
 for (const resolver of resolverDefinitions) {
-	for (const acceptedProjectionName of resolver.accepts) {
-		if (!entityIdProjectionNamesByEntityType[resolver.entityType]?.has(acceptedProjectionName))
-			throw new Error(`${resolver.source}:${resolver.entityType} references unknown id projection ${acceptedProjectionName}`)
+	for (const projectionName of Object.keys(resolver.resolve)) {
+		if (!entityIdProjectionNamesByEntityType[resolver.entityType]?.has(projectionName))
+			throw new Error(`${resolver.source}:${resolver.entityType} references unknown id projection ${projectionName}`)
 	}
 
 	for (const [fieldName, fieldSelector] of Object.entries(resolver.fields)) {
 		if (fieldSelector == null || typeof fieldSelector === 'function')
 			continue
 
-		for (const acceptedParentProjectionName of fieldSelector.acceptsParent ?? []) {
+		for (const acceptedParentProjectionName of fieldSelector.parentSelectors ?? []) {
 			if (!entityIdProjectionNamesByEntityType[resolver.entityType]?.has(acceptedParentProjectionName))
 				throw new Error(`${resolver.source}:${resolver.entityType}.${fieldName} references unknown parent id projection ${acceptedParentProjectionName}`)
 		}

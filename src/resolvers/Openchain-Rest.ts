@@ -12,14 +12,15 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.EvmSelector,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getFunctionEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
 					signatures: (await singleFlight(getFunctionEntries)({ hex: entityId.hex })).map(
 						(signatureEntry) => signatureEntry.name,
 					),
 				}
+			}
 			},
 			fields: {
 			signatures: (snapshot) => snapshot.signatures,
@@ -28,14 +29,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmTopic,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getEventEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
 					signatures: (await singleFlight(getEventEntries)({ hex: entityId.hex })).map(
 						(signatureEntry) => signatureEntry.name,
 					),
 				}
+			}
 			},
 			fields: {
 			signatures: (snapshot) => snapshot.signatures,
@@ -44,14 +46,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmError,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getErrorEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
 					signatures: (await singleFlight(getErrorEntries)({ hex: entityId.hex })).map(
 						(signatureEntry) => signatureEntry.name,
 					),
 				}
+			}
 			},
 			fields: {
 			signatures: (snapshot) => snapshot.signatures,

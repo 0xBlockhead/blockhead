@@ -17,8 +17,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.LiquidityPool,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
 				const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 
@@ -77,6 +77,7 @@ export default {
 					...(latestDexPair.txns?.h24.buys != null && { transactionBuys24h: latestDexPair.txns.h24.buys }),
 					...(latestDexPair.txns?.h24.sells != null && { transactionSells24h: latestDexPair.txns.h24.sells }),
 				}
+			}
 			},
 			fields: {
 			$baseToken: (snapshot) => snapshot.$baseToken,
@@ -101,8 +102,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.LiquidityPool_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
 				const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 
@@ -134,6 +135,7 @@ export default {
 					...(latestDexPair.fdv != null && { fdvUsd: latestDexPair.fdv }),
 					transport: 'Dexscreener OpenAPI',
 				}
+			}
 			},
 			fields: {
 			priceUsd: (snapshot) => snapshot.priceUsd,
@@ -151,8 +153,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { numericChainIdByDexscreenerApiChainLabel } = await import(
 					'$/sources/Dexscreener/OpenApi/constants.ts',
 				)
@@ -195,6 +197,7 @@ export default {
 					throw new Error('Dexscreener_OpenApi: pair search "WETH USDC uniswap" returned no liquidity pools')
 
 				return liquidityPools.slice(0, resolverContextRowLimit(context))
+			}
 			},
 			fields: {
 			$$liquidityPools: (snapshot) => snapshot,
@@ -203,8 +206,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.LiquidityPool,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => [
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => [
 				{
 					[EntityMetaKey.Id]: {
 						$liquidityPool: entityId,
@@ -212,7 +215,8 @@ export default {
 						feedKey: 'dexscreener',
 					},
 				},
-			],
+			]
+			},
 			fields: {
 			$$timestamps: (snapshot) => snapshot,
 		}
@@ -220,10 +224,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.LiquidityPool_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => ({
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => ({
 				[EntityMetaKey.Id]: entityId.$liquidityPool,
-			}),
+			})
+			},
 			fields: {
 			$parentLiquidityPool: (snapshot) => snapshot,
 		}

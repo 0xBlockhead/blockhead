@@ -98,8 +98,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.FilecoinNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId)
 				return {
 					$network: {
@@ -113,6 +113,7 @@ export default {
 						},
 					],
 				}
+			}
 			},
 			fields: {
 			$network: (network) => network.$network,
@@ -122,8 +123,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinNetwork_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const {
 					getHead,
@@ -164,6 +165,7 @@ export default {
 						totalQualityAdjustedPower: BigInt(power.TotalPower.QualityAdjPower),
 					}),
 				}
+			}
 			},
 			fields: {
 			headHeight: (timestamp) => timestamp.headHeight,
@@ -181,8 +183,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinTipset,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getTipSetByHeight } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 				const tipset = await getTipSetByHeight({
@@ -206,6 +208,7 @@ export default {
 						tipset,
 					),
 				}
+			}
 			},
 			fields: {
 			$parent: (tipset) => tipset.$parent,
@@ -217,8 +220,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 				const head = await getHead({ rpcUrl: lotusRpcUrl })
@@ -228,6 +231,7 @@ export default {
 				).find((sector) => sector[EntityMetaKey.Id].cid === entityId.cid)
 				if (block == null) throw new Error(`Lotus_JsonRpc: block not found for ${entityId.cid}`)
 				return block
+			}
 			},
 			fields: {
 			$tipset: (block) => block.$tipset,
@@ -239,13 +243,14 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinSector,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const sector = (await sectorRows(entityId.$miner)).find((sector) => (
 					sector[EntityMetaKey.Id].sectorNumber === entityId.sectorNumber
 				))
 				if (sector == null) throw new Error(`Lotus_JsonRpc: sector not found for ${entityId.$miner.minerAddress}:${entityId.sectorNumber.toString()}`)
 				return sector
+			}
 			},
 			fields: {
 			sealedCid: (sector) => sector.sealedCid,
@@ -256,8 +261,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinActor,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getActor } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 				const actor = await getActor({
@@ -269,6 +274,7 @@ export default {
 					nonce: BigInt(actor.Nonce),
 					balanceAttoFil: BigInt(actor.Balance),
 				}
+			}
 			},
 			fields: {
 			actorCodeCid: (actor) => actor.actorCodeCid,
@@ -279,8 +285,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId)
 				return [
 					{
@@ -289,6 +295,7 @@ export default {
 						providerName: 'GLIF',
 					},
 				]
+			}
 			},
 			fields: {
 			rpcEndpoints: (rpcEndpoints) => rpcEndpoints,
@@ -297,8 +304,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId)
 				const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 				const head = await getHead({ rpcUrl: lotusRpcUrl })
@@ -314,6 +321,7 @@ export default {
 						head,
 					),
 				}
+			}
 			},
 			fields: {
 			$headTipset: (headTipset) => headTipset,
@@ -322,8 +330,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId)
 				return [
 					{
@@ -333,6 +341,7 @@ export default {
 						},
 					},
 				]
+			}
 			},
 			fields: {
 			$$timestamps: (timestamps) => timestamps,
@@ -341,14 +350,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId)
 				const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 				return minerRows(
 					entityId,
 					await getHead({ rpcUrl: lotusRpcUrl }),
 				)
+			}
 			},
 			fields: {
 			$$headMiners: (headMiners) => headMiners,
@@ -357,8 +367,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertFilecoinMainnet(entityId)
 				const {
 					getTipSetByHeight,
@@ -393,6 +403,7 @@ export default {
 						),
 					}
 				}))
+			}
 			},
 			fields: {
 			$$tipsets: (tipsets) => tipsets,
@@ -401,8 +412,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinTipset,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getTipSetByHeight } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 				return blockRows(
@@ -412,6 +423,7 @@ export default {
 						height: entityId.height,
 					}),
 				)
+			}
 			},
 			fields: {
 			$$blocks: (blocks) => blocks,
@@ -420,13 +432,14 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinMiner,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => (
 				(await sectorRows(entityId)).slice(
 					0,
 					resolverContextRowLimit(context),
 				)
-			),
+			)
+			},
 			fields: {
 			$$sectors: (sectors) => sectors,
 		}

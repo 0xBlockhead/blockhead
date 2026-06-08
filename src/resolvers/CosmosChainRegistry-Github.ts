@@ -64,8 +64,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.Network,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertCosmosRegistryNetwork(entityId)
 				const { getChain } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
 				const chain = await getChain({
@@ -77,6 +77,7 @@ export default {
 					environment: NetworkEnvironment.Mainnet,
 					...(iconMedia != null && { $icon: iconMedia }),
 				}
+			}
 			},
 			fields: {
 			name: (snapshot) => snapshot.name,
@@ -87,8 +88,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.AssetInstance,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertCosmosRegistryNetwork(entityId.$network)
 				if (entityId.kind !== AssetInstanceKind.Denom) throw new Error('CosmosChainRegistry_Github: only denom asset instances are supported')
 				const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
@@ -97,6 +98,7 @@ export default {
 				})).assets.find((registryAsset) => registryAsset.base === entityId.assetKey)
 				if (asset == null) throw new Error(`CosmosChainRegistry_Github: asset not found for ${entityId.assetKey}`)
 				return assetInstanceFields(asset)
+			}
 			},
 			fields: {
 			name: (snapshot) => snapshot.name,
@@ -107,8 +109,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Network,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertCosmosRegistryNetwork(entityId)
 				const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
 				return assetInstanceRows(
@@ -117,6 +119,7 @@ export default {
 						chainName: chainNameForNetwork(entityId),
 					}),
 				)
+			}
 			},
 			fields: {
 			$$nativeAssets: (snapshot) => snapshot,

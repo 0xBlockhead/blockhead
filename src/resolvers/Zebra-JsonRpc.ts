@@ -42,8 +42,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertZcashMainnet(entityId.$network)
 				const {
 					getBlock,
@@ -101,6 +101,7 @@ export default {
 							}
 					)),
 				}
+			}
 			},
 			fields: {
 			hash: (snapshot) => snapshot.hash,
@@ -118,8 +119,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const transaction = await getTransaction(entityId)
 				return {
 					version: transaction.version,
@@ -178,6 +179,7 @@ export default {
 						}
 					)),
 				}
+			}
 			},
 			fields: {
 			version: (snapshot) => snapshot.version,
@@ -193,8 +195,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoInput,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const input = (await getTransaction(entityId.$transaction)).vin[entityId.inputIndex]
 				return {
 					[EntityMetaKey.Id]: {
@@ -223,6 +225,7 @@ export default {
 						witness: input.txinwitness,
 					}),
 				}
+			}
 			},
 			fields: {
 			$spentOutput: (snapshot) => snapshot.$spentOutput,
@@ -235,8 +238,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoOutput,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const output = (await getTransaction(entityId.$transaction)).vout[entityId.outputIndex]
 				return {
 					[EntityMetaKey.Id]: {
@@ -256,6 +259,7 @@ export default {
 						},
 					}),
 				}
+			}
 			},
 			fields: {
 			valueSats: (snapshot) => snapshot.valueSats,

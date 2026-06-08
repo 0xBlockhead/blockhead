@@ -27,8 +27,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertHyperliquidMainnet(entityId)
 				return {
 					$network: {
@@ -36,6 +36,7 @@ export default {
 					},
 					rpcEndpoints: [...hyperliquidMainnetRpcEndpoints],
 				}
+			}
 			},
 			fields: {
 			$network: (snapshot) => snapshot.$network,
@@ -45,8 +46,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.HyperliquidBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertHyperliquidMainnet(entityId.$network)
 				if (!('height' in entityId))
 					throw new Error('Hyperliquid_JsonRpc: HyperliquidBlock hash lookup is unsupported')
@@ -85,6 +86,7 @@ export default {
 						}),
 					})),
 				}
+			}
 			},
 			fields: {
 			hash: (snapshot) => snapshot.hash,
@@ -95,8 +97,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.HyperliquidTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertHyperliquidMainnet(entityId.$network)
 				const {
 					getTransactionByHash,
@@ -133,6 +135,7 @@ export default {
 						status: receipt.status === '0x1' ? 'success' : 'failed',
 					}),
 				}
+			}
 			},
 			fields: {
 			$block: (snapshot) => snapshot.$block,
@@ -144,8 +147,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertHyperliquidMainnet(entityId)
 				const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 				const headBlockHeight = hexToBigInt(await getBlockNumber({
@@ -162,6 +165,7 @@ export default {
 						height: headBlockHeight - BigInt(blockOffset),
 					},
 				}))
+			}
 			},
 			fields: {
 			$$blocks: (snapshot) => snapshot,
@@ -170,8 +174,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertHyperliquidMainnet(entityId)
 				const {
 					getBlockByNumber,
@@ -222,6 +226,7 @@ export default {
 						})) ?? []
 					))
 					.slice(0, resolverContextRowLimit(context))
+			}
 			},
 			fields: {
 			$$transactions: (snapshot) => snapshot,

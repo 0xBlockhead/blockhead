@@ -61,7 +61,7 @@ type FieldSelectorObject<
 	_EntityType extends EntityType<_Schema>,
 	_Snapshot,
 > = {
-	acceptsParent?: readonly EntityIdProjectionName[]
+	parentSelectors?: readonly EntityIdProjectionName[]
 	select?: (
 		snapshot: _Snapshot,
 		entityId: EntityId<_Schema, _EntityType>,
@@ -96,11 +96,10 @@ export type ResolverDefinition<
 	_Snapshot,
 > = {
 	entityType: _EntityType
-	accepts: readonly EntityIdProjectionName[]
-	resolve: (
+	resolve: Partial<Record<EntityIdProjectionName, (
 		entityId: EntityId<_Schema, _EntityType>,
 		context: ResolverContext,
-	) => Promise<_Snapshot>
+	) => Promise<_Snapshot>>>
 	fields: Partial<Record<EntityFieldName<_Schema, _EntityType>, FieldSelector<_Schema, _EntityType, _Snapshot>>>
 	resolveLive?: {
 		fields: readonly EntityFieldName<_Schema, _EntityType>[]
@@ -113,11 +112,10 @@ export type ResolverDefinition<
 export type SourceResolverDefinition = {
 	definitionIndex: number
 	entityType: EntityType<typeof schema>
-	accepts: readonly EntityIdProjectionName[]
-	resolve: (
+	resolve: Partial<Record<EntityIdProjectionName, (
 		entityId: any,
 		context: ResolverContext,
-	) => Promise<any>
+	) => Promise<any>>>
 	fields: Partial<Record<string, any>>
 	resolveLive?: {
 		fields: readonly EntityFieldName<typeof schema, EntityType<typeof schema>>[]
@@ -134,7 +132,7 @@ export type ResolverPart = {
 	source: Source
 	entityType: EntityType<typeof schema>
 	fieldName: EntityFieldName<typeof schema, EntityType<typeof schema>>
-	acceptsParent?: readonly EntityIdProjectionName[]
+	parentSelectors?: readonly EntityIdProjectionName[]
 	select?: FieldSelectorObject<typeof schema, EntityType<typeof schema>, any>['select']
 	resolveCount?: FieldSelectorObject<typeof schema, EntityType<typeof schema>, any>['resolveCount']
 	resolveLive?: FieldSelectorObject<typeof schema, EntityType<typeof schema>, any>['resolveLive']
@@ -145,11 +143,10 @@ export const defineResolver = <
 >(
 	resolver: {
 		entityType: _EntityType
-		accepts: readonly EntityIdProjectionName[]
-		resolve: (
+		resolve: Partial<Record<EntityIdProjectionName, (
 			entityId: EntityId<typeof schema, _EntityType>,
 			context: ResolverContext,
-		) => Promise<any>
+		) => Promise<any>>>
 		fields: Partial<Record<
 			EntityFieldName<typeof schema, _EntityType>,
 			FieldSelector<typeof schema, _EntityType, any>

@@ -45,14 +45,15 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertBitcoinMainnet(entityId)
 				return {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
 					},
 				}
+			}
 			},
 			fields: {
 			$network: (network) => network.$network,
@@ -61,8 +62,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertBitcoinMainnet(entityId.$network)
 				const {
 					getBlock,
@@ -94,6 +95,7 @@ export default {
 					weightUnits: block.weight,
 					transactionCount: block.tx_count,
 				}
+			}
 			},
 			fields: {
 			hash: (block) => block.hash,
@@ -110,8 +112,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const transaction = await getTransaction(entityId)
 				return {
 					[EntityMetaKey.Id]: {
@@ -139,6 +141,7 @@ export default {
 					}),
 					isCoinbase: transaction.vin.some((input) => input.is_coinbase),
 				}
+			}
 			},
 			fields: {
 			$block: (transaction) => transaction.$block,
@@ -154,8 +157,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoInput,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const input = (await getTransaction(entityId.$transaction)).vin[entityId.inputIndex]
 				return {
 					[EntityMetaKey.Id]: {
@@ -184,6 +187,7 @@ export default {
 						witness: input.witness,
 					}),
 				}
+			}
 			},
 			fields: {
 			$spentOutput: (input) => input.$spentOutput,
@@ -196,8 +200,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoAddress,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertBitcoinMainnet(entityId.$network)
 				const { getAddress } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const address = await getAddress({
@@ -212,6 +216,7 @@ export default {
 					totalReceivedSats: BigInt(chainStats.funded_txo_sum),
 					totalSpentSats: BigInt(chainStats.spent_txo_sum),
 				}
+			}
 			},
 			fields: {
 			balanceSats: (address) => address.balanceSats,
@@ -224,8 +229,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoOutput,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const output = (await getTransaction(entityId.$transaction)).vout[entityId.outputIndex]
 				return {
 					[EntityMetaKey.Id]: {
@@ -247,6 +252,7 @@ export default {
 						},
 					}),
 				}
+			}
 			},
 			fields: {
 			valueSats: (output) => output.valueSats,
@@ -259,12 +265,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertBitcoinMainnet(entityId)
 				return {
 					[EntityMetaKey.Id]: entityId,
 				}
+			}
 			},
 			fields: {
 			$network: (network) => network,
@@ -273,8 +280,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertBitcoinMainnet(entityId)
 				const {
 					getBlocks,
@@ -301,6 +308,7 @@ export default {
 						suggestedTransactionFeePerByteSats: fees.hourFee,
 					},
 				]
+			}
 			},
 			fields: {
 			$$timestamps: (timestamps) => timestamps,
@@ -309,8 +317,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertBitcoinMainnet(entityId)
 				const { getBlocks } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const blocks = await getBlocks({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
@@ -329,6 +337,7 @@ export default {
 					weightUnits: block.weight,
 					transactionCount: block.tx_count,
 				}))
+			}
 			},
 			fields: {
 			$$blocks: (blocks) => blocks,
@@ -337,8 +346,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertBitcoinMainnet(entityId)
 				const { getMempoolTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const txids = await getMempoolTxids({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
@@ -348,6 +357,7 @@ export default {
 						txId,
 					},
 				}))
+			}
 			},
 			fields: {
 			$$transactions: (transactions) => transactions,
@@ -356,8 +366,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertBitcoinMainnet(entityId.$network)
 				const {
 					getBlockHashByHeight,
@@ -377,6 +387,7 @@ export default {
 						txId,
 					},
 				}))
+			}
 			},
 			fields: {
 			$$transactions: (transactions) => transactions,
@@ -385,8 +396,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => (
 				(await getTransaction(entityId)).vin.map((input, inputIndex) => (
 					{
 						[EntityMetaKey.Id]: {
@@ -416,7 +427,8 @@ export default {
 						}),
 					}
 				))
-			),
+			)
+			},
 			fields: {
 			$$inputs: (inputs) => inputs,
 		}
@@ -424,8 +436,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => (
 				(await getTransaction(entityId)).vout.map((output, outputIndex) => (
 					{
 						[EntityMetaKey.Id]: {
@@ -448,7 +460,8 @@ export default {
 						}),
 					}
 				))
-			),
+			)
+			},
 			fields: {
 			$$outputs: (outputs) => outputs,
 		}

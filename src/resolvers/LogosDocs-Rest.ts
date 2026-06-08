@@ -19,8 +19,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.LogosZone,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertLogosStack(entityId.$network)
 				const { getNetworkSummary } = await import('$/sources/LogosDocs/Rest/queries.ts')
 				return {
@@ -37,6 +37,7 @@ export default {
 						),
 					}),
 				}
+			}
 			},
 			fields: {
 			zoneKind: (snapshot) => snapshot.zoneKind,
@@ -45,10 +46,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.LogosAccount,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertLogosStack(entityId.$network)
 				return {}
+			}
 			},
 			fields: {
 		}
@@ -56,10 +58,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.LogosTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertLogosStack(entityId.$network)
 				return {}
+			}
 			},
 			fields: {
 		}

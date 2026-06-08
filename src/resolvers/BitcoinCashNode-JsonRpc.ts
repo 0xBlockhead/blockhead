@@ -48,8 +48,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.UtxoOutput,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const output = await getOutput(entityId)
 				return {
 					valueSats: BigInt(Math.round(output.value * 100_000_000)),
@@ -79,6 +79,7 @@ export default {
 						},
 					}),
 				}
+			}
 			},
 			fields: {
 			valueSats: (snapshot) => snapshot.valueSats,
@@ -93,8 +94,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const output = await getOutput(entityId.$output)
 				if (output.tokenData?.amount == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken fungible amount')
 				return {
@@ -106,6 +107,7 @@ export default {
 					},
 					amount: BigInt(output.tokenData.amount),
 				}
+			}
 			},
 			fields: {
 			$category: (snapshot) => snapshot.$category,
@@ -115,8 +117,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BitcoinCashCashTokenNft,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const output = await getOutput(entityId.$output)
 				if (output.tokenData?.nft == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken NFT')
 				return {
@@ -133,6 +135,7 @@ export default {
 					},
 					capability: output.tokenData.nft.capability,
 				}
+			}
 			},
 			fields: {
 			$category: (snapshot) => snapshot.$category,
@@ -143,13 +146,14 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BitcoinCashCashTokenCommitment,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const output = await getOutput(entityId.$output)
 				if (output.tokenData?.nft == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken NFT commitment')
 				return {
 					commitmentHex: output.tokenData.nft.commitment,
 				}
+			}
 			},
 			fields: {
 			commitmentHex: (snapshot) => snapshot.commitmentHex,

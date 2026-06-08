@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import {
+	EntityIdProjection,
+	EntityMetaKey,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { EnsSubgraphDomain } from '$/sources/TheGraph/Graphql/Ens/types.ts'
 
@@ -93,7 +96,7 @@ describe('Ens-TheGraph entity resolver', () => {
 		expect(ensNameResolver).toBeDefined()
 		getName.mockResolvedValueOnce([vitalikDomainWire])
 
-		const resolvedEntity = await ensNameResolver!.resolve(
+		const resolvedEntity = await ensNameResolver!.resolve[EntityIdProjection.Identity]!(
 			{ name: 'vitalik.eth' },
 			resolverContext,
 		)
@@ -143,7 +146,7 @@ describe('Ens-TheGraph entity resolver', () => {
 			owner: null,
 		}])
 
-		const resolvedEntity = await ensNameResolver!.resolve(
+		const resolvedEntity = await ensNameResolver!.resolve[EntityIdProjection.Identity]!(
 			{ name: 'vitalik.eth' },
 			resolverContext,
 		)
@@ -167,7 +170,7 @@ describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 			},
 		])
 
-			const resolvedEntity = await ensNamesOwnedResolver!.resolve(
+			const resolvedEntity = await ensNamesOwnedResolver!.resolve[EntityIdProjection.Identity]!(
 				{ address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045' },
 				resolverContext,
 			)

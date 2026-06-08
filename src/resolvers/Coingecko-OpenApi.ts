@@ -82,8 +82,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.Market_Derivative_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind === MarketKind.Spot) {
 					throw new Error('Coingecko_OpenApi: Market_Derivative_Timestamp is derivative-only')
 				}
@@ -105,6 +105,7 @@ export default {
 					providerAssetId: ticker.symbol ?? null,
 					transport: 'Coingecko OpenAPI',
 				}
+			}
 			},
 			fields: {
 				fundingRate: (timestamp) => timestamp.fundingRate,
@@ -119,8 +120,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Coingecko_OpenApi: Market_Timestamp is spot-only')
 				}
@@ -151,6 +152,7 @@ export default {
 					transport: 'coingecko-openapi-coins-id-market-data-usd-1e8',
 					providerAssetId: coingeckoId,
 				}
+			}
 			},
 			fields: {
 				price: (timestamp) => timestamp.price,
@@ -161,8 +163,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Coingecko_OpenApi: OHLC is spot-only')
 				}
@@ -196,6 +198,7 @@ export default {
 						ohlcCandle,
 					)
 				)
+			}
 			},
 			fields: {
 				open: (timestamp) => timestamp.open,
@@ -210,9 +213,10 @@ export default {
 		}),
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				throw new Error('Coingecko_OpenApi: $$marketTimeIntervalTimestamps is not implemented')
+			}
 			},
 			fields: {
 				$$marketTimeIntervalTimestamps: (globalScope) => globalScope,
@@ -221,8 +225,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.marketKind === MarketKind.Spot) return []
 				const ticker = await coingeckoOpenApiDerivativeTickerForMarket(entityId, context)
 				return [
@@ -239,6 +243,7 @@ export default {
 						},
 					},
 				]
+			}
 			},
 			fields: {
 				$$derivativeTimestamps: (market) => market,
@@ -247,10 +252,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market_Derivative_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => ({
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => ({
 				[EntityMetaKey.Id]: entityId.$market,
-			}),
+			})
+			},
 			fields: {
 				$parentMarket: (timestamp) => timestamp,
 			},
@@ -258,8 +264,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_globalScopeEntityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_globalScopeEntityId, context) => {
 				const { collectDerivativeMarketEntityIds } = await import(
 					'$/sources/Coingecko/OpenApi/queries.ts'
 				)
@@ -276,6 +282,7 @@ export default {
 							}
 						))
 				)
+			}
 			},
 			fields: {
 				$$markets: (globalScope) => globalScope,
@@ -284,8 +291,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MarketVenue,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { collectDerivativeMarketEntityIds } = await import(
 					'$/sources/Coingecko/OpenApi/queries.ts'
 				)
@@ -303,6 +310,7 @@ export default {
 							}
 						))
 				)
+			}
 			},
 			fields: {
 				$$markets: (marketVenue) => marketVenue,
@@ -311,8 +319,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				const spotMarketId = catalogCoinUsdMarketIdByCoinId[entityId.coinId]
 				const coingeckoId = idByCoinId[entityId.coinId]
@@ -348,6 +356,7 @@ export default {
 						}))
 						.slice(0, lim)
 				)
+			}
 			},
 			fields: {
 				$$marketsWithCoinAsBase: (coin) => coin,
@@ -356,8 +365,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>, context) => {
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				if (idByCoinId[entityId.coinId] == null) {
 					return []
@@ -377,6 +386,7 @@ export default {
 							}
 						))
 				)
+			}
 			},
 			fields: {
 				$$marketsWithCoinAsQuote: (coin) => coin,
@@ -385,8 +395,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				return (
@@ -400,6 +410,7 @@ export default {
 							}
 						))
 				)
+			}
 			},
 			fields: {
 				$$marketPrices: (globalScope) => globalScope,
@@ -408,8 +419,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
 				if (entityId.marketKind !== MarketKind.Spot) {
 					return []
 				}
@@ -450,6 +461,7 @@ export default {
 				return (
 					candles.slice(0, lim)
 				)
+			}
 			},
 			fields: {
 				$$marketTimeIntervalTimestamps: (market) => market,
@@ -458,8 +470,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Currency,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				return (
 					(
@@ -473,6 +485,7 @@ export default {
 						[EntityMetaKey.Id]: marketId,
 					}))
 				)
+			}
 			},
 			fields: {
 				$$marketsWithCurrencyAsQuote: (currency) => currency,
@@ -481,8 +494,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Currency,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
 				const markets = catalogSpotMarketsWithCurrencyAsBase
 						.filter((catalogMarket) => catalogMarket.iso4217 === entityId.iso4217)
 						.map((catalogMarket) => ({
@@ -492,6 +505,7 @@ export default {
 					throw new Error(`Coingecko_OpenApi: no catalog markets with ${entityId.iso4217} as base`)
 				}
 				return markets
+			}
 			},
 			fields: {
 				$$marketsWithCurrencyAsBase: (currency) => currency,
@@ -500,8 +514,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MarketPrice,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					return []
 				}
@@ -529,6 +543,7 @@ export default {
 						},
 					},
 				]
+			}
 			},
 			fields: {
 				$$quotes: (marketPrice) => marketPrice,
@@ -537,12 +552,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MarketPrice,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}
-			),
+			)
+			},
 			fields: {
 				$parentMarket: (marketPrice) => marketPrice,
 			},
@@ -550,12 +566,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}
-			),
+			)
+			},
 			fields: {
 				$parentMarket: (timestamp) => timestamp,
 			},

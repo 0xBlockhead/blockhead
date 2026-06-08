@@ -74,8 +74,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const restBaseUrl = esploraRestBaseUrlForNetwork(entityId.$network)
 				const {
 					getBlock,
@@ -107,6 +107,7 @@ export default {
 					weightUnits: block.weight,
 					transactionCount: block.tx_count,
 				}
+			}
 			},
 			fields: {
 			hash: (snapshot) => snapshot.hash,
@@ -123,8 +124,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const restBaseUrl = esploraRestBaseUrlForNetwork(entityId.$network)
 				const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
 				const transaction = await getTransaction({
@@ -153,6 +154,7 @@ export default {
 					}),
 					isCoinbase: transaction.vin.some((input) => input.is_coinbase),
 				}
+			}
 			},
 			fields: {
 			$block: (snapshot) => snapshot.$block,
@@ -168,8 +170,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ElementsAsset,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				if (
 					!('networkSlug' in entityId.$network)
 					|| entityId.$network.networkSlug !== liquidNetworkId.networkSlug
@@ -185,6 +187,7 @@ export default {
 					throw new Error(`Esplora_Rest: asset id mismatch for ${entityId.assetId}`)
 
 				return elementsAssetFieldsFromWire(asset)
+			}
 			},
 			fields: {
 			name: (snapshot) => snapshot.name,
@@ -201,8 +204,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ElementsNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				if (
 					!('networkSlug' in entityId)
 					|| entityId.networkSlug !== liquidNetworkId.networkSlug
@@ -216,6 +219,7 @@ export default {
 				})
 
 					return elementsAssetRowFromWire(liquidNetworkId, asset)
+			}
 			},
 			fields: {
 			$nativeAsset: (snapshot) => snapshot,
@@ -224,8 +228,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ElementsNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (
 					!('networkSlug' in entityId)
 					|| entityId.networkSlug !== liquidNetworkId.networkSlug
@@ -238,6 +242,7 @@ export default {
 				}))
 					.slice(0, resolverContextRowLimit(context))
 						.map((asset) => elementsAssetRowFromWire(liquidNetworkId, asset))
+			}
 			},
 			fields: {
 			$$assets: (snapshot) => snapshot,

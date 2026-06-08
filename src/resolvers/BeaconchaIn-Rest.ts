@@ -12,8 +12,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.BeaconEpoch,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					beaconchaInApiBaseByExecutionChainId,
 				} = await import('$/sources/BeaconchaIn/Rest/constants.ts')
@@ -39,6 +39,7 @@ export default {
 					...(epoch.proposerslashingscount != null && { proposerSlashingsCount: epoch.proposerslashingscount }),
 					...(epoch.withdrawalcount != null && { withdrawalsCount: epoch.withdrawalcount }),
 				}
+			}
 			},
 			fields: {
 			finalized: (snapshot) => snapshot.finalized,

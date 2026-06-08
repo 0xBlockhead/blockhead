@@ -47,8 +47,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const wantHash = hexLowerOfByteSize(entityId.blockHash, 32)
 				if (wantHash == null) throw new Error('MevRelay_Rest: invalid block hash in entity id')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
@@ -81,6 +81,7 @@ export default {
 						} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 					}),
 				}
+			}
 			},
 			fields: {
 			builderPubkey: (snapshot) => snapshot.builderPubkey,
@@ -92,8 +93,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MevBuilder,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 				const chainId = Number(entityId.$network.caip2.reference)
@@ -108,6 +109,7 @@ export default {
 				return {
 					deliveredPayloadCount,
 				}
+			}
 			},
 			fields: {
 			deliveredPayloadCount: (snapshot) => snapshot.deliveredPayloadCount,
@@ -116,8 +118,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 				const chainId = Number(entityId.caip2.reference)
@@ -166,6 +168,7 @@ export default {
 					)
 				}
 				return out
+			}
 			},
 			fields: {
 			$$mevProposerPayloadDelivered: (snapshot) => snapshot,
@@ -174,8 +177,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 				const chainId = Number(entityId.caip2.reference)
@@ -207,6 +210,7 @@ export default {
 						builderPubkey,
 					},
 				}))
+			}
 			},
 			fields: {
 			$$mevBuilders: (snapshot) => snapshot,

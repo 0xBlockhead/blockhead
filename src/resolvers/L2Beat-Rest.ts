@@ -15,8 +15,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.EvmRollup,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const {
 					l2beatHostChainToParentChainId,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
@@ -43,6 +43,7 @@ export default {
 						},
 					},
 				}
+			}
 			},
 			fields: {
 			name: (snapshot) => snapshot.name,
@@ -59,8 +60,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const {
 					chainIdByL2BeatProjectId,
 					ethereumChainId,
@@ -91,6 +92,7 @@ export default {
 							)
 						}),
 				]
+			}
 			},
 			fields: {
 			$$evmNetworks: (snapshot) => snapshot,
@@ -99,8 +101,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const {
 					l2beatHostChainToParentChainId,
 					l2BeatProjectIdByChainId,
@@ -118,6 +120,7 @@ export default {
 						...{ caip2: { namespace: 'eip155' as const, reference: String(parentChainId) } },
 					},
 				}
+			}
 			},
 			fields: {
 			$parent: (snapshot) => snapshot,
@@ -126,8 +129,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const {
 					l2BeatProjectIdByChainId,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
@@ -143,6 +146,7 @@ export default {
 						projectId,
 					},
 				}
+			}
 			},
 			fields: {
 			$rollup: (snapshot) => snapshot,
@@ -151,8 +155,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const {
 					chainIdByL2BeatProjectId,
 					l2beatHostChainToParentChainId,
@@ -193,6 +197,7 @@ export default {
 						]
 					})
 				)
+			}
 			},
 			fields: {
 			$$settledRollups: (snapshot) => snapshot,
@@ -201,8 +206,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const {
 					chainIdByL2BeatProjectId,
 					l2beatHostChainToParentChainId,
@@ -235,6 +240,7 @@ export default {
 						...{ caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 					},
 				}))
+			}
 			},
 			fields: {
 			$$childLayers: (snapshot) => snapshot,

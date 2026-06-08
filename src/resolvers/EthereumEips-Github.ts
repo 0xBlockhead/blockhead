@@ -77,8 +77,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SpecificationProposal,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				const {
 					getProposalMarkdownText,
@@ -103,6 +103,7 @@ export default {
 					documentStatus: fm.status.trim() || undefined,
 					documentBody: body.length > 0 ? body : undefined,
 				}
+			}
 			},
 			fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -114,12 +115,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
 				return ethereumEipErcProposalRowsFromGithubSpecs({
 					getContents,
 				})
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -128,8 +130,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Ethereum) {
 					throw new Error('EthereumEips_Github: $$proposals only supports SpecificationRealm.Ethereum')
@@ -138,6 +140,7 @@ export default {
 				return ethereumEipErcProposalRowsFromGithubSpecs({
 					getContents,
 				})
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -146,8 +149,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (
 					entityId.realm !== SpecificationRealm.Ethereum
@@ -160,6 +163,7 @@ export default {
 					category: entityId.category,
 					getContents,
 				})
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,

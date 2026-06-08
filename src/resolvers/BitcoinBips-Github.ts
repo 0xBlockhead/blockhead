@@ -50,8 +50,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SpecificationProposal,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				const { getProposalMediaWikiText } = await import('$/sources/BitcoinBips/Github/queries.ts')
 				if (entityId.realm !== SpecificationRealm.Bitcoin || entityId.category !== ProposalCategory.Bip) {
@@ -65,6 +65,7 @@ export default {
 					documentStatus: bipMetadataValue(text, 'Status'),
 					documentBody: text,
 				}
+			}
 			},
 			fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -76,10 +77,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const { getContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
 				return githubBipProposalIndexRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -88,14 +90,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Bitcoin) {
 					throw new Error('BitcoinBips_Github: $$proposals only supports SpecificationRealm.Bitcoin')
 				}
 				const { getContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
 				return githubBipProposalIndexRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -104,14 +107,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Bitcoin || entityId.category !== ProposalCategory.Bip) {
 					throw new Error('BitcoinBips_Github: $$proposals only supports Bitcoin BIP proposal kind')
 				}
 				const { getContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
 				return githubBipProposalIndexRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,

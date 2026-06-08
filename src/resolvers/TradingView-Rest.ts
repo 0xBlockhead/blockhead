@@ -25,8 +25,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.Market_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('TradingView_Rest: Market_Timestamp is spot-only')
 				}
@@ -48,6 +48,7 @@ export default {
 					transport: 'tradingview-crypto-quotes-usd-1e8',
 					providerAssetId: market.ticker,
 				}
+			}
 			},
 			fields: {
 			price: (snapshot) => snapshot.price,
@@ -58,8 +59,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				return Object.entries(tradingViewMarketByCoinId)
 					.flatMap(([coinId, market]) => (
@@ -83,6 +84,7 @@ export default {
 								} as const,
 							}]
 					))
+			}
 			},
 			fields: {
 			$$markets: (snapshot) => snapshot,
@@ -91,8 +93,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				return Object.entries(tradingViewMarketByCoinId)
 					.flatMap(([coinId, market]) => (
@@ -118,6 +120,7 @@ export default {
 								},
 							}]
 					))
+			}
 			},
 			fields: {
 			$$marketPrices: (snapshot) => snapshot,
@@ -126,8 +129,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const market = tradingViewMarketByCoinId[entityId.coinId]
 				if (market == null) {
@@ -151,6 +154,7 @@ export default {
 						} as const,
 					},
 				]
+			}
 			},
 			fields: {
 			$$marketsWithCoinAsBase: (snapshot) => snapshot,
@@ -159,9 +163,10 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				throw new Error(`TradingView_Rest: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
+			}
 			},
 			fields: {
 			$$marketsWithCoinAsQuote: (snapshot) => snapshot,
@@ -170,8 +175,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Currency,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const markets = (
 					entityId.iso4217 === Iso4217.USD ?
@@ -187,6 +192,7 @@ export default {
 					throw new Error(`TradingView_Rest: no catalog markets with ${entityId.iso4217} as quote`)
 				}
 				return markets
+			}
 			},
 			fields: {
 			$$marketsWithCurrencyAsQuote: (snapshot) => snapshot,
@@ -195,8 +201,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Currency,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const markets = catalogSpotMarketsWithCurrencyAsBase
 					.filter((catalogMarket) => catalogMarket.iso4217 === entityId.iso4217)
 					.map((catalogMarket) => ({
@@ -206,6 +212,7 @@ export default {
 					throw new Error(`TradingView_Rest: no catalog markets with ${entityId.iso4217} as base`)
 				}
 				return markets
+			}
 			},
 			fields: {
 			$$marketsWithCurrencyAsBase: (snapshot) => snapshot,
@@ -214,8 +221,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MarketPrice,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('TradingView_Rest: MarketPrice $$quotes is spot-only')
 				}
@@ -240,6 +247,7 @@ export default {
 						},
 					},
 				]
+			}
 			},
 			fields: {
 			$$quotes: (snapshot) => snapshot,

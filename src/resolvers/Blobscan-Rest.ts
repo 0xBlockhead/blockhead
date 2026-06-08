@@ -41,9 +41,10 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.EvmBlob,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, _context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, _context) => {
 				return (await blobscanBlobDetail(entityId))?.blob?.commitment
+			}
 			},
 			fields: {
 			kzgCommitment: (snapshot) => snapshot,
@@ -52,8 +53,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmBlob,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, _context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, _context) => {
 				return (await blobscanBlobDetail(entityId))?.blobDataStorage
 					?.flatMap((reference) => (
 						reference.storage != null && reference.reference != null ?
@@ -64,6 +65,7 @@ export default {
 						:
 							[]
 					))
+			}
 			},
 			fields: {
 			blobDataStorageReferences: (snapshot) => snapshot,

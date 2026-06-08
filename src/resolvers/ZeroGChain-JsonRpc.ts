@@ -96,18 +96,19 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertZeroGMainnet(entityId)
 				return {}
+			}
 			},
 			fields: {}
 		}),
 
 		defineResolver({
 			entityType: EntityType.EvmBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertZeroGMainnetChain(entityId.$network)
 				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 				const block = await getBlockByNumber({
@@ -145,6 +146,7 @@ export default {
 					...(quantityToBigInt(block.excessBlobGas) != null && { excessBlobGas: quantityToBigInt(block.excessBlobGas) }),
 					...(block.transactions != null && { transactionCount: block.transactions.length }),
 				}
+			}
 			},
 			fields: {
 			number: (block) => block.number,
@@ -162,8 +164,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertZeroGMainnetChain(entityId.$network)
 				const {
 					getTransactionByHash,
@@ -243,6 +245,7 @@ export default {
 						...(quantityToBigInt(transaction.maxFeePerBlobGas) != null && { maxFeePerBlobGas: quantityToBigInt(transaction.maxFeePerBlobGas) }),
 					}),
 				}
+			}
 			},
 			fields: {
 			$block: (transaction) => transaction.$block,
@@ -270,8 +273,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertZeroGMainnet(entityId)
 				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 				const block = await getBlockByNumber({
@@ -299,6 +302,7 @@ export default {
 						...(baseFeePerGas != null && { baseFeePerGas }),
 					},
 				]
+			}
 			},
 			fields: {
 			$$timestamps: (timestamps) => timestamps,
@@ -307,8 +311,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertZeroGMainnet(entityId)
 				const { getBlockNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 				const headBlockNumber = BigInt(await getBlockNumber())
@@ -323,6 +327,7 @@ export default {
 						blockNumber: headBlockNumber - BigInt(blockOffset),
 					},
 				}))
+			}
 			},
 			fields: {
 			$$blocks: (blocks) => blocks,
@@ -331,8 +336,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertZeroGMainnetChain(entityId.$network)
 				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 				const block = await getBlockByNumber({
@@ -353,6 +358,7 @@ export default {
 							},
 						}]
 				})
+			}
 			},
 			fields: {
 			$$transactions: (transactions) => transactions,

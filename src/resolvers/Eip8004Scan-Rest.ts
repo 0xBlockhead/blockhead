@@ -20,8 +20,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.EvmNft,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchAgentDetail } = await import(
 					'$/sources/Eip8004Scan/Rest/queries.ts'
 				)
@@ -65,6 +65,7 @@ export default {
 					...(detail.supportedTrust != null && { supportedTrust: detail.supportedTrust }),
 					...(detail.contactEndpoint != null && { contactEndpoint: detail.contactEndpoint }),
 				}
+			}
 			},
 			fields: {
 			standard: (snapshot) => snapshot.standard,
@@ -88,8 +89,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { fetchAgentList } = await import(
 					'$/sources/Eip8004Scan/Rest/queries.ts'
 				)
@@ -108,6 +109,7 @@ export default {
 						},
 					}))
 				)
+			}
 			},
 			fields: {
 			$$eip8004Services: (snapshot) => snapshot,

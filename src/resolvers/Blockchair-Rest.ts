@@ -114,14 +114,15 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				blockchairChain(entityId)
 				return {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
 					},
 				}
+			}
 			},
 			fields: {
 			$network: (network) => network.$network,
@@ -130,8 +131,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
 				const dashboard = firstDashboardRow(
 					(
@@ -154,6 +155,7 @@ export default {
 					weightUnits: dashboard.block.weight,
 					transactionCount: dashboard.block.transaction_count,
 				}
+			}
 			},
 			fields: {
 			hash: (block) => block.hash,
@@ -169,8 +171,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const transactionDashboard = await getTransactionDashboard(entityId)
 				return {
 					...(transactionDashboard.transaction.block_id != null && {
@@ -191,6 +193,7 @@ export default {
 					}),
 					isCoinbase: transactionDashboard.transaction.is_coinbase,
 				}
+			}
 			},
 			fields: {
 			$block: (transaction) => transaction.$block,
@@ -206,8 +209,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoInput,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const input = (await getTransactionDashboard(entityId.$transaction)).inputs[entityId.inputIndex]
 				return {
 					[EntityMetaKey.Id]: {
@@ -237,6 +240,7 @@ export default {
 						],
 					}),
 				}
+			}
 			},
 			fields: {
 			$spentOutput: (input) => input.$spentOutput,
@@ -248,8 +252,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoOutput,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const output = (await getTransactionDashboard(entityId.$transaction)).outputs[entityId.outputIndex]
 				return {
 					[EntityMetaKey.Id]: {
@@ -275,6 +279,7 @@ export default {
 					}),
 					isSpent: output.spending_transaction_hash != null,
 				}
+			}
 			},
 			fields: {
 			valueSats: (output) => output.valueSats,
@@ -287,12 +292,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				blockchairChain(entityId)
 				return {
 					[EntityMetaKey.Id]: entityId,
 				}
+			}
 			},
 			fields: {
 			$network: (network) => network,
@@ -301,8 +307,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
 				const stats = (await getBitcoinLikeStats({
 					chain: blockchairChain(entityId),
@@ -339,6 +345,7 @@ export default {
 						...(blockchainSizeBytes != null && { blockchainSizeBytes }),
 					},
 				]
+			}
 			},
 			fields: {
 			$$timestamps: (timestamps) => timestamps,
@@ -347,8 +354,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
 				return (await getBlocks<BlockchairBitcoinLikeBlock>({
 					chain: blockchairChain(entityId),
@@ -360,6 +367,7 @@ export default {
 					entityId,
 					block,
 				))
+			}
 			},
 			fields: {
 			$$blocks: (blocks) => blocks,
@@ -368,8 +376,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getTransactions } = await import('$/sources/Blockchair/Rest/queries.ts')
 				return (await getTransactions<BlockchairBitcoinLikeTransaction>({
 					chain: blockchairChain(entityId),
@@ -381,6 +389,7 @@ export default {
 					entityId,
 					transaction,
 				))
+			}
 			},
 			fields: {
 			$$transactions: (transactions) => transactions,
@@ -389,8 +398,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
 				const dashboard = firstDashboardRow(
 					(
@@ -416,6 +425,7 @@ export default {
 					}),
 					isCoinbase: transaction.is_coinbase,
 				}))
+			}
 			},
 			fields: {
 			$$transactions: (transactions) => transactions,
@@ -424,8 +434,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const transactionDashboard = await getTransactionDashboard(entityId)
 				return transactionDashboard.inputs.map((input, inputIndex) => (
 					{
@@ -457,6 +467,7 @@ export default {
 						}),
 					}
 				))
+			}
 			},
 			fields: {
 			$$inputs: (inputs) => inputs,
@@ -465,8 +476,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const transactionDashboard = await getTransactionDashboard(entityId)
 				return transactionDashboard.outputs.map((output, outputIndex) => (
 					{
@@ -494,6 +505,7 @@ export default {
 						isSpent: output.spending_transaction_hash != null,
 					}
 				))
+			}
 			},
 			fields: {
 			$$outputs: (outputs) => outputs,

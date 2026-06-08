@@ -83,8 +83,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.EvmContractVerification,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
 				if (contractLookup == null) throw new Error('Sourcify_Rest: contract not verified')
 				return {
@@ -109,6 +109,7 @@ export default {
 						[EntityMetaKey.Id]: entityId,
 					},
 				}
+			}
 			},
 			fields: {
 			match: (verification) => verification.match,
@@ -123,8 +124,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContractCompilation,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
 				if (contractLookup == null) throw new Error('Sourcify_Rest: compilation not verified')
 				const language = contractLookup.metadata?.language ?? contractLookup.compilation?.language
@@ -157,6 +158,7 @@ export default {
 							{}
 					))(sourcifyStorageLayoutJsonFromLookup(contractLookup)),
 				}
+			}
 			},
 			fields: {
 			language: (compilation) => compilation.language,
@@ -171,13 +173,14 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContractSourceBundle,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
 				if (contractLookup == null) throw new Error('Sourcify_Rest: source bundle not verified')
 				return {
 					files: sourcifySourceFilesFromLookup(contractLookup),
 				}
+			}
 			},
 			fields: {
 			files: (sourceBundle) => sourceBundle.files,
@@ -186,8 +189,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
 				if (contractLookup == null) return undefined
 				return (
@@ -196,6 +199,7 @@ export default {
 					:
 						undefined
 				)
+			}
 			},
 			fields: {
 			abi: (abi) => abi,
@@ -204,12 +208,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				if (await getSourcifyContractLookupForEntityId(entityId) == null) return undefined
 				return {
 					[EntityMetaKey.Id]: entityId,
 				}
+			}
 			},
 			fields: {
 			$verification: (verification) => verification,
@@ -218,8 +223,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
 				const deployer = contractLookup?.deployment?.deployer
 				if (deployer == null || !deployer.startsWith('0x')) return undefined
@@ -228,6 +233,7 @@ export default {
 						address: deployer.toLowerCase() as `0x${string}`,
 					},
 				}
+			}
 			},
 			fields: {
 			$deployer: (deployer) => deployer,
@@ -236,8 +242,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
 				const txHash = contractLookup?.deployment?.transactionHash
 				if (txHash == null) return undefined
@@ -251,6 +257,7 @@ export default {
 						txHash: normalized,
 					},
 				}
+			}
 			},
 			fields: {
 			$creationTransaction: (creationTransaction) => creationTransaction,
@@ -259,8 +266,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
 				const implementationAddress = contractLookup?.proxyResolution?.implementations?.[0]?.address
 				if (implementationAddress == null || !implementationAddress.startsWith('0x')) return undefined
@@ -274,6 +281,7 @@ export default {
 						address: normalized,
 					},
 				}
+			}
 			},
 			fields: {
 			$implementation: (implementation) => implementation,

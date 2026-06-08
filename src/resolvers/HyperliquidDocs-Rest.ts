@@ -46,8 +46,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SpecificationProposal,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Hyperliquid || entityId.category !== ProposalCategory.Hip) {
 					throw new Error('HyperliquidDocs_Rest: proposal resolver only supports Hyperliquid HIPs')
@@ -55,6 +55,7 @@ export default {
 				const proposal = (await hyperliquidHipRows()).find((hyperliquidHip) => hyperliquidHip[EntityMetaKey.Id].number === entityId.number)
 				if (proposal == null) throw new Error(`HyperliquidDocs_Rest: HIP not found ${entityId.number.toString()}`)
 				return proposal
+			}
 			},
 			fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -66,8 +67,9 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: hyperliquidHipRows,
+			resolve: {
+				[EntityIdProjection.Identity]: hyperliquidHipRows
+			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
 		}
@@ -75,11 +77,12 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Hyperliquid) throw new Error('HyperliquidDocs_Rest: $$proposals only supports Hyperliquid')
 				return hyperliquidHipRows()
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -88,11 +91,12 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Hyperliquid || entityId.category !== ProposalCategory.Hip) throw new Error('HyperliquidDocs_Rest: $$proposals only supports Hyperliquid HIPs')
 				return hyperliquidHipRows()
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,

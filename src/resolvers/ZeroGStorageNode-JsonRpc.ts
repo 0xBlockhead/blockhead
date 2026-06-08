@@ -44,8 +44,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.ZeroGStorageNode,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertZeroGMainnet(entityId.$network)
 				const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
 				const status = await getStatus({ rpcUrl: zeroGStorageNodeDefaultLocalRpcUrl })
@@ -60,6 +60,7 @@ export default {
 					},
 					endpoint: zeroGStorageNodeDefaultLocalRpcUrl,
 				}
+			}
 			},
 			fields: {
 			$operator: (snapshot) => snapshot.$operator,
@@ -69,8 +70,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ZeroGDataBlob,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const fileInfo = await fileInfoForDataBlob(entityId)
 				return {
 					sizeBytes: BigInt(fileInfo.tx.size),
@@ -81,6 +82,7 @@ export default {
 						},
 					})),
 				}
+			}
 			},
 			fields: {
 			sizeBytes: (snapshot) => snapshot.sizeBytes,
@@ -90,8 +92,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ZeroGDataChunk,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const fileInfo = await fileInfoForDataBlob(entityId.$dataBlob)
 				const chunkRoot = fileInfo.tx.streamIds.at(entityId.chunkIndex)
 				if (chunkRoot == null) throw new Error(`ZeroGStorageNode_JsonRpc: chunk not found ${entityId.$dataBlob.dataRoot}:${String(entityId.chunkIndex)}`)
@@ -104,6 +106,7 @@ export default {
 					},
 					chunkRoot,
 				}
+			}
 			},
 			fields: {
 			$storageNode: (snapshot) => snapshot.$storageNode,

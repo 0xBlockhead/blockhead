@@ -49,8 +49,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.FarcasterUser,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
 				const bulkUsers = await singleFlight(getBulkUsers)({
 					publicEnv: context.publicEnv,
@@ -163,6 +163,7 @@ export default {
 						})),
 					],
 				}
+			}
 			},
 			fields: {
 				username: (user) => user.username,
@@ -178,8 +179,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
 				const bulkUsers = await singleFlight(getBulkUsers)({
 					publicEnv: context.publicEnv,
@@ -217,6 +218,7 @@ export default {
 					...(bio != null && { bio }),
 					...(ethList.length > 0 && { verifications: ethList }),
 				}
+			}
 			},
 			fields: {
 				username: (connection) => connection.username,
@@ -229,8 +231,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterCast,
-			accepts: [EntityIdProjection.Identity, 'usernameHashPrefix', 'clientUrl'],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					getCastByClientUrl,
 					getCastByHash,
@@ -387,6 +389,321 @@ export default {
 					),
 				} satisfies Partial<FieldValuesCast>
 			},
+				['usernameHashPrefix']: async (entityId, context) => {
+				const {
+					getCastByClientUrl,
+					getCastByHash,
+				} = await import('$/sources/Neynar/Rest/queries.ts')
+				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
+				type EntityIdCast = import('$/schema/$schema.ts').EntityId<typeof schema, EntityType.FarcasterCast>
+				type FieldValuesCast = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
+				const cast = await (
+					'hash' in entityId ?
+						singleFlight(getCastByHash)(
+							context.publicEnv,
+							zeroXLowerHexCastHash(entityId.hash),
+						)
+					: 'clientUrl' in entityId ?
+						singleFlight(getCastByClientUrl)(context.publicEnv, entityId.clientUrl)
+					:
+						undefined
+				)
+				if (cast == null) {
+					throw new Error('Neynar_Rest: cast not found')
+				}
+				const castHash = zeroXLowerHexCastHash(cast.hash)
+				const timestamp = Date.parse(cast.timestamp ?? '')
+				if (cast.author?.fid == null) {
+					throw new Error('Neynar_Rest: cast missing author fid')
+				}
+				if (
+					'hash' in entityId
+					&& castHash !== zeroXLowerHexCastHash(entityId.hash)
+				) {
+					throw new Error('Neynar_Rest: cast hash mismatch')
+				}
+				if (
+					'fid' in entityId
+					&& cast.author.fid !== entityId.fid
+				) {
+					throw new Error('Neynar_Rest: cast author mismatch')
+				}
+				if (!Number.isFinite(timestamp)) {
+					throw new Error('Neynar_Rest: cast missing timestamp')
+				}
+				const castId: EntityIdCast = {
+					fid: cast.author.fid,
+					hash: castHash,
+				}
+				const mentionFids = (
+					(cast.mentioned_profiles ?? [])
+						.map((u) => u.fid)
+						.filter((fidValue): fidValue is number => fidValue != null)
+				)
+				const mentionChIds = (
+					(cast.mentioned_channels ?? [])
+						.map((ch) => optionalNonemptyString(ch.id))
+						.filter((idValue): idValue is string => idValue != null)
+				)
+				const channelId = optionalNonemptyString(cast.channel?.id)
+				const parentUrl = optionalNonemptyString(cast.parent_url ?? cast.root_parent_url)
+				const likeCount = cast.likes ?? cast.reactions?.likes_count
+				const recastCount = cast.recasts ?? cast.reactions?.recasts_count
+				const replyCount = cast.replies?.count
+				return {
+					fid: cast.author.fid,
+					hash: castHash,
+					...(cast.author.username != null && cast.author.username !== '' && {
+						username: cast.author.username,
+					}),
+					...('clientUrl' in entityId && {
+						clientUrl: entityId.clientUrl,
+					}),
+					$author: {
+						[EntityMetaKey.Id]: { fid: cast.author.fid },
+					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
+					$postedViaApp: (
+						cast.app?.fid == null ?
+							undefined
+						:
+							({
+								[EntityMetaKey.Id]: { fid: cast.app.fid },
+							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
+					),
+					text: optionalNonemptyString(cast.text) ?? '',
+					$parentCast: (
+						cast.parent_author?.fid == null
+						|| cast.parent_hash == null
+						|| cast.parent_hash === '' ?
+							undefined
+						:
+							{
+								[EntityMetaKey.Id]: {
+									fid: cast.parent_author.fid,
+									hash: zeroXLowerHexCastHash(String(cast.parent_hash)),
+								},
+							} satisfies Entity<typeof schema, EntityType.FarcasterCast>
+					),
+					...(parentUrl != null && { parentUrl }),
+					timestamp,
+					mentions: cast.mentions,
+					mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
+					mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
+					$$embeds: (cast.embeds ?? []).map((embed, index) => {
+						const ogImages = embed.metadata?.html?.ogImage
+						const og0 = ogImages?.[0]?.url
+						return (({
+							[EntityMetaKey.Id]: {
+								$cast: castId,
+								index,
+							},
+							url: optionalNonemptyString(embed.url),
+							$embeddedCast: (
+								embed.cast?.hash != null && embed.cast.author?.fid != null ?
+									{
+										[EntityMetaKey.Id]: {
+											fid: embed.cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(embed.cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>
+								: embed.cast_id?.fid != null && embed.cast_id.hash != null ?
+									{
+										[EntityMetaKey.Id]: {
+											fid: embed.cast_id.fid,
+											hash: zeroXLowerHexCastHash(String(embed.cast_id.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>
+								:
+									undefined
+							),
+							title: optionalNonemptyString(embed.metadata?.html?.ogTitle),
+							description: optionalNonemptyString(embed.metadata?.html?.ogDescription),
+							...((
+								iconMedia,
+							) => (
+								iconMedia != null && {
+									$icon: iconMedia,
+								}
+							))(mediaFromUrl(neynarPfpHttpUrl(
+								og0 ?? undefined,
+								{ pageBaseUrl: optionalNonemptyString(embed.url) },
+							), MediaType.Image)),
+							quotedPreviewText: optionalNonemptyString(embed.cast?.text),
+						}) satisfies CastEmbedEntity)
+					}),
+					...(likeCount != null && { likeCount }),
+					...(recastCount != null && { recastCount }),
+					...(replyCount != null && { replyCount }),
+					...(cast.thread_hash != null && cast.thread_hash !== '' && {
+						threadHash: zeroXLowerHexCastHash(String(cast.thread_hash)),
+					}),
+					$channel: (
+						channelId == null ? undefined : {
+							[EntityMetaKey.Id]: {
+								id: channelId,
+							},
+						} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
+					),
+				} satisfies Partial<FieldValuesCast>
+			},
+				['clientUrl']: async (entityId, context) => {
+				const {
+					getCastByClientUrl,
+					getCastByHash,
+				} = await import('$/sources/Neynar/Rest/queries.ts')
+				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
+				type EntityIdCast = import('$/schema/$schema.ts').EntityId<typeof schema, EntityType.FarcasterCast>
+				type FieldValuesCast = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
+				const cast = await (
+					'hash' in entityId ?
+						singleFlight(getCastByHash)(
+							context.publicEnv,
+							zeroXLowerHexCastHash(entityId.hash),
+						)
+					: 'clientUrl' in entityId ?
+						singleFlight(getCastByClientUrl)(context.publicEnv, entityId.clientUrl)
+					:
+						undefined
+				)
+				if (cast == null) {
+					throw new Error('Neynar_Rest: cast not found')
+				}
+				const castHash = zeroXLowerHexCastHash(cast.hash)
+				const timestamp = Date.parse(cast.timestamp ?? '')
+				if (cast.author?.fid == null) {
+					throw new Error('Neynar_Rest: cast missing author fid')
+				}
+				if (
+					'hash' in entityId
+					&& castHash !== zeroXLowerHexCastHash(entityId.hash)
+				) {
+					throw new Error('Neynar_Rest: cast hash mismatch')
+				}
+				if (
+					'fid' in entityId
+					&& cast.author.fid !== entityId.fid
+				) {
+					throw new Error('Neynar_Rest: cast author mismatch')
+				}
+				if (!Number.isFinite(timestamp)) {
+					throw new Error('Neynar_Rest: cast missing timestamp')
+				}
+				const castId: EntityIdCast = {
+					fid: cast.author.fid,
+					hash: castHash,
+				}
+				const mentionFids = (
+					(cast.mentioned_profiles ?? [])
+						.map((u) => u.fid)
+						.filter((fidValue): fidValue is number => fidValue != null)
+				)
+				const mentionChIds = (
+					(cast.mentioned_channels ?? [])
+						.map((ch) => optionalNonemptyString(ch.id))
+						.filter((idValue): idValue is string => idValue != null)
+				)
+				const channelId = optionalNonemptyString(cast.channel?.id)
+				const parentUrl = optionalNonemptyString(cast.parent_url ?? cast.root_parent_url)
+				const likeCount = cast.likes ?? cast.reactions?.likes_count
+				const recastCount = cast.recasts ?? cast.reactions?.recasts_count
+				const replyCount = cast.replies?.count
+				return {
+					fid: cast.author.fid,
+					hash: castHash,
+					...(cast.author.username != null && cast.author.username !== '' && {
+						username: cast.author.username,
+					}),
+					...('clientUrl' in entityId && {
+						clientUrl: entityId.clientUrl,
+					}),
+					$author: {
+						[EntityMetaKey.Id]: { fid: cast.author.fid },
+					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
+					$postedViaApp: (
+						cast.app?.fid == null ?
+							undefined
+						:
+							({
+								[EntityMetaKey.Id]: { fid: cast.app.fid },
+							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
+					),
+					text: optionalNonemptyString(cast.text) ?? '',
+					$parentCast: (
+						cast.parent_author?.fid == null
+						|| cast.parent_hash == null
+						|| cast.parent_hash === '' ?
+							undefined
+						:
+							{
+								[EntityMetaKey.Id]: {
+									fid: cast.parent_author.fid,
+									hash: zeroXLowerHexCastHash(String(cast.parent_hash)),
+								},
+							} satisfies Entity<typeof schema, EntityType.FarcasterCast>
+					),
+					...(parentUrl != null && { parentUrl }),
+					timestamp,
+					mentions: cast.mentions,
+					mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
+					mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
+					$$embeds: (cast.embeds ?? []).map((embed, index) => {
+						const ogImages = embed.metadata?.html?.ogImage
+						const og0 = ogImages?.[0]?.url
+						return (({
+							[EntityMetaKey.Id]: {
+								$cast: castId,
+								index,
+							},
+							url: optionalNonemptyString(embed.url),
+							$embeddedCast: (
+								embed.cast?.hash != null && embed.cast.author?.fid != null ?
+									{
+										[EntityMetaKey.Id]: {
+											fid: embed.cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(embed.cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>
+								: embed.cast_id?.fid != null && embed.cast_id.hash != null ?
+									{
+										[EntityMetaKey.Id]: {
+											fid: embed.cast_id.fid,
+											hash: zeroXLowerHexCastHash(String(embed.cast_id.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>
+								:
+									undefined
+							),
+							title: optionalNonemptyString(embed.metadata?.html?.ogTitle),
+							description: optionalNonemptyString(embed.metadata?.html?.ogDescription),
+							...((
+								iconMedia,
+							) => (
+								iconMedia != null && {
+									$icon: iconMedia,
+								}
+							))(mediaFromUrl(neynarPfpHttpUrl(
+								og0 ?? undefined,
+								{ pageBaseUrl: optionalNonemptyString(embed.url) },
+							), MediaType.Image)),
+							quotedPreviewText: optionalNonemptyString(embed.cast?.text),
+						}) satisfies CastEmbedEntity)
+					}),
+					...(likeCount != null && { likeCount }),
+					...(recastCount != null && { recastCount }),
+					...(replyCount != null && { replyCount }),
+					...(cast.thread_hash != null && cast.thread_hash !== '' && {
+						threadHash: zeroXLowerHexCastHash(String(cast.thread_hash)),
+					}),
+					$channel: (
+						channelId == null ? undefined : {
+							[EntityMetaKey.Id]: {
+								id: channelId,
+							},
+						} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
+					),
+				} satisfies Partial<FieldValuesCast>
+			}
+			},
 			fields: {
 				fid: (cast) => cast.fid,
 				hash: (cast) => cast.hash,
@@ -412,8 +729,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterFeed,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				if (entityId.variant === 'trending') {
@@ -520,6 +837,7 @@ export default {
 									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
 							))
 					)
+			}
 			},
 			fields: {
 				$$entries: (entries) => entries,
@@ -528,8 +846,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterUser,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				const page = await singleFlight(getFeed)(
@@ -557,6 +875,7 @@ export default {
 								} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
 						))
 				)
+			}
 			},
 			fields: {
 				$$casts: (casts) => casts,
@@ -565,8 +884,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterChannel,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				const page = await singleFlight(getFeed)(
@@ -594,6 +913,7 @@ export default {
 								} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
 						))
 				)
+			}
 			},
 			fields: {
 				$$casts: (casts) => casts,

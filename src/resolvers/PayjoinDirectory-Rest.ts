@@ -11,8 +11,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.PayjoinDirectory,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const {
 					getOhttpKeyConfigBase64,
 					ohttpGatewayUrlForDirectory,
@@ -23,6 +23,7 @@ export default {
 						directoryUrl: entityId.directoryUrl,
 					}),
 				}
+			}
 			},
 			fields: {
 			ohttpGatewayUrl: (snapshot) => snapshot.ohttpGatewayUrl,

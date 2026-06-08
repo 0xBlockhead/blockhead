@@ -105,8 +105,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.ZcashShieldedPool,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertZcashMainnet(entityId.$network)
 				return (
 					entityId.pool === ZcashShieldedPoolKind.Sapling ?
@@ -120,6 +120,7 @@ export default {
 							noteProtocol: 'Orchard',
 						}
 				)
+			}
 			},
 			fields: {
 			activationNetworkUpgrade: (snapshot) => snapshot.activationNetworkUpgrade,
@@ -128,8 +129,8 @@ export default {
 		}),
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const transaction = await getTransaction(entityId)
 				return {
 					version: transaction.version,
@@ -141,6 +142,7 @@ export default {
 						transaction,
 					),
 				}
+			}
 			},
 			fields: {
 			version: (snapshot) => snapshot.version,
@@ -153,8 +155,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ZcashShieldedAction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const shieldedAction = zcashShieldedActionRows(
 					entityId.$transaction,
 					await getTransaction(entityId.$transaction),
@@ -165,6 +167,7 @@ export default {
 				))
 				if (shieldedAction == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${entityId.$transaction.txId}`)
 				return shieldedAction
+			}
 			},
 			fields: {
 			$pool: (snapshot) => snapshot.$pool,

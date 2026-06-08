@@ -20,8 +20,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.Market_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Defillama_Rest: Market_Timestamp is spot-only')
 				}
@@ -51,7 +51,8 @@ export default {
 					transport: 'defillama-pro-current-usd-1e8',
 					providerAssetId: llamaId,
 				}
-				},
+				}
+			},
 				fields: {
 					price: (snapshot) => snapshot.price,
 					transport: (snapshot) => snapshot.transport,
@@ -61,8 +62,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MarketPrice,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Defillama_Rest: MarketPrice $$quotes is spot-only')
 				}
@@ -103,6 +104,7 @@ export default {
 						},
 					},
 				]
+			}
 			},
 			fields: {
 			$$quotes: (snapshot) => snapshot,
@@ -111,10 +113,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MarketPrice,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => ({
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => ({
 				[EntityMetaKey.Id]: entityId.$market,
-			}),
+			})
+			},
 			fields: {
 			$parentMarket: (snapshot) => snapshot,
 		}

@@ -40,8 +40,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				const { getInfo } = await import('$/sources/CoinMarketCap/Rest/queries.ts')
@@ -73,6 +73,7 @@ export default {
 					}),
 					...(logoMedia != null && { $logo: logoMedia }),
 				}
+			}
 			},
 			fields: {
 				name: (coin) => coin.name,
@@ -83,8 +84,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('CoinMarketCap_Rest: Market_Timestamp is spot-only')
 				}
@@ -147,6 +148,7 @@ export default {
 						providerAssetId: String(coinMarketCapId),
 					...(caip2 && { caip2 }),
 				}
+			}
 			},
 			fields: {
 				price: (timestamp) => timestamp.price,
@@ -158,8 +160,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('CoinMarketCap_Rest: OHLC is spot-only')
 				}
@@ -194,6 +196,7 @@ export default {
 					ohlcCandle,
 					)
 				)
+			}
 			},
 			fields: {
 				open: (timestamp) => timestamp.open,
@@ -209,8 +212,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				return (
@@ -224,6 +227,7 @@ export default {
 							}
 						))
 				)
+			}
 			},
 			fields: {
 				$$coins: (coins) => coins,
@@ -232,8 +236,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				return (
@@ -245,6 +249,7 @@ export default {
 							}
 						))
 				)
+			}
 			},
 			fields: {
 				$$markets: (markets) => markets,
@@ -253,9 +258,10 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				throw new Error('CoinMarketCap_Rest: $$marketTimeIntervalTimestamps is not implemented')
+			}
 			},
 			fields: {
 				$$marketTimeIntervalTimestamps: (timestamps) => timestamps,
@@ -264,8 +270,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				return (
@@ -279,6 +285,7 @@ export default {
 							}
 						))
 				)
+			}
 			},
 			fields: {
 				$$marketPrices: (marketPrices) => marketPrices,
@@ -287,8 +294,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				if (idByCoinId[entityId.coinId] == null) {
 					throw new Error(`CoinMarketCap_Rest: $$marketsWithCoinAsBase unsupported for coin ${entityId.coinId}`)
@@ -300,6 +307,7 @@ export default {
 						},
 					]
 				)
+			}
 			},
 			fields: {
 				$$marketsWithCoinAsBase: (markets) => markets,
@@ -308,8 +316,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				if (idByCoinId[entityId.coinId] == null) {
 					return []
@@ -327,6 +335,7 @@ export default {
 							}
 						))
 				)
+			}
 			},
 			fields: {
 				$$marketsWithCoinAsQuote: (markets) => markets,
@@ -335,8 +344,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Currency,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				return (
 					(
@@ -350,6 +359,7 @@ export default {
 						[EntityMetaKey.Id]: marketId,
 					}))
 				)
+			}
 			},
 			fields: {
 				$$marketsWithCurrencyAsQuote: (markets) => markets,
@@ -358,8 +368,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Currency,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
 				const markets = catalogSpotMarketsWithCurrencyAsBase
 						.filter((catalogMarket) => catalogMarket.iso4217 === entityId.iso4217)
 						.map((catalogMarket) => ({
@@ -369,6 +379,7 @@ export default {
 					throw new Error(`CoinMarketCap_Rest: no catalog markets with ${entityId.iso4217} as base`)
 				}
 				return markets
+			}
 			},
 			fields: {
 				$$marketsWithCurrencyAsBase: (markets) => markets,
@@ -377,8 +388,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
 				if (entityId.marketKind !== MarketKind.Spot) {
 					return []
 				}
@@ -420,6 +431,7 @@ export default {
 				return (
 					candles.slice(0, lim)
 				)
+			}
 			},
 			fields: {
 				$$marketTimeIntervalTimestamps: (timestamps) => timestamps,
@@ -428,8 +440,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MarketPrice,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					return []
 				}
@@ -469,6 +481,7 @@ export default {
 						},
 					},
 				]
+			}
 			},
 			fields: {
 				$$quotes: (quotes) => quotes,
@@ -477,12 +490,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MarketPrice,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}
-			),
+			)
+			},
 			fields: {
 				$parentMarket: (market) => market,
 			},
@@ -490,12 +504,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}
-			),
+			)
+			},
 			fields: {
 				$parentMarket: (market) => market,
 			},

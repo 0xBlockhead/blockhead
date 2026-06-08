@@ -19,8 +19,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.BitcoinCashBcmrMetadata,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertBitcoinCashMainnet(entityId.$network)
 				const { getRegistry } = await import('$/sources/BitcoinCashBcmr/Github/queries.ts')
 				const registry = await getRegistry({ url: entityId.registryUrl })
@@ -39,6 +39,7 @@ export default {
 					...(latestRevision.token?.symbol != null && { symbol: latestRevision.token.symbol }),
 					...(latestRevision.token?.decimals != null && { decimals: latestRevision.token.decimals }),
 				}
+			}
 			},
 			fields: {
 			name: (snapshot) => snapshot.name,

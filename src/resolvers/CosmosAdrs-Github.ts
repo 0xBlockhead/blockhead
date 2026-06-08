@@ -40,8 +40,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SpecificationProposal,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Cosmos || entityId.category !== ProposalCategory.Adr) {
 					throw new Error('CosmosAdrs_Github: proposal resolver only supports Cosmos SDK ADRs')
@@ -54,6 +54,7 @@ export default {
 					documentStatus: markdownStatus(text),
 					documentBody: text,
 				}
+			}
 			},
 			fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -65,10 +66,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
 				return cosmosAdrRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -77,12 +79,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Cosmos) throw new Error('CosmosAdrs_Github: $$proposals only supports Cosmos')
 				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
 				return cosmosAdrRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -91,12 +94,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Cosmos || entityId.category !== ProposalCategory.Adr) throw new Error('CosmosAdrs_Github: $$proposals only supports Cosmos ADRs')
 				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
 				return cosmosAdrRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,

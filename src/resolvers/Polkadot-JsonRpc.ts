@@ -50,8 +50,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.PolkadotNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertPolkadotMainnet(entityId)
 				return {
 					$network: {
@@ -65,6 +65,7 @@ export default {
 						},
 					],
 				}
+			}
 			},
 			fields: {
 			$network: (network) => network.$network,
@@ -74,8 +75,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.PolkadotNetwork_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const {
 					getBlock,
@@ -114,6 +115,7 @@ export default {
 					isSyncing: systemHealth.isSyncing,
 					shouldHavePeers: systemHealth.shouldHavePeers,
 				}
+			}
 			},
 			fields: {
 			finalizedBlockNumber: (timestamp) => timestamp.finalizedBlockNumber,
@@ -131,8 +133,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.PolkadotBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const {
 					getBlock,
@@ -164,6 +166,7 @@ export default {
 						block,
 					),
 				}
+			}
 			},
 			fields: {
 			hash: (block) => block.hash,
@@ -176,8 +179,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.PolkadotExtrinsic,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertPolkadotMainnet(entityId.$block.$network)
 				const {
 					getBlock,
@@ -194,14 +197,15 @@ export default {
 					throw new Error(`Polkadot_JsonRpc: extrinsic not found for ${entityId.$block.blockNumber.toString()}:${entityId.extrinsicIndex}`)
 				}
 				return {}
+			}
 			},
 			fields: {}
 		}),
 
 		defineResolver({
 			entityType: EntityType.PolkadotNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertPolkadotMainnet(entityId)
 				return [
 					{
@@ -210,6 +214,7 @@ export default {
 						providerName: 'Parity',
 					},
 				]
+			}
 			},
 			fields: {
 			rpcEndpoints: (rpcEndpoints) => rpcEndpoints,
@@ -218,8 +223,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.PolkadotNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertPolkadotMainnet(entityId)
 				return [
 					{
@@ -229,6 +234,7 @@ export default {
 						},
 					},
 				]
+			}
 			},
 			fields: {
 			$$timestamps: (timestamps) => timestamps,
@@ -237,8 +243,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.PolkadotNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertPolkadotMainnet(entityId)
 				const {
 					getFinalizedHead,
@@ -263,6 +269,7 @@ export default {
 						}),
 					},
 				}))
+			}
 			},
 			fields: {
 			$$blocks: (blocks) => blocks,
@@ -271,8 +278,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.PolkadotBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				if (entityId.blockNumber === 0n) throw new Error('Polkadot_JsonRpc: genesis block has no parent')
 				const {
@@ -293,6 +300,7 @@ export default {
 						hash: block.block.header.parentHash,
 					},
 				}
+			}
 			},
 			fields: {
 			$parent: (parent) => parent,
@@ -301,8 +309,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.PolkadotBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertPolkadotMainnet(entityId.$network)
 				const {
 					getBlock,
@@ -318,6 +326,7 @@ export default {
 						}),
 					}),
 				)
+			}
 			},
 			fields: {
 			$$extrinsics: (extrinsics) => extrinsics,

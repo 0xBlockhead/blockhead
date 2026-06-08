@@ -25,8 +25,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.LightningNode,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertLightningNetwork(entityId.$network)
 				const { getNode } = await import('$/sources/Amboss/Graphql/queries.ts')
 				const node = await getNode({ publicKey: entityId.publicKey })
@@ -61,6 +61,7 @@ export default {
 						graphNode?.addresses.map((address) => address.addr) ?? []
 					),
 				}
+			}
 			},
 			fields: {
 			alias: (snapshot) => snapshot.alias,
@@ -76,8 +77,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.LightningChannel,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertLightningNetwork(entityId.$network)
 				const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
 				const edge = await getEdge({ channelId: entityId.channelId })
@@ -124,6 +125,7 @@ export default {
 						feeRatePpm: Number(edgeInfo.node1_policy.fee_rate_milli_msat),
 					}),
 				}
+			}
 			},
 			fields: {
 			shortChannelId: (snapshot) => snapshot.shortChannelId,
@@ -137,8 +139,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.LightningNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
 				const { getPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')
 				const pubkeys = await getPopularNodePubkeys()
@@ -150,6 +152,7 @@ export default {
 							publicKey,
 						},
 					}))
+			}
 			},
 			fields: {
 			$$nodes: (snapshot) => snapshot,

@@ -18,8 +18,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.RssFeed,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
 				const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
@@ -35,6 +35,7 @@ export default {
 					}),
 					...(feed.imageUrl != null && { imageUrl: feed.imageUrl }),
 				}
+			}
 			},
 			fields: {
 			title: (snapshot) => snapshot.title,
@@ -49,8 +50,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RssItem,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const {
 					normalizeRssFeedUrl,
 					rssItemGuidFromParts,
@@ -83,6 +84,7 @@ export default {
 						[EntityMetaKey.Id]: { feedUrl },
 					},
 				}
+			}
 			},
 			fields: {
 			title: (snapshot) => snapshot.title,
@@ -101,8 +103,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RssNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const {
 					normalizeRssFeedUrl,
 					rssItemGuidFromParts,
@@ -126,6 +128,7 @@ export default {
 					if (refs.length >= limit) break
 				}
 				return refs.slice(0, limit)
+			}
 			},
 			fields: {
 			$$rssItems: (snapshot) => snapshot,
@@ -134,8 +137,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RssFeed,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					normalizeRssFeedUrl,
 					rssItemGuidFromParts,
@@ -152,6 +155,7 @@ export default {
 							},
 						}))
 				)
+			}
 			},
 			fields: {
 			$$items: (snapshot) => snapshot,

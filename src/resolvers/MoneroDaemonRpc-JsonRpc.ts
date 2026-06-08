@@ -165,8 +165,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.MoneroNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertMoneroMainnet(entityId)
 					return {
 						$network: {
@@ -174,7 +174,8 @@ export default {
 						},
 						rpcEndpoints: [...moneroMainnetRpcEndpoints],
 					}
-				},
+				}
+			},
 			fields: {
 					$network: (network) => network.$network,
 					rpcEndpoints: (network) => network.rpcEndpoints,
@@ -183,8 +184,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MoneroBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertMoneroMainnet(entityId.$network)
 					const { getBlock } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const block = await getBlock({
@@ -218,7 +219,8 @@ export default {
 							},
 						})),
 					}
-				},
+				}
+			},
 			fields: {
 					hash: (block) => block.hash,
 					$parent: (block) => block.$parent,
@@ -231,13 +233,14 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MoneroTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => (
 					moneroTransactionFields(
 						entityId.$network,
 						await getMoneroTransaction(entityId),
 					)
-				),
+				)
+			},
 			fields: {
 					$block: (transaction) => transaction.$block,
 					version: (transaction) => transaction.version,
@@ -250,8 +253,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MoneroKeyImage,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					const transaction = await getMoneroTransaction(entityId.$transaction)
 					const input = transaction.decoded_json?.vin[entityId.inputIndex]
 					if (input?.key == null || input.key.k_image !== entityId.keyImage) {
@@ -262,7 +265,8 @@ export default {
 						input,
 						entityId.inputIndex,
 					)
-				},
+				}
+			},
 			fields: {
 					$ring: (keyImage) => keyImage.$ring,
 				}
@@ -270,8 +274,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MoneroRing,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					const transaction = await getMoneroTransaction(entityId.$keyImage.$transaction)
 					const input = transaction.decoded_json?.vin[entityId.$keyImage.inputIndex]
 					if (input?.key == null || input.key.k_image !== entityId.$keyImage.keyImage) {
@@ -289,7 +293,8 @@ export default {
 							),
 						})),
 					}
-				},
+				}
+			},
 			fields: {
 					$$members: (ring) => ring.$$members,
 				}
@@ -297,8 +302,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MoneroRingMember,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					const transaction = await getMoneroTransaction(entityId.$ring.$keyImage.$transaction)
 					const input = transaction.decoded_json?.vin[entityId.$ring.$keyImage.inputIndex]
 					if (input?.key == null || input.key.k_image !== entityId.$ring.$keyImage.keyImage) {
@@ -308,7 +313,8 @@ export default {
 						input,
 						entityId.memberIndex,
 					)
-				},
+				}
+			},
 			fields: {
 					globalOutputIndex: (ringMember) => ringMember.globalOutputIndex,
 				}
@@ -316,8 +322,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MoneroStealthOutput,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					const transaction = await getMoneroTransaction(entityId.$transaction)
 					const output = transaction.decoded_json?.vout[entityId.outputIndex]
 					if (output == null) {
@@ -328,7 +334,8 @@ export default {
 						output,
 						entityId.outputIndex,
 					)
-				},
+				}
+			},
 			fields: {
 					publicKey: (output) => output.publicKey,
 					commitment: (output) => output.commitment,
@@ -337,8 +344,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MoneroNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					assertMoneroMainnet(entityId)
 					const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const info = await getInfo({
@@ -399,7 +406,8 @@ export default {
 							status: info.status,
 						},
 					]
-				},
+				}
+			},
 			fields: {
 					$$timestamps: (timestamps) => timestamps,
 				}
@@ -407,8 +415,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MoneroNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 					assertMoneroMainnet(entityId)
 					const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const info = await getInfo({
@@ -429,7 +437,8 @@ export default {
 							}),
 						},
 					}))
-				},
+				}
+			},
 			fields: {
 					$$blocks: (blocks) => blocks,
 				}
@@ -437,8 +446,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MoneroRing,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 					const transaction = await getMoneroTransaction(entityId.$keyImage.$transaction)
 					const input = transaction.decoded_json?.vin[entityId.$keyImage.inputIndex]
 					if (input?.key == null || input.key.k_image !== entityId.$keyImage.keyImage) {
@@ -454,7 +463,8 @@ export default {
 							memberIndex,
 						),
 					}))
-				},
+				}
+			},
 			fields: {
 					$$members: (members) => members,
 				}

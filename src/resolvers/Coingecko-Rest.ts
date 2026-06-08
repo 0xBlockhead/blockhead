@@ -42,8 +42,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { CoinId, coinById } = await import('$/constants/Coin.ts')
 				const { decimalsByCoinId, idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
@@ -79,6 +79,7 @@ export default {
 						marketCapUsd: md.market_cap.usd,
 					}),
 				}
+			}
 			},
 			fields: {
 				symbol: (coin) => coin.symbol,
@@ -92,8 +93,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { CoinId } = await import('$/constants/Coin.ts')
 				const {
 					decimalsByCoinId,
@@ -180,6 +181,7 @@ export default {
 					caip19,
 					...(iconMedia != null && { $icon: iconMedia }),
 				}
+			}
 			},
 			fields: {
 				coinId: (coinInstance) => coinInstance.coinId,
@@ -193,20 +195,21 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				if (entityId.marketKind === MarketKind.Spot) {
 					return {}
 				}
 				throw new Error('Coingecko_Rest: derivative Market fields use Coingecko_OpenApi')
+			}
 			},
 			fields: {},
 		}),
 
 		defineResolver({
 			entityType: EntityType.Market_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Coingecko_Rest: Market_Timestamp is spot-only')
 				}
@@ -249,6 +252,7 @@ export default {
 					providerAssetId: coingeckoId,
 					...(caip19 && { caip19 }),
 				}
+			}
 			},
 			fields: {
 				price: (timestamp) => timestamp.price,
@@ -260,8 +264,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Coingecko_Rest: OHLC is spot-only')
 				}
@@ -295,6 +299,7 @@ export default {
 					ohlcCandle,
 					)
 				)
+			}
 			},
 			fields: {
 				open: (timestamp) => timestamp.open,
@@ -309,8 +314,8 @@ export default {
 		}),
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { coinIdByWireId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				const { getCoinsMarketsPage } = await import('$/sources/Coingecko/Rest/queries.ts')
@@ -345,6 +350,7 @@ export default {
 							]
 						})
 				)
+			}
 			},
 			fields: {
 				$$coins: (globalScope) => globalScope,
@@ -353,8 +359,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				return (
@@ -364,6 +370,7 @@ export default {
 							[EntityMetaKey.Id]: catalogCoinUsdMarketIdByCoinId[coinId],
 						}))
 				)
+			}
 			},
 			fields: {
 				$$markets: (globalScope) => globalScope,
@@ -372,8 +379,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				return (
@@ -385,6 +392,7 @@ export default {
 							},
 						}))
 				)
+			}
 			},
 			fields: {
 				$$marketPrices: (globalScope) => globalScope,
@@ -393,8 +401,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
@@ -437,6 +445,7 @@ export default {
 				return (
 					candles.slice(0, lim)
 				)
+			}
 			},
 			fields: {
 				$$marketTimeIntervalTimestamps: (globalScope) => globalScope,
@@ -445,8 +454,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				const { fetchCoinInstanceStubsForCoin } = await import(
 					'$/sources/Coingecko/Rest/coinInstances.ts'
@@ -458,6 +467,7 @@ export default {
 					entityId.coinId,
 					context.publicEnv,
 				)
+			}
 			},
 			fields: {
 				$$coinInstances: (coin) => coin,
@@ -466,8 +476,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { resolveCoinInstanceRepresentation } = await import(
 					'$/sources/Coingecko/Rest/coinInstances.ts'
 				)
@@ -475,6 +485,7 @@ export default {
 					entityId,
 					context.publicEnv,
 				)
+			}
 			},
 			fields: {
 				representation: (coinInstance) => coinInstance,
@@ -483,8 +494,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { resolveCanonicalCoinInstanceEntityId } = await import(
 					'$/sources/Coingecko/Rest/coinInstances.ts'
 				)
@@ -498,6 +509,7 @@ export default {
 					:
 						{ [EntityMetaKey.Id]: canonicalId }
 				)
+			}
 			},
 			fields: {
 				$canonicalInstance: (coinInstance) => coinInstance,
@@ -506,8 +518,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				if (idByCoinId[entityId.coinId] == null) {
 					throw new Error(`Coingecko_Rest: $$marketsWithCoinAsBase unsupported for coin ${entityId.coinId}`)
@@ -519,6 +531,7 @@ export default {
 						},
 					]
 				)
+			}
 			},
 			fields: {
 				$$marketsWithCoinAsBase: (coin) => coin,
@@ -527,8 +540,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
 				const { catalogMarketsWithCoinAsQuoteByQuoteCoinId } = await import('$/constants/MarketCatalog.ts')
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				if (idByCoinId[entityId.coinId] == null) {
@@ -545,6 +558,7 @@ export default {
 							[EntityMetaKey.Id]: marketId,
 						}))
 				)
+			}
 			},
 			fields: {
 				$$marketsWithCoinAsQuote: (coin) => coin,
@@ -553,8 +567,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Currency,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				return (
 					(
@@ -568,6 +582,7 @@ export default {
 						[EntityMetaKey.Id]: marketId,
 					}))
 				)
+			}
 			},
 			fields: {
 				$$marketsWithCurrencyAsQuote: (currency) => currency,
@@ -576,8 +591,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Currency,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
 				const markets = catalogSpotMarketsWithCurrencyAsBase
 						.filter((catalogMarket) => catalogMarket.iso4217 === entityId.iso4217)
 						.map((catalogMarket) => ({
@@ -587,6 +602,7 @@ export default {
 					throw new Error(`Coingecko_Rest: no catalog markets with ${entityId.iso4217} as base`)
 				}
 				return markets
+			}
 			},
 			fields: {
 				$$marketsWithCurrencyAsBase: (currency) => currency,
@@ -595,9 +611,10 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				throw new Error('Coingecko_Rest: $$marketsWithInstanceAsBase is unsupported')
+			}
 			},
 			fields: {
 				$$marketsWithInstanceAsBase: (coinInstance) => coinInstance,
@@ -606,9 +623,10 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				throw new Error('Coingecko_Rest: $$marketsWithInstanceAsQuote is unsupported')
+			}
 			},
 			fields: {
 				$$marketsWithInstanceAsQuote: (coinInstance) => coinInstance,
@@ -617,8 +635,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
 				entityId.$base.kind === MarketAssetKind.Coin ?
 					{
 						[EntityMetaKey.Id]: {
@@ -627,7 +645,8 @@ export default {
 					}
 				:
 					undefined
-			),
+			)
+			},
 			fields: {
 				$baseCoin: (market) => market,
 			},
@@ -635,8 +654,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
 				(
 				entityId.$base.kind === MarketAssetKind.Coin
 				&& entityId.marketKind === MarketKind.Spot
@@ -651,7 +670,8 @@ export default {
 					]
 				:
 					[]
-			),
+			)
+			},
 			fields: {
 				$$marketPrices: (market) => market,
 			},
@@ -659,8 +679,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.marketKind !== MarketKind.Spot) {
 					return []
 				}
@@ -702,6 +722,7 @@ export default {
 				return (
 					candles.slice(0, lim)
 				)
+			}
 			},
 			fields: {
 				$$marketTimeIntervalTimestamps: (market) => market,
@@ -710,8 +731,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MarketPrice,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					return []
 				}
@@ -737,6 +758,7 @@ export default {
 						},
 					},
 				]
+			}
 			},
 			fields: {
 				$$quotes: (marketPrice) => marketPrice,
@@ -745,12 +767,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MarketPrice,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}
-			),
+			)
+			},
 			fields: {
 				$parentMarket: (marketPrice) => marketPrice,
 			},
@@ -758,12 +781,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}
-			),
+			)
+			},
 			fields: {
 				$parentMarket: (timestamp) => timestamp,
 			},

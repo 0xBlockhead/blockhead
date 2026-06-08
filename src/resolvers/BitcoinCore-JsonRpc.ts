@@ -28,8 +28,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertBitcoinMainnet(entityId.$network)
 				const {
 					getBlock,
@@ -90,6 +90,7 @@ export default {
 							}
 					)),
 				}
+			}
 			},
 			fields: {
 			hash: (snapshot) => snapshot.hash,
@@ -107,8 +108,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertBitcoinMainnet(entityId.$network)
 				const { getRawTransaction } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
 				const transaction = await getRawTransaction({
@@ -130,6 +131,7 @@ export default {
 					weightUnits: transaction.weight,
 					isCoinbase: transaction.vin.some((input) => input.coinbase != null),
 				}
+			}
 			},
 			fields: {
 			version: (snapshot) => snapshot.version,

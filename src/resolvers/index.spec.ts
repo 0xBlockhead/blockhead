@@ -163,25 +163,27 @@ describe('resolver registry live resolver architecture', () => {
 		).toBe(false)
 	})
 
-	it('preserves duplicate-safe field part indexes for multi-projection accepts and acceptsParent parts', () => {
+	it('preserves duplicate-safe field part indexes for multi-projection resolve keys and parentSelectors parts', () => {
 		const first = defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => ({}),
+			resolve: {
+				[EntityIdProjection.Identity]: async () => ({}),
+			},
 			fields: {
 				$$networks: {
-					acceptsParent: [EntityIdProjection.Identity],
+					parentSelectors: [EntityIdProjection.Identity],
 					select: () => ([]),
 				},
 			},
 		})
 		const second = defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => ({}),
+			resolve: {
+				[EntityIdProjection.Identity]: async () => ({}),
+			},
 			fields: {
 				$$networks: {
-					acceptsParent: [EntityIdProjection.Identity],
+					parentSelectors: [EntityIdProjection.Identity],
 					select: () => ([]),
 				},
 			},
@@ -194,7 +196,7 @@ describe('resolver registry live resolver architecture', () => {
 				source: Source.Constants_Internal,
 				entityType: resolver.entityType,
 				fieldName,
-				accepts: resolver.accepts,
+				resolveProjectionNames: Object.keys(resolver.resolve),
 			}))
 		))
 
@@ -202,14 +204,14 @@ describe('resolver registry live resolver architecture', () => {
 			expect.objectContaining({
 				definitionIndex: 0,
 				partIndex: 0,
-				accepts: [EntityIdProjection.Identity],
-				acceptsParent: [EntityIdProjection.Identity],
+				resolveProjectionNames: [EntityIdProjection.Identity],
+				parentSelectors: [EntityIdProjection.Identity],
 			}),
 			expect.objectContaining({
 				definitionIndex: 1,
 				partIndex: 0,
-				accepts: [EntityIdProjection.Identity],
-				acceptsParent: [EntityIdProjection.Identity],
+				resolveProjectionNames: [EntityIdProjection.Identity],
+				parentSelectors: [EntityIdProjection.Identity],
 			}),
 		])
 		expect(new Set(parts.map((part) => (
@@ -229,19 +231,19 @@ describe('resolver registry live resolver architecture', () => {
 		)
 
 		expect(resolverDefinitions.every((resolver) => (
-			resolver.accepts.every((acceptedProjectionName) => (
-				entityIdProjectionNamesByEntityType[resolver.entityType]?.has(acceptedProjectionName)
+			Object.keys(resolver.resolve).every((projectionName) => (
+				entityIdProjectionNamesByEntityType[resolver.entityType]?.has(projectionName)
 			))
 		))).toBe(true)
 		expect(Object.values(resolverValuePartsByEntityTypeAndFieldName).flat().every((resolverPart) => (
-			(resolverPart.acceptsParent ?? []).every((acceptedProjectionName) => (
+			(resolverPart.parentSelectors ?? []).every((acceptedProjectionName) => (
 				entityIdProjectionNamesByEntityType[resolverPart.entityType]?.has(acceptedProjectionName)
 			))
 		))).toBe(true)
 		expect(resolverDefinitions.some((resolver) => (
-			resolver.accepts.includes('acct')
-			|| resolver.accepts.includes('usernameHashPrefix')
-			|| resolver.accepts.includes('localName')
+			Object.keys(resolver.resolve).includes('acct')
+			|| Object.keys(resolver.resolve).includes('usernameHashPrefix')
+			|| Object.keys(resolver.resolve).includes('localName')
 		))).toBe(true)
 	})
 

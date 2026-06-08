@@ -11,8 +11,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { getUsage } = await import('$/sources/Dune/Rest/queries.ts')
 
 				const billingPeriod = ((usage) => (
@@ -31,6 +31,7 @@ export default {
 					...(billingPeriod.credits_used != null && { duneCreditsUsed: billingPeriod.credits_used }),
 					...(billingPeriod.credits_included != null && { duneCreditsIncluded: billingPeriod.credits_included }),
 				}
+			}
 			},
 			fields: {
 			duneCreditsUsed: (snapshot) => snapshot.duneCreditsUsed,

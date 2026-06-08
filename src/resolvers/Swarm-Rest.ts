@@ -16,8 +16,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SwarmResource,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { swarmOnlyReferencePattern } = await import('$/sources/Swarm/Rest/constants.ts')
 				const normalizedReference = (
 					(await import('$/sources/Swarm/Rest/queries.ts')).normalizeReference(entityId.reference)
@@ -91,6 +91,7 @@ export default {
 					...(browseResult.text != null && { text: browseResult.text }),
 					...(mediaEntity != null && { $media: mediaEntity }),
 				}
+			}
 			},
 			fields: {
 			reference: (snapshot) => snapshot.reference,

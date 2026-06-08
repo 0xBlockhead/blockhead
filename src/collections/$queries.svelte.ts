@@ -120,7 +120,10 @@ const entityFieldCountCollectionFor = <
 >(
 	entityType: _EntityType,
 	fieldName: _FieldName,
-) => (
+): Collection<
+	EntityFieldCountRow,
+	string | number
+> | undefined => (
 	(
 		entityFieldCountCollections[entityType] as Partial<Record<
 			_FieldName,

@@ -37,8 +37,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.QuilibriumNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				return {
 					docsEndpoints: [
@@ -61,6 +61,7 @@ export default {
 						},
 					},
 				}
+			}
 			},
 			fields: {
 			docsEndpoints: (snapshot) => snapshot.docsEndpoints,
@@ -73,8 +74,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposal,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Quilibrium || entityId.category !== ProposalCategory.ProtocolDocument) {
 					throw new Error('QuilibriumDocs_Rest: proposal resolver only supports Quilibrium protocol documents')
@@ -82,6 +83,7 @@ export default {
 				const document = (await quilibriumDocumentRows()).find((quilibriumDocument) => quilibriumDocument[EntityMetaKey.Id].number === entityId.number)
 				if (document == null) throw new Error(`QuilibriumDocs_Rest: document not found ${entityId.number.toString()}`)
 				return document
+			}
 			},
 			fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -93,8 +95,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.QuilibriumNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				return {
 					[EntityMetaKey.Id]: {
@@ -103,6 +105,7 @@ export default {
 						number: 1,
 					},
 				}
+			}
 			},
 			fields: {
 			$protocolDocument: (snapshot) => snapshot,
@@ -111,8 +114,9 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: quilibriumDocumentRows,
+			resolve: {
+				[EntityIdProjection.Identity]: quilibriumDocumentRows
+			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
 		}
@@ -120,11 +124,12 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Quilibrium) throw new Error('QuilibriumDocs_Rest: $$proposals only supports Quilibrium')
 				return quilibriumDocumentRows()
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -133,11 +138,12 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Quilibrium || entityId.category !== ProposalCategory.ProtocolDocument) throw new Error('QuilibriumDocs_Rest: $$proposals only supports Quilibrium protocol documents')
 				return quilibriumDocumentRows()
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,

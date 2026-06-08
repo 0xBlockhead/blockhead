@@ -153,8 +153,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.TronBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertTronMainnet(entityId.$network)
 				const { getBlockByNumber } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
 				return blockFields(
@@ -164,6 +164,7 @@ export default {
 						height: entityId.height,
 					}),
 				)
+			}
 			},
 			fields: {
 			hash: (block) => block.hash,
@@ -180,8 +181,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.TronTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertTronMainnet(entityId.$network)
 				const {
 					getTransactionById,
@@ -200,6 +201,7 @@ export default {
 						transactionId: entityId.transactionId,
 					}),
 				)
+			}
 			},
 			fields: {
 			$block: (transaction) => transaction.$block,
@@ -221,8 +223,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.TronAccount,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertTronMainnet(entityId.$network)
 				const { getAccount } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
 				const account = await getAccount({
@@ -237,6 +239,7 @@ export default {
 					createdTimestampMs: account.create_time,
 					latestOperationTimestampMs: account.latest_opration_time,
 				}
+			}
 			},
 			fields: {
 			name: (account) => account.name,

@@ -17,8 +17,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.Url,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
 				try {
 					const wire = await getOpenGraphWireForPublicHttpUrl(entityId.url)
@@ -53,6 +53,7 @@ export default {
 						{ cause: error },
 					)
 				}
+			}
 			},
 			fields: {
 			openGraphTitle: (snapshot) => snapshot.openGraphTitle,

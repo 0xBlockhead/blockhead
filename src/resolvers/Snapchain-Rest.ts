@@ -60,8 +60,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.FarcasterUser,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				type UserFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterUser>
 				type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
 				const {
@@ -180,6 +180,7 @@ export default {
 					else if (userDataType === 'USER_DATA_TYPE_URL') userFields.url = fieldValue
 				}
 				return userFields
+			}
 			},
 			fields: {
 				username: (user) => user.username,
@@ -196,8 +197,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterUser_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const [followerCount, followingCount] = await Promise.all([
 					singleFlight(countLinksByFid)({
@@ -214,6 +215,7 @@ export default {
 					followerCount,
 					followingCount,
 				}
+			}
 			},
 			fields: {
 				followerCount: (timestamp) => timestamp.followerCount,
@@ -223,8 +225,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterCast,
-			accepts: [EntityIdProjection.Identity, 'hash', 'fidHash'],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
 				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
 				type CastFieldValues = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
@@ -315,6 +317,189 @@ export default {
 					replyCount,
 				} satisfies Partial<CastFieldValues>
 			},
+				['hash']: async (entityId) => {
+				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
+				type CastFieldValues = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
+				if (!('fid' in entityId) || !('hash' in entityId)) {
+					throw new Error('Snapchain_Rest: cast id requires fid and hash')
+				}
+				const {
+					getCastById,
+					getCastEngagementCountsForCast,
+				} = await import('$/sources/Snapchain/Rest/queries.ts')
+				const snapchainCast = await singleFlight(getCastById)({
+					fid: entityId.fid,
+					hash: entityId.hash,
+				})
+				const castAddBody = snapchainCast.data?.castAddBody
+				const farcasterTimestamp = snapchainCast.data?.timestamp
+				const parentUrl = optionalNonemptyString(castAddBody?.parentUrl)
+				const channelId = channelIdFromParentUrl(parentUrl)
+				const { likeCount, recastCount, replyCount } = await getCastEngagementCountsForCast({
+					targetFid: entityId.fid,
+					targetHash: entityId.hash,
+					likeReactionType: SnapchainReactionType.Like,
+					recastReactionType: SnapchainReactionType.Recast,
+				})
+				const timestamp = snapchainCastTimestampMs(farcasterTimestamp)
+				if (timestamp == null) {
+					throw new Error('Snapchain_Rest: cast missing timestamp')
+				}
+				return {
+					fid: entityId.fid,
+					hash: lowerHex0xCastHash(entityId.hash),
+					$author: {
+						[EntityMetaKey.Id]: {
+							fid: entityId.fid,
+						},
+					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
+					text: optionalNonemptyString(castAddBody?.text) ?? '',
+					$parentCast: (
+						castAddBody?.parentCastId?.fid != null
+						&& castAddBody.parentCastId.hash != null
+					) ?
+						{
+							[EntityMetaKey.Id]: {
+								fid: castAddBody.parentCastId.fid,
+								hash: lowerHex0xCastHash(castAddBody.parentCastId.hash),
+							},
+						} satisfies CastEntity
+					:
+						undefined,
+					parentUrl,
+					timestamp,
+					mentions: castAddBody?.mentions,
+					$channel: (
+						channelId == null ?
+							undefined
+						:
+							{
+								[EntityMetaKey.Id]: {
+									id: channelId,
+								},
+							} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
+					),
+					$$embeds: (castAddBody?.embeds ?? []).flatMap((embed, index) => (
+						[
+							(({
+								[EntityMetaKey.Id]: {
+									$cast: entityId,
+									index,
+								},
+									url: optionalNonemptyString(embed.url),
+								$embeddedCast: (
+										embed.castId?.fid != null
+									&& embed.castId.hash != null
+								) ?
+									{
+										[EntityMetaKey.Id]: {
+											fid: embed.castId.fid,
+											hash: lowerHex0xCastHash(embed.castId.hash),
+										},
+									} satisfies CastEntity
+								:
+									undefined,
+							}) satisfies CastEmbedEntity),
+						]
+					)),
+					likeCount,
+					recastCount,
+					replyCount,
+				} satisfies Partial<CastFieldValues>
+			},
+				['fidHash']: async (entityId) => {
+				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
+				type CastFieldValues = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
+				if (!('fid' in entityId) || !('hash' in entityId)) {
+					throw new Error('Snapchain_Rest: cast id requires fid and hash')
+				}
+				const {
+					getCastById,
+					getCastEngagementCountsForCast,
+				} = await import('$/sources/Snapchain/Rest/queries.ts')
+				const snapchainCast = await singleFlight(getCastById)({
+					fid: entityId.fid,
+					hash: entityId.hash,
+				})
+				const castAddBody = snapchainCast.data?.castAddBody
+				const farcasterTimestamp = snapchainCast.data?.timestamp
+				const parentUrl = optionalNonemptyString(castAddBody?.parentUrl)
+				const channelId = channelIdFromParentUrl(parentUrl)
+				const { likeCount, recastCount, replyCount } = await getCastEngagementCountsForCast({
+					targetFid: entityId.fid,
+					targetHash: entityId.hash,
+					likeReactionType: SnapchainReactionType.Like,
+					recastReactionType: SnapchainReactionType.Recast,
+				})
+				const timestamp = snapchainCastTimestampMs(farcasterTimestamp)
+				if (timestamp == null) {
+					throw new Error('Snapchain_Rest: cast missing timestamp')
+				}
+				return {
+					fid: entityId.fid,
+					hash: lowerHex0xCastHash(entityId.hash),
+					$author: {
+						[EntityMetaKey.Id]: {
+							fid: entityId.fid,
+						},
+					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
+					text: optionalNonemptyString(castAddBody?.text) ?? '',
+					$parentCast: (
+						castAddBody?.parentCastId?.fid != null
+						&& castAddBody.parentCastId.hash != null
+					) ?
+						{
+							[EntityMetaKey.Id]: {
+								fid: castAddBody.parentCastId.fid,
+								hash: lowerHex0xCastHash(castAddBody.parentCastId.hash),
+							},
+						} satisfies CastEntity
+					:
+						undefined,
+					parentUrl,
+					timestamp,
+					mentions: castAddBody?.mentions,
+					$channel: (
+						channelId == null ?
+							undefined
+						:
+							{
+								[EntityMetaKey.Id]: {
+									id: channelId,
+								},
+							} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
+					),
+					$$embeds: (castAddBody?.embeds ?? []).flatMap((embed, index) => (
+						[
+							(({
+								[EntityMetaKey.Id]: {
+									$cast: entityId,
+									index,
+								},
+									url: optionalNonemptyString(embed.url),
+								$embeddedCast: (
+										embed.castId?.fid != null
+									&& embed.castId.hash != null
+								) ?
+									{
+										[EntityMetaKey.Id]: {
+											fid: embed.castId.fid,
+											hash: lowerHex0xCastHash(embed.castId.hash),
+										},
+									} satisfies CastEntity
+								:
+									undefined,
+							}) satisfies CastEmbedEntity),
+						]
+					)),
+					likeCount,
+					recastCount,
+					replyCount,
+				} satisfies Partial<CastFieldValues>
+			}
+			},
 			fields: {
 				fid: (cast) => cast.fid,
 				hash: (cast) => cast.hash,
@@ -334,8 +519,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterCast_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const {
 					getCastById,
 					getCastEngagementCountsForCast,
@@ -353,6 +538,7 @@ export default {
 					likeReactionType: SnapchainReactionType.Like,
 					recastReactionType: SnapchainReactionType.Recast,
 				})
+			}
 			},
 			fields: {
 				likeCount: (timestamp) => timestamp.likeCount,
@@ -363,8 +549,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				type ConnectionFields = import('$/schema/$schema.ts').EntityFieldValues<
 					typeof schema,
 					EntityType.BlockheadFarcasterAccountConnection
@@ -413,6 +599,7 @@ export default {
 					else if (userDataType === 'USER_DATA_TYPE_BIO') connectionFields.bio = fieldValue
 				}
 				return connectionFields
+			}
 			},
 			fields: {
 				username: (connection) => connection.username,
@@ -426,8 +613,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const { userData } = await singleFlight(getUserBundleByFid)({
 					fid: entityId.fid,
@@ -443,6 +630,7 @@ export default {
 					}
 				}
 				return undefined
+			}
 			},
 			fields: {
 				$icon: (icon) => icon,
@@ -451,8 +639,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 				type UserEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterUser>
@@ -480,6 +668,7 @@ export default {
 						},
 					}) satisfies UserEntity))
 				)
+			}
 			},
 			fields: {
 				$$users: (users) => users,
@@ -488,8 +677,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterUser,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const [followerCount, followingCount] = await Promise.all([
 					singleFlight(countLinksByFid)({
@@ -512,6 +701,7 @@ export default {
 						followingCount,
 					},
 				]
+			}
 			},
 			fields: {
 				$$timestamps: (timestamps) => timestamps,
@@ -520,8 +710,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterUser,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
@@ -554,6 +744,7 @@ export default {
 							},
 						}) satisfies CastEntity))
 				)
+			}
 			},
 			fields: {
 				$$casts: (casts) => casts,
@@ -562,8 +753,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterCast,
-			accepts: [EntityIdProjection.Identity, 'hash', 'fidHash'],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const {
 					getCastById,
 					getCastEngagementCountsForCast,
@@ -600,6 +791,81 @@ export default {
 					},
 				]
 			},
+				['hash']: async (entityId) => {
+				const {
+					getCastById,
+					getCastEngagementCountsForCast,
+				} = await import('$/sources/Snapchain/Rest/queries.ts')
+				const castId = (
+					'fid' in entityId
+					&& 'hash' in entityId ?
+						{
+							fid: entityId.fid,
+							hash: entityId.hash,
+						}
+					:
+						undefined
+				)
+				if (castId === undefined) {
+					throw new Error('Snapchain_Rest: cast timestamps require cast fid and hash')
+				}
+				await singleFlight(getCastById)({
+					fid: castId.fid,
+					hash: castId.hash,
+				})
+				return [
+						{
+							[EntityMetaKey.Id]: {
+								$cast: castId,
+								timestampMs: Date.now(),
+							},
+							...(await getCastEngagementCountsForCast({
+								targetFid: castId.fid,
+								targetHash: castId.hash,
+								likeReactionType: SnapchainReactionType.Like,
+								recastReactionType: SnapchainReactionType.Recast,
+							})),
+					},
+				]
+			},
+				['fidHash']: async (entityId) => {
+				const {
+					getCastById,
+					getCastEngagementCountsForCast,
+				} = await import('$/sources/Snapchain/Rest/queries.ts')
+				const castId = (
+					'fid' in entityId
+					&& 'hash' in entityId ?
+						{
+							fid: entityId.fid,
+							hash: entityId.hash,
+						}
+					:
+						undefined
+				)
+				if (castId === undefined) {
+					throw new Error('Snapchain_Rest: cast timestamps require cast fid and hash')
+				}
+				await singleFlight(getCastById)({
+					fid: castId.fid,
+					hash: castId.hash,
+				})
+				return [
+						{
+							[EntityMetaKey.Id]: {
+								$cast: castId,
+								timestampMs: Date.now(),
+							},
+							...(await getCastEngagementCountsForCast({
+								targetFid: castId.fid,
+								targetHash: castId.hash,
+								likeReactionType: SnapchainReactionType.Like,
+								recastReactionType: SnapchainReactionType.Recast,
+							})),
+					},
+				]
+			}
+			},
 			fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
@@ -607,8 +873,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterChannel,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
@@ -649,7 +915,8 @@ export default {
 										}) satisfies CastEntity]
 								})
 					)
-				},
+				}
+			},
 			fields: {
 				$$casts: (casts) => casts,
 			},
@@ -657,8 +924,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FarcasterFeed,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
@@ -835,6 +1102,7 @@ export default {
 								}) satisfies CastEntity]
 						})
 				)
+			}
 			},
 			fields: {
 				$$entries: (entries) => entries,

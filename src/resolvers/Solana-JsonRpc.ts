@@ -173,8 +173,8 @@ export default {
 	resolvers: [
 		defineResolver({
 				entityType: EntityType.SolanaBlock,
-				accepts: [EntityIdProjection.Identity],
-				resolve: async (entityId) => {
+				resolve: {
+					[EntityIdProjection.Identity]: async (entityId) => {
 					assertSolanaMainnet(entityId.$network)
 					if (!('slot' in entityId))
 						throw new Error('Solana_JsonRpc: SolanaBlock blockHash lookup is unsupported')
@@ -222,7 +222,8 @@ export default {
 						]
 					}),
 				}
-			},
+			}
+				},
 			fields: {
 				blockHeight: (block) => block.blockHeight,
 				blockHash: (block) => block.blockHash,
@@ -237,8 +238,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaNetwork_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertSolanaMainnet(entityId.$network)
 				const {
 					getEpochInfo,
@@ -286,6 +287,7 @@ export default {
 					}),
 					health,
 				}
+			}
 			},
 			fields: {
 				absoluteSlot: (timestamp) => timestamp.absoluteSlot,
@@ -305,8 +307,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const transaction = await getTransaction(entityId)
 				return {
 					...solanaTransactionFields(
@@ -320,6 +322,7 @@ export default {
 						transaction,
 					),
 				}
+			}
 			},
 			fields: {
 				$block: (transaction) => transaction.$block,
@@ -334,8 +337,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaInstruction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const transaction = await getTransaction(entityId.$transaction)
 				const instruction = (
 					entityId.innerInstructionIndex == null ?
@@ -350,6 +353,7 @@ export default {
 					entityId.$transaction.$network,
 					instruction,
 				)
+			}
 			},
 			fields: {
 				$program: (instruction) => instruction.$program,
@@ -361,8 +365,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaAccount,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertSolanaMainnet(entityId.$network)
 				const { getAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 				const accountInfo = await getAccountInfo({
@@ -382,6 +386,7 @@ export default {
 					executable: accountInfo.value.executable,
 					dataEncoding: accountInfo.value.data[1],
 				}
+			}
 			},
 			fields: {
 				$ownerProgram: (account) => account.$ownerProgram,
@@ -394,8 +399,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaProgram,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertSolanaMainnet(entityId.$network)
 				return {
 					$programAccount: {
@@ -405,6 +410,7 @@ export default {
 						},
 					},
 				}
+			}
 			},
 			fields: {
 				$programAccount: (program) => program.$programAccount,
@@ -413,8 +419,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaTokenMint,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertSolanaMainnet(entityId.$network)
 				const { getParsedTokenMintAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 				const accountInfo = await getParsedTokenMintAccountInfo({
@@ -442,6 +448,7 @@ export default {
 						},
 					}),
 				}
+			}
 			},
 			fields: {
 				supply: (mint) => mint.supply,
@@ -453,8 +460,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaValidator,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertSolanaMainnet(entityId.$network)
 				const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
 				const voteAccounts = await getVoteAccounts({
@@ -475,6 +482,7 @@ export default {
 					commission: voteAccount.commission,
 					delinquent: delinquentVoteAccount != null,
 				}
+			}
 			},
 			fields: {
 				nodePubkey: (validator) => validator.nodePubkey,
@@ -486,8 +494,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertSolanaMainnet(entityId)
 				return [
 					{
@@ -497,6 +505,7 @@ export default {
 						},
 					},
 				]
+			}
 			},
 			fields: {
 				$$timestamps: (timestamps) => timestamps,
@@ -505,8 +514,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertSolanaMainnet(entityId)
 				const {
 					getBlocks,
@@ -532,6 +541,7 @@ export default {
 							slot: BigInt(slot),
 						},
 					}))
+			}
 			},
 			fields: {
 				$$blocks: (blocks) => blocks,
@@ -540,8 +550,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertSolanaMainnet(entityId)
 				const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
 				return solanaValidatorRows(
@@ -550,6 +560,7 @@ export default {
 						rpcUrl: solanaMainnetRpcUrl,
 					}),
 				)
+			}
 			},
 			fields: {
 				$$validators: (validators) => validators,
@@ -558,8 +569,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertSolanaMainnet(entityId)
 				const {
 					getBlock,
@@ -609,6 +620,7 @@ export default {
 							}) ?? []
 					))
 					.slice(0, limit)
+			}
 			},
 			fields: {
 				$$transactions: (transactions) => transactions,
@@ -617,8 +629,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertSolanaMainnet(entityId)
 				const {
 					getBlock,
@@ -660,6 +672,7 @@ export default {
 							pubkey,
 						},
 					}))
+			}
 			},
 			fields: {
 				$$accounts: (accounts) => accounts,
@@ -668,8 +681,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaBlock,
-				accepts: [EntityIdProjection.Identity],
-				resolve: async (entityId) => {
+				resolve: {
+					[EntityIdProjection.Identity]: async (entityId) => {
 					assertSolanaMainnet(entityId.$network)
 					if (!('slot' in entityId))
 						throw new Error('Solana_JsonRpc: SolanaBlock.$$transactions blockHash lookup is unsupported')
@@ -699,7 +712,8 @@ export default {
 						},
 					]
 					})
-			},
+			}
+				},
 			fields: {
 				$$transactions: (transactions) => transactions,
 			},
@@ -707,14 +721,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => (
 				solanaInstructionRows(
 					entityId.$network,
 					entityId,
 					await getTransaction(entityId),
 				)
-			),
+			)
+			},
 			fields: {
 				$$instructions: (instructions) => instructions,
 			},

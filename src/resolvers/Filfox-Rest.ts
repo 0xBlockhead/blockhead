@@ -31,8 +31,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.FilecoinTipset,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const {
 					getBlock,
@@ -83,6 +83,7 @@ export default {
 						}),
 					})),
 				}
+			}
 			},
 			fields: {
 			$parent: (snapshot) => snapshot.$parent,
@@ -94,8 +95,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const {
 					getBlock,
@@ -127,6 +128,7 @@ export default {
 						winCount: block.winCount,
 					}),
 				}
+			}
 			},
 			fields: {
 			$tipset: (snapshot) => snapshot.$tipset,
@@ -137,8 +139,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinMessage,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getMessage } = await import('$/sources/Filfox/Rest/queries.ts')
 				const message = await getMessage({
@@ -167,6 +169,7 @@ export default {
 						gasLimit: BigInt(message.gasLimit),
 					}),
 				}
+			}
 			},
 			fields: {
 			$from: (snapshot) => snapshot.$from,
@@ -180,8 +183,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinActor,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getAddress } = await import('$/sources/Filfox/Rest/queries.ts')
 				const address = await getAddress({
@@ -191,6 +194,7 @@ export default {
 				return {
 					balanceAttoFil: BigInt(address.balance),
 				}
+			}
 			},
 			fields: {
 			balanceAttoFil: (snapshot) => snapshot.balanceAttoFil,
@@ -199,8 +203,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinMiner,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getAddress } = await import('$/sources/Filfox/Rest/queries.ts')
 				const address = await getAddress({
@@ -230,6 +234,7 @@ export default {
 					}),
 					qualityAdjustedPower: BigInt(address.miner.qualityAdjPower),
 				}
+			}
 			},
 			fields: {
 			$owner: (snapshot) => snapshot.$owner,
@@ -241,8 +246,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.FilecoinBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertFilecoinMainnet(entityId.$network)
 				const { getBlockMessages } = await import('$/sources/Filfox/Rest/queries.ts')
 				return (await getBlockMessages({
@@ -269,6 +274,7 @@ export default {
 					nonce: BigInt(message.nonce),
 					valueAttoFil: BigInt(message.value),
 				}))
+			}
 			},
 			fields: {
 			$$messages: (snapshot) => snapshot,

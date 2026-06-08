@@ -15,8 +15,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.CashuMint,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { getMintInfo } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 				const info = await getMintInfo({ mintUrl: entityId.mintUrl })
 				return {
@@ -29,6 +29,7 @@ export default {
 					...(info.tos_url != null && { tosUrl: info.tos_url }),
 					...(info.time != null && { timeMs: info.time * 1000 }),
 				}
+			}
 			},
 			fields: {
 			name: (snapshot) => snapshot.name,
@@ -44,8 +45,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.CashuKeyset,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const {
 					getMintKeysets,
 					getMintKeysForKeyset,
@@ -70,6 +71,7 @@ export default {
 						keysByAmountJson: JSON.stringify(keysByAmount),
 					}),
 				}
+			}
 			},
 			fields: {
 			unit: (snapshot) => snapshot.unit,
@@ -81,8 +83,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.CashuMint,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 				return (await getMintKeysets({
 					mintUrl: entityId.mintUrl,
@@ -97,6 +99,7 @@ export default {
 						active: keyset.active,
 						...(keyset.input_fee_ppk != null && { inputFeePpk: keyset.input_fee_ppk }),
 					}))
+			}
 			},
 			fields: {
 			$$keysets: (snapshot) => snapshot,

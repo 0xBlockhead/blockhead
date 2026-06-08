@@ -30,8 +30,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SpecificationProposal,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				const { getMediaWikiText } = await import('$/sources/DogecoinDips/Github/queries.ts')
 				if (entityId.realm !== SpecificationRealm.Dogecoin || entityId.category !== ProposalCategory.Dip) {
@@ -45,6 +45,7 @@ export default {
 					documentStatus: dipMetadataValue(text, 'Status'),
 					documentBody: text,
 				}
+			}
 			},
 			fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -56,8 +57,9 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: dogecoinDipProposalRows,
+			resolve: {
+				[EntityIdProjection.Identity]: dogecoinDipProposalRows
+			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
 		}
@@ -65,13 +67,14 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Dogecoin) {
 					throw new Error('DogecoinDips_Github: $$proposals only supports Dogecoin')
 				}
 				return dogecoinDipProposalRows()
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -80,13 +83,14 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Dogecoin || entityId.category !== ProposalCategory.Dip) {
 					throw new Error('DogecoinDips_Github: $$proposals only supports Dogecoin DIPs')
 				}
 				return dogecoinDipProposalRows()
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,

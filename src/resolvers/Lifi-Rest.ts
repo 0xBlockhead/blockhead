@@ -166,12 +166,13 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
 					const lifiChain = (await singleFlight(fetchChains)()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entityId.caip2.reference))
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
 				return networkEntityFieldsFromLifiChain(lifiChain)
+			}
 			},
 			fields: {
 				$icon: (network) => network.$icon,
@@ -182,8 +183,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.CoinBridgeCapability,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const coinBridgeCapabilityFields = bridgeToolByKey[entityId.toolKey]
 				if (coinBridgeCapabilityFields == null) {
 					throw new Error(`Lifi_Rest: unknown LI.FI tool key ${entityId.toolKey}`)
@@ -192,6 +193,7 @@ export default {
 					toolKey: entityId.toolKey,
 					...coinBridgeCapabilityFields,
 				}
+			}
 			},
 			fields: {
 				toolKey: (capability) => capability.toolKey,
@@ -204,12 +206,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BridgeRoute,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
 				)
 				return (await singleFlight(fetchBridgeRouteBundleForQuoteId)(entityId)).routeFields
+			}
 			},
 			fields: {
 				$$steps: (route) => route.$$steps,
@@ -226,8 +229,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BridgeRouteStep,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
 				)
@@ -240,6 +243,7 @@ export default {
 				}
 				const { [EntityMetaKey.Id]: _id, ...fields } = step
 				return fields
+			}
 			},
 			fields: {
 				stepType: (step) => step.stepType,
@@ -257,10 +261,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
 				return (await singleFlight(fetchChains)()).chains.map(networkEntityFieldsFromLifiChain)
+			}
 			},
 			fields: {
 				$$evmNetworks: (networks) => networks,
@@ -269,9 +274,10 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Coin,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				return coinBridgeCapabilityRowsForCoin(entityId, context)
+			}
 			},
 			fields: {
 				$$bridgeCapabilities: (capabilities) => capabilities,
@@ -280,8 +286,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { resolveCoinIdForCoinInstanceEntityId } = await import(
 					'$/sources/Coingecko/Rest/coinInstances.ts'
 				)
@@ -297,6 +303,7 @@ export default {
 				}
 				const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
 				return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entityId, 'outbound')
+			}
 			},
 			fields: {
 				$$outboundBridgeCapabilities: (capabilities) => capabilities,
@@ -305,8 +312,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { resolveCoinIdForCoinInstanceEntityId } = await import(
 					'$/sources/Coingecko/Rest/coinInstances.ts'
 				)
@@ -322,6 +329,7 @@ export default {
 				}
 				const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
 				return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entityId, 'inbound')
+			}
 			},
 			fields: {
 				$$inboundBridgeCapabilities: (capabilities) => capabilities,
@@ -330,12 +338,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.BridgeRoute,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
 				)
 				return (await singleFlight(fetchBridgeRouteBundleForQuoteId)(entityId)).steps
+			}
 			},
 			fields: {
 				$$steps: (steps) => steps,
@@ -344,8 +353,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, _context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, _context) => {
 				const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
 					const lifiChain = (await singleFlight(fetchChains)()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entityId.caip2.reference))
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog for block explorer URLs')
@@ -360,6 +369,7 @@ export default {
 						infoURL: undefined,
 					}),
 				)
+			}
 			},
 			fields: {
 				$$blockExplorerUrls: (urls) => urls,

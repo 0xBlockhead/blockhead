@@ -93,10 +93,10 @@ type ProbeResolverDefinition<_EntityType extends SchemaEntityType<typeof schema>
 	index: number
 	entityType: _EntityType
 	source: Source
-	resolve(
+	resolve: Partial<Record<string, (
 		entityId: EntityId<typeof schema, _EntityType>,
 		context: ResolverContext,
-	): Promise<unknown>
+	) => Promise<unknown>>>
 }
 
 type ProbeResolverValuePart<_EntityType extends SchemaEntityType<typeof schema>> = {
@@ -130,15 +130,25 @@ const resolverValuePartProbes = Object.values(resolverValuePartsByEntityTypeAndF
 						entityId: EntityId<typeof schema, SchemaEntityType<typeof schema>>,
 						context: ResolverContext,
 				) => {
-					if (!entityDefinitionAcceptsEntityId(
+					const projectionName = entityIdProjectionNameForId(
 						entityDefinitionByType[part.entityType],
-						part.acceptsParent ?? part.resolver.accepts,
 						entityId,
-					))
+					)
+					if (
+						projectionName == null
+						|| !(
+							part.parentSelectors
+							?? Object.keys(part.resolver.resolve)
+						).includes(projectionName)
+						|| part.resolver.resolve[projectionName] == null
+					)
 						throw new Error(`resolver probe skipped unsupported parent ${stringify(entityId)}`)
 
 					return part.select!(
-						await part.resolver.resolve(entityId, context),
+						await part.resolver.resolve[projectionName](
+							entityId,
+							context,
+						),
 						entityId,
 						context,
 					)
@@ -274,39 +284,50 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 	}
 
 	const entityCases = await Promise.all(
-			resolverDefinitionProbes.map(async (resolver: ProbeResolverDefinition<
-				SchemaEntityType<typeof schema>
-			>) => {
+		resolverDefinitionProbes.map(async (resolver: ProbeResolverDefinition<
+			SchemaEntityType<typeof schema>
+		>) => {
 			let entityId: Awaited<ReturnType<typeof resolveProbeEntityId>>
 			try {
 				entityId = await resolveProbeEntityId(resolver.entityType)
 			} catch (error) {
-					return finalizeProbeCase({
-						kind: 'entity',
-						key: `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`,
-						resolveRejected: true,
-						resolveError: error instanceof Error ? error.message : String(error),
+				return finalizeProbeCase({
+					kind: 'entity',
+					key: `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`,
+					resolveRejected: true,
+					resolveError: error instanceof Error ? error.message : String(error),
 					assertThrew: false,
 				})
 			}
+
 			const entityDef = entityDefinitionByType[resolver.entityType]
 			if (entityDef == null) {
 				throw new Error(`No entityDefinitionByType[${resolver.entityType}]`)
 			}
 
-				const key = `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`
+			const key = `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`
 
 			let fields: unknown
 			try {
+				const projectionName = entityIdProjectionNameForId(
+					entityDef,
+					entityId,
+				)
+				if (
+					projectionName == null
+					|| resolver.resolve[projectionName] == null
+				)
+					throw new Error(`resolver probe skipped unsupported entity ${stringify(entityId)}`)
+
 				fields = await withProbeTimeout(
 					key,
-					() => resolver.resolve(
-					entityId,
-					{
-						...resolverContext,
-						publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
-					},
-				),
+					() => resolver.resolve[projectionName]!(
+						entityId,
+						{
+							...resolverContext,
+							publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
+						},
+					),
 				)
 			} catch (error) {
 				return finalizeProbeCase({
@@ -368,38 +389,39 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 	)
 
 	const fieldCases = await Promise.all(
-			resolverValuePartProbes.map(async (fieldResolver: ProbeResolverValuePart<
-				SchemaEntityType<typeof schema>
-			>) => {
-				const parentEntityId = parentEntityIdForResolverValuePart(fieldResolver.entityType)
+		resolverValuePartProbes.map(async (fieldResolver: ProbeResolverValuePart<
+			SchemaEntityType<typeof schema>
+		>) => {
+			const parentEntityId = parentEntityIdForResolverValuePart(fieldResolver.entityType)
 			const entityDef = entityDefinitionByType[fieldResolver.entityType]
 			if (entityDef == null) {
 				throw new Error(`No entityDefinitionByType[${fieldResolver.entityType}]`)
 			}
-				const fieldDef = entityFieldDefinitions(entityDef).find((field: EntityFieldDefinition) => (
+
+			const fieldDef = entityFieldDefinitions(entityDef).find((field: EntityFieldDefinition) => (
 				field.name === fieldResolver.fieldName
-	))
+			))
 			if (fieldDef == null) {
 				throw new Error(
 					`No field ${fieldResolver.fieldName} on ${fieldResolver.entityType}`,
 				)
 			}
 
-				const key = (
-					`field:${fieldResolver.index}:${fieldResolver.entityType}.${String(fieldResolver.fieldName)}:${fieldResolver.source}`
-				)
+			const key = (
+				`field:${fieldResolver.index}:${fieldResolver.entityType}.${String(fieldResolver.fieldName)}:${fieldResolver.source}`
+			)
 
 			let raw: unknown
 			try {
 				raw = await withProbeTimeout(
 					key,
 					() => fieldResolver.resolve(
-					parentEntityId,
-					{
-						...resolverContext,
-						publicEnv: resolverPublicEnvBySource.get(fieldResolver.source) ?? {},
-					},
-				),
+						parentEntityId,
+						{
+							...resolverContext,
+							publicEnv: resolverPublicEnvBySource.get(fieldResolver.source) ?? {},
+						},
+					),
 				)
 			} catch (error) {
 				return finalizeProbeCase({

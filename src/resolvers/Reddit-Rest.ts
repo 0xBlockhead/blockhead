@@ -86,8 +86,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.RedditSubreddit,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
 				const subredditAbout = (await singleFlight(getSubredditAbout)(context.publicEnv, entityId.name)).data
 				return {
@@ -110,6 +110,7 @@ export default {
 					}
 				))(mediaFromUrl(redditSubredditIconUrl(subredditAbout.icon_img, subredditAbout.community_icon), MediaType.Image)),
 				}
+			}
 			},
 			fields: {
 				title: (subreddit) => subreddit.title,
@@ -124,8 +125,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditLink,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.fullname))
 					.data
@@ -154,6 +155,7 @@ export default {
 				),
 					permalink: optionalNonemptyString(redditThing.data.permalink),
 				}
+			}
 			},
 			fields: {
 				title: (link) => link.title,
@@ -170,8 +172,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditComment,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.fullname))
 					.data
@@ -199,6 +201,7 @@ export default {
 						$parentComment: { [EntityMetaKey.Id]: { fullname: parentId } },
 					}),
 				}
+			}
 			},
 			fields: {
 				body: (comment) => comment.body,
@@ -213,8 +216,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditSubreddit_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
 				const subredditAbout = (await singleFlight(getSubredditAbout)(context.publicEnv, entityId.$subreddit.name)).data
 				return {
@@ -223,6 +226,7 @@ export default {
 						activeUserCount: subredditAbout.active_user_count,
 					}),
 				}
+			}
 			},
 			fields: {
 				subscriberCount: (timestamp) => timestamp.subscriberCount,
@@ -232,8 +236,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditLink_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.$link.fullname))
 					.data
@@ -245,6 +249,7 @@ export default {
 						commentCount: redditThing.data.num_comments,
 					}),
 				}
+			}
 			},
 			fields: {
 				score: (timestamp) => timestamp.score,
@@ -254,8 +259,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditComment_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.$comment.fullname))
 					.data
@@ -264,6 +269,7 @@ export default {
 				return {
 					...(redditThing.data.score != null && { score: redditThing.data.score }),
 				}
+			}
 			},
 			fields: {
 				score: (timestamp) => timestamp.score,
@@ -271,8 +277,8 @@ export default {
 		}),
 		defineResolver({
 			entityType: EntityType.RedditNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { listPopularLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -287,6 +293,7 @@ export default {
 							}]
 						})
 				)
+			}
 			},
 			fields: {
 				$$redditSubreddits: (network) => network,
@@ -295,8 +302,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { listPopularLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -313,6 +320,7 @@ export default {
 							]
 						))
 				)
+			}
 			},
 			fields: {
 				$$redditLinks: (network) => network,
@@ -321,8 +329,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditSubreddit,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
 				const data = (await singleFlight(getSubredditAbout)(context.publicEnv, entityId.name)).data
 				return [
@@ -335,6 +343,7 @@ export default {
 						...(data.active_user_count != null && { activeUserCount: data.active_user_count }),
 					},
 				]
+			}
 			},
 			fields: {
 				$$timestamps: (subreddit) => subreddit,
@@ -343,8 +352,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditSubreddit,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { listSubredditLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -361,6 +370,7 @@ export default {
 							]
 						))
 				)
+			}
 			},
 			fields: {
 				$$links: (subreddit) => subreddit,
@@ -369,8 +379,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditLink,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.fullname))
 					.data
@@ -388,6 +398,7 @@ export default {
 					}),
 					},
 				]
+			}
 			},
 			fields: {
 				$$timestamps: (link) => link,
@@ -396,8 +407,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditLink,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getLinkCommentsByArticleId } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -411,6 +422,7 @@ export default {
 								[]
 						))
 				)
+			}
 			},
 			fields: {
 				$$comments: (link) => link,
@@ -419,8 +431,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditLink,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.fullname))
 					.data
@@ -429,6 +441,7 @@ export default {
 				if (redditThing.data.num_comments == null || redditThing.data.num_comments < 0)
 					throw new Error('Reddit_Rest: link comment count not found')
 				return redditThing.data.num_comments
+			}
 			},
 			fields: {
 				$$comments: {
@@ -439,8 +452,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditComment,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.fullname))
 					.data
@@ -455,6 +468,7 @@ export default {
 						...(redditThing.data.score != null && { score: redditThing.data.score }),
 					},
 				]
+			}
 			},
 			fields: {
 				$$timestamps: (comment) => comment,
@@ -463,8 +477,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.RedditComment,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getInfo, getLinkCommentsByArticleId } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -483,6 +497,7 @@ export default {
 					((await singleFlight(getLinkCommentsByArticleId)(publicEnv, articleId, limit))[1]?.data.children ?? []),
 				)
 				return byParent.get(entityId.fullname) ?? []
+			}
 			},
 			fields: {
 				$$replies: (comment) => comment,

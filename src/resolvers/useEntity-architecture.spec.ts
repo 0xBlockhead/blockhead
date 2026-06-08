@@ -112,6 +112,10 @@ describe('useEntity resolver architecture', () => {
 		expect(source).not.toMatch(/\bcontext\.(?:filters|sorts|limit)\b/)
 		expect(source).not.toMatch(/\bfilters: subsetBase\.filters\b/)
 		expect(source).not.toMatch(/\bsorts: subsetBase\.sorts\b/)
+		expect(source).not.toMatch(/\baccepts:\s*\[/)
+		expect(source).not.toMatch(/\bacceptsParent\b/)
+		expect(source).not.toMatch(/\bresolver\.accepts\b/)
+		expect(source).not.toMatch(/\bresolver\.resolve\(/)
 	})
 
 	it('registers every real resolver part through the primary and field-level hierarchy', () => {
@@ -119,9 +123,10 @@ describe('useEntity resolver architecture', () => {
 		expect(Object.values(resolverValuePartsByEntityTypeAndFieldName).flat().length).toBeGreaterThan(0)
 
 		for (const resolver of resolverDefinitions) {
-			expect(resolver.accepts.length).toBeGreaterThan(0)
-			expect(typeof resolver.resolve).toBe('function')
+			expect(Object.keys(resolver.resolve).length).toBeGreaterThan(0)
+			expect(Object.values(resolver.resolve).every((resolve) => typeof resolve === 'function')).toBe(true)
 		}
+		expect(resolverDefinitions.some((resolver) => Object.keys(resolver.resolve).length > 1)).toBe(true)
 
 		for (const part of Object.values(resolverValuePartsByEntityTypeAndFieldName).flat()) {
 			expect(part.select).toBeDefined()

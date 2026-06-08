@@ -19,8 +19,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await singleFlight(fetchNetworks)()
@@ -79,6 +79,7 @@ export default {
 						)
 					})(),
 				}
+			}
 			},
 			fields: {
 			name: (snapshot) => snapshot.name,
@@ -92,8 +93,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const {
 					superchainMainnetIdentifier,
 					superchainSepoliaIdentifier,
@@ -125,6 +126,7 @@ export default {
 							},
 						}]
 				))
+			}
 			},
 			fields: {
 			$$childLayers: (snapshot) => snapshot,
@@ -133,8 +135,8 @@ export default {
 
 			defineResolver({
 				entityType: EntityType.EvmNetwork,
-				accepts: [EntityIdProjection.Identity],
-				resolve: async (entityId) => {
+				resolve: {
+					[EntityIdProjection.Identity]: async (entityId) => {
 					const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 					const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 					const networks = await singleFlight(fetchNetworks)()
@@ -154,6 +156,7 @@ export default {
 								},
 							}]
 					))
+				}
 				},
 			fields: {
 				$$testnets: (snapshot) => snapshot,

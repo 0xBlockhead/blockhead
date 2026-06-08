@@ -216,8 +216,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.ActivityPubActor,
-			accepts: [EntityIdProjection.Identity, 'localAccountId', 'acct'],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
@@ -227,6 +227,29 @@ export default {
 					entityId.instanceOrigin,
 					fediAvatarUrl,
 				)
+			},
+				['localAccountId']: async (entityId, context) => {
+				const publicEnv = context.publicEnv
+				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
+				assertInstanceMatches(entityId.instanceOrigin)
+				const a = await singleFlight(getAccount)(publicEnv, 'localAccountId' in entityId ? entityId.localAccountId : entityId.acct)
+				return activityPubActorFieldsFromMastodonAccount(
+					a,
+					entityId.instanceOrigin,
+					fediAvatarUrl,
+				)
+			},
+				['acct']: async (entityId, context) => {
+				const publicEnv = context.publicEnv
+				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
+				assertInstanceMatches(entityId.instanceOrigin)
+				const a = await singleFlight(getAccount)(publicEnv, 'localAccountId' in entityId ? entityId.localAccountId : entityId.acct)
+				return activityPubActorFieldsFromMastodonAccount(
+					a,
+					entityId.instanceOrigin,
+					fediAvatarUrl,
+				)
+			}
 			},
 			fields: {
 				instanceOrigin: (actor) => actor.instanceOrigin,
@@ -251,8 +274,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ActivityPubNote,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const publicEnv = context.publicEnv
 				const {
 					assertInstanceMatches,
@@ -261,6 +284,7 @@ export default {
 				assertInstanceMatches(entityId.instanceOrigin)
 				const s = await singleFlight(getStatus)(publicEnv, entityId.localStatusId)
 				return activityPubNoteFieldsFromMastodonStatus(s, entityId.instanceOrigin)
+			}
 			},
 			fields: {
 				content: (note) => note.content,
@@ -284,8 +308,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ActivityPubActor_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.$actor.instanceOrigin)
@@ -298,6 +322,7 @@ export default {
 					...(account.following_count != null && { followingCount: account.following_count }),
 					...(account.statuses_count != null && { statusesCount: account.statuses_count }),
 				}
+			}
 			},
 			fields: {
 				followersCount: (timestamp) => timestamp.followersCount,
@@ -308,8 +333,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ActivityPubNote_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const publicEnv = context.publicEnv
 				const {
 					assertInstanceMatches,
@@ -322,6 +347,7 @@ export default {
 					...(status.reblogs_count != null && { reblogCount: status.reblogs_count }),
 					...(status.replies_count != null && { replyCount: status.replies_count }),
 				}
+			}
 			},
 			fields: {
 				favouriteCount: (timestamp) => timestamp.favouriteCount,
@@ -331,12 +357,13 @@ export default {
 		}),
 		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const publicEnv = context.publicEnv
 				const { getInstance } = await import('$/sources/Fedi/Rest/queries.ts')
 				const instance = await singleFlight(getInstance)(publicEnv)
 				return optionalNonemptyString(instance.title)
+			}
 			},
 			fields: {
 				fediInstanceTitle: (network) => network,
@@ -345,8 +372,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const publicEnv = context.publicEnv
 				const { getInstance } = await import('$/sources/Fedi/Rest/queries.ts')
 				const instance = await singleFlight(getInstance)(publicEnv)
@@ -354,6 +381,7 @@ export default {
 					optionalNonemptyString(instance.description)
 					?? optionalNonemptyString(instance.short_description)
 				)
+			}
 			},
 			fields: {
 				fediInstanceDescription: (network) => network,
@@ -362,12 +390,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const publicEnv = context.publicEnv
 				const { getInstance } = await import('$/sources/Fedi/Rest/queries.ts')
 				const instance = await singleFlight(getInstance)(publicEnv)
 				return optionalNonemptyString(instance.version)
+			}
 			},
 			fields: {
 				fediInstanceVersion: (network) => network,
@@ -376,8 +405,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const publicEnv = context.publicEnv
 				const { fediInstanceOrigin } = await import('$/sources/Fedi/Rest/constants.ts')
 				const { listPublicTimeline } = await import('$/sources/Fedi/Rest/queries.ts')
@@ -395,6 +424,7 @@ export default {
 							}]
 						})
 				)
+			}
 			},
 			fields: {
 				$$activityPubActors: (network) => network,
@@ -403,8 +433,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const publicEnv = context.publicEnv
 				const { fediInstanceOrigin } = await import('$/sources/Fedi/Rest/constants.ts')
 				const { listPublicTimeline } = await import('$/sources/Fedi/Rest/queries.ts')
@@ -425,6 +455,7 @@ export default {
 							]
 						))
 				)
+			}
 			},
 			fields: {
 				$$activityPubNotes: (network) => network,
@@ -433,8 +464,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ActivityPubActor,
-			accepts: [EntityIdProjection.Identity, 'localAccountId', 'acct'],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
@@ -454,6 +485,47 @@ export default {
 					},
 				]
 			},
+				['localAccountId']: async (entityId, context) => {
+				const publicEnv = context.publicEnv
+				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
+				assertInstanceMatches(entityId.instanceOrigin)
+				const account = await singleFlight(getAccount)(publicEnv, 'localAccountId' in entityId ? entityId.localAccountId : entityId.acct)
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$actor: {
+								instanceOrigin: entityId.instanceOrigin,
+								localAccountId: String(account.id),
+							},
+							timestampMs: Date.now(),
+						},
+						...(account.followers_count != null && { followersCount: account.followers_count }),
+						...(account.following_count != null && { followingCount: account.following_count }),
+						...(account.statuses_count != null && { statusesCount: account.statuses_count }),
+					},
+				]
+			},
+				['acct']: async (entityId, context) => {
+				const publicEnv = context.publicEnv
+				const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
+				assertInstanceMatches(entityId.instanceOrigin)
+				const account = await singleFlight(getAccount)(publicEnv, 'localAccountId' in entityId ? entityId.localAccountId : entityId.acct)
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$actor: {
+								instanceOrigin: entityId.instanceOrigin,
+								localAccountId: String(account.id),
+							},
+							timestampMs: Date.now(),
+						},
+						...(account.followers_count != null && { followersCount: account.followers_count }),
+						...(account.following_count != null && { followingCount: account.following_count }),
+						...(account.statuses_count != null && { statusesCount: account.statuses_count }),
+					},
+				]
+			}
+			},
 			fields: {
 				$$timestamps: (actor) => actor,
 			},
@@ -461,8 +533,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ActivityPubActor,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, listAccountStatuses } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
@@ -486,6 +558,7 @@ export default {
 							]
 						))
 				)
+			}
 			},
 			fields: {
 				$$notes: (actor) => actor,
@@ -494,8 +567,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ActivityPubNote,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const publicEnv = context.publicEnv
 				const {
 					assertInstanceMatches,
@@ -514,6 +587,7 @@ export default {
 						...(status.replies_count != null && { replyCount: status.replies_count }),
 					},
 				]
+			}
 			},
 			fields: {
 				$$timestamps: (note) => note,
@@ -522,8 +596,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ActivityPubNote,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const publicEnv = context.publicEnv
 				const {
 					assertInstanceMatches,
@@ -547,6 +621,7 @@ export default {
 							]
 						))
 				)
+			}
 			},
 			fields: {
 				$$thread: (note) => note,

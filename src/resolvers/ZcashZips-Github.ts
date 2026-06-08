@@ -50,8 +50,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SpecificationProposal,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				const { getProposalRstText } = await import('$/sources/ZcashZips/Github/queries.ts')
 				if (entityId.realm !== SpecificationRealm.Zcash || entityId.category !== ProposalCategory.Zip) {
@@ -65,6 +65,7 @@ export default {
 					documentStatus: zipMetadataValue(text, 'Status'),
 					documentBody: text,
 				}
+			}
 			},
 			fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -76,10 +77,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const { getContents } = await import('$/sources/ZcashZips/Github/queries.ts')
 				return githubZipProposalIndexRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -88,14 +90,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Zcash) {
 					throw new Error('ZcashZips_Github: $$proposals only supports SpecificationRealm.Zcash')
 				}
 				const { getContents } = await import('$/sources/ZcashZips/Github/queries.ts')
 				return githubZipProposalIndexRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -104,14 +107,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Zcash || entityId.category !== ProposalCategory.Zip) {
 					throw new Error('ZcashZips_Github: $$proposals only supports Zcash ZIP proposal kind')
 				}
 				const { getContents } = await import('$/sources/ZcashZips/Github/queries.ts')
 				return githubZipProposalIndexRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,

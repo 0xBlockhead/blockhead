@@ -51,8 +51,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.MoneroBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
@@ -72,6 +72,7 @@ export default {
 						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),
 				}
+			}
 			},
 			fields: {
 				hash: (block) => block.hash,
@@ -82,8 +83,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MoneroTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireTransaction = await fetchTransaction({
 					blockchain: threeXplBlockchain(entityId.$network),
@@ -99,6 +100,7 @@ export default {
 						},
 					}),
 				}
+			}
 			},
 			fields: {
 				$block: (transaction) => transaction.$block,
@@ -107,8 +109,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NearBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
@@ -128,6 +130,7 @@ export default {
 						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),
 				}
+			}
 			},
 			fields: {
 				hash: (block) => block.hash,
@@ -138,22 +141,23 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NearTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				await fetchTransaction({
 					blockchain: threeXplBlockchain(entityId.$network),
 					transaction: entityId.hash,
 				})
 				return {}
+			}
 			},
 			fields: {},
 		}),
 
 		defineResolver({
 			entityType: EntityType.PolkadotBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
@@ -172,6 +176,7 @@ export default {
 						},
 					}),
 				}
+			}
 			},
 			fields: {
 				hash: (block) => block.hash,
@@ -181,8 +186,8 @@ export default {
 
 		defineResolver({
 				entityType: EntityType.SolanaBlock,
-				accepts: [EntityIdProjection.Identity],
-				resolve: async (entityId) => {
+				resolve: {
+					[EntityIdProjection.Identity]: async (entityId) => {
 					if (!('slot' in entityId))
 						throw new Error('ThreeXpl_Rest: SolanaBlock blockHash lookup is unsupported')
 
@@ -200,7 +205,8 @@ export default {
 					}),
 					transactionCount: wireBlock.data.block?.events?.transactions,
 				}
-			},
+			}
+				},
 			fields: {
 				blockHash: (block) => block.blockHash,
 				timestampMs: (block) => block.timestampMs,
@@ -210,8 +216,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireTransaction = await fetchTransaction({
 					blockchain: threeXplBlockchain(entityId.$network),
@@ -228,6 +234,7 @@ export default {
 						slot: BigInt(wireTransaction.data.transaction.block),
 					}),
 				}
+			}
 			},
 			fields: {
 				$block: (transaction) => transaction.$block,
@@ -237,8 +244,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.TronBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
@@ -259,6 +266,7 @@ export default {
 					}),
 					transactionCount: wireBlock.data.block?.events?.transactions,
 				}
+			}
 			},
 			fields: {
 				hash: (block) => block.hash,
@@ -270,8 +278,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.TronTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireTransaction = await fetchTransaction({
 					blockchain: threeXplBlockchain(entityId.$network),
@@ -291,6 +299,7 @@ export default {
 						timestampMs: Date.parse(wireTransaction.data.transaction.time),
 					}),
 				}
+			}
 			},
 			fields: {
 				$block: (transaction) => transaction.$block,
@@ -301,8 +310,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
@@ -315,6 +324,7 @@ export default {
 					}),
 					transactionCount: wireBlock.data.block?.events?.transactions,
 				}
+			}
 			},
 			fields: {
 				hash: (block) => block.hash,
@@ -325,8 +335,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				const wireTransaction = await fetchTransaction({
 					blockchain: threeXplBlockchain(entityId.$network),
@@ -342,6 +352,7 @@ export default {
 						},
 					}),
 				}
+			}
 			},
 			fields: {
 				$block: (transaction) => transaction.$block,
@@ -350,8 +361,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.MoneroBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				return eventTransactions(
 					(
@@ -369,6 +380,7 @@ export default {
 						[EntityMetaKey.Id]: entityId,
 					},
 				}))
+			}
 			},
 			fields: {
 				$$transactions: (transactions) => transactions,
@@ -377,8 +389,8 @@ export default {
 
 		defineResolver({
 				entityType: EntityType.SolanaBlock,
-				accepts: [EntityIdProjection.Identity],
-				resolve: async (entityId) => {
+				resolve: {
+					[EntityIdProjection.Identity]: async (entityId) => {
 					if (!('slot' in entityId))
 						throw new Error('ThreeXpl_Rest: SolanaBlock.$$transactions blockHash lookup is unsupported')
 
@@ -400,7 +412,8 @@ export default {
 					},
 					slot: entityId.slot,
 				}))
-			},
+			}
+				},
 			fields: {
 				$$transactions: (transactions) => transactions,
 			},
@@ -408,8 +421,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.TronBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				return eventTransactions(
 					(
@@ -428,6 +441,7 @@ export default {
 					},
 					blockHeight: entityId.height,
 				}))
+			}
 			},
 			fields: {
 				$$transactions: (transactions) => transactions,
@@ -436,8 +450,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				return eventTransactions(
 					(
@@ -455,6 +469,7 @@ export default {
 						[EntityMetaKey.Id]: entityId,
 					},
 				}))
+			}
 			},
 			fields: {
 				$$transactions: (transactions) => transactions,

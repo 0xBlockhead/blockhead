@@ -44,8 +44,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.YouTubeChannel,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
 				const d = (await singleFlight(getChannel)(context.publicEnv, entityId.channelId))
 					.items?.[0]
@@ -81,6 +81,7 @@ export default {
 						}
 					))(mediaFromUrl(youtubeThumbnailUrl(d.snippet?.thumbnails), MediaType.Image)),
 				}
+			}
 			},
 			fields: {
 				title: (channel) => channel.title,
@@ -97,8 +98,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeVideo,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
 				const d = (await singleFlight(getVideo)(context.publicEnv, entityId.videoId))
 					.items?.[0]
@@ -177,6 +178,7 @@ export default {
 					),
 					...(thumbnailUrlParsed != null && { thumbnailUrl: thumbnailUrlParsed }),
 				}
+			}
 			},
 			fields: {
 				title: (video) => video.title,
@@ -197,8 +199,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubePlaylist,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
 				const d = (await singleFlight(getPlaylist)(context.publicEnv, entityId.playlistId))
 					.items?.[0]
@@ -228,6 +230,7 @@ export default {
 							}
 					),
 				}
+			}
 			},
 			fields: {
 				title: (playlist) => playlist.title,
@@ -241,8 +244,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeComment,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					getComment,
 					getCommentThread,
@@ -300,6 +303,7 @@ export default {
 							}
 					),
 				}
+			}
 			},
 			fields: {
 				text: (comment) => comment.text,
@@ -317,8 +321,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeChannel_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
 				const channel = (await singleFlight(getChannel)(context.publicEnv, entityId.$channel.channelId))
 					.items?.[0]
@@ -334,6 +338,7 @@ export default {
 						viewCount: Number(channel.statistics.viewCount),
 					}),
 				}
+			}
 			},
 			fields: {
 				subscriberCount: (timestamp) => timestamp.subscriberCount,
@@ -344,8 +349,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeVideo_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
 				const video = (await singleFlight(getVideo)(context.publicEnv, entityId.$video.videoId))
 					.items?.[0]
@@ -361,6 +366,7 @@ export default {
 						commentCount: Number(video.statistics.commentCount),
 					}),
 				}
+			}
 			},
 			fields: {
 				viewCount: (timestamp) => timestamp.viewCount,
@@ -371,8 +377,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeComment_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					getComment,
 					getCommentThread,
@@ -394,6 +400,7 @@ export default {
 						replyCount: thread.snippet.totalReplyCount,
 					}),
 				}
+			}
 			},
 			fields: {
 				likeCount: (timestamp) => timestamp.likeCount,
@@ -403,8 +410,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubePlaylist_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
 				const playlist = (await singleFlight(getPlaylist)(context.publicEnv, entityId.$playlist.playlistId))
 					.items?.[0]
@@ -414,6 +421,7 @@ export default {
 						itemCount: playlist.contentDetails.itemCount,
 					}),
 				}
+			}
 			},
 			fields: {
 				itemCount: (timestamp) => timestamp.itemCount,
@@ -421,8 +429,8 @@ export default {
 		}),
 		defineResolver({
 			entityType: EntityType.YouTubeNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { listPopularVideos } = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -436,6 +444,7 @@ export default {
 							}]
 						})
 				)
+			}
 			},
 			fields: {
 				$$youtubeChannels: (network) => network,
@@ -444,8 +453,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { listPopularVideos } = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -460,6 +469,7 @@ export default {
 								}]
 						))
 				)
+			}
 			},
 			fields: {
 				$$youtubeVideos: (network) => network,
@@ -468,8 +478,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const {
 					listChannelPlaylists,
 					listPopularVideos,
@@ -496,6 +506,7 @@ export default {
 					if (refs.length >= limit) break
 				}
 				return refs.slice(0, limit)
+			}
 			},
 			fields: {
 				$$youtubePlaylists: (network) => network,
@@ -504,8 +515,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeChannel,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
 				const channel = (await singleFlight(getChannel)(context.publicEnv, entityId.channelId))
 					.items?.[0]
@@ -527,6 +538,7 @@ export default {
 						}),
 					},
 				]
+			}
 			},
 			fields: {
 				$$timestamps: (channel) => channel,
@@ -535,8 +547,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeChannel,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { searchChannelVideos } = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -551,6 +563,7 @@ export default {
 								}]
 						))
 				)
+			}
 			},
 			fields: {
 				$$videos: (channel) => channel,
@@ -559,8 +572,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeChannel,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
 				const channel = (await singleFlight(getChannel)(context.publicEnv, entityId.channelId))
 					.items?.[0]
@@ -569,6 +582,7 @@ export default {
 				if (!Number.isInteger(count) || count < 0)
 					throw new Error('Youtube_Rest: channel video count not found')
 				return count
+			}
 			},
 			fields: {
 				$$videos: {
@@ -579,8 +593,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeChannel,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { listChannelPlaylists } = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -595,6 +609,7 @@ export default {
 								}]
 						))
 				)
+			}
 			},
 			fields: {
 				$$playlists: (channel) => channel,
@@ -603,8 +618,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubePlaylist,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
 				const playlist = (await singleFlight(getPlaylist)(context.publicEnv, entityId.playlistId))
 					.items?.[0]
@@ -620,6 +635,7 @@ export default {
 					}),
 					},
 				]
+			}
 			},
 			fields: {
 				$$timestamps: (playlist) => playlist,
@@ -628,8 +644,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubePlaylist,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { listPlaylistItems } = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -649,6 +665,7 @@ export default {
 							)
 						))
 				)
+			}
 			},
 			fields: {
 				$$videos: (playlist) => playlist,
@@ -657,8 +674,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubePlaylist,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
 				const playlist = (await singleFlight(getPlaylist)(context.publicEnv, entityId.playlistId))
 					.items?.[0]
@@ -666,6 +683,7 @@ export default {
 				if (playlist.contentDetails?.itemCount == null || playlist.contentDetails.itemCount < 0)
 					throw new Error('Youtube_Rest: playlist item count not found')
 				return playlist.contentDetails.itemCount
+			}
 			},
 			fields: {
 				$$videos: {
@@ -676,8 +694,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeVideo,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
 				const video = (await singleFlight(getVideo)(context.publicEnv, entityId.videoId))
 					.items?.[0]
@@ -699,6 +717,7 @@ export default {
 						}),
 					},
 				]
+			}
 			},
 			fields: {
 				$$timestamps: (video) => video,
@@ -707,8 +726,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeVideo,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { listCommentThreads } = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -746,6 +765,7 @@ export default {
 					if (pageToken == null) break
 				}
 				return refs.slice(0, limit)
+			}
 			},
 			fields: {
 				$$comments: (video) => video,
@@ -754,8 +774,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeVideo,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
 				const video = (await singleFlight(getVideo)(context.publicEnv, entityId.videoId))
 					.items?.[0]
@@ -764,6 +784,7 @@ export default {
 				if (!Number.isInteger(count) || count < 0)
 					throw new Error('Youtube_Rest: video comment count not found')
 				return count
+			}
 			},
 			fields: {
 				$$comments: {
@@ -774,8 +795,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeComment,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					getComment,
 					getCommentThread,
@@ -802,6 +823,7 @@ export default {
 						...(replyCount != null && { replyCount }),
 					},
 				]
+			}
 			},
 			fields: {
 				$$timestamps: (comment) => comment,
@@ -810,8 +832,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeComment,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					getComment,
 					listCommentReplies,
@@ -853,6 +875,7 @@ export default {
 					if (pageToken == null) break
 				}
 				return refs.slice(0, limit)
+			}
 			},
 			fields: {
 				$$replies: (comment) => comment,
@@ -861,8 +884,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.YouTubeComment,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					getComment,
 					getCommentThread,
@@ -877,6 +900,7 @@ export default {
 				if (thread?.snippet?.totalReplyCount == null || thread.snippet.totalReplyCount < 0)
 					throw new Error('Youtube_Rest: comment reply count not found')
 				return thread.snippet.totalReplyCount
+			}
 			},
 			fields: {
 				$$replies: {

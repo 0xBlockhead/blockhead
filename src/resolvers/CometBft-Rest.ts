@@ -27,8 +27,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.CosmosBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertCosmosHub(entityId.$network)
 				if (!('height' in entityId))
 					throw new Error('CometBft_Rest: CosmosBlock hash lookup is unsupported')
@@ -43,6 +43,7 @@ export default {
 					proposerConsensusAddress: wireBlock.result.block.header.proposer_address,
 					timestampMs: Date.parse(wireBlock.result.block.header.time),
 				}
+			}
 			},
 			fields: {
 			hash: (snapshot) => snapshot.hash,
@@ -53,8 +54,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.CosmosTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertCosmosHub(entityId.$network)
 				const { getTx } = await import('$/sources/CometBft/Rest/queries.ts')
 				const wireTransaction = await getTx({
@@ -72,6 +73,7 @@ export default {
 					gasWanted: BigInt(wireTransaction.result.tx_result.gas_wanted),
 					gasUsed: BigInt(wireTransaction.result.tx_result.gas_used),
 				}
+			}
 			},
 			fields: {
 			$block: (snapshot) => snapshot.$block,

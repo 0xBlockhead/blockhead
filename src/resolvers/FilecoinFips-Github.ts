@@ -39,8 +39,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SpecificationProposal,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Filecoin || entityId.category !== ProposalCategory.Fip) {
 					throw new Error('FilecoinFips_Github: unsupported proposal id')
@@ -55,6 +55,7 @@ export default {
 					documentStatus: frontmatter.status.trim() || undefined,
 					documentBody: body.length > 0 ? body : undefined,
 				}
+			}
 			},
 			fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -66,10 +67,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
 				return githubFilecoinFipProposalRows(await singleFlight(getContents)())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -78,14 +80,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Filecoin) {
 					throw new Error('FilecoinFips_Github: $$proposals only supports SpecificationRealm.Filecoin')
 				}
 				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
 				return githubFilecoinFipProposalRows(await singleFlight(getContents)())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -94,14 +97,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Filecoin || entityId.category !== ProposalCategory.Fip) {
 					throw new Error('FilecoinFips_Github: $$proposals only supports Filecoin FIP proposal kind')
 				}
 				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
 				return githubFilecoinFipProposalRows(await singleFlight(getContents)())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,

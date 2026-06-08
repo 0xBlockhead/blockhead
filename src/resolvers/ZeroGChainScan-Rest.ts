@@ -22,8 +22,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertZeroGMainnet(entityId)
 				return {
 					$consensusNetwork: {
@@ -33,6 +33,7 @@ export default {
 						},
 					},
 				}
+			}
 			},
 			fields: {
 			$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
@@ -41,8 +42,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.ZeroGConsensusNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertZeroGMainnet(entityId.$network)
 				if (entityId.consensusNetworkId !== '0g-chain' && entityId.consensusNetworkId !== ('networkSlug' in entityId.$network ? entityId.$network.networkSlug : entityId.$network.caip2.reference)) {
 					throw new Error(`ZeroGChainScan_Rest: unsupported consensus network ${entityId.consensusNetworkId}`)
@@ -51,6 +52,7 @@ export default {
 				return {
 					sharedStakingStatusSource: getInfo().url,
 				}
+			}
 			},
 			fields: {
 			sharedStakingStatusSource: (snapshot) => snapshot.sharedStakingStatusSource,

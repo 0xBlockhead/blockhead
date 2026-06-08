@@ -58,8 +58,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SpecificationProposal,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.BitcoinCash || entityId.category !== ProposalCategory.Chip) {
 					throw new Error('BitcoinCashChips_Gitlab: proposal resolver only supports Bitcoin Cash CHIPs')
@@ -77,6 +77,7 @@ export default {
 					documentStatus: chipMetadataValue(text, 'Status'),
 					documentBody: text,
 				}
+			}
 			},
 			fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -88,10 +89,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
 				return chipProposalIndexRows(await singleFlight(getTree)())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -100,14 +102,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.BitcoinCash) {
 					throw new Error('BitcoinCashChips_Gitlab: $$proposals only supports Bitcoin Cash')
 				}
 				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
 				return chipProposalIndexRows(await singleFlight(getTree)())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -116,14 +119,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.BitcoinCash || entityId.category !== ProposalCategory.Chip) {
 					throw new Error('BitcoinCashChips_Gitlab: $$proposals only supports Bitcoin Cash CHIPs')
 				}
 				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
 				return chipProposalIndexRows(await singleFlight(getTree)())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,

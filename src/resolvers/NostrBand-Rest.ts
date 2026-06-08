@@ -577,8 +577,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.NostrProfile,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getProfileByPubkey } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const profileWire = await singleFlight(getProfileByPubkey)(entityId.pubkey)
 				const metadata = profileMetadataFromProfileWire(profileWire)
@@ -589,6 +589,7 @@ export default {
 					metadata,
 					eventFromWire(profileWire),
 				)
+			}
 			},
 			fields: {
 				pubkey: (profile) => profile.pubkey,
@@ -606,8 +607,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNote,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const event = eventFromWire(await singleFlight(getEventById)(entityId.eventId))
 				if (event == null || event.kind !== 1) {
@@ -618,6 +619,7 @@ export default {
 					throw new Error('NostrBand_Rest: note event id mismatch')
 				}
 				return noteFieldValuesFromEvent(event)
+			}
 			},
 			fields: {
 				eventId: (note) => note.eventId,
@@ -635,8 +637,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrRelay,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { listTopRelays } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const relayUrl = normalizeRelayUrl(entityId.relayUrl)
 				if (relayUrl == null) {
@@ -659,6 +661,7 @@ export default {
 					}
 				}
 				throw new Error('NostrBand_Rest: relay not found')
+			}
 			},
 			fields: {
 				name: (relay) => relay.name,
@@ -673,8 +676,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrRepost,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const event = eventFromWire(await singleFlight(getEventById)(entityId.eventId))
 				if (event == null || !isNostrRepostKind(event.kind)) {
@@ -691,6 +694,7 @@ export default {
 					values,
 					eventFromWire(await singleFlight(getEventById)(targetEventId)),
 				)
+			}
 			},
 			fields: {
 				eventId: (repost) => repost.eventId,
@@ -707,8 +711,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrReaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const event = eventFromWire(await singleFlight(getEventById)(entityId.eventId))
 				if (event == null || event.kind !== 7) {
@@ -725,6 +729,7 @@ export default {
 					values,
 					eventFromWire(await singleFlight(getEventById)(targetEventId)),
 				)
+			}
 			},
 			fields: {
 				eventId: (reaction) => reaction.eventId,
@@ -741,8 +746,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrArticle,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { listAuthorArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const pubkey = normalizePubkey(entityId.pubkey)
 				const identifier = entityId.identifier
@@ -772,6 +777,7 @@ export default {
 					throw new Error('NostrBand_Rest: article not found')
 				}
 				return articleFieldValuesFromEvent(event)
+			}
 			},
 			fields: {
 				pubkey: (article) => article.pubkey,
@@ -789,8 +795,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { listTopProfiles } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
@@ -808,6 +814,7 @@ export default {
 							}]
 						})
 				)
+			}
 			},
 			fields: {
 				$$nostrProfiles: (profiles) => profiles,
@@ -816,8 +823,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { listRecentTextNotes } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
@@ -833,6 +840,7 @@ export default {
 													]
 						))
 				)
+			}
 			},
 			fields: {
 				$$nostrNotes: (notes) => notes,
@@ -841,8 +849,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { listTopRelays } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
@@ -855,6 +863,7 @@ export default {
 							}]
 						})
 				)
+			}
 			},
 			fields: {
 				$$nostrRelays: (relays) => relays,
@@ -863,8 +872,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { listRecentReposts } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
@@ -880,6 +889,7 @@ export default {
 													]
 						))
 				)
+			}
 			},
 			fields: {
 				$$nostrReposts: (reposts) => reposts,
@@ -888,14 +898,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_entityId, context) => {
 				const { listRecentArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listRecentArticles)(limit)).events ?? [])
 						.flatMap((event) => articleRefFromEvent(event))
 				)
+			}
 			},
 			fields: {
 				$$nostrArticles: (articles) => articles,
@@ -904,8 +915,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrProfile,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { listAuthorTextNotes } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
@@ -921,6 +932,7 @@ export default {
 													]
 						))
 				)
+			}
 			},
 			fields: {
 				$$notes: (notes) => notes,
@@ -929,14 +941,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrProfile,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { listAuthorArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(listAuthorArticles)(entityId.pubkey, limit)).events ?? [])
 						.flatMap((event) => articleRefFromEvent(event))
 				)
+			}
 			},
 			fields: {
 				$$articles: (articles) => articles,
@@ -945,8 +958,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrProfile,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { listAuthorReposts } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
@@ -962,6 +975,7 @@ export default {
 													]
 						))
 				)
+			}
 			},
 			fields: {
 				$$reposts: (reposts) => reposts,
@@ -970,8 +984,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrProfile,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getProfileByPubkey } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const metadata = profileMetadataFromProfileWire(
 					await singleFlight(getProfileByPubkey)(entityId.pubkey),
@@ -979,6 +993,7 @@ export default {
 				return optionalNonemptyString(
 				metadata?.website,
 			)
+			}
 			},
 			fields: {
 				website: (website) => website,
@@ -987,8 +1002,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrProfile,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getProfileByPubkey } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const metadata = profileMetadataFromProfileWire(
 					await singleFlight(getProfileByPubkey)(entityId.pubkey),
@@ -999,6 +1014,7 @@ export default {
 				),
 				MediaType.Image,
 			)
+			}
 			},
 			fields: {
 				$banner: (banner) => banner,
@@ -1007,8 +1023,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNote,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { listNoteReplies } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
@@ -1024,6 +1040,7 @@ export default {
 													]
 						))
 				)
+			}
 			},
 			fields: {
 				$$replies: (replies) => replies,
@@ -1032,8 +1049,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNote,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { listNoteReactions } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
@@ -1049,6 +1066,7 @@ export default {
 									]
 						))
 				)
+			}
 			},
 			fields: {
 				$$reactions: (reactions) => reactions,
@@ -1057,8 +1075,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNote,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const event = eventFromWire(await singleFlight(getEventById)(entityId.eventId))
 				if (event == null || event.kind !== 1) {
@@ -1073,6 +1091,7 @@ export default {
 								[EntityMetaKey.Id]: { eventId: normalizedReplyTo },
 						}
 				)
+			}
 			},
 			fields: {
 				$replyToNote: (replyToNote) => replyToNote,

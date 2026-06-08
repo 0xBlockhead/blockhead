@@ -22,8 +22,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.NearAccount,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertNearMainnet(entityId.$network)
 				const { getAccount } = await import('$/sources/NearBlocks/Rest/queries.ts')
 				const account = (await getAccount({
@@ -39,6 +39,7 @@ export default {
 						storageUsageBytes: BigInt(account.storage_usage),
 					}),
 				}
+			}
 			},
 			fields: {
 			amountYoctoNear: (snapshot) => snapshot.amountYoctoNear,
@@ -48,8 +49,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NearBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertNearMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/NearBlocks/Rest/queries.ts')
 				const block = (await getBlock({
@@ -73,6 +74,7 @@ export default {
 						timestampMs: Number(BigInt(block.block_timestamp) / 1_000_000n),
 					}),
 				}
+			}
 			},
 			fields: {
 			hash: (snapshot) => snapshot.hash,
@@ -84,8 +86,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NearTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				assertNearMainnet(entityId.$network)
 				const { getTransaction } = await import('$/sources/NearBlocks/Rest/queries.ts')
 				const transaction = (await getTransaction({
@@ -149,6 +151,7 @@ export default {
 						],
 					}),
 				}
+			}
 			},
 			fields: {
 			$signer: (snapshot) => snapshot.$signer,

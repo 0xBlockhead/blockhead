@@ -18,8 +18,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.IpfsResource,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { fetchBrowseResult } = await import('$/sources/Ipfs/Rest/queries.ts')
 				const browseResult = await fetchBrowseResult({
 					namespace: entityId.namespace,
@@ -97,6 +97,7 @@ export default {
 						}),
 					...(mediaEntity != null && { $media: mediaEntity }),
 				}
+			}
 			},
 			fields: {
 			namespace: (snapshot) => snapshot.namespace,

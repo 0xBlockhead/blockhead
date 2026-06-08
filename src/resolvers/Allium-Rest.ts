@@ -32,8 +32,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { CoinId, coinById, coinBySymbol } = await import('$/constants/Coin.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getTokensByChainAddress } = await import('$/sources/Allium/Rest/queries.ts')
@@ -109,6 +109,7 @@ export default {
 						mediaFromUrl(token.attributes?.image_url == null ? undefined : String(token.attributes.image_url), MediaType.Image),
 					),
 				}
+			}
 			},
 			fields: {
 			coinId: (coinInstance) => coinInstance.coinId,
@@ -122,8 +123,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetworkActorCoinBalance,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
 
@@ -175,6 +176,7 @@ export default {
 						:
 							{}),
 				}
+			}
 			},
 			fields: {
 			symbol: (balance) => balance.symbol,
@@ -186,8 +188,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
 				type EvmNetworkActorCoinBalanceEntityId = import('$/schema/$schema.ts').EntityId<
@@ -247,6 +249,7 @@ export default {
 									[]
 						))
 				)
+			}
 			},
 			fields: {
 			$$ownedCoins: (ownedCoins) => ownedCoins,
@@ -255,8 +258,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
 				const { readNormalizedLocalInternal } = await import('$/sources/Local/Internal/catalog.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
@@ -324,6 +327,7 @@ export default {
 				}
 
 				return evmNetworkActorCoinBalanceRows.slice(0, subsetRowLimit)
+			}
 			},
 			fields: {
 			$$actorCoins: (actorCoins) => actorCoins,

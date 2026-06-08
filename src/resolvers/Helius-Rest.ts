@@ -100,8 +100,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SolanaTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const transaction = await getTransaction(
 					entityId,
 					context,
@@ -116,6 +116,7 @@ export default {
 						transaction,
 					),
 				}
+			}
 			},
 			fields: {
 			$block: (transaction) => transaction.$block,
@@ -129,8 +130,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaInstruction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const transaction = await getTransaction(
 					entityId.$transaction,
 					context,
@@ -141,6 +142,7 @@ export default {
 				).at(entityId.instructionIndex)
 				if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${entityId.$transaction.signature}:${entityId.instructionIndex}`)
 				return instruction
+			}
 			},
 			fields: {
 			$program: (instruction) => instruction.$program,
@@ -151,8 +153,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SolanaTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => (
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => (
 				heliusInstructionRows(
 					entityId,
 					await getTransaction(
@@ -160,7 +162,8 @@ export default {
 						context,
 					),
 				)
-			),
+			)
+			},
 			fields: {
 			$$instructions: (instructions) => instructions,
 		}

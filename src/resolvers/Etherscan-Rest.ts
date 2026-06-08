@@ -437,8 +437,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getGasOracle } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -461,6 +461,7 @@ export default {
 					...(fastGwei != null && { fastGwei }),
 					transport: 'etherscan-gasoracle',
 				}
+			}
 			},
 			fields: {
 				slowGwei: (timestamp) => timestamp.slowGwei,
@@ -472,8 +473,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmTokenTransfer,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					getTokenTransfersByTransaction,
 					getAccountListMaxOffset,
@@ -503,6 +504,7 @@ export default {
 					throw new Error('Etherscan_Rest: token transfer wire did not map to EvmTokenTransfer')
 				}
 				return entity
+			}
 			},
 			fields: {
 				standard: (transfer) => transfer.standard,
@@ -520,8 +522,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmInternalTransfer,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getInternalTransactionsByTxHash } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -547,6 +549,7 @@ export default {
 					throw new Error('Etherscan_Rest: internal transfer wire did not map to EvmInternalTransfer')
 				}
 				return entity
+			}
 			},
 			fields: {
 				value: (transfer) => transfer.value,
@@ -559,8 +562,8 @@ export default {
 		}),
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getContractAbiJsonString } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -570,6 +573,7 @@ export default {
 					address: entityId.address,
 				})
 					return abi == null ? undefined : evmAbiFromJsonString(abi)
+			}
 			},
 			fields: {
 				abi: (contract) => contract,
@@ -578,8 +582,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getContractCreation } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -597,6 +601,7 @@ export default {
 						address: creatorAddress,
 					},
 				}
+			}
 			},
 			fields: {
 				$deployer: (contract) => contract,
@@ -605,8 +610,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getContractCreation } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -625,6 +630,7 @@ export default {
 						txHash: normalized,
 					},
 				}
+			}
 			},
 			fields: {
 				$creationTransaction: (contract) => contract,
@@ -633,8 +639,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getContractSourceCode } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -653,6 +659,7 @@ export default {
 						address: normalized,
 					},
 				}
+			}
 			},
 			fields: {
 				$implementation: (contract) => contract,
@@ -661,8 +668,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getCode } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -673,6 +680,7 @@ export default {
 				})
 				if (codeHex == null) return undefined
 				return evmContractRuntimeCodeFromGetCodeHex(codeHex)
+			}
 			},
 			fields: {
 				code: (contract) => contract,
@@ -681,8 +689,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getCode } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -693,6 +701,7 @@ export default {
 				})
 				if (codeHex == null) return undefined
 				return evmContractBytecodeHashFromGetCodeHex(codeHex)
+			}
 			},
 			fields: {
 				codeHash: (contract) => contract,
@@ -701,8 +710,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmContract,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getStorageAt } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -722,6 +731,7 @@ export default {
 						})
 					),
 				})
+			}
 			},
 			fields: {
 				storageSlotReads: (contract) => contract,
@@ -730,8 +740,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				await throwIfEtherscanRestUnsupportedChainId(chainIdFromEvmNetworkId(entityId))
 				return [
 					{
@@ -741,6 +751,7 @@ export default {
 						},
 					},
 				]
+			}
 			},
 			fields: {
 				$$gasEstimateTimestamps: (network) => network,
@@ -749,8 +760,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					getTokenTransfersByAddress,
 					getAccountListMaxOffset,
@@ -783,6 +794,7 @@ export default {
 							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
 						}))
 				)
+			}
 			},
 			fields: {
 				$$tokenTransfers: (account) => account,
@@ -791,8 +803,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					getInternalTransactionsByAddress,
 					getAccountListMaxOffset,
@@ -825,6 +837,7 @@ export default {
 							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
 						}))
 				)
+			}
 			},
 			fields: {
 				$$internalTransfers: (account) => account,
@@ -833,8 +846,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmLog,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					getTokenTransfersByTransaction,
 					getAccountListMaxOffset,
@@ -867,6 +880,7 @@ export default {
 								[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
 							}))
 					)
+			}
 			},
 			fields: {
 				$$tokenTransfers: (log) => log,
@@ -875,8 +889,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const {
 					getTokenTransfersByTransaction,
 					getAccountListMaxOffset,
@@ -906,6 +920,7 @@ export default {
 							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
 						}))
 				)
+			}
 			},
 			fields: {
 				$$tokenTransfers: (transaction) => transaction,
@@ -914,8 +929,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.EvmTransaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getInternalTransactionsByTxHash } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -937,6 +952,7 @@ export default {
 							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
 						}))
 				)
+			}
 			},
 			fields: {
 				$$internalTransfers: (transaction) => transaction,

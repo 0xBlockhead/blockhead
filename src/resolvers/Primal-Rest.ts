@@ -580,8 +580,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.NostrProfile,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getProfile } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const wire = await singleFlight(getProfile)(publicEnv, entityId.pubkey)
@@ -596,6 +596,7 @@ export default {
 					metadata,
 					event,
 				)
+			}
 			},
 			fields: {
 				pubkey: (profile) => profile.pubkey,
@@ -613,8 +614,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNote,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, entityId.eventId))
@@ -626,6 +627,7 @@ export default {
 					throw new Error('Primal_Rest: note event id mismatch')
 				}
 				return noteFieldValuesFromEvent(event)
+			}
 			},
 			fields: {
 				eventId: (note) => note.eventId,
@@ -643,17 +645,18 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrRelay,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				throw new Error('Primal_Rest: NostrRelay is unsupported')
+			}
 			},
 			fields: {},
 		}),
 
 		defineResolver({
 			entityType: EntityType.NostrRepost,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, entityId.eventId))
@@ -671,6 +674,7 @@ export default {
 					values,
 					eventFromWire(await singleFlight(getEventById)(publicEnv, targetEventId)),
 				)
+			}
 			},
 			fields: {
 				eventId: (repost) => repost.eventId,
@@ -687,8 +691,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrReaction,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, entityId.eventId))
@@ -710,6 +714,7 @@ export default {
 					return reactionFieldValuesFromTargetEvent(values, targetEvent)
 				}
 				return values
+			}
 			},
 			fields: {
 				eventId: (reaction) => reaction.eventId,
@@ -726,8 +731,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrArticle,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getProfileArticles } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const pubkey = normalizePubkey(entityId.pubkey)
@@ -750,6 +755,7 @@ export default {
 					throw new Error('Primal_Rest: article not found')
 				}
 				return articleFieldValuesFromEvent(event)
+			}
 			},
 			fields: {
 				kind: (article) => article.kind,
@@ -766,12 +772,13 @@ export default {
 		}),
 		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => (
+			resolve: {
+				[EntityIdProjection.Identity]: async () => (
 				nostrNetworkSeedProfiles.map((seedProfile) => ({
 					[EntityMetaKey.Id]: seedProfile,
 				}))
-			),
+			)
+			},
 			fields: {
 				$$nostrProfiles: (network) => network,
 			},
@@ -779,9 +786,10 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				throw new Error('Primal_Rest: $$nostrNotes is unsupported; use NostrProfile.$$notes')
+			}
 			},
 			fields: {
 				$$nostrNotes: (network) => network,
@@ -790,9 +798,10 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				throw new Error('Primal_Rest: $$nostrReposts is unsupported; use NostrProfile.$$reposts')
+			}
 			},
 			fields: {
 				$$nostrReposts: (network) => network,
@@ -801,9 +810,10 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNetwork,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				throw new Error('Primal_Rest: $$nostrArticles is unsupported; use NostrProfile.$$articles')
+			}
 			},
 			fields: {
 				$$nostrArticles: (network) => network,
@@ -812,8 +822,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrProfile,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getProfileNotes } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -832,6 +842,7 @@ export default {
 													]
 						))
 				)
+			}
 			},
 			fields: {
 				$$notes: (profile) => profile,
@@ -840,8 +851,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrProfile,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getProfileReposts } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -860,6 +871,7 @@ export default {
 													]
 						))
 				)
+			}
 			},
 			fields: {
 				$$reposts: (profile) => profile,
@@ -868,8 +880,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrProfile,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getProfileArticles } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -879,6 +891,7 @@ export default {
 					)
 						.flatMap((event) => articleRefFromEvent(event))
 				)
+			}
 			},
 			fields: {
 				$$articles: (profile) => profile,
@@ -887,8 +900,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNote,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getNoteReplies } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -907,6 +920,7 @@ export default {
 													]
 						))
 				)
+			}
 			},
 			fields: {
 				$$replies: (note) => note,
@@ -915,8 +929,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNote,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getNoteReactions } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -935,6 +949,7 @@ export default {
 									]
 						))
 				)
+			}
 			},
 			fields: {
 				$$reactions: (note) => note,
@@ -943,8 +958,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.NostrNote,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, entityId.eventId))
@@ -960,6 +975,7 @@ export default {
 							[EntityMetaKey.Id]: { eventId: normalizedReplyTo },
 						}
 				)
+			}
 			},
 			fields: {
 				$replyToNote: (note) => note,

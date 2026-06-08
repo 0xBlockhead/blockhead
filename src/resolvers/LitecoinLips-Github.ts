@@ -37,8 +37,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SpecificationProposal,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Litecoin || entityId.category !== ProposalCategory.Lip) {
 					throw new Error('LitecoinLips_Github: proposal resolver only supports Litecoin LIPs')
@@ -51,6 +51,7 @@ export default {
 					documentStatus: metadataValue(text, 'Status'),
 					documentBody: text,
 				}
+			}
 			},
 			fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -62,10 +63,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -74,12 +76,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Litecoin) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin')
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -88,12 +91,13 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Litecoin || entityId.category !== ProposalCategory.Lip) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin LIPs')
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,

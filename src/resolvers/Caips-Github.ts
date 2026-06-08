@@ -45,8 +45,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.SpecificationProposal,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				const {
 					getMarkdownTextForNumber,
@@ -65,6 +65,7 @@ export default {
 					documentStatus: frontmatter.status.trim() || undefined,
 					documentBody: body.length > 0 ? body : undefined,
 				}
+			}
 			},
 			fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
@@ -76,10 +77,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType._Global,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async () => {
+			resolve: {
+				[EntityIdProjection.Identity]: async () => {
 				const { getContents } = await import('$/sources/Caips/Github/queries.ts')
 				return githubCaipProposalIndexRows(await singleFlight(getContents)())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -88,14 +90,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationRealm,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.ChainAgnostic) {
 					throw new Error('Caips_Github: $$proposals only supports SpecificationRealm.ChainAgnostic')
 				}
 				const { getContents } = await import('$/sources/Caips/Github/queries.ts')
 				return githubCaipProposalIndexRows(await singleFlight(getContents)())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,
@@ -104,14 +107,15 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.ChainAgnostic || entityId.category !== ProposalCategory.Caip) {
 					throw new Error('Caips_Github: $$proposals only supports CAIP proposal kind')
 				}
 				const { getContents } = await import('$/sources/Caips/Github/queries.ts')
 				return githubCaipProposalIndexRows(await singleFlight(getContents)())
+			}
 			},
 			fields: {
 			$$proposals: (snapshot) => snapshot,

@@ -30,8 +30,8 @@ export default {
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.PolkadotBlock,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertPolkadotMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/Subscan/Rest/queries.ts')
 				const block = (await getBlock({
@@ -53,6 +53,7 @@ export default {
 					stateRoot: block.state_root,
 					extrinsicsRoot: block.extrinsics_root,
 				}
+			}
 			},
 			fields: {
 			hash: (snapshot) => snapshot.hash,
@@ -64,8 +65,8 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.PolkadotExtrinsic,
-			accepts: [EntityIdProjection.Identity],
-			resolve: async (entityId, context) => {
+			resolve: {
+				[EntityIdProjection.Identity]: async (entityId, context) => {
 				assertPolkadotMainnet(entityId.$block.$network)
 				const { getExtrinsic } = await import('$/sources/Subscan/Rest/queries.ts')
 				const extrinsic = (await getExtrinsic({
@@ -94,6 +95,7 @@ export default {
 					callName: extrinsic.call_module_function,
 					success: extrinsic.success,
 				}
+			}
 			},
 			fields: {
 			hash: (snapshot) => snapshot.hash,
