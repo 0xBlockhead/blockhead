@@ -48,6 +48,7 @@ import type {
 import type {
 	ResolverContext,
 	ResolverPart,
+	ResolverSort,
 	ResolveLiveContext,
 	SourceResolverDefinition,
 } from '$/resolvers/$resolvers.ts'
@@ -353,6 +354,7 @@ const collectionPersistedGcTime = Number.POSITIVE_INFINITY
 
 type ParsedLoadSubset = ReturnType<typeof parseLoadSubsetOptions>
 type SubsetFilter = ParsedLoadSubset['filters'][number]
+type SubsetSort = ParsedLoadSubset['sorts'][number]
 type CollectionQueryKey = (string | {
 	filters: {
 		field: string[]
@@ -371,6 +373,64 @@ type PersistOnDemandSubsetCollection<
 	_Key extends string | number,
 > = Parameters<PersistOnDemandSubsetSync<_Row, _Key>['sync']>[0]['collection']
 const queryFnCompletenessByCollectionIdAndLoadedKey = new Map<string, Map<string, boolean>>()
+
+const subsetFilterValues = (
+	clause: SubsetFilter,
+) => (
+	clause.operator === 'eq' ?
+		[clause.value]
+	: Array.isArray(clause.value) ?
+		clause.value
+	:
+		[clause.value]
+)
+
+const resolverSortFromSubsetSort = (
+	sort: SubsetSort,
+): ResolverSort => ({
+	fieldPath: sort.field,
+	direction: (
+		'direction' in sort
+		&& sort.direction === 'desc' ?
+			'desc'
+		:
+			'asc'
+	),
+})
+
+const resolverContextFromSubset = (
+	subsetBase: ParsedLoadSubset,
+	source: Source,
+): ResolverContext => ({
+	Filters: subsetBase.filters.map((clause) => ({
+		fieldPath: clause.field,
+		operator: clause.operator,
+		value: clause.value,
+	})),
+	Sorts: subsetBase.sorts.map(resolverSortFromSubsetSort),
+	Pagination: {
+		limit: subsetBase.limit,
+	},
+	IdentityFilter: subsetBase.filters
+		.filter((clause) => (
+			clause.field[clause.field.length - 1] === EntityMetaKey.IdKey
+			&& (clause.operator === 'eq' || clause.operator === 'in')
+		))
+		.flatMap((clause) => subsetFilterValues(clause).map((value) => String(value))),
+	ParentIdentityFilter: subsetBase.filters
+		.filter((clause) => (
+			clause.field[clause.field.length - 1] === EntityMetaKey.ParentIdKey
+			&& (clause.operator === 'eq' || clause.operator === 'in')
+		))
+		.flatMap((clause) => subsetFilterValues(clause).map((value) => String(value))),
+	SourceFilter: subsetBase.filters
+		.filter((clause) => (
+			clause.field[clause.field.length - 1] === EntityMetaKey.Source
+			&& (clause.operator === 'eq' || clause.operator === 'in')
+		))
+		.flatMap((clause) => subsetFilterValues(clause) as Source[]),
+	publicEnv: resolverPublicEnvBySource.get(source) ?? {},
+})
 
 const comparisonsFromWhereLenient = (where: unknown): ParsedLoadSubset['filters'] => {
 	const expr = (
@@ -1370,15 +1430,14 @@ const createEntityCollection = <
 								const settled = await Promise.allSettled(
 									resolvers
 										.map(async (resolver) => {
+											const context = resolverContextFromSubset(
+												subsetBase,
+												resolver.source,
+											)
 											const snapshot = await resolveSnapshot(
 												resolver,
 												entityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
-												{
-													filters: subsetBase.filters,
-													sorts: subsetBase.sorts,
-													limit: subsetBase.limit,
-													publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
-												},
+												context,
 												queryClient,
 											)
 											const fields = Object.fromEntries(
@@ -1391,12 +1450,7 @@ const createEntityCollection = <
 															resolverPart.select(
 																snapshot,
 																entityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
-																{
-																	filters: subsetBase.filters,
-																	sorts: subsetBase.sorts,
-																	limit: subsetBase.limit,
-																	publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
-																},
+																context,
 															),
 														]]
 												)),
@@ -1514,6 +1568,10 @@ const createEntityFieldCollection = <
 	schemaVersion: number
 }) => {
 	const entityFieldCollectionId = `EntityFieldCollection:${entityType}:${fieldDefinition.name}`
+	const entityDefinition = schema.find((definition) => definition.entityType === entityType)
+	if (entityDefinition === undefined)
+		throw new Error(`${String(entityType)} is not registered in schema`)
+
 	const fieldDefinitionByName = Object.fromEntries(
 		schema.map((entityDefinition) => [
 			entityDefinition.entityType,
@@ -1571,12 +1629,10 @@ const createEntityFieldCollection = <
 
 		const entitySettled = await Promise.allSettled(
 			resolverDefinitions.map(async (resolver) => {
-				const context = {
-					filters: subsetBase.filters,
-					sorts: subsetBase.sorts,
-					limit: subsetBase.limit,
-					publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
-				}
+				const context = resolverContextFromSubset(
+					subsetBase,
+					resolver.source,
+				)
 				const snapshot = await resolveSnapshot(
 					resolver,
 					parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
@@ -1618,12 +1674,10 @@ const createEntityFieldCollection = <
 					&& resolverPart.select != null
 				))
 				.map(async (resolverPart) => {
-					const context = {
-						filters: subsetBase.filters,
-						sorts: subsetBase.sorts,
-						limit: subsetBase.limit,
-						publicEnv: resolverPublicEnvBySource.get(resolverPart.source) ?? {},
-					}
+					const context = resolverContextFromSubset(
+						subsetBase,
+						resolverPart.source,
+					)
 					const snapshot = await resolveSnapshot(
 						resolverPart.resolver,
 						parentEntityId as EntityId<typeof appSchema, EntityType<typeof appSchema>>,
@@ -1870,12 +1924,10 @@ const createEntityFieldCollection = <
 									const settled = await Promise.allSettled(
 										resolvers
 											.map(async (resolverPart) => {
-												const context = {
-													filters: subsetBase.filters,
-													sorts: subsetBase.sorts,
-													limit: subsetBase.limit,
-													publicEnv: resolverPublicEnvBySource.get(resolverPart.source) ?? {},
-												}
+												const context = resolverContextFromSubset(
+													subsetBase,
+													resolverPart.source,
+												)
 												const value = resolverPart.select!(
 													await resolveSnapshot(
 														resolverPart.resolver,
@@ -2006,6 +2058,7 @@ const createEntityFieldCountCollection = <
 	fieldDefinition,
 	persistence,
 	queryClient,
+	schema,
 	schemaVersion,
 }: {
 	resolverCountParts: ResolverPart[]
@@ -2013,9 +2066,14 @@ const createEntityFieldCountCollection = <
 	fieldDefinition: _FieldDefinition
 	persistence: PersistedCollectionPersistence
 	queryClient: QueryClient
+	schema: _Schema
 	schemaVersion: number
 }) => {
 	const entityFieldCountCollectionId = `EntityFieldCountCollection:${entityType}:${fieldDefinition.name}`
+	const entityDefinition = schema.find((definition) => definition.entityType === entityType)
+	if (entityDefinition === undefined)
+		throw new Error(`${String(entityType)} is not registered in schema`)
+
 	const collection = createCollection(
 		persistedCollectionOptions<
 			EntityFieldCountCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
@@ -2164,11 +2222,13 @@ const createEntityFieldCountCollection = <
 									)
 									const settled = await Promise.allSettled(
 										resolvers.map(async (resolverPart) => {
-											const context = {
-													filters: subsetBase.filters,
+											const context = resolverContextFromSubset(
+												{
+													...subsetBase,
 													sorts: [],
-													publicEnv: resolverPublicEnvBySource.get(resolverPart.source) ?? {},
-												}
+												},
+												resolverPart.source,
+											)
 											const count = resolverPart.resolveCount!(
 												await resolveSnapshot(
 													resolverPart.resolver,
@@ -2255,9 +2315,12 @@ const resolverSnapshotQueryKey = (
 	})(),
 	stringify(entityId),
 	stringify({
-		filters: context.filters,
-		sorts: context.sorts,
-		limit: context.limit,
+		Filters: context.Filters,
+		Sorts: context.Sorts,
+		Pagination: context.Pagination,
+		IdentityFilter: context.IdentityFilter,
+		ParentIdentityFilter: context.ParentIdentityFilter,
+		SourceFilter: context.SourceFilter,
 	}),
 ]
 
@@ -2408,6 +2471,7 @@ export const createCollectionsFromSchema = <
 							fieldDefinition: field,
 							persistence,
 							queryClient,
+							schema,
 							schemaVersion,
 						})
 					),

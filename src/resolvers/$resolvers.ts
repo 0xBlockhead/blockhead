@@ -6,16 +6,28 @@ import type { schema } from '$/schema/index.ts'
 import type { Source } from '$/sources/$Source.ts'
 
 export type ResolverContext = {
-	filters: readonly ResolverFilter[]
-	sorts: readonly unknown[]
-	limit?: number
+	Filters: readonly ResolverFilter[]
+	Sorts: readonly ResolverSort[]
+	Pagination: ResolverPagination
+	IdentityFilter: readonly string[]
+	ParentIdentityFilter: readonly string[]
+	SourceFilter: readonly Source[]
 	publicEnv: any
 }
 
 export type ResolverFilter = {
-	field: readonly (string | number)[]
+	fieldPath: readonly (string | number)[]
 	operator: string
 	value?: unknown
+}
+
+export type ResolverSort = {
+	fieldPath: readonly (string | number)[]
+	direction: 'asc' | 'desc'
+}
+
+export type ResolverPagination = {
+	limit?: number
 }
 
 /** When hydrate/live-query omits `LIMIT`, list field resolvers still need a cap. */
@@ -23,7 +35,7 @@ export const defaultResolverContextRowLimit = 64
 
 export const resolverContextRowLimit = (
 	context: ResolverContext,
-) => context.limit ?? defaultResolverContextRowLimit
+) => context.Pagination.limit ?? defaultResolverContextRowLimit
 
 export type ResolveLiveContext<
 	_Schema extends Schema,

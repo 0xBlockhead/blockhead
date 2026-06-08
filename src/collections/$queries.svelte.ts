@@ -46,7 +46,7 @@ import {
 	entityIdentityIdsFromFields,
 	EntityMetaKey,
 } from '$/schema/$EntityDefinition.ts'
-import { entityCollectionByEntityType, entityFieldCollections, entityFieldCountCollections } from '$/routes/+layout.svelte'
+import { entityCollectionByEntityType, entityFieldCollections } from '$/routes/+layout.svelte'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -68,15 +68,6 @@ type FieldRowsResource<_EntityType extends EntityType<typeof schema>> = RemoteRe
 		EntityFieldName<typeof schema, _EntityType>
 	>
 }[]>
-
-type EntityFieldCountRow = {
-	[EntityMetaKey.ParentId]: unknown
-	[EntityMetaKey.ParentIdKey]: string
-	[EntityMetaKey.Value]: number
-	[EntityMetaKey.Source]: Source
-	filterKey: string
-	fieldName: string
-}
 
 const partialRecordFromEntries = <_Key extends PropertyKey, _Value>(
 	entries: readonly (readonly [_Key, _Value])[],
@@ -111,24 +102,6 @@ const entityFieldCollectionFor = <
 				string | number
 			>
 		>
-	)[fieldName]
-)
-
-const entityFieldCountCollectionFor = <
-	_EntityType extends EntityType<typeof schema>,
-	_FieldName extends EntityFieldName<typeof schema, _EntityType>,
->(
-	entityType: _EntityType,
-	fieldName: _FieldName,
-) => (
-	(
-		entityFieldCountCollections[entityType] as Partial<Record<
-			_FieldName,
-			Collection<
-				EntityFieldCountRow,
-				string | number
-			>
-		>>
 	)[fieldName]
 )
 
@@ -506,7 +479,7 @@ export const useLiveQueryResource = <_Row>(
 	}
 }
 
-export const useEntity3 = <
+export const useEntity = <
 	_EntityType extends EntityType<typeof schema>,
 	_Selection extends EntitySelection<typeof schema, _EntityType>,
 >(
@@ -785,193 +758,4 @@ export const useEntity3 = <
 		},
 		[Symbol.toStringTag]: 'RemoteResource',
 	}
-}
-
-export const useEntity = useEntity3
-
-export const useEntityField = <
-	_ListedEntity extends EntityType<typeof schema>,
->(
-	entityFieldReference: EntityFieldReference<typeof schema, _ListedEntity>,
-	selection: EntitySelectionMeta = {},
-): RemoteResource<{
-	values: EntityFieldCollectionItem<
-		typeof schema,
-		_ListedEntity,
-		EntityFieldName<typeof schema, _ListedEntity>
-	>[]
-	totalCount?: number
-}> => {
-	const idKey = $derived(
-		stringify(entityFieldReference.entityId),
-	)
-	const sourcePriority = $derived(
-		selection.$ ?? [],
-	)
-	const parentIdKeys = $derived(
-		[idKey],
-	)
-	const fieldCollection = $derived(
-		entityFieldCollectionFor(
-			entityFieldReference.entityType,
-			entityFieldReference.fieldName,
-		),
-	)
-	const fieldRows = useLiveQueryResource<{
-		fieldRow: EntityFieldCollectionItem<
-			typeof schema,
-			_ListedEntity,
-			EntityFieldName<typeof schema, _ListedEntity>
-		>
-	}>(
-		(queryBuilder) => {
-			const base = foldOrderBySteps(
-				queryBuilder
-					.from({
-						fieldRow: fieldCollection,
-					})
-					.where(({ fieldRow }) => (
-						inArray(fieldRow[EntityMetaKey.ParentIdKey], parentIdKeys)
-					)),
-				selection.$orderBy ?? [],
-			)
-			return (
-				sourcePriority.length > 0 ?
-					base
-						.where(({ fieldRow }) => (
-							inArray(fieldRow[EntityMetaKey.Source], [...sourcePriority])
-						))
-						.orderBy(({ fieldRow }) => (
-							sourcePriority.reduceRight<IR.BasicExpression<number> | number>(
-								(fallback, source, index) => (
-									caseWhen(
-										eq(fieldRow[EntityMetaKey.Source], source),
-										index,
-										fallback,
-									)
-								),
-								sourcePriority.length,
-							)
-						), 'asc')
-				:
-					base
-			)
-				.limit(selection.$limit ?? defaultEntityFieldLiveQueryLimit)
-				.select(({ fieldRow }) => ({
-					fieldRow,
-				}))
-		},
-		[
-			() => stringify(parentIdKeys),
-			() => stringify(sourcePriority),
-			() => stringify([
-				selection.$limit,
-				fieldOrderDepsFingerprint(
-					fieldCollection,
-					selection.$orderBy ?? [],
-					selection.$orderByDep,
-				),
-			]),
-		],
-	)
-	const countCollection = $derived(
-		entityFieldCountCollectionFor(
-			entityFieldReference.entityType,
-			entityFieldReference.fieldName,
-		),
-	)
-	const countRows = (
-		selection.$count === true && countCollection !== undefined ?
-			useLiveQueryResource<{
-				countRow: EntityFieldCountRow
-			}>(
-				(queryBuilder) => {
-					const base = queryBuilder
-						.from({
-							countRow: countCollection,
-						})
-						.where(({ countRow }) => (
-							inArray(countRow[EntityMetaKey.ParentIdKey], parentIdKeys)
-						))
-					return (
-						sourcePriority.length > 0 ?
-							base
-								.where(({ countRow }) => (
-									inArray(countRow[EntityMetaKey.Source], [...sourcePriority])
-								))
-								.orderBy(({ countRow }) => (
-									sourcePriority.reduceRight<IR.BasicExpression<number> | number>(
-										(fallback, source, index) => (
-											caseWhen(
-												eq(countRow[EntityMetaKey.Source], source),
-												index,
-												fallback,
-											)
-										),
-										sourcePriority.length,
-									)
-								), 'asc')
-						:
-							base
-					)
-						.select(({ countRow }) => ({
-							countRow,
-						}))
-				},
-				[
-					() => stringify(parentIdKeys),
-					() => stringify(sourcePriority),
-				],
-			)
-		:
-			undefined
-	)
-
-	return reduce<
-		Partial<{
-			values: EntityFieldCollectionItem<
-				typeof schema,
-				_ListedEntity,
-				EntityFieldName<typeof schema, _ListedEntity>
-			>[]
-			totalCount?: number
-		}>,
-		{
-			values: EntityFieldCollectionItem<
-				typeof schema,
-				_ListedEntity,
-				EntityFieldName<typeof schema, _ListedEntity>
-			>[]
-			totalCount?: number
-		}
-	>(
-		[
-			derive(
-				fieldRows,
-				(rows) => ({
-					values: rows.map((row) => row.fieldRow),
-				}),
-			),
-			...(
-				countRows === undefined ?
-					[]
-				:
-					[
-						derive(
-							countRows,
-							(rows) => ({
-								totalCount: rows[0]?.countRow[EntityMetaKey.Value],
-							}),
-						),
-					]
-			),
-		],
-		(accumulator, value) => ({
-			...accumulator,
-			...value,
-		}),
-		{
-			values: [],
-		},
-	)
 }

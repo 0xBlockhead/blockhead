@@ -47,9 +47,15 @@ import {
 
 
 const resolverContext = {
-	filters: [],
-	sorts: [],
-	limit: 20,
+	Filters: [],
+	Sorts: [],
+	Pagination: {
+		limit: 20,
+	},
+	IdentityFilter: [],
+	ParentIdentityFilter: [],
+	SourceFilter: [],
+	publicEnv: {},
 }
 
 const probeTimeoutMs = 30_000

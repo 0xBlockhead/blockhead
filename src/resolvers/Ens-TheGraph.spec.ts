@@ -39,8 +39,12 @@ const ensNamesOwnedResolver = ensTheGraphResolvers.resolvers.find((
 ))
 
 const resolverContext = {
-	filters: [],
-	sorts: [],
+	Filters: [],
+	Sorts: [],
+	Pagination: {},
+	IdentityFilter: [],
+	ParentIdentityFilter: [],
+	SourceFilter: [],
 	publicEnv: {},
 }
 
