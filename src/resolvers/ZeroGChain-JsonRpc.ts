@@ -94,7 +94,7 @@ export default {
 	source: Source.ZeroGChain_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -105,7 +105,7 @@ export default {
 			fields: {}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -162,7 +162,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -271,7 +271,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -309,7 +309,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -334,7 +334,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

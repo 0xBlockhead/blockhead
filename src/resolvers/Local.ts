@@ -48,7 +48,7 @@ export default {
 	source: Source.Local_Internal,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ({})
@@ -56,7 +56,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BridgeTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -70,7 +70,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.XmtpConversation,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -97,7 +97,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSource,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -111,7 +111,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWallet,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -142,7 +142,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWalletAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -176,7 +176,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWalletConnection,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -230,7 +230,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadPanelTree,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -244,7 +244,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoom,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -265,7 +265,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSession,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -292,7 +292,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSessionAction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -324,7 +324,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoomPeer,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -355,7 +355,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSharedAddress,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -384,7 +384,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -424,7 +424,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelDeposit,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -453,7 +453,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelTransfer,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -484,7 +484,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelState,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -521,7 +521,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversation,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -552,7 +552,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversationTurn,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -589,14 +589,14 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ({})
 			},
 			fields: {},
 		}),
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -611,7 +611,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -629,7 +629,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.XmtpNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType.XmtpNetwork>, context) => (
@@ -647,7 +647,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -665,7 +665,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -683,7 +683,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -705,7 +705,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -729,7 +729,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -747,7 +747,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSession,
 			resolve: {
 				[EntityIdProjection.Identity]: async (
@@ -773,7 +773,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -791,7 +791,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -809,7 +809,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -827,7 +827,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversation,
 			resolve: {
 				[EntityIdProjection.Identity]: async (
@@ -849,7 +849,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -874,7 +874,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoom,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => (
@@ -894,7 +894,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -912,7 +912,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -930,7 +930,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -948,7 +948,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (
@@ -970,7 +970,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (
@@ -992,7 +992,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (
@@ -1014,7 +1014,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
@@ -1032,7 +1032,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.EvmProtocol,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (
@@ -1050,7 +1050,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.EvmProtocol,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (
@@ -1068,7 +1068,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.EvmProtocol,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (

@@ -96,7 +96,7 @@ const lensGraphqlResolvers = {
 	source: Source.Lens_Graphql,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -248,7 +248,7 @@ const lensGraphqlResolvers = {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -337,7 +337,7 @@ const lensGraphqlResolvers = {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -356,7 +356,7 @@ const lensGraphqlResolvers = {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -377,7 +377,7 @@ const lensGraphqlResolvers = {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -402,7 +402,7 @@ const lensGraphqlResolvers = {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -431,7 +431,7 @@ const lensGraphqlResolvers = {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -454,7 +454,7 @@ const lensGraphqlResolvers = {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -483,7 +483,7 @@ const lensGraphqlResolvers = {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -588,7 +588,7 @@ const lensGraphqlResolvers = {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

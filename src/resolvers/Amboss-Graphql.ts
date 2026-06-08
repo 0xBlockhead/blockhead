@@ -23,7 +23,7 @@ export default {
 	source: Source.Amboss_Graphql,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningNode,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -75,7 +75,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -137,7 +137,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

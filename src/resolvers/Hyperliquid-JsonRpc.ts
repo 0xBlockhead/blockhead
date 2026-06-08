@@ -25,7 +25,7 @@ export default {
 	source: Source.Hyperliquid_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -44,7 +44,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -95,7 +95,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -145,7 +145,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -172,7 +172,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

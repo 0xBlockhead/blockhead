@@ -435,7 +435,7 @@ export default {
 	source: Source.Etherscan_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -471,7 +471,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTokenTransfer,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -520,7 +520,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmInternalTransfer,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -560,7 +560,7 @@ export default {
 				$createdContract: (transfer) => transfer.$createdContract,
 			},
 		}),
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -580,7 +580,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -608,7 +608,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -637,7 +637,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -666,7 +666,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -687,7 +687,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -708,7 +708,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -738,7 +738,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -758,7 +758,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -801,7 +801,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -844,7 +844,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmLog,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -887,7 +887,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -927,7 +927,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

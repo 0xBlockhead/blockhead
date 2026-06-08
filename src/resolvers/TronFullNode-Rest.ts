@@ -151,7 +151,7 @@ export default {
 	source: Source.TronFullNode_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -179,7 +179,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -221,7 +221,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

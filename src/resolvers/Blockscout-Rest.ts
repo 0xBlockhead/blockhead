@@ -812,7 +812,7 @@ export default {
 	source: Source.Blockscout_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -980,7 +980,7 @@ export default {
 				fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1245,7 +1245,7 @@ export default {
 				fields: {},
 			}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmLog,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1278,7 +1278,7 @@ export default {
 				},
 			}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTokenTransfer,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1320,7 +1320,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmInternalTransfer,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1361,7 +1361,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337SmartAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1408,7 +1408,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337Bundler,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1438,7 +1438,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337Paymaster,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1471,7 +1471,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337AccountFactory,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1504,7 +1504,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmUserOperation,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1709,7 +1709,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1766,7 +1766,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1801,7 +1801,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1829,7 +1829,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Coin_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1863,7 +1863,7 @@ export default {
 			},
 			fields: {},
 			}),
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1884,7 +1884,7 @@ export default {
 				},
 			}),
 
-			defineResolver({
+			defineResolver(Source.Blockscout_Rest, {
 				entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1905,7 +1905,7 @@ export default {
 				},
 			}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1931,7 +1931,7 @@ export default {
 				},
 			}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1957,7 +1957,7 @@ export default {
 				},
 			}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1981,7 +1981,7 @@ export default {
 				},
 			},
 			}),
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2085,7 +2085,7 @@ export default {
 				},
 			}),
 
-			defineResolver({
+			defineResolver(Source.Blockscout_Rest, {
 				entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2136,7 +2136,7 @@ export default {
 				},
 			}),
 
-			defineResolver({
+			defineResolver(Source.Blockscout_Rest, {
 				entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2195,7 +2195,7 @@ export default {
 				},
 			}),
 
-			defineResolver({
+			defineResolver(Source.Blockscout_Rest, {
 				entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2245,7 +2245,7 @@ export default {
 				},
 			}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2295,7 +2295,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -2309,7 +2309,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2367,7 +2367,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2428,7 +2428,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2477,7 +2477,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2514,7 +2514,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2556,7 +2556,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2598,7 +2598,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2640,7 +2640,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2689,7 +2689,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -2716,7 +2716,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -2751,7 +2751,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -2803,7 +2803,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -2847,7 +2847,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2891,7 +2891,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2935,7 +2935,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2991,7 +2991,7 @@ export default {
 			},
 		}),
 
-			defineResolver({
+			defineResolver(Source.Blockscout_Rest, {
 				entityType: EntityType.EvmBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -3044,7 +3044,7 @@ export default {
 				},
 			}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -3074,7 +3074,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -3105,7 +3105,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -3153,7 +3153,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -3175,7 +3175,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -3198,7 +3198,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -3221,7 +3221,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

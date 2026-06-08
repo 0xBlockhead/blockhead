@@ -58,7 +58,7 @@ export default {
 	source: Source.Snapchain_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -195,7 +195,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -223,7 +223,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -517,7 +517,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -547,7 +547,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -611,7 +611,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -637,7 +637,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -675,7 +675,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -708,7 +708,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -751,7 +751,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -871,7 +871,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -922,7 +922,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

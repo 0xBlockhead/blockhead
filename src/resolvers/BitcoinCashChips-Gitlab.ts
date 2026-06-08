@@ -56,7 +56,7 @@ export default {
 	source: Source.BitcoinCashChips_Gitlab,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.BitcoinCashChips_Gitlab, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -87,7 +87,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.BitcoinCashChips_Gitlab, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -100,7 +100,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.BitcoinCashChips_Gitlab, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -117,7 +117,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.BitcoinCashChips_Gitlab, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

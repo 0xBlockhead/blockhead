@@ -49,7 +49,7 @@ export default {
 	source: Source.TrustWalletAssets_Github,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.TrustWalletAssets_Github, {
 			entityType: EntityType.Network,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -66,7 +66,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TrustWalletAssets_Github, {
 			entityType: EntityType.AssetInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

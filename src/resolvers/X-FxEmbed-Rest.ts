@@ -19,7 +19,7 @@ export default {
 	source: Source.X_FxEmbed_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XUser,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -135,7 +135,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XPost,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -200,7 +200,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XUser_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -224,7 +224,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XPost_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -249,7 +249,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -273,7 +273,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -297,7 +297,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XPost,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -325,7 +325,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XUser,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -370,7 +370,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XUser,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

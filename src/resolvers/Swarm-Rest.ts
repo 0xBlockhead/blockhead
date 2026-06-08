@@ -14,7 +14,7 @@ export default {
 	source: Source.Swarm_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Swarm_Rest, {
 			entityType: EntityType.SwarmResource,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

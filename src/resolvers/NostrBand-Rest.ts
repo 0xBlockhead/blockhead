@@ -575,7 +575,7 @@ export default {
 	source: Source.NostrBand_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -605,7 +605,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -635,7 +635,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrRelay,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -674,7 +674,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrRepost,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -709,7 +709,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrReaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -744,7 +744,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrArticle,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -793,7 +793,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -821,7 +821,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -847,7 +847,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -870,7 +870,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -896,7 +896,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -913,7 +913,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -939,7 +939,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -956,7 +956,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -982,7 +982,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -1000,7 +1000,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -1021,7 +1021,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -1047,7 +1047,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -1073,7 +1073,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

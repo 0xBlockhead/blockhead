@@ -20,7 +20,7 @@ export default {
 	source: Source.QuilibriumNodeRpc_Grpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumFrame,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -40,7 +40,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumShard,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -55,7 +55,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -70,7 +70,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumPendingTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -85,7 +85,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

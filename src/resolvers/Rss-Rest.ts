@@ -16,7 +16,7 @@ export default {
 	source: Source.Rss_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssFeed,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -48,7 +48,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssItem,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -101,7 +101,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -135,7 +135,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssFeed,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

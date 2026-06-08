@@ -17,7 +17,7 @@ export default {
 	source: Source.LogosDocs_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.LogosDocs_Rest, {
 			entityType: EntityType.LogosZone,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -44,7 +44,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.LogosDocs_Rest, {
 			entityType: EntityType.LogosAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -56,7 +56,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.LogosDocs_Rest, {
 			entityType: EntityType.LogosTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

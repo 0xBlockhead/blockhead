@@ -13,7 +13,7 @@ export default {
 	source: Source.CashuMint_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -43,7 +43,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuKeyset,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -81,7 +81,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

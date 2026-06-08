@@ -47,7 +47,7 @@ export default {
 	source: Source.Neynar_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -177,7 +177,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -229,7 +229,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -727,7 +727,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -844,7 +844,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -882,7 +882,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

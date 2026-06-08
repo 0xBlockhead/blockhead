@@ -46,7 +46,7 @@ export default {
 	source: Source.BitcoinCashNode_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -92,7 +92,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -115,7 +115,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenNft,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -144,7 +144,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenCommitment,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

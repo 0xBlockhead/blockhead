@@ -43,7 +43,7 @@ export default {
 	source: Source.MempoolSpace_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -60,7 +60,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -110,7 +110,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -155,7 +155,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -198,7 +198,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -227,7 +227,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -263,7 +263,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -278,7 +278,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -315,7 +315,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -344,7 +344,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -364,7 +364,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -394,7 +394,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => (
@@ -434,7 +434,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => (

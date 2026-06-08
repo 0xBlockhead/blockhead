@@ -64,7 +64,7 @@ export default {
 	source: Source.TheGraph_Graphql,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.EnsName,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -200,7 +200,7 @@ export default {
 				}
 			}),
 
-		defineResolver({
+		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.EnsSearch,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -211,7 +211,7 @@ export default {
 				fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.EvmAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -239,7 +239,7 @@ export default {
 				}
 			}),
 
-		defineResolver({
+		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.EnsSearch,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

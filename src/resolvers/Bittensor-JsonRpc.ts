@@ -44,7 +44,7 @@ export default {
 	source: Source.Bittensor_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -61,7 +61,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -126,7 +126,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -170,7 +170,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -215,7 +215,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorMetagraph_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -237,7 +237,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNeuron,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -252,7 +252,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -272,7 +272,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -310,7 +310,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -336,7 +336,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -356,7 +356,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

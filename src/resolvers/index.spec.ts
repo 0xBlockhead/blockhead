@@ -164,7 +164,7 @@ describe('resolver registry live resolver architecture', () => {
 	})
 
 	it('preserves duplicate-safe field part indexes for multi-projection resolve keys and parentSelectors parts', () => {
-		const first = defineResolver({
+		const first = defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ({}),
@@ -176,7 +176,7 @@ describe('resolver registry live resolver architecture', () => {
 				},
 			},
 		})
-		const second = defineResolver({
+		const second = defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ({}),

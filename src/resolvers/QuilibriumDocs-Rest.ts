@@ -35,7 +35,7 @@ export default {
 	source: Source.QuilibriumDocs_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -72,7 +72,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -93,7 +93,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -112,7 +112,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: quilibriumDocumentRows
@@ -122,7 +122,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -136,7 +136,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

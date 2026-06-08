@@ -171,7 +171,7 @@ export default {
 	source: Source.Solana_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 				entityType: EntityType.SolanaBlock,
 				resolve: {
 					[EntityIdProjection.Identity]: async (entityId) => {
@@ -236,7 +236,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -305,7 +305,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -335,7 +335,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -363,7 +363,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -397,7 +397,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaProgram,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -417,7 +417,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTokenMint,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -458,7 +458,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaValidator,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -492,7 +492,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -512,7 +512,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -548,7 +548,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -567,7 +567,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -627,7 +627,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -679,7 +679,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaBlock,
 				resolve: {
 					[EntityIdProjection.Identity]: async (entityId) => {
@@ -719,7 +719,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => (

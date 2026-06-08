@@ -3,7 +3,8 @@ import type { QueryClient } from '@tanstack/query-core'
 import type { EntityIdProjectionName } from '$/schema/$EntityDefinition.ts'
 import type { EntityFieldName, EntityId, EntityType, Schema } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
-import type { Source } from '$/sources/$Source.ts'
+import type { Source, SourcePublicEnv } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
 
 export type ResolverContext = {
 	Filters: readonly ResolverFilter[]
@@ -12,7 +13,11 @@ export type ResolverContext = {
 	IdentityFilter: readonly string[]
 	ParentIdentityFilter: readonly string[]
 	SourceFilter: readonly Source[]
-	publicEnv: any
+	publicEnv: SourcePublicEnv
+}
+
+export type SourceResolverContext<_Source extends Source> = Omit<ResolverContext, 'publicEnv'> & {
+	publicEnv: SourcePublicEnvFor<_Source>
 }
 
 export type ResolverFilter = {
@@ -109,13 +114,17 @@ export type ResolverDefinition<
 	}
 }
 
+type SourceResolverFunction<_Context> = {
+	resolve(
+		entityId: any,
+		context: _Context,
+	): Promise<any>
+}['resolve']
+
 export type SourceResolverDefinition = {
 	definitionIndex: number
 	entityType: EntityType<typeof schema>
-	resolve: Partial<Record<EntityIdProjectionName, (
-		entityId: any,
-		context: ResolverContext,
-	) => Promise<any>>>
+	resolve: Partial<Record<EntityIdProjectionName, SourceResolverFunction<ResolverContext>>>
 	fields: Partial<Record<string, any>>
 	resolveLive?: {
 		fields: readonly EntityFieldName<typeof schema, EntityType<typeof schema>>[]
@@ -139,13 +148,15 @@ export type ResolverPart = {
 }
 
 export const defineResolver = <
+	const _Source extends Source,
 	const _EntityType extends EntityType<typeof schema>,
 >(
+	_source: _Source,
 	resolver: {
 		entityType: _EntityType
 		resolve: Partial<Record<EntityIdProjectionName, (
 			entityId: EntityId<typeof schema, _EntityType>,
-			context: ResolverContext,
+			context: SourceResolverContext<_Source>,
 		) => Promise<any>>>
 		fields: Partial<Record<
 			EntityFieldName<typeof schema, _EntityType>,

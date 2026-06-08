@@ -48,7 +48,7 @@ export default {
 	source: Source.Polkadot_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -73,7 +73,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -131,7 +131,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -177,7 +177,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -202,7 +202,7 @@ export default {
 			fields: {}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -221,7 +221,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -241,7 +241,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -276,7 +276,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -307,7 +307,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

@@ -29,7 +29,7 @@ export default {
 	source: Source.Filfox_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinTipset,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -93,7 +93,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -137,7 +137,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinMessage,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -181,7 +181,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinActor,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -201,7 +201,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinMiner,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -244,7 +244,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

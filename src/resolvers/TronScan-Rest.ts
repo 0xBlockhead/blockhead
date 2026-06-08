@@ -280,7 +280,7 @@ export default {
 	source: Source.TronScan_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -306,7 +306,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -351,7 +351,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -382,7 +382,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -409,7 +409,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronToken,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -444,7 +444,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronTokenTransfer,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -477,7 +477,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -511,7 +511,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -530,7 +530,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

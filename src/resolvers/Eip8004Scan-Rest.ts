@@ -18,7 +18,7 @@ export default {
 	source: Source.Eip8004Scan_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Eip8004Scan_Rest, {
 			entityType: EntityType.EvmNft,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -87,7 +87,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Eip8004Scan_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {

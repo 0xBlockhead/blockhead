@@ -10,7 +10,7 @@ export default {
 	source: Source.BeaconchaIn_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.BeaconchaIn_Rest, {
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

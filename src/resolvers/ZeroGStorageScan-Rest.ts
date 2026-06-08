@@ -61,7 +61,7 @@ export default {
 	source: Source.ZeroGStorageScan_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -130,7 +130,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -155,7 +155,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -182,7 +182,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGDataBlob,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -232,7 +232,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageLogEntry,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -271,7 +271,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -292,7 +292,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -321,7 +321,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

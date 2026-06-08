@@ -18,7 +18,7 @@ export default {
 	source: Source.Defillama_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -60,7 +60,7 @@ export default {
 				},
 			}),
 
-		defineResolver({
+		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -111,7 +111,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => ({

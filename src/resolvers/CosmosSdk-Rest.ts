@@ -121,7 +121,7 @@ export default {
 	source: Source.CosmosSdk_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -146,7 +146,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -212,7 +212,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 				entityType: EntityType.CosmosBlock,
 				resolve: {
 					[EntityIdProjection.Identity]: async (entityId) => {
@@ -241,7 +241,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -279,7 +279,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -305,7 +305,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosValidator,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -326,7 +326,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosMessage,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -350,7 +350,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosGovernanceProposal,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -372,7 +372,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosDenom,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -396,7 +396,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosModule,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -423,7 +423,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -459,7 +459,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -478,7 +478,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -498,7 +498,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -530,7 +530,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -547,7 +547,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -565,7 +565,7 @@ export default {
 		}),
 
 
-		defineResolver({
+		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

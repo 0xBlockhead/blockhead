@@ -251,7 +251,7 @@ export default {
 	source: Source.Chainlist_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetworkBridge,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -297,7 +297,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -405,7 +405,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => {
@@ -421,7 +421,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -453,7 +453,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -476,7 +476,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -512,7 +512,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -556,7 +556,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -592,7 +592,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -612,7 +612,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

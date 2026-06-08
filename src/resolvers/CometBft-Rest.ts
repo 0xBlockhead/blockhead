@@ -25,7 +25,7 @@ export default {
 	source: Source.CometBft_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.CometBft_Rest, {
 			entityType: EntityType.CosmosBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -52,7 +52,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.CometBft_Rest, {
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

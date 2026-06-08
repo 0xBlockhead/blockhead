@@ -18,7 +18,7 @@ export default {
 	source: Source.Atproto_Xrpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoActor,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -98,7 +98,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoPost,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -148,7 +148,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoActor_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -171,7 +171,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoPost_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -194,7 +194,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -227,7 +227,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -239,7 +239,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoActor,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -288,7 +288,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoActor,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -335,7 +335,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoPost,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -361,7 +361,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Atproto_Xrpc, {
 			entityType: EntityType.AtprotoPost,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

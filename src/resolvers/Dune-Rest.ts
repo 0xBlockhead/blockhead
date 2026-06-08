@@ -9,7 +9,7 @@ export default {
 	source: Source.Dune_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Dune_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {

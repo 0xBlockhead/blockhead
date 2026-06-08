@@ -44,7 +44,7 @@ export default {
 	source: Source.HyperliquidDocs_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -65,7 +65,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: hyperliquidHipRows
@@ -75,7 +75,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -89,7 +89,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

@@ -19,7 +19,7 @@ export default {
 	source: Source.Piped_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -48,7 +48,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeVideo,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -113,7 +113,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubePlaylist,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -142,7 +142,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeComment,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -187,7 +187,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeChannel_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -204,7 +204,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeVideo_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -223,7 +223,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeComment_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -248,7 +248,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubePlaylist_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -264,7 +264,7 @@ export default {
 				itemCount: (timestamp) => timestamp.itemCount,
 			},
 		}),
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -290,7 +290,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -317,7 +317,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => (
@@ -329,7 +329,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -352,7 +352,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -379,7 +379,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -409,7 +409,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubePlaylist,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -432,7 +432,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubePlaylist,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -459,7 +459,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeVideo,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -483,7 +483,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeVideo,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -516,7 +516,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeComment,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -547,7 +547,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YouTubeComment,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, _context) => {

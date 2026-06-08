@@ -81,7 +81,7 @@ export default {
 	source: Source.Sourcify_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractVerification,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -122,7 +122,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractCompilation,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -171,7 +171,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractSourceBundle,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -187,7 +187,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -206,7 +206,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -221,7 +221,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -240,7 +240,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -264,7 +264,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

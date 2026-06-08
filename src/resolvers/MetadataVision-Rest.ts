@@ -15,7 +15,7 @@ export default {
 	source: Source.MetadataVision_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.MetadataVision_Rest, {
 			entityType: EntityType.Url,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

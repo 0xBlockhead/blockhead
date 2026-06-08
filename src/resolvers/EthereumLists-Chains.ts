@@ -285,7 +285,7 @@ export default {
 	source: Source.EthereumLists_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetworkBridge,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -321,7 +321,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -418,7 +418,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => {
@@ -432,7 +432,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -464,7 +464,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -488,7 +488,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -524,7 +524,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -568,7 +568,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -604,7 +604,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -624,7 +624,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

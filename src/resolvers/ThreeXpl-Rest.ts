@@ -49,7 +49,7 @@ export default {
 	source: Source.ThreeXpl_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.MoneroBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -81,7 +81,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.MoneroTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -107,7 +107,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.NearBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -139,7 +139,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.NearTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -154,7 +154,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -184,7 +184,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 				entityType: EntityType.SolanaBlock,
 				resolve: {
 					[EntityIdProjection.Identity]: async (entityId) => {
@@ -214,7 +214,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -242,7 +242,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -276,7 +276,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -308,7 +308,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -333,7 +333,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -359,7 +359,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.MoneroBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -387,7 +387,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 				entityType: EntityType.SolanaBlock,
 				resolve: {
 					[EntityIdProjection.Identity]: async (entityId) => {
@@ -419,7 +419,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -448,7 +448,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

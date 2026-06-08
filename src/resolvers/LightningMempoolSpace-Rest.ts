@@ -168,7 +168,7 @@ export default {
 	source: Source.LightningMempoolSpace_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -187,7 +187,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -214,7 +214,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNode,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -241,7 +241,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -273,7 +273,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -293,7 +293,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -311,7 +311,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -348,7 +348,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNode,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

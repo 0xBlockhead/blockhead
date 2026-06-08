@@ -40,7 +40,7 @@ export default {
 	source: Source.Coingecko_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -91,7 +91,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -193,7 +193,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -206,7 +206,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -262,7 +262,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -312,7 +312,7 @@ export default {
 				vwap: (timestamp) => timestamp.vwap,
 			},
 		}),
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
@@ -357,7 +357,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -377,7 +377,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -399,7 +399,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
@@ -452,7 +452,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -474,7 +474,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -492,7 +492,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -516,7 +516,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
@@ -538,7 +538,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
@@ -565,7 +565,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Currency,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
@@ -589,7 +589,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Currency,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
@@ -609,7 +609,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -621,7 +621,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -633,7 +633,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
@@ -652,7 +652,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
@@ -677,7 +677,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -729,7 +729,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -765,7 +765,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
@@ -779,7 +779,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (

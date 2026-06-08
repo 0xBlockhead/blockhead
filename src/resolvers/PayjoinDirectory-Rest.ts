@@ -9,7 +9,7 @@ export default {
 	source: Source.PayjoinDirectory_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.PayjoinDirectory_Rest, {
 			entityType: EntityType.PayjoinDirectory,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

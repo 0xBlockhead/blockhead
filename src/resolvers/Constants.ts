@@ -289,7 +289,7 @@ export default {
 	source: Source.Constants_Internal,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumNetworkUpgrade,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -354,7 +354,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumExecutionUpgrade,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -371,7 +371,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumConsensusUpgrade,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -388,7 +388,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MarketVenue,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -401,7 +401,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -419,7 +419,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -438,7 +438,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => ({})
@@ -446,7 +446,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -472,7 +472,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -486,7 +486,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -507,7 +507,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.CoinBridgeCapability,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -524,7 +524,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => ({})
@@ -532,7 +532,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => ({})
@@ -540,7 +540,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Url,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => (
@@ -550,7 +550,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -583,7 +583,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MevRelay,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => ({
@@ -593,7 +593,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -620,7 +620,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -643,7 +643,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -676,7 +676,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -696,7 +696,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -717,7 +717,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NetworkStack,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => ({
@@ -727,7 +727,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -760,7 +760,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ExecutionEnvironment,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => ({
@@ -770,7 +770,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ConsensusMechanism,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => ({
@@ -780,7 +780,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.AssetInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => ({
@@ -793,7 +793,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => ({
@@ -803,7 +803,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NetworkUpgrade,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => ({
@@ -813,7 +813,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.CosmosGovernanceProposal,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => ({})
@@ -821,7 +821,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.PolkadotReferendum,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => ({})
@@ -829,7 +829,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => ({
@@ -843,7 +843,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => (
@@ -857,7 +857,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => activityPubNetworkFieldValues
@@ -871,7 +871,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.AtprotoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => atprotoNetworkFieldValues
@@ -885,7 +885,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EnsProtocol,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ensProtocolFieldValues
@@ -899,7 +899,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmProtocol,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => evmProtocolFieldValues
@@ -913,7 +913,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.IpfsProtocol,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ipfsProtocolFieldValues
@@ -927,7 +927,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SwarmProtocol,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => swarmProtocolFieldValues
@@ -941,7 +941,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.LensNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => lensNetworkFieldValues
@@ -955,7 +955,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => nostrNetworkFieldValues
@@ -969,7 +969,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => redditNetworkFieldValues
@@ -983,7 +983,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RssNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => rssNetworkFieldValues
@@ -997,7 +997,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => xNetworkFieldValues
@@ -1011,7 +1011,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XmtpNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => xmtpNetworkFieldValues
@@ -1025,7 +1025,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.YouTubeNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => youtubeNetworkFieldValues
@@ -1038,7 +1038,7 @@ export default {
 				topology: (entity) => entity.topology,
 			},
 		}),
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 				resolve: {
 					[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
@@ -1054,7 +1054,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -1119,7 +1119,7 @@ export default {
 					},
 				}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
@@ -1143,7 +1143,7 @@ export default {
 				},
 			}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1162,7 +1162,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1181,7 +1181,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
@@ -1205,7 +1205,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1224,7 +1224,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1243,7 +1243,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
@@ -1267,7 +1267,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1286,7 +1286,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1305,7 +1305,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
@@ -1337,7 +1337,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
@@ -1359,7 +1359,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
@@ -1381,7 +1381,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
@@ -1400,7 +1400,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
@@ -1414,7 +1414,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.SpecificationRealm>) => (
@@ -1432,7 +1432,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.SpecificationProposalKind>) => (
@@ -1448,7 +1448,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -1469,7 +1469,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -1488,7 +1488,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MarketVenue,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.MarketVenue>) => {
@@ -1515,7 +1515,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
@@ -1533,7 +1533,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
@@ -1555,7 +1555,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -1574,7 +1574,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -1595,7 +1595,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>) => (
@@ -1611,7 +1611,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>) => (
@@ -1625,7 +1625,7 @@ export default {
 			},
 		}),
 
-			defineResolver({
+			defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.Coin,
 				resolve: {
 					[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
@@ -1655,7 +1655,7 @@ export default {
 				},
 			}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -1667,7 +1667,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -1679,7 +1679,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -1691,7 +1691,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1709,7 +1709,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
@@ -1728,7 +1728,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
@@ -1752,7 +1752,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -1764,7 +1764,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
@@ -1778,7 +1778,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
@@ -1792,7 +1792,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -1804,7 +1804,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -1816,7 +1816,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1834,7 +1834,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1847,7 +1847,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1871,7 +1871,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1940,7 +1940,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1957,7 +1957,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1974,7 +1974,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.EthereumNetworkUpgrade,
 				resolve: {
 					[EntityIdProjection.Identity]: async (entityId) => {
@@ -1993,7 +1993,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumNetworkUpgrade,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -2012,7 +2012,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumNetworkUpgrade,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -2055,7 +2055,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumExecutionUpgrade,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -2073,7 +2073,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumConsensusUpgrade,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -2126,7 +2126,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.LensNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => (
@@ -2140,7 +2140,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.LensNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -2152,7 +2152,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => (
@@ -2166,7 +2166,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -2178,7 +2178,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => (
@@ -2192,7 +2192,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -2204,7 +2204,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -2216,7 +2216,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.AtprotoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => (
@@ -2230,7 +2230,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.AtprotoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -2242,7 +2242,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => (
@@ -2256,7 +2256,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -2268,7 +2268,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => (
@@ -2282,7 +2282,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -2294,7 +2294,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RssNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => (
@@ -2308,7 +2308,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RssNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -2320,7 +2320,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => (
@@ -2334,7 +2334,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -2346,7 +2346,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XmtpNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -2358,7 +2358,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.YouTubeNetwork,
 				resolve: {
 					[EntityIdProjection.Identity]: async () => (
@@ -2372,7 +2372,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.YouTubeNetwork,
 				resolve: {
 					[EntityIdProjection.Identity]: async () => (
@@ -2386,7 +2386,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.YouTubeNetwork,
 				resolve: {
 					[EntityIdProjection.Identity]: async () => (
@@ -2400,7 +2400,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -2412,7 +2412,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -2434,7 +2434,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -2463,7 +2463,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -2492,7 +2492,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

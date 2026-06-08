@@ -112,7 +112,7 @@ export default {
 	source: Source.Blockchair_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -129,7 +129,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -169,7 +169,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -207,7 +207,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -250,7 +250,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -290,7 +290,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -305,7 +305,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -352,7 +352,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -374,7 +374,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -396,7 +396,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -432,7 +432,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -474,7 +474,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

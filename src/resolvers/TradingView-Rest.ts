@@ -23,7 +23,7 @@ export default {
 	source: Source.TradingView_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -57,7 +57,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -91,7 +91,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -127,7 +127,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -161,7 +161,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -173,7 +173,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Currency,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -199,7 +199,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Currency,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -219,7 +219,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

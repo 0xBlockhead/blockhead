@@ -12,7 +12,7 @@ export default {
 	source: Source.EthereumSpecs_Github,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.EthereumSpecs_Github, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -40,7 +40,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.EthereumSpecs_Github, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -58,7 +58,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.EthereumSpecs_Github, {
 			entityType: EntityType.EthereumExecutionUpgrade,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

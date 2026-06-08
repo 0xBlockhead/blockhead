@@ -35,7 +35,7 @@ export default {
 	source: Source.Coinpaprika_OpenApi,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -77,7 +77,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -130,7 +130,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -197,7 +197,7 @@ export default {
 				vwap: (timestamp) => timestamp.vwap,
 			},
 		}),
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -221,7 +221,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -243,7 +243,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -255,7 +255,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -279,7 +279,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.MarketVenue,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -307,7 +307,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>, context) => {
@@ -342,7 +342,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>, context) => {
@@ -372,7 +372,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Currency,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
@@ -396,7 +396,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Currency,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
@@ -416,7 +416,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
@@ -479,7 +479,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -525,7 +525,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
@@ -539,7 +539,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (

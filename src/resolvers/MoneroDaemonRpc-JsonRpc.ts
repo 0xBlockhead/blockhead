@@ -163,7 +163,7 @@ export default {
 	source: Source.MoneroDaemonRpc_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -182,7 +182,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -231,7 +231,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => (
@@ -251,7 +251,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroKeyImage,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -272,7 +272,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRing,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -300,7 +300,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRingMember,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -320,7 +320,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroStealthOutput,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -342,7 +342,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -413,7 +413,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -444,7 +444,7 @@ export default {
 				}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRing,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

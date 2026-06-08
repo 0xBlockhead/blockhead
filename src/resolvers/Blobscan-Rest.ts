@@ -39,7 +39,7 @@ export default {
 	source: Source.Blobscan_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Blobscan_Rest, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, _context) => {
@@ -51,7 +51,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Blobscan_Rest, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, _context) => {

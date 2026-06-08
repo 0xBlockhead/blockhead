@@ -20,7 +20,7 @@ export default {
 	source: Source.ZeroGChainScan_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.ZeroGChainScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -40,7 +40,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGChainScan_Rest, {
 			entityType: EntityType.ZeroGConsensusNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

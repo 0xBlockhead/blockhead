@@ -62,7 +62,7 @@ export default {
 	source: Source.CosmosChainRegistry_Github,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.Network,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -86,7 +86,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.AssetInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -107,7 +107,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.Network,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

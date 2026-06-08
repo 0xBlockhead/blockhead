@@ -96,7 +96,7 @@ export default {
 	source: Source.Lotus_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -121,7 +121,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -181,7 +181,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinTipset,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -218,7 +218,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -241,7 +241,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinSector,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -259,7 +259,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinActor,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -283,7 +283,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -302,7 +302,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -328,7 +328,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -348,7 +348,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -365,7 +365,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -410,7 +410,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinTipset,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -430,7 +430,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinMiner,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => (

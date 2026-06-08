@@ -3,7 +3,10 @@ import type { Type } from 'arktype'
 import type { SourceProvider } from '$/sources/$SourceProvider.ts'
 
 /** String-keyed map of public env (matches `$env/dynamic/public` after coercing missing values to `''`). */
-export type SourcePublicEnv = Record<string, string>
+export type SourcePublicEnv = {
+	readonly [key: string]: string
+	readonly [key: `PUBLIC_${string}`]: string
+}
 
 export enum Source {
 	Allium_Rest = 'Allium_Rest',

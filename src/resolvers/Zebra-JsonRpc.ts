@@ -40,7 +40,7 @@ export default {
 	source: Source.Zebra_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -117,7 +117,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -193,7 +193,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -236,7 +236,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

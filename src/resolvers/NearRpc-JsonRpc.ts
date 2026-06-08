@@ -202,7 +202,7 @@ export default {
 	source: Source.NearRpc_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -213,7 +213,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -263,7 +263,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearChunk,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -317,7 +317,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => (
@@ -336,7 +336,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -355,7 +355,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearExecutionOutcome,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -380,7 +380,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearReceipt,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -406,7 +406,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -437,7 +437,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -460,7 +460,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccessKey,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -479,7 +479,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearValidator,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -503,7 +503,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -563,7 +563,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -595,7 +595,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -619,7 +619,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

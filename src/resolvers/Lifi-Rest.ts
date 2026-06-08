@@ -6,7 +6,7 @@ import { TransportType } from '$/constants/TransportType.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
-	type ResolverContext,
+	type SourceResolverContext,
 } from '$/resolvers/$resolvers.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import {
@@ -147,7 +147,7 @@ const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
 
 const coinBridgeCapabilityRowsForCoin = async (
 	entityId: EntityId<typeof schema, EntityType.Coin>,
-	context: ResolverContext,
+	context: SourceResolverContext<Source.Lifi_Rest>,
 ) => {
 	const { fetchTools } = await import('$/sources/Lifi/Rest/queries.ts')
 	const { fetchCoinBridgeCapabilityRowsForCoin } = await import(
@@ -164,7 +164,7 @@ export default {
 	source: Source.Lifi_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -181,7 +181,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.CoinBridgeCapability,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -204,7 +204,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRoute,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -227,7 +227,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRouteStep,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -259,7 +259,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -272,7 +272,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -284,7 +284,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -310,7 +310,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -336,7 +336,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRoute,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -351,7 +351,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, _context) => {

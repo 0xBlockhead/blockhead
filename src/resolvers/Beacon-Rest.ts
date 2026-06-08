@@ -59,7 +59,7 @@ export default {
 	source: Source.Beacon_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -78,7 +78,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -110,7 +110,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconValidator,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -141,7 +141,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconCommittee,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -160,7 +160,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSyncCommittee,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -178,7 +178,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconAttestation,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -199,7 +199,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconWithdrawal,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -237,7 +237,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumBeaconFinality_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -267,7 +267,7 @@ export default {
 				finalizedCheckpointRoot: (timestamp) => timestamp.finalizedCheckpointRoot,
 			},
 		}),
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -292,7 +292,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -331,7 +331,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -369,7 +369,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -400,7 +400,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -425,7 +425,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -447,7 +447,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -469,7 +469,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -492,7 +492,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -521,7 +521,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -547,7 +547,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -574,7 +574,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -601,7 +601,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -629,7 +629,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => (
@@ -648,7 +648,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumConsensusUpgrade,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -661,7 +661,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumConsensusUpgrade,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

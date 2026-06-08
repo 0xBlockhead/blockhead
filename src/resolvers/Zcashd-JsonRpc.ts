@@ -103,7 +103,7 @@ export default {
 	source: Source.Zcashd_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.ZcashShieldedPool,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -127,7 +127,7 @@ export default {
 			noteProtocol: (snapshot) => snapshot.noteProtocol,
 		}
 		}),
-		defineResolver({
+		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -153,7 +153,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.ZcashShieldedAction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

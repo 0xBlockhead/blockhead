@@ -45,7 +45,7 @@ export default {
 	source: Source.MevRelay_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -91,7 +91,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.MevBuilder,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -116,7 +116,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -175,7 +175,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

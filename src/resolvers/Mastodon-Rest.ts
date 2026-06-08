@@ -214,7 +214,7 @@ export default {
 	source: Source.Mastodon_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -272,7 +272,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -306,7 +306,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -331,7 +331,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -355,7 +355,7 @@ export default {
 				replyCount: (timestamp) => timestamp.replyCount,
 			},
 		}),
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -370,7 +370,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -388,7 +388,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -403,7 +403,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -431,7 +431,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -462,7 +462,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -531,7 +531,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -565,7 +565,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -594,7 +594,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

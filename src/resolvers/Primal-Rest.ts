@@ -578,7 +578,7 @@ export default {
 	source: Source.Primal_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -612,7 +612,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -643,7 +643,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrRelay,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -653,7 +653,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrRepost,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -689,7 +689,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrReaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -729,7 +729,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrArticle,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -770,7 +770,7 @@ export default {
 				$author: (article) => article.$author,
 			},
 		}),
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => (
@@ -784,7 +784,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -796,7 +796,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -808,7 +808,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -820,7 +820,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -849,7 +849,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -878,7 +878,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -898,7 +898,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -927,7 +927,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -956,7 +956,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

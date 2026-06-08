@@ -84,7 +84,7 @@ export default {
 	source: Source.Reddit_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -123,7 +123,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -170,7 +170,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditComment,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -214,7 +214,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditSubreddit_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -234,7 +234,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -257,7 +257,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditComment_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -275,7 +275,7 @@ export default {
 				score: (timestamp) => timestamp.score,
 			},
 		}),
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -300,7 +300,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -327,7 +327,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -350,7 +350,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -377,7 +377,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -405,7 +405,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -429,7 +429,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -450,7 +450,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditComment,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -475,7 +475,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditComment,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

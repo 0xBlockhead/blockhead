@@ -204,7 +204,7 @@ export default {
 	source: Source.TronGrid_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -229,7 +229,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -276,7 +276,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -304,7 +304,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -346,7 +346,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -374,7 +374,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronWitness,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -395,7 +395,7 @@ export default {
 				},
 			}),
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -414,7 +414,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -434,7 +434,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -451,7 +451,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -489,7 +489,7 @@ export default {
 
 
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -509,7 +509,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -543,7 +543,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

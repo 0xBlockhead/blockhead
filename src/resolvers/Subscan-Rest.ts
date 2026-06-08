@@ -28,7 +28,7 @@ export default {
 	source: Source.Subscan_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -63,7 +63,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

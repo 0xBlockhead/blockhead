@@ -48,7 +48,7 @@ export default {
 	source: Source.ZcashZips_Github,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.ZcashZips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -75,7 +75,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZcashZips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -88,7 +88,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZcashZips_Github, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -105,7 +105,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZcashZips_Github, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

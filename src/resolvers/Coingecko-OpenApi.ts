@@ -21,7 +21,7 @@ import { stringify } from 'devalue'
 import {
 	defineResolver,
 	resolverContextRowLimit,
-	type ResolverContext,
+	type SourceResolverContext,
 } from '$/resolvers/$resolvers.ts'
 import {
 	EntityIdProjection,
@@ -34,7 +34,7 @@ import { Source } from '$/sources/$Source.ts'
 
 const coingeckoOpenApiDerivativeTickerForMarket = async (
 	entityId: EntityId<typeof schema, EntityType.Market>,
-	context: ResolverContext,
+	context: SourceResolverContext<Source.Coingecko_OpenApi>,
 ) => {
 	const { coingeckoDerivativesExchangeIdByMarketVenueId } = await import(
 		'$/sources/Coingecko/Rest/constants.ts'
@@ -80,7 +80,7 @@ export default {
 	source: Source.Coingecko_OpenApi,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Market_Derivative_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -118,7 +118,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -161,7 +161,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -211,7 +211,7 @@ export default {
 				vwap: (timestamp) => timestamp.vwap,
 			},
 		}),
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -223,7 +223,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -250,7 +250,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Market_Derivative_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => ({
@@ -262,7 +262,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId, context) => {
@@ -289,7 +289,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.MarketVenue,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -317,7 +317,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -363,7 +363,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Coin,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>, context) => {
@@ -393,7 +393,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -417,7 +417,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
@@ -468,7 +468,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Currency,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
@@ -492,7 +492,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Currency,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
@@ -512,7 +512,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -550,7 +550,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
@@ -564,7 +564,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (

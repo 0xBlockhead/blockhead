@@ -7,7 +7,10 @@ import {
 	readFileSync,
 	readdirSync,
 } from 'node:fs'
-import { join } from 'node:path'
+import {
+	basename,
+	join,
+} from 'node:path'
 
 import {
 	EntityFieldCardinality,
@@ -116,6 +119,30 @@ describe('useEntity resolver architecture', () => {
 		expect(source).not.toMatch(/\bacceptsParent\b/)
 		expect(source).not.toMatch(/\bresolver\.accepts\b/)
 		expect(source).not.toMatch(/\bresolver\.resolve\(/)
+		expect(source).not.toMatch(/\bpublicEnv:\s*any\b/)
+	})
+
+	it('binds every resolver declaration to its module Source', () => {
+		for (const filePath of sourceFiles(join(srcPath, 'resolvers')).filter((path) => (
+			basename(path) !== '$resolvers.ts'
+			&& basename(path) !== 'index.ts'
+		))) {
+			const source = readFileSync(filePath, 'utf8')
+			const defineResolverCalls = [...source.matchAll(/\bdefineResolver\(/g)]
+			if (defineResolverCalls.length === 0)
+				continue
+
+			const moduleSource = source.match(/\bsource:\s*Source\.([A-Za-z0-9_]+)/)?.[1]
+			expect(moduleSource, filePath).toBeDefined()
+			expect(source, filePath).not.toMatch(/\bdefineResolver\(\s*\{/)
+			expect([...source.matchAll(/\bdefineResolver\(\s*Source\.([A-Za-z0-9_]+)\s*,/g)].map((match) => match[1])).toEqual(
+				Array.from({
+					length: defineResolverCalls.length,
+				}, () => moduleSource),
+			)
+			if (source.includes('context.publicEnv'))
+				expect(source, filePath).not.toMatch(/\btype ResolverContext\b/)
+		}
 	})
 
 	it('registers every real resolver part through the primary and field-level hierarchy', () => {

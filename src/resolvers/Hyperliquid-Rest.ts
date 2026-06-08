@@ -26,7 +26,7 @@ export default {
 	source: Source.Hyperliquid_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -45,7 +45,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidPerpMarket,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -69,7 +69,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidSpotAsset,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -97,7 +97,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -134,7 +134,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidValidator,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -170,7 +170,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -214,7 +214,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -247,7 +247,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -272,7 +272,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

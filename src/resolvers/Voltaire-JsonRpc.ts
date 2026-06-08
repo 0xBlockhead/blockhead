@@ -492,7 +492,7 @@ const networkScopedEvmBlockFieldsFromVoltaireBlockRpc = (
 export default {
 	source: Source.Voltaire_JsonRpc,
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -649,7 +649,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -701,7 +701,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork_GasFee_Block,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -771,7 +771,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork_Txpool_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -801,7 +801,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EnsName,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -857,7 +857,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmActorCoinAllowance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -899,7 +899,7 @@ export default {
 			fields: {},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1175,7 +1175,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmLog,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1203,7 +1203,7 @@ export default {
 				$emitter: (entity) => entity.$emitter,
 			},
 		}),
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ({})
@@ -1444,7 +1444,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1474,7 +1474,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1500,7 +1500,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1533,7 +1533,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1568,7 +1568,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1603,7 +1603,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -1637,7 +1637,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => (
@@ -1656,7 +1656,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -1693,7 +1693,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -1730,7 +1730,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1755,7 +1755,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1794,7 +1794,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1822,7 +1822,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1882,7 +1882,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -1921,7 +1921,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -1953,7 +1953,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

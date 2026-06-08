@@ -33,7 +33,7 @@ export default {
 	source: Source.SubstrateSidecar_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -145,7 +145,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -193,7 +193,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotEvent,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -250,7 +250,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -276,7 +276,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotPallet,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -295,7 +295,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotValidator,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -333,7 +333,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -376,7 +376,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -401,7 +401,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -449,7 +449,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

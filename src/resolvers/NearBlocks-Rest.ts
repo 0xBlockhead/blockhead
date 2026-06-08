@@ -20,7 +20,7 @@ export default {
 	source: Source.NearBlocks_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -47,7 +47,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -84,7 +84,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

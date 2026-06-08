@@ -10,7 +10,7 @@ export default {
 	source: Source.Openchain_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmSelector,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -27,7 +27,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmTopic,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -44,7 +44,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmError,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

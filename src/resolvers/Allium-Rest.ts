@@ -30,7 +30,7 @@ export default {
 	source: Source.Allium_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -121,7 +121,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmNetworkActorCoinBalance,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -186,7 +186,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -256,7 +256,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {

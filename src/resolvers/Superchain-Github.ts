@@ -17,7 +17,7 @@ export default {
 	source: Source.Superchain_Github,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Superchain_Github, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -91,7 +91,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Superchain_Github, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -133,7 +133,7 @@ export default {
 		}
 		}),
 
-			defineResolver({
+			defineResolver(Source.Superchain_Github, {
 				entityType: EntityType.EvmNetwork,
 				resolve: {
 					[EntityIdProjection.Identity]: async (entityId) => {

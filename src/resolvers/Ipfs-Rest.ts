@@ -16,7 +16,7 @@ export default {
 	source: Source.Ipfs_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Ipfs_Rest, {
 			entityType: EntityType.IpfsResource,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

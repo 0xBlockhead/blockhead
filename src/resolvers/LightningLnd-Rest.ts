@@ -1,7 +1,7 @@
 import {
 	defineResolver,
 	resolverContextRowLimit,
-	type ResolverContext,
+	type SourceResolverContext,
 } from '$/resolvers/$resolvers.ts'
 import { lightningNetworkId } from '$/constants/LightningNetwork.ts'
 import {
@@ -91,7 +91,7 @@ const paymentStatusFromLnd = (status: string | null | undefined): LightningPayme
 		LightningPaymentStatus.Unknown
 )
 
-const lndTransport = (context: ResolverContext) => ({
+const lndTransport = (context: SourceResolverContext<Source.LightningLnd_Rest>) => ({
 	restBaseUrl: context.publicEnv.PUBLIC_LND_REST_BASE_URL,
 	macaroonHex: context.publicEnv.PUBLIC_LND_MACAROON_HEX,
 })
@@ -193,12 +193,12 @@ const htlcFieldsFromLndHtlc = (
 	state: htlc.state,
 })
 
-const lndChannels = async (context: ResolverContext) => {
+const lndChannels = async (context: SourceResolverContext<Source.LightningLnd_Rest>) => {
 	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return (await listChannels(lndTransport(context))).channels ?? []
 }
 
-const lndInfo = async (context: ResolverContext) => {
+const lndInfo = async (context: SourceResolverContext<Source.LightningLnd_Rest>) => {
 	const { getInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return getInfo(lndTransport(context))
 }
@@ -207,7 +207,7 @@ export default {
 	source: Source.LightningLnd_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -231,7 +231,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -262,7 +262,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -291,7 +291,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningInvoice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -321,7 +321,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningPayment,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -348,7 +348,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningHtlc,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -373,7 +373,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -398,7 +398,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -414,7 +414,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -438,7 +438,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -457,7 +457,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -477,7 +477,7 @@ export default {
 			},
 		}),
 
-		defineResolver({
+		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

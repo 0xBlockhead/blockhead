@@ -1,6 +1,6 @@
 import {
 	defineResolver,
-	type ResolverContext,
+	type SourceResolverContext,
 } from '$/resolvers/$resolvers.ts'
 import {
 	EntityIdProjection,
@@ -82,7 +82,7 @@ const getTransaction = async (
 		$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 		signature: string
 	},
-	context: ResolverContext,
+	context: SourceResolverContext<Source.Helius_Rest>,
 ) => {
 	assertSolanaMainnet(entityId.$network)
 	const { getEnhancedTransactions } = await import('$/sources/Helius/Rest/queries.ts')
@@ -98,7 +98,7 @@ export default {
 	source: Source.Helius_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -128,7 +128,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {
@@ -151,7 +151,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => (

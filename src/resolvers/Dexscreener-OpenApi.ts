@@ -15,7 +15,7 @@ export default {
 	source: Source.Dexscreener_OpenApi,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -100,7 +100,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -151,7 +151,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId, context) => {
@@ -204,7 +204,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => [
@@ -222,7 +222,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => ({

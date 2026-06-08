@@ -42,7 +42,7 @@ export default {
 	source: Source.ZeroGStorageNode_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -68,7 +68,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataBlob,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -90,7 +90,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataChunk,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

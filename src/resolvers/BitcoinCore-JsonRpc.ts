@@ -26,7 +26,7 @@ export default {
 	source: Source.BitcoinCore_JsonRpc,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.BitcoinCore_JsonRpc, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -106,7 +106,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.BitcoinCore_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

@@ -17,7 +17,7 @@ export default {
 	source: Source.BitcoinCashBcmr_Github,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.BitcoinCashBcmr_Github, {
 			entityType: EntityType.BitcoinCashBcmrMetadata,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {

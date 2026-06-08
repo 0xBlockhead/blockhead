@@ -72,7 +72,7 @@ export default {
 	source: Source.Esplora_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -122,7 +122,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -168,7 +168,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -202,7 +202,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -226,7 +226,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId, context) => {

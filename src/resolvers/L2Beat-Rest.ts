@@ -13,7 +13,7 @@ export default {
 	source: Source.L2Beat_Rest,
 
 	resolvers: [
-		defineResolver({
+		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmRollup,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -58,7 +58,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => {
@@ -99,7 +99,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -127,7 +127,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -153,7 +153,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
@@ -204,7 +204,7 @@ export default {
 		}
 		}),
 
-		defineResolver({
+		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async (entityId) => {
