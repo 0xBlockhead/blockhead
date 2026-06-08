@@ -88,14 +88,15 @@
 						:
 							Source.Snapchain_Rest,
 					],
-					$$entries: {},
+					$$entries: {
+						$limit: limit,
+					},
 				},
 			)}
 			{@const casts = derive(
 				parentFeed,
 				(parentFeed) => (
 					[...(parentFeed.$$entries ?? [])]
-						.slice(0, limit)
 						.map((result) => ({
 							result,
 						}))

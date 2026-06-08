@@ -65,7 +65,7 @@
 			{@const validators = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.HyperliquidValidator>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

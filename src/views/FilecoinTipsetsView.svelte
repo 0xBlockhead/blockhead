@@ -75,7 +75,7 @@
 			{@const tipsets = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.FilecoinTipset>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

@@ -65,7 +65,7 @@
 			{@const blobs = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.ZeroGDataBlob>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

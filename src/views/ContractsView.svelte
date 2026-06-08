@@ -77,7 +77,7 @@
 			{@const contracts = derive(
 				network,
 				(network): Entity<typeof schema, EntityType.EvmContract>[] => (
-					(network.$$contracts ?? []).slice(0, 16)
+					(network.$$contracts ?? [])
 				),
 			)}
 			{#key stringify(entityFieldReference.entityId)}

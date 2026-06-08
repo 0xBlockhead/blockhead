@@ -80,7 +80,7 @@
 			{@const slots = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.BeaconSlot>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 32)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

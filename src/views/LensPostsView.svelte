@@ -78,6 +78,7 @@
 								$: [
 									Source.Lens_Graphql,
 								],
+								$limit: limit,
 							},
 						}
 					:
@@ -86,6 +87,7 @@
 								$: [
 									Source.Lens_Graphql,
 								],
+								$limit: limit,
 							},
 						}
 				),
@@ -102,7 +104,7 @@
 						)
 						?? []
 					)
-					return lensPosts.slice(0, limit)
+					return lensPosts
 				},
 			)}
 			{#key `${stringify(entityFieldReference.entityId)}-${limit}`}

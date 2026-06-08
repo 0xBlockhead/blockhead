@@ -75,7 +75,7 @@
 			{@const miners = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.FilecoinMiner>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 32)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

@@ -143,7 +143,7 @@
 						[entityFieldReference.fieldName]: {
 							$: catalogCoinSources,
 							$orderBy: globalCoinsFieldOrderBy,
-							$limit: Math.max(limit, 250),
+							$limit: limit,
 						},
 					},
 				)}
@@ -178,7 +178,7 @@
 								return [coin]
 							})
 						)
-						return deduped.slice(0, limit)
+						return deduped
 					},
 				)}
 				<ResourceBoundary

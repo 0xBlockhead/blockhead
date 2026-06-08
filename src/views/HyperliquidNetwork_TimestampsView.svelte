@@ -72,7 +72,7 @@
 			{@const timestamps = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.HyperliquidNetwork_Timestamp>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

@@ -73,7 +73,7 @@
 			{@const epochs = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.BeaconEpoch>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

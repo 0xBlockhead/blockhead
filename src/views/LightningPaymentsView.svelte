@@ -26,7 +26,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = useEntity(entityFieldReference.entityType, entityFieldReference.entityId, { [entityFieldReference.fieldName]: { $: [Source.LightningLnd_Rest], $limit: 32 } })}
-			{@const payments = derive(parent, (parent): Entity<typeof schema, EntityType.LightningPayment>[] => (parent[entityFieldReference.fieldName] ?? []).slice(0, 32))}
+			{@const payments = derive(parent, (parent): Entity<typeof schema, EntityType.LightningPayment>[] => (parent[entityFieldReference.fieldName] ?? []))}
 			<EntitiesList collapsible={false} showSummary={false} entityType={EntityType.LightningPayment} id={`${id}-lightning-payments`} href={href} getKey={(payment) => stringify(payment[EntityMetaKey.Id])} getSortValue={(payment) => stringify(payment[EntityMetaKey.Id])} open={true} resource={payments} {title} UnorderedListProps={{ orientation: ListOrientation.Column }}>
 				{#snippet Empty()}<p data-text="muted">No payments listed yet.</p>{/snippet}
 				{#snippet Item(context)}

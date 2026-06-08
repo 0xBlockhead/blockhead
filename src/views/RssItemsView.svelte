@@ -95,6 +95,7 @@
 							Source.Rss_Rest,
 							Source.Rss2Json_Rest,
 						],
+						$limit: limit,
 					},
 				},
 			)}
@@ -106,7 +107,6 @@
 					)
 					return (
 						rssItems
-							.slice(0, limit)
 							.map((value, index) => ({
 								entityId: value[EntityMetaKey.Id],
 								sortKey: index,

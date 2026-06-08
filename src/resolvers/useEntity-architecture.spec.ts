@@ -164,6 +164,16 @@ describe('useEntity resolver architecture', () => {
 		expect(queryPipeline).not.toMatch(/\bexport const useEntityField(?:Count)?\b/)
 	})
 
+	it('keeps entity-list windowing inside useEntity selection IR', () => {
+		const viewSource = sourceFiles(join(srcPath, 'views'))
+			.map((filePath) => readFileSync(filePath, 'utf8'))
+			.join('\n')
+
+		expect(viewSource).not.toMatch(/\.slice\(0, limit\)/)
+		expect(viewSource).not.toMatch(/\((?:parent|network)\[entityFieldReference\.fieldName\] \?\? \[\]\)\.slice\(/)
+		expect(viewSource).not.toMatch(/\((?:parent|network)\.\$\$[A-Za-z0-9_]+ \?\? \[\]\)\.slice\(/)
+	})
+
 	it('keeps conditional and live resolver registration explicit in the real registry', () => {
 		expect(Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey).flat().length).toBeGreaterThan(0)
 		expect(

@@ -72,7 +72,7 @@
 			{@const transactions = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.HyperliquidTransaction>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

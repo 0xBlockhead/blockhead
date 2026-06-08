@@ -65,7 +65,7 @@
 			{@const nodes = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.ZeroGStorageNode>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

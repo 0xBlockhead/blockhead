@@ -86,6 +86,7 @@
 									$: [Source.Constants_Internal],
 									$$nostrArticles: {
 										$: [Source.NostrBand_Rest],
+										$limit: limit,
 									},
 									$$nostrProfiles: {
 										$: [
@@ -98,6 +99,7 @@
 												Source.NostrBand_Rest,
 												Source.Primal_Rest,
 											],
+											$limit: limit,
 										},
 									},
 								}
@@ -107,16 +109,17 @@
 								}
 						)
 					:
-							{
+						{
+							$: [
+								Source.NostrBand_Rest,
+								Source.Primal_Rest,
+							],
+							$$articles: {
 								$: [
 									Source.NostrBand_Rest,
 									Source.Primal_Rest,
 								],
-								$$articles: {
-									$: [
-										Source.NostrBand_Rest,
-										Source.Primal_Rest,
-								],
+								$limit: limit,
 							},
 						}
 				),
@@ -134,7 +137,7 @@
 						:
 							(parent[entityFieldReference.fieldName] ?? [])
 					)
-					return nostrArticles.slice(0, limit)
+					return nostrArticles
 				},
 			)}
 			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}

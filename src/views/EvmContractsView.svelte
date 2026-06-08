@@ -92,7 +92,7 @@
 			{@const contracts = derive(
 				network,
 				(network): Entity<typeof schema, EntityType.EvmContract>[] => (
-					(network[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(network[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<div data-column="gap-3">

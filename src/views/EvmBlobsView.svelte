@@ -94,7 +94,7 @@
 				parent,
 				(parent) => (
 					parentEntityType === EntityType.EvmNetwork ?
-						(parent[entityFieldReference.fieldName] ?? []).slice(0, 8)
+						(parent[entityFieldReference.fieldName] ?? [])
 					:
 						(parent[entityFieldReference.fieldName] ?? [])
 				),

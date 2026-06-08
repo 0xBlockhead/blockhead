@@ -77,7 +77,7 @@
 			{@const blocks = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.SolanaBlock>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

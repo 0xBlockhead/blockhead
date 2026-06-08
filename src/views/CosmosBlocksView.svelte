@@ -75,7 +75,7 @@
 			{@const blocks = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.CosmosBlock>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

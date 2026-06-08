@@ -94,14 +94,16 @@
 				EntityType.FarcasterNetwork,
 				entityFieldReference.entityId,
 				{
-					$$feeds: { $: [Source.Farcaster_Rest] },
+					$$feeds: {
+						$: [Source.Farcaster_Rest],
+						$limit: limit,
+					},
 				},
 			)}
 			{@const feeds = derive(
 				parentNetwork,
 				(parentNetwork) => (
 					[...(parentNetwork.$$feeds ?? [])]
-						.slice(0, limit)
 						.map((value) => ({
 							value,
 						}))

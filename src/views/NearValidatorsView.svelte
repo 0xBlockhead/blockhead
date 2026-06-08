@@ -72,7 +72,7 @@
 			{@const validators = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.NearValidator>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

@@ -39,7 +39,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = useEntity(entityFieldReference.entityType, entityFieldReference.entityId, { [entityFieldReference.fieldName]: { $: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], $limit: 32 } })}
-			{@const nodes = derive(parent, (parent): Entity<typeof schema, EntityType.LightningNode>[] => (parent[entityFieldReference.fieldName] ?? []).slice(0, 32))}
+			{@const nodes = derive(parent, (parent): Entity<typeof schema, EntityType.LightningNode>[] => (parent[entityFieldReference.fieldName] ?? []))}
 			<EntitiesList collapsible={false} showSummary={false} entityType={EntityType.LightningNode} id={`${id}-lightning-nodes`} href={href} getKey={(node) => node[EntityMetaKey.Id].publicKey} getSortValue={(node) => node[EntityMetaKey.Id].publicKey} open={true} resource={nodes} {title} UnorderedListProps={{ orientation: ListOrientation.Column }}>
 				{#snippet Empty()}<p data-text="muted">No nodes listed yet.</p>{/snippet}
 				{#snippet Item(context)}

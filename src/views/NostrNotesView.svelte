@@ -87,6 +87,7 @@
 									$: [Source.Constants_Internal],
 									$$nostrNotes: {
 										$: [Source.NostrBand_Rest],
+										$limit: limit,
 									},
 									$$nostrProfiles: {
 										$: [
@@ -99,6 +100,7 @@
 												Source.NostrBand_Rest,
 												Source.Primal_Rest,
 											],
+											$limit: limit,
 										},
 									},
 								}
@@ -108,29 +110,31 @@
 								}
 						)
 					: entityFieldReference.entityType === EntityType.NostrProfile ?
-							{
+						{
+							$: [
+								Source.NostrBand_Rest,
+								Source.Primal_Rest,
+							],
+							$$notes: {
 								$: [
 									Source.NostrBand_Rest,
 									Source.Primal_Rest,
 								],
-								$$notes: {
-									$: [
-										Source.NostrBand_Rest,
-										Source.Primal_Rest,
-								],
+								$limit: limit,
 							},
 						}
 					:
-							{
+						{
+							$: [
+								Source.NostrBand_Rest,
+								Source.Primal_Rest,
+							],
+							$$replies: {
 								$: [
 									Source.NostrBand_Rest,
 									Source.Primal_Rest,
 								],
-								$$replies: {
-									$: [
-										Source.NostrBand_Rest,
-										Source.Primal_Rest,
-								],
+								$limit: limit,
 							},
 						}
 				),
@@ -148,7 +152,7 @@
 						:
 							(parent[entityFieldReference.fieldName] ?? [])
 					)
-					return nostrNotes.slice(0, limit)
+					return nostrNotes
 				},
 			)}
 			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}

@@ -77,7 +77,7 @@
 			{@const paymasters = derive(
 				network,
 				(network): Entity<typeof schema, EntityType.Erc4337Paymaster>[] => (
-					(network.$$erc4337Paymasters ?? []).slice(0, 16)
+					(network.$$erc4337Paymasters ?? [])
 				),
 			)}
 			<EntitiesList

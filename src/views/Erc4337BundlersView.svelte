@@ -77,7 +77,7 @@
 			{@const bundlers = derive(
 				network,
 				(network): Entity<typeof schema, EntityType.Erc4337Bundler>[] => (
-					(network.$$erc4337Bundlers ?? []).slice(0, 16)
+					(network.$$erc4337Bundlers ?? [])
 				),
 			)}
 			<EntitiesList

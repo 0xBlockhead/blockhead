@@ -65,7 +65,7 @@
 			{@const markets = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.HyperliquidPerpMarket>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

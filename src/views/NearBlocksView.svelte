@@ -73,7 +73,7 @@
 			{@const blocks = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.NearBlock>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

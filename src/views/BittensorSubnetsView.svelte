@@ -77,7 +77,7 @@
 			{@const subnets = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.BittensorSubnet>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 32)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

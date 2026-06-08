@@ -77,7 +77,7 @@
 			{@const accounts = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.SolanaAccount>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

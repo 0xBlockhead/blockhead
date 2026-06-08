@@ -71,7 +71,7 @@
 			{@const blocks = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.EvmBlock>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

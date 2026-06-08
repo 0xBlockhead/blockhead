@@ -93,6 +93,7 @@
 												Source.Atproto_Xrpc,
 												Source.Atproto_BskySocial_Xrpc,
 											],
+											$limit: limit,
 										},
 									},
 								}
@@ -111,6 +112,7 @@
 											Source.Atproto_Xrpc,
 											Source.Atproto_BskySocial_Xrpc,
 										],
+										$limit: limit,
 									},
 								}
 							:
@@ -128,7 +130,7 @@
 						:
 							(atprotoNetworkOrAccount.$$posts ?? [])
 					)
-					return atprotoPosts.slice(0, limit)
+					return atprotoPosts
 				},
 			)}
 			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}

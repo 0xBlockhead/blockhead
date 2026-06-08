@@ -74,7 +74,7 @@
 			{@const proposals = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.CosmosGovernanceProposal>[] => (
-					(parent[entityFieldReference.fieldName] ?? []).slice(0, 32)
+					(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<EntitiesList

@@ -83,7 +83,7 @@
 			{@const blocks = derive(
 				network,
 				(network): Entity<typeof schema, EntityType.EvmBlock>[] => (
-					(network[entityFieldReference.fieldName] ?? []).slice(0, 16)
+					(network[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<div data-column="gap-3">
