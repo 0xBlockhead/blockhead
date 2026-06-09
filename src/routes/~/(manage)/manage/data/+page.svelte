@@ -142,7 +142,13 @@
 						{/if}
 					</details>
 
-					{#each entityDefinition.fields as field (field.name)}
+					{#each entityDefinition.fields as field, fieldIndex (
+						[
+							String(entityDefinition.entityType),
+							String(field.name),
+							String(fieldIndex),
+						].join('\0')
+					)}
 						{@const fieldCache = fieldCaches[`${entityDefinition.entityType}\0${field.name}`]}
 
 						<details
