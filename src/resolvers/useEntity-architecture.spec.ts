@@ -198,6 +198,7 @@ describe('useEntity resolver architecture', () => {
 
 		expect(viewSource).not.toMatch(/\.slice\(0, limit\)/)
 		expect(viewSource).not.toMatch(/\((?:parent|network)\[entityFieldReference\.fieldName\] \?\? \[\]\)\.slice\(/)
+		expect(viewSource).not.toMatch(/\[\.\.\.\((?:parent|network)\[entityFieldReference\.fieldName\] \?\? \[\]\)\]\s*\.slice\(/)
 		expect(viewSource).not.toMatch(/\((?:parent|network)\.\$\$[A-Za-z0-9_]+ \?\? \[\]\)\.slice\(/)
 	})
 

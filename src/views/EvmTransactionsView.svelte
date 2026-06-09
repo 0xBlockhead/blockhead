@@ -85,7 +85,7 @@
 								Source.Blockscout_Rest,
 								Source.Voltaire_JsonRpc,
 							],
-							$limit: 16,
+							$limit: 100,
 						},
 					}
 				:
@@ -94,7 +94,12 @@
 							$: [
 								Source.Blockscout_Rest,
 							],
-							$limit: 16,
+							$limit: (
+								entityFieldReference.entityType === EntityType.EvmNetworkAccount ?
+									32
+								:
+									8
+							),
 						},
 					},
 			)}
@@ -102,16 +107,6 @@
 				parent,
 				(parent) => (
 					[...(parent[entityFieldReference.fieldName] ?? [])]
-						.slice(
-							0,
-							entityFieldReference.entityType === EntityType.EvmBlock ?
-								100
-							:
-								entityFieldReference.entityType === EntityType.EvmNetworkAccount ?
-								32
-							:
-								8,
-						)
 						.map((value) => ({
 							value,
 						}))
