@@ -1,11 +1,6 @@
 <script module lang="ts">
 	// Polyfills
 	import '$/polyfills.ts'
-
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/collections/$entityCollections.ts'
 </script>
 
 
@@ -33,10 +28,7 @@
 	} = $props()
 
 	$effect(() => (
-		mountWalletConnectionRuntime({
-			entityCollectionByEntityType,
-			entityFieldCollections,
-		}).destroy
+		mountWalletConnectionRuntime().destroy
 	))
 
 	// Components

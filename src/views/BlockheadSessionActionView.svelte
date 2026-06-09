@@ -6,14 +6,11 @@
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ActionType, actionTypeDefinitionByActionType, actionTypeDefinitions } from '$/constants/actions.ts'
-	import { createAction } from '$/lib/createAction.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
-	import { entityCollectionByEntityType } from '$/collections/$entityCollections.ts'
+	import { updateLocalBlockheadSessionActionType } from '$/collections/$localMutations.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
@@ -61,20 +58,11 @@
 		sessionAction: Entity<typeof schema, EntityType.BlockheadSessionAction>,
 		actionType: ActionType,
 	) => {
-		const fields = {
-			$session: sessionAction.$session,
-			indexInSequence: sessionAction.indexInSequence,
-			action: createAction(actionType),
-			createdAt: sessionAction.createdAt,
-			updatedAt: Date.now(),
-		}
-		entityCollectionByEntityType[EntityType.BlockheadSessionAction].utils.writeUpsert({
-			[EntityMetaKey.Id]: entityId,
-			[EntityMetaKey.IdKey]: stringify(entityId),
-			[EntityMetaKey.Source]: Source.Local_Internal,
-			[EntityMetaKey.Fields]: fields,
-			...fields,
-		})
+		updateLocalBlockheadSessionActionType(
+			entityId,
+			sessionAction,
+			actionType,
+		)
 	}
 
 

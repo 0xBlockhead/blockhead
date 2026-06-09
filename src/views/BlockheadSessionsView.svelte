@@ -4,7 +4,6 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -14,10 +13,7 @@
 
 
 	// Context
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/collections/$entityCollections.ts'
+	import { writeLocalBlockheadSession } from '$/collections/$localMutations.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -53,32 +49,7 @@
 
 	// Actions
 	const createSession = () => {
-		const now = Date.now()
-		const entityId = {
-			id: `session-${now}`,
-		}
-		const fields = {
-			...(sessionName.trim() !== '' && { name: sessionName.trim() }),
-			status: BlockheadSessionStatus.Draft,
-			createdAt: now,
-			updatedAt: now,
-		}
-		entityCollectionByEntityType[EntityType.BlockheadSession].utils.writeUpsert({
-			[EntityMetaKey.Id]: entityId,
-			[EntityMetaKey.IdKey]: stringify(entityId),
-			[EntityMetaKey.Source]: Source.Local_Internal,
-			[EntityMetaKey.Fields]: fields,
-			...fields,
-		})
-		entityFieldCollections[EntityType._Global].$$blockheadSessions.utils.writeUpsert({
-			[EntityMetaKey.ParentId]: entityFieldReference.entityId,
-			[EntityMetaKey.ParentIdKey]: stringify(entityFieldReference.entityId),
-			[EntityMetaKey.Source]: Source.Local_Internal,
-			[EntityMetaKey.Value]: {
-				[EntityMetaKey.Id]: entityId,
-				[EntityMetaKey.IdKey]: stringify(entityId),
-			},
-		})
+		writeLocalBlockheadSession(entityFieldReference.entityId, sessionName)
 		sessionName = ''
 	}
 

@@ -15,10 +15,7 @@
 
 
 	// Context
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/collections/$entityCollections.ts'
+	import { writeLocalWatchedEvmAccount } from '$/collections/$localMutations.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { resolve } from '$app/paths'
 
@@ -62,23 +59,8 @@
 			return
 		}
 
-		const accountEntityId = {
+		writeLocalWatchedEvmAccount({
 			address: parsedAddress,
-		}
-		entityCollectionByEntityType[EntityType.EvmAccount].utils.writeUpsert({
-			[EntityMetaKey.Id]: accountEntityId,
-			[EntityMetaKey.IdKey]: stringify(accountEntityId),
-			[EntityMetaKey.Source]: Source.Local_Internal,
-			[EntityMetaKey.Fields]: {},
-		})
-		entityFieldCollections[EntityType._Global].$$actors.utils.writeUpsert({
-			[EntityMetaKey.ParentId]: { scope: '$$actors' },
-			[EntityMetaKey.ParentIdKey]: stringify({ scope: '$$actors' }),
-			[EntityMetaKey.Source]: Source.Local_Internal,
-			[EntityMetaKey.Value]: {
-				[EntityMetaKey.Id]: accountEntityId,
-				[EntityMetaKey.IdKey]: stringify(accountEntityId),
-			},
 		})
 		watchAddressInput = ''
 		watchAddressError = undefined

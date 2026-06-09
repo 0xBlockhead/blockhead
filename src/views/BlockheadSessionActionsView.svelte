@@ -5,8 +5,6 @@
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ActionType, actionTypeDefinitions } from '$/constants/actions.ts'
-	import { createAction } from '$/lib/createAction.ts'
-	import { entityFieldCollectionItemKey } from '$/collections/$collections.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,9 +15,9 @@
 
 	// Context
 	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/collections/$entityCollections.ts'
+		deleteLocalBlockheadSessionAction,
+		writeLocalBlockheadSessionAction,
+	} from '$/collections/$localMutations.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -56,64 +54,12 @@
 
 
 	// Actions
-	const sessionId = () => (
-		entityFieldReference.entityId.id
-	)
-
-	const actionEntityId = (actionId: string) => ({
-		sessionId: sessionId(),
-		actionId,
-	})
-
-	const writeSessionActionReference = (entityId: ReturnType<typeof actionEntityId>) => {
-		const value = {
-			[EntityMetaKey.Id]: entityId,
-			[EntityMetaKey.IdKey]: stringify(entityId),
-		}
-		entityFieldCollections[EntityType.BlockheadSession].$$actions.utils.writeUpsert({
-			[EntityMetaKey.ParentId]: entityFieldReference.entityId,
-			[EntityMetaKey.ParentIdKey]: stringify(entityFieldReference.entityId),
-			[EntityMetaKey.Source]: Source.Local_Internal,
-			[EntityMetaKey.Value]: value,
-		})
-	}
-
 	const writeSessionAction = (indexInSequence: number) => {
-		const now = Date.now()
-		const entityId = actionEntityId(`${now}`)
-		const fields = {
-			$session: {
-				[EntityMetaKey.Id]: entityFieldReference.entityId,
-			},
+		writeLocalBlockheadSessionAction(
+			entityFieldReference.entityId,
 			indexInSequence,
-			action: createAction(actionType),
-			createdAt: now,
-			updatedAt: now,
-		}
-		entityCollectionByEntityType[EntityType.BlockheadSessionAction].utils.writeUpsert({
-			[EntityMetaKey.Id]: entityId,
-			[EntityMetaKey.IdKey]: stringify(entityId),
-			[EntityMetaKey.Source]: Source.Local_Internal,
-			[EntityMetaKey.Fields]: fields,
-			...fields,
-		})
-		writeSessionActionReference(entityId)
-	}
-
-	const deleteSessionAction = (entityId: ReturnType<typeof actionEntityId>) => {
-		const value = {
-			[EntityMetaKey.Id]: entityId,
-			[EntityMetaKey.IdKey]: stringify(entityId),
-		}
-		entityFieldCollections[EntityType.BlockheadSession].$$actions.delete(entityFieldCollectionItemKey({
-			[EntityMetaKey.Source]: Source.Local_Internal,
-			[EntityMetaKey.ParentIdKey]: stringify(entityFieldReference.entityId),
-			[EntityMetaKey.Value]: value,
-		}))
-		entityCollectionByEntityType[EntityType.BlockheadSessionAction].delete([
-			Source.Local_Internal,
-			stringify(entityId),
-		].join('\x1E'))
+			actionType,
+		)
 	}
 
 
@@ -223,7 +169,10 @@
 
 					<button
 						type="button"
-						onclick={() => deleteSessionAction(envelope.value[EntityMetaKey.Id])}
+						onclick={() => deleteLocalBlockheadSessionAction(
+							entityFieldReference.entityId,
+							envelope.value[EntityMetaKey.Id],
+						)}
 					>
 						Remove
 					</button>

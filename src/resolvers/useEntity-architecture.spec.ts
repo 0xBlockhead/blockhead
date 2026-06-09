@@ -202,6 +202,18 @@ describe('useEntity resolver architecture', () => {
 		expect(viewSource).not.toMatch(/\((?:parent|network)\.\$\$[A-Za-z0-9_]+ \?\? \[\]\)\.slice\(/)
 	})
 
+	it('keeps real views out of direct TanStack collection access', () => {
+		const viewSource = sourceFiles(join(srcPath, 'views'))
+			.map((filePath) => readFileSync(filePath, 'utf8'))
+			.join('\n')
+
+		expect(viewSource).not.toMatch(/\bentityCollectionByEntityType\b/)
+		expect(viewSource).not.toMatch(/\bentityFieldCollections\b/)
+		expect(viewSource).not.toMatch(/\bentityFieldCountCollections\b/)
+		expect(viewSource).not.toMatch(/\buseLiveQuery\(/)
+		expect(viewSource).not.toMatch(/\bcreateLiveQueryCollection\(/)
+	})
+
 	it('keeps conditional and live resolver registration explicit in the real registry', () => {
 		expect(Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey).flat().length).toBeGreaterThan(0)
 		expect(
