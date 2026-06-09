@@ -1,6 +1,6 @@
 import { scope, type } from 'arktype'
 
-import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 export const evmTraceTreeScope = scope({

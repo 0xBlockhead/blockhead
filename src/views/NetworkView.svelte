@@ -6,14 +6,15 @@
 		networkEnvironmentByEnvironment,
 	} from '$/constants/Network.ts'
 
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -30,19 +31,11 @@
 		open?: boolean
 	} = $props()
 
-	const network = useEntity(
-		EntityType.Network,
+	const network = useEntity(entityCollectionsContext, EntityType.Network,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-			slug: {},
-			caip2: {},
-			namespace: {},
-			environment: {},
-		},
+			], fields: { name: true, slug: true, caip2: true, namespace: true, environment: true } }),
 	)
 
 
@@ -71,8 +64,8 @@
 	resource={network}
 >
 	{#snippet children(row)}
-		{@const networkCaip2 = row.caip2 ?? ('caip2' in entityId ? entityId.caip2 : undefined)}
-		{@const networkSlug = row.slug ?? ('networkSlug' in entityId ? entityId.networkSlug : undefined)}
+		{@const networkCaip2 = row.fields.caip2 ?? ('caip2' in entityId ? entityId.caip2 : undefined)}
+		{@const networkSlug = row.fields.slug ?? ('networkSlug' in entityId ? entityId.networkSlug : undefined)}
 		{@const networkHref = href ?? (
 			networkCaip2 == null ?
 				networkSlug == null ?
@@ -96,7 +89,7 @@
 			:
 				{ caip2: networkCaip2 }
 		)}
-		{@const networkNamespace = row.namespace ?? (
+		{@const networkNamespace = row.fields.namespace ?? (
 			networkCaip2 == null ?
 				undefined
 			:
@@ -231,24 +224,24 @@
 			>
 
 		{#snippet Title()}
-			{row.name}
+			{row.fields.name}
 		{/snippet}
 
 		{#snippet Content()}
 			<dl>
-				{#if row.caip2 != null}
+				{#if row.fields.caip2 != null}
 					<div>
 						<dt>CAIP-2</dt>
 						<dd>
-							{row.caip2.namespace}:{row.caip2.reference}
+							{row.fields.caip2.namespace}:{row.fields.caip2.reference}
 						</dd>
 					</div>
 				{/if}
 
-				{#if row.environment !== undefined}
+				{#if row.fields.environment !== undefined}
 					<div>
 						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[row.environment].label}</dd>
+						<dd>{networkEnvironmentByEnvironment[row.fields.environment].label}</dd>
 					</div>
 				{/if}
 			</dl>

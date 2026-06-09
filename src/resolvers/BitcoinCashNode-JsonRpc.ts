@@ -8,9 +8,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -80,8 +80,9 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			valueSats: (snapshot) => snapshot.valueSats,
 			scriptPubKeyAsm: (snapshot) => snapshot.scriptPubKeyAsm,
 			scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
@@ -89,8 +90,8 @@ export default {
 			$address: (snapshot) => snapshot.$address,
 			$bitcoinCashCashTokenFungibleAmount: (snapshot) => snapshot.$bitcoinCashCashTokenFungibleAmount,
 			$bitcoinCashCashTokenNft: (snapshot) => snapshot.$bitcoinCashCashTokenNft,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
@@ -108,12 +109,13 @@ export default {
 					amount: BigInt(output.tokenData.amount),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$category: (snapshot) => snapshot.$category,
 			amount: (snapshot) => snapshot.amount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenNft,
@@ -136,13 +138,14 @@ export default {
 					capability: output.tokenData.nft.capability,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$category: (snapshot) => snapshot.$category,
 			$commitment: (snapshot) => snapshot.$commitment,
 			capability: (snapshot) => snapshot.capability,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenCommitment,
@@ -154,10 +157,11 @@ export default {
 					commitmentHex: output.tokenData.nft.commitment,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			commitmentHex: (snapshot) => snapshot.commitmentHex,
-		}
-		}),
+		},
+			}),
 	],
 }

@@ -3,7 +3,7 @@ import {
 	atprotoPublicAppViewXrpcBase,
 } from '$/constants/AtprotoAppView.ts'
 
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 
 export const publicAppViewOrigin = atprotoPublicAppViewOrigin
 

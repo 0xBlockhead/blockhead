@@ -1,4 +1,4 @@
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 
 export const sandboxOrigin = 'https://sandbox-api.3xpl.com' as const
 export const productionOrigin = 'https://api.3xpl.com' as const

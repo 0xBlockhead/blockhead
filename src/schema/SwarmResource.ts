@@ -1,14 +1,14 @@
 import { type } from 'arktype'
-import { lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
+import { lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { UrlString } from '$/schema/$Url.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
+import { Source } from '$/sources/Source.ts'
 
 // Gateway-backed Swarm object (BZZ root hash + optional manifest path). `reference` is the 32-byte content address (64 hex chars); encrypted refs can be longer.
 

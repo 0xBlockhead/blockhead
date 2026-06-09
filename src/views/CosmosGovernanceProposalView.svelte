@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,10 @@
 		>
 	> = $props()
 
-	const cosmosGovernanceProposal = useEntity(
+	const cosmosGovernanceProposal = useEntity(entityCollectionsContext, 
 		EntityType.CosmosGovernanceProposal,
 		entityId,
-		{
-			title: {},
-			status: {},
-		},
+		({ fields: { title: true, status: true } }),
 	)
 
 
@@ -75,17 +73,17 @@
 		>
 			{#snippet children(cosmosGovernanceProposal)}
 				<dl>
-					{#if cosmosGovernanceProposal.title != null}
+					{#if cosmosGovernanceProposal.fields.title != null}
 						<div>
 							<dt>Title</dt>
-							<dd>{cosmosGovernanceProposal.title}</dd>
+							<dd>{cosmosGovernanceProposal.fields.title}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosGovernanceProposal.status != null}
+					{#if cosmosGovernanceProposal.fields.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{cosmosGovernanceProposal.status}</dd>
+							<dd>{cosmosGovernanceProposal.fields.status}</dd>
 						</div>
 					{/if}
 				</dl>

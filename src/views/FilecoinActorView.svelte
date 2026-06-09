@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,14 +27,9 @@
 		>
 	> = $props()
 
-	const filecoinActor = useEntity(
-		EntityType.FilecoinActor,
+	const filecoinActor = useEntity(entityCollectionsContext, EntityType.FilecoinActor,
 		entityId,
-		{
-			actorCodeCid: {},
-			nonce: {},
-			balanceAttoFil: {},
-		},
+		({ fields: { actorCodeCid: true, nonce: true, balanceAttoFil: true } }),
 	)
 
 
@@ -67,28 +63,28 @@
 		>
 			{#snippet children(filecoinActor)}
 				<dl>
-					{#if filecoinActor.actorCodeCid != null}
+					{#if filecoinActor.fields.actorCodeCid != null}
 						<div>
 							<dt>Actor Code CID</dt>
 							<dd>
 								<TruncatedValue
-									value={filecoinActor.actorCodeCid}
+									value={filecoinActor.fields.actorCodeCid}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if filecoinActor.nonce != null}
+					{#if filecoinActor.fields.nonce != null}
 						<div>
 							<dt>Nonce</dt>
-							<dd><NumberValue value={filecoinActor.nonce} /></dd>
+							<dd><NumberValue value={filecoinActor.fields.nonce} /></dd>
 						</div>
 					{/if}
 
-					{#if filecoinActor.balanceAttoFil != null}
+					{#if filecoinActor.fields.balanceAttoFil != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={filecoinActor.balanceAttoFil} /> attoFIL</dd>
+							<dd><NumberValue value={filecoinActor.fields.balanceAttoFil} /> attoFIL</dd>
 						</div>
 					{/if}
 				</dl>

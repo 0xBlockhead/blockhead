@@ -1,7 +1,7 @@
 import { corsFetch, getJson as fetchGetJson, getText as fetchGetText } from '$/lib/http.ts'
 import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
 import { restHeaders, restOrigin } from '$/sources/Github/Rest/constants.ts'
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const isGithubRestApiUrl = (url: string) => url.startsWith(restOrigin)

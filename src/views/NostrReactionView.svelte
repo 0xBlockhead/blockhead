@@ -3,14 +3,15 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -40,22 +41,12 @@
 		>
 	> = $props()
 
-	const reaction = useEntity(
-		EntityType.NostrReaction,
+	const reaction = useEntity(entityCollectionsContext, EntityType.NostrReaction,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
-			],
-			eventId: {},
-			pubkey: {},
-			createdAt: {},
-			$author: {},
-			$targetNote: {},
-			$targetArticle: {},
-			content: {},
-		},
+			], fields: { eventId: true, pubkey: true, createdAt: true, $author: true, $targetNote: true, $targetArticle: true, content: true } }),
 	)
 
 
@@ -91,7 +82,7 @@
 			placeholderText="Loading reaction…"
 		>
 			{#snippet children(reaction)}
-				{reaction.content ?? '+'}
+				{reaction.fields.content ?? '+'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,9 +102,9 @@
 			placeholderText="Loading reaction…"
 		>
 			{#snippet children(reaction)}
-				{#if reaction.content}
+				{#if reaction.fields.content}
 					<p>
-						{reaction.content}
+						{reaction.fields.content}
 					</p>
 				{/if}
 			{/snippet}
@@ -129,9 +120,9 @@
 							placeholderText="Loading reaction…"
 						>
 							{#snippet children(reaction)}
-								{#if reaction.eventId}
+								{#if reaction.fields.eventId}
 									<TruncatedValue
-										value={reaction.eventId}
+										value={reaction.fields.eventId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -149,9 +140,9 @@
 						placeholderText="Loading reaction…"
 					>
 						{#snippet children(reaction)}
-							{#if reaction.createdAt != null}
+							{#if reaction.fields.createdAt != null}
 								<Timestamp
-									timestamp={reaction.createdAt}
+									timestamp={reaction.fields.createdAt}
 								/>
 							{/if}
 						{/snippet}
@@ -168,9 +159,9 @@
 							placeholderText="Loading reaction…"
 						>
 							{#snippet children(reaction)}
-								{#if reaction.$author}
+								{#if reaction.fields.$author}
 									<NostrProfileView
-										entityId={reaction.$author[EntityMetaKey.Id]}
+										entityId={reaction.fields.$author[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -188,9 +179,9 @@
 							placeholderText="Loading reaction…"
 						>
 							{#snippet children(reaction)}
-								{#if reaction.$targetNote}
+								{#if reaction.fields.$targetNote}
 									<NostrNoteView
-										entityId={reaction.$targetNote[EntityMetaKey.Id]}
+										entityId={reaction.fields.$targetNote[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -208,9 +199,9 @@
 							placeholderText="Loading reaction…"
 						>
 							{#snippet children(reaction)}
-								{#if reaction.$targetArticle}
+								{#if reaction.fields.$targetArticle}
 									<NostrArticleView
-										entityId={reaction.$targetArticle[EntityMetaKey.Id]}
+										entityId={reaction.fields.$targetArticle[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>

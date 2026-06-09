@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,16 +36,13 @@
 		>
 	> = $props()
 
-	const youTubePlaylistTimestamp = useEntity(
+	const youTubePlaylistTimestamp = useEntity(entityCollectionsContext, 
 		EntityType.YouTubePlaylist_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
-			],
-			itemCount: {},
-		},
+			], fields: { itemCount: true } }),
 	)
 
 
@@ -90,7 +88,7 @@
 						metrics={[
 							{
 								label: 'Items',
-								value: youTubePlaylistTimestamp.itemCount,
+								value: youTubePlaylistTimestamp.fields.itemCount,
 							},
 						]}
 					/>

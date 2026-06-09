@@ -1,19 +1,20 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -66,26 +67,23 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
-					$: [
+				entityFieldReference.entityId,({ sources: [
 						Source.Constants_Internal,
-					],
-					[entityFieldReference.fieldName]: {
-						$: [
+					], fields: { [entityFieldReference.fieldName]: {
+						sources: [
 							Source.Constants_Internal,
 						],
-						$limit: 512,
+						limit: 512,
 					},
-				},
+				} }),
 			)}
 			{@const upgrades = derive(
 				parent,
 				(parent) => {
-					const upgrades: Entity<typeof schema, EntityType.EthereumNetworkUpgrade>[] = (
-						parent[entityFieldReference.fieldName] ?? []
+					const upgrades: readonly Entity<typeof schema, EntityType.EthereumNetworkUpgrade>[] = (
+						parent.fields[entityFieldReference.fieldName]?.values ?? []
 					)
 					return upgrades
 						.map((value) => ({

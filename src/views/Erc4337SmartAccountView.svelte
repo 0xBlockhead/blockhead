@@ -1,16 +1,17 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -41,17 +42,11 @@
 		>
 	> = $props()
 
-	const smartAccount = useEntity(
-		EntityType.Erc4337SmartAccount,
+	const smartAccount = useEntity(entityCollectionsContext, EntityType.Erc4337SmartAccount,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Blockscout_Rest,
-			],
-			userOperationsCount: {},
-			$contract: {},
-			$factory: {},
-		},
+			], fields: { userOperationsCount: true, $contract: true, $factory: true } }),
 	)
 
 
@@ -105,19 +100,19 @@
 		>
 			{#snippet children(smartAccount)}
 				<dl data-column-item="center">
-					{#if smartAccount.userOperationsCount !== undefined}
+					{#if smartAccount.fields.userOperationsCount !== undefined}
 						<div>
 							<dt>User operations</dt>
-							<dd data-text="mono">{String(smartAccount.userOperationsCount)}</dd>
+							<dd data-text="mono">{String(smartAccount.fields.userOperationsCount)}</dd>
 						</div>
 					{/if}
 
-					{#if smartAccount.$factory != null}
+					{#if smartAccount.fields.$factory != null}
 						<div>
 							<dt>Factory</dt>
 							<dd>
 								<Erc4337AccountFactoryView
-									entityId={smartAccount.$factory[EntityMetaKey.Id]}
+									entityId={smartAccount.fields.$factory[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 									showTypeAnnotation={false}
@@ -126,12 +121,12 @@
 						</div>
 					{/if}
 
-					{#if smartAccount.$contract != null}
+					{#if smartAccount.fields.$contract != null}
 						<div>
 							<dt>Account contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={smartAccount.$contract[EntityMetaKey.Id]}
+									entityId={smartAccount.fields.$contract[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={true}
 									showTypeAnnotation={false}

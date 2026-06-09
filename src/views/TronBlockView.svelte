@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -23,17 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const block = useEntity(EntityType.TronBlock, entityId, {
-		hash: {},
-		timestampMs: {},
-		transactionCount: {},
-		...(open && {
-			parentHash: {},
-			$witness: {},
-			txTrieRoot: {},
-			version: {},
-		}),
-	})
+	const block = useEntity(entityCollectionsContext, EntityType.TronBlock, entityId, ({ fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } }))
 
 
 	// Components
@@ -80,50 +71,50 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if block.hash != null}
+					{#if block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={block.hash}
+									value={block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && block.parentHash != null}
+					{#if open && block.fields.parentHash != null}
 						<div>
 							<dt>Parent hash</dt>
 							<dd>
 								<TruncatedValue
-									value={block.parentHash}
+									value={block.fields.parentHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if block.transactionCount != null}
+					{#if block.fields.transactionCount != null}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={block.transactionCount} /></dd>
+							<dd><NumberValue value={block.fields.transactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if block.timestampMs != null}
+					{#if block.fields.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.timestampMs} /></dd>
+							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && block.$witness != null}
+					{#if open && block.fields.$witness != null}
 						<div>
 							<dt>Witness</dt>
 							<dd>
 								<TronWitnessView
-									entityId={block.$witness[EntityMetaKey.Id]}
+									entityId={block.fields.$witness[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -131,10 +122,10 @@
 						</div>
 					{/if}
 
-					{#if open && block.version != null}
+					{#if open && block.fields.version != null}
 						<div>
 							<dt>Version</dt>
-							<dd><NumberValue value={block.version} /></dd>
+							<dd><NumberValue value={block.fields.version} /></dd>
 						</div>
 					{/if}
 				</dl>

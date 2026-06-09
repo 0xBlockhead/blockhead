@@ -7,9 +7,9 @@ import { solanaMainnetRpcEndpoints } from '$/constants/SolanaNetwork.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	SolanaRpcInstruction,
 	SolanaRpcTransactionWithMeta,
@@ -224,7 +224,8 @@ export default {
 				}
 			}
 				},
-			fields: {
+		})({
+				fields: {
 				blockHeight: (block) => block.blockHeight,
 				blockHash: (block) => block.blockHash,
 				previousBlockHash: (block) => block.previousBlockHash,
@@ -234,7 +235,7 @@ export default {
 				transactionCount: (block) => block.transactionCount,
 				$$transactions: (block) => block.$$transactions,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork_Timestamp,
@@ -289,7 +290,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				absoluteSlot: (timestamp) => timestamp.absoluteSlot,
 				blockHeight: (timestamp) => timestamp.blockHeight,
 				epoch: (timestamp) => timestamp.epoch,
@@ -303,7 +305,7 @@ export default {
 				featureSet: (timestamp) => timestamp.featureSet,
 				health: (timestamp) => timestamp.health,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction,
@@ -324,7 +326,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$block: (transaction) => transaction.$block,
 				$feePayer: (transaction) => transaction.$feePayer,
 				slot: (transaction) => transaction.slot,
@@ -333,7 +336,7 @@ export default {
 				status: (transaction) => transaction.status,
 				$$instructions: (transaction) => transaction.$$instructions,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaInstruction,
@@ -355,13 +358,14 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$program: (instruction) => instruction.$program,
 				parsedType: (instruction) => instruction.parsedType,
 				data: (instruction) => instruction.data,
 				$$accounts: (instruction) => instruction.$$accounts,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaAccount,
@@ -388,14 +392,15 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$ownerProgram: (account) => account.$ownerProgram,
 				lamports: (account) => account.lamports,
 				rentEpoch: (account) => account.rentEpoch,
 				executable: (account) => account.executable,
 				dataEncoding: (account) => account.dataEncoding,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaProgram,
@@ -412,10 +417,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$programAccount: (program) => program.$programAccount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTokenMint,
@@ -450,13 +456,14 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				supply: (mint) => mint.supply,
 				decimals: (mint) => mint.decimals,
 				$mintAuthority: (mint) => mint.$mintAuthority,
 				$freezeAuthority: (mint) => mint.$freezeAuthority,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaValidator,
@@ -484,13 +491,14 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				nodePubkey: (validator) => validator.nodePubkey,
 				activatedStakeLamports: (validator) => validator.activatedStakeLamports,
 				commission: (validator) => validator.commission,
 				delinquent: (validator) => validator.delinquent,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
@@ -507,10 +515,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
@@ -543,10 +552,11 @@ export default {
 					}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$blocks: (blocks) => blocks,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
@@ -562,10 +572,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$validators: (validators) => validators,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
@@ -622,10 +633,11 @@ export default {
 					.slice(0, limit)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$transactions: (transactions) => transactions,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
@@ -674,10 +686,11 @@ export default {
 					}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$accounts: (accounts) => accounts,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaBlock,
@@ -714,10 +727,11 @@ export default {
 					})
 			}
 				},
-			fields: {
+		})({
+				fields: {
 				$$transactions: (transactions) => transactions,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction,
@@ -730,9 +744,10 @@ export default {
 				)
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$instructions: (instructions) => instructions,
 			},
-		}),
+			}),
 	],
 }

@@ -3,16 +3,17 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// State
@@ -40,18 +41,10 @@
 		>
 	> = $props()
 
-	const mevRelayProposerPayloadDelivered = useEntity(
+	const mevRelayProposerPayloadDelivered = useEntity(entityCollectionsContext, 
 		EntityType.MevRelay_ProposerPayloadDelivered,
 		entityId,
-		{
-			$: [Source.MevRelay_Rest],
-			builderPubkey: {},
-			value: {},
-			blockNumber: {},
-			...(open && {
-				$executionBlock: {},
-			}),
-		},
+		({ sources: [Source.MevRelay_Rest], fields: { builderPubkey: true, value: true, blockNumber: true, ...(open && ({ $executionBlock: true })) } }),
 	)
 
 
@@ -110,17 +103,17 @@
 		>
 			{#snippet children(mevRelayProposerPayloadDelivered)}
 				<dl data-column-item="center">
-					{#if mevRelayProposerPayloadDelivered.value !== undefined}
+					{#if mevRelayProposerPayloadDelivered.fields.value !== undefined}
 						<div>
 							<dt>Value</dt>
 							<dd>
-								<NumberValue value={mevRelayProposerPayloadDelivered.value} />
+								<NumberValue value={mevRelayProposerPayloadDelivered.fields.value} />
 								wei
 							</dd>
 						</div>
 					{/if}
 
-					{#if mevRelayProposerPayloadDelivered.builderPubkey !== undefined}
+					{#if mevRelayProposerPayloadDelivered.fields.builderPubkey !== undefined}
 						<div>
 							<dt>Builder pubkey</dt>
 							<dd>
@@ -128,15 +121,15 @@
 									format={TruncatedValueFormat.Abbr}
 									startLength={10}
 									endLength={8}
-									value={mevRelayProposerPayloadDelivered.builderPubkey}
+									value={mevRelayProposerPayloadDelivered.fields.builderPubkey}
 								/>
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
-						mevRelayProposerPayloadDelivered.value === undefined
-						&& mevRelayProposerPayloadDelivered.builderPubkey === undefined
+						mevRelayProposerPayloadDelivered.fields.value === undefined
+						&& mevRelayProposerPayloadDelivered.fields.builderPubkey === undefined
 					)}
 						<div>
 							<dt>Builder bid</dt>
@@ -196,10 +189,10 @@
 						{#snippet children(mevRelayProposerPayloadDelivered)}
 							{#if (
 								open
-								&& mevRelayProposerPayloadDelivered.$executionBlock !== undefined
+								&& mevRelayProposerPayloadDelivered.fields.$executionBlock !== undefined
 							)}
 								<EvmBlockView
-									entityId={mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id]}
+									entityId={mevRelayProposerPayloadDelivered.fields.$executionBlock[EntityMetaKey.Id]}
 									layout={EntityLayout.Summary}
 								/>
 							{:else if open}

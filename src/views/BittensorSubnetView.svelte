@@ -1,14 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -20,20 +21,12 @@
 		open?: boolean
 	} = $props()
 
-	const subnet = useEntity(
-		EntityType.BittensorSubnet,
+	const subnet = useEntity(entityCollectionsContext, EntityType.BittensorSubnet,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
 				Source.Bittensor_JsonRpc,
-			],
-			netuid: {},
-			name: {},
-			subnetInfoByteLength: {},
-			dynamicInfoByteLength: {},
-			hyperparamsByteLength: {},
-		},
+			], fields: { netuid: true, name: true, subnetInfoByteLength: true, dynamicInfoByteLength: true, hyperparamsByteLength: true } }),
 	)
 
 
@@ -72,7 +65,7 @@
 			{/snippet}
 
 			{#snippet children(subnet)}
-				{subnet.name ?? `Subnet ${subnet.netuid}`}
+				{subnet.fields.name ?? `Subnet ${subnet.fields.netuid}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -86,27 +79,27 @@
 				<dl>
 					<div>
 						<dt>Netuid</dt>
-						<dd><NumberValue value={subnet.netuid} /></dd>
+						<dd><NumberValue value={subnet.fields.netuid} /></dd>
 					</div>
 
-					{#if subnet.subnetInfoByteLength !== undefined}
+					{#if subnet.fields.subnetInfoByteLength !== undefined}
 						<div>
 							<dt>Subnet info bytes</dt>
-							<dd><NumberValue value={subnet.subnetInfoByteLength} /></dd>
+							<dd><NumberValue value={subnet.fields.subnetInfoByteLength} /></dd>
 						</div>
 					{/if}
 
-					{#if subnet.dynamicInfoByteLength !== undefined}
+					{#if subnet.fields.dynamicInfoByteLength !== undefined}
 						<div>
 							<dt>Dynamic info bytes</dt>
-							<dd><NumberValue value={subnet.dynamicInfoByteLength} /></dd>
+							<dd><NumberValue value={subnet.fields.dynamicInfoByteLength} /></dd>
 						</div>
 					{/if}
 
-					{#if subnet.hyperparamsByteLength !== undefined}
+					{#if subnet.fields.hyperparamsByteLength !== undefined}
 						<div>
 							<dt>Hyperparams bytes</dt>
-							<dd><NumberValue value={subnet.hyperparamsByteLength} /></dd>
+							<dd><NumberValue value={subnet.fields.hyperparamsByteLength} /></dd>
 						</div>
 					{/if}
 				</dl>

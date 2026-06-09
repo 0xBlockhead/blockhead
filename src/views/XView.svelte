@@ -1,9 +1,9 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -18,7 +18,8 @@
 
 	import { stringify } from 'devalue'
 
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	const entityId: EntityId<typeof schema, EntityType.XNetwork> = {
 		scope: 'XNetwork',
@@ -29,29 +30,15 @@
 
 	const networkIdKey = stringify(entityId)
 
-	const network = useEntity(
-		EntityType.XNetwork,
+	const network = useEntity(entityCollectionsContext, EntityType.XNetwork,
 		entityId,
-		{
-			$: [Source.Constants_Internal],
-			protocolName: {},
-			homeUrl: {},
-			docsUrl: {},
-			registryLabel: {},
-			topology: {},
-			$$xUsers: {
-				$: [
+		({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xUsers: ({ sources: [
 					Source.X_Rest,
 					Source.X_FxEmbed_Rest,
-				],
-			},
-			$$xPosts: {
-				$: [
+				] }), $$xPosts: ({ sources: [
 					Source.X_Rest,
 					Source.X_FxEmbed_Rest,
-				],
-			},
-		},
+				] }) } }),
 	)
 
 
@@ -103,43 +90,43 @@
 				{#snippet children(network)}
 					<div>
 						<dt>Profiles</dt>
-						<dd>{String(network['$$xUsers'].length)}</dd>
+						<dd>{String(network.fields['$$xUsers'].length)}</dd>
 					</div>
 					<div>
 						<dt>Posts</dt>
-						<dd>{String(network['$$xPosts'].length)}</dd>
+						<dd>{String(network.fields['$$xPosts'].length)}</dd>
 					</div>
 					{#if contentOpen}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{network.protocolName}</dd>
+							<dd>{network.fields.protocolName}</dd>
 						</div>
 
 						<div>
 							<dt>Registry</dt>
-							<dd>{network.registryLabel}</dd>
+							<dd>{network.fields.registryLabel}</dd>
 						</div>
 
 						<div>
 							<dt>Topology</dt>
-							<dd>{network.topology}</dd>
+							<dd>{network.fields.topology}</dd>
 						</div>
 
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={network.homeUrl}>
-									{network.homeUrl}
+								<a href={network.fields.homeUrl}>
+									{network.fields.homeUrl}
 								</a>
 							</dd>
 						</div>
 
-						{#if network.docsUrl != null && network.docsUrl !== ''}
+						{#if network.fields.docsUrl != null && network.fields.docsUrl !== ''}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={network.docsUrl}>
-										{network.docsUrl}
+									<a href={network.fields.docsUrl}>
+										{network.fields.docsUrl}
 									</a>
 								</dd>
 							</div>

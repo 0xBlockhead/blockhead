@@ -1,5 +1,5 @@
 // Types
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 
 import { executionEndpoints } from '$/constants/ExecutionEndpoints.ts'
 import { TransportType } from '$/constants/TransportType.ts'

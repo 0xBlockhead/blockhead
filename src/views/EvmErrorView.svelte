@@ -3,8 +3,8 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -37,19 +37,14 @@
 	> = $props()
 
 	import { getEvmErrorPath } from '$/lib/signature-paths.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const evmError = useEntity(
-		EntityType.EvmError,
+	const evmError = useEntity(entityCollectionsContext, EntityType.EvmError,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Openchain_Rest,
-			],
-			...(open && {
-				signatures: {},
-			}),
-		},
+			], fields: { ...(open && ({ signatures: true })) } }),
 	)
 
 
@@ -81,7 +76,7 @@
 			placeholderText="Loading error…"
 		>
 			{#snippet children(evmError)}
-				{evmError.signatures?.[0] ?? entityId.hex}
+				{evmError.fields.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -119,12 +114,12 @@
 						placeholderText="Loading catalog matches…"
 					>
 						{#snippet children(evmError)}
-							{#if evmError.signatures?.length}
+							{#if evmError.fields.signatures?.length}
 								<div>
 										<dt>Signatures</dt>
 									<dd>
 										<ul>
-											{#each evmError.signatures as sig (sig)}
+											{#each evmError.fields.signatures as sig (sig)}
 												<li><code>{sig}</code></li>
 											{/each}
 										</ul>

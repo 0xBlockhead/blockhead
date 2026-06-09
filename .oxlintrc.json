@@ -65,7 +65,7 @@
 		},
 		{
 			"files": [
-				"src/schema/$EntityDefinition.ts"
+				"src/schema/$schema.ts"
 			],
 			"rules": {
 				"typescript/no-restricted-types": "off",

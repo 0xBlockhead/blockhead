@@ -3,14 +3,15 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -28,27 +29,12 @@
 		>
 	> = $props()
 
-	const channel = useEntity(
-		EntityType.LightningChannel,
+	const channel = useEntity(entityCollectionsContext, EntityType.LightningChannel,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
-			],
-			shortChannelId: {},
-			status: {},
-			capacitySats: {},
-			localBalanceSats: {},
-			remoteBalanceSats: {},
-			$node0: {},
-			$node1: {},
-			fundingTransactionId: {},
-			fundingOutputIndex: {},
-			feeRatePpm: {},
-			active: {},
-			private: {},
-		},
+			], fields: { shortChannelId: true, status: true, capacitySats: true, localBalanceSats: true, remoteBalanceSats: true, $node0: true, $node1: true, fundingTransactionId: true, fundingOutputIndex: true, feeRatePpm: true, active: true, private: true } }),
 	)
 
 
@@ -94,92 +80,92 @@
 		>
 			{#snippet children(lightningChannel)}
 				<dl>
-					{#if lightningChannel.shortChannelId != null}
+					{#if lightningChannel.fields.shortChannelId != null}
 						<div>
 							<dt>Short channel id</dt>
-							<dd>{lightningChannel.shortChannelId}</dd>
+							<dd>{lightningChannel.fields.shortChannelId}</dd>
 						</div>
 					{/if}
 
-					{#if lightningChannel.status != null}
+					{#if lightningChannel.fields.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{lightningChannel.status}</dd>
+							<dd>{lightningChannel.fields.status}</dd>
 						</div>
 					{/if}
 
-					{#if lightningChannel.capacitySats != null}
+					{#if lightningChannel.fields.capacitySats != null}
 						<div>
 							<dt>Capacity</dt>
-							<dd>{lightningChannel.capacitySats.toString()} sats</dd>
+							<dd>{lightningChannel.fields.capacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if lightningChannel.localBalanceSats != null}
+					{#if lightningChannel.fields.localBalanceSats != null}
 						<div>
 							<dt>Local balance</dt>
-							<dd>{lightningChannel.localBalanceSats.toString()} sats</dd>
+							<dd>{lightningChannel.fields.localBalanceSats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if lightningChannel.remoteBalanceSats != null}
+					{#if lightningChannel.fields.remoteBalanceSats != null}
 						<div>
 							<dt>Remote balance</dt>
-							<dd>{lightningChannel.remoteBalanceSats.toString()} sats</dd>
+							<dd>{lightningChannel.fields.remoteBalanceSats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if lightningChannel.feeRatePpm != null}
+					{#if lightningChannel.fields.feeRatePpm != null}
 						<div>
 							<dt>Fee rate</dt>
-							<dd><NumberValue value={lightningChannel.feeRatePpm} /> ppm</dd>
+							<dd><NumberValue value={lightningChannel.fields.feeRatePpm} /> ppm</dd>
 						</div>
 					{/if}
 
-					{#if lightningChannel.active != null}
+					{#if lightningChannel.fields.active != null}
 						<div>
 							<dt>Active</dt>
-							<dd>{lightningChannel.active ? 'Yes' : 'No'}</dd>
+							<dd>{lightningChannel.fields.active ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if lightningChannel.private != null}
+					{#if lightningChannel.fields.private != null}
 						<div>
 							<dt>Private</dt>
-							<dd>{lightningChannel.private ? 'Yes' : 'No'}</dd>
+							<dd>{lightningChannel.fields.private ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if lightningChannel.$node0 != null}
+					{#if lightningChannel.fields.$node0 != null}
 						<div>
 							<dt>Node 0</dt>
 							<dd>
 								<LightningNodeView
-									entityId={lightningChannel.$node0[EntityMetaKey.Id]}
+									entityId={lightningChannel.fields.$node0[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if lightningChannel.$node1 != null}
+					{#if lightningChannel.fields.$node1 != null}
 						<div>
 							<dt>Node 1</dt>
 							<dd>
 								<LightningNodeView
-									entityId={lightningChannel.$node1[EntityMetaKey.Id]}
+									entityId={lightningChannel.fields.$node1[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if lightningChannel.fundingTransactionId != null}
+					{#if lightningChannel.fields.fundingTransactionId != null}
 						<div>
 							<dt>Funding outpoint</dt>
 							<dd>
 								<TruncatedValue
-									value={`${lightningChannel.fundingTransactionId}:${lightningChannel.fundingOutputIndex ?? 0}`}
+									value={`${lightningChannel.fields.fundingTransactionId}:${lightningChannel.fields.fundingOutputIndex ?? 0}`}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

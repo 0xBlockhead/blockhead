@@ -12,12 +12,12 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import type { Entity, EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	EtherscanInternalTransaction,
 	EtherscanTokenTransferTagged,
@@ -463,13 +463,14 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				slowGwei: (timestamp) => timestamp.slowGwei,
 				averageGwei: (timestamp) => timestamp.averageGwei,
 				fastGwei: (timestamp) => timestamp.fastGwei,
 				transport: (timestamp) => timestamp.transport,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTokenTransfer,
@@ -506,7 +507,8 @@ export default {
 				return entity
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				standard: (transfer) => transfer.standard,
 				amount: (transfer) => transfer.amount,
 				tokenId: (transfer) => transfer.tokenId,
@@ -518,7 +520,7 @@ export default {
 				$tokenContract: (transfer) => transfer.$tokenContract,
 				$coinInstance: (transfer) => transfer.$coinInstance,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmInternalTransfer,
@@ -551,7 +553,8 @@ export default {
 				return entity
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				value: (transfer) => transfer.value,
 				callType: (transfer) => transfer.callType,
 				success: (transfer) => transfer.success,
@@ -559,7 +562,7 @@ export default {
 				$to: (transfer) => transfer.$to,
 				$createdContract: (transfer) => transfer.$createdContract,
 			},
-		}),
+			}),
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
@@ -575,10 +578,11 @@ export default {
 					return abi == null ? undefined : evmAbiFromJsonString(abi)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				abi: (contract) => contract,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -603,10 +607,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$deployer: (contract) => contract,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -632,10 +637,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$creationTransaction: (contract) => contract,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -661,10 +667,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$implementation: (contract) => contract,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -682,10 +689,11 @@ export default {
 				return evmContractRuntimeCodeFromGetCodeHex(codeHex)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				code: (contract) => contract,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -703,10 +711,11 @@ export default {
 				return evmContractBytecodeHashFromGetCodeHex(codeHex)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				codeHash: (contract) => contract,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -733,10 +742,11 @@ export default {
 				})
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				storageSlotReads: (contract) => contract,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -753,10 +763,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$gasEstimateTimestamps: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
@@ -796,10 +807,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$tokenTransfers: (account) => account,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
@@ -839,10 +851,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$internalTransfers: (account) => account,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmLog,
@@ -882,10 +895,11 @@ export default {
 					)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$tokenTransfers: (log) => log,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTransaction,
@@ -922,10 +936,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$tokenTransfers: (transaction) => transaction,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTransaction,
@@ -954,9 +969,10 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$internalTransfers: (transaction) => transaction,
 			},
-		}),
+			}),
 	],
 }

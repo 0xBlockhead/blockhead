@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { atprotoBskySocialOrigins } from '$/sources/AtprotoBskySocial/Rest/constants.ts'
 import AtprotoBskySocialRestSource from '$/sources/AtprotoBskySocial/Rest/index.ts'
 

@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,14 +27,9 @@
 		>
 	> = $props()
 
-	const polkadotExtrinsic = useEntity(
-		EntityType.PolkadotExtrinsic,
+	const polkadotExtrinsic = useEntity(entityCollectionsContext, EntityType.PolkadotExtrinsic,
 		entityId,
-		{
-			hash: {},
-			callName: {},
-			success: {},
-		},
+		({ fields: { hash: true, callName: true, success: true } }),
 	)
 
 
@@ -75,28 +71,28 @@
 		>
 			{#snippet children(polkadotExtrinsic)}
 				<dl>
-					{#if polkadotExtrinsic.hash != null}
+					{#if polkadotExtrinsic.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={polkadotExtrinsic.hash}
+									value={polkadotExtrinsic.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if polkadotExtrinsic.callName != null}
+					{#if polkadotExtrinsic.fields.callName != null}
 						<div>
 							<dt>Call Name</dt>
-							<dd>{polkadotExtrinsic.callName}</dd>
+							<dd>{polkadotExtrinsic.fields.callName}</dd>
 						</div>
 					{/if}
 
-					{#if polkadotExtrinsic.success != null}
+					{#if polkadotExtrinsic.fields.success != null}
 						<div>
 							<dt>Success</dt>
-							<dd>{polkadotExtrinsic.success ? 'Yes' : 'No'}</dd>
+							<dd>{polkadotExtrinsic.fields.success ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

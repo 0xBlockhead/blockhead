@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,27 +28,16 @@
 		>
 	> = $props()
 
-	const block = useEntity(
-		EntityType.UtxoBlock,
+	const block = useEntity(entityCollectionsContext, EntityType.UtxoBlock,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Esplora_Rest,
 				Source.Blockchair_Rest,
 				Source.ThreeXpl_Rest,
 				Source.BitcoinCore_JsonRpc,
 				Source.LitecoinCore_JsonRpc,
 				Source.DogecoinCore_JsonRpc,
-			],
-			hash: {},
-			transactionCount: {},
-			timestampMs: {},
-			...open && {
-				sizeBytes: {},
-				weightUnits: {},
-				difficulty: {},
-			},
-		},
+			], fields: { hash: true, transactionCount: true, timestampMs: true, ...(open && ({ sizeBytes: true, weightUnits: true, difficulty: true })) } }),
 	)
 
 
@@ -103,50 +93,50 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if entityId.hash != null || block.hash != null}
+					{#if entityId.hash != null || block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={entityId.hash ?? block.hash}
+									value={entityId.hash ?? block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if block.transactionCount != null}
+					{#if block.fields.transactionCount != null}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={block.transactionCount} /></dd>
+							<dd><NumberValue value={block.fields.transactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if block.timestampMs != null}
+					{#if block.fields.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.timestampMs} /></dd>
+							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && block.sizeBytes != null}
+					{#if open && block.fields.sizeBytes != null}
 						<div>
 							<dt>Size</dt>
-							<dd><NumberValue value={block.sizeBytes} /> bytes</dd>
+							<dd><NumberValue value={block.fields.sizeBytes} /> bytes</dd>
 						</div>
 					{/if}
 
-					{#if open && block.weightUnits != null}
+					{#if open && block.fields.weightUnits != null}
 						<div>
 							<dt>Weight</dt>
-							<dd><NumberValue value={block.weightUnits} /> WU</dd>
+							<dd><NumberValue value={block.fields.weightUnits} /> WU</dd>
 						</div>
 					{/if}
 
-					{#if open && block.difficulty != null}
+					{#if open && block.fields.difficulty != null}
 						<div>
 							<dt>Difficulty</dt>
-							<dd><NumberValue value={block.difficulty} /></dd>
+							<dd><NumberValue value={block.fields.difficulty} /></dd>
 						</div>
 					{/if}
 				</dl>

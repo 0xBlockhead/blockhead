@@ -4,9 +4,9 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -42,13 +42,12 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const contract = useEntity(
-		EntityType.EvmContract,
+	const contract = useEntity(entityCollectionsContext, EntityType.EvmContract,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Local_Internal,
 				Source.Constants_Internal,
 				Source.Sourcify_Rest,
@@ -60,45 +59,13 @@
 					]
 				:
 					[]),
-			],
-			precompileName: {
-				$: [
+			], fields: { precompileName: ({ sources: [
 					Source.Constants_Internal,
-				],
-			},
-			$verification: {
-				$: [
+				] }), $verification: ({ sources: [
 					Source.Sourcify_Rest,
-				],
-				$compilation: {
-					fullyQualifiedName: {},
-					name: {},
-				},
-			},
-			...(open && {
-				$deployer: {},
-				$creationTransaction: {},
-				$implementation: {},
-				codeHash: {},
-				code: {},
-				abi: {},
-				storageSlotReads: {},
-				$verification: {
-					$: [
+				], fields: { $compilation: ({ fields: { fullyQualifiedName: true, name: true } }) } }), ...(open && ({ $deployer: true, $creationTransaction: true, $implementation: true, codeHash: true, code: true, abi: true, storageSlotReads: true, $verification: ({ sources: [
 						Source.Sourcify_Rest,
-					],
-					match: {},
-					creationMatch: {},
-					runtimeMatch: {},
-					verifiedAtMs: {},
-					$compilation: {
-						fullyQualifiedName: {},
-						name: {},
-					},
-					$sourceBundle: {},
-				},
-			}),
-		},
+					], fields: { match: true, creationMatch: true, runtimeMatch: true, verifiedAtMs: true, $compilation: ({ fields: { fullyQualifiedName: true, name: true } }), $sourceBundle: true } }) })) } }),
 	)
 
 
@@ -139,17 +106,17 @@
 			resource={contract}
 		>
 			{#snippet children(contract)}
-				{#if contract.precompileName}
-					{contract.precompileName}
-				{:else if contract.$verification?.$compilation?.fullyQualifiedName}
+				{#if contract.fields.precompileName}
+					{contract.fields.precompileName}
+				{:else if contract.fields.$verification?.$compilation?.fullyQualifiedName}
 					<code>
-						{contract.$verification.$compilation.fullyQualifiedName
+						{contract.fields.$verification.$compilation.fullyQualifiedName
 							.split(':')[0]
 							.split('/')
 							.at(-1)}
 					</code>
-				{:else if contract.$verification?.$compilation?.name}
-					{contract.$verification.$compilation.name}
+				{:else if contract.fields.$verification?.$compilation?.name}
+					{contract.fields.$verification.$compilation.name}
 				{:else}
 						<EvmNetworkAccountView
 							entityId={{
@@ -176,7 +143,7 @@
 					resource={contract}
 				>
 					{#snippet children(contract)}
-						{#if open && contract.precompileName}
+						{#if open && contract.fields.precompileName}
 							<div>
 								<dt>Address</dt>
 								<dd>
@@ -192,19 +159,19 @@
 							</div>
 						{/if}
 
-						{#if open && !contract.precompileName && contract.$deployer}
+						{#if open && !contract.fields.precompileName && contract.fields.$deployer}
 							<div>
 								<dt>Deployer</dt>
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
 											$network: entityId.$network,
-											$actor: contract.$deployer[EntityMetaKey.Id],
+											$actor: contract.fields.$deployer[EntityMetaKey.Id],
 										}}
 										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(accounts)/account/[address]', {
 											caip2Namespace: entityId.$network.caip2.namespace,
 											caip2Reference: entityId.$network.caip2.reference,
-											address: contract.$deployer[EntityMetaKey.Id].address,
+											address: contract.fields.$deployer[EntityMetaKey.Id].address,
 										})}
 										layout={EntityLayout.Title}
 										open={false}
@@ -213,16 +180,16 @@
 							</div>
 						{/if}
 
-						{#if open && !contract.precompileName && contract.$creationTransaction}
+						{#if open && !contract.fields.precompileName && contract.fields.$creationTransaction}
 							<div>
 								<dt>Creation transaction</dt>
 								<dd>
 									<EvmTransactionView
-										entityId={contract.$creationTransaction[EntityMetaKey.Id]}
+										entityId={contract.fields.$creationTransaction[EntityMetaKey.Id]}
 										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
 											caip2Namespace: entityId.$network.caip2.namespace,
 											caip2Reference: entityId.$network.caip2.reference,
-											transactionId: contract.$creationTransaction[EntityMetaKey.Id].txHash,
+											transactionId: contract.fields.$creationTransaction[EntityMetaKey.Id].txHash,
 										})}
 										layout={EntityLayout.Title}
 										open={false}
@@ -231,12 +198,12 @@
 							</div>
 						{/if}
 
-						{#if open && !contract.precompileName && contract.$implementation}
+						{#if open && !contract.fields.precompileName && contract.fields.$implementation}
 							<div>
 								<dt>Implementation</dt>
 								<dd>
 									<Self
-										entityId={contract.$implementation[EntityMetaKey.Id]}
+										entityId={contract.fields.$implementation[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -244,37 +211,37 @@
 							</div>
 						{/if}
 
-						{#if open && contract.codeHash}
+						{#if open && contract.fields.codeHash}
 							<div>
 								<dt>Bytecode hash</dt>
 								<dd>
 									<TruncatedValue
-										value={contract.codeHash}
+										value={contract.fields.codeHash}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if open && contract.code}
+						{#if open && contract.fields.code}
 							<div>
 								<dt>Runtime bytecode</dt>
 								<dd>
 									<TruncatedValue
-										value={contract.code}
+										value={contract.fields.code}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if open && !contract.precompileName}
-							{#if open && contract.abi !== undefined}
+						{#if open && !contract.fields.precompileName}
+							{#if open && contract.fields.abi !== undefined}
 								<div>
 									<dt>ABI</dt>
 									<dd>
 										<EvmAbiView
-											abi={contract.abi}
+											abi={contract.fields.abi}
 										/>
 									</dd>
 								</div>

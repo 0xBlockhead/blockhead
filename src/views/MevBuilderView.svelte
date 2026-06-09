@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -30,19 +31,20 @@
 		>
 	> = $props()
 
-	const builder = useEntity(
-		EntityType.MevBuilder,
+	const builder = useEntity(entityCollectionsContext, EntityType.MevBuilder,
 		entityId,
 		(
 			open ?
 				{
-					$: [
+					sources: [
 						Source.MevRelay_Rest,
 					],
-					deliveredPayloadCount: {},
+					fields: {
+						deliveredPayloadCount: true,
+					},
 				}
 			:
-				{}
+				{ fields: {} }
 		),
 	)
 
@@ -89,10 +91,10 @@
 			>
 				{#snippet children(builder)}
 					<dl data-column-item="center">
-						{#if builder.deliveredPayloadCount !== undefined}
+						{#if builder.fields.deliveredPayloadCount !== undefined}
 							<div>
 								<dt>Delivered payloads</dt>
-								<dd><NumberValue value={builder.deliveredPayloadCount} /></dd>
+								<dd><NumberValue value={builder.fields.deliveredPayloadCount} /></dd>
 							</div>
 						{/if}
 					</dl>

@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,19 +28,11 @@
 		>
 	> = $props()
 
-	const htlc = useEntity(
-		EntityType.LightningHtlc,
+	const htlc = useEntity(entityCollectionsContext, EntityType.LightningHtlc,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.LightningLnd_Rest,
-			],
-			direction: {},
-			amountMsat: {},
-			expiryHeight: {},
-			hashLock: {},
-			state: {},
-		},
+			], fields: { direction: true, amountMsat: true, expiryHeight: true, hashLock: true, state: true } }),
 	)
 
 
@@ -80,40 +73,40 @@
 		>
 			{#snippet children(row)}
 				<dl>
-					{#if row.direction != null}
+					{#if row.fields.direction != null}
 						<div>
 							<dt>Direction</dt>
-							<dd>{row.direction}</dd>
+							<dd>{row.fields.direction}</dd>
 						</div>
 					{/if}
 
-					{#if row.amountMsat != null}
+					{#if row.fields.amountMsat != null}
 						<div>
 							<dt>Amount</dt>
-							<dd>{row.amountMsat.toString()} msat</dd>
+							<dd>{row.fields.amountMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if row.expiryHeight != null}
+					{#if row.fields.expiryHeight != null}
 						<div>
 							<dt>Expiry height</dt>
-							<dd>{row.expiryHeight.toString()}</dd>
+							<dd>{row.fields.expiryHeight.toString()}</dd>
 						</div>
 					{/if}
 
-					{#if row.state != null}
+					{#if row.fields.state != null}
 						<div>
 							<dt>State</dt>
-							<dd>{row.state}</dd>
+							<dd>{row.fields.state}</dd>
 						</div>
 					{/if}
 
-					{#if row.hashLock != null}
+					{#if row.fields.hashLock != null}
 						<div>
 							<dt>Hash lock</dt>
 							<dd>
 								<TruncatedValue
-									value={row.hashLock}
+									value={row.fields.hashLock}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

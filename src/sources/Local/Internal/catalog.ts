@@ -1,11 +1,11 @@
 import type { EntityId } from '$/schema/$schema.ts'
 import type { Action } from '$/constants/actions.ts'
 import { ActionType } from '$/constants/actions.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurn.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { XmtpConversationConsentState } from '$/schema/XmtpConversation.ts'
 import {
 	WalletCapability,

@@ -11,7 +11,7 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import RedditCommentsView from '$/views/RedditCommentsView.svelte'
 </script>
 

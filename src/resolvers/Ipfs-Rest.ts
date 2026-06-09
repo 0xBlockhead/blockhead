@@ -7,10 +7,10 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.Ipfs_Rest,
@@ -98,8 +98,9 @@ export default {
 					...(mediaEntity != null && { $media: mediaEntity }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			namespace: (snapshot) => snapshot.namespace,
 			target: (snapshot) => snapshot.target,
 			contentPath: (snapshot) => snapshot.contentPath,
@@ -120,7 +121,7 @@ export default {
 			cidMultihashDigestHex: (snapshot) => snapshot.cidMultihashDigestHex,
 			isCidSubdomainSafe: (snapshot) => snapshot.isCidSubdomainSafe,
 			$media: (snapshot) => snapshot.$media,
-		}
-		}),
+		},
+			}),
 	],
 }

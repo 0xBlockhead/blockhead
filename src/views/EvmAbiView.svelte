@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EvmAbiEntry } from '$/schema/$EvmAbi.ts'
+	import type { EvmAbiEntry } from '$/schema/EvmAbi.ts'
 
 
 	// State

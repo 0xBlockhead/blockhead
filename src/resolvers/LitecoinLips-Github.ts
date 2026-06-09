@@ -6,9 +6,9 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const metadataValue = (text: string, key: string) => (
 	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
@@ -52,14 +52,15 @@ export default {
 					documentBody: text,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
 			documentTitle: (snapshot) => snapshot.documentTitle,
 			documentStatus: (snapshot) => snapshot.documentStatus,
 			documentBody: (snapshot) => snapshot.documentBody,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType._Global,
@@ -68,11 +69,12 @@ export default {
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType.SpecificationRealm,
@@ -83,11 +85,12 @@ export default {
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType.SpecificationProposalKind,
@@ -98,10 +101,11 @@ export default {
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

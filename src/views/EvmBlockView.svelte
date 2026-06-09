@@ -3,15 +3,16 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -39,27 +40,13 @@
 		>
 	> = $props()
 
-	const block = useEntity(
-		EntityType.EvmBlock,
+	const block = useEntity(entityCollectionsContext, EntityType.EvmBlock,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
 				Source.ZeroGChain_JsonRpc,
-			],
-			timestamp: {},
-			transactionCount: {},
-			...open && {
-				gasUsed: {},
-				gasLimit: {},
-				baseFeePerGas: {},
-				blobGasUsed: {},
-				excessBlobGas: {},
-				$parent: {},
-				$miner: {},
-			},
-		},
+			], fields: { timestamp: true, transactionCount: true, ...(open && ({ gasUsed: true, gasLimit: true, baseFeePerGas: true, blobGasUsed: true, excessBlobGas: true, $parent: true, $miner: true })) } }),
 	)
 
 
@@ -144,8 +131,8 @@
 						placeholderText="Loading block…"
 					>
 						{#snippet children(block)}
-							{#if block.transactionCount !== undefined}
-								<NumberValue value={block.transactionCount} />
+							{#if block.fields.transactionCount !== undefined}
+								<NumberValue value={block.fields.transactionCount} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -160,9 +147,9 @@
 						placeholderText="Loading block…"
 					>
 						{#snippet children(block)}
-							{#if block.timestamp !== undefined}
+							{#if block.fields.timestamp !== undefined}
 								<Timestamp
-									timestamp={block.timestamp}
+									timestamp={block.fields.timestamp}
 								/>
 							{/if}
 						{/snippet}
@@ -179,8 +166,8 @@
 							placeholderText="Loading block…"
 						>
 							{#snippet children(block)}
-								{#if block.gasUsed !== undefined}
-									<NumberValue value={block.gasUsed} />
+								{#if block.fields.gasUsed !== undefined}
+									<NumberValue value={block.fields.gasUsed} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -197,8 +184,8 @@
 							placeholderText="Loading block…"
 						>
 							{#snippet children(block)}
-								{#if block.gasLimit !== undefined}
-									<NumberValue value={block.gasLimit} />
+								{#if block.fields.gasLimit !== undefined}
+									<NumberValue value={block.fields.gasLimit} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -215,8 +202,8 @@
 							placeholderText="Loading block…"
 						>
 							{#snippet children(block)}
-								{#if block.baseFeePerGas !== undefined}
-									<NumberValue value={block.baseFeePerGas} />
+								{#if block.fields.baseFeePerGas !== undefined}
+									<NumberValue value={block.fields.baseFeePerGas} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -233,8 +220,8 @@
 							placeholderText="Loading block…"
 						>
 							{#snippet children(block)}
-								{#if block.blobGasUsed !== undefined}
-									<NumberValue value={block.blobGasUsed} />
+								{#if block.fields.blobGasUsed !== undefined}
+									<NumberValue value={block.fields.blobGasUsed} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -251,8 +238,8 @@
 							placeholderText="Loading block…"
 						>
 							{#snippet children(block)}
-								{#if block.excessBlobGas !== undefined}
-									<NumberValue value={block.excessBlobGas} />
+								{#if block.fields.excessBlobGas !== undefined}
+									<NumberValue value={block.fields.excessBlobGas} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -269,9 +256,9 @@
 							placeholderText="Loading block…"
 						>
 							{#snippet children(block)}
-								{#if block.$parent}
+								{#if block.fields.$parent}
 									<EvmBlockView
-										entityId={block.$parent[EntityMetaKey.Id]}
+										entityId={block.fields.$parent[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -291,11 +278,11 @@
 							placeholderText="Loading block…"
 						>
 							{#snippet children(block)}
-								{#if block.$miner}
+								{#if block.fields.$miner}
 									<EvmNetworkAccountView
 										entityId={{
 											$network: entityId.$network,
-											$actor: block.$miner[EntityMetaKey.Id],
+											$actor: block.fields.$miner[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Title}
 										open={false}
@@ -347,9 +334,9 @@
 					placeholderText="Loading chain info…"
 				>
 					{#snippet children(block)}
-						{#if block.$parent}
+						{#if block.fields.$parent}
 							<EvmBlockView
-								entityId={block.$parent[EntityMetaKey.Id]}
+								entityId={block.fields.$parent[EntityMetaKey.Id]}
 								layout={EntityLayout.Value}
 							/>
 						{/if}

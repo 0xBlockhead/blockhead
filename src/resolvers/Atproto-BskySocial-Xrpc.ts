@@ -10,10 +10,10 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 export default {
@@ -85,8 +85,9 @@ export default {
 					...(description != null && { description }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			did: (actor) => actor.did,
 			displayName: (actor) => actor.displayName,
 			handle: (actor) => actor.handle,
@@ -97,8 +98,8 @@ export default {
 			postsCount: (actor) => actor.postsCount,
 			indexedAt: (actor) => actor.indexedAt,
 			description: (actor) => actor.description,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost,
@@ -133,8 +134,9 @@ export default {
 					...(rootUri != null && { $root: { [EntityMetaKey.Id]: { uri: rootUri } } }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$author: (post) => post.$author,
 			text: (post) => post.text,
 			createdAt: (post) => post.createdAt,
@@ -147,8 +149,8 @@ export default {
 			selfLabelValues: (post) => post.selfLabelValues,
 			$parent: (post) => post.$parent,
 			$root: (post) => post.$root,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoActor_Timestamp,
@@ -165,13 +167,14 @@ export default {
 					...(profile.postsCount != null && { postsCount: profile.postsCount }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			followersCount: (timestamp) => timestamp.followersCount,
 			followsCount: (timestamp) => timestamp.followsCount,
 			postsCount: (timestamp) => timestamp.postsCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost_Timestamp,
@@ -187,14 +190,15 @@ export default {
 					...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			likeCount: (timestamp) => timestamp.likeCount,
 			repostCount: (timestamp) => timestamp.repostCount,
 			replyCount: (timestamp) => timestamp.replyCount,
 			quoteCount: (timestamp) => timestamp.quoteCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoNetwork,
@@ -223,11 +227,12 @@ export default {
 				]
 				return refs.slice(0, limit)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$atprotoActors: (actors) => actors,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoNetwork,
@@ -235,11 +240,12 @@ export default {
 				[EntityIdProjection.Identity]: async () => {
 				throw new Error('Atproto_BskySocial_Xrpc: $$atprotoPosts is unsupported; use $$atprotoActors and AtprotoActor.$$posts')
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$atprotoPosts: (posts) => posts,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoActor,
@@ -284,11 +290,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$timestamps: (timestamps) => timestamps,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoActor,
@@ -331,11 +338,12 @@ export default {
 						})
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$posts: (posts) => posts,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost,
@@ -357,11 +365,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$timestamps: (timestamps) => timestamps,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost,
@@ -400,10 +409,11 @@ export default {
 				walkReplies(thread)
 				return [...ancestors, ...descendants].slice(0, limit)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$thread: (thread) => thread,
-		}
-		}),
+		},
+			}),
 	],
 }

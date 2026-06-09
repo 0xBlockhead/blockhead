@@ -1,8 +1,8 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityMetaKey, entityFieldDefinitions } from '$/schema/$EntityDefinition.ts'
+	import { EntityMetaKey, entityFieldDefinitions } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { enabledSources } from '$/sources/index.ts'
 	import { useCollectionCache } from './collectionCache.svelte.ts'
 
@@ -55,7 +55,7 @@
 	import {
 		entityCollectionByEntityType,
 		entityFieldCollections,
-	} from '$/collections/$entityCollections.ts'
+	} from '$/collections/entityCollections.ts'
 
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>

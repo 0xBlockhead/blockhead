@@ -3,13 +3,14 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -33,17 +34,11 @@
 		never
 	> = $props()
 
-	const room = useEntity(
-		EntityType.BlockheadRoom,
+	const room = useEntity(entityCollectionsContext, EntityType.BlockheadRoom,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Local_Internal,
-			],
-			name: {},
-			createdAt: {},
-			createdBy: {},
-		},
+			], fields: { name: true, createdAt: true, createdBy: true } }),
 	)
 
 
@@ -74,7 +69,7 @@
 			placeholderText="Loading room…"
 		>
 			{#snippet children(room)}
-				{room.name ?? entityId.id}
+				{room.fields.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -98,9 +93,9 @@
 						placeholderText="Loading room…"
 					>
 						{#snippet children(room)}
-							{#if room.createdAt !== undefined}
+							{#if room.fields.createdAt !== undefined}
 								<Timestamp
-									timestamp={room.createdAt}
+									timestamp={room.fields.createdAt}
 								/>
 							{/if}
 						{/snippet}
@@ -117,8 +112,8 @@
 							placeholderText="Loading room…"
 						>
 							{#snippet children(room)}
-								{#if room.createdBy !== undefined && room.createdBy !== ''}
-									{room.createdBy}
+								{#if room.fields.createdBy !== undefined && room.fields.createdBy !== ''}
+									{room.fields.createdBy}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

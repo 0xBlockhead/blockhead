@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,21 +28,11 @@
 		>
 	> = $props()
 
-	const block = useEntity(
-		EntityType.MoneroBlock,
+	const block = useEntity(entityCollectionsContext, EntityType.MoneroBlock,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.MoneroDaemonRpc_JsonRpc,
-			],
-			hash: {},
-			timestampMs: {},
-			$$transactions: {},
-			...open && {
-				difficulty: {},
-				weightBytes: {},
-			},
-		},
+			], fields: { hash: true, timestampMs: true, $$transactions: true, ...(open && ({ difficulty: true, weightBytes: true })) } }),
 	)
 
 
@@ -91,43 +82,43 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if entityId.hash != null || block.hash != null}
+					{#if entityId.hash != null || block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={entityId.hash ?? block.hash}
+									value={entityId.hash ?? block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-						{#if (block.$$transactions?.length ?? 0) > 0}
+						{#if (block.fields.$$transactions?.values.length ?? 0) > 0}
 							<div>
 								<dt>Transactions</dt>
-								<dd><NumberValue value={block.$$transactions?.length ?? 0} /></dd>
+								<dd><NumberValue value={block.fields.$$transactions?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 
-					{#if block.timestampMs != null}
+					{#if block.fields.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.timestampMs} /></dd>
+							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && block.weightBytes != null}
+					{#if open && block.fields.weightBytes != null}
 						<div>
 							<dt>Weight</dt>
-							<dd><NumberValue value={block.weightBytes} /> bytes</dd>
+							<dd><NumberValue value={block.fields.weightBytes} /> bytes</dd>
 						</div>
 					{/if}
 
-					{#if open && block.difficulty != null}
+					{#if open && block.fields.difficulty != null}
 						<div>
 							<dt>Difficulty</dt>
-							<dd><NumberValue value={block.difficulty} /></dd>
+							<dd><NumberValue value={block.fields.difficulty} /></dd>
 						</div>
 					{/if}
 				</dl>

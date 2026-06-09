@@ -5,7 +5,7 @@ import {
 } from 'gql.tada'
 
 import { getJson } from '$/lib/http.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import {
 	lensGraphqlUrl,

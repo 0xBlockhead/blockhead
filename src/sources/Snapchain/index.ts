@@ -1,5 +1,5 @@
 
-import { type SourceProviderDefinition, SourceProvider } from '$/sources/$SourceProvider.ts'
+import { type SourceProviderDefinition, SourceProvider } from '$/sources/SourceProvider.ts'
 import { nodeEndpoints } from '$/sources/Snapchain/Rest/constants.ts'
 import SnapchainRestSource from '$/sources/Snapchain/Rest/index.ts'
 

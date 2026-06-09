@@ -1,9 +1,10 @@
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import type {
 	EntityFieldDefinition,
+	EntityFieldDefinitionByName,
 	EntityFieldName,
 	EntityId,
 	EntityType,
@@ -20,7 +21,7 @@ export type EntityFieldReference<
 > = {
 	[_Parent in EntityType<_Schema>]: {
 		[_Field in EntityFieldName<_Schema, _Parent>]:
-			EntityFieldDefinition<_Schema, _Parent, _Field> extends {
+			EntityFieldDefinitionByName<_Schema, _Parent, _Field> extends {
 				type: typeof EntityFieldType.EntitiesReference
 				cardinality: typeof EntityFieldCardinality.Many | typeof EntityFieldCardinality.ZeroOrMany
 				entityType: _ListedEntity

@@ -18,11 +18,11 @@
 	} from '$/constants/BeaconConsensus.ts'
 
 	import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
@@ -30,9 +30,12 @@
 		| EntityId<typeof schema, EntityType.EvmNetwork>
 		| { chainId: number }
 
+	type EntityFieldValue = Record<string, any>
+
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -71,50 +74,24 @@
 		beaconRestBaseByExecutionChainId[chainId]?.consensusProtocol,
 	)
 
-	const networkSummaryHead = useEntity(
-		EntityType.EvmNetwork,
+	const networkSummaryHead = useEntity(entityCollectionsContext, EntityType.EvmNetwork,
 		_entityId,
-		{
-			blockHeight: {
-				$: [
+		({ fields: { blockHeight: ({ sources: [
 					Source.Voltaire_JsonRpc,
-				],
-			},
-			$$blocks: {
-				$: [
+				] }), $$blocks: ({ sources: [
 					Source.Voltaire_JsonRpc,
-				],
-				$limit: 16,
-			},
-			$$gasEstimateTimestamps: {
-				$: [
+				], limit: 16 }), $$gasEstimateTimestamps: ({ sources: [
 					Source.Etherscan_Rest,
-				],
-				$limit: 1,
-			},
-			$$upgrades: {},
-			...(separateConsensusProtocol != null && {
-				$$beaconEpochs: {
-					$: [
+				], limit: 1 }), $$upgrades: true, ...(separateConsensusProtocol != null && ({ $$beaconEpochs: ({ sources: [
 						Source.Beacon_Rest,
-					],
-					$limit: 1,
-				},
-				$$beaconSlots: {
-					$: [
+					], limit: 1 }), $$beaconSlots: ({ sources: [
 						Source.Beacon_Rest,
-					],
-					$limit: 1,
-				},
-			}),
-		},
+					], limit: 1 }) })) } }),
 	)
 
-	const network = useEntity(
-		EntityType.EvmNetwork,
+	const network = useEntity(entityCollectionsContext, EntityType.EvmNetwork,
 		_entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
@@ -128,135 +105,46 @@
 					:
 						[]
 				),
-			],
-			name: {},
-			$$siblingShardNetworks: {},
-			namespace: {},
-			environment: {},
-			consensusEndpoints: {},
-			$icon: {},
-			$nativeCoin: {},
-			$nativeCoinInstance: {},
-			shortName: {},
-			registryStatus: {},
-			slip44: {},
-			peeringId: {},
-			$$blockExplorerUrls: {
-				$: [
+			], fields: { name: true, $$siblingShardNetworks: true, namespace: true, environment: true, consensusEndpoints: true, $icon: true, $nativeCoin: true, $nativeCoinInstance: true, shortName: true, registryStatus: true, slip44: true, peeringId: true, $$blockExplorerUrls: ({ sources: [
 					Source.Chainlist_Rest,
 					Source.EthereumLists_Rest,
 					Source.Lifi_Rest,
-				],
-			},
-			$$faucetUrls: {},
-			$$bridges: {
-				$: [
+				] }), $$faucetUrls: true, $$bridges: ({ sources: [
 					Source.Chainlist_Rest,
 					Source.EthereumLists_Rest,
-				],
-			},
-			$rollup: {
-				$: [
+				] }), $rollup: ({ sources: [
 					Source.L2Beat_Rest,
-				],
-			},
-			$$settledRollups: {
-				$: [
+				] }), $$settledRollups: ({ sources: [
 					Source.L2Beat_Rest,
-				],
-			},
-			$$upgrades: {},
-			$$executionUpgrades: {},
-			$$consensusUpgrades: {},
-			consensusProtocol: {
-				$: [
+				] }), $$upgrades: true, $$executionUpgrades: true, $$consensusUpgrades: true, consensusProtocol: ({ sources: [
 					Source.Constants_Internal,
-				],
-			},
-			$case: {
-				namespace: {
-					[NetworkNamespace.Evm]: {
-						$parent: {},
-						$$childLayers: {},
-						$$testnets: {
-							$: [
+				] }), $parent: true, $$childLayers: true, $$testnets: ({ sources: [
 								Source.Superchain_Github,
 								Source.Chainlist_Rest,
-							],
-						},
-						$mainnet: {
-							$: [
+							] }), $mainnet: ({ sources: [
 								Source.Superchain_Github,
 								Source.Chainlist_Rest,
-							],
-						},
-						layerNumber: {},
-					},
-				},
-			},
-			...(open && {
-				$$gasFeeBlocks: {
-					$: [
+							] }), ...(open && ({ $$gasFeeBlocks: ({ sources: [
 						Source.Voltaire_JsonRpc,
-					],
-					$limit: 64,
-				},
-				$$gasEstimateTimestamps: {
-					$: [
+					], limit: 64 }), $$gasEstimateTimestamps: ({ sources: [
 						Source.Etherscan_Rest,
-					],
-					$limit: 64,
-				},
-				$$txpoolTimestamps: {
-					$: [
+					], limit: 64 }), $$txpoolTimestamps: ({ sources: [
 						Source.Voltaire_JsonRpc,
-					],
-					$limit: 64,
-				},
-				$$mevProposerPayloadDelivered: {
-					$: [
+					], limit: 64 }), $$mevProposerPayloadDelivered: ({ sources: [
 						Source.MevRelay_Rest,
-					],
-					$limit: 32,
-				},
-				$$beaconFinalityTimestamps: {
-					$: [
+					], limit: 32 }), $$beaconFinalityTimestamps: ({ sources: [
 						Source.Beacon_Rest,
-					],
-					$limit: 1,
-				},
-				$$beaconValidators: {
-					$: [
+					], limit: 1 }), $$beaconValidators: ({ sources: [
 						Source.Beacon_Rest,
-					],
-					$limit: 48,
-				},
-				$$erc4337SmartAccounts: {
-					$: [
+					], limit: 48 }), $$erc4337SmartAccounts: ({ sources: [
 						Source.Blockscout_Rest,
-					],
-					$limit: 16,
-				},
-				$$userOperations: {
-					$: [
+					], limit: 16 }), $$userOperations: ({ sources: [
 						Source.Blockscout_Rest,
-					],
-					$limit: 16,
-				},
-				$$erc20TokenTransfers: {
-					$: [
+					], limit: 16 }), $$erc20TokenTransfers: ({ sources: [
 						Source.Blockscout_Rest,
-					],
-					$limit: 16,
-				},
-				$$nftTokenTransfers: {
-					$: [
+					], limit: 16 }), $$nftTokenTransfers: ({ sources: [
 						Source.Blockscout_Rest,
-					],
-					$limit: 16,
-				},
-			}),
-		},
+					], limit: 16 }) })) } }),
 	)
 
 
@@ -344,10 +232,10 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{#if network.$icon?.[EntityMetaKey.Id].url}
+				{#if network.fields.$icon?.[EntityMetaKey.Id].url}
 					<IconComponent
-						src={network.$icon[EntityMetaKey.Id].url}
-						alt={network.name ?? ''}
+						src={network.fields.$icon[EntityMetaKey.Id].url}
+						alt={network.fields.name ?? ''}
 					/>
 				{/if}
 			{/snippet}
@@ -372,8 +260,8 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{#if network.name}
-					{network.name}
+				{#if network.fields.name}
+					{network.fields.name}
 				{:else}
 					<span>
 						Chain {String(chainId)}
@@ -403,25 +291,25 @@
 						resource={derive(
 							networkSummaryHead,
 							(network) => (
-								network.$$upgrades
-									?.filter((upgrade) => (
+								network.fields.$$upgrades?.values
+									.filter((upgrade: EntityFieldValue) => (
 										upgrade.activationBlock !== undefined
 										&& (
-											network.blockHeight === undefined
-											|| upgrade.activationBlock <= network.blockHeight
+											network.fields.blockHeight === undefined
+											|| upgrade.activationBlock <= network.fields.blockHeight
 										)
 									))
-									.toSorted((leftUpgrade, rightUpgrade) => (
+									.toSorted((leftUpgrade: EntityFieldValue, rightUpgrade: EntityFieldValue) => (
 										(rightUpgrade.activationBlock ?? 0)
 											- (leftUpgrade.activationBlock ?? 0)
 									))[0]
 									?.[EntityMetaKey.Id]
-								?? network.$$upgrades
-									?.filter((upgrade) => (
+								?? network.fields.$$upgrades?.values
+									.filter((upgrade: EntityFieldValue) => (
 										upgrade.activationTimestampMs !== undefined
 										&& upgrade.activationTimestampMs <= Date.now()
 									))
-									.toSorted((leftUpgrade, rightUpgrade) => (
+									.toSorted((leftUpgrade: EntityFieldValue, rightUpgrade: EntityFieldValue) => (
 										(rightUpgrade.activationTimestampMs ?? 0)
 											- (leftUpgrade.activationTimestampMs ?? 0)
 									))[0]
@@ -455,11 +343,11 @@
 						resource={derive(
 							networkSummaryHead,
 							(network) => {
-								if (network.blockHeight !== undefined) {
-									return network.blockHeight
+								if (network.fields.blockHeight !== undefined) {
+									return network.fields.blockHeight
 								}
-								return network.$$blocks
-									?.toSorted((leftBlock, rightBlock) => (
+								return network.fields.$$blocks?.values
+									.toSorted((leftBlock: EntityFieldValue, rightBlock: EntityFieldValue) => (
 										rightBlock[EntityMetaKey.Id].blockNumber
 										=== leftBlock[EntityMetaKey.Id].blockNumber ?
 											0
@@ -501,18 +389,18 @@
 							resource={derive(
 								networkSummaryHead,
 								(network) => {
-									if (network.$$beaconEpochs?.length) {
-										return network.$$beaconEpochs
-											.toSorted((leftEpoch, rightEpoch) => (
+									if (network.fields.$$beaconEpochs?.values.length) {
+										return network.fields.$$beaconEpochs.values
+											.toSorted((leftEpoch: EntityFieldValue, rightEpoch: EntityFieldValue) => (
 												rightEpoch[EntityMetaKey.Id].epoch - leftEpoch[EntityMetaKey.Id].epoch
 											))[0]
 											?.[EntityMetaKey.Id].epoch
 									}
-									if (!(network.$$beaconSlots?.length)) {
+									if (!(network.fields.$$beaconSlots?.values.length)) {
 										return undefined
 									}
-									const headSlot = network.$$beaconSlots
-										.toSorted((leftSlot, rightSlot) => (
+									const headSlot = network.fields.$$beaconSlots.values
+										.toSorted((leftSlot: EntityFieldValue, rightSlot: EntityFieldValue) => (
 											rightSlot[EntityMetaKey.Id].slot - leftSlot[EntityMetaKey.Id].slot
 										))[0]
 										?.[EntityMetaKey.Id].slot
@@ -553,8 +441,8 @@
 							resource={derive(
 								networkSummaryHead,
 								(network) => {
-									return network.$$beaconSlots
-										?.toSorted((leftSlot, rightSlot) => (
+									return network.fields.$$beaconSlots?.values
+										.toSorted((leftSlot: EntityFieldValue, rightSlot: EntityFieldValue) => (
 											rightSlot[EntityMetaKey.Id].slot - leftSlot[EntityMetaKey.Id].slot
 										))[0]
 										?.[EntityMetaKey.Id].slot
@@ -588,8 +476,8 @@
 						resource={derive(
 							networkSummaryHead,
 							(network) => (
-								network.$$gasEstimateTimestamps
-									?.toSorted((leftTimestamp, rightTimestamp) => (
+								network.fields.$$gasEstimateTimestamps?.values
+									.toSorted((leftTimestamp: EntityFieldValue, rightTimestamp: EntityFieldValue) => (
 										rightTimestamp[EntityMetaKey.Id].timestampMs
 											- leftTimestamp[EntityMetaKey.Id].timestampMs
 									))[0]
@@ -623,12 +511,12 @@
 					>
 						{#snippet children(network)}
 							{#if (
-								network.$nativeCoin
-								&& catalogCoinUsdMarketIdByCoinId[network.$nativeCoin[EntityMetaKey.Id].coinId] !== undefined
+								network.fields.$nativeCoin
+								&& catalogCoinUsdMarketIdByCoinId[network.fields.$nativeCoin[EntityMetaKey.Id].coinId as keyof typeof catalogCoinUsdMarketIdByCoinId] !== undefined
 							)}
 								<MarketPriceView
 									entityId={{
-										$market: catalogCoinUsdMarketIdByCoinId[network.$nativeCoin[EntityMetaKey.Id].coinId],
+										$market: catalogCoinUsdMarketIdByCoinId[network.fields.$nativeCoin[EntityMetaKey.Id].coinId as keyof typeof catalogCoinUsdMarketIdByCoinId],
 									}}
 									layout={EntityLayout.Value}
 									open={false}
@@ -644,7 +532,7 @@
 
 		<dl data-column-item="center">
 			{#if (
-				network.current?.environment !== undefined
+				network.current?.fields.environment !== undefined
 			)}
 				<div>
 					<dt>Environment</dt>
@@ -654,7 +542,7 @@
 							placeholderText="Loading network…"
 						>
 							{#snippet children(network)}
-								{networkEnvironmentByEnvironment[network.environment].label}
+								{networkEnvironmentByEnvironment[network.fields.environment].label}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -663,14 +551,16 @@
 
 				{#if (
 					open
-					&& network.current?.layerNumber !== undefined
+					&& network.current?.fields.layerNumber !== undefined
 				)}
 				<div>
 					<dt>Layer</dt>
 					<dd>
 						<ResourceBoundary resource={network}>
 							{#snippet children(network)}
-								<NumberValue value={network.layerNumber} />
+								{#if network.fields.layerNumber !== undefined}
+									<NumberValue value={network.fields.layerNumber} />
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -679,16 +569,16 @@
 
 			{#if (
 				open
-				&& network.current?.$nativeCoinInstance?.[EntityMetaKey.Id] !== undefined
+				&& network.current?.fields.$nativeCoinInstance?.[EntityMetaKey.Id] !== undefined
 			)}
 				<div>
 					<dt>Native currency</dt>
 					<dd>
 						<ResourceBoundary resource={network}>
 							{#snippet children(network)}
-								{#if network.$nativeCoinInstance}
+								{#if network.fields.$nativeCoinInstance}
 									<EvmCoinInstanceView
-										entityId={network.$nativeCoinInstance[EntityMetaKey.Id]}
+										entityId={network.fields.$nativeCoinInstance[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -701,7 +591,7 @@
 
 			{#if (
 				open
-				&& network.current?.$parent?.[EntityMetaKey.Id] !== undefined
+				&& network.current?.fields.$parent?.[EntityMetaKey.Id] !== undefined
 			)}
 				<div>
 					<dt>Parent</dt>
@@ -711,9 +601,9 @@
 							placeholderText="Loading network…"
 						>
 								{#snippet children(network)}
-									{#if network.$parent?.[EntityMetaKey.Id] !== undefined}
+									{#if network.fields.$parent?.[EntityMetaKey.Id] !== undefined}
 										<NetworkView
-											entityId={network.$parent[EntityMetaKey.Id]}
+											entityId={network.fields.$parent[EntityMetaKey.Id]}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -726,8 +616,8 @@
 
 			{#if (
 				open
-				&& network.current?.environment === NetworkEnvironment.Testnet
-				&& network.current.$mainnet?.[EntityMetaKey.Id] !== undefined
+				&& network.current?.fields.environment === NetworkEnvironment.Testnet
+				&& network.current.fields.$mainnet?.[EntityMetaKey.Id] !== undefined
 			)}
 				<div>
 					<dt>Mainnet</dt>
@@ -737,9 +627,9 @@
 							placeholderText="Loading network…"
 						>
 								{#snippet children(network)}
-									{#if network.$mainnet?.[EntityMetaKey.Id] !== undefined}
+									{#if network.fields.$mainnet?.[EntityMetaKey.Id] !== undefined}
 										<NetworkView
-											entityId={network.$mainnet[EntityMetaKey.Id]}
+											entityId={network.fields.$mainnet[EntityMetaKey.Id]}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -753,7 +643,7 @@
 			{#if (
 				open
 				&& (
-					network.current?.consensusProtocol !== undefined
+					network.current?.fields.consensusProtocol !== undefined
 					|| separateConsensusProtocol != null
 				)
 			)}
@@ -762,8 +652,8 @@
 					<dd>
 						<ResourceBoundary resource={network}>
 							{#snippet children(network)}
-								{#if (network.consensusProtocol ?? separateConsensusProtocol) !== undefined}
-									{consensusProtocolByProtocol[network.consensusProtocol ?? separateConsensusProtocol].label}
+								{#if (network.fields.consensusProtocol ?? separateConsensusProtocol) !== undefined}
+									{consensusProtocolByProtocol[network.fields.consensusProtocol ?? separateConsensusProtocol].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -778,14 +668,14 @@
 
 			{#if (
 				open
-				&& network.current?.registryStatus !== undefined
+				&& network.current?.fields.registryStatus !== undefined
 			)}
 				<div>
 					<dt>Registry status</dt>
 					<dd>
 						<ResourceBoundary resource={network}>
 							{#snippet children(network)}
-								{network.registryStatus}
+								{network.fields.registryStatus}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -794,15 +684,15 @@
 
 			{#if (
 				open
-				&& network.current?.peeringId !== undefined
-				&& network.current.peeringId !== chainId
+				&& network.current?.fields.peeringId !== undefined
+				&& network.current.fields.peeringId !== chainId
 			)}
 				<div>
 					<dt>Peering ID</dt>
 					<dd>
 						<ResourceBoundary resource={network}>
 							{#snippet children(network)}
-								{String(network.peeringId)}
+								{String(network.fields.peeringId)}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -811,14 +701,14 @@
 
 			{#if (
 				open
-				&& network.current?.slip44 !== undefined
+				&& network.current?.fields.slip44 !== undefined
 			)}
 				<div>
 					<dt>SLIP-44</dt>
 					<dd>
 						<ResourceBoundary resource={network}>
 							{#snippet children(network)}
-								{String(network.slip44)}
+								{String(network.fields.slip44)}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -1333,7 +1223,7 @@
 							sections={[
 								{ id: 'assets-native-coin', label: 'Native coin' },
 								...(
-									(network.$$bridges ?? []).length ?
+									(network.fields.$$bridges.values).length ?
 										([{ id: 'assets-bridges', label: 'Bridges' }] as const)
 									:
 										[]
@@ -1353,7 +1243,7 @@
 						{#snippet SectionAssetsNativeCoin({ id, label })}
 							{@const assetRows = [
 								...(
-									network.$nativeCoinInstance ?
+									network.fields.$nativeCoinInstance ?
 										[
 											{
 												id: 'native-coin-instance',
@@ -1364,7 +1254,7 @@
 										[]
 								),
 								...(
-									network.$nativeCoin ?
+									network.fields.$nativeCoin ?
 										[
 											{
 												id: 'native-coin',
@@ -1375,7 +1265,7 @@
 										[]
 								),
 								...(
-									!network.$nativeCoin && network.$nativeCoinInstance ?
+									!network.fields.$nativeCoin && network.fields.$nativeCoinInstance ?
 										[
 											{
 												id: 'native-coin-mapping-notice',
@@ -1386,7 +1276,7 @@
 										[]
 								),
 								...(
-									!network.$nativeCoinInstance ?
+									!network.fields.$nativeCoinInstance ?
 										[
 											{
 												id: 'native-coin-missing-notice',
@@ -1408,17 +1298,17 @@
 							>
 									{#snippet Item({ item })}
 										{#if item.type === 'native-coin-instance'}
-											{#if network.$nativeCoinInstance !== undefined}
+											{#if network.fields.$nativeCoinInstance !== undefined}
 												<EvmCoinInstanceView
-													entityId={network.$nativeCoinInstance[EntityMetaKey.Id]}
+													entityId={network.fields.$nativeCoinInstance[EntityMetaKey.Id]}
 													layout={EntityLayout.Summary}
 													title="Native coin"
 												/>
 											{/if}
 										{:else if item.type === 'native-coin'}
-											{#if network.$nativeCoin !== undefined}
+											{#if network.fields.$nativeCoin !== undefined}
 												<CoinView
-													entityId={network.$nativeCoin[EntityMetaKey.Id]}
+													entityId={network.fields.$nativeCoin[EntityMetaKey.Id]}
 													layout={EntityLayout.Summary}
 												/>
 											{/if}
@@ -1558,43 +1448,43 @@
 						sections={[
 							{ id: 'topology-upgrades', label: 'Upgrades' },
 							...(
-								network.$parent?.[EntityMetaKey.Id] !== undefined ?
+								network.fields.$parent?.[EntityMetaKey.Id] !== undefined ?
 									([{ id: 'topology-parent-layer', label: 'Parent' }] as const)
 								:
 									[]
 							),
 							...(
-								network.$rollup?.[EntityMetaKey.Id].projectId !== undefined ?
+								network.fields.$rollup?.[EntityMetaKey.Id].projectId !== undefined ?
 									([{ id: 'topology-rollup', label: 'Rollup' }] as const)
 								:
 									[]
 							),
 							...(
-								(network.$$siblingShardNetworks ?? []).length ?
+								(network.fields.$$siblingShardNetworks.values).length ?
 									([{ id: 'topology-sibling-shards', label: 'Shards' }] as const)
 								:
 									[]
 							),
 							...(
-								network.environment === NetworkEnvironment.Mainnet ?
+								network.fields.environment === NetworkEnvironment.Mainnet ?
 									([{ id: 'topology-testnets', label: 'Testnets' }] as const)
 								:
 									[]
 							),
 							...(
-								network.environment === NetworkEnvironment.Testnet ?
+								network.fields.environment === NetworkEnvironment.Testnet ?
 									([{ id: 'topology-mainnet', label: 'Mainnet' }] as const)
 								:
 									[]
 							),
 							...(
-								(network.$$childLayers ?? []).length ?
+								(network.fields.$$childLayers.values).length ?
 									([{ id: 'topology-child-layers', label: 'Layers' }] as const)
 								:
 									[]
 							),
 							...(
-								(network.$$settledRollups ?? []).length ?
+								(network.fields.$$settledRollups.values).length ?
 									([{ id: 'topology-settled-rollups', label: 'Settled rollups' }] as const)
 								:
 									[]
@@ -1626,8 +1516,8 @@
 						{/snippet}
 
 						{#snippet SectionTopologyParentLayer({ id, label })}
-							{#if network.$parent != null}
-								{@const parentId = network.$parent[EntityMetaKey.Id]}
+							{#if network.fields.$parent != null}
+								{@const parentId = network.fields.$parent[EntityMetaKey.Id]}
 								<EntitiesList
 									collapsible={false}
 									entityType={EntityType.Network}
@@ -1647,10 +1537,10 @@
 
 						{#snippet SectionTopologyRollup({ id, label })}
 							{#if (
-								network.$rollup != null
-								&& network.$rollup[EntityMetaKey.Id].projectId !== undefined
+								network.fields.$rollup != null
+								&& network.fields.$rollup[EntityMetaKey.Id].projectId !== undefined
 							)}
-								{@const rollupId = network.$rollup[EntityMetaKey.Id]}
+								{@const rollupId = network.fields.$rollup[EntityMetaKey.Id]}
 								<EntitiesList
 									collapsible={false}
 									entityType={EntityType.EvmRollup}
@@ -1697,8 +1587,8 @@
 						{/snippet}
 
 						{#snippet SectionTopologyMainnet({ id, label })}
-							{#if network.$mainnet != null}
-								{@const mainnetId = network.$mainnet[EntityMetaKey.Id]}
+							{#if network.fields.$mainnet != null}
+								{@const mainnetId = network.fields.$mainnet[EntityMetaKey.Id]}
 								<EntitiesList
 									collapsible={false}
 									entityType={EntityType.Network}

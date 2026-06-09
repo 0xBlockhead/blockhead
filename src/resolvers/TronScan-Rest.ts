@@ -6,10 +6,10 @@ import { tronScanRestBaseUrl } from '$/constants/TronNetwork.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { TronTokenStandard } from '$/schema/TronToken.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	TronScanBlock,
 	TronScanContract,
@@ -293,8 +293,9 @@ export default {
 				if (block == null) throw new Error(`TronScan_Rest: block not found for ${entityId.height.toString()}`)
 				return blockFieldsFromTronScanBlock(entityId.$network, block)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (block) => block.hash,
 			$parent: (block) => block.$parent,
 			parentHash: (block) => block.parentHash,
@@ -303,8 +304,8 @@ export default {
 			txTrieRoot: (block) => block.txTrieRoot,
 			version: (block) => block.version,
 			transactionCount: (block) => block.transactionCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronAccount,
@@ -337,8 +338,9 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (account) => account.name,
 			balanceSun: (account) => account.balanceSun,
 			createdTimestampMs: (account) => account.createdTimestampMs,
@@ -348,8 +350,8 @@ export default {
 			energyRemaining: (account) => account.energyRemaining,
 			isContract: (account) => account.isContract,
 			$contract: (account) => account.$contract,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronTransaction,
@@ -366,8 +368,9 @@ export default {
 					detail.data?.[0] ?? detail,
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$block: (transaction) => transaction.$block,
 			blockHeight: (transaction) => transaction.blockHeight,
 			timestampMs: (transaction) => transaction.timestampMs,
@@ -379,8 +382,8 @@ export default {
 			$contract: (transaction) => transaction.$contract,
 			amountSun: (transaction) => transaction.amountSun,
 			assetName: (transaction) => transaction.assetName,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronContract,
@@ -395,8 +398,9 @@ export default {
 				if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${entityId.address}`)
 				return contractFieldsFromTronScanContract(entityId.$network, entityId.address, contract)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$account: (contract) => contract.$account,
 			name: (contract) => contract.name,
 			compiler: (contract) => contract.compiler,
@@ -406,8 +410,8 @@ export default {
 			$creator: (contract) => contract.$creator,
 			$creationTransaction: (contract) => contract.$creationTransaction,
 			$$tokens: (contract) => contract.$$tokens,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronToken,
@@ -430,8 +434,9 @@ export default {
 				)
 				return tokenFieldsFromTronScanToken(entityId.$network, token)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			standard: (token) => token.standard,
 			name: (token) => token.name,
 			symbol: (token) => token.symbol,
@@ -441,8 +446,8 @@ export default {
 			$contract: (token) => token.$contract,
 			createdTimestampMs: (token) => token.createdTimestampMs,
 			holderCount: (token) => token.holderCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronTokenTransfer,
@@ -465,8 +470,9 @@ export default {
 					entityId.transferIndex,
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$transaction: (transfer) => transfer.$transaction,
 			$token: (transfer) => transfer.$token,
 			standard: (transfer) => transfer.standard,
@@ -474,8 +480,8 @@ export default {
 			$to: (transfer) => transfer.$to,
 			amount: (transfer) => transfer.amount,
 			timestampMs: (transfer) => transfer.timestampMs,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronAccount,
@@ -505,11 +511,12 @@ export default {
 					)
 				})
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$tokens: (tokens) => tokens,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronContract,
@@ -524,11 +531,12 @@ export default {
 				if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${entityId.address}`)
 				return contractFieldsFromTronScanContract(entityId.$network, entityId.address, contract).$$tokens
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$tokens: (tokens) => tokens,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronTransaction,
@@ -551,10 +559,11 @@ export default {
 					)
 				))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$tokenTransfers: (tokenTransfers) => tokenTransfers,
-		}
-		}),
+		},
+			}),
 	],
 }

@@ -1,16 +1,16 @@
 import { type } from 'arktype'
-import { lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
+import { lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
 
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/Network.ts'
 import TronWitness from '$/schema/TronWitness.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const tronPublicBlockSources = [
 	Source.TronScan_Rest,

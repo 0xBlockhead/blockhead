@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -23,11 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const zeroGKvEntry = useEntity(EntityType.ZeroGKvEntry, entityId, {
-		$logEntry: {},
-		$owner: {},
-		valueHash: {},
-	})
+	const zeroGKvEntry = useEntity(entityCollectionsContext, EntityType.ZeroGKvEntry, entityId, ({ fields: { $logEntry: true, $owner: true, valueHash: true } }))
 
 
 	// Components
@@ -70,12 +67,12 @@
 		>
 			{#snippet children(zeroGKvEntry)}
 				<dl>
-					{#if zeroGKvEntry.$owner != null}
+					{#if zeroGKvEntry.fields.$owner != null}
 						<div>
 							<dt>Owner</dt>
 							<dd>
 								<EvmAccountView
-									entityId={zeroGKvEntry.$owner[EntityMetaKey.Id]}
+									entityId={zeroGKvEntry.fields.$owner[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -83,24 +80,24 @@
 						</div>
 					{/if}
 
-					{#if zeroGKvEntry.valueHash != null}
+					{#if zeroGKvEntry.fields.valueHash != null}
 						<div>
 							<dt>Value Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGKvEntry.valueHash}
+									value={zeroGKvEntry.fields.valueHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if zeroGKvEntry.$logEntry != null}
+					{#if zeroGKvEntry.fields.$logEntry != null}
 						<div>
 							<dt>Log entry</dt>
 							<dd>
 								<ZeroGStorageLogEntryView
-									entityId={zeroGKvEntry.$logEntry[EntityMetaKey.Id]}
+									entityId={zeroGKvEntry.fields.$logEntry[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

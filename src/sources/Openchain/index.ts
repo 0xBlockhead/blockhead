@@ -2,7 +2,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import {
 	directoryOrigin,
 	signatureOrigin,

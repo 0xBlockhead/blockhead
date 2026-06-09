@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,16 +27,9 @@
 		>
 	> = $props()
 
-	const cosmosValidator = useEntity(
-		EntityType.CosmosValidator,
+	const cosmosValidator = useEntity(entityCollectionsContext, EntityType.CosmosValidator,
 		entityId,
-		{
-			consensusPubkey: {},
-			moniker: {},
-			jailed: {},
-			status: {},
-			tokens: {},
-		},
+		({ fields: { consensusPubkey: true, moniker: true, jailed: true, status: true, tokens: true } }),
 	)
 
 
@@ -69,42 +63,42 @@
 		>
 			{#snippet children(cosmosValidator)}
 				<dl>
-					{#if cosmosValidator.consensusPubkey != null}
+					{#if cosmosValidator.fields.consensusPubkey != null}
 						<div>
 							<dt>Consensus Pubkey</dt>
 							<dd>
 								<TruncatedValue
-									value={cosmosValidator.consensusPubkey}
+									value={cosmosValidator.fields.consensusPubkey}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if cosmosValidator.moniker != null}
+					{#if cosmosValidator.fields.moniker != null}
 						<div>
 							<dt>Moniker</dt>
-							<dd>{cosmosValidator.moniker}</dd>
+							<dd>{cosmosValidator.fields.moniker}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosValidator.jailed != null}
+					{#if cosmosValidator.fields.jailed != null}
 						<div>
 							<dt>Jailed</dt>
-							<dd>{cosmosValidator.jailed ? 'Yes' : 'No'}</dd>
+							<dd>{cosmosValidator.fields.jailed ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosValidator.status != null}
+					{#if cosmosValidator.fields.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{cosmosValidator.status}</dd>
+							<dd>{cosmosValidator.fields.status}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosValidator.tokens != null}
+					{#if cosmosValidator.fields.tokens != null}
 						<div>
 							<dt>Tokens</dt>
-							<dd><NumberValue value={cosmosValidator.tokens} /></dd>
+							<dd><NumberValue value={cosmosValidator.fields.tokens} /></dd>
 						</div>
 					{/if}
 				</dl>

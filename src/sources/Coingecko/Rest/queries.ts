@@ -1,6 +1,6 @@
 import { throwHttpError } from '$/lib/http.ts'
 import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { coingeckoRestFetch } from '$/sources/Coingecko/Rest/client.ts'
 import type {

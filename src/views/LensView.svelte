@@ -4,13 +4,14 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -36,33 +37,14 @@
 
 	const networkIdKey = stringify(entityId)
 
-	const lensNetwork = useEntity(
-		EntityType.LensNetwork,
+	const lensNetwork = useEntity(entityCollectionsContext, EntityType.LensNetwork,
 		entityId,
-		{
-			$: [Source.Constants_Internal],
-			protocolName: {},
-			registryLabel: {},
-			...(open ?
-				{
-					homeUrl: {},
-					docsUrl: {},
-					topology: {},
-					$$lensAccounts: {
-						$: [
+		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$lensAccounts: ({ sources: [
 							Source.Constants_Internal,
 							Source.Lens_Graphql,
-						],
-					},
-					$$lensPosts: {
-						$: [
+						] }), $$lensPosts: ({ sources: [
 							Source.Lens_Graphql,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 
@@ -96,7 +78,7 @@
 			placeholderText="Loading Lens…"
 		>
 			{#snippet children(lensNetwork)}
-				{lensNetwork.protocolName ?? 'Lens'}
+				{lensNetwork.fields.protocolName ?? 'Lens'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -121,50 +103,50 @@
 				placeholderText="Loading Lens…"
 			>
 				{#snippet children(lensNetwork)}
-					{#if lensNetwork.registryLabel}
+					{#if lensNetwork.fields.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{lensNetwork.registryLabel}</dd>
+							<dd>{lensNetwork.fields.registryLabel}</dd>
 						</div>
-					{:else if lensNetwork.protocolName}
+					{:else if lensNetwork.fields.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{lensNetwork.protocolName}</dd>
+							<dd>{lensNetwork.fields.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if contentOpen}
 						<div>
 							<dt>Profiles</dt>
-							<dd>{String(lensNetwork.$$lensAccounts?.length ?? 0)}</dd>
+							<dd>{String(lensNetwork.fields.$$lensAccounts?.values.length ?? 0)}</dd>
 						</div>
 						<div>
 							<dt>Publications</dt>
-							<dd>{String(lensNetwork.$$lensPosts?.length ?? 0)}</dd>
+							<dd>{String(lensNetwork.fields.$$lensPosts?.values.length ?? 0)}</dd>
 						</div>
 
-						{#if lensNetwork.topology}
+						{#if lensNetwork.fields.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{lensNetwork.topology}</dd>
+								<dd>{lensNetwork.fields.topology}</dd>
 							</div>
 						{/if}
 
-						{#if lensNetwork.homeUrl}
+						{#if lensNetwork.fields.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={lensNetwork.homeUrl}>{lensNetwork.homeUrl}</a>
+									<a href={lensNetwork.fields.homeUrl}>{lensNetwork.fields.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if lensNetwork.docsUrl !== undefined}
+						{#if lensNetwork.fields.docsUrl !== undefined}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={lensNetwork.docsUrl}>
-										{lensNetwork.docsUrl}
+									<a href={lensNetwork.fields.docsUrl}>
+										{lensNetwork.fields.docsUrl}
 									</a>
 								</dd>
 							</div>

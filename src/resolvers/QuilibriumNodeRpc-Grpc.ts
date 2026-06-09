@@ -4,9 +4,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -34,11 +34,12 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$shard: (snapshot) => snapshot.$shard,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumShard,
@@ -49,11 +50,12 @@ export default {
 					...(entityId.shardKey === 'master' && { shardKind: 'master' }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			shardKind: (snapshot) => snapshot.shardKind,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumAccount,
@@ -64,11 +66,12 @@ export default {
 					accountKind: entityId.accountAddress.startsWith('0x') ? 'implicit' : 'originated',
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			accountKind: (snapshot) => snapshot.accountKind,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumPendingTransaction,
@@ -79,11 +82,12 @@ export default {
 					transactionType: 'pending',
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			transactionType: (snapshot) => snapshot.transactionType,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumNetwork,
@@ -99,10 +103,11 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$masterShard: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

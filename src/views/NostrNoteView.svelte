@@ -3,15 +3,16 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,41 +42,18 @@
 		>
 	> = $props()
 
-	const note = useEntity(
-		EntityType.NostrNote,
+	const note = useEntity(entityCollectionsContext, EntityType.NostrNote,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
-			],
-			eventId: {},
-			pubkey: {},
-			content: {},
-			createdAt: {},
-			replyToEventId: {},
-			rootEventId: {},
-			tags: {},
-			$replyToNote: {},
-			$author: {},
-			...(open ?
-				{
-					$$replies: {
-						$: [
+			], fields: { eventId: true, pubkey: true, content: true, createdAt: true, replyToEventId: true, rootEventId: true, tags: true, $replyToNote: true, $author: true, ...(open ? ({ $$replies: ({ sources: [
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
-						],
-					},
-					$$reactions: {
-						$: [
+						] }), $$reactions: ({ sources: [
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 
@@ -113,12 +91,12 @@
 			placeholderText="Loading note…"
 		>
 			{#snippet children(note)}
-				{#if note.content}
+				{#if note.fields.content}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={note.content}
+						value={note.fields.content}
 					/>
 				{:else}
 					{#if Value}
@@ -134,10 +112,10 @@
 			resource={note}
 		>
 			{#snippet children(note)}
-				{#if note.createdAt}
+				{#if note.fields.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={note.createdAt}
+							timestamp={note.fields.createdAt}
 						/>
 					</span>
 				{/if}
@@ -162,12 +140,12 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.eventId}
+						{#if note.fields.eventId}
 							<div>
 								<dt>Event id</dt>
 								<dd>
 									<TruncatedValue
-										value={note.eventId}
+										value={note.fields.eventId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
@@ -183,12 +161,12 @@
 							placeholderText="Loading note…"
 						>
 							{#snippet children(note)}
-						{#if note.$author}
+						{#if note.fields.$author}
 				<div>
 					<dt>Author</dt>
 					<dd>
 								<NostrProfileView
-									entityId={note.$author[EntityMetaKey.Id]}
+									entityId={note.fields.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -205,28 +183,28 @@
 							placeholderText="Loading note…"
 						>
 							{#snippet children(note)}
-						{#if note.$replyToNote || note.replyToEventId}
+						{#if note.fields.$replyToNote || note.fields.replyToEventId}
 				<div>
 					<dt>Reply to</dt>
 					<dd>
-								{#if note.$replyToNote}
+								{#if note.fields.$replyToNote}
 										<svelte:self
-										entityId={note.$replyToNote[EntityMetaKey.Id]}
+										entityId={note.fields.$replyToNote[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 											open={false}
 									/>
-								{:else if note.replyToEventId}
+								{:else if note.fields.replyToEventId}
 									<a
 										data-link
 										href={resolve('/(social)/(nostr)/nostr/note/[eventId]', {
-											eventId: note.replyToEventId,
+											eventId: note.fields.replyToEventId,
 										})}
 									>
 										<TruncatedValue
 											endLength={12}
 											format={TruncatedValueFormat.Visual}
 											startLength={20}
-											value={note.replyToEventId}
+											value={note.fields.replyToEventId}
 										/>
 									</a>
 								{/if}
@@ -244,8 +222,8 @@
 				>
 					{#snippet children(note)}
 						{#if (
-							note.rootEventId
-							&& note.rootEventId !== note.replyToEventId
+							note.fields.rootEventId
+							&& note.fields.rootEventId !== note.fields.replyToEventId
 						)}
 							<div>
 								<dt>Thread root</dt>
@@ -253,14 +231,14 @@
 									<a
 										data-link
 										href={resolve('/(social)/(nostr)/nostr/note/[eventId]', {
-											eventId: note.rootEventId,
+											eventId: note.fields.rootEventId,
 										})}
 									>
 										<TruncatedValue
 											endLength={12}
 											format={TruncatedValueFormat.Visual}
 											startLength={20}
-											value={note.rootEventId}
+											value={note.fields.rootEventId}
 										/>
 									</a>
 								</dd>
@@ -303,8 +281,8 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.content}
-							<p>{note.content}</p>
+						{#if note.fields.content}
+							<p>{note.fields.content}</p>
 						{:else}
 							<div data-row="wrap align-center gap-2">
 								<p data-text="muted">

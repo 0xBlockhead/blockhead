@@ -1,9 +1,9 @@
 import { bridgeToolByKey, bridgeTools } from '$/constants/Bridge.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import type { LifiBridgeTool } from '$/sources/Lifi/Rest/types.ts'
 import { stringify } from 'devalue'
 

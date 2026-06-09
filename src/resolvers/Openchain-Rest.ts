@@ -2,9 +2,9 @@ import {
 	defineResolver,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { EntityIdProjection } from '$/schema/$schema.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.Openchain_Rest,
@@ -21,11 +21,12 @@ export default {
 					),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			signatures: (snapshot) => snapshot.signatures,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmTopic,
@@ -38,11 +39,12 @@ export default {
 					),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			signatures: (snapshot) => snapshot.signatures,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmError,
@@ -55,10 +57,11 @@ export default {
 					),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			signatures: (snapshot) => snapshot.signatures,
-		}
-		}),
+		},
+			}),
 	],
 }

@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -24,39 +25,19 @@
 		open?: boolean
 	} = $props()
 
-	const network = useEntity(
-		EntityType.Network,
+	const network = useEntity(entityCollectionsContext, EntityType.Network,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-			environment: {},
-			$networkStack: {},
-			$$nativeAssets: {},
-			$$executionEnvironments: {},
-			$$consensusMechanisms: {},
-		},
+			], fields: { name: true, environment: true, $networkStack: true, $$nativeAssets: true, $$executionEnvironments: true, $$consensusMechanisms: true } }),
 	)
 
-	const hyperliquidNetwork = useEntity(
-		EntityType.HyperliquidNetwork,
+	const hyperliquidNetwork = useEntity(entityCollectionsContext, EntityType.HyperliquidNetwork,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Hyperliquid_JsonRpc,
 				Source.Hyperliquid_Rest,
-			],
-			rpcEndpoints: {},
-			restEndpoints: {},
-			$$blocks: {
-				$limit: 1,
-			},
-			$$timestamps: {
-				$limit: 1,
-			},
-		},
+			], fields: { rpcEndpoints: true, restEndpoints: true, $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1 }) } }),
 	)
 
 
@@ -99,7 +80,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				<span>{network.name}</span>
+				<span>{network.fields.name}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,7 +92,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.name}
+				{network.fields.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -126,7 +107,7 @@
 		<dl class="network-summary-head" data-column-item="center">
 				<ResourceBoundary resource={hyperliquidNetwork} placeholderText="Loading head block…">
 					{#snippet children(hyperliquidNetwork)}
-						{@const block = hyperliquidNetwork.$$blocks?.at(0)}
+						{@const block = hyperliquidNetwork.fields.$$blocks?.values.at(0)}
 						{#if block != null}
 							<div>
 								<dt>Head block</dt>
@@ -146,16 +127,16 @@
 					{#if open}
 						<div>
 							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
+							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 						</div>
 					{/if}
 
-					{#if open && network.$networkStack != null}
+					{#if open && network.fields.$networkStack != null}
 						<div>
 							<dt>Stack</dt>
 							<dd>
 								<NetworkStackView
-									entityId={network.$networkStack[EntityMetaKey.Id]}
+									entityId={network.fields.$networkStack[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

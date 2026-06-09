@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,18 +36,13 @@
 		>
 	> = $props()
 
-	const youTubeChannelTimestamp = useEntity(
+	const youTubeChannelTimestamp = useEntity(entityCollectionsContext, 
 		EntityType.YouTubeChannel_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
-			],
-			subscriberCount: {},
-			videoCount: {},
-			viewCount: {},
-		},
+			], fields: { subscriberCount: true, videoCount: true, viewCount: true } }),
 	)
 
 
@@ -92,15 +88,15 @@
 						metrics={[
 							{
 								label: 'Subscribers',
-								value: youTubeChannelTimestamp.subscriberCount,
+								value: youTubeChannelTimestamp.fields.subscriberCount,
 							},
 							{
 								label: 'Videos',
-								value: youTubeChannelTimestamp.videoCount,
+								value: youTubeChannelTimestamp.fields.videoCount,
 							},
 							{
 								label: 'Views',
-								value: youTubeChannelTimestamp.viewCount,
+								value: youTubeChannelTimestamp.fields.viewCount,
 							},
 						]}
 					/>

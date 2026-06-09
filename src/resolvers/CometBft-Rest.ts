@@ -5,9 +5,9 @@ import { cosmosHubCaip2, cosmosHubRpcUrl } from '$/constants/CosmosNetwork.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -44,13 +44,14 @@ export default {
 					timestampMs: Date.parse(wireBlock.result.block.header.time),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (snapshot) => snapshot.hash,
 			proposerConsensusAddress: (snapshot) => snapshot.proposerConsensusAddress,
 			timestampMs: (snapshot) => snapshot.timestampMs,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.CometBft_Rest, {
 			entityType: EntityType.CosmosTransaction,
@@ -74,13 +75,14 @@ export default {
 					gasUsed: BigInt(wireTransaction.result.tx_result.gas_used),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$block: (snapshot) => snapshot.$block,
 			code: (snapshot) => snapshot.code,
 			gasWanted: (snapshot) => snapshot.gasWanted,
 			gasUsed: (snapshot) => snapshot.gasUsed,
-		}
-		}),
+		},
+			}),
 	],
 }

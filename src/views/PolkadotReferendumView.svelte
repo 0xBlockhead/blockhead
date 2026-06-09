@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const polkadotReferendum = useEntity(
-		EntityType.PolkadotReferendum,
+	const polkadotReferendum = useEntity(entityCollectionsContext, EntityType.PolkadotReferendum,
 		entityId,
-		{
-			track: {},
-			status: {},
-		},
+		({ fields: { track: true, status: true } }),
 	)
 
 
@@ -75,17 +72,17 @@
 		>
 			{#snippet children(polkadotReferendum)}
 				<dl>
-					{#if polkadotReferendum.track != null}
+					{#if polkadotReferendum.fields.track != null}
 						<div>
 							<dt>Track</dt>
-							<dd>{polkadotReferendum.track}</dd>
+							<dd>{polkadotReferendum.fields.track}</dd>
 						</div>
 					{/if}
 
-					{#if polkadotReferendum.status != null}
+					{#if polkadotReferendum.fields.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{polkadotReferendum.status}</dd>
+							<dd>{polkadotReferendum.fields.status}</dd>
 						</div>
 					{/if}
 				</dl>

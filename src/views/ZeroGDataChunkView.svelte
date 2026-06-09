@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const zeroGDataChunk = useEntity(
-		EntityType.ZeroGDataChunk,
+	const zeroGDataChunk = useEntity(entityCollectionsContext, EntityType.ZeroGDataChunk,
 		entityId,
-		{
-			chunkRoot: {},
-			sizeBytes: {},
-		},
+		({ fields: { chunkRoot: true, sizeBytes: true } }),
 	)
 
 
@@ -75,21 +72,21 @@
 		>
 			{#snippet children(zeroGDataChunk)}
 				<dl>
-					{#if zeroGDataChunk.chunkRoot != null}
+					{#if zeroGDataChunk.fields.chunkRoot != null}
 						<div>
 							<dt>Chunk Root</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGDataChunk.chunkRoot}
+									value={zeroGDataChunk.fields.chunkRoot}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if zeroGDataChunk.sizeBytes != null}
+					{#if zeroGDataChunk.fields.sizeBytes != null}
 						<div>
 							<dt>Size Bytes</dt>
-							<dd><NumberValue value={zeroGDataChunk.sizeBytes} /> bytes</dd>
+							<dd><NumberValue value={zeroGDataChunk.fields.sizeBytes} /> bytes</dd>
 						</div>
 					{/if}
 				</dl>

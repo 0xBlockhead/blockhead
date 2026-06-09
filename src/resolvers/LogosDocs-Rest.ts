@@ -1,9 +1,9 @@
 import {
 	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { EntityIdProjection } from '$/schema/$schema.ts'
+import { Source } from '$/sources/Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -38,11 +38,12 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			zoneKind: (snapshot) => snapshot.zoneKind,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LogosDocs_Rest, {
 			entityType: EntityType.LogosAccount,
@@ -51,10 +52,11 @@ export default {
 				assertLogosStack(entityId.$network)
 				return {}
 			}
-			},
-			fields: {
-		}
-		}),
+			}
+		})({
+				fields: {
+		},
+			}),
 
 		defineResolver(Source.LogosDocs_Rest, {
 			entityType: EntityType.LogosTransaction,
@@ -63,9 +65,10 @@ export default {
 				assertLogosStack(entityId.$network)
 				return {}
 			}
-			},
-			fields: {
-		}
-		}),
+			}
+		})({
+				fields: {
+		},
+			}),
 	],
 }

@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const quilibriumProver = useEntity(
-		EntityType.QuilibriumProver,
+	const quilibriumProver = useEntity(entityCollectionsContext, EntityType.QuilibriumProver,
 		entityId,
-		{
-			publicKey: {},
-			version: {},
-		},
+		({ fields: { publicKey: true, version: true } }),
 	)
 
 
@@ -65,21 +62,21 @@
 		>
 			{#snippet children(quilibriumProver)}
 				<dl>
-					{#if quilibriumProver.publicKey != null}
+					{#if quilibriumProver.fields.publicKey != null}
 						<div>
 							<dt>Public Key</dt>
 							<dd>
 								<TruncatedValue
-									value={quilibriumProver.publicKey}
+									value={quilibriumProver.fields.publicKey}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if quilibriumProver.version != null}
+					{#if quilibriumProver.fields.version != null}
 						<div>
 							<dt>Version</dt>
-							<dd>{quilibriumProver.version}</dd>
+							<dd>{quilibriumProver.fields.version}</dd>
 						</div>
 					{/if}
 				</dl>

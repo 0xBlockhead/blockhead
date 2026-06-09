@@ -3,9 +3,9 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -36,16 +36,13 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const networkTxpoolTimestamp = useEntity(
+	const networkTxpoolTimestamp = useEntity(entityCollectionsContext, 
 		EntityType.EvmNetwork_Txpool_Timestamp,
 		entityId,
-		{
-			$: [Source.Voltaire_JsonRpc],
-			pendingCount: {},
-			queuedCount: {},
-		},
+		({ sources: [Source.Voltaire_JsonRpc], fields: { pendingCount: true, queuedCount: true } }),
 	)
 
 
@@ -72,11 +69,11 @@
 			placeholderText="Loading mempool…"
 		>
 			{#snippet children(networkTxpoolTimestamp)}
-				{#if networkTxpoolTimestamp.pendingCount !== undefined}
-					<NumberValue value={networkTxpoolTimestamp.pendingCount} />
+				{#if networkTxpoolTimestamp.fields.pendingCount !== undefined}
+					<NumberValue value={networkTxpoolTimestamp.fields.pendingCount} />
 					pending
-				{:else if networkTxpoolTimestamp.queuedCount !== undefined}
-					<NumberValue value={networkTxpoolTimestamp.queuedCount} />
+				{:else if networkTxpoolTimestamp.fields.queuedCount !== undefined}
+					<NumberValue value={networkTxpoolTimestamp.fields.queuedCount} />
 					queued
 				{:else}
 					<span>
@@ -93,11 +90,11 @@
 			placeholderText="Loading mempool…"
 		>
 			{#snippet children(networkTxpoolTimestamp)}
-				{#if networkTxpoolTimestamp.pendingCount !== undefined}
-					<NumberValue value={networkTxpoolTimestamp.pendingCount} />
+				{#if networkTxpoolTimestamp.fields.pendingCount !== undefined}
+					<NumberValue value={networkTxpoolTimestamp.fields.pendingCount} />
 					pending
-				{:else if networkTxpoolTimestamp.queuedCount !== undefined}
-					<NumberValue value={networkTxpoolTimestamp.queuedCount} />
+				{:else if networkTxpoolTimestamp.fields.queuedCount !== undefined}
+					<NumberValue value={networkTxpoolTimestamp.fields.queuedCount} />
 					queued
 				{:else}
 					<span>
@@ -137,7 +134,7 @@
 								resource={networkTxpoolTimestamp}
 							>
 								{#snippet children(networkTxpoolTimestamp)}
-									<NumberValue value={networkTxpoolTimestamp.pendingCount} />
+									<NumberValue value={networkTxpoolTimestamp.fields.pendingCount} />
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -153,7 +150,7 @@
 								resource={networkTxpoolTimestamp}
 							>
 								{#snippet children(networkTxpoolTimestamp)}
-									<NumberValue value={networkTxpoolTimestamp.queuedCount} />
+									<NumberValue value={networkTxpoolTimestamp.fields.queuedCount} />
 								{/snippet}
 							</ResourceBoundary>
 						</dd>

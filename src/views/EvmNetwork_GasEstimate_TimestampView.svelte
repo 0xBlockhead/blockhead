@@ -3,9 +3,9 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -36,21 +36,16 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const networkGasEstimateTimestamp = useEntity(
+	const networkGasEstimateTimestamp = useEntity(entityCollectionsContext, 
 		EntityType.EvmNetwork_GasEstimate_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Blockscout_Rest,
 				Source.Etherscan_Rest,
-			],
-			slowGwei: {},
-			averageGwei: {},
-			fastGwei: {},
-			transport: {},
-		},
+			], fields: { slowGwei: true, averageGwei: true, fastGwei: true, transport: true } }),
 	)
 
 
@@ -77,21 +72,21 @@
 			placeholderText="Loading gas estimate…"
 		>
 			{#snippet children(networkGasEstimateTimestamp)}
-				{#if networkGasEstimateTimestamp.averageGwei != null}
+				{#if networkGasEstimateTimestamp.fields.averageGwei != null}
 					<NumberValue
-						value={networkGasEstimateTimestamp.averageGwei}
+						value={networkGasEstimateTimestamp.fields.averageGwei}
 						options={{ maximumFractionDigits: 4 }}
 					/>
 					gwei
-				{:else if networkGasEstimateTimestamp.fastGwei != null}
+				{:else if networkGasEstimateTimestamp.fields.fastGwei != null}
 					<NumberValue
-						value={networkGasEstimateTimestamp.fastGwei}
+						value={networkGasEstimateTimestamp.fields.fastGwei}
 						options={{ maximumFractionDigits: 4 }}
 					/>
 					gwei fast
-				{:else if networkGasEstimateTimestamp.slowGwei != null}
+				{:else if networkGasEstimateTimestamp.fields.slowGwei != null}
 					<NumberValue
-						value={networkGasEstimateTimestamp.slowGwei}
+						value={networkGasEstimateTimestamp.fields.slowGwei}
 						options={{ maximumFractionDigits: 4 }}
 					/>
 					gwei slow
@@ -129,7 +124,7 @@
 
 			{#if (
 				!networkGasEstimateTimestamp.ready
-				|| networkGasEstimateTimestamp.current.slowGwei != null
+				|| networkGasEstimateTimestamp.current?.fields.slowGwei != null
 			)}
 				<div>
 					<dt>Slow</dt>
@@ -139,9 +134,9 @@
 							placeholderText="Loading gas estimate…"
 							>
 								{#snippet children(networkGasEstimateTimestamp)}
-									{#if networkGasEstimateTimestamp.slowGwei !== undefined}
+									{#if networkGasEstimateTimestamp.fields.slowGwei !== undefined}
 										<NumberValue
-											value={networkGasEstimateTimestamp.slowGwei}
+											value={networkGasEstimateTimestamp.fields.slowGwei}
 											options={{ maximumFractionDigits: 4 }}
 										/>
 										gwei
@@ -154,7 +149,7 @@
 
 			{#if (
 				!networkGasEstimateTimestamp.ready
-				|| networkGasEstimateTimestamp.current.averageGwei != null
+				|| networkGasEstimateTimestamp.current?.fields.averageGwei != null
 			)}
 				<div>
 					<dt>Average</dt>
@@ -164,9 +159,9 @@
 							placeholderText="Loading gas estimate…"
 							>
 								{#snippet children(networkGasEstimateTimestamp)}
-									{#if networkGasEstimateTimestamp.averageGwei !== undefined}
+									{#if networkGasEstimateTimestamp.fields.averageGwei !== undefined}
 										<NumberValue
-											value={networkGasEstimateTimestamp.averageGwei}
+											value={networkGasEstimateTimestamp.fields.averageGwei}
 											options={{ maximumFractionDigits: 4 }}
 										/>
 										gwei
@@ -179,7 +174,7 @@
 
 			{#if (
 				!networkGasEstimateTimestamp.ready
-				|| networkGasEstimateTimestamp.current.fastGwei != null
+				|| networkGasEstimateTimestamp.current?.fields.fastGwei != null
 			)}
 				<div>
 					<dt>Fast</dt>
@@ -189,9 +184,9 @@
 							placeholderText="Loading gas estimate…"
 							>
 								{#snippet children(networkGasEstimateTimestamp)}
-									{#if networkGasEstimateTimestamp.fastGwei !== undefined}
+									{#if networkGasEstimateTimestamp.fields.fastGwei !== undefined}
 										<NumberValue
-											value={networkGasEstimateTimestamp.fastGwei}
+											value={networkGasEstimateTimestamp.fields.fastGwei}
 											options={{ maximumFractionDigits: 4 }}
 										/>
 										gwei
@@ -204,7 +199,7 @@
 
 			{#if (
 				!networkGasEstimateTimestamp.ready
-				|| networkGasEstimateTimestamp.current.transport !== undefined
+				|| networkGasEstimateTimestamp.current?.fields.transport !== undefined
 			)}
 				<div>
 					<dt>Transport</dt>
@@ -214,7 +209,7 @@
 							placeholderText="Loading gas estimate…"
 						>
 							{#snippet children(networkGasEstimateTimestamp)}
-								<code>{networkGasEstimateTimestamp.transport}</code>
+								<code>{networkGasEstimateTimestamp.fields.transport}</code>
 							{/snippet}
 						</ResourceBoundary>
 					</dd>

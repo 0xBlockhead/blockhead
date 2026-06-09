@@ -3,9 +3,9 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -15,7 +15,8 @@
 
 	// State
 	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -51,33 +52,12 @@
 		>
 	> = $props()
 
-	const log = useEntity(
-		EntityType.EvmLog,
+	const log = useEntity(entityCollectionsContext, EntityType.EvmLog,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
-			],
-			topics: {},
-			...(open && {
-				data: {},
-				$emitter: {},
-				$case: {
-					'topics[0]': {
-						'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef': {
-							$$tokenTransfers: {},
-						},
-						'0xc3d58168c5ae7397731d063d5bbf3d89e2dc00c66cb903c17f4a2cd2d1f5f0f0': {
-							$$tokenTransfers: {},
-						},
-						'0x4a39dc06d4c0dbc64b70f1d4d6757603d1ef3e8d6935b7f0b4c97fe61e099437': {
-							$$tokenTransfers: {},
-						},
-					},
-				},
-			}),
-		},
+			], fields: { topics: true, ...(open && ({ data: true, $emitter: true, $$tokenTransfers: true })) } }),
 	)
 
 
@@ -120,8 +100,8 @@
 							#{entityId.logIndex}
 						</span>
 					</span>
-					{#if log.topics?.[0]?.startsWith('0x')}
-						{@const topic0Hex = normalizeEvmTopicHex(log.topics[0])}
+					{#if log.fields.topics?.[0]?.startsWith('0x')}
+						{@const topic0Hex = normalizeEvmTopicHex(log.fields.topics[0])}
 						<EvmTopicView
 							entityId={{ hex: topic0Hex }}
 							layout={EntityLayout.Title}
@@ -175,12 +155,12 @@
 					placeholderText="Loading receipt log…"
 				>
 					{#snippet children(log)}
-						{#if log.$emitter}
+						{#if log.fields.$emitter}
 							<div>
 								<dt>Emitter contract</dt>
 								<dd>
 									<EvmContractView
-										entityId={log.$emitter[EntityMetaKey.Id]}
+										entityId={log.fields.$emitter[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
@@ -188,12 +168,12 @@
 							</div>
 						{/if}
 
-						{#if log.topics?.length}
+						{#if log.fields.topics?.length}
 							<div>
 								<dt>Topics</dt>
 								<dd>
 									<ul>
-										{#each log.topics as topic, topicIndex (`${topicIndex}:${topic ?? ''}`)}
+										{#each log.fields.topics as topic, topicIndex (`${topicIndex}:${topic ?? ''}`)}
 											<li>
 												<span data-text="muted">topic {topicIndex}</span>
 												{#if topic?.startsWith('0x')}
@@ -221,19 +201,19 @@
 							</div>
 						{/if}
 
-						{#if log.data}
+						{#if log.fields.data}
 							<div>
 								<dt>Data</dt>
 								<dd>
 									<TruncatedValue
-										value={log.data}
+										value={log.fields.data}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if log.$$tokenTransfers?.length}
+						{#if log.fields.$$tokenTransfers?.values.length}
 							<div>
 								<dt>Token transfers</dt>
 								<dd>
@@ -249,14 +229,14 @@
 							</div>
 						{/if}
 
-						{#if log.topics?.length && log.data != null && contentOpen}
+						{#if log.fields.topics?.length && log.fields.data != null && contentOpen}
 							<div>
 								<dt>ABI decode</dt>
 								<dd>
 									<EvmLogDecode
-										topics={log.topics}
-										data={log.data}
-										emitterContractId={log.$emitter?.[EntityMetaKey.Id]}
+										topics={log.fields.topics}
+										data={log.fields.data}
+										emitterContractId={log.fields.$emitter?.[EntityMetaKey.Id]}
 										open={contentOpen}
 									/>
 								</dd>

@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,14 +27,9 @@
 		>
 	> = $props()
 
-	const nearAction = useEntity(
-		EntityType.NearAction,
+	const nearAction = useEntity(entityCollectionsContext, EntityType.NearAction,
 		entityId,
-		{
-			actionKind: {},
-			methodName: {},
-			depositYoctoNear: {},
-		},
+		({ fields: { actionKind: true, methodName: true, depositYoctoNear: true } }),
 	)
 
 
@@ -75,24 +71,24 @@
 		>
 			{#snippet children(nearAction)}
 				<dl>
-					{#if nearAction.actionKind != null}
+					{#if nearAction.fields.actionKind != null}
 						<div>
 							<dt>Action Kind</dt>
-							<dd>{nearAction.actionKind}</dd>
+							<dd>{nearAction.fields.actionKind}</dd>
 						</div>
 					{/if}
 
-					{#if nearAction.methodName != null}
+					{#if nearAction.fields.methodName != null}
 						<div>
 							<dt>Method Name</dt>
-							<dd>{nearAction.methodName}</dd>
+							<dd>{nearAction.fields.methodName}</dd>
 						</div>
 					{/if}
 
-					{#if nearAction.depositYoctoNear != null}
+					{#if nearAction.fields.depositYoctoNear != null}
 						<div>
 							<dt>Deposit Yocto Near</dt>
-							<dd><NumberValue value={nearAction.depositYoctoNear} /> yoctoNEAR</dd>
+							<dd><NumberValue value={nearAction.fields.depositYoctoNear} /> yoctoNEAR</dd>
 						</div>
 					{/if}
 				</dl>

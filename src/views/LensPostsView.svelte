@@ -1,18 +1,19 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -66,28 +67,32 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const lensNetworkOrAccount = useEntity(
+			{@const lensNetworkOrAccount = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				(
 					entityFieldReference.entityType === EntityType.LensNetwork ?
 						{
-							$: [Source.Constants_Internal],
-							protocolName: {},
-							$$lensPosts: {
-								$: [
-									Source.Lens_Graphql,
-								],
-								$limit: limit,
+							sources: [Source.Constants_Internal],
+							fields: {
+								protocolName: true,
+								$$lensPosts: {
+									sources: [
+										Source.Lens_Graphql,
+									],
+									limit: limit,
+								},
 							},
 						}
 					:
 						{
-							$$posts: {
-								$: [
-									Source.Lens_Graphql,
-								],
-								$limit: limit,
+							fields: {
+								$$posts: {
+									sources: [
+										Source.Lens_Graphql,
+									],
+									limit: limit,
+								},
 							},
 						}
 				),
@@ -95,12 +100,12 @@
 			{@const posts = derive(
 				lensNetworkOrAccount,
 				(lensNetworkOrAccount) => {
-					const lensPosts: Entity<typeof schema, EntityType.LensPost>[] = (
+					const lensPosts: readonly Entity<typeof schema, EntityType.LensPost>[] = (
 						(
 							entityFieldReference.entityType === EntityType.LensNetwork ?
-								lensNetworkOrAccount.$$lensPosts
+								lensNetworkOrAccount.fields.$$lensPosts?.values
 							:
-								lensNetworkOrAccount.$$posts
+								lensNetworkOrAccount.fields.$$posts?.values
 						)
 						?? []
 					)

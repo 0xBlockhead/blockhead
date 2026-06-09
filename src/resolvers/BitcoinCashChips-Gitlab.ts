@@ -6,9 +6,9 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type { BitcoinCashChipsGitlabTree } from '$/sources/BitcoinCashChips/Gitlab/types.ts'
 
 const chipMetadataValue = (text: string, key: string) => (
@@ -78,14 +78,15 @@ export default {
 					documentBody: text,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
 			documentTitle: (snapshot) => snapshot.documentTitle,
 			documentStatus: (snapshot) => snapshot.documentStatus,
 			documentBody: (snapshot) => snapshot.documentBody,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.BitcoinCashChips_Gitlab, {
 			entityType: EntityType._Global,
@@ -94,11 +95,12 @@ export default {
 				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
 				return chipProposalIndexRows(await singleFlight(getTree)())
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.BitcoinCashChips_Gitlab, {
 			entityType: EntityType.SpecificationRealm,
@@ -111,11 +113,12 @@ export default {
 				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
 				return chipProposalIndexRows(await singleFlight(getTree)())
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.BitcoinCashChips_Gitlab, {
 			entityType: EntityType.SpecificationProposalKind,
@@ -128,10 +131,11 @@ export default {
 				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
 				return chipProposalIndexRows(await singleFlight(getTree)())
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { mevRelayHttpsOrigins } from '$/constants/MevRelayHosts.ts'
 import MevRelayRestSource from '$/sources/MevRelay/Rest/index.ts'
 

@@ -1,16 +1,17 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -41,16 +42,11 @@
 			>
 	> = $props()
 
-	const paymaster = useEntity(
-		EntityType.Erc4337Paymaster,
+	const paymaster = useEntity(entityCollectionsContext, EntityType.Erc4337Paymaster,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Blockscout_Rest,
-			],
-			userOperationsCount: {},
-			$contract: {},
-		},
+			], fields: { userOperationsCount: true, $contract: true } }),
 	)
 
 
@@ -103,17 +99,17 @@
 		>
 			{#snippet children(paymaster)}
 				<dl data-column-item="center">
-					{#if paymaster.userOperationsCount !== undefined}
+					{#if paymaster.fields.userOperationsCount !== undefined}
 						<div>
 							<dt>User operations</dt>
-							<dd data-text="mono">{String(paymaster.userOperationsCount)}</dd>
+							<dd data-text="mono">{String(paymaster.fields.userOperationsCount)}</dd>
 						</div>
 					{/if}
 					<div>
 						<dt>Paymaster contract</dt>
 						<dd>
 							<EvmContractView
-								entityId={paymaster.$contract[EntityMetaKey.Id]}
+								entityId={paymaster.fields.$contract[EntityMetaKey.Id]}
 								layout={EntityLayout.Value}
 								open={true}
 								showTypeAnnotation={false}

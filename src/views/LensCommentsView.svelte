@@ -1,18 +1,19 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -82,25 +83,21 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parentPost = useEntity(
-				EntityType.LensPost,
-				entityFieldReference.entityId,
-				{
-					$: [
+			{@const parentPost = useEntity(entityCollectionsContext, EntityType.LensPost,
+				entityFieldReference.entityId,({ sources: [
 						Source.Lens_Graphql,
-					],
-					[entityFieldReference.fieldName]: {
-						$: [
+					], fields: { [entityFieldReference.fieldName]: {
+						sources: [
 							Source.Lens_Graphql,
 						],
-						$limit: limit,
+						limit: limit,
 					},
-				},
+				} }),
 			)}
 			{@const comments = derive(
 				parentPost,
 				(parentPost) => {
-					const lensPosts: Entity<typeof schema, EntityType.LensPost>[] = (
+					const lensPosts: readonly Entity<typeof schema, EntityType.LensPost>[] = (
 						parentPost[entityFieldReference.fieldName]
 						?? []
 					)

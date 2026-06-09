@@ -3,14 +3,15 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// State
@@ -31,18 +32,12 @@
 		>
 	> = $props()
 
-	const walletAccount = $derived(useEntity(
+	const walletAccount = $derived(useEntity(entityCollectionsContext, 
 		EntityType.BlockheadWalletAccount,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Local_Internal,
-			],
-			$network: {},
-			address: {},
-			label: {},
-			capabilities: {},
-		},
+			], fields: { $network: true, address: true, label: true, capabilities: true } }),
 	))
 
 
@@ -71,7 +66,7 @@
 			placeholderText={entityId.caip10.accountAddress}
 		>
 			{#snippet children(walletAccount)}
-				{walletAccount.label ?? walletAccount.address}
+				{walletAccount.fields.label ?? walletAccount.fields.address}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -102,23 +97,23 @@
 					<div>
 						<dt>Address</dt>
 						<dd>
-							<TruncatedValue value={walletAccount.address} />
+							<TruncatedValue value={walletAccount.fields.address} />
 						</dd>
 					</div>
 
-					{#if walletAccount.label != null}
+					{#if walletAccount.fields.label != null}
 						<div>
 							<dt>Label</dt>
-							<dd>{walletAccount.label}</dd>
+							<dd>{walletAccount.fields.label}</dd>
 						</div>
 					{/if}
 
-					{#if walletAccount.$network != null}
+					{#if walletAccount.fields.$network != null}
 						<div>
 							<dt>Network</dt>
 							<dd>
 								<NetworkView
-									entityId={walletAccount.$network[EntityMetaKey.Id]}
+									entityId={walletAccount.fields.$network[EntityMetaKey.Id]}
 									open={false}
 									layout={EntityLayout.Value}
 								/>
@@ -129,7 +124,7 @@
 					{#if open}
 						<div>
 							<dt>Capabilities</dt>
-							<dd>{walletAccount.capabilities.join(', ')}</dd>
+							<dd>{walletAccount.fields.capabilities.join(', ')}</dd>
 						</div>
 					{/if}
 				</dl>

@@ -5,13 +5,13 @@ import {
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { timestampMsFromUnixSeconds } from '$/lib/time.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
 import type {
 	RedditPublicApiListing,
@@ -112,7 +112,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				title: (subreddit) => subreddit.title,
 				publicDescription: (subreddit) => subreddit.publicDescription,
 				subscriberCount: (subreddit) => subreddit.subscriberCount,
@@ -121,7 +122,7 @@ export default {
 				over18: (subreddit) => subreddit.over18,
 				$icon: (subreddit) => subreddit.$icon,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
@@ -157,7 +158,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				title: (link) => link.title,
 				selftext: (link) => link.selftext,
 				url: (link) => link.url,
@@ -168,7 +170,7 @@ export default {
 				$subreddit: (link) => link.$subreddit,
 				permalink: (link) => link.permalink,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
@@ -203,7 +205,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				body: (comment) => comment.body,
 				author: (comment) => comment.author,
 				score: (comment) => comment.score,
@@ -212,7 +215,7 @@ export default {
 				$link: (comment) => comment.$link,
 				$parentComment: (comment) => comment.$parentComment,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit_Timestamp,
@@ -228,11 +231,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				subscriberCount: (timestamp) => timestamp.subscriberCount,
 				activeUserCount: (timestamp) => timestamp.activeUserCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink_Timestamp,
@@ -251,11 +255,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				score: (timestamp) => timestamp.score,
 				commentCount: (timestamp) => timestamp.commentCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment_Timestamp,
@@ -271,10 +276,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				score: (timestamp) => timestamp.score,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditNetwork,
@@ -295,10 +301,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$redditSubreddits: (subreddits) => subreddits,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditNetwork,
@@ -321,10 +328,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$redditLinks: (links) => links,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit,
@@ -344,10 +352,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit,
@@ -370,10 +379,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$links: (links) => links,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
@@ -398,10 +408,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
@@ -421,10 +432,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$comments: (comments) => comments,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
@@ -440,12 +452,13 @@ export default {
 				return redditThing.data.num_comments
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$comments: {
 					resolveCount: (count) => count,
 				},
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
@@ -467,10 +480,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
@@ -495,9 +509,10 @@ export default {
 				return byParent.get(entityId.fullname) ?? []
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$replies: (replies) => replies,
 			},
-		}),
+			}),
 	],
 }

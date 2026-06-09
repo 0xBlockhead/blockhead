@@ -3,15 +3,16 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -42,28 +43,13 @@
 
 	const idKey = stringify(entityId)
 
-	const lensAccount = useEntity(
-		EntityType.LensAccount,
+	const lensAccount = useEntity(entityCollectionsContext, EntityType.LensAccount,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Lens_Graphql,
-			],
-			address: {},
-			localName: {},
-			displayName: {},
-			bio: {},
-			createdAt: {},
-			followerCount: {},
-			followingCount: {},
-			$$timestamps: {
-				$: [
+			], fields: { address: true, localName: true, displayName: true, bio: true, createdAt: true, followerCount: true, followingCount: true, $$timestamps: ({ sources: [
 					Source.Lens_Graphql,
-				],
-				$limit: 1,
-			},
-			$icon: {},
-		},
+				], limit: 1 }), $icon: true } }),
 	)
 
 
@@ -94,10 +80,10 @@
 			placeholderText="Loading Lens profile…"
 		>
 			{#snippet children(lensAccount)}
-				{#if lensAccount.$icon?.[EntityMetaKey.Id].url}
+				{#if lensAccount.fields.$icon?.[EntityMetaKey.Id].url}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={lensAccount.$icon[EntityMetaKey.Id].url}
+						src={lensAccount.fields.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{:else}
@@ -123,8 +109,8 @@
 			placeholderText="Loading Lens profile…"
 		>
 			{#snippet children(lensAccount)}
-				{lensAccount.displayName
-					?? lensAccount.localName
+				{lensAccount.fields.displayName
+					?? lensAccount.fields.localName
 					?? ('address' in entityId ? entityId.address : 'localName' in entityId ? entityId.localName : entityId.legacyProfileId)}
 			{/snippet}
 		</ResourceBoundary>
@@ -136,16 +122,16 @@
 		>
 			{#snippet children(lensAccount)}
 				{#if (
-					lensAccount.localName != null
-					&& lensAccount.localName !== ''
-					&& lensAccount.localName !== (
-						lensAccount.displayName
-						?? lensAccount.localName
+					lensAccount.fields.localName != null
+					&& lensAccount.fields.localName !== ''
+					&& lensAccount.fields.localName !== (
+						lensAccount.fields.displayName
+						?? lensAccount.fields.localName
 						?? ('address' in entityId ? entityId.address : 'localName' in entityId ? entityId.localName : entityId.legacyProfileId)
 					)
 				)}
 					<span data-text="muted">
-						@{lensAccount.localName}
+						@{lensAccount.fields.localName}
 					</span>
 				{/if}
 			{/snippet}
@@ -164,10 +150,10 @@
 			placeholderText="Loading Lens profile…"
 		>
 			{#snippet children(lensAccount)}
-				{#if lensAccount.bio != null && lensAccount.bio !== ''}
+				{#if lensAccount.fields.bio != null && lensAccount.fields.bio !== ''}
 					<p>
 						<TruncatedValue
-							value={lensAccount.bio}
+							value={lensAccount.fields.bio}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -186,11 +172,11 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: lensAccount.$$timestamps[0]?.followerCount ?? lensAccount.followerCount,
+									value: lensAccount.fields.$$timestamps[0]?.followerCount ?? lensAccount.fields.followerCount,
 								},
 								{
 									label: 'Following',
-									value: lensAccount.$$timestamps[0]?.followingCount ?? lensAccount.followingCount,
+									value: lensAccount.fields.$$timestamps[0]?.followingCount ?? lensAccount.fields.followingCount,
 								},
 							]}
 						/>
@@ -203,12 +189,12 @@
 					placeholderText="Loading Lens profile…"
 				>
 					{#snippet children(lensAccount)}
-						{#if lensAccount.createdAt != null}
+						{#if lensAccount.fields.createdAt != null}
 							<div>
 								<dt>Account created</dt>
 								<dd>
 									<Timestamp
-										timestamp={lensAccount.createdAt}
+										timestamp={lensAccount.fields.createdAt}
 									/>
 								</dd>
 							</div>
@@ -258,12 +244,12 @@
 							CollapsibleProps={{ canToggle: false }}
 							href={resolve(
 								'/(social)/(lens)/lens/account/[address]/(account)/posts',
-								{ address: lensAccount.address },
+								{ address: lensAccount.fields.address },
 							)}
 							entityFieldReference={{
 								entityType: EntityType.LensAccount,
 								entityId: {
-									address: lensAccount.address,
+									address: lensAccount.fields.address,
 								},
 								fieldName: '$$posts',
 							}}
@@ -283,12 +269,12 @@
 							entityFieldReference={{
 								entityType: EntityType.LensAccount,
 								entityId: {
-									address: lensAccount.address,
+									address: lensAccount.fields.address,
 								},
 								fieldName: '$$timestamps',
 							}}
 							href={resolve('/(social)/(lens)/lens/account/[address]', {
-								address: lensAccount.address,
+								address: lensAccount.fields.address,
 							})}
 							id={`${idKey}:metric-snapshots`}
 							title="Metric snapshots"

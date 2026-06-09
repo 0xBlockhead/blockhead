@@ -8,13 +8,14 @@
 		EnsTextRecordHrefMode,
 	} from '$/constants/Ens.ts'
 
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -32,13 +33,9 @@
 		recordId: string
 	} = $props()
 
-	const ens = useEntity(
-		EntityType.EnsName,
+	const ens = useEntity(entityCollectionsContext, EntityType.EnsName,
 		entityId,
-		{
-			$: [Source.Voltaire_JsonRpc],
-			textRecords: {},
-		},
+		({ sources: [Source.Voltaire_JsonRpc], fields: { textRecords: true } }),
 	)
 
 
@@ -83,7 +80,7 @@
 			resource={ens}
 		>
 			{#snippet children(ens)}
-				{@const recordValue = ens.textRecords?.[recordId]}
+				{@const recordValue = ens.fields.textRecords?.[recordId]}
 				{@const textRecordLinkEntry = ensTextRecordLinks.find((candidate) => (
 					candidate.keys.some((candidateKey) => candidateKey === recordId)
 				))}

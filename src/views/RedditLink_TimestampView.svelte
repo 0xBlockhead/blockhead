@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,17 +36,12 @@
 		>
 	> = $props()
 
-	const redditLinkTimestamp = useEntity(
-		EntityType.RedditLink_Timestamp,
+	const redditLinkTimestamp = useEntity(entityCollectionsContext, EntityType.RedditLink_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Reddit_Rest,
 				Source.Reddit_PublicJson,
-			],
-			score: {},
-			commentCount: {},
-		},
+			], fields: { score: true, commentCount: true } }),
 	)
 
 
@@ -91,11 +87,11 @@
 						metrics={[
 							{
 								label: 'Score',
-								value: redditLinkTimestamp.score,
+								value: redditLinkTimestamp.fields.score,
 							},
 							{
 								label: 'Comments',
-								value: redditLinkTimestamp.commentCount,
+								value: redditLinkTimestamp.fields.commentCount,
 							},
 						]}
 					/>

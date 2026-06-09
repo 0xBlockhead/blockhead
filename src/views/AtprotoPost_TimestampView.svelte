@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,19 +36,12 @@
 		>
 	> = $props()
 
-	const atprotoPostTimestamp = useEntity(
-		EntityType.AtprotoPost_Timestamp,
+	const atprotoPostTimestamp = useEntity(entityCollectionsContext, EntityType.AtprotoPost_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Atproto_Xrpc,
 				Source.Atproto_BskySocial_Xrpc,
-			],
-			likeCount: {},
-			repostCount: {},
-			replyCount: {},
-			quoteCount: {},
-		},
+			], fields: { likeCount: true, repostCount: true, replyCount: true, quoteCount: true } }),
 	)
 
 
@@ -93,19 +87,19 @@
 						metrics={[
 							{
 								label: 'Replies',
-								value: atprotoPostTimestamp.replyCount,
+								value: atprotoPostTimestamp.fields.replyCount,
 							},
 							{
 								label: 'Reposts',
-								value: atprotoPostTimestamp.repostCount,
+								value: atprotoPostTimestamp.fields.repostCount,
 							},
 							{
 								label: 'Likes',
-								value: atprotoPostTimestamp.likeCount,
+								value: atprotoPostTimestamp.fields.likeCount,
 							},
 							{
 								label: 'Quotes',
-								value: atprotoPostTimestamp.quoteCount,
+								value: atprotoPostTimestamp.fields.quoteCount,
 							},
 						]}
 					/>

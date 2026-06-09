@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,15 +28,11 @@
 		>
 	> = $props()
 
-	const zone = useEntity(
-		EntityType.LogosZone,
+	const zone = useEntity(entityCollectionsContext, EntityType.LogosZone,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.LogosDocs_Rest,
-			],
-			zoneKind: {},
-		},
+			], fields: { zoneKind: true } }),
 	)
 
 
@@ -70,10 +67,10 @@
 		>
 			{#snippet children(zone)}
 				<dl>
-					{#if zone.zoneKind != null}
+					{#if zone.fields.zoneKind != null}
 						<div>
 							<dt>Kind</dt>
-							<dd>{zone.zoneKind}</dd>
+							<dd>{zone.fields.zoneKind}</dd>
 						</div>
 					{/if}
 				</dl>

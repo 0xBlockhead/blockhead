@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import TronSolidityNodeRest from '$/sources/TronSolidityNode/Rest/index.ts'
 
 export default {

@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,10 @@
 		>
 	> = $props()
 
-	const litecoinMwebTransaction = useEntity(
+	const litecoinMwebTransaction = useEntity(entityCollectionsContext, 
 		EntityType.LitecoinMwebTransaction,
 		entityId,
-		{
-			kernelOffset: {},
-		},
+		({ fields: { kernelOffset: true } }),
 	)
 
 
@@ -72,10 +71,10 @@
 		>
 			{#snippet children(litecoinMwebTransaction)}
 				<dl>
-					{#if litecoinMwebTransaction.kernelOffset != null}
+					{#if litecoinMwebTransaction.fields.kernelOffset != null}
 						<div>
 							<dt>Kernel Offset</dt>
-							<dd>{litecoinMwebTransaction.kernelOffset}</dd>
+							<dd>{litecoinMwebTransaction.fields.kernelOffset}</dd>
 						</div>
 					{/if}
 				</dl>

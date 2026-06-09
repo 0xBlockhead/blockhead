@@ -3,13 +3,14 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -32,11 +33,9 @@
 		never
 	> = $props()
 
-	const global = useEntity(
-		EntityType._Global,
+	const global = useEntity(entityCollectionsContext, EntityType._Global,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Local_Internal,
 				...(
 					open ?
@@ -44,15 +43,7 @@
 					:
 						[]
 				),
-			],
-			...(open ?
-				{
-					duneCreditsUsed: {},
-					duneCreditsIncluded: {},
-				}
-			:
-				{}),
-		},
+			], fields: { ...(open ? ({ duneCreditsUsed: true, duneCreditsIncluded: true }) : ({  })) } }),
 	)
 
 
@@ -94,17 +85,17 @@
 		<dl data-column-item="center">
 			<ResourceBoundary resource={global}>
 				{#snippet children(global)}
-					{#if global.duneCreditsUsed !== undefined}
+					{#if global.fields.duneCreditsUsed !== undefined}
 						<div>
 							<dt>Dune credits used</dt>
-							<dd>{String(global.duneCreditsUsed)}</dd>
+							<dd>{String(global.fields.duneCreditsUsed)}</dd>
 						</div>
 					{/if}
 
-					{#if global.duneCreditsIncluded !== undefined}
+					{#if global.fields.duneCreditsIncluded !== undefined}
 						<div>
 							<dt>Dune credits included</dt>
-							<dd>{String(global.duneCreditsIncluded)}</dd>
+							<dd>{String(global.fields.duneCreditsIncluded)}</dd>
 						</div>
 					{/if}
 				{/snippet}
@@ -121,13 +112,13 @@
 					<ResourceBoundary resource={global}>
 						{#snippet children(global)}
 							<div>
-								{#if global.duneCreditsIncluded !== undefined}
-									<p><strong>Dune credits included:</strong> {String(global.duneCreditsIncluded)}</p>
+								{#if global.fields.duneCreditsIncluded !== undefined}
+									<p><strong>Dune credits included:</strong> {String(global.fields.duneCreditsIncluded)}</p>
 								{/if}
 
 								{#if (
-									global.duneCreditsUsed === undefined
-									&& global.duneCreditsIncluded === undefined
+									global.fields.duneCreditsUsed === undefined
+									&& global.fields.duneCreditsIncluded === undefined
 								)}
 									<p data-text="muted">
 										No usage totals global yet.

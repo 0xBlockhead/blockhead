@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import SubstrateSidecarRest from '$/sources/SubstrateSidecar/Rest/index.ts'
 
 export default {

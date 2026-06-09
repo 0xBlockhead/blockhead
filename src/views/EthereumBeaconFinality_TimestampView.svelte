@@ -3,9 +3,9 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -36,22 +36,15 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const networkBeaconFinalityTimestamp = useEntity(
+	const networkBeaconFinalityTimestamp = useEntity(entityCollectionsContext, 
 		EntityType.EthereumBeaconFinality_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Beacon_Rest,
-			],
-			currentJustifiedCheckpointEpoch: {},
-			currentJustifiedCheckpointRoot: {},
-			previousJustifiedCheckpointEpoch: {},
-			previousJustifiedCheckpointRoot: {},
-			finalizedCheckpointEpoch: {},
-			finalizedCheckpointRoot: {},
-		},
+			], fields: { currentJustifiedCheckpointEpoch: true, currentJustifiedCheckpointRoot: true, previousJustifiedCheckpointEpoch: true, previousJustifiedCheckpointRoot: true, finalizedCheckpointEpoch: true, finalizedCheckpointRoot: true } }),
 	)
 
 
@@ -79,21 +72,21 @@
 			placeholderText="Loading finality…"
 		>
 			{#snippet children(networkBeaconFinalityTimestamp)}
-				{#if networkBeaconFinalityTimestamp.finalizedCheckpointEpoch !== undefined}
+				{#if networkBeaconFinalityTimestamp.fields.finalizedCheckpointEpoch !== undefined}
 					<BeaconEpochView
 						entityId={{
 							$network: entityId.$network,
-							epoch: networkBeaconFinalityTimestamp.finalizedCheckpointEpoch,
+							epoch: networkBeaconFinalityTimestamp.fields.finalizedCheckpointEpoch,
 						}}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
 					finalized
-				{:else if networkBeaconFinalityTimestamp.currentJustifiedCheckpointEpoch !== undefined}
+				{:else if networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointEpoch !== undefined}
 					<BeaconEpochView
 						entityId={{
 							$network: entityId.$network,
-							epoch: networkBeaconFinalityTimestamp.currentJustifiedCheckpointEpoch,
+							epoch: networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointEpoch,
 						}}
 						layout={EntityLayout.Value}
 						open={false}
@@ -114,21 +107,21 @@
 			placeholderText="Loading finality…"
 		>
 			{#snippet children(networkBeaconFinalityTimestamp)}
-				{#if networkBeaconFinalityTimestamp.finalizedCheckpointEpoch !== undefined}
+				{#if networkBeaconFinalityTimestamp.fields.finalizedCheckpointEpoch !== undefined}
 					<BeaconEpochView
 						entityId={{
 							$network: entityId.$network,
-							epoch: networkBeaconFinalityTimestamp.finalizedCheckpointEpoch,
+							epoch: networkBeaconFinalityTimestamp.fields.finalizedCheckpointEpoch,
 						}}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
 					finalized
-				{:else if networkBeaconFinalityTimestamp.currentJustifiedCheckpointEpoch !== undefined}
+				{:else if networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointEpoch !== undefined}
 					<BeaconEpochView
 						entityId={{
 							$network: entityId.$network,
-							epoch: networkBeaconFinalityTimestamp.currentJustifiedCheckpointEpoch,
+							epoch: networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointEpoch,
 						}}
 						layout={EntityLayout.Value}
 						open={false}
@@ -170,14 +163,14 @@
 							<BeaconEpochView
 								entityId={{
 									$network: entityId.$network,
-									epoch: networkBeaconFinalityTimestamp.currentJustifiedCheckpointEpoch,
+									epoch: networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointEpoch,
 								}}
 								layout={EntityLayout.Title}
 								open={false}
 							/>
 							<TruncatedValue
 								format={TruncatedValueFormat.Abbr}
-								value={networkBeaconFinalityTimestamp.currentJustifiedCheckpointRoot}
+								value={networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointRoot}
 							/>
 						</dd>
 					</div>
@@ -187,14 +180,14 @@
 							<BeaconEpochView
 								entityId={{
 									$network: entityId.$network,
-									epoch: networkBeaconFinalityTimestamp.finalizedCheckpointEpoch,
+									epoch: networkBeaconFinalityTimestamp.fields.finalizedCheckpointEpoch,
 								}}
 								layout={EntityLayout.Title}
 								open={false}
 							/>
 							<TruncatedValue
 								format={TruncatedValueFormat.Abbr}
-								value={networkBeaconFinalityTimestamp.finalizedCheckpointRoot}
+								value={networkBeaconFinalityTimestamp.fields.finalizedCheckpointRoot}
 							/>
 						</dd>
 					</div>
@@ -204,14 +197,14 @@
 							<BeaconEpochView
 								entityId={{
 									$network: entityId.$network,
-									epoch: networkBeaconFinalityTimestamp.previousJustifiedCheckpointEpoch,
+									epoch: networkBeaconFinalityTimestamp.fields.previousJustifiedCheckpointEpoch,
 								}}
 								layout={EntityLayout.Title}
 								open={false}
 							/>
 							<TruncatedValue
 								format={TruncatedValueFormat.Abbr}
-								value={networkBeaconFinalityTimestamp.previousJustifiedCheckpointRoot}
+								value={networkBeaconFinalityTimestamp.fields.previousJustifiedCheckpointRoot}
 							/>
 						</dd>
 					</div>

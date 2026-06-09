@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
 import BitcoinCashBcmrGithub from '$/sources/BitcoinCashBcmr/Github/index.ts'
 

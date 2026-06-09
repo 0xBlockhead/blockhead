@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
+	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State

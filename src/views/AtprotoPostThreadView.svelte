@@ -1,17 +1,18 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -73,32 +74,34 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				{
-					$: [
+					sources: [
 						Source.Atproto_Xrpc,
 						Source.Atproto_BskySocial_Xrpc,
 					],
-					...(open ?
-						{
-							[entityFieldReference.fieldName]: {
-								$: [
-									Source.Atproto_Xrpc,
-									Source.Atproto_BskySocial_Xrpc,
-								],
-							},
-						}
-					:
-						{}),
+					fields: (
+						open ?
+							{
+								[entityFieldReference.fieldName]: {
+									sources: [
+										Source.Atproto_Xrpc,
+										Source.Atproto_BskySocial_Xrpc,
+									],
+								},
+							}
+						:
+							{}
+					),
 				},
 			)}
 			{@const threadPosts = derive(
 				parent,
 				(parent) => {
-					const atprotoPosts: Entity<typeof schema, EntityType.AtprotoPost>[] = (
-						parent[entityFieldReference.fieldName] ?? []
+					const atprotoPosts: readonly Entity<typeof schema, EntityType.AtprotoPost>[] = (
+						parent.fields[entityFieldReference.fieldName]?.values ?? []
 					)
 					return (
 						atprotoPosts

@@ -24,7 +24,7 @@
 	"
 >
 	// Types/constants
-	import type { EntityType } from '$/schema/$EntityType.ts'
+	import type { EntityType } from '$/schema/EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { entityDefinitionByType, schema } from '$/schema/index.ts'
 

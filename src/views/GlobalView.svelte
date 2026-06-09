@@ -3,8 +3,8 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
@@ -17,7 +17,8 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 	import type { ResolvedPathname } from '$app/types'
 
@@ -46,11 +47,9 @@
 		never
 	> = $props()
 
-	const global = useEntity(
-		EntityType._Global,
+	const global = useEntity(entityCollectionsContext, EntityType._Global,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Local_Internal,
 				...(
 					open ?
@@ -58,15 +57,7 @@
 					:
 						[]
 				),
-			],
-			...(open ?
-				{
-					duneCreditsUsed: {},
-					duneCreditsIncluded: {},
-				}
-			:
-				{}),
-		},
+			], fields: { ...(open ? ({ duneCreditsUsed: true, duneCreditsIncluded: true }) : ({  })) } }),
 	)
 
 	const entityViewDetailCarouselScrollProps = {
@@ -112,23 +103,23 @@
 				>
 					{#snippet children(global)}
 						<dl data-column-item="center">
-							{#if global.duneCreditsUsed !== undefined}
+							{#if global.fields.duneCreditsUsed !== undefined}
 								<div>
 									<dt>Query credits used</dt>
-									<dd>{String(global.duneCreditsUsed)}</dd>
+									<dd>{String(global.fields.duneCreditsUsed)}</dd>
 								</div>
 							{/if}
 
-							{#if global.duneCreditsIncluded !== undefined}
+							{#if global.fields.duneCreditsIncluded !== undefined}
 								<div>
 									<dt>Query credits included</dt>
-									<dd>{String(global.duneCreditsIncluded)}</dd>
+									<dd>{String(global.fields.duneCreditsIncluded)}</dd>
 								</div>
 							{/if}
 
 							{#if (
-								global.duneCreditsUsed === undefined
-								&& global.duneCreditsIncluded === undefined
+								global.fields.duneCreditsUsed === undefined
+								&& global.fields.duneCreditsIncluded === undefined
 							)}
 								<div>
 									<dt>Status</dt>
@@ -253,17 +244,17 @@
 					>
 						{#snippet children(global)}
 							<div>
-								{#if global.duneCreditsUsed !== undefined}
-									<p><strong>Query credits used:</strong> {String(global.duneCreditsUsed)}</p>
+								{#if global.fields.duneCreditsUsed !== undefined}
+									<p><strong>Query credits used:</strong> {String(global.fields.duneCreditsUsed)}</p>
 								{/if}
 
-								{#if global.duneCreditsIncluded !== undefined}
-									<p><strong>Query credits included:</strong> {String(global.duneCreditsIncluded)}</p>
+								{#if global.fields.duneCreditsIncluded !== undefined}
+									<p><strong>Query credits included:</strong> {String(global.fields.duneCreditsIncluded)}</p>
 								{/if}
 
 								{#if (
-									global.duneCreditsUsed === undefined
-									&& global.duneCreditsIncluded === undefined
+									global.fields.duneCreditsUsed === undefined
+									&& global.fields.duneCreditsIncluded === undefined
 								)}
 									<p data-text="muted">
 										No usage totals yet.

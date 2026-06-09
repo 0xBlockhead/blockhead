@@ -9,13 +9,14 @@
 		Iso4217,
 	} from '$/constants/Currency.ts'
 
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -42,26 +43,13 @@
 		>
 	> = $props()
 
-	const currency = useEntity(
-		EntityType.Currency,
+	const currency = useEntity(entityCollectionsContext, EntityType.Currency,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-				symbol: {},
-			$$timestamps: {
-				$: [
+			], fields: { name: true, symbol: true, $$timestamps: ({ sources: [
 					Source.Constants_Internal,
-				],
-				$limit: 1,
-				marketCap: {},
-			},
-			...(open && {
-				minorUnitExponent: {},
-			}),
-		},
+				], limit: 1, fields: { marketCap: true } }), ...(open && ({ minorUnitExponent: true })) } }),
 	)
 
 	const idPrefix = entityId.iso4217
@@ -100,7 +88,7 @@
 			placeholderText="Loading currency…"
 		>
 			{#snippet children(currency)}
-				{currency.name ?? entityId.iso4217}
+				{currency.fields.name ?? entityId.iso4217}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -121,10 +109,10 @@
 						placeholderText="Loading currency…"
 					>
 						{#snippet children(currency)}
-							{#if currency.$$timestamps?.[0]?.marketCap !== undefined}
+							{#if currency.fields.$$timestamps?.values[0]?.marketCap !== undefined}
 								<CurrencyAmount
 									currency="USD"
-									value={currency.$$timestamps[0].marketCap}
+									value={currency.fields.$$timestamps.values[0].marketCap}
 								/>
 							{/if}
 						{/snippet}
@@ -139,8 +127,8 @@
 						placeholderText="Loading currency…"
 					>
 						{#snippet children(currency)}
-							{#if currency.symbol != null && currency.symbol !== ''}
-								{currency.symbol}
+							{#if currency.fields.symbol != null && currency.fields.symbol !== ''}
+								{currency.fields.symbol}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -155,8 +143,8 @@
 							placeholderText="Loading currency…"
 						>
 							{#snippet children(currency)}
-								{#if currency.minorUnitExponent !== undefined}
-									{String(currency.minorUnitExponent)}
+								{#if currency.fields.minorUnitExponent !== undefined}
+									{String(currency.fields.minorUnitExponent)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import CashuMintRest from '$/sources/Cashu/Mint/Rest/index.ts'
 
 export default {

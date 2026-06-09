@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,9 @@
 		>
 	> = $props()
 
-	const polkadotPallet = useEntity(
-		EntityType.PolkadotPallet,
+	const polkadotPallet = useEntity(entityCollectionsContext, EntityType.PolkadotPallet,
 		entityId,
-		{
-			index: {},
-		},
+		({ fields: { index: true } }),
 	)
 
 
@@ -61,10 +59,10 @@
 		>
 			{#snippet children(polkadotPallet)}
 				<dl>
-					{#if polkadotPallet.index != null}
+					{#if polkadotPallet.fields.index != null}
 						<div>
 							<dt>Index</dt>
-							<dd><NumberValue value={polkadotPallet.index} /></dd>
+							<dd><NumberValue value={polkadotPallet.fields.index} /></dd>
 						</div>
 					{/if}
 				</dl>

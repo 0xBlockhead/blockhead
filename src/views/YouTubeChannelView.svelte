@@ -3,15 +3,16 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -39,48 +40,21 @@
 		>
 	> = $props()
 
-	const channel = useEntity(
-		EntityType.YouTubeChannel,
+	const channel = useEntity(entityCollectionsContext, EntityType.YouTubeChannel,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
-			],
-			title: {},
-			description: {},
-			subscriberCount: {},
-			videoCount: {},
-			viewCount: {},
-			$$timestamps: {
-				$: [
+			], fields: { title: true, description: true, subscriberCount: true, videoCount: true, viewCount: true, $$timestamps: ({ sources: [
 					Source.Youtube_Rest,
 					Source.Piped_Rest,
-				],
-				$limit: 1,
-			},
-			publishedAt: {},
-			publishedAtMs: {},
-			customUrl: {},
-			$icon: {},
-			...(open ?
-				{
-					$$videos: {
-						$: [
+				], limit: 1 }), publishedAt: true, publishedAtMs: true, customUrl: true, $icon: true, ...(open ? ({ $$videos: ({ sources: [
 							Source.Youtube_Rest,
 							Source.Piped_Rest,
-						],
-					},
-					$$playlists: {
-						$: [
+						] }), $$playlists: ({ sources: [
 							Source.Youtube_Rest,
 							Source.Piped_Rest,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 	const idKey = stringify(entityId)
@@ -116,12 +90,12 @@
 		>
 			{#snippet children(channel)}
 				{#if (
-					channel.$icon
-					&& channel.$icon[EntityMetaKey.Id].url
+					channel.fields.$icon
+					&& channel.fields.$icon[EntityMetaKey.Id].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={channel.$icon[EntityMetaKey.Id].url}
+						src={channel.fields.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -141,7 +115,7 @@
 			placeholderText="Loading channel…"
 		>
 			{#snippet children(channel)}
-				{channel.title ?? entityId.channelId}
+				{channel.fields.title ?? entityId.channelId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -161,10 +135,10 @@
 			placeholderText="Loading channel…"
 		>
 			{#snippet children(channel)}
-				{#if channel.description}
+				{#if channel.fields.description}
 					<p>
 						<TruncatedValue
-							value={channel.description}
+							value={channel.fields.description}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -183,15 +157,15 @@
 							metrics={[
 								{
 									label: 'Subscribers',
-									value: channel.$$timestamps[0]?.subscriberCount ?? channel.subscriberCount,
+									value: channel.fields.$$timestamps[0]?.subscriberCount ?? channel.fields.subscriberCount,
 								},
 								{
 									label: 'Videos',
-									value: channel.$$timestamps[0]?.videoCount ?? channel.videoCount,
+									value: channel.fields.$$timestamps[0]?.videoCount ?? channel.fields.videoCount,
 								},
 								{
 									label: 'Views',
-									value: channel.$$timestamps[0]?.viewCount ?? channel.viewCount,
+									value: channel.fields.$$timestamps[0]?.viewCount ?? channel.fields.viewCount,
 								},
 							]}
 						/>
@@ -205,10 +179,10 @@
 							placeholderText="Loading channel…"
 						>
 							{#snippet children(channel)}
-								{#if channel.publishedAtMs != null}
-									<Timestamp timestamp={channel.publishedAtMs} />
-								{:else if channel.publishedAt != null}
-									{channel.publishedAt}
+								{#if channel.fields.publishedAtMs != null}
+									<Timestamp timestamp={channel.fields.publishedAtMs} />
+								{:else if channel.fields.publishedAt != null}
+									{channel.fields.publishedAt}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -222,8 +196,8 @@
 							placeholderText="Loading channel…"
 						>
 							{#snippet children(channel)}
-								{#if channel.customUrl}
-									{channel.customUrl}
+								{#if channel.fields.customUrl}
+									{channel.fields.customUrl}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

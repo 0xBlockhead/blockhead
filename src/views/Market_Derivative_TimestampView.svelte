@@ -3,14 +3,15 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -37,23 +38,11 @@
 		>
 	> = $props()
 
-	const derivativeTimestamp = useEntity(
-		EntityType.Market_Derivative_Timestamp,
+	const derivativeTimestamp = useEntity(entityCollectionsContext, EntityType.Market_Derivative_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Coingecko_OpenApi,
-			],
-			fundingRate: {},
-			openInterestUsd: {},
-			indexBasisPercent: {},
-			markPrice: {},
-			indexPrice: {},
-			expiredAtMs: {},
-			lastTradedAtMs: {},
-			providerAssetId: {},
-			transport: {},
-		},
+			], fields: { fundingRate: true, openInterestUsd: true, indexBasisPercent: true, markPrice: true, indexPrice: true, expiredAtMs: true, lastTradedAtMs: true, providerAssetId: true, transport: true } }),
 	)
 
 
@@ -80,8 +69,8 @@
 			resource={derivativeTimestamp}
 		>
 			{#snippet children(derivativeTimestamp)}
-				{#if derivativeTimestamp.fundingRate !== undefined}
-					{String(derivativeTimestamp.fundingRate)}%
+				{#if derivativeTimestamp.fields.fundingRate !== undefined}
+					{String(derivativeTimestamp.fields.fundingRate)}%
 				{:else}
 					<Timestamp
 						timestamp={entityId.timestampMs}
@@ -97,8 +86,8 @@
 			resource={derivativeTimestamp}
 		>
 			{#snippet children(derivativeTimestamp)}
-				{#if derivativeTimestamp.fundingRate !== undefined}
-					{String(derivativeTimestamp.fundingRate)}%
+				{#if derivativeTimestamp.fields.fundingRate !== undefined}
+					{String(derivativeTimestamp.fields.fundingRate)}%
 				{:else}
 					<Timestamp
 						timestamp={entityId.timestampMs}
@@ -130,21 +119,21 @@
 						</dd>
 					</div>
 
-					{#if derivativeTimestamp.fundingRate !== undefined}
+					{#if derivativeTimestamp.fields.fundingRate !== undefined}
 						<div>
 							<dt>Funding rate</dt>
-							<dd>{String(derivativeTimestamp.fundingRate)}%</dd>
+							<dd>{String(derivativeTimestamp.fields.fundingRate)}%</dd>
 						</div>
 					{/if}
 
-					{#if derivativeTimestamp.openInterestUsd !== undefined}
+					{#if derivativeTimestamp.fields.openInterestUsd !== undefined}
 						<div>
 							<dt>Open interest</dt>
 							<dd>
 								<CurrencyAmount
 									currency="USD"
 									scale={1}
-									value={derivativeTimestamp.openInterestUsd}
+									value={derivativeTimestamp.fields.openInterestUsd}
 								/>
 							</dd>
 						</div>
@@ -152,23 +141,23 @@
 
 					{#if (
 						open
-						&& derivativeTimestamp.indexBasisPercent !== undefined
+						&& derivativeTimestamp.fields.indexBasisPercent !== undefined
 					)}
 						<div>
 							<dt>Index basis</dt>
-							<dd>{String(derivativeTimestamp.indexBasisPercent)}%</dd>
+							<dd>{String(derivativeTimestamp.fields.indexBasisPercent)}%</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& derivativeTimestamp.expiredAtMs !== undefined
+						&& derivativeTimestamp.fields.expiredAtMs !== undefined
 					)}
 						<div>
 							<dt>Expires</dt>
 							<dd>
 								<Timestamp
-									timestamp={derivativeTimestamp.expiredAtMs}
+									timestamp={derivativeTimestamp.fields.expiredAtMs}
 								/>
 							</dd>
 						</div>
@@ -176,13 +165,13 @@
 
 					{#if (
 						open
-						&& derivativeTimestamp.lastTradedAtMs !== undefined
+						&& derivativeTimestamp.fields.lastTradedAtMs !== undefined
 					)}
 						<div>
 							<dt>Last traded</dt>
 							<dd>
 								<Timestamp
-									timestamp={derivativeTimestamp.lastTradedAtMs}
+									timestamp={derivativeTimestamp.fields.lastTradedAtMs}
 								/>
 							</dd>
 						</div>
@@ -190,21 +179,21 @@
 
 					{#if (
 						open
-						&& derivativeTimestamp.transport !== undefined
+						&& derivativeTimestamp.fields.transport !== undefined
 					)}
 						<div>
 							<dt>Transport</dt>
-							<dd>{derivativeTimestamp.transport}</dd>
+							<dd>{derivativeTimestamp.fields.transport}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& derivativeTimestamp.providerAssetId != null
+						&& derivativeTimestamp.fields.providerAssetId != null
 					)}
 						<div>
 							<dt>Provider asset id</dt>
-							<dd>{derivativeTimestamp.providerAssetId}</dd>
+							<dd>{derivativeTimestamp.fields.providerAssetId}</dd>
 						</div>
 					{/if}
 				</dl>

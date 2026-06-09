@@ -11,10 +11,10 @@ import type { CoinId } from '$/constants/Coin.ts'
 import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { MarketAssetKind, coingeckoOhlcDayWindowLengths } from '$/constants/Market.ts'
 import type { EntityId } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import type { MarketVenueId } from '$/constants/MarketVenue.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import {
 	catalogCoinIdByCoingeckoId,

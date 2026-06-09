@@ -3,14 +3,15 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -38,35 +39,16 @@
 
 	const networkIdKey = stringify(entityId)
 
-	const rssNetwork = useEntity(
-		EntityType.RssNetwork,
+	const rssNetwork = useEntity(entityCollectionsContext, EntityType.RssNetwork,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			protocolName: {},
-			registryLabel: {},
-			...(open ?
-				{
-					docsUrl: {},
-					homeUrl: {},
-					topology: {},
-					$$rssFeeds: {
-						$: [
+			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$rssFeeds: ({ sources: [
 							Source.Constants_Internal,
-						],
-					},
-					$$rssItems: {
-						$: [
+						] }), $$rssItems: ({ sources: [
 							Source.Rss_Rest,
 							Source.Rss2Json_Rest,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 	const entityViewDetailCarouselScrollProps = {
@@ -121,54 +103,54 @@
 				placeholderText="Loading RSS hub directory…"
 			>
 				{#snippet children(rssNetwork)}
-					{#if rssNetwork.registryLabel}
+					{#if rssNetwork.fields.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{rssNetwork.registryLabel}</dd>
+							<dd>{rssNetwork.fields.registryLabel}</dd>
 						</div>
-					{:else if rssNetwork.protocolName}
+					{:else if rssNetwork.fields.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{rssNetwork.protocolName}</dd>
+							<dd>{rssNetwork.fields.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Feeds</dt>
-							<dd>{String(rssNetwork.$$rssFeeds.length)}</dd>
+							<dd>{String(rssNetwork.fields.$$rssFeeds?.values.length)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Items</dt>
-							<dd>{String(rssNetwork.$$rssItems.length)}</dd>
+							<dd>{String(rssNetwork.fields.$$rssItems?.values.length)}</dd>
 						</div>
 					{/if}
 
-					{#if open && rssNetwork.homeUrl}
+					{#if open && rssNetwork.fields.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={rssNetwork.homeUrl}>{rssNetwork.homeUrl}</a>
+								<a href={rssNetwork.fields.homeUrl}>{rssNetwork.fields.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && rssNetwork.docsUrl}
+					{#if open && rssNetwork.fields.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-								<a href={rssNetwork.docsUrl}>{rssNetwork.docsUrl}</a>
+								<a href={rssNetwork.fields.docsUrl}>{rssNetwork.fields.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && rssNetwork.topology}
+					{#if open && rssNetwork.fields.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{rssNetwork.topology}</dd>
+							<dd>{rssNetwork.fields.topology}</dd>
 						</div>
 					{/if}
 				{/snippet}

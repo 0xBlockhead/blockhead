@@ -3,14 +3,15 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -31,25 +32,12 @@
 		never
 	> = $props()
 
-	const leverage = useEntity(
-		EntityType.Leverage,
+	const leverage = useEntity(entityCollectionsContext, EntityType.Leverage,
 		entityId,
-		{
-			$: (
+		({ sources: (
 				resolverDefinitionsByEntityType[EntityType.Leverage]?.map((r) => r.source)
 				?? []
-			),
-			$pool: {},
-			$owner: {},
-			createdAtTimestamp: {},
-			liquidity: {},
-			origin: {},
-			tickLower: {},
-			tickUpper: {},
-			token0Owed: {},
-			token1Owed: {},
-			tokenId: {},
-		},
+			), fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }),
 	)
 
 
@@ -106,9 +94,9 @@
 						<div>
 							<dt>Network</dt>
 							<dd>
-								{#if leverage.$pool !== undefined}
+								{#if leverage.fields.$pool !== undefined}
 									<EvmNetworkView
-										entityId={leverage.$pool[EntityMetaKey.Id].$network}
+										entityId={leverage.fields.$pool[EntityMetaKey.Id].$network}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -120,9 +108,9 @@
 						<div>
 							<dt>Pool</dt>
 							<dd>
-								{#if leverage.$pool !== undefined}
+								{#if leverage.fields.$pool !== undefined}
 									<LiquidityPoolView
-										entityId={leverage.$pool[EntityMetaKey.Id]}
+										entityId={leverage.fields.$pool[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={true}
 										showTypeAnnotation={false}
@@ -132,14 +120,14 @@
 								{/if}
 							</dd>
 						</div>
-						{#if open && leverage.$pool !== undefined && leverage.$owner !== undefined}
+						{#if open && leverage.fields.$pool !== undefined && leverage.fields.$owner !== undefined}
 							<div>
 								<dt>Owner</dt>
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
-											$network: leverage.$pool[EntityMetaKey.Id].$network,
-											$actor: leverage.$owner[EntityMetaKey.Id],
+											$network: leverage.fields.$pool[EntityMetaKey.Id].$network,
+											$actor: leverage.fields.$owner[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Value}
 										open={false}
@@ -148,61 +136,61 @@
 							</div>
 						{/if}
 
-						{#if open && leverage.tickLower !== undefined}
+						{#if open && leverage.fields.tickLower !== undefined}
 							<div>
 								<dt>Tick lower</dt>
-								<dd>{String(leverage.tickLower)}</dd>
+								<dd>{String(leverage.fields.tickLower)}</dd>
 							</div>
 						{/if}
 
-						{#if open && leverage.tickUpper !== undefined}
+						{#if open && leverage.fields.tickUpper !== undefined}
 							<div>
 								<dt>Tick upper</dt>
-								<dd>{String(leverage.tickUpper)}</dd>
+								<dd>{String(leverage.fields.tickUpper)}</dd>
 							</div>
 						{/if}
 
-						{#if open && leverage.liquidity !== undefined}
+						{#if open && leverage.fields.liquidity !== undefined}
 							<div>
 								<dt>Liquidity</dt>
-								<dd>{String(leverage.liquidity)}</dd>
+								<dd>{String(leverage.fields.liquidity)}</dd>
 							</div>
 						{/if}
 
-						{#if open && leverage.token0Owed !== undefined}
+						{#if open && leverage.fields.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
-								<dd>{String(leverage.token0Owed)}</dd>
+								<dd>{String(leverage.fields.token0Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if open && leverage.token1Owed !== undefined}
+						{#if open && leverage.fields.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
-								<dd>{String(leverage.token1Owed)}</dd>
+								<dd>{String(leverage.fields.token1Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if open && leverage.tokenId !== undefined}
+						{#if open && leverage.fields.tokenId !== undefined}
 							<div>
 								<dt>Token id</dt>
-								<dd>{String(leverage.tokenId)}</dd>
+								<dd>{String(leverage.fields.tokenId)}</dd>
 							</div>
 						{/if}
 
-						{#if open && leverage.origin}
+						{#if open && leverage.fields.origin}
 							<div>
 								<dt>Origin</dt>
-								<dd>{leverage.origin}</dd>
+								<dd>{leverage.fields.origin}</dd>
 							</div>
 						{/if}
 
-					{#if leverage.createdAtTimestamp !== undefined}
+					{#if leverage.fields.createdAtTimestamp !== undefined}
 						<div>
 							<dt>Created at</dt>
 							<dd>
 								<Timestamp
-									timestamp={leverage.createdAtTimestamp}
+									timestamp={leverage.fields.createdAtTimestamp}
 								/>
 							</dd>
 						</div>

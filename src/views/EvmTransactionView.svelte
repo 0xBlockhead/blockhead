@@ -3,10 +3,10 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 
 	import {
 		EvmTransactionEnvelopeType,
@@ -50,53 +50,16 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const evmTransaction = useEntity(
-		EntityType.EvmTransaction,
+	const evmTransaction = useEntity(entityCollectionsContext, EntityType.EvmTransaction,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
 				Source.ZeroGChain_JsonRpc,
-			],
-			$block: {},
-			$from: {},
-			$to: {},
-			$contract: {},
-			value: {},
-			kind: {},
-			envelopeType: {},
-			executionStatus: {},
-			gasUsed: {},
-			input: {},
-			...(open && {
-				nonce: {},
-				transactionIndex: {},
-				gas: {},
-				gasPrice: {},
-				effectiveGasPrice: {},
-				$case: {
-					envelopeType: {
-						[EvmTransactionEnvelopeType.FeeMarket]: {
-							maxFeePerGas: {},
-							maxPriorityFeePerGas: {},
-						},
-						[EvmTransactionEnvelopeType.Blob]: {
-							maxFeePerGas: {},
-							maxPriorityFeePerGas: {},
-							blobGasUsed: {},
-							maxFeePerBlobGas: {},
-						},
-						[EvmTransactionEnvelopeType.SetCode]: {
-							maxFeePerGas: {},
-							maxPriorityFeePerGas: {},
-						},
-					},
-				},
-			}),
-		},
+			], fields: { $block: true, $from: true, $to: true, $contract: true, value: true, kind: true, envelopeType: true, executionStatus: true, gasUsed: true, input: true, ...(open && ({ nonce: true, transactionIndex: true, gas: true, gasPrice: true, effectiveGasPrice: true })) } }),
 	)
 
 
@@ -168,14 +131,14 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>Kind</dt>
-						<dd>{evmTransactionKindByKind[transaction.kind]?.label ?? String(transaction.kind)}</dd>
+						<dd>{evmTransactionKindByKind[transaction.fields.kind]?.label ?? String(transaction.fields.kind)}</dd>
 					</div>
 
 					<div>
 						<dt>Value</dt>
 						<dd>
-							{#if transaction.value !== undefined}
-								<NumberValue value={transaction.value} />
+							{#if transaction.fields.value !== undefined}
+								<NumberValue value={transaction.fields.value} />
 							{/if}
 						</dd>
 					</div>
@@ -183,8 +146,8 @@
 					<div>
 						<dt>Status</dt>
 						<dd>
-							{#if transaction.executionStatus !== undefined}
-								{evmTransactionExecutionStatusByExecutionStatus[transaction.executionStatus]?.label ?? String(transaction.executionStatus)}
+							{#if transaction.fields.executionStatus !== undefined}
+								{evmTransactionExecutionStatusByExecutionStatus[transaction.fields.executionStatus]?.label ?? String(transaction.fields.executionStatus)}
 							{/if}
 						</dd>
 					</div>
@@ -192,8 +155,8 @@
 					<div>
 						<dt>Gas used</dt>
 						<dd>
-							{#if transaction.gasUsed !== undefined}
-								<NumberValue value={transaction.gasUsed} />
+							{#if transaction.fields.gasUsed !== undefined}
+								<NumberValue value={transaction.fields.gasUsed} />
 							{/if}
 						</dd>
 					</div>
@@ -201,9 +164,9 @@
 					<div>
 						<dt>Block</dt>
 						<dd>
-							{#if transaction.$block?.[EntityMetaKey.Id].blockNumber !== undefined}
+							{#if transaction.fields.$block?.[EntityMetaKey.Id].blockNumber !== undefined}
 								<EvmBlockView
-									entityId={transaction.$block[EntityMetaKey.Id]}
+									entityId={transaction.fields.$block[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -214,11 +177,11 @@
 					<div>
 						<dt>From</dt>
 						<dd>
-							{#if transaction.$from?.[EntityMetaKey.Id].address !== undefined}
+							{#if transaction.fields.$from?.[EntityMetaKey.Id].address !== undefined}
 								<EvmNetworkAccountView
 									entityId={{
 										$network: entityId.$network,
-										$actor: transaction.$from[EntityMetaKey.Id],
+										$actor: transaction.fields.$from[EntityMetaKey.Id],
 									}}
 									layout={EntityLayout.Value}
 									open={false}
@@ -230,11 +193,11 @@
 					<div>
 						<dt>To</dt>
 						<dd>
-							{#if transaction.$to?.[EntityMetaKey.Id].address !== undefined}
+							{#if transaction.fields.$to?.[EntityMetaKey.Id].address !== undefined}
 								<EvmNetworkAccountView
 									entityId={{
 										$network: entityId.$network,
-										$actor: transaction.$to[EntityMetaKey.Id],
+										$actor: transaction.fields.$to[EntityMetaKey.Id],
 									}}
 									layout={EntityLayout.Value}
 									open={false}
@@ -246,9 +209,9 @@
 					<div>
 						<dt>Contract</dt>
 						<dd>
-							{#if transaction.$contract?.[EntityMetaKey.Id].address !== undefined}
+							{#if transaction.fields.$contract?.[EntityMetaKey.Id].address !== undefined}
 								<EvmContractView
-									entityId={transaction.$contract[EntityMetaKey.Id]}
+									entityId={transaction.fields.$contract[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
@@ -261,8 +224,8 @@
 						<div>
 							<dt>Nonce</dt>
 							<dd>
-								{#if transaction.nonce !== undefined}
-									{String(transaction.nonce)}
+								{#if transaction.fields.nonce !== undefined}
+									{String(transaction.fields.nonce)}
 								{/if}
 							</dd>
 						</div>
@@ -272,8 +235,8 @@
 						<div>
 							<dt>Position in block</dt>
 							<dd>
-								{#if transaction.transactionIndex !== undefined}
-									{String(transaction.transactionIndex)}
+								{#if transaction.fields.transactionIndex !== undefined}
+									{String(transaction.fields.transactionIndex)}
 								{/if}
 							</dd>
 						</div>
@@ -283,8 +246,8 @@
 						<div>
 							<dt>Gas limit</dt>
 							<dd>
-								{#if transaction.gas !== undefined}
-									<NumberValue value={transaction.gas} />
+								{#if transaction.fields.gas !== undefined}
+									<NumberValue value={transaction.fields.gas} />
 								{/if}
 							</dd>
 						</div>
@@ -294,8 +257,8 @@
 						<div>
 							<dt>Gas price</dt>
 							<dd>
-								{#if transaction.gasPrice !== undefined}
-									<NumberValue value={transaction.gasPrice} />
+								{#if transaction.fields.gasPrice !== undefined}
+									<NumberValue value={transaction.fields.gasPrice} />
 								{/if}
 							</dd>
 						</div>
@@ -305,8 +268,8 @@
 						<div>
 							<dt>Transaction envelope type</dt>
 							<dd>
-								{#if transaction.envelopeType !== undefined}
-									{evmTransactionEnvelopeTypeByEnvelopeType[transaction.envelopeType]?.label ?? String(transaction.envelopeType)}
+								{#if transaction.fields.envelopeType !== undefined}
+									{evmTransactionEnvelopeTypeByEnvelopeType[transaction.fields.envelopeType]?.label ?? String(transaction.fields.envelopeType)}
 								{/if}
 							</dd>
 						</div>
@@ -318,38 +281,38 @@
 							<dd data-row="wrap align-center gap-2">
 								{#if (
 									(
-										transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
-										|| transaction.envelopeType === EvmTransactionEnvelopeType.Blob
-										|| transaction.envelopeType === EvmTransactionEnvelopeType.SetCode
+										transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
+										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
 									)
-									&& transaction.maxFeePerGas !== undefined
+									&& transaction.fields.maxFeePerGas !== undefined
 								)}
 									<span>
 										max{' '}
-										<NumberValue value={transaction.maxFeePerGas} />
+										<NumberValue value={transaction.fields.maxFeePerGas} />
 									</span>
 								{/if}
 								{#if (
 									(
-										transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
-										|| transaction.envelopeType === EvmTransactionEnvelopeType.Blob
-										|| transaction.envelopeType === EvmTransactionEnvelopeType.SetCode
+										transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
+										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
 									)
-									&& transaction.maxPriorityFeePerGas !== undefined
+									&& transaction.fields.maxPriorityFeePerGas !== undefined
 								)}
 									<span>
 										priority{' '}
-										<NumberValue value={transaction.maxPriorityFeePerGas} />
+										<NumberValue value={transaction.fields.maxPriorityFeePerGas} />
 									</span>
 								{/if}
 								{#if (
 									(
-										transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
-										|| transaction.envelopeType === EvmTransactionEnvelopeType.Blob
-										|| transaction.envelopeType === EvmTransactionEnvelopeType.SetCode
+										transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
+										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
 									)
-									&& transaction.maxFeePerGas === undefined
-									&& transaction.maxPriorityFeePerGas === undefined
+									&& transaction.fields.maxFeePerGas === undefined
+									&& transaction.fields.maxPriorityFeePerGas === undefined
 								)}
 									<span data-text="muted">Caps not indexed</span>
 								{/if}
@@ -361,8 +324,8 @@
 						<div>
 							<dt>Effective gas price</dt>
 							<dd>
-								{#if transaction.effectiveGasPrice !== undefined}
-									<NumberValue value={transaction.effectiveGasPrice} />
+								{#if transaction.fields.effectiveGasPrice !== undefined}
+									<NumberValue value={transaction.fields.effectiveGasPrice} />
 								{/if}
 							</dd>
 						</div>
@@ -372,9 +335,9 @@
 						<div>
 							<dt>Input data</dt>
 							<dd>
-								{#if transaction.input !== undefined}
+								{#if transaction.fields.input !== undefined}
 									<TruncatedValue
-										value={transaction.input}
+										value={transaction.fields.input}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -384,24 +347,24 @@
 
 					{#if open}
 						{#if (
-							transaction.envelopeType === EvmTransactionEnvelopeType.Blob
-							&& transaction.blobGasUsed !== undefined
+							transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
+							&& transaction.fields.blobGasUsed !== undefined
 						)}
 							<div>
 								<dt>Blob gas used</dt>
 								<dd>
-									<NumberValue value={transaction.blobGasUsed} />
+									<NumberValue value={transaction.fields.blobGasUsed} />
 								</dd>
 							</div>
 						{/if}
 						{#if (
-							transaction.envelopeType === EvmTransactionEnvelopeType.Blob
-							&& transaction.maxFeePerBlobGas !== undefined
+							transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
+							&& transaction.fields.maxFeePerBlobGas !== undefined
 						)}
 							<div>
 								<dt>Max fee per blob gas</dt>
 								<dd>
-									<NumberValue value={transaction.maxFeePerBlobGas} />
+									<NumberValue value={transaction.fields.maxFeePerBlobGas} />
 								</dd>
 							</div>
 						{/if}
@@ -446,13 +409,13 @@
 					placeholderText="Loading transaction input…"
 				>
 					{#snippet children(transaction)}
-						{#if transaction.input != null}
+						{#if transaction.fields.input != null}
 							<EvmTransactionInputDecode
-								input={transaction.input}
+								input={transaction.fields.input}
 								open={true}
 							/>
 						{:else}
-							<p data-text="muted">No calldata on this transaction.</p>
+							<p data-text="muted">No calldata on this transaction.fields.</p>
 						{/if}
 					{/snippet}
 				</ResourceBoundary>
@@ -478,29 +441,24 @@
 			{/snippet}
 
 			{#snippet SectionTrace({ id: _traceId, label: _traceLabel })}
-				{@const txTrace = useEntity(
-					EntityType.EvmTransaction,
+				{@const txTrace = useEntity(entityCollectionsContext, EntityType.EvmTransaction,
 					entityId,
-					{
-						$: [
+					({ sources: [
 							Source.Blockscout_Rest,
 							Source.Voltaire_JsonRpc,
-						],
-						traceRoot: {},
-						traceUnavailable: {},
-					},
+						], fields: { traceRoot: true, traceUnavailable: true } }),
 				)}
 				<ResourceBoundary
 					resource={txTrace}
 					placeholderText="Loading call trace…"
 				>
 					{#snippet children(trace)}
-						{#if trace.traceRoot != null}
+						{#if trace.fields.traceRoot != null}
 							<EvmTraceTreeView
-								traceRoot={trace.traceRoot}
+								traceRoot={trace.fields.traceRoot}
 								chainId={evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)}
 							/>
-						{:else if trace.traceUnavailable}
+						{:else if trace.fields.traceUnavailable}
 							<p data-text="muted">
 								Call trace is not available from the configured RPC or explorer for this chain.
 							</p>
@@ -517,7 +475,7 @@
 					placeholderText=""
 				>
 					{#snippet children(transaction)}
-						{#if transaction.envelopeType === EvmTransactionEnvelopeType.Blob}
+						{#if transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob}
 							<EvmBlobsView
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{

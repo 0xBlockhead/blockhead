@@ -9,9 +9,9 @@ import {
 	EntityMetaKey,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 const sourceValues = new Set<string>(Object.values(Source))

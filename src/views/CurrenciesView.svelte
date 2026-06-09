@@ -1,13 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 	type CurrencyOrderFieldRow = {
 		$$timestamps?: {
@@ -92,7 +92,8 @@
 
 	import type { DeclarativeOrderBy } from '$/lib/tanstackDb/orderBySteps.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// Components
@@ -126,31 +127,30 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
-					$: [
+				entityFieldReference.entityId,({ sources: [
 						Source.Constants_Internal,
-					],
-					[entityFieldReference.fieldName]: {
-						$orderBy: globalCurrenciesFieldOrderBy,
-						$limit: 512,
+					], fields: { [entityFieldReference.fieldName]: {
+						orderBy: [...globalCurrenciesFieldOrderBy],
+						limit: 512,
 						$$timestamps: {
-							$: [
+							sources: [
 								Source.Constants_Internal,
 							],
-							$orderBy: currencyTimestampsFieldOrderBy,
-							$limit: 1,
-							marketCap: {},
+							orderBy: currencyTimestampsFieldOrderBy,
+							limit: 1,
+							fields: {
+								marketCap: true,
+							},
 						},
 					},
-				},
+				} }),
 			)}
 			{@const currencies = derive(
 				parent,
-				(parent): Entity<typeof schema, EntityType.Currency>[] => (
-					parent[entityFieldReference.fieldName] ?? []
+				(parent): readonly Entity<typeof schema, EntityType.Currency>[] => (
+					parent.fields[entityFieldReference.fieldName]?.values ?? []
 				),
 			)}
 			<EntitiesList

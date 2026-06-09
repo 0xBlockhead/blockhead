@@ -1,9 +1,9 @@
 import {
 	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { EntityIdProjection } from '$/schema/$schema.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.Dune_Rest,
@@ -32,11 +32,12 @@ export default {
 					...(billingPeriod.credits_included != null && { duneCreditsIncluded: billingPeriod.credits_included }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			duneCreditsUsed: (snapshot) => snapshot.duneCreditsUsed,
 			duneCreditsIncluded: (snapshot) => snapshot.duneCreditsIncluded,
-		}
-		}),
+		},
+			}),
 	],
 }

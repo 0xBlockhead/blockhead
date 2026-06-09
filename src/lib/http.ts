@@ -1,4 +1,4 @@
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 

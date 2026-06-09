@@ -4,13 +4,14 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -34,47 +35,16 @@
 		never
 	> = $props()
 
-	const activityPubNetwork = useEntity(
-		EntityType.ActivityPubNetwork,
+	const activityPubNetwork = useEntity(entityCollectionsContext, EntityType.ActivityPubNetwork,
 		entityId,
-		{
-			$: [Source.Constants_Internal],
-			protocolName: {},
-			registryLabel: {},
-			...(open ?
-				{
-					homeUrl: {},
-					docsUrl: {},
-					topology: {},
-					instanceTitle: {
-						$: [Source.Mastodon_Rest],
-					},
-					instanceVersion: {
-						$: [Source.Mastodon_Rest],
-					},
-					fediInstanceTitle: {
-						$: [Source.Fedi_Rest],
-					},
-					fediInstanceVersion: {
-						$: [Source.Fedi_Rest],
-					},
-					$$activityPubActors: {
-						$: [
+		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, instanceTitle: ({ sources: [Source.Mastodon_Rest] }), instanceVersion: ({ sources: [Source.Mastodon_Rest] }), fediInstanceTitle: ({ sources: [Source.Fedi_Rest] }), fediInstanceVersion: ({ sources: [Source.Fedi_Rest] }), $$activityPubActors: ({ sources: [
 							Source.Constants_Internal,
 							Source.Mastodon_Rest,
 							Source.Fedi_Rest,
-						],
-					},
-					$$activityPubNotes: {
-						$: [
+						] }), $$activityPubNotes: ({ sources: [
 							Source.Mastodon_Rest,
 							Source.Fedi_Rest,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 
@@ -128,84 +98,84 @@
 				placeholderText="Loading ActivityPub federation slice…"
 			>
 				{#snippet children(activityPubNetwork)}
-					{#if activityPubNetwork.registryLabel}
+					{#if activityPubNetwork.fields.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{activityPubNetwork.registryLabel}</dd>
+							<dd>{activityPubNetwork.fields.registryLabel}</dd>
 						</div>
-					{:else if activityPubNetwork.protocolName}
+					{:else if activityPubNetwork.fields.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{activityPubNetwork.protocolName}</dd>
+							<dd>{activityPubNetwork.fields.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Actors</dt>
-							<dd>{String(activityPubNetwork.$$activityPubActors?.length ?? 0)}</dd>
+							<dd>{String(activityPubNetwork.fields.$$activityPubActors?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Statuses</dt>
-							<dd>{String(activityPubNetwork.$$activityPubNotes?.length ?? 0)}</dd>
+							<dd>{String(activityPubNetwork.fields.$$activityPubNotes?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.topology}
+					{#if open && activityPubNetwork.fields.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{activityPubNetwork.topology}</dd>
+							<dd>{activityPubNetwork.fields.topology}</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.homeUrl}
+					{#if open && activityPubNetwork.fields.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={activityPubNetwork.homeUrl}>{activityPubNetwork.homeUrl}</a>
+								<a href={activityPubNetwork.fields.homeUrl}>{activityPubNetwork.fields.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.docsUrl}
+					{#if open && activityPubNetwork.fields.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-								<a href={activityPubNetwork.docsUrl}>
-									{activityPubNetwork.docsUrl}
+								<a href={activityPubNetwork.fields.docsUrl}>
+									{activityPubNetwork.fields.docsUrl}
 								</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.instanceTitle}
+					{#if open && activityPubNetwork.fields.instanceTitle}
 						<div>
 							<dt>Mastodon instance title</dt>
-							<dd>{activityPubNetwork.instanceTitle}</dd>
+							<dd>{activityPubNetwork.fields.instanceTitle}</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.instanceVersion}
+					{#if open && activityPubNetwork.fields.instanceVersion}
 						<div>
 							<dt>Mastodon instance version</dt>
-							<dd data-text="mono muted">{activityPubNetwork.instanceVersion}</dd>
+							<dd data-text="mono muted">{activityPubNetwork.fields.instanceVersion}</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.fediInstanceTitle}
+					{#if open && activityPubNetwork.fields.fediInstanceTitle}
 						<div>
 							<dt>Fedi instance title</dt>
-							<dd>{activityPubNetwork.fediInstanceTitle}</dd>
+							<dd>{activityPubNetwork.fields.fediInstanceTitle}</dd>
 						</div>
 					{/if}
 
-					{#if open && activityPubNetwork.fediInstanceVersion}
+					{#if open && activityPubNetwork.fields.fediInstanceVersion}
 						<div>
 							<dt>Fedi instance version</dt>
-							<dd data-text="mono muted">{activityPubNetwork.fediInstanceVersion}</dd>
+							<dd data-text="mono muted">{activityPubNetwork.fields.fediInstanceVersion}</dd>
 						</div>
 					{/if}
 

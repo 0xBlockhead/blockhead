@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,15 +36,11 @@
 		>
 	> = $props()
 
-	const marketVenue = useEntity(
-		EntityType.MarketVenue,
+	const marketVenue = useEntity(entityCollectionsContext, EntityType.MarketVenue,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			label: {},
-		},
+			], fields: { label: true } }),
 	)
 
 
@@ -70,7 +67,7 @@
 			placeholderText="Loading market venue…"
 		>
 			{#snippet children(marketVenue)}
-				{marketVenue.label ?? entityId.marketVenueId}
+				{marketVenue.fields.label ?? entityId.marketVenueId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -92,7 +89,7 @@
 					<div>
 						<dt>Label</dt>
 						<dd>
-				{marketVenue.label ?? entityId.marketVenueId}
+				{marketVenue.fields.label ?? entityId.marketVenueId}
 						</dd>
 					</div>
 				</dl>

@@ -4,13 +4,14 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -39,11 +40,10 @@
 		>
 	> = $props()
 
-	const panelTree = useEntity(
-		EntityType.BlockheadPanelTree,
+	const panelTree = useEntity(entityCollectionsContext, EntityType.BlockheadPanelTree,
 		entityId,
 		{
-			$: [
+			sources: [
 				Source.Local_Internal,
 			],
 		},

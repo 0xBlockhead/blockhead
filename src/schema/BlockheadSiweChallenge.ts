@@ -1,13 +1,13 @@
 import { type } from 'arktype'
 
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 export default {
 	entityType: EntityType.BlockheadSiweChallenge,

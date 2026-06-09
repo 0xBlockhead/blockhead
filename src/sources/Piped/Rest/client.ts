@@ -5,7 +5,7 @@ import {
 	pipedApiOriginsForPublicEnv,
 } from '$/sources/Piped/Rest/constants.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const toQuery = (params: Record<string, string | undefined>) => {
 	const sp = new URLSearchParams()

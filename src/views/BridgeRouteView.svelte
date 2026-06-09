@@ -3,15 +3,16 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -32,30 +33,15 @@
 		never
 	> = $props()
 
-	const bridgeRoute = useEntity(
-		EntityType.BridgeRoute,
+	const bridgeRoute = useEntity(entityCollectionsContext, EntityType.BridgeRoute,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
-			],
-			$fromNetwork: {},
-			$toNetwork: {},
-			...(open && {
-				fromAmount: {},
-				toAmount: {},
-				toAmountMin: {},
-				estimatedCostUsd: {},
-				estimatedDurationSeconds: {},
-				$$steps: {
-					$: [
+			], fields: { $fromNetwork: true, $toNetwork: true, ...(open && ({ fromAmount: true, toAmount: true, toAmountMin: true, estimatedCostUsd: true, estimatedDurationSeconds: true, $$steps: ({ sources: [
 						Source.Constants_Internal,
 						Source.Lifi_Rest,
-					],
-				},
-			}),
-		},
+					] }) })) } }),
 	)
 
 
@@ -114,7 +100,7 @@
 						{#snippet children(bridgeRoute)}
 							<EvmNetworkView
 								entityId={
-									bridgeRoute.$fromNetwork?.[EntityMetaKey.Id]
+									bridgeRoute.fields.$fromNetwork?.[EntityMetaKey.Id]
 									?? { chainId: entityId.fromChainId }
 								}
 								layout={EntityLayout.Title}
@@ -134,7 +120,7 @@
 						{#snippet children(bridgeRoute)}
 							<EvmNetworkView
 								entityId={
-									bridgeRoute.$toNetwork?.[EntityMetaKey.Id]
+									bridgeRoute.fields.$toNetwork?.[EntityMetaKey.Id]
 									?? { chainId: entityId.toChainId }
 								}
 								layout={EntityLayout.Title}
@@ -214,8 +200,8 @@
 							placeholderText="Loading route…"
 						>
 							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.fromAmount !== undefined}
-									{String(bridgeRoute.fromAmount)}
+								{#if bridgeRoute.fields.fromAmount !== undefined}
+									{String(bridgeRoute.fields.fromAmount)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -232,8 +218,8 @@
 							placeholderText="Loading route…"
 						>
 							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.toAmount !== undefined}
-									{String(bridgeRoute.toAmount)}
+								{#if bridgeRoute.fields.toAmount !== undefined}
+									{String(bridgeRoute.fields.toAmount)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -250,8 +236,8 @@
 							placeholderText="Loading route…"
 						>
 							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.toAmountMin !== undefined}
-									{String(bridgeRoute.toAmountMin)}
+								{#if bridgeRoute.fields.toAmountMin !== undefined}
+									{String(bridgeRoute.fields.toAmountMin)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -268,9 +254,9 @@
 							placeholderText="Loading route…"
 						>
 							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.estimatedCostUsd !== undefined}
+								{#if bridgeRoute.fields.estimatedCostUsd !== undefined}
 									<CurrencyAmount
-										value={bridgeRoute.estimatedCostUsd}
+										value={bridgeRoute.fields.estimatedCostUsd}
 										scale={1}
 									/>
 								{/if}
@@ -289,8 +275,8 @@
 							placeholderText="Loading route…"
 						>
 							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.estimatedDurationSeconds !== undefined}
-									{String(bridgeRoute.estimatedDurationSeconds)} s
+								{#if bridgeRoute.fields.estimatedDurationSeconds !== undefined}
+									{String(bridgeRoute.fields.estimatedDurationSeconds)} s
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

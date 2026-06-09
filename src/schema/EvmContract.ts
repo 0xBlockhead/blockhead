@@ -1,16 +1,16 @@
 import { type } from 'arktype'
 
-import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { EvmAbi } from '$/schema/$EvmAbi.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { EvmAbi } from '$/schema/EvmAbi.ts'
 import Network from '$/schema/EvmNetwork.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const storageSlotRead = type({
 	slot: ZeroExHex,

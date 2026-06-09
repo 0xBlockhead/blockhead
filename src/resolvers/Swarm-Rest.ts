@@ -5,10 +5,10 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.Swarm_Rest,
@@ -92,8 +92,9 @@ export default {
 					...(mediaEntity != null && { $media: mediaEntity }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			reference: (snapshot) => snapshot.reference,
 			contentPath: (snapshot) => snapshot.contentPath,
 			canonicalUri: (snapshot) => snapshot.canonicalUri,
@@ -107,7 +108,7 @@ export default {
 			isContentTypeInferred: (snapshot) => snapshot.isContentTypeInferred,
 			text: (snapshot) => snapshot.text,
 			$media: (snapshot) => snapshot.$media,
-		}
-		}),
+		},
+			}),
 	],
 }

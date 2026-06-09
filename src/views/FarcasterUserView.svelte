@@ -3,15 +3,16 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -44,32 +45,16 @@
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const farcasterUserResource = useEntity(
-		EntityType.FarcasterUser,
+	const farcasterUserResource = useEntity(entityCollectionsContext, EntityType.FarcasterUser,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
 				Source.Farcaster_Rest,
-			],
-			displayName: {},
-			username: {},
-			bio: {},
-			url: {},
-			$primaryEvmAccount: {},
-			followerCount: {},
-			followingCount: {},
-			$icon: {},
-			$$verifiedAddresses: {},
-			$$timestamps: {
-				$: [
+			], fields: { displayName: true, username: true, bio: true, url: true, $primaryEvmAccount: true, followerCount: true, followingCount: true, $icon: true, $$verifiedAddresses: true, $$timestamps: ({ sources: [
 					Source.Neynar_Rest,
 					Source.Snapchain_Rest,
-				],
-				$limit: 1,
-			},
-		},
+				], limit: 1 }) } }),
 	)
 
 
@@ -104,12 +89,12 @@
 		>
 			{#snippet children(farcasterUser)}
 				{#if (
-					farcasterUser.$icon
-					&& farcasterUser.$icon[EntityMetaKey.Id].url
+					farcasterUser.fields.$icon
+					&& farcasterUser.fields.$icon[EntityMetaKey.Id].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={farcasterUser.$icon[EntityMetaKey.Id].url}
+						src={farcasterUser.fields.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -129,8 +114,8 @@
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
 			{#snippet children(farcasterUser)}
-				{farcasterUser.displayName
-					?? farcasterUser.username
+				{farcasterUser.fields.displayName
+					?? farcasterUser.fields.username
 					?? `FID ${String(entityId.fid)}`}
 			{/snippet}
 		</ResourceBoundary>
@@ -143,15 +128,15 @@
 		>
 			{#snippet children(farcasterUser)}
 				{#if (
-					farcasterUser.username !== undefined
-					&& farcasterUser.username !== (
-						farcasterUser.displayName
-						?? farcasterUser.username
+					farcasterUser.fields.username !== undefined
+					&& farcasterUser.fields.username !== (
+						farcasterUser.fields.displayName
+						?? farcasterUser.fields.username
 						?? `FID ${String(entityId.fid)}`
 					)
 				)}
 					<span data-text="muted">
-						@{farcasterUser.username}
+						@{farcasterUser.fields.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -173,10 +158,10 @@
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
 			{#snippet children(farcasterUser)}
-				{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
+				{#if farcasterUser.fields.bio != null && farcasterUser.fields.bio !== ''}
 					<p>
 						<TruncatedValue
-							value={farcasterUser.bio}
+							value={farcasterUser.fields.bio}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -193,10 +178,10 @@
 						placeholderText="Loading Farcaster profile (FID)…"
 					>
 						{#snippet children(farcasterUser)}
-							{#if farcasterUser.url}
+							{#if farcasterUser.fields.url}
 								<UrlView
 									entityId={{
-										url: farcasterUser.url,
+										url: farcasterUser.fields.url,
 									}}
 									layout={EntityLayout.Title}
 									open={false}
@@ -216,11 +201,11 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: farcasterUser.$$timestamps[0]?.followerCount ?? farcasterUser.followerCount,
+								value: farcasterUser.fields.$$timestamps[0]?.followerCount ?? farcasterUser.fields.followerCount,
 							},
 							{
 								label: 'Following',
-								value: farcasterUser.$$timestamps[0]?.followingCount ?? farcasterUser.followingCount,
+								value: farcasterUser.fields.$$timestamps[0]?.followingCount ?? farcasterUser.fields.followingCount,
 							},
 						]}
 					/>
@@ -232,14 +217,14 @@
 				placeholderText="Loading Farcaster profile (FID)…"
 			>
 				{#snippet children(farcasterUser)}
-					{#if farcasterUser.$primaryEvmAccount != null}
+					{#if farcasterUser.fields.$primaryEvmAccount != null}
 						<div>
 							<dt>Primary EVM account</dt>
 							<dd>
 								<EvmAccountView
-									entityId={farcasterUser.$primaryEvmAccount[EntityMetaKey.Id]}
+									entityId={farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Id]}
 									href={resolve('/account/[address]', {
-										address: farcasterUser.$primaryEvmAccount[EntityMetaKey.Id].address,
+										address: farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Id].address,
 									})}
 									layout={EntityLayout.Title}
 									open={false}
@@ -259,9 +244,9 @@
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
 							{#snippet children(farcasterUser)}
-									{#if farcasterUser.$$verifiedAddresses.length}
+									{#if farcasterUser.fields.$$verifiedAddresses?.values.length}
 										<ul data-column="gap-2">
-											{#each farcasterUser.$$verifiedAddresses as verification (stringify(verification[EntityMetaKey.Id]))}
+											{#each farcasterUser.fields.$$verifiedAddresses.values as verification (stringify(verification[EntityMetaKey.Id]))}
 												<li>
 													{#if verification.$evmAccount}
 														<EvmAccountView
@@ -302,8 +287,8 @@
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
 							{#snippet children(farcasterUser)}
-								{#if farcasterUser.username}
-									@{farcasterUser.username}
+								{#if farcasterUser.fields.username}
+									@{farcasterUser.fields.username}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -363,12 +348,9 @@
 				>
 					{#snippet body()}
 						{#if open}
-							{@const farcasterUserCasts = useEntity(
-								EntityType.FarcasterUser,
+							{@const farcasterUserCasts = useEntity(entityCollectionsContext, EntityType.FarcasterUser,
 								entityId,
-								{
-									$$casts: {},
-								},
+								({ fields: { $$casts: true } }),
 							)}
 							{@const casts = derive(
 								farcasterUserCasts,

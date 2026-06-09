@@ -1,7 +1,7 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import Helius from '$/sources/Helius/index.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
 
 const origin = 'https://api-mainnet.helius-rpc.com'

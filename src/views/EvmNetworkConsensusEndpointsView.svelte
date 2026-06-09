@@ -3,14 +3,15 @@
 	import { consensusProtocolByProtocol } from '$/constants/EvmNetwork.ts'
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -57,20 +58,16 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const network = useEntity(
-				EntityType.EvmNetwork,
+			{@const network = useEntity(entityCollectionsContext, EntityType.EvmNetwork,
 				entityId,
-				{
-					$: [
+				({ sources: [
 						Source.Constants_Internal,
-					],
-					consensusEndpoints: {},
-				},
+					], fields: { consensusEndpoints: true } }),
 			)}
 			{@const endpoints = derive(
 				network,
 				(network) => (
-					network.consensusEndpoints
+					network.fields.consensusEndpoints?.values
 					?? []
 				),
 			)}

@@ -1,4 +1,4 @@
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 
 
 export const eip8004ScanPublicBase = 'https://8004scan.io/api/v1/public' as const

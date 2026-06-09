@@ -3,12 +3,13 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import BeaconSlotSchema from '$/schema/BeaconSlot.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,24 +39,11 @@
 		>
 	> = $props()
 
-	const slot = useEntity(
-		EntityType.BeaconSlot,
+	const slot = useEntity(entityCollectionsContext, EntityType.BeaconSlot,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Beacon_Rest,
-			],
-			proposerIndex: {},
-			...(open && {
-				epoch: {},
-				root: {},
-				parentRoot: {},
-				stateRoot: {},
-				bodyRoot: {},
-				canonical: {},
-				signature: {},
-			}),
-		},
+			], fields: { proposerIndex: true, ...(open && ({ epoch: true, root: true, parentRoot: true, stateRoot: true, bodyRoot: true, canonical: true, signature: true })) } }),
 	)
 
 
@@ -120,8 +108,8 @@
 						placeholderText="Loading slot…"
 						>
 							{#snippet children(slot)}
-								{#if slot.proposerIndex !== undefined}
-									<NumberValue value={slot.proposerIndex} />
+								{#if slot.fields.proposerIndex !== undefined}
+									<NumberValue value={slot.fields.proposerIndex} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -136,11 +124,11 @@
 							placeholderText="Loading slot…"
 						>
 							{#snippet children(slot)}
-								{#if slot.epoch !== undefined}
+								{#if slot.fields.epoch !== undefined}
 									<BeaconEpochView
 										entityId={{
 											$network: entityId.$network,
-											epoch: slot.epoch,
+											epoch: slot.fields.epoch,
 										}}
 										layout={EntityLayout.Value}
 										open={false}
@@ -159,9 +147,9 @@
 							placeholderText="Loading slot…"
 							>
 								{#snippet children(slot)}
-									{#if slot.root !== undefined}
+									{#if slot.fields.root !== undefined}
 										<TruncatedValue
-											value={slot.root}
+											value={slot.fields.root}
 											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -178,8 +166,8 @@
 							placeholderText="Loading slot…"
 						>
 							{#snippet children(slot)}
-								{#if slot.canonical !== undefined}
-									{slot.canonical ? 'Yes' : 'No'}
+								{#if slot.fields.canonical !== undefined}
+									{slot.fields.canonical ? 'Yes' : 'No'}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -194,9 +182,9 @@
 							placeholderText="Loading slot…"
 							>
 								{#snippet children(slot)}
-									{#if slot.parentRoot !== undefined}
+									{#if slot.fields.parentRoot !== undefined}
 										<TruncatedValue
-											value={slot.parentRoot}
+											value={slot.fields.parentRoot}
 											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -213,9 +201,9 @@
 							placeholderText="Loading slot…"
 							>
 								{#snippet children(slot)}
-									{#if slot.stateRoot !== undefined}
+									{#if slot.fields.stateRoot !== undefined}
 										<TruncatedValue
-											value={slot.stateRoot}
+											value={slot.fields.stateRoot}
 											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -232,9 +220,9 @@
 							placeholderText="Loading slot…"
 							>
 								{#snippet children(slot)}
-									{#if slot.bodyRoot !== undefined}
+									{#if slot.fields.bodyRoot !== undefined}
 										<TruncatedValue
-											value={slot.bodyRoot}
+											value={slot.fields.bodyRoot}
 											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -251,9 +239,9 @@
 							placeholderText="Loading slot…"
 							>
 								{#snippet children(slot)}
-									{#if slot.signature !== undefined}
+									{#if slot.fields.signature !== undefined}
 										<TruncatedValue
-											value={slot.signature}
+											value={slot.fields.signature}
 											format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}

@@ -1,4 +1,4 @@
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 
 export const nostrBandApiOrigin = 'https://api.nostr.band' as const
 

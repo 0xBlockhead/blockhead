@@ -7,9 +7,9 @@ import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 export default {
@@ -36,8 +36,9 @@ export default {
 					...(feed.imageUrl != null && { imageUrl: feed.imageUrl }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			title: (snapshot) => snapshot.title,
 			description: (snapshot) => snapshot.description,
 			link: (snapshot) => snapshot.link,
@@ -45,8 +46,8 @@ export default {
 			language: (snapshot) => snapshot.language,
 			lastBuildDate: (snapshot) => snapshot.lastBuildDate,
 			imageUrl: (snapshot) => snapshot.imageUrl,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssItem,
@@ -85,8 +86,9 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			title: (snapshot) => snapshot.title,
 			link: (snapshot) => snapshot.link,
 			description: (snapshot) => snapshot.description,
@@ -98,8 +100,8 @@ export default {
 			enclosureUrl: (snapshot) => snapshot.enclosureUrl,
 			commentsUrl: (snapshot) => snapshot.commentsUrl,
 			$feed: (snapshot) => snapshot.$feed,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssNetwork,
@@ -129,11 +131,12 @@ export default {
 				}
 				return refs.slice(0, limit)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$rssItems: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssFeed,
@@ -156,10 +159,11 @@ export default {
 						}))
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$items: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

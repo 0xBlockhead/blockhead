@@ -1,5 +1,5 @@
-import { Source } from '$/sources/$Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import LogosDocsRest from '$/sources/LogosDocs/Rest/index.ts'
 
 export default {

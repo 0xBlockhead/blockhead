@@ -1,5 +1,5 @@
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
-import type { EvmAbiEntry } from '$/schema/$EvmAbi.ts'
+import type { EvmAbiEntry } from '$/schema/EvmAbi.ts'
 
 export const evmAbiFromJsonValue = (value: JsonValue): EvmAbiEntry[] => (
 	Array.isArray(value) ?

@@ -5,9 +5,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.CashuMint_Rest,
@@ -30,8 +30,9 @@ export default {
 					...(info.time != null && { timeMs: info.time * 1000 }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (snapshot) => snapshot.name,
 			pubkey: (snapshot) => snapshot.pubkey,
 			version: (snapshot) => snapshot.version,
@@ -40,8 +41,8 @@ export default {
 			iconUrl: (snapshot) => snapshot.iconUrl,
 			tosUrl: (snapshot) => snapshot.tosUrl,
 			timeMs: (snapshot) => snapshot.timeMs,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuKeyset,
@@ -72,14 +73,15 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			unit: (snapshot) => snapshot.unit,
 			active: (snapshot) => snapshot.active,
 			inputFeePpk: (snapshot) => snapshot.inputFeePpk,
 			keysByAmountJson: (snapshot) => snapshot.keysByAmountJson,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint,
@@ -100,10 +102,11 @@ export default {
 						...(keyset.input_fee_ppk != null && { inputFeePpk: keyset.input_fee_ppk }),
 					}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$keysets: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

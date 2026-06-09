@@ -3,14 +3,15 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -34,13 +35,13 @@
 		never
 	> = $props()
 
-	const calldata = useEntity(
-		EntityType.EvmCalldata,
+	const calldata = useEntity(entityCollectionsContext, EntityType.EvmCalldata,
 		entityId,
 		{
-			$: [
+			sources: [
 				Source.Voltaire_JsonRpc,
 			],
+			fields: {},
 		},
 	)
 

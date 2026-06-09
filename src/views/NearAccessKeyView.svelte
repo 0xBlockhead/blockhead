@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const nearAccessKey = useEntity(
-		EntityType.NearAccessKey,
+	const nearAccessKey = useEntity(entityCollectionsContext, EntityType.NearAccessKey,
 		entityId,
-		{
-			nonce: {},
-			permission: {},
-		},
+		({ fields: { nonce: true, permission: true } }),
 	)
 
 
@@ -66,17 +63,17 @@
 		>
 			{#snippet children(nearAccessKey)}
 				<dl>
-					{#if nearAccessKey.nonce != null}
+					{#if nearAccessKey.fields.nonce != null}
 						<div>
 							<dt>Nonce</dt>
-							<dd><NumberValue value={nearAccessKey.nonce} /></dd>
+							<dd><NumberValue value={nearAccessKey.fields.nonce} /></dd>
 						</div>
 					{/if}
 
-					{#if nearAccessKey.permission != null}
+					{#if nearAccessKey.fields.permission != null}
 						<div>
 							<dt>Permission</dt>
-							<dd>{nearAccessKey.permission}</dd>
+							<dd>{nearAccessKey.fields.permission}</dd>
 						</div>
 					{/if}
 				</dl>

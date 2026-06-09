@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -19,24 +20,11 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = useEntity(
-		EntityType.PolkadotNetwork_Timestamp,
+	const snapshot = useEntity(entityCollectionsContext, EntityType.PolkadotNetwork_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Polkadot_JsonRpc,
-			],
-			finalizedBlockNumber: {},
-			finalizedBlockHash: {},
-			finalizedExtrinsicCount: {},
-			runtimeSpecName: {},
-			runtimeSpecVersion: {},
-			transactionVersion: {},
-			stateVersion: {},
-			peerCount: {},
-			isSyncing: {},
-			shouldHavePeers: {},
-		},
+			], fields: { finalizedBlockNumber: true, finalizedBlockHash: true, finalizedExtrinsicCount: true, runtimeSpecName: true, runtimeSpecVersion: true, transactionVersion: true, stateVersion: true, peerCount: true, isSyncing: true, shouldHavePeers: true } }),
 	)
 
 
@@ -61,10 +49,10 @@
 			placeholderText="Loading Polkadot network snapshot…"
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.finalizedBlockNumber !== undefined}
-					<NumberValue value={snapshot.finalizedBlockNumber} />
-				{:else if snapshot.peerCount !== undefined}
-					<NumberValue value={snapshot.peerCount} />
+				{#if snapshot.fields.finalizedBlockNumber !== undefined}
+					<NumberValue value={snapshot.fields.finalizedBlockNumber} />
+				{:else if snapshot.fields.peerCount !== undefined}
+					<NumberValue value={snapshot.fields.peerCount} />
 					peers
 				{:else}
 					<Timestamp timestamp={entityId.timestampMs} />
@@ -80,71 +68,71 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.finalizedBlockNumber !== undefined}
+					{#if snapshot.fields.finalizedBlockNumber !== undefined}
 						<div>
 							<dt>Finalized block</dt>
-							<dd><NumberValue value={snapshot.finalizedBlockNumber} /></dd>
+							<dd><NumberValue value={snapshot.fields.finalizedBlockNumber} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.runtimeSpecVersion !== undefined}
+					{#if snapshot.fields.runtimeSpecVersion !== undefined}
 						<div>
 							<dt>Runtime</dt>
-							<dd>{snapshot.runtimeSpecName} #{snapshot.runtimeSpecVersion}</dd>
+							<dd>{snapshot.fields.runtimeSpecName} #{snapshot.fields.runtimeSpecVersion}</dd>
 						</div>
 					{/if}
 
-					{#if snapshot.peerCount !== undefined}
+					{#if snapshot.fields.peerCount !== undefined}
 						<div>
 							<dt>Peers</dt>
-							<dd><NumberValue value={snapshot.peerCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.peerCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.isSyncing !== undefined}
+					{#if snapshot.fields.isSyncing !== undefined}
 						<div>
 							<dt>Syncing</dt>
-							<dd>{snapshot.isSyncing ? 'Yes' : 'No'}</dd>
+							<dd>{snapshot.fields.isSyncing ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.finalizedBlockHash != null}
+					{#if open && snapshot.fields.finalizedBlockHash != null}
 						<div>
 							<dt>Finalized hash</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.finalizedBlockHash}
+									value={snapshot.fields.finalizedBlockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.finalizedExtrinsicCount !== undefined}
+					{#if open && snapshot.fields.finalizedExtrinsicCount !== undefined}
 						<div>
 							<dt>Extrinsics</dt>
-							<dd><NumberValue value={snapshot.finalizedExtrinsicCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.finalizedExtrinsicCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.transactionVersion !== undefined}
+					{#if open && snapshot.fields.transactionVersion !== undefined}
 						<div>
 							<dt>Transaction version</dt>
-							<dd><NumberValue value={snapshot.transactionVersion} /></dd>
+							<dd><NumberValue value={snapshot.fields.transactionVersion} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.stateVersion !== undefined}
+					{#if open && snapshot.fields.stateVersion !== undefined}
 						<div>
 							<dt>State version</dt>
-							<dd><NumberValue value={snapshot.stateVersion} /></dd>
+							<dd><NumberValue value={snapshot.fields.stateVersion} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.shouldHavePeers !== undefined}
+					{#if open && snapshot.fields.shouldHavePeers !== undefined}
 						<div>
 							<dt>Peer expectation</dt>
-							<dd>{snapshot.shouldHavePeers ? 'Required' : 'Optional'}</dd>
+							<dd>{snapshot.fields.shouldHavePeers ? 'Required' : 'Optional'}</dd>
 						</div>
 					{/if}
 				</dl>

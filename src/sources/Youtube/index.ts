@@ -3,7 +3,7 @@ import { type as arktype } from 'arktype'
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { youtubeApiOrigins } from '$/sources/Youtube/Rest/constants.ts'
 import YoutubeRestSource from '$/sources/Youtube/Rest/index.ts'
 

@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -30,19 +31,20 @@
 		>
 	> = $props()
 
-	const relay = useEntity(
-		EntityType.MevRelay,
+	const relay = useEntity(entityCollectionsContext, EntityType.MevRelay,
 		entityId,
 		(
 			open ?
 				{
-					$: [
+					sources: [
 						Source.Constants_Internal,
 					],
-					url: {},
+					fields: {
+						url: true,
+					},
 				}
 			:
-				{}
+				{ fields: {} }
 		),
 	)
 
@@ -86,10 +88,10 @@
 			>
 				{#snippet children(relay)}
 					<dl data-column-item="center">
-						{#if relay.url !== undefined}
+						{#if relay.fields.url !== undefined}
 							<div>
 								<dt>URL</dt>
-								<dd>{relay.url}</dd>
+								<dd>{relay.fields.url}</dd>
 							</div>
 						{/if}
 					</dl>

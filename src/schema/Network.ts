@@ -6,12 +6,14 @@ import {
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalOn,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import {
+	conditionalOn,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const networkBaseFields = [
 	{

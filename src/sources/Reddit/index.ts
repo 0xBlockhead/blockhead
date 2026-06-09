@@ -3,7 +3,7 @@ import { type as arktype } from 'arktype'
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { redditApiOrigins } from '$/sources/Reddit/Rest/constants.ts'
 import RedditOauthSource from '$/sources/Reddit/Rest/index.ts'
 

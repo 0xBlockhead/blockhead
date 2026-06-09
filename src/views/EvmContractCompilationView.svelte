@@ -3,13 +3,14 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -41,23 +42,11 @@
 		never
 	> = $props()
 
-	const compilation = useEntity(
-		EntityType.EvmContractCompilation,
+	const compilation = useEntity(entityCollectionsContext, EntityType.EvmContractCompilation,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Sourcify_Rest,
-			],
-			...(open && {
-				language: {},
-				compiler: {},
-				compilerVersion: {},
-				name: {},
-				fullyQualifiedName: {},
-				compilerSettingsJson: {},
-				storageLayoutJson: {},
-			}),
-		},
+			], fields: { ...(open && ({ language: true, compiler: true, compilerVersion: true, name: true, fullyQualifiedName: true, compilerSettingsJson: true, storageLayoutJson: true })) } }),
 	)
 
 
@@ -83,9 +72,9 @@
 			placeholderText="Loading compilation…"
 		>
 			{#snippet children(compilation)}
-				{compilation.fullyQualifiedName
-					?? compilation.name
-					?? compilation.language
+				{compilation.fields.fullyQualifiedName
+					?? compilation.fields.name
+					?? compilation.fields.language
 					?? 'Compilation'}
 			{/snippet}
 		</ResourceBoundary>
@@ -113,8 +102,8 @@
 							placeholderText="Loading compilation metadata…"
 						>
 							{#snippet children(compilation)}
-								{#if compilation.language}
-									{compilation.language}
+								{#if compilation.fields.language}
+									{compilation.fields.language}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -128,8 +117,8 @@
 							placeholderText="Loading compilation metadata…"
 						>
 							{#snippet children(compilation)}
-								{#if compilation.compiler}
-									{compilation.compiler}
+								{#if compilation.fields.compiler}
+									{compilation.fields.compiler}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -143,8 +132,8 @@
 							placeholderText="Loading compilation metadata…"
 						>
 							{#snippet children(compilation)}
-								{#if compilation.compilerVersion}
-									{compilation.compilerVersion}
+								{#if compilation.fields.compilerVersion}
+									{compilation.fields.compilerVersion}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -158,8 +147,8 @@
 							placeholderText="Loading compilation metadata…"
 						>
 							{#snippet children(compilation)}
-								{#if compilation.fullyQualifiedName}
-									<code>{compilation.fullyQualifiedName}</code>
+								{#if compilation.fields.fullyQualifiedName}
+									<code>{compilation.fields.fullyQualifiedName}</code>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -173,9 +162,9 @@
 							placeholderText="Loading compilation metadata…"
 						>
 							{#snippet children(compilation)}
-								{#if compilation.compilerSettingsJson}
+								{#if compilation.fields.compilerSettingsJson}
 									<TruncatedValue
-										value={compilation.compilerSettingsJson}
+										value={compilation.fields.compilerSettingsJson}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -191,9 +180,9 @@
 							placeholderText="Loading compilation metadata…"
 						>
 							{#snippet children(compilation)}
-								{#if compilation.storageLayoutJson}
+								{#if compilation.fields.storageLayoutJson}
 									<TruncatedValue
-										value={compilation.storageLayoutJson}
+										value={compilation.fields.storageLayoutJson}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}

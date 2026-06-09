@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -19,35 +20,12 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = useEntity(
-		EntityType.ZeroGNetwork_Timestamp,
+	const snapshot = useEntity(entityCollectionsContext, EntityType.ZeroGNetwork_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.ZeroGChain_JsonRpc,
 				Source.ZeroGStorageScan_Rest,
-			],
-			headBlockNumber: {},
-			headBlockHash: {},
-			headTimestampMs: {},
-			transactionCount: {},
-			gasUsed: {},
-			gasLimit: {},
-			baseFeePerGas: {},
-			storageLogSyncHeight: {},
-			storageLayer1LogSyncHeight: {},
-			storageTransactionCount: {},
-			latestDataRoot: {},
-			latestDataSizeBytes: {},
-			latestStorageTxHash: {},
-			storageMinerCount: {},
-			latestStorageMiner: {},
-			storageFeeTotal: {},
-			storageRewardTotal: {},
-			storageTotalWinCount: {},
-			expiredFileCount: {},
-			prunedFileCount: {},
-		},
+			], fields: { headBlockNumber: true, headBlockHash: true, headTimestampMs: true, transactionCount: true, gasUsed: true, gasLimit: true, baseFeePerGas: true, storageLogSyncHeight: true, storageLayer1LogSyncHeight: true, storageTransactionCount: true, latestDataRoot: true, latestDataSizeBytes: true, latestStorageTxHash: true, storageMinerCount: true, latestStorageMiner: true, storageFeeTotal: true, storageRewardTotal: true, storageTotalWinCount: true, expiredFileCount: true, prunedFileCount: true } }),
 	)
 
 
@@ -72,10 +50,10 @@
 			placeholderText="Loading 0G network snapshot..."
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.headBlockNumber !== undefined}
-					<NumberValue value={snapshot.headBlockNumber} />
-				{:else if snapshot.storageTransactionCount !== undefined}
-					<NumberValue value={snapshot.storageTransactionCount} />
+				{#if snapshot.fields.headBlockNumber !== undefined}
+					<NumberValue value={snapshot.fields.headBlockNumber} />
+				{:else if snapshot.fields.storageTransactionCount !== undefined}
+					<NumberValue value={snapshot.fields.storageTransactionCount} />
 					storage logs
 				{:else}
 					<Timestamp timestamp={entityId.timestampMs} />
@@ -95,156 +73,156 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.headBlockNumber !== undefined}
+					{#if snapshot.fields.headBlockNumber !== undefined}
 						<div>
 							<dt>Head block</dt>
-							<dd>#<NumberValue value={snapshot.headBlockNumber} /></dd>
+							<dd>#<NumberValue value={snapshot.fields.headBlockNumber} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.transactionCount !== undefined}
+					{#if snapshot.fields.transactionCount !== undefined}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={snapshot.transactionCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.transactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.storageTransactionCount !== undefined}
+					{#if snapshot.fields.storageTransactionCount !== undefined}
 						<div>
 							<dt>Storage logs</dt>
-							<dd><NumberValue value={snapshot.storageTransactionCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.storageTransactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.storageMinerCount !== undefined}
+					{#if snapshot.fields.storageMinerCount !== undefined}
 						<div>
 							<dt>Storage miners</dt>
-							<dd><NumberValue value={snapshot.storageMinerCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.storageMinerCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.headBlockHash != null}
+					{#if open && snapshot.fields.headBlockHash != null}
 						<div>
 							<dt>Head hash</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.headBlockHash}
+									value={snapshot.fields.headBlockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.gasUsed !== undefined}
+					{#if open && snapshot.fields.gasUsed !== undefined}
 						<div>
 							<dt>Gas used</dt>
-							<dd><NumberValue value={snapshot.gasUsed} /></dd>
+							<dd><NumberValue value={snapshot.fields.gasUsed} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.gasLimit !== undefined}
+					{#if open && snapshot.fields.gasLimit !== undefined}
 						<div>
 							<dt>Gas limit</dt>
-							<dd><NumberValue value={snapshot.gasLimit} /></dd>
+							<dd><NumberValue value={snapshot.fields.gasLimit} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.baseFeePerGas !== undefined}
+					{#if open && snapshot.fields.baseFeePerGas !== undefined}
 						<div>
 							<dt>Base fee</dt>
-							<dd><NumberValue value={snapshot.baseFeePerGas} /> wei</dd>
+							<dd><NumberValue value={snapshot.fields.baseFeePerGas} /> wei</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.storageLogSyncHeight !== undefined}
+					{#if open && snapshot.fields.storageLogSyncHeight !== undefined}
 						<div>
 							<dt>Storage sync</dt>
-							<dd><NumberValue value={snapshot.storageLogSyncHeight} /></dd>
+							<dd><NumberValue value={snapshot.fields.storageLogSyncHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.storageLayer1LogSyncHeight !== undefined}
+					{#if open && snapshot.fields.storageLayer1LogSyncHeight !== undefined}
 						<div>
 							<dt>L1 log sync</dt>
-							<dd><NumberValue value={snapshot.storageLayer1LogSyncHeight} /></dd>
+							<dd><NumberValue value={snapshot.fields.storageLayer1LogSyncHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.storageFeeTotal != null}
+					{#if open && snapshot.fields.storageFeeTotal != null}
 						<div>
 							<dt>Storage fees</dt>
-							<dd>{snapshot.storageFeeTotal}</dd>
+							<dd>{snapshot.fields.storageFeeTotal}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.latestDataRoot != null}
+					{#if open && snapshot.fields.latestDataRoot != null}
 						<div>
 							<dt>Latest data root</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.latestDataRoot}
+									value={snapshot.fields.latestDataRoot}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.latestDataSizeBytes !== undefined}
+					{#if open && snapshot.fields.latestDataSizeBytes !== undefined}
 						<div>
 							<dt>Latest data size</dt>
-							<dd><NumberValue value={snapshot.latestDataSizeBytes} /> bytes</dd>
+							<dd><NumberValue value={snapshot.fields.latestDataSizeBytes} /> bytes</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.latestStorageTxHash != null}
+					{#if open && snapshot.fields.latestStorageTxHash != null}
 						<div>
 							<dt>Latest storage tx</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.latestStorageTxHash}
+									value={snapshot.fields.latestStorageTxHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.latestStorageMiner != null}
+					{#if open && snapshot.fields.latestStorageMiner != null}
 						<div>
 							<dt>Latest miner</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.latestStorageMiner}
+									value={snapshot.fields.latestStorageMiner}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.storageRewardTotal != null}
+					{#if open && snapshot.fields.storageRewardTotal != null}
 						<div>
 							<dt>Storage rewards</dt>
-							<dd>{snapshot.storageRewardTotal}</dd>
+							<dd>{snapshot.fields.storageRewardTotal}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.storageTotalWinCount !== undefined}
+					{#if open && snapshot.fields.storageTotalWinCount !== undefined}
 						<div>
 							<dt>Storage wins</dt>
-							<dd><NumberValue value={snapshot.storageTotalWinCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.storageTotalWinCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.expiredFileCount !== undefined}
+					{#if open && snapshot.fields.expiredFileCount !== undefined}
 						<div>
 							<dt>Expired files</dt>
-							<dd><NumberValue value={snapshot.expiredFileCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.expiredFileCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.prunedFileCount !== undefined}
+					{#if open && snapshot.fields.prunedFileCount !== undefined}
 						<div>
 							<dt>Pruned files</dt>
-							<dd><NumberValue value={snapshot.prunedFileCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.prunedFileCount} /></dd>
 						</div>
 					{/if}
 				</dl>

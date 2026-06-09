@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,16 +36,12 @@
 		>
 	> = $props()
 
-	const farcasterUserTimestamp = useEntity(
+	const farcasterUserTimestamp = useEntity(entityCollectionsContext, 
 		EntityType.FarcasterUser_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Snapchain_Rest,
-			],
-			followerCount: {},
-			followingCount: {},
-		},
+			], fields: { followerCount: true, followingCount: true } }),
 	)
 
 
@@ -90,11 +87,11 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: farcasterUserTimestamp.followerCount,
+								value: farcasterUserTimestamp.fields.followerCount,
 							},
 							{
 								label: 'Following',
-								value: farcasterUserTimestamp.followingCount,
+								value: farcasterUserTimestamp.fields.followingCount,
 							},
 						]}
 					/>

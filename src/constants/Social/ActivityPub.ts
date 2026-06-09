@@ -2,7 +2,7 @@
 import { fediDefaultInstanceOrigin } from '$/constants/Fedi.ts'
 import { mastodonDefaultInstanceOrigin } from '$/constants/Mastodon.ts'
 import type { EntityId } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 
 

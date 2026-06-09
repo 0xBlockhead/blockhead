@@ -1,14 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -22,27 +23,28 @@
 		title?: string
 	} = $props()
 
-	const rollup = useEntity(
-		EntityType.EvmRollup,
+	const rollup = useEntity(entityCollectionsContext, EntityType.EvmRollup,
 		entityId,
 		(
 			open ?
 				{
-					$: [
+					sources: [
 						Source.L2Beat_Rest,
 					],
-					$settlementNetwork: {},
-					name: {},
-					slug: {},
-					type: {},
-					category: {},
-					hostChain: {},
-					isArchived: {},
-					isUpcoming: {},
-					isUnderReview: {},
+					fields: {
+						$settlementNetwork: true,
+						name: true,
+						slug: true,
+						type: true,
+						category: true,
+						hostChain: true,
+						isArchived: true,
+						isUpcoming: true,
+						isUnderReview: true,
+					},
 				}
 			:
-				{}
+				{ fields: {} }
 		),
 	)
 
@@ -72,40 +74,40 @@
 		>
 			{#snippet children(rollup)}
 				<dl data-column-item="center">
-					{#if rollup.name !== undefined}
+					{#if rollup.fields.name !== undefined}
 						<div>
 							<dt>Name</dt>
-							<dd>{rollup.name}</dd>
+							<dd>{rollup.fields.name}</dd>
 						</div>
 					{/if}
 
-					{#if rollup.type !== undefined}
+					{#if rollup.fields.type !== undefined}
 						<div>
 							<dt>Type</dt>
-							<dd>{rollup.type}</dd>
+							<dd>{rollup.fields.type}</dd>
 						</div>
 					{/if}
 
-					{#if rollup.category !== undefined}
+					{#if rollup.fields.category !== undefined}
 						<div>
 							<dt>Category</dt>
-							<dd>{rollup.category}</dd>
+							<dd>{rollup.fields.category}</dd>
 						</div>
 					{/if}
 
-					{#if rollup.hostChain !== undefined}
+					{#if rollup.fields.hostChain !== undefined}
 						<div>
 							<dt>Host chain</dt>
-							<dd>{rollup.hostChain}</dd>
+							<dd>{rollup.fields.hostChain}</dd>
 						</div>
 					{/if}
 
-					{#if rollup.$settlementNetwork !== undefined}
+					{#if rollup.fields.$settlementNetwork !== undefined}
 						<div>
 							<dt>Settlement network</dt>
 							<dd>
 								<EvmNetworkView
-									entityId={rollup.$settlementNetwork[EntityMetaKey.Id]}
+									entityId={rollup.fields.$settlementNetwork[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -113,7 +115,7 @@
 						</div>
 					{/if}
 
-					{#if rollup.isUnderReview === true}
+					{#if rollup.fields.isUnderReview === true}
 						<div>
 							<dt>Status</dt>
 							<dd>Under review</dd>

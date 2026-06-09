@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,10 @@
 		>
 	> = $props()
 
-	const dogecoinAuxPowMerkleBranch = useEntity(
+	const dogecoinAuxPowMerkleBranch = useEntity(entityCollectionsContext, 
 		EntityType.DogecoinAuxPowMerkleBranch,
 		entityId,
-		{
-			branchHashes: {},
-			index: {},
-		},
+		({ fields: { branchHashes: true, index: true } }),
 	)
 
 
@@ -63,12 +61,12 @@
 		>
 			{#snippet children(dogecoinAuxPowMerkleBranch)}
 				<dl>
-					{#if dogecoinAuxPowMerkleBranch.branchHashes != null}
+					{#if dogecoinAuxPowMerkleBranch.fields.branchHashes?.values.length}
 						<div>
 							<dt>Branch Hashes</dt>
 							<dd>
 								<ul>
-									{#each dogecoinAuxPowMerkleBranch.branchHashes as branchHashes (branchHashes)}
+									{#each dogecoinAuxPowMerkleBranch.fields.branchHashes.values as branchHashes (branchHashes)}
 										<li>
 											<TruncatedValue
 												value={branchHashes}
@@ -80,10 +78,10 @@
 						</div>
 					{/if}
 
-					{#if dogecoinAuxPowMerkleBranch.index != null}
+					{#if dogecoinAuxPowMerkleBranch.fields.index != null}
 						<div>
 							<dt>Index</dt>
-							<dd><NumberValue value={dogecoinAuxPowMerkleBranch.index} /></dd>
+							<dd><NumberValue value={dogecoinAuxPowMerkleBranch.fields.index} /></dd>
 						</div>
 					{/if}
 				</dl>

@@ -1,5 +1,5 @@
 
-import { type SourceProviderDefinition, SourceProvider } from '$/sources/$SourceProvider.ts'
+import { type SourceProviderDefinition, SourceProvider } from '$/sources/SourceProvider.ts'
 import CaipsGithubSource from '$/sources/Caips/Github/index.ts'
 import CaipNamespacesGithubSource from '$/sources/Caips/Namespaces/Github/index.ts'
 import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'

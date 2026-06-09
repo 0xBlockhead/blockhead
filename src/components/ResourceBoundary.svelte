@@ -18,6 +18,13 @@
 		toQueryResourceFromRemote,
 	} from '$/lib/db/queryResource.svelte.ts'
 
+	type ResourceLike<Data> = {
+		readonly [Symbol.toStringTag]?: string
+		readonly current: Data | undefined
+		readonly error: unknown
+		readonly ready: boolean
+	}
+
 
 	// State
 	let {
@@ -37,14 +44,15 @@
 		]>
 		placeholderText?: string
 		resource:
-			| QueryLike<Data> & { readonly [Symbol.toStringTag]?: string }
-			| RemoteResource<Data> & { readonly [Symbol.toStringTag]?: string }
+			| QueryLike<Data>
+			| RemoteResource<Data>
+			| ResourceLike<Data>
 		boundaryKey?: string
 		layout?: Layout
 	} = $props()
 
 	const resource = $derived(
-		resourceRaw[Symbol.toStringTag] === 'RemoteResource' ?
+		(Symbol.toStringTag in resourceRaw && resourceRaw[Symbol.toStringTag] === 'RemoteResource') ?
 			toQueryResourceFromRemote(() => resourceRaw as RemoteResource<Data>)
 		:
 			toQueryResource(() => resourceRaw as QueryLike<Data>)

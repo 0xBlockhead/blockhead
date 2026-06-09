@@ -3,8 +3,8 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -35,27 +35,15 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const liquidityPosition = useEntity(
-		EntityType.LiquidityPosition,
+	const liquidityPosition = useEntity(entityCollectionsContext, EntityType.LiquidityPosition,
 		entityId,
-		{
-			$: (
+		({ sources: (
 				resolverDefinitionsByEntityType[EntityType.LiquidityPosition]?.map((r) => r.source)
 				?? []
-			),
-			$pool: {},
-			$owner: {},
-			createdAtTimestamp: {},
-			liquidity: {},
-			origin: {},
-			tickLower: {},
-			tickUpper: {},
-			token0Owed: {},
-			token1Owed: {},
-			tokenId: {},
-		},
+			), fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }),
 	)
 
 
@@ -112,9 +100,9 @@
 						<div>
 							<dt>Network</dt>
 							<dd>
-								{#if liquidityPosition.$pool !== undefined}
+								{#if liquidityPosition.fields.$pool !== undefined}
 									<EvmNetworkView
-										entityId={liquidityPosition.$pool[EntityMetaKey.Id].$network}
+										entityId={liquidityPosition.fields.$pool[EntityMetaKey.Id].$network}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -126,9 +114,9 @@
 						<div>
 							<dt>Pool</dt>
 							<dd>
-								{#if liquidityPosition.$pool !== undefined}
+								{#if liquidityPosition.fields.$pool !== undefined}
 									<LiquidityPoolView
-										entityId={liquidityPosition.$pool[EntityMetaKey.Id]}
+										entityId={liquidityPosition.fields.$pool[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={true}
 										showTypeAnnotation={false}
@@ -138,14 +126,14 @@
 								{/if}
 							</dd>
 						</div>
-						{#if open && liquidityPosition.$pool !== undefined && liquidityPosition.$owner !== undefined}
+						{#if open && liquidityPosition.fields.$pool !== undefined && liquidityPosition.fields.$owner !== undefined}
 							<div>
 								<dt>Owner</dt>
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
-											$network: liquidityPosition.$pool[EntityMetaKey.Id].$network,
-											$actor: liquidityPosition.$owner[EntityMetaKey.Id],
+											$network: liquidityPosition.fields.$pool[EntityMetaKey.Id].$network,
+											$actor: liquidityPosition.fields.$owner[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Value}
 										open={false}
@@ -154,61 +142,61 @@
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.tickLower !== undefined}
+						{#if open && liquidityPosition.fields.tickLower !== undefined}
 							<div>
 								<dt>Tick lower</dt>
-								<dd>{String(liquidityPosition.tickLower)}</dd>
+								<dd>{String(liquidityPosition.fields.tickLower)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.tickUpper !== undefined}
+						{#if open && liquidityPosition.fields.tickUpper !== undefined}
 							<div>
 								<dt>Tick upper</dt>
-								<dd>{String(liquidityPosition.tickUpper)}</dd>
+								<dd>{String(liquidityPosition.fields.tickUpper)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.liquidity !== undefined}
+						{#if open && liquidityPosition.fields.liquidity !== undefined}
 							<div>
 								<dt>Liquidity</dt>
-								<dd>{String(liquidityPosition.liquidity)}</dd>
+								<dd>{String(liquidityPosition.fields.liquidity)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.token0Owed !== undefined}
+						{#if open && liquidityPosition.fields.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
-								<dd>{String(liquidityPosition.token0Owed)}</dd>
+								<dd>{String(liquidityPosition.fields.token0Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.token1Owed !== undefined}
+						{#if open && liquidityPosition.fields.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
-								<dd>{String(liquidityPosition.token1Owed)}</dd>
+								<dd>{String(liquidityPosition.fields.token1Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.tokenId !== undefined}
+						{#if open && liquidityPosition.fields.tokenId !== undefined}
 							<div>
 								<dt>Token id</dt>
-								<dd>{String(liquidityPosition.tokenId)}</dd>
+								<dd>{String(liquidityPosition.fields.tokenId)}</dd>
 							</div>
 						{/if}
 
-						{#if open && liquidityPosition.origin}
+						{#if open && liquidityPosition.fields.origin}
 							<div>
 								<dt>Origin</dt>
-								<dd>{liquidityPosition.origin}</dd>
+								<dd>{liquidityPosition.fields.origin}</dd>
 							</div>
 						{/if}
 
-					{#if liquidityPosition.createdAtTimestamp !== undefined}
+					{#if liquidityPosition.fields.createdAtTimestamp !== undefined}
 						<div>
 							<dt>Created at</dt>
 							<dd>
 								<Timestamp
-									timestamp={liquidityPosition.createdAtTimestamp}
+									timestamp={liquidityPosition.fields.createdAtTimestamp}
 								/>
 							</dd>
 						</div>

@@ -12,14 +12,14 @@ import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import type { EntityId } from '$/schema/$schema.ts'
-import { UrlString } from '$/schema/$Url.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	LifiBlockExplorerUrlLike,
 	LifiChain,
@@ -174,12 +174,13 @@ export default {
 				return networkEntityFieldsFromLifiChain(lifiChain)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$icon: (network) => network.$icon,
 				executionEndpoints: (network) => network.executionEndpoints,
 				$$rpcUrls: (network) => network.$$rpcUrls,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.CoinBridgeCapability,
@@ -195,14 +196,15 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				toolKey: (capability) => capability.toolKey,
 				railId: (capability) => capability.railId,
 				settlementModel: (capability) => capability.settlementModel,
 				verificationModel: (capability) => capability.verificationModel,
 				assetOutcome: (capability) => capability.assetOutcome,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRoute,
@@ -214,7 +216,8 @@ export default {
 				return (await singleFlight(fetchBridgeRouteBundleForQuoteId)(entityId)).routeFields
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$steps: (route) => route.$$steps,
 				$fromNetwork: (route) => route.$fromNetwork,
 				$toNetwork: (route) => route.$toNetwork,
@@ -225,7 +228,7 @@ export default {
 				estimatedDurationSeconds: (route) => route.estimatedDurationSeconds,
 				tags: (route) => route.tags,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRouteStep,
@@ -245,7 +248,8 @@ export default {
 				return fields
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				stepType: (step) => step.stepType,
 				tool: (step) => step.tool,
 				$fromNetwork: (step) => step.$fromNetwork,
@@ -257,7 +261,7 @@ export default {
 				verificationModel: (step) => step.verificationModel,
 				assetOutcome: (step) => step.assetOutcome,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType._Global,
@@ -267,10 +271,11 @@ export default {
 				return (await singleFlight(fetchChains)()).chains.map(networkEntityFieldsFromLifiChain)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$evmNetworks: (networks) => networks,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.Coin,
@@ -279,10 +284,11 @@ export default {
 				return coinBridgeCapabilityRowsForCoin(entityId, context)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$bridgeCapabilities: (capabilities) => capabilities,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmCoinInstance,
@@ -305,10 +311,11 @@ export default {
 				return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entityId, 'outbound')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$outboundBridgeCapabilities: (capabilities) => capabilities,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmCoinInstance,
@@ -331,10 +338,11 @@ export default {
 				return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entityId, 'inbound')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$inboundBridgeCapabilities: (capabilities) => capabilities,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRoute,
@@ -346,10 +354,11 @@ export default {
 				return (await singleFlight(fetchBridgeRouteBundleForQuoteId)(entityId)).steps
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$steps: (steps) => steps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -371,9 +380,10 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockExplorerUrls: (urls) => urls,
 			},
-		}),
+			}),
 	],
 }

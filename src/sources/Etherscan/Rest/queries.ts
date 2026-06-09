@@ -24,7 +24,7 @@ import type {
 	RpcTransaction,
 } from '$/sources/Evm/JsonRpc/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	etherscanV2GetJson,
 	etherscanV2UnwrapAccountResultArray,

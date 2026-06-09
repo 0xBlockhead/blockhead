@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -26,35 +27,18 @@
 		CollapsibleProps?: ComponentProps<typeof EvmInternalTransfersView>['CollapsibleProps']
 	} = $props()
 
-	const evmTransaction = useEntity(
-		EntityType.EvmTransaction,
+	const evmTransaction = useEntity(entityCollectionsContext, EntityType.EvmTransaction,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
-			],
-			value: {},
-			$from: {},
-			$to: {},
-			...(open ?
-				{
-					$$tokenTransfers: {
-						$: [
+			], fields: { value: true, $from: true, $to: true, ...(open ? ({ $$tokenTransfers: ({ sources: [
 							Source.Blockscout_Rest,
 							Source.Voltaire_JsonRpc,
-						],
-					},
-					$$internalTransfers: {
-						$: [
+						] }), $$internalTransfers: ({ sources: [
 							Source.Blockscout_Rest,
 							Source.Voltaire_JsonRpc,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 
@@ -74,27 +58,27 @@
 		placeholderText="Loading asset movements…"
 	>
 		{#snippet children(evmTransaction)}
-			{#if evmTransaction.value !== undefined && evmTransaction.value > 0n}
+			{#if evmTransaction.fields.value !== undefined && evmTransaction.fields.value > 0n}
 				<div data-row="wrap gap-2 align-baseline">
 					<span data-text="annotation">Signed envelope</span>
-					{#if evmTransaction.$from?.[EntityMetaKey.Id].address !== undefined}
+					{#if evmTransaction.fields.$from?.[EntityMetaKey.Id].address !== undefined}
 						<EvmNetworkAccountView
 							entityId={{
 								$network: entityId.$network,
-								$actor: evmTransaction.$from[EntityMetaKey.Id],
+								$actor: evmTransaction.fields.$from[EntityMetaKey.Id],
 							}}
 							layout={EntityLayout.Title}
 							open={false}
 						/>
 					{/if}
 					<span data-text="muted">sent</span>
-					<NumberValue value={evmTransaction.value} />
+					<NumberValue value={evmTransaction.fields.value} />
 					<span data-text="muted">to</span>
-					{#if evmTransaction.$to?.[EntityMetaKey.Id].address !== undefined}
+					{#if evmTransaction.fields.$to?.[EntityMetaKey.Id].address !== undefined}
 						<EvmNetworkAccountView
 							entityId={{
 								$network: entityId.$network,
-								$actor: evmTransaction.$to[EntityMetaKey.Id],
+								$actor: evmTransaction.fields.$to[EntityMetaKey.Id],
 							}}
 							layout={EntityLayout.Title}
 							open={false}

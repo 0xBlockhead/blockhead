@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { eip8004ScanOrigins } from '$/sources/Eip8004Scan/Rest/constants.ts'
 import Eip8004ScanRestSource from '$/sources/Eip8004Scan/Rest/index.ts'
 

@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const zeroGStorageLogEntry = useEntity(
-		EntityType.ZeroGStorageLogEntry,
+	const zeroGStorageLogEntry = useEntity(entityCollectionsContext, EntityType.ZeroGStorageLogEntry,
 		entityId,
-		{
-			sequenceNumber: {},
-			commitment: {},
-		},
+		({ fields: { sequenceNumber: true, commitment: true } }),
 	)
 
 
@@ -76,19 +73,19 @@
 		>
 			{#snippet children(zeroGStorageLogEntry)}
 				<dl>
-					{#if zeroGStorageLogEntry.sequenceNumber != null}
+					{#if zeroGStorageLogEntry.fields.sequenceNumber != null}
 						<div>
 							<dt>Sequence Number</dt>
-							<dd><NumberValue value={zeroGStorageLogEntry.sequenceNumber} /></dd>
+							<dd><NumberValue value={zeroGStorageLogEntry.fields.sequenceNumber} /></dd>
 						</div>
 					{/if}
 
-					{#if zeroGStorageLogEntry.commitment != null}
+					{#if zeroGStorageLogEntry.fields.commitment != null}
 						<div>
 							<dt>Commitment</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGStorageLogEntry.commitment}
+									value={zeroGStorageLogEntry.fields.commitment}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>

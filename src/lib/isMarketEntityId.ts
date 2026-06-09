@@ -1,7 +1,7 @@
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 const legShapeOk = (leg: unknown) => (
 	leg != null

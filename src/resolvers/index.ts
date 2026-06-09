@@ -1,4 +1,4 @@
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import { enabledSources } from '$/sources/index.ts'
 import type {
 	ResolverPart,
@@ -9,24 +9,21 @@ import {
 	entityFieldDefinitions,
 	entityIdProjectionNames,
 	EntityFieldCardinality,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 
-import MevRelayRestResolvers from '$/resolvers/MevRelay-Rest.ts'
-import MastodonRestResolvers from '$/resolvers/Mastodon-Rest.ts'
-import MetadataVisionRestResolvers from '$/resolvers/MetadataVision-Rest.ts'
 import AlliumRestResolvers from '$/resolvers/Allium-Rest.ts'
 import AmbossGraphqlResolvers from '$/resolvers/Amboss-Graphql.ts'
-import AtprotoXrpcResolvers from '$/resolvers/Atproto-Xrpc.ts'
 import AtprotoBskySocialXrpcResolvers from '$/resolvers/Atproto-BskySocial-Xrpc.ts'
+import AtprotoXrpcResolvers from '$/resolvers/Atproto-Xrpc.ts'
 import BeaconRestResolvers from '$/resolvers/Beacon-Rest.ts'
 import BeaconchaInRestResolvers from '$/resolvers/BeaconchaIn-Rest.ts'
-import BittensorJsonRpcResolvers from '$/resolvers/Bittensor-JsonRpc.ts'
 import BitcoinBipsGithubResolvers from '$/resolvers/BitcoinBips-Github.ts'
 import BitcoinCashBcmrGithubResolvers from '$/resolvers/BitcoinCashBcmr-Github.ts'
 import BitcoinCashChipsGitlabResolvers from '$/resolvers/BitcoinCashChips-Gitlab.ts'
-import BitcoinCoreJsonRpcResolvers from '$/resolvers/BitcoinCore-JsonRpc.ts'
 import BitcoinCashNodeJsonRpcResolvers from '$/resolvers/BitcoinCashNode-JsonRpc.ts'
+import BitcoinCoreJsonRpcResolvers from '$/resolvers/BitcoinCore-JsonRpc.ts'
+import BittensorJsonRpcResolvers from '$/resolvers/Bittensor-JsonRpc.ts'
 import BlobscanRestResolvers from '$/resolvers/Blobscan-Rest.ts'
 import BlockchairRestResolvers from '$/resolvers/Blockchair-Rest.ts'
 import BlockscoutRestResolvers from '$/resolvers/Blockscout-Rest.ts'
@@ -45,37 +42,40 @@ import CosmosSdkRestResolvers from '$/resolvers/CosmosSdk-Rest.ts'
 import DefillamaOpenApiResolvers from '$/resolvers/Defillama-OpenApi.ts'
 import DefillamaRestResolvers from '$/resolvers/Defillama-Rest.ts'
 import DexscreenerOpenApiResolvers from '$/resolvers/Dexscreener-OpenApi.ts'
-import Eip8004ScanRestResolvers from '$/resolvers/Eip8004Scan-Rest.ts'
-import DuneRestResolvers from '$/resolvers/Dune-Rest.ts'
-import DogecoinDipsGithubResolvers from '$/resolvers/DogecoinDips-Github.ts'
 import DogecoinCoreJsonRpcResolvers from '$/resolvers/DogecoinCore-JsonRpc.ts'
+import DogecoinDipsGithubResolvers from '$/resolvers/DogecoinDips-Github.ts'
+import DuneRestResolvers from '$/resolvers/Dune-Rest.ts'
+import Eip8004ScanRestResolvers from '$/resolvers/Eip8004Scan-Rest.ts'
 import EnsTheGraphResolvers from '$/resolvers/Ens-TheGraph.ts'
 import EnsipsGithubResolvers from '$/resolvers/Ensips-Github.ts'
+import EsploraRestResolvers from '$/resolvers/Esplora-Rest.ts'
 import EthereumEipsGithubResolvers from '$/resolvers/EthereumEips-Github.ts'
 import EthereumListsChainsResolvers from '$/resolvers/EthereumLists-Chains.ts'
 import EthereumSpecsGithubResolvers from '$/resolvers/EthereumSpecs-Github.ts'
-import EsploraRestResolvers from '$/resolvers/Esplora-Rest.ts'
 import EtherscanRestResolvers from '$/resolvers/Etherscan-Rest.ts'
-import FediRestResolvers from '$/resolvers/Fedi-Rest.ts'
 import FarcasterRestResolvers from '$/resolvers/Farcaster-Rest.ts'
+import FediRestResolvers from '$/resolvers/Fedi-Rest.ts'
 import FilecoinFipsGithubResolvers from '$/resolvers/FilecoinFips-Github.ts'
 import FilfoxRestResolvers from '$/resolvers/Filfox-Rest.ts'
 import HeliusRestResolvers from '$/resolvers/Helius-Rest.ts'
-import HyperliquidDocsRestResolvers from '$/resolvers/HyperliquidDocs-Rest.ts'
 import HyperliquidJsonRpcResolvers from '$/resolvers/Hyperliquid-JsonRpc.ts'
 import HyperliquidRestResolvers from '$/resolvers/Hyperliquid-Rest.ts'
+import HyperliquidDocsRestResolvers from '$/resolvers/HyperliquidDocs-Rest.ts'
 import IpfsRestResolvers from '$/resolvers/Ipfs-Rest.ts'
 import L2BeatRestResolvers from '$/resolvers/L2Beat-Rest.ts'
-import LifiRestResolvers from '$/resolvers/Lifi-Rest.ts'
 import LensGraphqlResolvers from '$/resolvers/Lens-Graphql.ts'
-import LitecoinCoreJsonRpcResolvers from '$/resolvers/LitecoinCore-JsonRpc.ts'
-import LitecoinLipsGithubResolvers from '$/resolvers/LitecoinLips-Github.ts'
+import LifiRestResolvers from '$/resolvers/Lifi-Rest.ts'
 import LightningLndRestResolvers from '$/resolvers/LightningLnd-Rest.ts'
 import LightningMempoolSpaceRestResolvers from '$/resolvers/LightningMempoolSpace-Rest.ts'
+import LitecoinCoreJsonRpcResolvers from '$/resolvers/LitecoinCore-JsonRpc.ts'
+import LitecoinLipsGithubResolvers from '$/resolvers/LitecoinLips-Github.ts'
 import LocalResolvers from '$/resolvers/Local.ts'
 import LogosDocsRestResolvers from '$/resolvers/LogosDocs-Rest.ts'
 import LotusJsonRpcResolvers from '$/resolvers/Lotus-JsonRpc.ts'
+import MastodonRestResolvers from '$/resolvers/Mastodon-Rest.ts'
 import MempoolSpaceRestResolvers from '$/resolvers/MempoolSpace-Rest.ts'
+import MetadataVisionRestResolvers from '$/resolvers/MetadataVision-Rest.ts'
+import MevRelayRestResolvers from '$/resolvers/MevRelay-Rest.ts'
 import MoneroDaemonRpcJsonRpcResolvers from '$/resolvers/MoneroDaemonRpc-JsonRpc.ts'
 import NearBlocksRestResolvers from '$/resolvers/NearBlocks-Rest.ts'
 import NearNepsGithubResolvers from '$/resolvers/NearNeps-Github.ts'
@@ -84,12 +84,12 @@ import NeynarRestResolvers from '$/resolvers/Neynar-Rest.ts'
 import NostrBandRestResolvers from '$/resolvers/NostrBand-Rest.ts'
 import OpenchainRestResolvers from '$/resolvers/Openchain-Rest.ts'
 import PayjoinDirectoryRestResolvers from '$/resolvers/PayjoinDirectory-Rest.ts'
+import PipedRestResolvers from '$/resolvers/Piped-Rest.ts'
 import PolkadotJsonRpcResolvers from '$/resolvers/Polkadot-JsonRpc.ts'
 import PolkadotRfcsGithubResolvers from '$/resolvers/PolkadotRfcs-Github.ts'
-import PipedRestResolvers from '$/resolvers/Piped-Rest.ts'
 import PrimalRestResolvers from '$/resolvers/Primal-Rest.ts'
-import QuilibriumNodeRpcGrpcResolvers from '$/resolvers/QuilibriumNodeRpc-Grpc.ts'
 import QuilibriumDocsRestResolvers from '$/resolvers/QuilibriumDocs-Rest.ts'
+import QuilibriumNodeRpcGrpcResolvers from '$/resolvers/QuilibriumNodeRpc-Grpc.ts'
 import RedditPublicJsonResolvers from '$/resolvers/Reddit-PublicJson.ts'
 import RedditRestResolvers from '$/resolvers/Reddit-Rest.ts'
 import RssRestResolvers from '$/resolvers/Rss-Rest.ts'
@@ -102,8 +102,8 @@ import SubscanRestResolvers from '$/resolvers/Subscan-Rest.ts'
 import SubstrateSidecarRestResolvers from '$/resolvers/SubstrateSidecar-Rest.ts'
 import SuperchainGithubResolvers from '$/resolvers/Superchain-Github.ts'
 import SwarmRestResolvers from '$/resolvers/Swarm-Rest.ts'
-import TradingViewRestResolvers from '$/resolvers/TradingView-Rest.ts'
 import ThreeXplRestResolvers from '$/resolvers/ThreeXpl-Rest.ts'
+import TradingViewRestResolvers from '$/resolvers/TradingView-Rest.ts'
 import TronFullNodeRestResolvers from '$/resolvers/TronFullNode-Rest.ts'
 import TronGridRestResolvers from '$/resolvers/TronGrid-Rest.ts'
 import TronScanRestResolvers from '$/resolvers/TronScan-Rest.ts'
@@ -113,8 +113,8 @@ import VoltaireJsonRpcResolvers from '$/resolvers/Voltaire-JsonRpc.ts'
 import XFxEmbedRestResolvers from '$/resolvers/X-FxEmbed-Rest.ts'
 import XRestResolvers from '$/resolvers/X-Rest.ts'
 import YoutubeRestResolvers from '$/resolvers/Youtube-Rest.ts'
-import ZcashZipsGithubResolvers from '$/resolvers/ZcashZips-Github.ts'
 import ZcashdJsonRpcResolvers from '$/resolvers/Zcashd-JsonRpc.ts'
+import ZcashZipsGithubResolvers from '$/resolvers/ZcashZips-Github.ts'
 import ZebraJsonRpcResolvers from '$/resolvers/Zebra-JsonRpc.ts'
 import ZeroGChainJsonRpcResolvers from '$/resolvers/ZeroGChain-JsonRpc.ts'
 import ZeroGChainScanRestResolvers from '$/resolvers/ZeroGChainScan-Rest.ts'
@@ -125,30 +125,26 @@ import ZeroGStorageScanRestResolvers from '$/resolvers/ZeroGStorageScan-Rest.ts'
 
 const enabledResolverModulesAfterSourceGate = (
 	[
-		MastodonRestResolvers,
-		MetadataVisionRestResolvers,
-		MevRelayRestResolvers,
 		AlliumRestResolvers,
 		AmbossGraphqlResolvers,
-		AtprotoXrpcResolvers,
 		AtprotoBskySocialXrpcResolvers,
+		AtprotoXrpcResolvers,
 		BeaconRestResolvers,
 		BeaconchaInRestResolvers,
-		BittensorJsonRpcResolvers,
 		BitcoinBipsGithubResolvers,
 		BitcoinCashBcmrGithubResolvers,
 		BitcoinCashChipsGitlabResolvers,
-		BitcoinCoreJsonRpcResolvers,
 		BitcoinCashNodeJsonRpcResolvers,
+		BitcoinCoreJsonRpcResolvers,
+		BittensorJsonRpcResolvers,
 		BlobscanRestResolvers,
 		BlockchairRestResolvers,
 		BlockscoutRestResolvers,
 		CaipsGithubResolvers,
 		CashuMintRestResolvers,
-		L2BeatRestResolvers,
 		ChainlistRestResolvers,
-		CoingeckoRestResolvers,
 		CoingeckoOpenApiResolvers,
+		CoingeckoRestResolvers,
 		CoinMarketCapRestResolvers,
 		CoinpaprikaOpenApiResolvers,
 		CometBftRestResolvers,
@@ -159,36 +155,40 @@ const enabledResolverModulesAfterSourceGate = (
 		DefillamaOpenApiResolvers,
 		DefillamaRestResolvers,
 		DexscreenerOpenApiResolvers,
-		Eip8004ScanRestResolvers,
-		DuneRestResolvers,
-		DogecoinDipsGithubResolvers,
 		DogecoinCoreJsonRpcResolvers,
+		DogecoinDipsGithubResolvers,
+		DuneRestResolvers,
+		Eip8004ScanRestResolvers,
 		EnsTheGraphResolvers,
 		EnsipsGithubResolvers,
+		EsploraRestResolvers,
 		EthereumEipsGithubResolvers,
 		EthereumListsChainsResolvers,
 		EthereumSpecsGithubResolvers,
-		EsploraRestResolvers,
 		EtherscanRestResolvers,
-		FediRestResolvers,
 		FarcasterRestResolvers,
+		FediRestResolvers,
 		FilecoinFipsGithubResolvers,
 		FilfoxRestResolvers,
 		HeliusRestResolvers,
-		HyperliquidDocsRestResolvers,
 		HyperliquidJsonRpcResolvers,
 		HyperliquidRestResolvers,
+		HyperliquidDocsRestResolvers,
 		IpfsRestResolvers,
-		LifiRestResolvers,
+		L2BeatRestResolvers,
 		LensGraphqlResolvers,
-		LitecoinCoreJsonRpcResolvers,
-		LitecoinLipsGithubResolvers,
+		LifiRestResolvers,
 		LightningLndRestResolvers,
 		LightningMempoolSpaceRestResolvers,
+		LitecoinCoreJsonRpcResolvers,
+		LitecoinLipsGithubResolvers,
 		LocalResolvers,
 		LogosDocsRestResolvers,
 		LotusJsonRpcResolvers,
+		MastodonRestResolvers,
 		MempoolSpaceRestResolvers,
+		MetadataVisionRestResolvers,
+		MevRelayRestResolvers,
 		MoneroDaemonRpcJsonRpcResolvers,
 		NearBlocksRestResolvers,
 		NearNepsGithubResolvers,
@@ -197,12 +197,12 @@ const enabledResolverModulesAfterSourceGate = (
 		NostrBandRestResolvers,
 		OpenchainRestResolvers,
 		PayjoinDirectoryRestResolvers,
+		PipedRestResolvers,
 		PolkadotJsonRpcResolvers,
 		PolkadotRfcsGithubResolvers,
-		PipedRestResolvers,
 		PrimalRestResolvers,
-		QuilibriumNodeRpcGrpcResolvers,
 		QuilibriumDocsRestResolvers,
+		QuilibriumNodeRpcGrpcResolvers,
 		RedditPublicJsonResolvers,
 		RedditRestResolvers,
 		RssRestResolvers,
@@ -215,8 +215,8 @@ const enabledResolverModulesAfterSourceGate = (
 		SubstrateSidecarRestResolvers,
 		SuperchainGithubResolvers,
 		SwarmRestResolvers,
-		TradingViewRestResolvers,
 		ThreeXplRestResolvers,
+		TradingViewRestResolvers,
 		TronFullNodeRestResolvers,
 		TronGridRestResolvers,
 		TronScanRestResolvers,
@@ -226,8 +226,8 @@ const enabledResolverModulesAfterSourceGate = (
 		XFxEmbedRestResolvers,
 		XRestResolvers,
 		YoutubeRestResolvers,
-		ZcashZipsGithubResolvers,
 		ZcashdJsonRpcResolvers,
+		ZcashZipsGithubResolvers,
 		ZebraJsonRpcResolvers,
 		ZeroGChainJsonRpcResolvers,
 		ZeroGChainScanRestResolvers,
@@ -242,12 +242,13 @@ const enabledResolverModulesAfterSourceGate = (
 ).filter((module) => enabledSources.has(module.source))
 
 export const resolverDefinitions: SourceResolverDefinition[] = (
-	enabledResolverModulesAfterSourceGate.flatMap((module) => (
-		module.resolvers.map((resolver) => ({
-			...resolver,
-			source: module.source,
-		}))
-	))
+	enabledResolverModulesAfterSourceGate
+		.flatMap((module) => (
+			module.resolvers.map((resolver) => ({
+				...resolver,
+				source: module.source,
+			}))
+		))
 		.map((resolver, definitionIndex) => ({
 			...resolver,
 			definitionIndex,
@@ -280,6 +281,10 @@ for (const resolver of resolverDefinitions) {
 	}
 
 	for (const [fieldName, fieldSelector] of Object.entries(resolver.fields)) {
+		const fieldDefinition = fieldDefinitionByEntityTypeAndFieldName[resolver.entityType]?.[fieldName]
+		if (fieldDefinition == null)
+			throw new Error(`${resolver.source}:${resolver.entityType} references unknown field ${fieldName}`)
+
 		if (fieldSelector == null || typeof fieldSelector === 'function')
 			continue
 
@@ -287,6 +292,15 @@ for (const resolver of resolverDefinitions) {
 			if (!entityIdProjectionNamesByEntityType[resolver.entityType]?.has(acceptedParentProjectionName))
 				throw new Error(`${resolver.source}:${resolver.entityType}.${fieldName} references unknown parent id projection ${acceptedParentProjectionName}`)
 		}
+
+		if (
+			fieldSelector.resolveCount != null
+			&& !(
+				fieldDefinition.cardinality === EntityFieldCardinality.Many
+				|| fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany
+			)
+		)
+			throw new Error(`${resolver.source}:${resolver.entityType}.${fieldName} has resolveCount but is not multiple-cardinality`)
 	}
 }
 
@@ -301,26 +315,19 @@ const resolverParts: ResolverPart[] = resolverDefinitions.flatMap((resolver) => 
 			if (fieldSelector == null)
 				return []
 
-			const fieldDefinition = fieldDefinitionByEntityTypeAndFieldName[resolver.entityType]?.[fieldName]
-			if (fieldDefinition == null)
-				throw new Error(`${resolver.source}:${resolver.entityType} references unknown field ${fieldName}`)
-
-			const selector = (
-				typeof fieldSelector === 'function' ?
-					{
-						select: fieldSelector,
-					}
-				:
-					fieldSelector
-			)
 			return [
 				{
 					resolver,
 					partIndex,
 					source: resolver.source,
 					entityType: resolver.entityType,
-					fieldName: fieldName as ResolverPart['fieldName'],
-					...selector,
+					fieldName,
+					...(typeof fieldSelector === 'function' ?
+						{
+							select: fieldSelector,
+						}
+					:
+						fieldSelector),
 				},
 			]
 		})
@@ -329,7 +336,7 @@ const resolverParts: ResolverPart[] = resolverDefinitions.flatMap((resolver) => 
 export const resolverPartsKey = (
 	entityType: string,
 	fieldName: string,
-) => `${entityType}\x1E${fieldName}`
+) => `${entityType}${fieldName}`
 
 export const resolverValuePartsByEntityTypeAndFieldName = Object.groupBy(
 	resolverParts.filter((resolverPart) => resolverPart.select != null),
@@ -340,21 +347,7 @@ export const resolverValuePartsByEntityTypeAndFieldName = Object.groupBy(
 )
 
 export const resolverCountPartsByEntityTypeAndFieldName = Object.groupBy(
-	resolverParts.filter((resolverPart) => {
-		if (resolverPart.resolveCount == null) return false
-		const fieldDefinition = fieldDefinitionByEntityTypeAndFieldName[
-			resolverPart.entityType
-		]?.[resolverPart.fieldName]
-		if (
-			!(
-				fieldDefinition?.cardinality === EntityFieldCardinality.Many
-				|| fieldDefinition?.cardinality === EntityFieldCardinality.ZeroOrMany
-			)
-		)
-			throw new Error(`${resolverPart.entityType}.${resolverPart.fieldName} has resolveCount but is not multiple-cardinality`)
-
-		return true
-	}),
+	resolverParts.filter((resolverPart) => resolverPart.resolveCount != null),
 	(resolverPart) => resolverPartsKey(
 		resolverPart.entityType,
 		resolverPart.fieldName,
@@ -370,8 +363,16 @@ export const resolverLivePartsByEntityTypeAndFieldName = Object.groupBy(
 )
 
 export const resolverRootLivePartsByEntityType = Object.groupBy(
-	resolverDefinitions.filter((resolver) => resolver.resolveLive != null),
-	(resolver) => resolver.entityType,
+	resolverDefinitions.flatMap((resolver) => (
+		Object.entries(resolver.resolveLive ?? {}).map(([publisherName, publisher]) => ({
+			resolver,
+			publisher,
+			publisherName,
+			source: resolver.source,
+			entityType: resolver.entityType,
+		}))
+	)),
+	(part) => part.entityType,
 )
 
 export const fieldNamesWithLiveResolverByEntityType: Partial<
@@ -381,9 +382,9 @@ export const fieldNamesWithLiveResolverByEntityType: Partial<
 		[
 			...Object.values(resolverRootLivePartsByEntityType)
 				.flat()
-				.flatMap((resolver) => (
-					resolver.resolveLive!.fields.map((fieldName) => ({
-						entityType: resolver.entityType,
+				.flatMap((part) => (
+					Object.keys(part.publisher.publishes).map((fieldName) => ({
+						entityType: part.entityType,
 						fieldName,
 					}))
 				)),
@@ -426,3 +427,13 @@ export const resolverDiscriminatorPartsByEntityTypeAndConditionKey: Partial<
 		),
 	]),
 )
+
+export const resolverIndexes = {
+	resolverDefinitionsByEntityType,
+	resolverValuePartsByEntityTypeAndFieldName,
+	resolverCountPartsByEntityTypeAndFieldName,
+	resolverLivePartsByEntityTypeAndFieldName,
+	resolverRootLivePartsByEntityType,
+	resolverDiscriminatorPartsByEntityTypeAndConditionKey,
+	resolverPartsKey,
+}

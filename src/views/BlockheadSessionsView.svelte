@@ -1,21 +1,22 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
-	import { writeLocalBlockheadSession } from '$/collections/$localMutations.ts'
+	import { writeLocalBlockheadSession } from '$/collections/localMutations.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// State
@@ -86,25 +87,22 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
-					$: [
+				entityFieldReference.entityId,({ sources: [
 						Source.Local_Internal,
-					],
-					[entityFieldReference.fieldName]: {
-						$: [
+					], fields: { [entityFieldReference.fieldName]: {
+						sources: [
 							Source.Local_Internal,
 						],
 					},
-				},
+				} }),
 			)}
 			{@const sessions = derive(
 				parent,
 				(parent) => {
-					const blockheadSessions: Entity<typeof schema, EntityType.BlockheadSession>[] = (
-						parent[entityFieldReference.fieldName] ?? []
+					const blockheadSessions: readonly Entity<typeof schema, EntityType.BlockheadSession>[] = (
+						parent.fields[entityFieldReference.fieldName]?.values ?? []
 					)
 					return (
 						blockheadSessions.map((value) => ({

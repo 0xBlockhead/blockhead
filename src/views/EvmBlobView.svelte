@@ -4,13 +4,14 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,25 +39,15 @@
 		>
 	> = $props()
 
-	const blob = useEntity(
-		EntityType.EvmBlob,
+	const blob = useEntity(entityCollectionsContext, EntityType.EvmBlob,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Voltaire_JsonRpc,
-			],
-			kzgCommitment: {
-				$: [
+			], fields: { kzgCommitment: ({ sources: [
 					Source.Blobscan_Rest,
-				],
-			},
-			blobDataStorageReferences: {
-				$: [
+				] }), blobDataStorageReferences: ({ sources: [
 					Source.Blobscan_Rest,
-				],
-			},
-			versionedHash: {},
-		},
+				] }), versionedHash: true } }),
 	)
 
 
@@ -107,7 +98,7 @@
 				{#snippet children(blob)}
 					<small>
 						<TruncatedValue
-							value={blob.versionedHash}
+							value={blob.fields.versionedHash}
 							format={TruncatedValueFormat.Abbr}
 						/>
 					</small>
@@ -145,9 +136,9 @@
 						placeholderText="Loading blob…"
 					>
 						{#snippet children(blob)}
-							{#if blob.versionedHash !== undefined}
+							{#if blob.fields.versionedHash !== undefined}
 								<TruncatedValue
-									value={blob.versionedHash}
+									value={blob.fields.versionedHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							{/if}
@@ -163,11 +154,11 @@
 						placeholderText="Loading blob…"
 					>
 						{#snippet children(blob)}
-							{#if blob.kzgCommitment !== undefined}
+							{#if blob.fields.kzgCommitment !== undefined}
 								<div data-row="wrap align-start gap-2">
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
-										value={blob.kzgCommitment}
+										value={blob.fields.kzgCommitment}
 									/>
 									{#if true}
 										<Tooltip
@@ -198,9 +189,9 @@
 						placeholderText="Loading blob storage references…"
 					>
 						{#snippet children(blob)}
-							{#if blob.blobDataStorageReferences?.length}
+							{#if blob.fields.blobDataStorageReferences?.length}
 								<ul>
-									{#each blob.blobDataStorageReferences as reference (
+									{#each blob.fields.blobDataStorageReferences as reference (
 										`${reference.storage}:${reference.reference}`
 							)}
 										<li>

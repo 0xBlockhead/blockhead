@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// State
@@ -32,16 +33,11 @@
 		>
 	> = $props()
 
-	const lensAccountTimestamp = useEntity(
-		EntityType.LensAccount_Timestamp,
+	const lensAccountTimestamp = useEntity(entityCollectionsContext, EntityType.LensAccount_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Lens_Graphql,
-			],
-			followerCount: {},
-			followingCount: {},
-		},
+			], fields: { followerCount: true, followingCount: true } }),
 	)
 
 
@@ -87,11 +83,11 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: lensAccountTimestamp.followerCount,
+								value: lensAccountTimestamp.fields.followerCount,
 							},
 							{
 								label: 'Following',
-								value: lensAccountTimestamp.followingCount,
+								value: lensAccountTimestamp.fields.followingCount,
 							},
 						]}
 					/>

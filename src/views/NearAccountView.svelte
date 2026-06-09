@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const nearAccount = useEntity(
-		EntityType.NearAccount,
+	const nearAccount = useEntity(entityCollectionsContext, EntityType.NearAccount,
 		entityId,
-		{
-			amountYoctoNear: {},
-			storageUsageBytes: {},
-		},
+		({ fields: { amountYoctoNear: true, storageUsageBytes: true } }),
 	)
 
 
@@ -66,17 +63,17 @@
 		>
 			{#snippet children(nearAccount)}
 				<dl>
-					{#if nearAccount.amountYoctoNear != null}
+					{#if nearAccount.fields.amountYoctoNear != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={nearAccount.amountYoctoNear} /> yoctoNEAR</dd>
+							<dd><NumberValue value={nearAccount.fields.amountYoctoNear} /> yoctoNEAR</dd>
 						</div>
 					{/if}
 
-					{#if nearAccount.storageUsageBytes != null}
+					{#if nearAccount.fields.storageUsageBytes != null}
 						<div>
 							<dt>Storage Usage Bytes</dt>
-							<dd><NumberValue value={nearAccount.storageUsageBytes} /> bytes</dd>
+							<dd><NumberValue value={nearAccount.fields.storageUsageBytes} /> bytes</dd>
 						</div>
 					{/if}
 				</dl>

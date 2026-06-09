@@ -3,14 +3,15 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -36,20 +37,9 @@
 
 	const networkIdKey = stringify(entityId)
 
-	const network = useEntity(
-		EntityType.XmtpNetwork,
+	const network = useEntity(entityCollectionsContext, EntityType.XmtpNetwork,
 		entityId,
-		{
-			$: [Source.Constants_Internal],
-			protocolName: {},
-			homeUrl: {},
-				docsUrl: {},
-				registryLabel: {},
-				topology: {},
-				$$xmtpConversations: {
-					$: [Source.Local_Internal],
-				},
-			},
+		({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xmtpConversations: ({ sources: [Source.Local_Internal] }) } }),
 		)
 
 
@@ -103,35 +93,35 @@
 					{#snippet children(network)}
 							<div>
 								<dt>Conversations</dt>
-								<dd>{String(network.$$xmtpConversations?.length ?? 0)}</dd>
+								<dd>{String(network.fields.$$xmtpConversations?.values.length ?? 0)}</dd>
 							</div>
 
 						<div>
 							<dt>Protocol</dt>
-							<dd>{network.protocolName}</dd>
+							<dd>{network.fields.protocolName}</dd>
 						</div>
 						<div>
 							<dt>Registry</dt>
-							<dd>{network.registryLabel}</dd>
+							<dd>{network.fields.registryLabel}</dd>
 						</div>
 						<div>
 							<dt>Topology</dt>
-							<dd>{network.topology}</dd>
+							<dd>{network.fields.topology}</dd>
 						</div>
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={network.homeUrl}>
-									{network.homeUrl}
+								<a href={network.fields.homeUrl}>
+									{network.fields.homeUrl}
 								</a>
 							</dd>
 						</div>
-						{#if network.docsUrl != null && network.docsUrl !== ''}
+						{#if network.fields.docsUrl != null && network.fields.docsUrl !== ''}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={network.docsUrl}>
-										{network.docsUrl}
+									<a href={network.fields.docsUrl}>
+										{network.fields.docsUrl}
 									</a>
 								</dd>
 							</div>

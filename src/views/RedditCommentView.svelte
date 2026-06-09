@@ -3,15 +3,16 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -37,29 +38,15 @@
 		>
 	> = $props()
 
-	const comment = useEntity(
-		EntityType.RedditComment,
+	const comment = useEntity(entityCollectionsContext, EntityType.RedditComment,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Reddit_Rest,
 				Source.Reddit_PublicJson,
-			],
-			body: {},
-			author: {},
-			score: {},
-			$$timestamps: {
-				$: [
+			], fields: { body: true, author: true, score: true, $$timestamps: ({ sources: [
 					Source.Reddit_Rest,
 					Source.Reddit_PublicJson,
-				],
-				$limit: 1,
-			},
-			createdAt: {},
-			depth: {},
-			$link: {},
-			$parentComment: {},
-		},
+				], limit: 1 }), createdAt: true, depth: true, $link: true, $parentComment: true } }),
 	)
 
 	const idKey = stringify(entityId)
@@ -102,8 +89,8 @@
 			{#snippet children(comment)}
 				<TruncatedValue
 					value={(
-						comment.body ?
-							comment.body.replaceAll('\n', ' ')
+						comment.fields.body ?
+							comment.fields.body.replaceAll('\n', ' ')
 						:
 							entityId.fullname
 					)}
@@ -120,10 +107,10 @@
 			resource={comment}
 		>
 			{#snippet children(comment)}
-				{#if comment.createdAt != null}
+				{#if comment.fields.createdAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={comment.createdAt}
+							timestamp={comment.fields.createdAt}
 						/>
 					</span>
 				{/if}
@@ -151,11 +138,11 @@
 		>
 			{#snippet children(comment)}
 				<p>
-					{#if !comment.body}
+					{#if !comment.fields.body}
 						<span data-text="muted">No comment text.</span>
 					{:else}
 						<TruncatedValue
-							value={comment.body}
+							value={comment.fields.body}
 							format={TruncatedValueFormat.Visual}
 						/>
 					{/if}
@@ -166,17 +153,17 @@
 						metrics={[
 							{
 								label: 'Score',
-								value: comment.$$timestamps[0]?.score ?? comment.score,
+								value: comment.fields.$$timestamps[0]?.score ?? comment.fields.score,
 							},
 						]}
 					/>
 
-					{#if comment.depth != null}
+					{#if comment.fields.depth != null}
 						<div>
 							<dt>Depth</dt>
 							<dd>
 								<NumberValue
-									value={comment.depth}
+									value={comment.fields.depth}
 								/>
 							</dd>
 						</div>
@@ -185,20 +172,20 @@
 					<div>
 						<dt>Author</dt>
 						<dd>
-							{#if comment.author}
-								u/{comment.author}
+							{#if comment.fields.author}
+								u/{comment.fields.author}
 							{:else}
 								<span data-text="muted">[deleted]</span>
 							{/if}
 						</dd>
 					</div>
 
-					{#if comment.$parentComment}
+					{#if comment.fields.$parentComment}
 						<div>
 							<dt>Reply to</dt>
 							<dd>
 								<svelte:self
-									entityId={comment.$parentComment[EntityMetaKey.Id]}
+									entityId={comment.fields.$parentComment[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -206,12 +193,12 @@
 						</div>
 					{/if}
 
-					{#if comment.$link}
+					{#if comment.fields.$link}
 						<div>
 							<dt>Submission</dt>
 							<dd>
 								<RedditLinkView
-									entityId={comment.$link[EntityMetaKey.Id]}
+									entityId={comment.fields.$link[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

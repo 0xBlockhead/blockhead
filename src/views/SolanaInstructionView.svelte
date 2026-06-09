@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -23,12 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const solanaInstruction = useEntity(EntityType.SolanaInstruction, entityId, {
-		$program: {},
-		parsedType: {},
-		data: {},
-		$$accounts: {},
-	})
+	const solanaInstruction = useEntity(entityCollectionsContext, EntityType.SolanaInstruction, entityId, ({ fields: { $program: true, parsedType: true, data: true, $$accounts: true } }))
 
 
 	// Components
@@ -70,12 +66,12 @@
 		>
 			{#snippet children(solanaInstruction)}
 				<dl>
-					{#if solanaInstruction.$program != null}
+					{#if solanaInstruction.fields.$program != null}
 						<div>
 							<dt>Program</dt>
 							<dd>
 								<SolanaProgramView
-									entityId={solanaInstruction.$program[EntityMetaKey.Id]}
+									entityId={solanaInstruction.fields.$program[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -83,31 +79,31 @@
 						</div>
 					{/if}
 
-					{#if solanaInstruction.parsedType != null}
+					{#if solanaInstruction.fields.parsedType != null}
 						<div>
 							<dt>Parsed Type</dt>
-							<dd>{solanaInstruction.parsedType}</dd>
+							<dd>{solanaInstruction.fields.parsedType}</dd>
 						</div>
 					{/if}
 
-					{#if solanaInstruction.data != null}
+					{#if solanaInstruction.fields.data != null}
 						<div>
 							<dt>Data</dt>
 							<dd>
 								<TruncatedValue
-									value={solanaInstruction.data}
+									value={solanaInstruction.fields.data}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if solanaInstruction.$$accounts != null && solanaInstruction.$$accounts.length}
+					{#if solanaInstruction.fields.$$accounts != null && solanaInstruction.fields.$$accounts?.values.length}
 						<div>
 							<dt>Accounts</dt>
 							<dd>
 								<ul>
-									{#each solanaInstruction.$$accounts as account (account[EntityMetaKey.Id].pubkey)}
+									{#each solanaInstruction.fields.$$accounts.values as account (account[EntityMetaKey.Id].pubkey)}
 										<li>
 											<SolanaAccountView
 												entityId={account[EntityMetaKey.Id]}

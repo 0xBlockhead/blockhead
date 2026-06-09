@@ -3,10 +3,10 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -51,19 +51,14 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	const allowanceAnchorKey = stringify(entityId)
 
-	const allowance = useEntity(
-		EntityType.EvmActorCoinAllowance,
+	const allowance = useEntity(entityCollectionsContext, EntityType.EvmActorCoinAllowance,
 		entityId,
-		{
-			$: [Source.Voltaire_JsonRpc],
-			allowance: {},
-			lastChecked: {},
-			...(open ? { $spenderContract: {} } : {}),
-		},
+		({ sources: [Source.Voltaire_JsonRpc], fields: { allowance: true, lastChecked: true, ...(open ? ({ $spenderContract: true }) : ({  })) } }),
 	)
 
 
@@ -93,7 +88,7 @@
 			placeholderText="Loading allowance…"
 		>
 			{#snippet children(allowance)}
-				{allowance.allowance !== undefined ? String(allowance.allowance) : 'Allowance'}
+				{allowance.fields.allowance !== undefined ? String(allowance.fields.allowance) : 'Allowance'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -104,7 +99,7 @@
 			placeholderText="Loading allowance…"
 		>
 			{#snippet children(allowance)}
-				{allowance.allowance !== undefined ? String(allowance.allowance) : 'Allowance'}
+				{allowance.fields.allowance !== undefined ? String(allowance.fields.allowance) : 'Allowance'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -160,8 +155,8 @@
 							placeholderText="Loading allowance…"
 						>
 							{#snippet children(allowance)}
-								{#if allowance.allowance !== undefined}
-									{String(allowance.allowance)}
+								{#if allowance.fields.allowance !== undefined}
+									{String(allowance.fields.allowance)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -178,8 +173,8 @@
 							placeholderText="Loading allowance…"
 						>
 							{#snippet children(allowance)}
-								{#if allowance.lastChecked !== undefined}
-									<Timestamp timestamp={allowance.lastChecked} />
+								{#if allowance.fields.lastChecked !== undefined}
+									<Timestamp timestamp={allowance.fields.lastChecked} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -196,9 +191,9 @@
 							placeholderText="Loading spender…"
 						>
 							{#snippet children(allowance)}
-								{#if allowance.$spenderContract?.[EntityMetaKey.Id]}
+								{#if allowance.fields.$spenderContract?.[EntityMetaKey.Id]}
 									<EvmContractView
-										entityId={allowance.$spenderContract[EntityMetaKey.Id]}
+										entityId={allowance.fields.$spenderContract[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}
@@ -245,8 +240,8 @@
 				>
 					{#snippet children(allowance)}
 						{#if (
-							allowance.allowance == null
-							&& allowance.lastChecked == null
+							allowance.fields.allowance == null
+							&& allowance.fields.lastChecked == null
 						)}
 							<div data-row="wrap align-center gap-2">
 								<p data-text="muted">

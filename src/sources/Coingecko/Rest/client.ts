@@ -2,7 +2,7 @@ import {
 	optionalPublicEnvString,
 } from '$/lib/sources.ts'
 import { corsFetch } from '$/lib/http.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import Coingecko from '$/sources/Coingecko/index.ts'
 import {

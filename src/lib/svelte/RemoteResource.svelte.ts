@@ -2,6 +2,14 @@ import type { RemoteResource } from '@sveltejs/kit'
 import { tick } from 'svelte'
 
 
+type ResourceLike<_Value> = Promise<_Value> & {
+	readonly current: _Value | undefined
+	readonly loading: boolean
+	readonly error: unknown
+	readonly ready: boolean
+}
+
+
 // ============================================================================
 // PROMISE-LIKE HELPERS
 // ============================================================================
@@ -11,11 +19,11 @@ import { tick } from 'svelte'
  * Named `derive` instead of `then` to avoid module thenable detection issues during SSR.
  */
 export const derive = <_Value, _Result>(
-	resource: RemoteResource<_Value>,
+	resource: ResourceLike<_Value>,
 	transform: (value: _Value) => Awaited<_Result>
 ): RemoteResource<_Result> => {
 	const current = $derived(
-		resource.ready ? transform(resource.current) : undefined
+		resource.ready && resource.current !== undefined ? transform(resource.current) : undefined
 	)
 
 	const promise = $derived(

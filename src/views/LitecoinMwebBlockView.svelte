@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const litecoinMwebBlock = useEntity(
-		EntityType.LitecoinMwebBlock,
+	const litecoinMwebBlock = useEntity(entityCollectionsContext, EntityType.LitecoinMwebBlock,
 		entityId,
-		{
-			hogExTransactionId: {},
-			kernelRoot: {},
-		},
+		({ fields: { hogExTransactionId: true, kernelRoot: true } }),
 	)
 
 
@@ -74,23 +71,23 @@
 		>
 			{#snippet children(litecoinMwebBlock)}
 				<dl>
-					{#if litecoinMwebBlock.hogExTransactionId != null}
+					{#if litecoinMwebBlock.fields.hogExTransactionId != null}
 						<div>
 							<dt>Hog Ex Transaction ID</dt>
 							<dd>
 								<TruncatedValue
-									value={litecoinMwebBlock.hogExTransactionId}
+									value={litecoinMwebBlock.fields.hogExTransactionId}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if litecoinMwebBlock.kernelRoot != null}
+					{#if litecoinMwebBlock.fields.kernelRoot != null}
 						<div>
 							<dt>Kernel Root</dt>
 							<dd>
 								<TruncatedValue
-									value={litecoinMwebBlock.kernelRoot}
+									value={litecoinMwebBlock.fields.kernelRoot}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>

@@ -4,8 +4,8 @@ import {
 	type EntityFieldDefinition,
 	EntityFieldCardinality,
 	EntityFieldType,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 export enum XmtpConversationConsentState {
 	Unknown = 'unknown',

@@ -2,18 +2,19 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { blockheadFarcasterConnectionAuthMethodByAuthMethod } from '$/constants/Blockhead.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -41,29 +42,14 @@
 		>
 	> = $props()
 
-	const connection = useEntity(
-		EntityType.BlockheadFarcasterAccountConnection,
+	const connection = useEntity(entityCollectionsContext, EntityType.BlockheadFarcasterAccountConnection,
 		entityId,
-		{
-			$: (
+		({ sources: (
 				resolverDefinitionsByEntityType[EntityType.BlockheadFarcasterAccountConnection]?.map((r) => r.source)
 				?? [
 					Source.Neynar_Rest,
 				]
-			),
-			displayName: {},
-			username: {},
-			$icon: {},
-			...(open ?
-				{
-					bio: {},
-					custody: {},
-					authMethod: {},
-					signedAt: {},
-				}
-			:
-				{}),
-		},
+			), fields: { displayName: true, username: true, $icon: true, ...(open ? ({ bio: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } }),
 	)
 
 
@@ -103,12 +89,12 @@
 		>
 			{#snippet children(connection)}
 				{#if (
-					connection.$icon
-					&& connection.$icon[EntityMetaKey.Id].url
+					connection.fields.$icon
+					&& connection.fields.$icon[EntityMetaKey.Id].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={connection.$icon[EntityMetaKey.Id].url}
+						src={connection.fields.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -129,8 +115,8 @@
 		>
 			{#snippet children(connection)}
 				{@const headline = (
-					connection.displayName
-					?? connection.username
+					connection.fields.displayName
+					?? connection.fields.username
 					?? `FID ${String(entityId.fid)}`
 				)}
 				{headline}
@@ -144,13 +130,13 @@
 		>
 			{#snippet children(connection)}
 				{@const headline = (
-					connection.displayName
-					?? connection.username
+					connection.fields.displayName
+					?? connection.fields.username
 					?? `FID ${String(entityId.fid)}`
 				)}
-				{#if connection.username !== undefined && connection.username !== headline}
+				{#if connection.fields.username !== undefined && connection.fields.username !== headline}
 					<span data-text="muted">
-						@{connection.username}
+						@{connection.fields.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -178,9 +164,9 @@
 				{#snippet Pending()}{/snippet}
 				{#snippet children(connection)}
 					<p>
-						{#if connection.bio != null && connection.bio !== ''}
+						{#if connection.fields.bio != null && connection.fields.bio !== ''}
 							<TruncatedValue
-								value={connection.bio}
+								value={connection.fields.bio}
 								format={TruncatedValueFormat.Visual}
 							/>
 						{:else}
@@ -206,7 +192,7 @@
 							{#snippet Pending()}{/snippet}
 							{#snippet children(connection)}
 								<TruncatedValue
-									value={connection.custody}
+									value={connection.fields.custody}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -228,8 +214,8 @@
 						>
 							{#snippet Pending()}{/snippet}
 							{#snippet children(connection)}
-								{#if connection.authMethod !== undefined}
-									{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.authMethod].label}
+								{#if connection.fields.authMethod !== undefined}
+									{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.fields.authMethod].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -251,7 +237,7 @@
 							{#snippet Pending()}{/snippet}
 							{#snippet children(connection)}
 								<Timestamp
-									timestamp={connection.signedAt}
+									timestamp={connection.fields.signedAt}
 								/>
 							{/snippet}
 						</ResourceBoundary>

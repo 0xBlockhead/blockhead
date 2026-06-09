@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,10 @@
 		>
 	> = $props()
 
-	const hyperliquidTransaction = useEntity(
+	const hyperliquidTransaction = useEntity(entityCollectionsContext, 
 		EntityType.HyperliquidTransaction,
 		entityId,
-		{
-			actionType: {},
-			status: {},
-		},
+		({ fields: { actionType: true, status: true } }),
 	)
 
 
@@ -65,17 +63,17 @@
 		>
 			{#snippet children(hyperliquidTransaction)}
 				<dl>
-					{#if hyperliquidTransaction.actionType != null}
+					{#if hyperliquidTransaction.fields.actionType != null}
 						<div>
 							<dt>Action Type</dt>
-							<dd>{hyperliquidTransaction.actionType}</dd>
+							<dd>{hyperliquidTransaction.fields.actionType}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidTransaction.status != null}
+					{#if hyperliquidTransaction.fields.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{hyperliquidTransaction.status}</dd>
+							<dd>{hyperliquidTransaction.fields.status}</dd>
 						</div>
 					{/if}
 				</dl>

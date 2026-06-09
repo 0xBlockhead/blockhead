@@ -2,7 +2,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { origin } from '$/sources/Chainlist/Rest/constants.ts'
 import ChainlistRestSource from '$/sources/Chainlist/Rest/index.ts'
 

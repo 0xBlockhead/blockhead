@@ -3,15 +3,16 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -37,31 +38,15 @@
 		>
 	> = $props()
 
-	const link = useEntity(
-		EntityType.RedditLink,
+	const link = useEntity(entityCollectionsContext, EntityType.RedditLink,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Reddit_Rest,
 				Source.Reddit_PublicJson,
-			],
-			title: {},
-			selftext: {},
-			url: {},
-			permalink: {},
-			author: {},
-			score: {},
-			commentCount: {},
-			$$timestamps: {
-				$: [
+			], fields: { title: true, selftext: true, url: true, permalink: true, author: true, score: true, commentCount: true, $$timestamps: ({ sources: [
 					Source.Reddit_Rest,
 					Source.Reddit_PublicJson,
-				],
-				$limit: 1,
-			},
-			createdAt: {},
-			$subreddit: {},
-		},
+				], limit: 1 }), createdAt: true, $subreddit: true } }),
 	)
 
 	const idKey = stringify(entityId)
@@ -101,7 +86,7 @@
 			placeholderText="Loading Reddit submission…"
 		>
 			{#snippet children(link)}
-				{link.title ?? entityId.fullname}
+				{link.fields.title ?? entityId.fullname}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,10 +96,10 @@
 			resource={link}
 		>
 			{#snippet children(link)}
-				{#if link.createdAt != null}
+				{#if link.fields.createdAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={link.createdAt}
+							timestamp={link.fields.createdAt}
 						/>
 					</span>
 				{/if}
@@ -138,11 +123,11 @@
 		>
 			{#snippet children(link)}
 				<p>
-					{#if !link.selftext}
+					{#if !link.fields.selftext}
 						<span data-text="muted">No submission text.</span>
 					{:else}
 						<TruncatedValue
-							value={link.selftext}
+							value={link.fields.selftext}
 							format={TruncatedValueFormat.Visual}
 						/>
 					{/if}
@@ -153,28 +138,28 @@
 						metrics={[
 							{
 								label: 'Score',
-								value: link.$$timestamps[0]?.score ?? link.score,
+								value: link.fields.$$timestamps[0]?.score ?? link.fields.score,
 							},
 							{
 								label: 'Comments',
-								value: link.$$timestamps[0]?.commentCount ?? link.commentCount,
+								value: link.fields.$$timestamps[0]?.commentCount ?? link.fields.commentCount,
 							},
 						]}
 					/>
 
-					{#if link.author}
+					{#if link.fields.author}
 						<div>
 							<dt>Author</dt>
-							<dd>u/{link.author}</dd>
+							<dd>u/{link.fields.author}</dd>
 						</div>
 					{/if}
 
-					{#if link.$subreddit}
+					{#if link.fields.$subreddit}
 						<div>
 							<dt>Posted in</dt>
 							<dd>
 								<RedditSubredditView
-									entityId={link.$subreddit[EntityMetaKey.Id]}
+									entityId={link.fields.$subreddit[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -182,28 +167,28 @@
 						</div>
 					{/if}
 
-					{#if link.url}
+					{#if link.fields.url}
 						<div>
 							<dt>URL</dt>
 							<dd>
 								<a
-									href={link.url}
+									href={link.fields.url}
 									rel="noreferrer"
 									target="_blank"
-								>{link.url}</a>
+								>{link.fields.url}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if link.permalink}
+					{#if link.fields.permalink}
 						<div>
 							<dt>Permalink</dt>
 							<dd>
 								<a
-									href={`https://reddit.com${link.permalink}`}
+									href={`https://reddit.com${link.fields.permalink}`}
 									rel="noreferrer"
 									target="_blank"
-								>reddit.com{link.permalink}</a>
+								>reddit.com{link.fields.permalink}</a>
 							</dd>
 						</div>
 					{/if}

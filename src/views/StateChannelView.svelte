@@ -3,16 +3,17 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { stateChannelStatusByStatus } from '$/constants/StateChannel.ts'
 	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -39,32 +40,12 @@
 		>
 	> = $props()
 
-	const stateChannel = useEntity(
-		EntityType.StateChannel,
+	const stateChannel = useEntity(entityCollectionsContext, EntityType.StateChannel,
 		entityId,
-		{
-			$: (
+		({ sources: (
 				resolverDefinitionsByEntityType[EntityType.StateChannel]?.map((resolver) => resolver.source)
 				?? [Source.Local_Internal]
-			),
-			status: {},
-			createdAt: {},
-			updatedAt: {},
-			turnNum: {},
-			totalDeposited: {},
-			$network: {},
-			$participant0: {},
-			$participant1: {},
-			...(open ?
-				{
-					balance0: {},
-					balance1: {},
-					$asset: {},
-					$room: {},
-				}
-				:
-				{}),
-		},
+			), fields: { status: true, createdAt: true, updatedAt: true, turnNum: true, totalDeposited: true, $network: true, $participant0: true, $participant1: true, ...(open ? ({ balance0: true, balance1: true, $asset: true, $room: true }) : ({  })) } }),
 	)
 
 
@@ -100,41 +81,41 @@
 			placeholderText="Loading state channel…"
 		>
 			{#snippet children(stateChannel)}
-				{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined || stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
+				{#if stateChannel.fields.$participant0?.[EntityMetaKey.Id].address !== undefined || stateChannel.fields.$participant1?.[EntityMetaKey.Id].address !== undefined}
 					<span data-row="inline align-center gap-2 wrap">
-						{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined}
-							{#if stateChannel.$network?.[EntityMetaKey.Id] !== undefined}
+						{#if stateChannel.fields.$participant0?.[EntityMetaKey.Id].address !== undefined}
+							{#if stateChannel.fields.$network?.[EntityMetaKey.Id] !== undefined}
 								<EvmNetworkAccountView
 									entityId={{
-										$network: stateChannel.$network[EntityMetaKey.Id],
-										$actor: stateChannel.$participant0[EntityMetaKey.Id],
+										$network: stateChannel.fields.$network[EntityMetaKey.Id],
+										$actor: stateChannel.fields.$participant0[EntityMetaKey.Id],
 									}}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{:else}
 								<EvmAccountView
-									entityId={stateChannel.$participant0[EntityMetaKey.Id]}
+									entityId={stateChannel.fields.$participant0[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							{/if}
 						{/if}
-						{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined && stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
+						{#if stateChannel.fields.$participant0?.[EntityMetaKey.Id].address !== undefined && stateChannel.fields.$participant1?.[EntityMetaKey.Id].address !== undefined}
 							<span aria-hidden="true">↔</span>
 						{/if}
-						{#if stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
-							{#if stateChannel.$network?.[EntityMetaKey.Id] !== undefined}
+						{#if stateChannel.fields.$participant1?.[EntityMetaKey.Id].address !== undefined}
+							{#if stateChannel.fields.$network?.[EntityMetaKey.Id] !== undefined}
 								<EvmNetworkAccountView
 									entityId={{
-										$network: stateChannel.$network[EntityMetaKey.Id],
-										$actor: stateChannel.$participant1[EntityMetaKey.Id],
+										$network: stateChannel.fields.$network[EntityMetaKey.Id],
+										$actor: stateChannel.fields.$participant1[EntityMetaKey.Id],
 									}}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{:else}
 								<EvmAccountView
-									entityId={stateChannel.$participant1[EntityMetaKey.Id]}
+									entityId={stateChannel.fields.$participant1[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							{/if}
@@ -168,8 +149,8 @@
 						placeholderText="Loading state channel…"
 					>
 						{#snippet children(stateChannel)}
-							{#if stateChannel.status !== undefined}
-								{stateChannelStatusByStatus[stateChannel.status].label}
+							{#if stateChannel.fields.status !== undefined}
+								{stateChannelStatusByStatus[stateChannel.fields.status].label}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -185,14 +166,14 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.updatedAt !== undefined}
+								{#if stateChannel.fields.updatedAt !== undefined}
 									<Timestamp
-										timestamp={stateChannel.updatedAt}
+										timestamp={stateChannel.fields.updatedAt}
 									/>
 								{:else}
-									{#if stateChannel.createdAt !== undefined}
+									{#if stateChannel.fields.createdAt !== undefined}
 										<Timestamp
-											timestamp={stateChannel.createdAt}
+											timestamp={stateChannel.fields.createdAt}
 										/>
 									{/if}
 								{/if}
@@ -211,8 +192,8 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.totalDeposited !== undefined}
-									<NumberValue value={stateChannel.totalDeposited} />
+								{#if stateChannel.fields.totalDeposited !== undefined}
+									<NumberValue value={stateChannel.fields.totalDeposited} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -227,8 +208,8 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.balance0 !== undefined}
-									<NumberValue value={stateChannel.balance0} />
+								{#if stateChannel.fields.balance0 !== undefined}
+									<NumberValue value={stateChannel.fields.balance0} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -243,8 +224,8 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.balance1 !== undefined}
-									<NumberValue value={stateChannel.balance1} />
+								{#if stateChannel.fields.balance1 !== undefined}
+									<NumberValue value={stateChannel.fields.balance1} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -259,8 +240,8 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.turnNum !== undefined}
-									{String(stateChannel.turnNum)}
+								{#if stateChannel.fields.turnNum !== undefined}
+									{String(stateChannel.fields.turnNum)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -275,9 +256,9 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-									{#if stateChannel.$network !== undefined}
+									{#if stateChannel.fields.$network !== undefined}
 										<EvmNetworkView
-											entityId={stateChannel.$network[EntityMetaKey.Id]}
+											entityId={stateChannel.fields.$network[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 											open={false}
 									/>
@@ -295,8 +276,8 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.$asset?.[EntityMetaKey.Id] !== undefined}
-									{@const assetId = stateChannel.$asset[EntityMetaKey.Id]}
+								{#if stateChannel.fields.$asset?.[EntityMetaKey.Id] !== undefined}
+									{@const assetId = stateChannel.fields.$asset[EntityMetaKey.Id]}
 									<EvmCoinInstanceView
 										entityId={assetId}
 										layout={EntityLayout.Title}
@@ -316,9 +297,9 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.$room?.[EntityMetaKey.Id].id !== undefined}
+								{#if stateChannel.fields.$room?.[EntityMetaKey.Id].id !== undefined}
 									<BlockheadRoomView
-										entityId={stateChannel.$room[EntityMetaKey.Id]}
+										entityId={stateChannel.fields.$room[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}
@@ -337,9 +318,9 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.createdAt !== undefined}
+								{#if stateChannel.fields.createdAt !== undefined}
 									<Timestamp
-										timestamp={stateChannel.createdAt}
+										timestamp={stateChannel.fields.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -355,9 +336,9 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.updatedAt !== undefined}
+								{#if stateChannel.fields.updatedAt !== undefined}
 									<Timestamp
-										timestamp={stateChannel.updatedAt}
+										timestamp={stateChannel.fields.updatedAt}
 									/>
 								{/if}
 							{/snippet}

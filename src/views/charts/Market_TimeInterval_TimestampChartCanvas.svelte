@@ -1,8 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
 
@@ -18,7 +18,7 @@
 		height = '22rem',
 	}: {
 		title?: string
-		points?: Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[]
+		points?: readonly Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[]
 		priceDecimals?: number
 		min?: number
 		max?: number

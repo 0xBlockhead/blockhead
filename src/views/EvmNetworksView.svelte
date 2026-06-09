@@ -1,16 +1,16 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
 		EntityMetaKey,
 		type EntityFieldDefinition,
-	} from '$/schema/$EntityDefinition.ts'
+	} from '$/schema/$schema.ts'
 
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { entityDefinitionByType, schema } from '$/schema/index.ts'
 
 	import {
@@ -48,7 +48,8 @@
 		>
 	> = $props()
 
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	const sortValueByChainId = new Map<number, number>([
 		[ethereumChainId, 0],
@@ -87,26 +88,25 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
+				entityFieldReference.entityId,({ fields: {
 					[entityFieldReference.fieldName]: {
-							$: (
+							sources: (
 								entityDefinitionByType[entityFieldReference.entityType].fields
 									.find((field: EntityFieldDefinition) => field.name === entityFieldReference.fieldName)
 									?.defaultSources
 								?? []
 							),
-						$limit: 4096,
+						limit: 4096,
 					},
-				},
+				} }),
 			)}
 			{@const networks = derive(
 				parent,
 				(parent) => {
 					const chainIds = new SvelteSet<number>()
-					const evmNetworks: Entity<typeof schema, EntityType.EvmNetwork>[] = parent[entityFieldReference.fieldName] ?? []
+					const evmNetworks: readonly Entity<typeof schema, EntityType.EvmNetwork>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
 					return (
 						evmNetworks
 							.flatMap((value) => {

@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,9 @@
 		>
 	> = $props()
 
-	const moneroRingMember = useEntity(
-		EntityType.MoneroRingMember,
+	const moneroRingMember = useEntity(entityCollectionsContext, EntityType.MoneroRingMember,
 		entityId,
-		{
-			globalOutputIndex: {},
-		},
+		({ fields: { globalOutputIndex: true } }),
 	)
 
 
@@ -73,10 +71,10 @@
 		>
 			{#snippet children(moneroRingMember)}
 				<dl>
-					{#if moneroRingMember.globalOutputIndex != null}
+					{#if moneroRingMember.fields.globalOutputIndex != null}
 						<div>
 							<dt>Global Output Index</dt>
-							<dd><NumberValue value={moneroRingMember.globalOutputIndex} /></dd>
+							<dd><NumberValue value={moneroRingMember.fields.globalOutputIndex} /></dd>
 						</div>
 					{/if}
 				</dl>

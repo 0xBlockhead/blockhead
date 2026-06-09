@@ -1,5 +1,5 @@
 import { substrateJsonRpc } from '$/sources/Substrate/JsonRpc/client.ts'
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 import type {
 	SubstrateRpcBlock,
 	SubstrateRpcHeader,

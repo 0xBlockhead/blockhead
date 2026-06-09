@@ -4,13 +4,14 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -31,22 +32,12 @@
 		never
 	> = $props()
 
-	const farcasterUser = useEntity(
-		EntityType.FarcasterUser,
+	const farcasterUser = useEntity(entityCollectionsContext, EntityType.FarcasterUser,
 		farcasterUserId,
-		{
-			$: [
+		({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
-			],
-			username: {},
-			displayName: {},
-			$icon: {},
-			bio: {},
-			url: {},
-			$primaryEvmAccount: {},
-			$$verifiedAddresses: {},
-		},
+			], fields: { username: true, displayName: true, $icon: true, bio: true, url: true, $primaryEvmAccount: true, $$verifiedAddresses: true } }),
 	)
 
 
@@ -80,10 +71,10 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(farcasterUser)}
-				{#if farcasterUser.$icon?.[EntityMetaKey.Id].url !== undefined}
+				{#if farcasterUser.fields.$icon?.[EntityMetaKey.Id].url !== undefined}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={farcasterUser.$icon[EntityMetaKey.Id].url}
+						src={farcasterUser.fields.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -103,8 +94,8 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(farcasterUser)}
-				{farcasterUser.displayName
-					?? farcasterUser.username
+				{farcasterUser.fields.displayName
+					?? farcasterUser.fields.username
 					?? String(farcasterUserId.fid)}
 			{/snippet}
 		</ResourceBoundary>
@@ -117,15 +108,15 @@
 		>
 			{#snippet children(farcasterUser)}
 				{#if (
-					farcasterUser.username !== undefined
-					&& farcasterUser.username !== (
-						farcasterUser.displayName
-						?? farcasterUser.username
+					farcasterUser.fields.username !== undefined
+					&& farcasterUser.fields.username !== (
+						farcasterUser.fields.displayName
+						?? farcasterUser.fields.username
 						?? String(farcasterUserId.fid)
 					)
 				)}
 					<span data-text="muted">
-						@{farcasterUser.username}
+						@{farcasterUser.fields.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -138,10 +129,10 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(farcasterUser)}
-				{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
+				{#if farcasterUser.fields.bio != null && farcasterUser.fields.bio !== ''}
 					<p>
 						<TruncatedValue
-							value={farcasterUser.bio}
+							value={farcasterUser.fields.bio}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -151,7 +142,7 @@
 
 		<dl data-column-item="center">
 
-			{#if farcasterUserRow?.url != null}
+			{#if farcasterUserRow?.fields.url != null}
 				<div>
 					<dt>URL</dt>
 					<dd>
@@ -161,16 +152,16 @@
 						>
 							{#snippet children(farcasterUser)}
 								<a
-									href={farcasterUser.url}
+									href={farcasterUser.fields.url}
 									data-text="muted"
-								>{farcasterUser.url}</a>
+								>{farcasterUser.fields.url}</a>
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
 
-			{#if farcasterUserRow?.$primaryEvmAccount != null}
+			{#if farcasterUserRow?.fields.$primaryEvmAccount != null}
 				<div>
 					<dt>Primary EVM account</dt>
 					<dd>
@@ -179,11 +170,11 @@
 							placeholderText="Loading profile…"
 						>
 							{#snippet children(farcasterUser)}
-								{#if farcasterUser.$primaryEvmAccount != null}
+								{#if farcasterUser.fields.$primaryEvmAccount != null}
 									<EvmAccountView
-										entityId={farcasterUser.$primaryEvmAccount[EntityMetaKey.Id]}
+										entityId={farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Id]}
 										href={resolve('/account/[address]', {
-											address: farcasterUser.$primaryEvmAccount[EntityMetaKey.Id].address,
+											address: farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Id].address,
 										})}
 										layout={EntityLayout.Title}
 										open={false}
@@ -203,9 +194,9 @@
 						placeholderText="Loading profile…"
 					>
 						{#snippet children(farcasterUser)}
-							{#if farcasterUser.$$verifiedAddresses.length}
+							{#if farcasterUser.fields.$$verifiedAddresses?.values.length}
 									<ul data-column="gap-2">
-										{#each farcasterUser.$$verifiedAddresses as verification (String(verification[EntityMetaKey.Id].protocol) + ':' + verification[EntityMetaKey.Id].address)}
+										{#each farcasterUser.fields.$$verifiedAddresses.values as verification (String(verification[EntityMetaKey.Id].protocol) + ':' + verification[EntityMetaKey.Id].address)}
 											<li>
 												{#if verification.$evmAccount}
 													<EvmAccountView
@@ -238,7 +229,7 @@
 
 			{#if (
 				open
-				&& farcasterUserRow?.displayName != null
+				&& farcasterUserRow?.fields.displayName != null
 			)}
 				<div>
 					<dt>Display name</dt>
@@ -248,7 +239,7 @@
 							placeholderText="Loading profile…"
 						>
 							{#snippet children(farcasterUser)}
-								{farcasterUser.displayName}
+								{farcasterUser.fields.displayName}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -257,7 +248,7 @@
 
 			{#if (
 				open
-				&& farcasterUserRow?.username != null
+				&& farcasterUserRow?.fields.username != null
 			)}
 				<div>
 					<dt>Username</dt>
@@ -267,7 +258,7 @@
 							placeholderText="Loading profile…"
 						>
 							{#snippet children(farcasterUser)}
-								{farcasterUser.username}
+								{farcasterUser.fields.username}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>

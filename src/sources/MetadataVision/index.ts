@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { metadataVisionOrigin } from '$/sources/MetadataVision/Rest/constants.ts'
 import MetadataVisionRestSource from '$/sources/MetadataVision/Rest/index.ts'
 

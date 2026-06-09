@@ -3,7 +3,7 @@
  * @see https://docs.neynar.com/reference
  */
 
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { neynarFetch } from '$/sources/Neynar/Rest/client.ts'
 import { neynarFeedDefaultLimit, neynarFeedMaxLimit } from '$/sources/Neynar/Rest/constants.ts'

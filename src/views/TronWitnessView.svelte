@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,20 +28,11 @@
 		>
 	> = $props()
 
-	const witness = useEntity(
-		EntityType.TronWitness,
+	const witness = useEntity(entityCollectionsContext, EntityType.TronWitness,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.TronGrid_Rest,
-			],
-			url: {},
-			voteCount: {},
-			totalProduced: {},
-			totalMissed: {},
-			latestBlockHeight: {},
-			active: {},
-		},
+			], fields: { url: true, voteCount: true, totalProduced: true, totalMissed: true, latestBlockHeight: true, active: true } }),
 	)
 
 
@@ -73,45 +65,45 @@
 		>
 			{#snippet children(witness)}
 				<dl>
-					{#if witness.active !== undefined}
+					{#if witness.fields.active !== undefined}
 						<div>
 							<dt>Active</dt>
-							<dd>{witness.active ? 'Yes' : 'No'}</dd>
+							<dd>{witness.fields.active ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if witness.voteCount !== undefined}
+					{#if witness.fields.voteCount !== undefined}
 						<div>
 							<dt>Votes</dt>
-							<dd><NumberValue value={witness.voteCount} /></dd>
+							<dd><NumberValue value={witness.fields.voteCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && witness.latestBlockHeight !== undefined}
+					{#if open && witness.fields.latestBlockHeight !== undefined}
 						<div>
 							<dt>Latest block</dt>
-							<dd><NumberValue value={witness.latestBlockHeight} /></dd>
+							<dd><NumberValue value={witness.fields.latestBlockHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if open && witness.totalProduced !== undefined}
+					{#if open && witness.fields.totalProduced !== undefined}
 						<div>
 							<dt>Produced</dt>
-							<dd><NumberValue value={witness.totalProduced} /></dd>
+							<dd><NumberValue value={witness.fields.totalProduced} /></dd>
 						</div>
 					{/if}
 
-					{#if open && witness.totalMissed !== undefined}
+					{#if open && witness.fields.totalMissed !== undefined}
 						<div>
 							<dt>Missed</dt>
-							<dd><NumberValue value={witness.totalMissed} /></dd>
+							<dd><NumberValue value={witness.fields.totalMissed} /></dd>
 						</div>
 					{/if}
 
-					{#if open && witness.url != null}
+					{#if open && witness.fields.url != null}
 						<div>
 							<dt>URL</dt>
-							<dd>{witness.url}</dd>
+							<dd>{witness.fields.url}</dd>
 						</div>
 					{/if}
 				</dl>

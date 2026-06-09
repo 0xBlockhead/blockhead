@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,16 +27,9 @@
 		>
 	> = $props()
 
-	const utxoAddress = useEntity(
-		EntityType.UtxoAddress,
+	const utxoAddress = useEntity(entityCollectionsContext, EntityType.UtxoAddress,
 		entityId,
-		{
-			balanceSats: {},
-			transactionCount: {},
-			unspentOutputCount: {},
-			totalReceivedSats: {},
-			totalSpentSats: {},
-		},
+		({ fields: { balanceSats: true, transactionCount: true, unspentOutputCount: true, totalReceivedSats: true, totalSpentSats: true } }),
 	)
 
 
@@ -69,38 +63,38 @@
 		>
 			{#snippet children(utxoAddress)}
 				<dl>
-					{#if utxoAddress.balanceSats != null}
+					{#if utxoAddress.fields.balanceSats != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={utxoAddress.balanceSats} /> sats</dd>
+							<dd><NumberValue value={utxoAddress.fields.balanceSats} /> sats</dd>
 						</div>
 					{/if}
 
-					{#if utxoAddress.transactionCount != null}
+					{#if utxoAddress.fields.transactionCount != null}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={utxoAddress.transactionCount} /></dd>
+							<dd><NumberValue value={utxoAddress.fields.transactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if utxoAddress.unspentOutputCount != null}
+					{#if utxoAddress.fields.unspentOutputCount != null}
 						<div>
 							<dt>UTXOs</dt>
-							<dd><NumberValue value={utxoAddress.unspentOutputCount} /></dd>
+							<dd><NumberValue value={utxoAddress.fields.unspentOutputCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && utxoAddress.totalReceivedSats != null}
+					{#if open && utxoAddress.fields.totalReceivedSats != null}
 						<div>
 							<dt>Total received</dt>
-							<dd><NumberValue value={utxoAddress.totalReceivedSats} /> sats</dd>
+							<dd><NumberValue value={utxoAddress.fields.totalReceivedSats} /> sats</dd>
 						</div>
 					{/if}
 
-					{#if open && utxoAddress.totalSpentSats != null}
+					{#if open && utxoAddress.fields.totalSpentSats != null}
 						<div>
 							<dt>Total spent</dt>
-							<dd><NumberValue value={utxoAddress.totalSpentSats} /> sats</dd>
+							<dd><NumberValue value={utxoAddress.fields.totalSpentSats} /> sats</dd>
 						</div>
 					{/if}
 				</dl>

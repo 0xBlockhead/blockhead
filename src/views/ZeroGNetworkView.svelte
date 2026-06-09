@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -24,43 +25,23 @@
 		open?: boolean
 	} = $props()
 
-	const network = useEntity(
-		EntityType.Network,
+	const network = useEntity(entityCollectionsContext, EntityType.Network,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-			environment: {},
-			$$executionEnvironments: {},
-			$$consensusMechanisms: {},
-			$$nativeAssets: {},
-		},
+			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } }),
 	)
 
-	const zeroGNetwork = useEntity(
-		EntityType.ZeroGNetwork,
+	const zeroGNetwork = useEntity(entityCollectionsContext, EntityType.ZeroGNetwork,
 		{
 			networkSlug: '0g',
 		},
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
 				Source.ZeroGChain_JsonRpc,
 				Source.ZeroGChainScan_Rest,
 				Source.ZeroGStorageScan_Rest,
-			],
-			rpcEndpoints: {},
-			storageEndpoints: {},
-			$$blocks: {
-				$limit: 1,
-			},
-			$consensusNetwork: {},
-			$$timestamps: {
-				$limit: 1,
-			},
-		},
+			], fields: { rpcEndpoints: true, storageEndpoints: true, $$blocks: ({ limit: 1 }), $consensusNetwork: true, $$timestamps: ({ limit: 1 }) } }),
 	)
 
 
@@ -101,7 +82,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				<span>{network.name}</span>
+				<span>{network.fields.name}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -113,7 +94,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.name}
+				{network.fields.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -128,7 +109,7 @@
 				<dl class="network-summary-head" data-column-item="center">
 						<ResourceBoundary resource={zeroGNetwork}>
 							{#snippet children(zeroGNetwork)}
-								{@const block = zeroGNetwork.$$blocks?.at(0)}
+								{@const block = zeroGNetwork.fields.$$blocks?.values.at(0)}
 								{#if block != null}
 									<div>
 										<dt>Head block</dt>
@@ -145,13 +126,13 @@
 
 					<div>
 						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
+						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 					</div>
 
-						{#if (network.$$nativeAssets?.length ?? 0) > 0}
+						{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
 							<div>
 								<dt>Native asset</dt>
-								<dd>{network.$$nativeAssets?.length ?? 0}</dd>
+								<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
 							</div>
 						{/if}
 					</dl>
@@ -214,9 +195,9 @@
 			{#snippet Section0gConsensus()}
 				<ResourceBoundary resource={zeroGNetwork}>
 					{#snippet children(zeroGNetwork)}
-						{#if zeroGNetwork.$consensusNetwork != null}
+						{#if zeroGNetwork.fields.$consensusNetwork != null}
 							<ZeroGConsensusNetworkView
-								entityId={zeroGNetwork.$consensusNetwork[EntityMetaKey.Id]}
+								entityId={zeroGNetwork.fields.$consensusNetwork[EntityMetaKey.Id]}
 								layout={EntityLayout.SummaryDetails}
 							/>
 						{:else}

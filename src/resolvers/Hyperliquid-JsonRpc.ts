@@ -7,9 +7,9 @@ import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const hyperliquidEvmRpcUrl = hyperliquidMainnetRpcEndpoints[0].url
 
@@ -37,12 +37,13 @@ export default {
 					rpcEndpoints: [...hyperliquidMainnetRpcEndpoints],
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$network: (snapshot) => snapshot.$network,
 			rpcEndpoints: (snapshot) => snapshot.rpcEndpoints,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidBlock,
@@ -87,13 +88,14 @@ export default {
 					})),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (snapshot) => snapshot.hash,
 			timestampMs: (snapshot) => snapshot.timestampMs,
 			$$transactions: (snapshot) => snapshot.$$transactions,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidTransaction,
@@ -136,14 +138,15 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$block: (snapshot) => snapshot.$block,
 			$account: (snapshot) => snapshot.$account,
 			actionType: (snapshot) => snapshot.actionType,
 			status: (snapshot) => snapshot.status,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -166,11 +169,12 @@ export default {
 					},
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$blocks: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -227,10 +231,11 @@ export default {
 					))
 					.slice(0, resolverContextRowLimit(context))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$transactions: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

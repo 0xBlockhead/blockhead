@@ -8,7 +8,7 @@
 	// Components
 	import AtprotoPostThreadView from '$/views/AtprotoPostThreadView.svelte'
 	import Page from '$/components/Page.svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 </script>
 
 

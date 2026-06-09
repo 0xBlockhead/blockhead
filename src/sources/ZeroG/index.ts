@@ -1,5 +1,5 @@
-import { Source } from '$/sources/$Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import ZeroGChainJsonRpc from '$/sources/ZeroG/Chain/JsonRpc/index.ts'
 import ZeroGChainScanRest from '$/sources/ZeroG/ChainScan/Rest/index.ts'
 import ZeroGStorageNodeJsonRpc from '$/sources/ZeroG/StorageNode/JsonRpc/index.ts'

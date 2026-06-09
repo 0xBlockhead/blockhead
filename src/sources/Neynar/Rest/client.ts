@@ -6,7 +6,7 @@
 
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/lib/sources.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import Neynar from '$/sources/Neynar/index.ts'
 import { baseUrl } from '$/sources/Neynar/Rest/constants.ts'

@@ -1,30 +1,26 @@
 <script lang="ts">
 	// Types/constants
 	import { NetworkNamespace } from '$/constants/Network.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		params,
 	} = $props()
 
-	const network = useEntity(
-		EntityType.Network,
+	const network = useEntity(entityCollectionsContext, EntityType.Network,
 		{
 			networkSlug: params.networkSlug,
 		},
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			namespace: {},
-			slug: {},
-		},
+			], fields: { namespace: true, slug: true } }),
 	)
 
 
@@ -38,13 +34,13 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{#if network.namespace === NetworkNamespace.Lightning}
+			{#if network.fields.namespace === NetworkNamespace.Lightning}
 				<LightningNodesView
 					entityFieldReference={{
 						entityType: EntityType.LightningNetwork,
 						entityId: {
 							$network: {
-								networkSlug: network.slug,
+								networkSlug: network.fields.slug,
 							},
 						},
 						fieldName: '$$nodes',

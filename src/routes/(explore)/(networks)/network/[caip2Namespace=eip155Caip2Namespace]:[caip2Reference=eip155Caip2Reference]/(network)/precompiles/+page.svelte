@@ -8,7 +8,7 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import EvmPrecompilesView from '$/views/EvmPrecompilesView.svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 </script>
 
 

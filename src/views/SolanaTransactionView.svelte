@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,15 +27,9 @@
 		>
 	> = $props()
 
-	const solanaTransaction = useEntity(
-		EntityType.SolanaTransaction,
+	const solanaTransaction = useEntity(entityCollectionsContext, EntityType.SolanaTransaction,
 		entityId,
-		{
-			slot: {},
-			feeLamports: {},
-			computeUnitsConsumed: {},
-			status: {},
-		},
+		({ fields: { slot: true, feeLamports: true, computeUnitsConsumed: true, status: true } }),
 	)
 
 
@@ -68,31 +63,31 @@
 		>
 			{#snippet children(solanaTransaction)}
 				<dl>
-					{#if solanaTransaction.slot != null}
+					{#if solanaTransaction.fields.slot != null}
 						<div>
 							<dt>Slot</dt>
-							<dd><NumberValue value={solanaTransaction.slot} /></dd>
+							<dd><NumberValue value={solanaTransaction.fields.slot} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaTransaction.feeLamports != null}
+					{#if solanaTransaction.fields.feeLamports != null}
 						<div>
 							<dt>Fee Lamports</dt>
-							<dd><NumberValue value={solanaTransaction.feeLamports} /> lamports</dd>
+							<dd><NumberValue value={solanaTransaction.fields.feeLamports} /> lamports</dd>
 						</div>
 					{/if}
 
-					{#if solanaTransaction.computeUnitsConsumed != null}
+					{#if solanaTransaction.fields.computeUnitsConsumed != null}
 						<div>
 							<dt>Compute Units Consumed</dt>
-							<dd><NumberValue value={solanaTransaction.computeUnitsConsumed} /></dd>
+							<dd><NumberValue value={solanaTransaction.fields.computeUnitsConsumed} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaTransaction.status != null}
+					{#if solanaTransaction.fields.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{solanaTransaction.status}</dd>
+							<dd>{solanaTransaction.fields.status}</dd>
 						</div>
 					{/if}
 				</dl>

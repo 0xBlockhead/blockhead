@@ -3,14 +3,15 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,24 +39,9 @@
 		variant: 'trending',
 	}
 
-	const network = useEntity(
-		EntityType.FarcasterNetwork,
+	const network = useEntity(entityCollectionsContext, EntityType.FarcasterNetwork,
 		entityId,
-		{
-			$: [Source.Farcaster_Rest],
-			...(open ?
-				{
-					protocolName: {},
-					homeUrl: {},
-					docsUrl: {},
-					registryLabel: {},
-					topology: {},
-					$$channels: {},
-					$$users: { $: [Source.Snapchain_Rest] },
-				}
-			:
-				{}),
-		},
+		({ sources: [Source.Farcaster_Rest], fields: { ...(open ? ({ protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$channels: true, $$users: ({ sources: [Source.Snapchain_Rest] }) }) : ({  })) } }),
 	)
 
 	const entityViewDetailCarouselScrollProps = {
@@ -95,7 +81,7 @@
 			placeholderText="Farcaster"
 		>
 			{#snippet children(network)}
-				{network.protocolName ?? 'Farcaster'}
+				{network.fields.protocolName ?? 'Farcaster'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -119,53 +105,53 @@
 					{#if open}
 						<div>
 							<dt>Channels</dt>
-							<dd>{String(network.$$channels.length)}</dd>
+							<dd>{String(network.fields.$$channels?.values.length)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Users</dt>
-							<dd>{String(network.$$users.length)}</dd>
+							<dd>{String(network.fields.$$users?.values.length)}</dd>
 						</div>
 					{/if}
 
-					{#if open && network.protocolName}
+					{#if open && network.fields.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{network.protocolName}</dd>
+							<dd>{network.fields.protocolName}</dd>
 						</div>
 					{/if}
 
-					{#if open && network.homeUrl}
+					{#if open && network.fields.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={network.homeUrl}>{network.homeUrl}</a>
+								<a href={network.fields.homeUrl}>{network.fields.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && network.docsUrl}
+					{#if open && network.fields.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-								<a href={network.docsUrl}>{network.docsUrl}</a>
+								<a href={network.fields.docsUrl}>{network.fields.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && network.registryLabel}
+					{#if open && network.fields.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{network.registryLabel}</dd>
+							<dd>{network.fields.registryLabel}</dd>
 						</div>
 					{/if}
 
-					{#if open && network.topology}
+					{#if open && network.fields.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{network.topology}</dd>
+							<dd>{network.fields.topology}</dd>
 						</div>
 					{/if}
 				{/snippet}

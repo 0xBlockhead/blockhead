@@ -3,15 +3,16 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -45,28 +46,12 @@
 		>
 	> = $props()
 
-	const article = useEntity(
-		EntityType.NostrArticle,
+	const article = useEntity(entityCollectionsContext, EntityType.NostrArticle,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
-			],
-			pubkey: {},
-			identifier: {},
-			title: {},
-			summary: {},
-			imageUrl: {},
-			publishedAt: {},
-			$author: {},
-			...(open ?
-				{
-					content: {},
-				}
-			:
-				{}),
-		},
+			], fields: { pubkey: true, identifier: true, title: true, summary: true, imageUrl: true, publishedAt: true, $author: true, ...(open ? ({ content: true }) : ({  })) } }),
 	)
 
 
@@ -93,10 +78,10 @@
 	{#snippet Icon()}
 		<ResourceBoundary resource={article}>
 			{#snippet children(article)}
-				{#if article.imageUrl}
+				{#if article.fields.imageUrl}
 					<IconComponent
-						src={article.imageUrl}
-						alt={article.title ?? entityId.identifier}
+						src={article.fields.imageUrl}
+						alt={article.fields.title ?? entityId.identifier}
 					/>
 				{/if}
 			{/snippet}
@@ -116,7 +101,7 @@
 			placeholderText="Loading article…"
 		>
 			{#snippet children(article)}
-				{article.title ?? entityId.identifier}
+				{article.fields.title ?? entityId.identifier}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -126,10 +111,10 @@
 			resource={article}
 		>
 			{#snippet children(article)}
-				{#if article.publishedAt}
+				{#if article.fields.publishedAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={article.publishedAt}
+							timestamp={article.fields.publishedAt}
 						/>
 					</span>
 				{/if}
@@ -152,22 +137,22 @@
 			placeholderText="Loading article…"
 		>
 			{#snippet children(article)}
-				{#if article.summary}
+				{#if article.fields.summary}
 					<p>
 						<TruncatedValue
-							value={article.summary}
+							value={article.fields.summary}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
 				{/if}
 
 				<dl data-column-item="center">
-					{#if open && article.$author}
+					{#if open && article.fields.$author}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<NostrProfileView
-									entityId={article.$author[EntityMetaKey.Id]}
+									entityId={article.fields.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -175,24 +160,24 @@
 						</div>
 					{/if}
 
-					{#if open && article.pubkey}
+					{#if open && article.fields.pubkey}
 						<div>
 							<dt>Author pubkey</dt>
 							<dd>
 								<TruncatedValue
-									value={article.pubkey}
+									value={article.fields.pubkey}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && article.identifier}
+					{#if open && article.fields.identifier}
 						<div>
 							<dt>Identifier</dt>
 							<dd>
 								<TruncatedValue
-									value={article.identifier}
+									value={article.fields.identifier}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
@@ -233,8 +218,8 @@
 						placeholderText="Loading article…"
 					>
 						{#snippet children(article)}
-							{#if article.content}
-								<Markdown content={article.content} />
+							{#if article.fields.content}
+								<Markdown content={article.fields.content} />
 							{:else}
 								<p data-text="muted">
 									No article body yet.

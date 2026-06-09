@@ -4,9 +4,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -34,11 +34,12 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGChainScan_Rest, {
 			entityType: EntityType.ZeroGConsensusNetwork,
@@ -53,10 +54,11 @@ export default {
 					sharedStakingStatusSource: getInfo().url,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			sharedStakingStatusSource: (snapshot) => snapshot.sharedStakingStatusSource,
-		}
-		}),
+		},
+			}),
 	],
 }

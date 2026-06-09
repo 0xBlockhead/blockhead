@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const nearValidator = useEntity(
-		EntityType.NearValidator,
+	const nearValidator = useEntity(entityCollectionsContext, EntityType.NearValidator,
 		entityId,
-		{
-			publicKey: {},
-			stakeYoctoNear: {},
-		},
+		({ fields: { publicKey: true, stakeYoctoNear: true } }),
 	)
 
 
@@ -66,21 +63,21 @@
 		>
 			{#snippet children(nearValidator)}
 				<dl>
-					{#if nearValidator.publicKey != null}
+					{#if nearValidator.fields.publicKey != null}
 						<div>
 							<dt>Public Key</dt>
 							<dd>
 								<TruncatedValue
-									value={nearValidator.publicKey}
+									value={nearValidator.fields.publicKey}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if nearValidator.stakeYoctoNear != null}
+					{#if nearValidator.fields.stakeYoctoNear != null}
 						<div>
 							<dt>Stake Yocto Near</dt>
-							<dd><NumberValue value={nearValidator.stakeYoctoNear} /> yoctoNEAR</dd>
+							<dd><NumberValue value={nearValidator.fields.stakeYoctoNear} /> yoctoNEAR</dd>
 						</div>
 					{/if}
 				</dl>

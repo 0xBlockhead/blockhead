@@ -2,11 +2,11 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { EntityIdProjection } from '$/schema/$schema.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const trustWalletChainByNetworkSlug = new Map([
 	['bitcoin', 'bitcoin'],
@@ -60,11 +60,12 @@ export default {
 				if (iconMedia == null) throw new Error(`TrustWalletAssets_Github: invalid logo URL for ${chain}`)
 				return iconMedia
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$icon: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TrustWalletAssets_Github, {
 			entityType: EntityType.AssetInstance,
@@ -78,10 +79,11 @@ export default {
 				if (iconMedia == null) throw new Error(`TrustWalletAssets_Github: invalid native asset logo URL for ${chain}`)
 				return iconMedia
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$icon: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

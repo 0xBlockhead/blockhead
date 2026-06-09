@@ -2,14 +2,19 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { Entity, EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
+
+	type ResourceFields = {
+		fields: Record<string, any>
+	}
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -34,26 +39,11 @@
 		>
 	> = $props()
 
-	const conversation = useEntity(
-		EntityType.BlockheadAgentConversation,
+	const conversation = useEntity(entityCollectionsContext, EntityType.BlockheadAgentConversation,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Local_Internal,
-			],
-			name: {},
-			pinned: {},
-			createdAt: {},
-			updatedAt: {},
-			...(open ?
-				{
-					systemPrompt: {},
-					defaultConnectionId: {},
-					defaultModelId: {},
-				}
-			:
-				{}),
-		},
+			], fields: { name: true, pinned: true, createdAt: true, updatedAt: true, ...(open ? ({ systemPrompt: true, defaultConnectionId: true, defaultModelId: true }) : ({  })) } }),
 	)
 
 
@@ -81,8 +71,8 @@
 
 	{#snippet Title()}
 		{#if true}
-			{#snippet ConversationHeading(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
-				{conversation.name ?? entityId.id}
+			{#snippet ConversationHeading(conversation: ResourceFields)}
+				{conversation.fields.name ?? entityId.id}
 			{/snippet}
 
 			<ResourceBoundary
@@ -105,10 +95,10 @@
 	{#snippet Content({})}
 		{#if open}
 			{#if true}
-				{#snippet ConversationSystemPromptProse(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
-					{#if conversation.systemPrompt !== ''}
+				{#snippet ConversationSystemPromptProse(conversation: ResourceFields)}
+					{#if conversation.fields.systemPrompt !== ''}
 						<p>
-							{conversation.systemPrompt}
+							{conversation.fields.systemPrompt}
 						</p>
 					{:else}
 						<p data-text="muted">
@@ -130,8 +120,8 @@
 				<dt>Pinned</dt>
 				<dd>
 					{#if true}
-						{#snippet ConversationPinnedRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
-							{conversation.pinned ? 'Yes' : 'No'}
+						{#snippet ConversationPinnedRow(conversation: ResourceFields)}
+							{conversation.fields.pinned ? 'Yes' : 'No'}
 						{/snippet}
 
 						<ResourceBoundary
@@ -147,15 +137,15 @@
 				<dt>Last activity</dt>
 				<dd>
 					{#if true}
-						{#snippet ConversationLastActivityRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
-							{#if conversation.updatedAt !== undefined}
+						{#snippet ConversationLastActivityRow(conversation: ResourceFields)}
+							{#if conversation.fields.updatedAt !== undefined}
 								<Timestamp
-									timestamp={conversation.updatedAt}
+									timestamp={conversation.fields.updatedAt}
 								/>
 							{:else}
-								{#if conversation.createdAt !== undefined}
+								{#if conversation.fields.createdAt !== undefined}
 									<Timestamp
-										timestamp={conversation.createdAt}
+										timestamp={conversation.fields.createdAt}
 									/>
 								{/if}
 							{/if}
@@ -175,10 +165,10 @@
 					<dt>Created</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationCreatedRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
-								{#if conversation.createdAt !== undefined}
+							{#snippet ConversationCreatedRow(conversation: ResourceFields)}
+								{#if conversation.fields.createdAt !== undefined}
 									<Timestamp
-										timestamp={conversation.createdAt}
+										timestamp={conversation.fields.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -198,10 +188,10 @@
 					<dt>Updated</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationUpdatedRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
-								{#if conversation.updatedAt !== undefined}
+							{#snippet ConversationUpdatedRow(conversation: ResourceFields)}
+								{#if conversation.fields.updatedAt !== undefined}
 									<Timestamp
-										timestamp={conversation.updatedAt}
+										timestamp={conversation.fields.updatedAt}
 									/>
 								{/if}
 							{/snippet}
@@ -221,10 +211,10 @@
 					<dt>Default connection</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationConnectionRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
-								{#if conversation.defaultConnectionId != null && conversation.defaultConnectionId !== ''}
+							{#snippet ConversationConnectionRow(conversation: ResourceFields)}
+								{#if conversation.fields.defaultConnectionId != null && conversation.fields.defaultConnectionId !== ''}
 									<TruncatedValue
-										value={conversation.defaultConnectionId}
+										value={conversation.fields.defaultConnectionId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{:else}
@@ -249,10 +239,10 @@
 					<dt>Default model</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationModelRow(conversation: Entity<typeof schema, EntityType.BlockheadAgentConversation>)}
-								{#if conversation.defaultModelId != null && conversation.defaultModelId !== ''}
+							{#snippet ConversationModelRow(conversation: ResourceFields)}
+								{#if conversation.fields.defaultModelId != null && conversation.fields.defaultModelId !== ''}
 									<TruncatedValue
-										value={conversation.defaultModelId}
+										value={conversation.fields.defaultModelId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{:else}

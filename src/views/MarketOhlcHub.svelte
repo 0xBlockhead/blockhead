@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 
 	import {
@@ -9,7 +9,7 @@
 		MarketTimeIntervalUnit,
 	} from '$/constants/Market.ts'
 
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 

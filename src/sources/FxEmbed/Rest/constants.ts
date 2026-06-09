@@ -1,4 +1,4 @@
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 
 export const fxEmbedApiOrigin = 'https://api.fxtwitter.com' as const
 

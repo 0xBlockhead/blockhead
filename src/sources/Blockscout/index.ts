@@ -1,5 +1,5 @@
 
-import { type SourceProviderDefinition, SourceProvider } from '$/sources/$SourceProvider.ts'
+import { type SourceProviderDefinition, SourceProvider } from '$/sources/SourceProvider.ts'
 import { blockscoutExplorerOrigins } from '$/sources/Blockscout/Rest/constants.ts'
 import BlockscoutRestSource from '$/sources/Blockscout/Rest/index.ts'
 

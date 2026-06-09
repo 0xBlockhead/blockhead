@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,22 +28,11 @@
 		>
 	> = $props()
 
-	const block = useEntity(
-		EntityType.SolanaBlock,
+	const block = useEntity(entityCollectionsContext, EntityType.SolanaBlock,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Solana_JsonRpc,
-			],
-			blockHeight: {},
-			blockHash: {},
-			timestampMs: {},
-			transactionCount: {},
-			...open && {
-				parentSlot: {},
-				previousBlockHash: {},
-			},
-		},
+			], fields: { blockHeight: true, blockHash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentSlot: true, previousBlockHash: true })) } }),
 	)
 
 
@@ -103,55 +93,55 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if block.blockHash != null}
+					{#if block.fields.blockHash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={block.blockHash}
+									value={block.fields.blockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if block.blockHeight != null}
+					{#if block.fields.blockHeight != null}
 						<div>
 							<dt>Block height</dt>
-							<dd>{block.blockHeight.toString()}</dd>
+							<dd>{block.fields.blockHeight.toString()}</dd>
 						</div>
 					{/if}
 
-					{#if open && block.parentSlot != null}
+					{#if open && block.fields.parentSlot != null}
 						<div>
 							<dt>Parent slot</dt>
-							<dd>{block.parentSlot.toString()}</dd>
+							<dd>{block.fields.parentSlot.toString()}</dd>
 						</div>
 					{/if}
 
-					{#if open && block.previousBlockHash != null}
+					{#if open && block.fields.previousBlockHash != null}
 						<div>
 							<dt>Previous block hash</dt>
 							<dd>
 								<TruncatedValue
-									value={block.previousBlockHash}
+									value={block.fields.previousBlockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if block.transactionCount != null}
+					{#if block.fields.transactionCount != null}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={block.transactionCount} /></dd>
+							<dd><NumberValue value={block.fields.transactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if block.timestampMs != null}
+					{#if block.fields.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.timestampMs} /></dd>
+							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

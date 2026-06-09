@@ -2,9 +2,9 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { EntityIdProjection } from '$/schema/$schema.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.BeaconchaIn_Rest,
@@ -40,8 +40,9 @@ export default {
 					...(epoch.withdrawalcount != null && { withdrawalsCount: epoch.withdrawalcount }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			finalized: (snapshot) => snapshot.finalized,
 			globalParticipationRate: (snapshot) => snapshot.globalParticipationRate,
 			validatorsCount: (snapshot) => snapshot.validatorsCount,
@@ -49,7 +50,7 @@ export default {
 			attesterSlashingsCount: (snapshot) => snapshot.attesterSlashingsCount,
 			proposerSlashingsCount: (snapshot) => snapshot.proposerSlashingsCount,
 			withdrawalsCount: (snapshot) => snapshot.withdrawalsCount,
-		}
-		}),
+		},
+			}),
 	],
 }

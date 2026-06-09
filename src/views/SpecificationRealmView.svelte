@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -32,16 +33,11 @@
 		never
 	> = $props()
 
-	const realm = useEntity(
-		EntityType.SpecificationRealm,
+	const realm = useEntity(entityCollectionsContext, EntityType.SpecificationRealm,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			label: {},
-			slug: {},
-		},
+			], fields: { label: true, slug: true } }),
 	)
 
 
@@ -55,11 +51,11 @@
 
 	const href = $derived(
 		hrefProp ?? (
-			realmRow?.slug != null ?
+			realmRow?.fields.slug != null ?
 				resolve(
 					'/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
 					{
-						specificationRealmSlug: realmRow.slug,
+						specificationRealmSlug: realmRow.fields.slug,
 					},
 				)
 			:
@@ -79,7 +75,7 @@
 	entityType={EntityType.SpecificationRealm}
 	{entityId}
 	{href}
-	title={realmRow?.label ?? String(entityId.realm)}
+	title={realmRow?.fields.label ?? String(entityId.realm)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -91,7 +87,7 @@
 		>
 			{#snippet children(realm)}
 				<span>
-					{realm.slug ?? String(entityId.realm)}
+					{realm.fields.slug ?? String(entityId.realm)}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -103,7 +99,7 @@
 			placeholderText="Loading specification realm…"
 		>
 			{#snippet children(realm)}
-				{realm.label ?? String(entityId.realm)}
+				{realm.fields.label ?? String(entityId.realm)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

@@ -3,8 +3,8 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
@@ -14,9 +14,14 @@
 
 	import { stringify } from 'devalue'
 
+	type ResourceFields = {
+		fields: Record<string, any>
+	}
+
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -47,25 +52,9 @@
 		never
 	> = $props()
 
-	const swarm = useEntity(
-		EntityType.SwarmResource,
+	const swarm = useEntity(entityCollectionsContext, EntityType.SwarmResource,
 		entityId,
-		{
-			$: [Source.Swarm_Rest],
-			canonicalUri: {},
-			fileName: {},
-			extension: {},
-			gatewayOrigin: {},
-			gatewayUrl: {},
-			contentType: {},
-			contentLength: {},
-			displayType: {},
-			isContentTypeInferred: {},
-			text: {},
-			...(open && {
-				$media: {},
-			}),
-		},
+		({ sources: [Source.Swarm_Rest], fields: { canonicalUri: true, fileName: true, extension: true, gatewayOrigin: true, gatewayUrl: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, ...(open && ({ $media: true })) } }),
 	)
 
 
@@ -126,13 +115,13 @@
 				<dt>Content type</dt>
 				<dd>
 					{#if true}
-						{#snippet SwarmContentTypeRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
-							{#if swarm.contentType !== undefined}
+						{#snippet SwarmContentTypeRow(swarm: ResourceFields)}
+							{#if swarm.fields.contentType !== undefined}
 								<TruncatedValue
-									value={swarm.contentType}
+									value={swarm.fields.contentType}
 									format={TruncatedValueFormat.Visual}
 								/>
-								{#if swarm.isContentTypeInferred}
+								{#if swarm.fields.isContentTypeInferred}
 									{' '}<span data-text="muted">(inferred)</span>
 								{/if}
 							{:else if !open}
@@ -153,9 +142,9 @@
 					<dt>Canonical URI</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmCanonicalUriRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
+							{#snippet SwarmCanonicalUriRow(swarm: ResourceFields)}
 								<TruncatedValue
-									value={swarm.canonicalUri}
+									value={swarm.fields.canonicalUri}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -172,9 +161,9 @@
 					<dt>Gateway</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmGatewayOriginRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
+							{#snippet SwarmGatewayOriginRow(swarm: ResourceFields)}
 								<TruncatedValue
-									value={swarm.gatewayOrigin}
+									value={swarm.fields.gatewayOrigin}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -191,14 +180,14 @@
 					<dt>Gateway URL</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmGatewayUrlRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
+							{#snippet SwarmGatewayUrlRow(swarm: ResourceFields)}
 								<a
-									href={swarm.gatewayUrl}
+									href={swarm.fields.gatewayUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue
-										value={swarm.gatewayUrl}
+										value={swarm.fields.gatewayUrl}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</a>
@@ -216,10 +205,10 @@
 					<dt>Content length</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmContentLengthRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
-								{#if swarm.contentLength !== undefined}
+							{#snippet SwarmContentLengthRow(swarm: ResourceFields)}
+								{#if swarm.fields.contentLength !== undefined}
 									<NumberValue
-										value={swarm.contentLength}
+										value={swarm.fields.contentLength}
 										options={{ maximumFractionDigits: 0 }}
 									/>
 									{' '}
@@ -239,10 +228,10 @@
 					<dt>File name</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmFileNameRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
-								{#if swarm.fileName !== undefined}
+							{#snippet SwarmFileNameRow(swarm: ResourceFields)}
+								{#if swarm.fields.fileName !== undefined}
 									<TruncatedValue
-										value={swarm.fileName}
+										value={swarm.fields.fileName}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -260,9 +249,9 @@
 					<dt>Extension</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmExtensionRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
-								{#if swarm.extension !== undefined}
-									.{swarm.extension}
+							{#snippet SwarmExtensionRow(swarm: ResourceFields)}
+								{#if swarm.fields.extension !== undefined}
+									.{swarm.fields.extension}
 								{/if}
 							{/snippet}
 
@@ -278,8 +267,8 @@
 					<dt>Display type</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmDisplayTypeRow(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
-								{swarm.displayType}
+							{#snippet SwarmDisplayTypeRow(swarm: ResourceFields)}
+								{swarm.fields.displayType}
 							{/snippet}
 
 							<ResourceBoundary
@@ -336,16 +325,16 @@
 			{/snippet}
 
 			{#snippet SectionSwarmPreview()}
-				{#snippet SwarmPreviewBody(swarm: Entity<typeof schema, EntityType.SwarmResource>)}
-					{#if swarm.displayType !== undefined}
+				{#snippet SwarmPreviewBody(swarm: ResourceFields)}
+					{#if swarm.fields.displayType !== undefined}
 					<FileDetails
-						contentSize={swarm.contentLength}
-						contentType={swarm.contentType}
-						displayType={swarm.displayType}
-						extension={swarm.extension}
-						fileName={swarm.fileName}
-						src={swarm.gatewayUrl}
-						text={swarm.text}
+						contentSize={swarm.fields.contentLength}
+						contentType={swarm.fields.contentType}
+						displayType={swarm.fields.displayType}
+						extension={swarm.fields.extension}
+						fileName={swarm.fields.fileName}
+						src={swarm.fields.gatewayUrl}
+						text={swarm.fields.text}
 					/>
 					{/if}
 				{/snippet}

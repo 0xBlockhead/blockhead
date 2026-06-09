@@ -9,11 +9,11 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { UrlString } from '$/schema/$Url.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { UrlString } from '$/schema/UrlString.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	XApiV2Tweet,
 	XApiV2User,
@@ -155,7 +155,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				id: (user) => user.id,
 				username: (user) => user.username,
 				name: (user) => user.name,
@@ -171,7 +172,7 @@ export default {
 				$icon: (user) => user.$icon,
 				$profileBanner: (user) => user.$profileBanner,
 			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost,
@@ -245,7 +246,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				text: (post) => post.text,
 				createdAt: (post) => post.createdAt,
 				conversationId: (post) => post.conversationId,
@@ -259,7 +261,7 @@ export default {
 				$$media: (post) => post.$$media,
 				$author: (post) => post.$author,
 			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XUser_Timestamp,
@@ -279,13 +281,14 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				followerCount: (timestamp) => timestamp.followerCount,
 				followingCount: (timestamp) => timestamp.followingCount,
 				tweetCount: (timestamp) => timestamp.tweetCount,
 				listedCount: (timestamp) => timestamp.listedCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost_Timestamp,
@@ -302,13 +305,14 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				likeCount: (timestamp) => timestamp.likeCount,
 				retweetCount: (timestamp) => timestamp.retweetCount,
 				replyCount: (timestamp) => timestamp.replyCount,
 				quoteCount: (timestamp) => timestamp.quoteCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XNetwork,
@@ -337,10 +341,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$xUsers: (users) => users,
 			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XNetwork,
@@ -361,10 +366,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$xPosts: (posts) => posts,
 			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost,
@@ -387,10 +393,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XUser,
@@ -436,10 +443,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XUser,
@@ -483,9 +491,10 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$posts: (posts) => posts,
 			},
-		}),
+			}),
 	],
 }

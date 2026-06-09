@@ -6,9 +6,9 @@ import { tronSolidityNodeDefaultLocalRestUrl } from '$/constants/TronNetwork.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	TronNodeBlock,
 	TronNodeContractValue,
@@ -165,8 +165,9 @@ export default {
 					}),
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (block) => block.hash,
 			$parent: (block) => block.$parent,
 			parentHash: (block) => block.parentHash,
@@ -176,8 +177,8 @@ export default {
 			version: (block) => block.version,
 			transactionCount: (block) => block.transactionCount,
 			$$transactions: (block) => block.$$transactions,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronTransaction,
@@ -202,8 +203,9 @@ export default {
 					}),
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$block: (transaction) => transaction.$block,
 			blockHeight: (transaction) => transaction.blockHeight,
 			timestampMs: (transaction) => transaction.timestampMs,
@@ -218,8 +220,8 @@ export default {
 			assetName: (transaction) => transaction.assetName,
 			rawDataHex: (transaction) => transaction.rawDataHex,
 			signatures: (transaction) => transaction.signatures,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronAccount,
@@ -240,13 +242,14 @@ export default {
 					latestOperationTimestampMs: account.latest_opration_time,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (account) => account.name,
 			balanceSun: (account) => account.balanceSun,
 			createdTimestampMs: (account) => account.createdTimestampMs,
 			latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
-		}
-		}),
+		},
+			}),
 	],
 }

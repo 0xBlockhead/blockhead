@@ -2,10 +2,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -37,47 +37,20 @@
 	> = $props()
 
 	import { htmlToPlainText } from '$/lib/html.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	const idKey = stringify(entityId)
 
-	const actor = useEntity(
-		EntityType.ActivityPubActor,
+	const actor = useEntity(entityCollectionsContext, EntityType.ActivityPubActor,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Mastodon_Rest,
 				Source.Fedi_Rest,
-			],
-			localAccountId: {},
-			username: {},
-			acct: {},
-			displayName: {},
-			$icon: {},
-			...(open ?
-				{
-					note: {},
-					profileUrl: {},
-					activityStreamsUri: {},
-					website: {},
-					followersCount: {},
-					followingCount: {},
-					statusesCount: {},
-					$$timestamps: {
-						$: [
+			], fields: { localAccountId: true, username: true, acct: true, displayName: true, $icon: true, ...(open ? ({ note: true, profileUrl: true, activityStreamsUri: true, website: true, followersCount: true, followingCount: true, statusesCount: true, $$timestamps: ({ sources: [
 							Source.Mastodon_Rest,
 							Source.Fedi_Rest,
-						],
-						$limit: 1,
-					},
-					createdAt: {},
-					bot: {},
-					locked: {},
-					$headerImage: {},
-				}
-			:
-				{}),
-		},
+						], limit: 1 }), createdAt: true, bot: true, locked: true, $headerImage: true }) : ({  })) } }),
 	)
 
 
@@ -108,11 +81,11 @@
 			resource={actor}
 		>
 			{#snippet children(actor)}
-				{#if actor.$icon}
+				{#if actor.fields.$icon}
 					<IconComponent
-						alt={actor.displayName ?? actor.acct ?? actor.username ?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
+						alt={actor.fields.displayName ?? actor.fields.acct ?? actor.fields.username ?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
 						shape={IconShape.Circle}
-						src={actor.$icon[EntityMetaKey.Id].url}
+						src={actor.fields.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
 			{/snippet}
@@ -132,9 +105,9 @@
 			placeholderText="Loading actor…"
 		>
 			{#snippet children(actor)}
-				{actor.displayName
-					?? actor.acct
-					?? actor.username
+				{actor.fields.displayName
+					?? actor.fields.acct
+					?? actor.fields.username
 					?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
 			{/snippet}
 		</ResourceBoundary>
@@ -146,13 +119,13 @@
 		>
 			{#snippet children(actor)}
 				{@const activityPubSummaryHeadingLine =
-					actor.displayName
-					?? actor.acct
-					?? actor.username
+					actor.fields.displayName
+					?? actor.fields.acct
+					?? actor.fields.username
 					?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
-				{#if actor.username && actor.username !== activityPubSummaryHeadingLine}
+				{#if actor.fields.username && actor.fields.username !== activityPubSummaryHeadingLine}
 					<span data-text="muted">
-						@{actor.username}
+						@{actor.fields.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -178,10 +151,10 @@
 			placeholderText="Loading actor…"
 		>
 			{#snippet children(actor)}
-				{#if actor.note}
+				{#if actor.fields.note}
 					<p>
 						<TruncatedValue
-							value={htmlToPlainText(actor.note)}
+							value={htmlToPlainText(actor.fields.note)}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -197,22 +170,22 @@
 					>
 						{#snippet children(actor)}
 							{@const activityPubSummaryHeadingLine =
-								actor.displayName
-								?? actor.acct
-								?? actor.username
+								actor.fields.displayName
+								?? actor.fields.acct
+								?? actor.fields.username
 								?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
 
-						{#if actor.acct && actor.acct !== activityPubSummaryHeadingLine}
+						{#if actor.fields.acct && actor.fields.acct !== activityPubSummaryHeadingLine}
 							<div>
 								<dt>acct</dt>
-								<dd>{actor.acct}</dd>
+								<dd>{actor.fields.acct}</dd>
 							</div>
 						{/if}
 
-						{#if actor.displayName && actor.displayName !== activityPubSummaryHeadingLine}
+						{#if actor.fields.displayName && actor.fields.displayName !== activityPubSummaryHeadingLine}
 							<div>
 								<dt>Display name</dt>
-								<dd>{actor.displayName}</dd>
+								<dd>{actor.fields.displayName}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -229,80 +202,80 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: actor.$$timestamps[0]?.followersCount ?? actor.followersCount,
+									value: actor.fields.$$timestamps[0]?.followersCount ?? actor.fields.followersCount,
 								},
 								{
 									label: 'Following',
-									value: actor.$$timestamps[0]?.followingCount ?? actor.followingCount,
+									value: actor.fields.$$timestamps[0]?.followingCount ?? actor.fields.followingCount,
 								},
 								{
 									label: 'Statuses',
-									value: actor.$$timestamps[0]?.statusesCount ?? actor.statusesCount,
+									value: actor.fields.$$timestamps[0]?.statusesCount ?? actor.fields.statusesCount,
 								},
 							]}
 						/>
 
-						{#if actor.createdAt != null}
+						{#if actor.fields.createdAt != null}
 							<div>
 								<dt>Joined</dt>
 								<dd>
 									<Timestamp
-										timestamp={actor.createdAt}
+										timestamp={actor.fields.createdAt}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if actor.profileUrl}
+						{#if actor.fields.profileUrl}
 							<div>
 								<dt>Profile</dt>
 								<dd>
 									<a
-										href={actor.profileUrl}
+										href={actor.fields.profileUrl}
 										rel="noreferrer"
 										target="_blank"
-									>{actor.profileUrl}</a>
+									>{actor.fields.profileUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if actor.activityStreamsUri}
+						{#if actor.fields.activityStreamsUri}
 							<div>
 								<dt>Activity Streams URI</dt>
 								<dd>
 									<a
-										href={actor.activityStreamsUri}
+										href={actor.fields.activityStreamsUri}
 										rel="noreferrer"
 										target="_blank"
-									>{actor.activityStreamsUri}</a>
+									>{actor.fields.activityStreamsUri}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if actor.website}
+						{#if actor.fields.website}
 							<div>
 								<dt>Website</dt>
 								<dd>
 									<a
-										href={actor.website}
+										href={actor.fields.website}
 										rel="noreferrer"
 										target="_blank"
-									>{actor.website}</a>
+									>{actor.fields.website}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if actor.bot != null}
+						{#if actor.fields.bot != null}
 							<div>
 								<dt>Bot</dt>
-								<dd>{actor.bot ? 'Yes' : 'No'}</dd>
+								<dd>{actor.fields.bot ? 'Yes' : 'No'}</dd>
 							</div>
 						{/if}
 
-						{#if actor.locked != null}
+						{#if actor.fields.locked != null}
 							<div>
 								<dt>Locked</dt>
-								<dd>{actor.locked ? 'Yes' : 'No'}</dd>
+								<dd>{actor.fields.locked ? 'Yes' : 'No'}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -342,10 +315,10 @@
 				>
 					{#snippet children(actor)}
 						{@const mastodonProfileUnset = (
-							actor.acct == null
-							&& actor.displayName == null
-							&& actor.username == null
-							&& actor.note == null
+							actor.fields.acct == null
+							&& actor.fields.displayName == null
+							&& actor.fields.username == null
+							&& actor.fields.note == null
 						)}
 						{#if mastodonProfileUnset}
 							<div data-row="wrap align-center gap-2">
@@ -381,7 +354,7 @@
 									entityType: EntityType.ActivityPubActor,
 									entityId: {
 										instanceOrigin: entityId.instanceOrigin,
-										localAccountId: actor.localAccountId,
+										localAccountId: actor.fields.localAccountId,
 									},
 									fieldName: '$$notes',
 								}}
@@ -406,13 +379,13 @@
 									entityType: EntityType.ActivityPubActor,
 									entityId: {
 										instanceOrigin: entityId.instanceOrigin,
-										localAccountId: actor.localAccountId,
+										localAccountId: actor.fields.localAccountId,
 									},
 									fieldName: '$$timestamps',
 								}}
 								href={resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
 									instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
-									localAccountId: actor.localAccountId,
+									localAccountId: actor.fields.localAccountId,
 								})}
 								id={`${idKey}:metric-snapshots`}
 								title="Metric snapshots"

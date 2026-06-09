@@ -3,14 +3,15 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -28,22 +29,11 @@
 		>
 	> = $props()
 
-	const block = useEntity(
-		EntityType.PolkadotBlock,
+	const block = useEntity(entityCollectionsContext, EntityType.PolkadotBlock,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.SubstrateSidecar_Rest,
-			],
-			hash: {},
-			$$extrinsics: {},
-			$$events: {},
-			...open && {
-				$parent: {},
-				stateRoot: {},
-				extrinsicsRoot: {},
-			},
-		},
+			], fields: { hash: true, $$extrinsics: true, $$events: true, ...(open && ({ $parent: true, stateRoot: true, extrinsicsRoot: true })) } }),
 	)
 
 
@@ -98,59 +88,59 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if entityId.hash != null || block.hash != null}
+					{#if entityId.hash != null || block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={entityId.hash ?? block.hash}
+									value={entityId.hash ?? block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-						{#if (block.$$extrinsics?.length ?? 0) > 0}
+						{#if (block.fields.$$extrinsics?.values.length ?? 0) > 0}
 							<div>
 								<dt>Extrinsics</dt>
-								<dd><NumberValue value={block.$$extrinsics?.length ?? 0} /></dd>
+								<dd><NumberValue value={block.fields.$$extrinsics?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 
-						{#if (block.$$events?.length ?? 0) > 0}
+						{#if (block.fields.$$events?.values.length ?? 0) > 0}
 							<div>
 								<dt>Events</dt>
-								<dd><NumberValue value={block.$$events?.length ?? 0} /></dd>
+								<dd><NumberValue value={block.fields.$$events?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 
-					{#if open && block.$parent != null}
+					{#if open && block.fields.$parent != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
-								Block #{block.$parent[EntityMetaKey.Id].blockNumber.toString()}
+								Block #{block.fields.$parent[EntityMetaKey.Id].blockNumber.toString()}
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && block.stateRoot != null}
+					{#if open && block.fields.stateRoot != null}
 						<div>
 							<dt>State root</dt>
 							<dd>
 								<TruncatedValue
-									value={block.stateRoot}
+									value={block.fields.stateRoot}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && block.extrinsicsRoot != null}
+					{#if open && block.fields.extrinsicsRoot != null}
 						<div>
 							<dt>Extrinsics root</dt>
 							<dd>
 								<TruncatedValue
-									value={block.extrinsicsRoot}
+									value={block.fields.extrinsicsRoot}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

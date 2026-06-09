@@ -3,14 +3,14 @@
  */
 
 import { coinBridgeCapabilityEntityRowsFromInstancesAndTools } from '$/sources/Lifi/Rest/coinBridgeCapabilityEntityRows.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { fetchCoinInstanceStubsForCoin } from '$/sources/Coingecko/Rest/coinInstances.ts'
 import type { LifiToolsResponse } from '$/sources/Lifi/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import { stringify } from 'devalue'
 
 

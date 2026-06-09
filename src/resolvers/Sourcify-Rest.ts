@@ -6,9 +6,9 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcifyContractLookup } from '$/sources/Sourcify/Rest/types.ts'
 
 const sourcifyFirstStorageLayoutRecord = (
@@ -110,8 +110,9 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			match: (verification) => verification.match,
 			creationMatch: (verification) => verification.creationMatch,
 			runtimeMatch: (verification) => verification.runtimeMatch,
@@ -119,8 +120,8 @@ export default {
 			matchId: (verification) => verification.matchId,
 			$compilation: (verification) => verification.$compilation,
 			$sourceBundle: (verification) => verification.$sourceBundle,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractCompilation,
@@ -159,8 +160,9 @@ export default {
 					))(sourcifyStorageLayoutJsonFromLookup(contractLookup)),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			language: (compilation) => compilation.language,
 			compiler: (compilation) => compilation.compiler,
 			compilerVersion: (compilation) => compilation.compilerVersion,
@@ -168,8 +170,8 @@ export default {
 			fullyQualifiedName: (compilation) => compilation.fullyQualifiedName,
 			compilerSettingsJson: (compilation) => compilation.compilerSettingsJson,
 			storageLayoutJson: (compilation) => compilation.storageLayoutJson,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractSourceBundle,
@@ -181,11 +183,12 @@ export default {
 					files: sourcifySourceFilesFromLookup(contractLookup),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			files: (sourceBundle) => sourceBundle.files,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
@@ -200,11 +203,12 @@ export default {
 						undefined
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			abi: (abi) => abi,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
@@ -215,11 +219,12 @@ export default {
 					[EntityMetaKey.Id]: entityId,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$verification: (verification) => verification,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
@@ -234,11 +239,12 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$deployer: (deployer) => deployer,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
@@ -258,11 +264,12 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$creationTransaction: (creationTransaction) => creationTransaction,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
@@ -282,10 +289,11 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$implementation: (implementation) => implementation,
-		}
-		}),
+		},
+			}),
 	],
 }

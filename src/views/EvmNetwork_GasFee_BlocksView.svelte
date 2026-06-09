@@ -1,13 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +38,8 @@
 		>
 	> = $props()
 
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// Components
@@ -67,27 +68,24 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
-					$: [
+				entityFieldReference.entityId,({ sources: [
 						Source.Constants_Internal,
 						Source.Voltaire_JsonRpc,
-					],
-					[entityFieldReference.fieldName]: {
-						$: [
+					], fields: { [entityFieldReference.fieldName]: {
+						sources: [
 							Source.Voltaire_JsonRpc,
 						],
-						$limit: 64,
+						limit: 64,
 					},
-				},
+				} }),
 			)}
 			{@const gasFeeBlocks = derive(
 				parent,
 				(parent) => {
-					const gasFeeBlocks: Entity<typeof schema, EntityType.EvmNetwork_GasFee_Block>[] = (
-						parent[entityFieldReference.fieldName] ?? []
+					const gasFeeBlocks: readonly Entity<typeof schema, EntityType.EvmNetwork_GasFee_Block>[] = (
+						parent.fields[entityFieldReference.fieldName]?.values ?? []
 					)
 					return (
 						gasFeeBlocks

@@ -3,9 +3,9 @@ import { ethereumReferenceForkMetadataChainIds } from '$/constants/EthereumSpecs
 import {
 	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { EntityIdProjection } from '$/schema/$schema.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 export default {
@@ -34,11 +34,12 @@ export default {
 				const { fetchConsensusSpecsConfigYaml } = await import('$/sources/EthereumSpecs/Github/queries.ts')
 				return singleFlight(fetchConsensusSpecsConfigYaml)({ preset })
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			consensusSpecsConfigYaml: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.EthereumSpecs_Github, {
 			entityType: EntityType.EvmNetwork,
@@ -52,11 +53,12 @@ export default {
 				const { fetchGoEthereumParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')
 				return singleFlight(fetchGoEthereumParamsConfigGo)()
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			goEthereumParamsConfigGo: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.EthereumSpecs_Github, {
 			entityType: EntityType.EthereumExecutionUpgrade,
@@ -71,10 +73,11 @@ export default {
 				const { fetchExecutionSpecsMainnetUpgradeMarkdown } = await import('$/sources/EthereumSpecs/Github/queries.ts')
 				return singleFlight(fetchExecutionSpecsMainnetUpgradeMarkdown)({ filename })
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			executionSpecsMainnetUpgradeMarkdown: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

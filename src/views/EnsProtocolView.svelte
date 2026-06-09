@@ -3,14 +3,15 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -31,22 +32,9 @@
 		never
 	> = $props()
 
-	const protocol = useEntity(
-		EntityType.EnsProtocol,
+	const protocol = useEntity(entityCollectionsContext, EntityType.EnsProtocol,
 		entityId,
-		{
-			$: [Source.Constants_Internal],
-			protocolName: {},
-			registryLabel: {},
-			...(open ?
-				{
-					homeUrl: {},
-					docsUrl: {},
-					topology: {},
-				}
-			:
-				{}),
-		},
+		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true }) : ({  })) } }),
 	)
 
 	const entityViewDetailCarouselScrollProps = {
@@ -97,47 +85,47 @@
 				placeholderText="Loading ENS protocol…"
 			>
 				{#snippet children(protocol)}
-					{#if protocol.registryLabel}
+					{#if protocol.fields.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{protocol.registryLabel}</dd>
+							<dd>{protocol.fields.registryLabel}</dd>
 						</div>
-					{:else if protocol.protocolName}
+					{:else if protocol.fields.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{protocol.protocolName}</dd>
+							<dd>{protocol.fields.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& protocol.homeUrl
+						&& protocol.fields.homeUrl
 					)}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={protocol.homeUrl}>{protocol.homeUrl}</a>
+								<a href={protocol.fields.homeUrl}>{protocol.fields.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& protocol.docsUrl
+						&& protocol.fields.docsUrl
 					)}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-								<a href={protocol.docsUrl}>{protocol.docsUrl}</a>
+								<a href={protocol.fields.docsUrl}>{protocol.fields.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& protocol.topology
+						&& protocol.fields.topology
 					)}
 						<div>
 							<dt>Topology</dt>
-							<dd>{protocol.topology}</dd>
+							<dd>{protocol.fields.topology}</dd>
 						</div>
 					{/if}
 				{/snippet}

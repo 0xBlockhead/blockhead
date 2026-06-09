@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -30,18 +31,12 @@
 		>
 	> = $props()
 
-	const bridge = useEntity(
-		EntityType.EvmNetworkBridge,
+	const bridge = useEntity(entityCollectionsContext, EntityType.EvmNetworkBridge,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
-			],
-			...(open && {
-				relationshipType: {},
-			}),
-		},
+			], fields: { ...(open && ({ relationshipType: true })) } }),
 	)
 
 
@@ -105,7 +100,7 @@
 					{#snippet children(bridge)}
 						<div>
 							<dt>Relationship</dt>
-							<dd>{bridge.relationshipType}</dd>
+							<dd>{bridge.fields.relationshipType}</dd>
 						</div>
 					{/snippet}
 				</ResourceBoundary>

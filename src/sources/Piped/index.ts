@@ -3,7 +3,7 @@ import { type as arktype } from 'arktype'
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { pipedApiOrigins } from '$/sources/Piped/Rest/constants.ts'
 import PipedRestSource from '$/sources/Piped/Rest/index.ts'
 

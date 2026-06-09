@@ -1,5 +1,5 @@
 import { ChainId } from '$/constants/ChainId.ts'
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 
 
 /** Origins that host Blobscan REST (`api.*.blobscan.com`). Listed for `/api-proxy` and `httpFetch` routing. */

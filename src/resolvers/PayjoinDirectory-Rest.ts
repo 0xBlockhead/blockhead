@@ -1,9 +1,9 @@
 import {
 	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { EntityIdProjection } from '$/schema/$schema.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.PayjoinDirectory_Rest,
@@ -24,11 +24,12 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			ohttpGatewayUrl: (snapshot) => snapshot.ohttpGatewayUrl,
 			ohttpKeyConfig: (snapshot) => snapshot.ohttpKeyConfig,
-		}
-		}),
+		},
+			}),
 	],
 }

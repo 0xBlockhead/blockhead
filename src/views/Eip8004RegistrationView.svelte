@@ -3,11 +3,11 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EvmNftFormat } from '$/constants/Evm.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -40,36 +40,14 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const registration = useEntity(
-		EntityType.EvmNft,
+	const registration = useEntity(entityCollectionsContext, EntityType.EvmNft,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Eip8004Scan_Rest,
-			],
-			format: {},
-			name: {},
-			description: {},
-			image: {},
-			fetchedAt: {},
-			$case: {
-				format: {
-					[EvmNftFormat.Eip8004Registration]: {
-						agentRegistry: {},
-						agentId: {},
-						agentUri: {},
-						$agentWallet: {},
-						contactEndpoint: {},
-						registrationTypeIri: {},
-						x402Support: {},
-						active: {},
-						supportedTrust: {},
-					},
-				},
-			},
-		},
+			], fields: { format: true, name: true, description: true, image: true, fetchedAt: true, $agentWallet: true } }),
 	)
 
 
@@ -95,10 +73,10 @@
 	{#snippet Icon()}
 		<ResourceBoundary resource={registration}>
 			{#snippet children(registration)}
-				{#if registration.image}
+				{#if registration.fields.image}
 					<IconComponent
-						src={registration.image}
-						alt={registration.name ?? entityId.tokenId}
+						src={registration.fields.image}
+						alt={registration.fields.name ?? entityId.tokenId}
 					/>
 				{/if}
 			{/snippet}
@@ -117,7 +95,7 @@
 			placeholderText="Loading ERC-8004 registration…"
 		>
 			{#snippet children(registration)}
-				{registration.name ?? entityId.tokenId}
+				{registration.fields.name ?? entityId.tokenId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -134,10 +112,10 @@
 			placeholderText="Loading ERC-8004 registration…"
 		>
 			{#snippet children(registration)}
-				{#if open && registration.description}
+				{#if open && registration.fields.description}
 					<p>
 						<TruncatedValue
-							value={registration.description}
+							value={registration.fields.description}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -167,25 +145,25 @@
 						</dd>
 					</div>
 
-					{#if open && registration.agentUri}
+					{#if open && registration.fields.agentUri}
 						<div>
 							<dt>Agent URI</dt>
 							<dd>
 								<a
-									href={registration.agentUri}
+									href={registration.fields.agentUri}
 									rel="noreferrer"
 									target="_blank"
-								>{registration.agentUri}</a>
+								>{registration.fields.agentUri}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.$agentWallet}
+					{#if open && registration.fields.$agentWallet}
 						<div>
 							<dt>Agent wallet</dt>
 							<dd>
 								<EvmAccountView
-									entityId={registration.$agentWallet[EntityMetaKey.Id]}
+									entityId={registration.fields.$agentWallet[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -193,53 +171,53 @@
 						</div>
 					{/if}
 
-					{#if open && registration.contactEndpoint}
+					{#if open && registration.fields.contactEndpoint}
 						<div>
 							<dt>Contact endpoint</dt>
 							<dd>
 								<a
-									href={registration.contactEndpoint}
+									href={registration.fields.contactEndpoint}
 									rel="noreferrer"
 									target="_blank"
-								>{registration.contactEndpoint}</a>
+								>{registration.fields.contactEndpoint}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.registrationTypeIri}
+					{#if open && registration.fields.registrationTypeIri}
 						<div>
 							<dt>Registration type</dt>
-							<dd>{registration.registrationTypeIri}</dd>
+							<dd>{registration.fields.registrationTypeIri}</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.x402Support != null}
+					{#if open && registration.fields.x402Support != null}
 						<div>
 							<dt>x402 support</dt>
-							<dd>{registration.x402Support ? 'Yes' : 'No'}</dd>
+							<dd>{registration.fields.x402Support ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.active != null}
+					{#if open && registration.fields.active != null}
 						<div>
 							<dt>Active</dt>
-							<dd>{registration.active ? 'Yes' : 'No'}</dd>
+							<dd>{registration.fields.active ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.supportedTrust != null && registration.supportedTrust.length > 0}
+					{#if open && registration.fields.supportedTrust != null && registration.fields.supportedTrust.length > 0}
 						<div>
 							<dt>Supported trust</dt>
-							<dd>{registration.supportedTrust.join(', ')}</dd>
+							<dd>{registration.fields.supportedTrust.join(', ')}</dd>
 						</div>
 					{/if}
 
-					{#if open && registration.fetchedAt != null}
+					{#if open && registration.fields.fetchedAt != null}
 						<div>
 							<dt>Fetched</dt>
 							<dd>
 								<Timestamp
-									timestamp={registration.fetchedAt}
+									timestamp={registration.fields.fetchedAt}
 								/>
 							</dd>
 						</div>

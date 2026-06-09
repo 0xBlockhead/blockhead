@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,17 +27,9 @@
 		>
 	> = $props()
 
-	const contract = useEntity(
-		EntityType.TronContract,
+	const contract = useEntity(entityCollectionsContext, EntityType.TronContract,
 		entityId,
-		{
-			name: {},
-			verifyStatus: {},
-			isProxy: {},
-			...open && {
-				compiler: {},
-			},
-		},
+		({ fields: { name: true, verifyStatus: true, isProxy: true, ...(open && ({ compiler: true })) } }),
 	)
 
 
@@ -69,31 +62,31 @@
 		>
 			{#snippet children(contract)}
 				<dl data-column-item="center">
-					{#if contract.name != null}
+					{#if contract.fields.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{contract.name}</dd>
+							<dd>{contract.fields.name}</dd>
 						</div>
 					{/if}
 
-					{#if contract.verifyStatus != null}
+					{#if contract.fields.verifyStatus != null}
 						<div>
 							<dt>Verification</dt>
-							<dd>{contract.verifyStatus}</dd>
+							<dd>{contract.fields.verifyStatus}</dd>
 						</div>
 					{/if}
 
-					{#if contract.isProxy != null}
+					{#if contract.fields.isProxy != null}
 						<div>
 							<dt>Proxy</dt>
-							<dd>{contract.isProxy ? 'Yes' : 'No'}</dd>
+							<dd>{contract.fields.isProxy ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if open && contract.compiler != null}
+					{#if open && contract.fields.compiler != null}
 						<div>
 							<dt>Compiler</dt>
-							<dd>{contract.compiler}</dd>
+							<dd>{contract.fields.compiler}</dd>
 						</div>
 					{/if}
 				</dl>

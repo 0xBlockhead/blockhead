@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,10 @@
 		>
 	> = $props()
 
-	const quilibriumPendingTransaction = useEntity(
+	const quilibriumPendingTransaction = useEntity(entityCollectionsContext, 
 		EntityType.QuilibriumPendingTransaction,
 		entityId,
-		{
-			transactionType: {},
-		},
+		({ fields: { transactionType: true } }),
 	)
 
 
@@ -64,10 +63,10 @@
 		>
 			{#snippet children(quilibriumPendingTransaction)}
 				<dl>
-					{#if quilibriumPendingTransaction.transactionType != null}
+					{#if quilibriumPendingTransaction.fields.transactionType != null}
 						<div>
 							<dt>Transaction Type</dt>
-							<dd>{quilibriumPendingTransaction.transactionType}</dd>
+							<dd>{quilibriumPendingTransaction.fields.transactionType}</dd>
 						</div>
 					{/if}
 				</dl>

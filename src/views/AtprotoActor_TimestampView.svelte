@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,18 +39,12 @@
 		>
 	> = $props()
 
-	const atprotoActorTimestamp = useEntity(
-		EntityType.AtprotoActor_Timestamp,
+	const atprotoActorTimestamp = useEntity(entityCollectionsContext, EntityType.AtprotoActor_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Atproto_Xrpc,
 				Source.Atproto_BskySocial_Xrpc,
-			],
-			followersCount: {},
-			followsCount: {},
-			postsCount: {},
-		},
+			], fields: { followersCount: true, followsCount: true, postsCount: true } }),
 	)
 
 
@@ -95,15 +90,15 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: atprotoActorTimestamp.followersCount,
+								value: atprotoActorTimestamp.fields.followersCount,
 							},
 							{
 								label: 'Following',
-								value: atprotoActorTimestamp.followsCount,
+								value: atprotoActorTimestamp.fields.followsCount,
 							},
 							{
 								label: 'Posts',
-								value: atprotoActorTimestamp.postsCount,
+								value: atprotoActorTimestamp.fields.postsCount,
 							},
 						]}
 					/>

@@ -4,7 +4,7 @@
  * @see https://docs.allium.so/api/developer/tokens/get-tokens-by-chain-address.md
  */
 
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { alliumFetch } from '$/sources/Allium/Rest/client.ts'
 import type {

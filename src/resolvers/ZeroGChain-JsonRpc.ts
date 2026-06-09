@@ -12,9 +12,9 @@ import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type { RpcBlockHeader } from '$/sources/Evm/JsonRpc/types.ts'
 
 const assertZeroGMainnetChain = (network: { caip2: { namespace: string; reference: string } }) => {
@@ -101,9 +101,10 @@ export default {
 				assertZeroGMainnet(entityId)
 				return {}
 			}
-			},
-			fields: {}
-		}),
+			}
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmBlock,
@@ -147,8 +148,9 @@ export default {
 					...(block.transactions != null && { transactionCount: block.transactions.length }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			number: (block) => block.number,
 			$parent: (block) => block.$parent,
 			timestamp: (block) => block.timestamp,
@@ -159,8 +161,8 @@ export default {
 			blobGasUsed: (block) => block.blobGasUsed,
 			excessBlobGas: (block) => block.excessBlobGas,
 			transactionCount: (block) => block.transactionCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmTransaction,
@@ -246,8 +248,9 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$block: (transaction) => transaction.$block,
 			$from: (transaction) => transaction.$from,
 			$to: (transaction) => transaction.$to,
@@ -268,8 +271,8 @@ export default {
 			maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
 			blobGasUsed: (transaction) => transaction.blobGasUsed,
 			maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.ZeroGNetwork,
@@ -303,11 +306,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$timestamps: (timestamps) => timestamps,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.ZeroGNetwork,
@@ -328,11 +332,12 @@ export default {
 					},
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$blocks: (blocks) => blocks,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmBlock,
@@ -359,10 +364,11 @@ export default {
 						}]
 				})
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$transactions: (transactions) => transactions,
-		}
-		}),
+		},
+			}),
 	],
 }

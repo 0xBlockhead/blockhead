@@ -1,18 +1,20 @@
 import { type } from 'arktype'
 
 import { EvmTokenStandard } from '$/constants/Evm.ts'
-import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalFieldGroup,
 	type EntityDefinition,
 	type EntityFieldEntry,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import {
+	conditionalFieldGroup,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/EvmNetwork.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const evmTokenTransferDiscriminatorFields = [
 	{

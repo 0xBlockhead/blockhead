@@ -3,15 +3,16 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -36,39 +37,18 @@
 		never
 	> = $props()
 
-	const playlist = useEntity(
-		EntityType.YouTubePlaylist,
+	const playlist = useEntity(entityCollectionsContext, EntityType.YouTubePlaylist,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
-			],
-			title: {},
-			description: {},
-			itemCount: {},
-			$$timestamps: {
-				$: [
+			], fields: { title: true, description: true, itemCount: true, $$timestamps: ({ sources: [
 					Source.Youtube_Rest,
 					Source.Piped_Rest,
-				],
-				$limit: 1,
-			},
-			publishedAt: {},
-			publishedAtMs: {},
-			$channel: {},
-			...(open ?
-				{
-					$$videos: {
-						$: [
+				], limit: 1 }), publishedAt: true, publishedAtMs: true, $channel: true, ...(open ? ({ $$videos: ({ sources: [
 							Source.Youtube_Rest,
 							Source.Piped_Rest,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 	const idKey = stringify(entityId)
@@ -108,7 +88,7 @@
 			placeholderText="Loading playlist…"
 		>
 			{#snippet children(playlist)}
-				{playlist.title ?? entityId.playlistId}
+				{playlist.fields.title ?? entityId.playlistId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -129,10 +109,10 @@
 				placeholderText="Loading playlist…"
 			>
 				{#snippet children(playlist)}
-					{#if playlist.description}
+					{#if playlist.fields.description}
 						<p>
 							<TruncatedValue
-								value={playlist.description}
+								value={playlist.fields.description}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</p>
@@ -152,29 +132,29 @@
 							metrics={[
 								{
 									label: 'Items',
-									value: playlist.$$timestamps[0]?.itemCount ?? playlist.itemCount,
+									value: playlist.fields.$$timestamps[0]?.itemCount ?? playlist.fields.itemCount,
 								},
 							]}
 						/>
 
-						{#if playlist.publishedAtMs != null}
+						{#if playlist.fields.publishedAtMs != null}
 							<div>
 								<dt>Published</dt>
-								<dd><Timestamp timestamp={playlist.publishedAtMs} /></dd>
+								<dd><Timestamp timestamp={playlist.fields.publishedAtMs} /></dd>
 							</div>
-						{:else if playlist.publishedAt != null}
+						{:else if playlist.fields.publishedAt != null}
 							<div>
 								<dt>Published</dt>
-								<dd>{playlist.publishedAt}</dd>
+								<dd>{playlist.fields.publishedAt}</dd>
 							</div>
 						{/if}
 
-						{#if playlist.$channel}
+						{#if playlist.fields.$channel}
 							<div>
 								<dt>Channel</dt>
 								<dd>
 									<YouTubeChannelView
-										entityId={playlist.$channel[EntityMetaKey.Id]}
+										entityId={playlist.fields.$channel[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>

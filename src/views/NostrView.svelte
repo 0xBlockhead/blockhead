@@ -3,14 +3,15 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -34,43 +35,15 @@
 		never
 	> = $props()
 
-	const network = useEntity(
-		EntityType.NostrNetwork,
+	const network = useEntity(entityCollectionsContext, EntityType.NostrNetwork,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			protocolName: {},
-			registryLabel: {},
-			...(open ?
-				{
-					homeUrl: {},
-					docsUrl: {},
-					topology: {},
-					$$nostrProfiles: {
-						$: [
+			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$nostrProfiles: ({ sources: [
 							Source.Constants_Internal,
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
-						],
-					},
-					$$nostrNotes: {
-						$: [Source.NostrBand_Rest],
-					},
-					$$nostrRelays: {
-						$: [Source.NostrBand_Rest],
-					},
-					$$nostrReposts: {
-						$: [Source.NostrBand_Rest],
-					},
-					$$nostrArticles: {
-						$: [Source.NostrBand_Rest],
-					},
-				}
-			:
-				{}),
-		},
+						] }), $$nostrNotes: ({ sources: [Source.NostrBand_Rest] }), $$nostrRelays: ({ sources: [Source.NostrBand_Rest] }), $$nostrReposts: ({ sources: [Source.NostrBand_Rest] }), $$nostrArticles: ({ sources: [Source.NostrBand_Rest] }) }) : ({  })) } }),
 	)
 
 	const entityViewDetailCarouselScrollProps = {
@@ -124,75 +97,75 @@
 				placeholderText="Loading Nostr hub directory…"
 			>
 			{#snippet children(network)}
-				{#if network.registryLabel}
+				{#if network.fields.registryLabel}
 					<div>
 						<dt>Registry</dt>
-						<dd>{network.registryLabel}</dd>
+						<dd>{network.fields.registryLabel}</dd>
 					</div>
-				{:else if network.protocolName}
+				{:else if network.fields.protocolName}
 					<div>
 						<dt>Protocol</dt>
-						<dd>{network.protocolName}</dd>
+						<dd>{network.fields.protocolName}</dd>
 					</div>
 				{/if}
 
 				{#if open}
 					<div>
 						<dt>Profiles</dt>
-						<dd>{String(network.$$nostrProfiles.length)}</dd>
+						<dd>{String(network.fields.$$nostrProfiles?.values.length)}</dd>
 					</div>
 				{/if}
 
 				{#if open}
 					<div>
 						<dt>Notes</dt>
-						<dd>{String(network.$$nostrNotes.length)}</dd>
+						<dd>{String(network.fields.$$nostrNotes?.values.length)}</dd>
 					</div>
 				{/if}
 
 				{#if open}
 					<div>
 						<dt>Relays</dt>
-						<dd>{String(network.$$nostrRelays.length)}</dd>
+						<dd>{String(network.fields.$$nostrRelays?.values.length)}</dd>
 					</div>
 				{/if}
 
 				{#if open}
 					<div>
 						<dt>Reposts</dt>
-						<dd>{String(network.$$nostrReposts.length)}</dd>
+						<dd>{String(network.fields.$$nostrReposts?.values.length)}</dd>
 					</div>
 				{/if}
 
 				{#if open}
 					<div>
 						<dt>Articles</dt>
-						<dd>{String(network.$$nostrArticles.length)}</dd>
+						<dd>{String(network.fields.$$nostrArticles?.values.length)}</dd>
 					</div>
 				{/if}
 
-				{#if open && network.homeUrl}
+				{#if open && network.fields.homeUrl}
 					<div>
 						<dt>Home</dt>
 						<dd>
-							<a href={network.homeUrl}>{network.homeUrl}</a>
+							<a href={network.fields.homeUrl}>{network.fields.homeUrl}</a>
 						</dd>
 					</div>
 				{/if}
 
-				{#if open && network.docsUrl}
+				{#if open && network.fields.docsUrl}
 					<div>
 						<dt>Docs</dt>
 						<dd>
-							<a href={network.docsUrl}>{network.docsUrl}</a>
+							<a href={network.fields.docsUrl}>{network.fields.docsUrl}</a>
 						</dd>
 					</div>
 				{/if}
 
-				{#if open && network.topology}
+				{#if open && network.fields.topology}
 					<div>
 						<dt>Topology</dt>
-						<dd>{network.topology}</dd>
+						<dd>{network.fields.topology}</dd>
 					</div>
 				{/if}
 			{/snippet}

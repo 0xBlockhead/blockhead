@@ -8,11 +8,11 @@ import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const bigintFromSubgraphScalar = (value: unknown) => (
 	value == null ?
@@ -172,7 +172,8 @@ export default {
 					}),
 				}
 			}
-			},
+			}
+			})({
 				fields: {
 					name: (ensName) => ensName.name,
 					subgraphId: (ensName) => ensName.subgraphId,
@@ -197,7 +198,7 @@ export default {
 					registrationDate: (ensName) => ensName.registrationDate,
 					registrationCost: (ensName) => ensName.registrationCost,
 					registrationExpiryDate: (ensName) => ensName.registrationExpiryDate,
-				}
+				},
 			}),
 
 		defineResolver(Source.TheGraph_Graphql, {
@@ -208,8 +209,9 @@ export default {
 				return {}
 			}
 			},
+		})({
 				fields: {},
-		}),
+			}),
 
 		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.EvmAccount,
@@ -233,10 +235,11 @@ export default {
 						))
 				)
 			}
-			},
+			}
+			})({
 				fields: {
 					$$ensNamesOwned: (ensNamesOwned) => ensNamesOwned,
-				}
+				},
 			}),
 
 		defineResolver(Source.TheGraph_Graphql, {
@@ -264,10 +267,11 @@ export default {
 						))
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$ensNames: (ensNames) => ensNames,
-		}
-		}),
+		},
+			}),
 	],
 }

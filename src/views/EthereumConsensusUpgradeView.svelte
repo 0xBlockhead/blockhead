@@ -2,16 +2,17 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { consensusProtocolByProtocol } from '$/constants/EvmNetwork.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -40,32 +41,16 @@
 		>
 	> = $props()
 
-	const networkConsensusUpgrade = useEntity(
+	const networkConsensusUpgrade = useEntity(entityCollectionsContext, 
 		EntityType.EthereumConsensusUpgrade,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-			slug: {},
-			...(open && {
-				protocol: {},
-				activationBlock: {},
-				activationEpoch: {},
-				activationTimestampMs: {},
-				previousForkVersion: {
-					$: [
+			], fields: { name: true, slug: true, ...(open && ({ protocol: true, activationBlock: true, activationEpoch: true, activationTimestampMs: true, previousForkVersion: ({ sources: [
 						Source.Beacon_Rest,
-					],
-				},
-				currentForkVersion: {
-					$: [
+					] }), currentForkVersion: ({ sources: [
 						Source.Beacon_Rest,
-					],
-				},
-			}),
-		},
+					] }) })) } }),
 	)
 
 
@@ -100,7 +85,7 @@
 			placeholderText="Loading consensus upgrade…"
 		>
 			{#snippet children(networkConsensusUpgrade)}
-				{networkConsensusUpgrade.name ?? entityId.upgradeId}
+				{networkConsensusUpgrade.fields.name ?? entityId.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -118,23 +103,23 @@
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
-				&& networkConsensusUpgrade.protocol !== undefined
+				&& networkConsensusUpgrade.fields.protocol !== undefined
 			)}
 				<div>
 					<dt>Consensus fork</dt>
 					<dd>
-								{consensusProtocolByProtocol[networkConsensusUpgrade.protocol].label}
+								{consensusProtocolByProtocol[networkConsensusUpgrade.fields.protocol].label}
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.activationBlock !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.fields.activationBlock !== undefined}
 				<div>
 					<dt>Activation block</dt>
 					<dd>
 									<EvmBlockView
 										entityId={{
 											$network: entityId.$network,
-											blockNumber: BigInt(networkConsensusUpgrade.activationBlock),
+											blockNumber: BigInt(networkConsensusUpgrade.fields.activationBlock),
 										}}
 										layout={EntityLayout.Value}
 										open={false}
@@ -142,42 +127,42 @@
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.activationEpoch !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.fields.activationEpoch !== undefined}
 				<div>
 					<dt>Activation epoch</dt>
 					<dd>
-								<NumberValue value={networkConsensusUpgrade.activationEpoch} />
+								<NumberValue value={networkConsensusUpgrade.fields.activationEpoch} />
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.activationTimestampMs !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.fields.activationTimestampMs !== undefined}
 				<div>
 					<dt>Activation time</dt>
 					<dd>
 								<Timestamp
-									timestamp={networkConsensusUpgrade.activationTimestampMs}
+									timestamp={networkConsensusUpgrade.fields.activationTimestampMs}
 								/>
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.previousForkVersion !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.fields.previousForkVersion !== undefined}
 				<div>
 					<dt>Previous fork version</dt>
 					<dd>
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
-									value={networkConsensusUpgrade.previousForkVersion}
+									value={networkConsensusUpgrade.fields.previousForkVersion}
 								/>
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.currentForkVersion !== undefined}
+			{#if contentOpen && networkConsensusUpgrade.fields.currentForkVersion !== undefined}
 				<div>
 					<dt>Current fork version</dt>
 					<dd>
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
-									value={networkConsensusUpgrade.currentForkVersion}
+									value={networkConsensusUpgrade.fields.currentForkVersion}
 								/>
 					</dd>
 				</div>

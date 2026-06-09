@@ -11,10 +11,10 @@
 		EnsRegistrationStatus,
 	} from '$/constants/Ens.ts'
 
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ensEthereumChainId } from '$/constants/Ens.ts'
@@ -52,55 +52,19 @@
 	} from '$/lib/ensContentHash.ts'
 
 	import { resolveMediaUrlTransport } from '$/lib/media.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
 	} as const
 
-	const ens = useEntity(
-		EntityType.EnsName,
+	const ens = useEntity(entityCollectionsContext, EntityType.EnsName,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Voltaire_JsonRpc,
 				Source.TheGraph_Graphql,
-			],
-			name: {},
-			labelName: {},
-			$resolvedActor: {},
-			$subgraphResolvedActor: {},
-			subdomainCount: {},
-			textRecords: {},
-			isMigrated: {},
-			expiryDate: {},
-			contentHash: {},
-			...(open ?
-				{
-					labelhash: {},
-					subgraphId: {},
-					$resolverContract: {},
-					$ownerActor: {},
-					$subgraphOwnerActor: {},
-					$registrantActor: {},
-					$wrappedOwnerActor: {},
-					$parent: {},
-					$$subdomains: {},
-					coinAddresses: {},
-					resolverAbi: {},
-					resolverTextKeys: {},
-					resolverCoinTypes: {},
-					ttl: {},
-					createdAt: {},
-					wrappedExpiryDate: {},
-					wrappedFuses: {},
-					registrationDate: {},
-					registrationCost: {},
-					registrationExpiryDate: {},
-				}
-			:
-				{}),
-		},
+			], fields: { name: true, labelName: true, $resolvedActor: true, $subgraphResolvedActor: true, subdomainCount: true, textRecords: true, isMigrated: true, expiryDate: true, contentHash: true, ...(open ? ({ labelhash: true, subgraphId: true, $resolverContract: true, $ownerActor: true, $subgraphOwnerActor: true, $registrantActor: true, $wrappedOwnerActor: true, $parent: true, $$subdomains: true, coinAddresses: true, resolverAbi: true, resolverTextKeys: true, resolverCoinTypes: true, ttl: true, createdAt: true, wrappedExpiryDate: true, wrappedFuses: true, registrationDate: true, registrationCost: true, registrationExpiryDate: true }) : ({  })) } }),
 	)
 
 
@@ -143,7 +107,7 @@
 			resource={ens}
 		>
 			{#snippet children(ens)}
-				{@const avatarRaw = ens.textRecords?.avatar?.trim()}
+				{@const avatarRaw = ens.fields.textRecords?.avatar?.trim()}
 				{@const avatarUrl = (
 					avatarRaw != null && avatarRaw !== '' ?
 						resolveMediaUrlTransport(avatarRaw)?.url
@@ -191,9 +155,9 @@
 						resource={ens}
 					>
 						{#snippet children(ens)}
-							{#if ens.$resolvedActor !== undefined}
+							{#if ens.fields.$resolvedActor !== undefined}
 								<EvmAccountView
-									entityId={ens.$resolvedActor[EntityMetaKey.Id]}
+									entityId={ens.fields.$resolvedActor[EntityMetaKey.Id]}
 									href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
 										ensName: entityId.name,
 									})}
@@ -215,10 +179,10 @@
 					>
 						{#snippet children(ens)}
 							{#if (
-								ens.textRecords !== undefined
-								&& Object.keys(ens.textRecords).length > 0
+								ens.fields.textRecords !== undefined
+								&& Object.keys(ens.fields.textRecords).length > 0
 							)}
-								{String(Object.keys(ens.textRecords).length)}
+								{String(Object.keys(ens.fields.textRecords).length)}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -233,8 +197,8 @@
 						resource={ens}
 					>
 						{#snippet children(ens)}
-							{#if (ens.subdomainCount ?? 0) > 0}
-								{String(ens.subdomainCount)}
+							{#if (ens.fields.subdomainCount ?? 0) > 0}
+								{String(ens.fields.subdomainCount)}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -250,10 +214,10 @@
 					>
 						{#snippet children(ens)}
 							{#if (
-								ens.coinAddresses !== undefined
-								&& Object.keys(ens.coinAddresses).length > 0
+								ens.fields.coinAddresses !== undefined
+								&& Object.keys(ens.fields.coinAddresses).length > 0
 							)}
-								{String(Object.keys(ens.coinAddresses).length)}
+								{String(Object.keys(ens.fields.coinAddresses).length)}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -269,14 +233,14 @@
 					>
 						{#snippet children(ens)}
 							{#if (
-								ens.expiryDate !== undefined
-								&& Number.isFinite(Number(ens.expiryDate))
+								ens.fields.expiryDate !== undefined
+								&& Number.isFinite(Number(ens.fields.expiryDate))
 							)}
 								{ensRegistrationStatusByStatus[
 									(
-										Date.now() < Number(ens.expiryDate) ?
+										Date.now() < Number(ens.fields.expiryDate) ?
 											EnsRegistrationStatus.Active
-										: Date.now() < Number(ens.expiryDate) + Number(ensGracePeriodSeconds) * 1000 ?
+										: Date.now() < Number(ens.fields.expiryDate) + Number(ensGracePeriodSeconds) * 1000 ?
 											EnsRegistrationStatus.GracePeriod
 										:
 											EnsRegistrationStatus.Expired
@@ -296,11 +260,11 @@
 						resource={ens}
 					>
 						{#snippet children(ens)}
-							{#if ens.contentHash != null && ens.contentHash !== ''}
-								{@const decodedContentHash = decodeEnsContentHash(ens.contentHash)}
-								{@const contentHashBrowseHref = ensContentHashBrowseHref(ens.contentHash)}
+							{#if ens.fields.contentHash != null && ens.fields.contentHash !== ''}
+								{@const decodedContentHash = decodeEnsContentHash(ens.fields.contentHash)}
+								{@const contentHashBrowseHref = ensContentHashBrowseHref(ens.fields.contentHash)}
 								<TruncatedValue
-									value={ens.contentHash}
+									value={ens.fields.contentHash}
 									format={TruncatedValueFormat.Visual}
 								/>
 								{#if decodedContentHash != null}
@@ -328,8 +292,8 @@
 						resource={ens}
 					>
 						{#snippet children(ens)}
-							{#if ens.isMigrated !== undefined}
-								{ens.isMigrated ? 'Yes' : 'No'}
+							{#if ens.fields.isMigrated !== undefined}
+								{ens.fields.isMigrated ? 'Yes' : 'No'}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -345,11 +309,11 @@
 							resource={ens}
 						>
 							{#snippet children(ens)}
-								{#if ens.$ownerActor !== undefined}
+								{#if ens.fields.$ownerActor !== undefined}
 									<EvmNetworkAccountView
 										entityId={{
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
-											$actor: ens.$ownerActor[EntityMetaKey.Id],
+											$actor: ens.fields.$ownerActor[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
@@ -371,11 +335,11 @@
 						>
 							{#snippet children(ens)}
 								{#if (
-									ens.expiryDate !== undefined
-									&& Number.isFinite(Number(ens.expiryDate))
+									ens.fields.expiryDate !== undefined
+									&& Number.isFinite(Number(ens.fields.expiryDate))
 								)}
 									<Timestamp
-										timestamp={Number(ens.expiryDate)}
+										timestamp={Number(ens.fields.expiryDate)}
 									/>
 								{/if}
 							{/snippet}
@@ -394,9 +358,9 @@
 					sectionIdPrefix={ensNameIdKey}
 					sections={[
 						...(
-							ens.textRecords?.header?.trim() != null
-							&& ens.textRecords?.header?.trim() !== ''
-							&& resolveMediaUrlTransport(ens.textRecords?.header?.trim())?.url != null ?
+							ens.fields.textRecords?.header?.trim() != null
+							&& ens.fields.textRecords?.header?.trim() !== ''
+							&& resolveMediaUrlTransport(ens.fields.textRecords?.header?.trim())?.url != null ?
 								[{ id: 'profile-header', label: 'Header' }]
 							:
 								[]
@@ -414,7 +378,7 @@
 					{/snippet}
 
 					{#snippet SectionProfileHeader({ id, label })}
-						{@const headerRaw = ens.textRecords?.header?.trim()}
+						{@const headerRaw = ens.fields.textRecords?.header?.trim()}
 						{@const headerUrl = (
 							headerRaw != null && headerRaw !== '' ?
 								resolveMediaUrlTransport(headerRaw)?.url
@@ -445,10 +409,10 @@
 				id={`${ensNameIdKey}:carousel-registration`}
 				sectionIdPrefix={ensNameIdKey}
 				sections={[
-					...((ens.$$subdomains ?? []).length ? [{ id: 'registration-subdomains', label: 'Subdomains' }] : []),
-					...(ens.$parent !== undefined ? [{ id: 'registration-parent', label: 'Parent' }] : []),
+					...((ens.fields.$$subdomains?.values ?? []).length ? [{ id: 'registration-subdomains', label: 'Subdomains' }] : []),
+					...(ens.fields.$parent !== undefined ? [{ id: 'registration-parent', label: 'Parent' }] : []),
 					{ id: 'registration-metadata', label: 'Metadata' },
-					...(ens.$registrantActor !== undefined || ens.$wrappedOwnerActor !== undefined ? [{ id: 'registration-accounts', label: 'Accounts' }] : []),
+					...(ens.fields.$registrantActor !== undefined || ens.fields.$wrappedOwnerActor !== undefined ? [{ id: 'registration-accounts', label: 'Accounts' }] : []),
 				]}
 				data-card
 				class="ens-view-collapsible-registration"
@@ -461,7 +425,7 @@
 				{/snippet}
 
 				{#snippet SectionRegistrationSubdomains({ id, label })}
-					{#if (ens.$$subdomains ?? []).length}
+					{#if (ens.fields.$$subdomains?.values ?? []).length}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
@@ -471,7 +435,7 @@
 								ensName: entityId.name,
 							})}
 							id={`${id}-list`}
-								items={(ens.$$subdomains ?? []).map((subdomain: Entity<typeof schema, EntityType.EnsName>) => subdomain[EntityMetaKey.Id])}
+								items={(ens.fields.$$subdomains?.values ?? []).map((subdomain: Entity<typeof schema, EntityType.EnsName>) => subdomain[EntityMetaKey.Id])}
 								title="Subdomains"
 							>
 							{#snippet Item({ item })}
@@ -487,8 +451,8 @@
 				{/snippet}
 
 				{#snippet SectionRegistrationParent({ id, label })}
-					{#if ens.$parent !== undefined}
-						{@const parentId = ens.$parent[EntityMetaKey.Id]}
+					{#if ens.fields.$parent !== undefined}
+						{@const parentId = ens.fields.$parent[EntityMetaKey.Id]}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
@@ -512,14 +476,14 @@
 
 				{#snippet SectionRegistrationAccounts({ id, label })}
 					<div data-column-item="center">
-						{#if ens.$ownerActor !== undefined}
+						{#if ens.fields.$ownerActor !== undefined}
 							<div>
 								<dt>Registry owner</dt>
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
-											$actor: ens.$ownerActor[EntityMetaKey.Id],
+											$actor: ens.fields.$ownerActor[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
@@ -528,14 +492,14 @@
 							</div>
 						{/if}
 
-						{#if ens.$subgraphOwnerActor !== undefined}
+						{#if ens.fields.$subgraphOwnerActor !== undefined}
 							<div>
 								<dt>Subgraph owner</dt>
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
-											$actor: ens.$subgraphOwnerActor[EntityMetaKey.Id],
+											$actor: ens.fields.$subgraphOwnerActor[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
@@ -544,14 +508,14 @@
 							</div>
 						{/if}
 
-						{#if ens.$registrantActor !== undefined}
+						{#if ens.fields.$registrantActor !== undefined}
 							<div>
 								<dt>Registrant</dt>
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
-											$actor: ens.$registrantActor[EntityMetaKey.Id],
+											$actor: ens.fields.$registrantActor[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
@@ -560,14 +524,14 @@
 							</div>
 						{/if}
 
-						{#if ens.$wrappedOwnerActor !== undefined}
+						{#if ens.fields.$wrappedOwnerActor !== undefined}
 							<div>
 								<dt>Name wrapper owner</dt>
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
-											$actor: ens.$wrappedOwnerActor[EntityMetaKey.Id],
+											$actor: ens.fields.$wrappedOwnerActor[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
@@ -580,124 +544,124 @@
 
 				{#snippet SectionRegistrationMetadata({ id, label })}
 					<div data-column-item="center">
-						{#if ens.subgraphId != null && ens.subgraphId !== ''}
+						{#if ens.fields.subgraphId != null && ens.fields.subgraphId !== ''}
 							<div>
 								<dt>Subgraph node id</dt>
 								<dd>
 									<TruncatedValue
-										value={ens.subgraphId}
+										value={ens.fields.subgraphId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if ens.name != null && ens.name !== entityId.name}
+						{#if ens.fields.name != null && ens.fields.name !== entityId.name}
 							<div>
 								<dt>Normalized name</dt>
 								<dd>
 									<span data-text="font-monospace">
-										{ens.name}
+										{ens.fields.name}
 									</span>
 								</dd>
 							</div>
 						{/if}
 
-						{#if ens.labelName != null && ens.labelName !== '' && ens.labelName !== entityId.name}
+						{#if ens.fields.labelName != null && ens.fields.labelName !== '' && ens.fields.labelName !== entityId.name}
 							<div>
 								<dt>Label</dt>
-								<dd>{ens.labelName}</dd>
+								<dd>{ens.fields.labelName}</dd>
 							</div>
 						{/if}
 
-						{#if ens.labelhash != null && ens.labelhash !== ''}
+						{#if ens.fields.labelhash != null && ens.fields.labelhash !== ''}
 							<div>
 								<dt>Labelhash</dt>
 								<dd>
 									<TruncatedValue
-										value={ens.labelhash}
+										value={ens.fields.labelhash}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if ens.ttl !== undefined}
+						{#if ens.fields.ttl !== undefined}
 							<div>
 								<dt>TTL</dt>
-								<dd>{String(ens.ttl)}</dd>
+								<dd>{String(ens.fields.ttl)}</dd>
 							</div>
 						{/if}
 
 						{#if (
-							ens.createdAt !== undefined
-							&& Number.isFinite(Number(ens.createdAt))
+							ens.fields.createdAt !== undefined
+							&& Number.isFinite(Number(ens.fields.createdAt))
 						)}
 							<div>
 								<dt>Created</dt>
 								<dd>
 									<Timestamp
-										timestamp={Number(ens.createdAt)}
+										timestamp={Number(ens.fields.createdAt)}
 									/>
 								</dd>
 							</div>
 						{/if}
 
 						{#if (
-							ens.registrationDate !== undefined
-							&& Number.isFinite(Number(ens.registrationDate))
+							ens.fields.registrationDate !== undefined
+							&& Number.isFinite(Number(ens.fields.registrationDate))
 						)}
 							<div>
 								<dt>Registered</dt>
 								<dd>
 									<Timestamp
-										timestamp={Number(ens.registrationDate)}
+										timestamp={Number(ens.fields.registrationDate)}
 									/>
 								</dd>
 							</div>
 						{/if}
 
 						{#if (
-							ens.registrationExpiryDate !== undefined
-							&& Number.isFinite(Number(ens.registrationExpiryDate))
+							ens.fields.registrationExpiryDate !== undefined
+							&& Number.isFinite(Number(ens.fields.registrationExpiryDate))
 						)}
 							<div>
 								<dt>Registration expiry</dt>
 								<dd>
 									<Timestamp
-										timestamp={Number(ens.registrationExpiryDate)}
+										timestamp={Number(ens.fields.registrationExpiryDate)}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if ens.registrationCost !== undefined}
+						{#if ens.fields.registrationCost !== undefined}
 							<div>
 								<dt>Registration cost</dt>
 								<dd>
-									<NumberValue value={ens.registrationCost} />
+									<NumberValue value={ens.fields.registrationCost} />
 								</dd>
 							</div>
 						{/if}
 
 						{#if (
-							ens.wrappedExpiryDate !== undefined
-							&& Number.isFinite(Number(ens.wrappedExpiryDate))
+							ens.fields.wrappedExpiryDate !== undefined
+							&& Number.isFinite(Number(ens.fields.wrappedExpiryDate))
 						)}
 							<div>
 								<dt>Wrapper expiry</dt>
 								<dd>
 									<Timestamp
-										timestamp={Number(ens.wrappedExpiryDate)}
+										timestamp={Number(ens.fields.wrappedExpiryDate)}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if ens.wrappedFuses !== undefined}
+						{#if ens.fields.wrappedFuses !== undefined}
 							<div>
 								<dt>Wrapper fuses</dt>
-								<dd>{String(ens.wrappedFuses)}</dd>
+								<dd>{String(ens.fields.wrappedFuses)}</dd>
 							</div>
 						{/if}
 					</div>
@@ -709,10 +673,10 @@
 				sectionIdPrefix={ensNameIdKey}
 				sections={[
 					{ id: 'records-text', label: 'Text records' },
-					...(ens.contentHash != null && ens.contentHash !== '' ? [{ id: 'records-content-hash', label: 'Content hash' }] : []),
-					...(ens.resolverAbi?.length ? [{ id: 'records-abi', label: 'Resolver ABI' }] : []),
-					...(ens.coinAddresses !== undefined && Object.keys(ens.coinAddresses).length > 0 ? [{ id: 'records-coins', label: 'Coin addresses' }] : []),
-					...((ens.resolverTextKeys ?? []).length || (ens.resolverCoinTypes ?? []).length ? [{ id: 'records-indexer', label: 'Indexer' }] : []),
+					...(ens.fields.contentHash != null && ens.fields.contentHash !== '' ? [{ id: 'records-content-hash', label: 'Content hash' }] : []),
+					...(ens.fields.resolverAbi?.length ? [{ id: 'records-abi', label: 'Resolver ABI' }] : []),
+					...(ens.fields.coinAddresses !== undefined && Object.keys(ens.fields.coinAddresses).length > 0 ? [{ id: 'records-coins', label: 'Coin addresses' }] : []),
+					...((ens.fields.resolverTextKeys?.values ?? []).length || (ens.fields.resolverCoinTypes?.values ?? []).length ? [{ id: 'records-indexer', label: 'Indexer' }] : []),
 				]}
 				data-card
 				class="ens-view-collapsible-records"
@@ -735,9 +699,9 @@
 				{/snippet}
 
 				{#snippet SectionRecordsContentHash({ id, label })}
-					{#if ens.contentHash != null && ens.contentHash !== ''}
-						{@const decodedContentHash = decodeEnsContentHash(ens.contentHash)}
-						{@const contentHashBrowseHref = ensContentHashBrowseHref(ens.contentHash)}
+					{#if ens.fields.contentHash != null && ens.fields.contentHash !== ''}
+						{@const decodedContentHash = decodeEnsContentHash(ens.fields.contentHash)}
+						{@const contentHashBrowseHref = ensContentHashBrowseHref(ens.fields.contentHash)}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
@@ -753,7 +717,7 @@
 										<dt>Encoded</dt>
 										<dd>
 											<TruncatedValue
-												value={ens.contentHash}
+												value={ens.fields.contentHash}
 												format={TruncatedValueFormat.Visual}
 											/>
 										</dd>
@@ -782,7 +746,7 @@
 				{/snippet}
 
 				{#snippet SectionRecordsAbi({ id, label })}
-					{#if ens.resolverAbi?.length}
+					{#if ens.fields.resolverAbi?.length}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
@@ -795,7 +759,7 @@
 							{#snippet body({ open: _bodyOpen })}
 								<div data-column-item="center">
 									<EvmAbiView
-										abi={ens.resolverAbi}
+										abi={ens.fields.resolverAbi}
 										emptyText="Resolver ABI record has no JSON ABI entries."
 											/>
 									</div>
@@ -805,8 +769,8 @@
 				{/snippet}
 
 				{#snippet SectionRecordsCoins({ id, label })}
-					{#if ens.coinAddresses !== undefined && Object.keys(ens.coinAddresses).length > 0}
-						{@const coinAddresses = ens.coinAddresses}
+					{#if ens.fields.coinAddresses !== undefined && Object.keys(ens.fields.coinAddresses).length > 0}
+						{@const coinAddresses = ens.fields.coinAddresses}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
@@ -826,7 +790,7 @@
 													coinType in ensCoinTypeLabelByKey ?
 														ensCoinTypeLabelByKey[coinType].label
 													:
-														`Coin type ${coinType}`
+														`Coin type ${String(coinType)}`
 												)}</dt>
 												<dd>
 													<TruncatedValue
@@ -844,7 +808,7 @@
 			{/snippet}
 
 				{#snippet SectionRecordsIndexer({ id, label })}
-					{#if (ens.resolverTextKeys ?? []).length || (ens.resolverCoinTypes ?? []).length}
+					{#if (ens.fields.resolverTextKeys?.values ?? []).length || (ens.fields.resolverCoinTypes?.values ?? []).length}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
@@ -856,17 +820,17 @@
 						>
 							{#snippet body({ open: _bodyOpen })}
 								<div data-column-item="center">
-									{#if (ens.resolverTextKeys ?? []).length}
+									{#if (ens.fields.resolverTextKeys?.values ?? []).length}
 										<div>
 											<dt>Text keys</dt>
-											<dd data-text="muted">{(ens.resolverTextKeys ?? []).join(', ')}</dd>
+											<dd data-text="muted">{(ens.fields.resolverTextKeys?.values ?? []).join(', ')}</dd>
 										</div>
 									{/if}
-									{#if (ens.resolverCoinTypes ?? []).length}
+									{#if (ens.fields.resolverCoinTypes?.values ?? []).length}
 										<div>
 											<dt>Coin types</dt>
 											<dd data-text="muted">
-												{(ens.resolverCoinTypes ?? []).map((coinType: string) => (
+												{(ens.fields.resolverCoinTypes?.values ?? []).map((coinType: string) => (
 													coinType in ensCoinTypeLabelByKey ?
 														ensCoinTypeLabelByKey[coinType].label
 													:
@@ -886,9 +850,9 @@
 				id={`${ensNameIdKey}:carousel-resolution`}
 				sectionIdPrefix={ensNameIdKey}
 				sections={[
-					...(ens.$resolvedActor !== undefined ? [{ id: 'resolution-addr', label: 'Addr record' }] : []),
-					...(ens.$subgraphResolvedActor !== undefined ? [{ id: 'resolution-subgraph-addr', label: 'Subgraph addr' }] : []),
-					...(ens.$resolverContract !== undefined ? [{ id: 'resolution-resolver', label: 'Resolver' }] : []),
+					...(ens.fields.$resolvedActor !== undefined ? [{ id: 'resolution-addr', label: 'Addr record' }] : []),
+					...(ens.fields.$subgraphResolvedActor !== undefined ? [{ id: 'resolution-subgraph-addr', label: 'Subgraph addr' }] : []),
+					...(ens.fields.$resolverContract !== undefined ? [{ id: 'resolution-resolver', label: 'Resolver' }] : []),
 				]}
 				data-card
 				class="ens-view-collapsible-resolution"
@@ -901,9 +865,9 @@
 				{/snippet}
 
 				{#snippet SectionResolutionAddr({ id, label })}
-					{#if ens.$resolvedActor !== undefined}
+					{#if ens.fields.$resolvedActor !== undefined}
 						<EvmAccountView
-							entityId={ens.$resolvedActor[EntityMetaKey.Id]}
+							entityId={ens.fields.$resolvedActor[EntityMetaKey.Id]}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
 								ensName: entityId.name,
 							})}
@@ -913,9 +877,9 @@
 				{/snippet}
 
 				{#snippet SectionResolutionSubgraphAddr({ id, label })}
-					{#if ens.$subgraphResolvedActor !== undefined}
+					{#if ens.fields.$subgraphResolvedActor !== undefined}
 						<EvmAccountView
-							entityId={ens.$subgraphResolvedActor[EntityMetaKey.Id]}
+							entityId={ens.fields.$subgraphResolvedActor[EntityMetaKey.Id]}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
 								ensName: entityId.name,
 							})}
@@ -925,9 +889,9 @@
 				{/snippet}
 
 				{#snippet SectionResolutionResolver({ id, label })}
-					{#if ens.$resolverContract !== undefined}
+					{#if ens.fields.$resolverContract !== undefined}
 						<EvmContractView
-							entityId={ens.$resolverContract[EntityMetaKey.Id]}
+							entityId={ens.fields.$resolverContract[EntityMetaKey.Id]}
 							title="Resolver contract"
 						/>
 					{/if}

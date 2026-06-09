@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,18 +28,11 @@
 		>
 	> = $props()
 
-	const asset = useEntity(
-		EntityType.AssetInstance,
+	const asset = useEntity(entityCollectionsContext, EntityType.AssetInstance,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-			symbol: {},
-			coinId: {},
-			decimals: {},
-		},
+			], fields: { name: true, symbol: true, coinId: true, decimals: true } }),
 	)
 
 
@@ -58,7 +52,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={asset}>
 			{#snippet children(asset)}
-				{asset.symbol}
+				{asset.fields.symbol}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -66,7 +60,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={asset}>
 			{#snippet children(asset)}
-				{asset.name}
+				{asset.fields.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -80,18 +74,18 @@
 				<dl>
 					<div>
 						<dt>Symbol</dt>
-						<dd>{asset.symbol}</dd>
+						<dd>{asset.fields.symbol}</dd>
 					</div>
 
 					<div>
 						<dt>Name</dt>
-						<dd>{asset.name}</dd>
+						<dd>{asset.fields.name}</dd>
 					</div>
 
-					{#if asset.decimals != null}
+					{#if asset.fields.decimals != null}
 						<div>
 							<dt>Decimals</dt>
-							<dd>{asset.decimals}</dd>
+							<dd>{asset.fields.decimals}</dd>
 						</div>
 					{/if}
 

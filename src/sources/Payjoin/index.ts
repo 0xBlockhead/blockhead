@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import PayjoinDirectoryRest from '$/sources/Payjoin/Directory/Rest/index.ts'
 
 export default {

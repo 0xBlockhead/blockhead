@@ -6,13 +6,15 @@ import {
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalFieldGroup,
 	type EntityDefinition,
 	type EntityFieldEntry,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { UrlString } from '$/schema/$Url.ts'
+} from '$/schema/$schema.ts'
+import {
+	conditionalFieldGroup,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import EvmContract from '$/schema/EvmContract.ts'
 
 const evmNftDiscriminatorFields = [

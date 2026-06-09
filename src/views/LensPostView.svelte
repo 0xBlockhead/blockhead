@@ -2,16 +2,17 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,35 +39,13 @@
 		>
 	> = $props()
 
-	const lensPost = useEntity(
-		EntityType.LensPost,
+	const lensPost = useEntity(entityCollectionsContext, EntityType.LensPost,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Lens_Graphql,
-			],
-			text: {},
-			timestamp: {},
-			isEdited: {},
-			isDeleted: {},
-			commentCount: {},
-			repostCount: {},
-			quoteCount: {},
-			bookmarkCount: {},
-			collectCount: {},
-			reactionCount: {},
-			$$timestamps: {
-				$: [
+			], fields: { text: true, timestamp: true, isEdited: true, isDeleted: true, commentCount: true, repostCount: true, quoteCount: true, bookmarkCount: true, collectCount: true, reactionCount: true, $$timestamps: ({ sources: [
 					Source.Lens_Graphql,
-				],
-				$limit: 1,
-			},
-			$author: {},
-			$commentOn: {},
-			$quoteOf: {},
-			$repostOf: {},
-			$root: {},
-		},
+				], limit: 1 }), $author: true, $commentOn: true, $quoteOf: true, $repostOf: true, $root: true } }),
 	)
 
 
@@ -111,8 +90,8 @@
 					startLength={42}
 					endLength={14}
 					value={(
-						lensPost.text
-							? lensPost.text
+						lensPost.fields.text
+							? lensPost.fields.text
 						:
 							entityId.id
 					)}
@@ -126,10 +105,10 @@
 			resource={lensPost}
 		>
 			{#snippet children(lensPost)}
-				{#if lensPost.timestamp != null}
+				{#if lensPost.fields.timestamp != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={lensPost.timestamp}
+							timestamp={lensPost.fields.timestamp}
 						/>
 					</span>
 				{/if}
@@ -153,33 +132,33 @@
 			resource={lensPost}
 		>
 			{#snippet children(lensPost)}
-				{#if lensPost.text != null && lensPost.text !== ''}
+				{#if lensPost.fields.text != null && lensPost.fields.text !== ''}
 					<p>
 						<TruncatedValue
-							value={lensPost.text}
+							value={lensPost.fields.text}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
 				{/if}
 
 				<dl data-column-item="center">
-					{#if lensPost.timestamp != null}
+					{#if lensPost.fields.timestamp != null}
 						<div>
 							<dt>Published</dt>
 							<dd>
 								<Timestamp
-									timestamp={lensPost.timestamp}
+									timestamp={lensPost.fields.timestamp}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.$author}
+					{#if contentOpen && lensPost.fields.$author}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<LensAccountView
-									entityId={lensPost.$author[EntityMetaKey.Id]}
+									entityId={lensPost.fields.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -187,12 +166,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.$repostOf}
+					{#if contentOpen && lensPost.fields.$repostOf}
 						<div>
 							<dt>Repost of</dt>
 							<dd>
 							<svelte:self
-									entityId={lensPost.$repostOf[EntityMetaKey.Id]}
+									entityId={lensPost.fields.$repostOf[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								open={true}
 									showTypeAnnotation={false}
@@ -201,12 +180,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.$quoteOf}
+					{#if contentOpen && lensPost.fields.$quoteOf}
 						<div>
 							<dt>Quote of</dt>
 							<dd>
 							<svelte:self
-									entityId={lensPost.$quoteOf[EntityMetaKey.Id]}
+									entityId={lensPost.fields.$quoteOf[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								open={false}
 									showTypeAnnotation={false}
@@ -215,12 +194,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.$commentOn}
+					{#if contentOpen && lensPost.fields.$commentOn}
 						<div>
 							<dt>Comment on</dt>
 							<dd>
 							<svelte:self
-									entityId={lensPost.$commentOn[EntityMetaKey.Id]}
+									entityId={lensPost.fields.$commentOn[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 								open={false}
 								/>
@@ -228,14 +207,14 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.isEdited === true}
+					{#if contentOpen && lensPost.fields.isEdited === true}
 						<div>
 							<dt>Edited</dt>
 							<dd>Yes</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && lensPost.isDeleted === true}
+					{#if contentOpen && lensPost.fields.isDeleted === true}
 						<div>
 							<dt>Deleted</dt>
 							<dd>Yes</dd>
@@ -247,27 +226,27 @@
 							metrics={[
 								{
 									label: 'Comments',
-									value: lensPost.$$timestamps[0]?.commentCount ?? lensPost.commentCount,
+									value: lensPost.fields.$$timestamps[0]?.commentCount ?? lensPost.fields.commentCount,
 								},
 								{
 									label: 'Reposts',
-									value: lensPost.$$timestamps[0]?.repostCount ?? lensPost.repostCount,
+									value: lensPost.fields.$$timestamps[0]?.repostCount ?? lensPost.fields.repostCount,
 								},
 								{
 									label: 'Quotes',
-									value: lensPost.$$timestamps[0]?.quoteCount ?? lensPost.quoteCount,
+									value: lensPost.fields.$$timestamps[0]?.quoteCount ?? lensPost.fields.quoteCount,
 								},
 								{
 									label: 'Bookmarks',
-									value: lensPost.$$timestamps[0]?.bookmarkCount ?? lensPost.bookmarkCount,
+									value: lensPost.fields.$$timestamps[0]?.bookmarkCount ?? lensPost.fields.bookmarkCount,
 								},
 								{
 									label: 'Collects',
-									value: lensPost.$$timestamps[0]?.collectCount ?? lensPost.collectCount,
+									value: lensPost.fields.$$timestamps[0]?.collectCount ?? lensPost.fields.collectCount,
 								},
 								{
 									label: 'Reactions',
-									value: lensPost.$$timestamps[0]?.reactionCount ?? lensPost.reactionCount,
+									value: lensPost.fields.$$timestamps[0]?.reactionCount ?? lensPost.fields.reactionCount,
 								},
 							]}
 						/>
@@ -320,8 +299,8 @@
 					placeholderText="Loading Lens publication…"
 				>
 					{#snippet children(lensPost)}
-						{#if lensPost.text}
-							<p>{lensPost.text}</p>
+						{#if lensPost.fields.text}
+							<p>{lensPost.fields.text}</p>
 						{:else}
 							<p data-text="muted">
 								No text yet.

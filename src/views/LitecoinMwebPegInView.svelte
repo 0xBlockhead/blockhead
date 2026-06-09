@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,9 @@
 		>
 	> = $props()
 
-	const litecoinMwebPegIn = useEntity(
-		EntityType.LitecoinMwebPegIn,
+	const litecoinMwebPegIn = useEntity(entityCollectionsContext, EntityType.LitecoinMwebPegIn,
 		entityId,
-		{
-			amountLitoshis: {},
-		},
+		({ fields: { amountLitoshis: true } }),
 	)
 
 
@@ -73,10 +71,10 @@
 		>
 			{#snippet children(litecoinMwebPegIn)}
 				<dl>
-					{#if litecoinMwebPegIn.amountLitoshis != null}
+					{#if litecoinMwebPegIn.fields.amountLitoshis != null}
 						<div>
 							<dt>Amount Litoshis</dt>
-							<dd><NumberValue value={litecoinMwebPegIn.amountLitoshis} /> litoshis</dd>
+							<dd><NumberValue value={litecoinMwebPegIn.fields.amountLitoshis} /> litoshis</dd>
 						</div>
 					{/if}
 				</dl>

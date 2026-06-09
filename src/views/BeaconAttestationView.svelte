@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -30,20 +31,21 @@
 		>
 	> = $props()
 
-	const attestation = useEntity(
-		EntityType.BeaconAttestation,
+	const attestation = useEntity(entityCollectionsContext, EntityType.BeaconAttestation,
 		entityId,
 		(
 			open ?
 				{
-					$: [
+					sources: [
 						Source.Beacon_Rest,
 					],
-					committeeIndex: {},
-					aggregationBits: {},
+					fields: {
+						committeeIndex: true,
+						aggregationBits: true,
+					},
 				}
 			:
-				{}
+				{ fields: {} }
 		),
 	)
 
@@ -100,19 +102,19 @@
 			>
 				{#snippet children(attestation)}
 					<dl data-column-item="center">
-						{#if attestation.committeeIndex !== undefined}
+						{#if attestation.fields.committeeIndex !== undefined}
 							<div>
 								<dt>Committee index</dt>
-								<dd><NumberValue value={attestation.committeeIndex} /></dd>
+								<dd><NumberValue value={attestation.fields.committeeIndex} /></dd>
 							</div>
 						{/if}
 
-						{#if attestation.aggregationBits !== undefined}
+						{#if attestation.fields.aggregationBits !== undefined}
 							<div>
 								<dt>Aggregation bits</dt>
 								<dd>
 									<TruncatedValue
-										value={attestation.aggregationBits}
+										value={attestation.fields.aggregationBits}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								</dd>

@@ -3,7 +3,7 @@ import { type as arktype } from 'arktype'
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { origin } from '$/sources/Etherscan/Rest/constants.ts'
 import EtherscanRestSource from '$/sources/Etherscan/Rest/index.ts'
 

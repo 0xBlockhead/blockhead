@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const nearExecutionOutcome = useEntity(
-		EntityType.NearExecutionOutcome,
+	const nearExecutionOutcome = useEntity(entityCollectionsContext, EntityType.NearExecutionOutcome,
 		entityId,
-		{
-			status: {},
-			gasBurnt: {},
-		},
+		({ fields: { status: true, gasBurnt: true } }),
 	)
 
 
@@ -66,17 +63,17 @@
 		>
 			{#snippet children(nearExecutionOutcome)}
 				<dl>
-					{#if nearExecutionOutcome.status != null}
+					{#if nearExecutionOutcome.fields.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{nearExecutionOutcome.status}</dd>
+							<dd>{nearExecutionOutcome.fields.status}</dd>
 						</div>
 					{/if}
 
-					{#if nearExecutionOutcome.gasBurnt != null}
+					{#if nearExecutionOutcome.fields.gasBurnt != null}
 						<div>
 							<dt>Gas Burnt</dt>
-							<dd><NumberValue value={nearExecutionOutcome.gasBurnt} /></dd>
+							<dd><NumberValue value={nearExecutionOutcome.fields.gasBurnt} /></dd>
 						</div>
 					{/if}
 				</dl>

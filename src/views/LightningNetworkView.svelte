@@ -3,15 +3,16 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -31,33 +32,19 @@
 		>
 	> = $props()
 
-	const lightningNetwork = useEntity(
-		EntityType.LightningNetwork,
+	const lightningNetwork = useEntity(entityCollectionsContext, EntityType.LightningNetwork,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
-			],
-			name: {},
-			$settlementNetwork: {},
-			$$timestamps: {
-				$limit: 1,
-			},
-		},
+			], fields: { name: true, $settlementNetwork: true, $$timestamps: ({ limit: 1 }) } }),
 	)
 
-	const settlementNetwork = useEntity(
-		EntityType.Network,
+	const settlementNetwork = useEntity(entityCollectionsContext, EntityType.Network,
 		entityId.$network,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			$$nativeAssets: {},
-			$$blockExplorerUrls: {},
-			$$faucetUrls: {},
-		},
+			], fields: { $$nativeAssets: true, $$blockExplorerUrls: true, $$faucetUrls: true } }),
 	)
 
 
@@ -91,7 +78,7 @@
 			resource={lightningNetwork}
 		>
 			{#snippet children(row)}
-				{row.name}
+				{row.fields.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -108,14 +95,14 @@
 			placeholderText="Loading Lightning Network…"
 			>
 				{#snippet children(row)}
-					{@const timestamp = row.$$timestamps?.at(0)}
+					{@const timestamp = row.fields.$$timestamps?.values.at(0)}
 					<dl>
-						{#if row.$settlementNetwork != null}
+						{#if row.fields.$settlementNetwork != null}
 							<div>
 								<dt>Settlement network</dt>
 							<dd>
 								<NetworkView
-									entityId={row.$settlementNetwork[EntityMetaKey.Id]}
+									entityId={row.fields.$settlementNetwork[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

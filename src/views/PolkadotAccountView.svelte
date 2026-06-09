@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const polkadotAccount = useEntity(
-		EntityType.PolkadotAccount,
+	const polkadotAccount = useEntity(entityCollectionsContext, EntityType.PolkadotAccount,
 		entityId,
-		{
-			nonce: {},
-			freeBalancePlancks: {},
-		},
+		({ fields: { nonce: true, freeBalancePlancks: true } }),
 	)
 
 
@@ -66,17 +63,17 @@
 		>
 			{#snippet children(polkadotAccount)}
 				<dl>
-					{#if polkadotAccount.freeBalancePlancks != null}
+					{#if polkadotAccount.fields.freeBalancePlancks != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={polkadotAccount.freeBalancePlancks} /> plancks</dd>
+							<dd><NumberValue value={polkadotAccount.fields.freeBalancePlancks} /> plancks</dd>
 						</div>
 					{/if}
 
-					{#if polkadotAccount.nonce != null}
+					{#if polkadotAccount.fields.nonce != null}
 						<div>
 							<dt>Nonce</dt>
-							<dd><NumberValue value={polkadotAccount.nonce} /></dd>
+							<dd><NumberValue value={polkadotAccount.fields.nonce} /></dd>
 						</div>
 					{/if}
 				</dl>

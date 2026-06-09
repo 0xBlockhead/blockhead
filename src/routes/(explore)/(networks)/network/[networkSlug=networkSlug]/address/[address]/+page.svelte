@@ -1,25 +1,21 @@
 <script lang="ts">
 	// Types/constants
 	import { NetworkNamespace } from '$/constants/Network.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		params,
 	} = $props()
 
-	const network = useEntity(
-		EntityType.Network,
+	const network = useEntity(entityCollectionsContext, EntityType.Network,
 		{ networkSlug: params.networkSlug },
-		{
-			$: [Source.Constants_Internal],
-			namespace: {},
-			slug: {},
-		},
+		({ sources: [Source.Constants_Internal], fields: { namespace: true, slug: true } }),
 	)
 
 
@@ -33,8 +29,8 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{@const entityId = { networkSlug: network.slug }}
-			{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
+			{@const entityId = { networkSlug: network.fields.slug }}
+			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
 				<UtxoAddressView entityId={{ $network: entityId, address: params.address }} />
 			{:else}
 				<p data-text="muted">Address detail not available for this network type yet.</p>

@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,10 @@
 		>
 	> = $props()
 
-	const bitcoinCashCashTokenFungibleAmount = useEntity(
+	const bitcoinCashCashTokenFungibleAmount = useEntity(entityCollectionsContext, 
 		EntityType.BitcoinCashCashTokenFungibleAmount,
 		entityId,
-		{
-			amount: {},
-		},
+		({ fields: { amount: true } }),
 	)
 
 
@@ -61,10 +60,10 @@
 		>
 			{#snippet children(bitcoinCashCashTokenFungibleAmount)}
 				<dl>
-					{#if bitcoinCashCashTokenFungibleAmount.amount != null}
+					{#if bitcoinCashCashTokenFungibleAmount.fields.amount != null}
 						<div>
 							<dt>Amount</dt>
-							<dd><NumberValue value={bitcoinCashCashTokenFungibleAmount.amount} /></dd>
+							<dd><NumberValue value={bitcoinCashCashTokenFungibleAmount.fields.amount} /></dd>
 						</div>
 					{/if}
 				</dl>

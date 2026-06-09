@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,9 @@
 		>
 	> = $props()
 
-	const cosmosContract = useEntity(
-		EntityType.CosmosContract,
+	const cosmosContract = useEntity(entityCollectionsContext, EntityType.CosmosContract,
 		entityId,
-		{
-			codeId: {},
-		},
+		({ fields: { codeId: true } }),
 	)
 
 
@@ -65,10 +63,10 @@
 		>
 			{#snippet children(cosmosContract)}
 				<dl>
-					{#if cosmosContract.codeId != null}
+					{#if cosmosContract.fields.codeId != null}
 						<div>
 							<dt>Code ID</dt>
-							<dd><NumberValue value={cosmosContract.codeId} /></dd>
+							<dd><NumberValue value={cosmosContract.fields.codeId} /></dd>
 						</div>
 					{/if}
 				</dl>

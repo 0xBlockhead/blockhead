@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,14 +27,9 @@
 		>
 	> = $props()
 
-	const filecoinSector = useEntity(
-		EntityType.FilecoinSector,
+	const filecoinSector = useEntity(entityCollectionsContext, EntityType.FilecoinSector,
 		entityId,
-		{
-			sealedCid: {},
-			activationEpoch: {},
-			expirationEpoch: {},
-		},
+		({ fields: { sealedCid: true, activationEpoch: true, expirationEpoch: true } }),
 	)
 
 
@@ -76,28 +72,28 @@
 		>
 			{#snippet children(filecoinSector)}
 				<dl>
-					{#if filecoinSector.sealedCid != null}
+					{#if filecoinSector.fields.sealedCid != null}
 						<div>
 							<dt>Sealed CID</dt>
 							<dd>
 								<TruncatedValue
-									value={filecoinSector.sealedCid}
+									value={filecoinSector.fields.sealedCid}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if filecoinSector.activationEpoch != null}
+					{#if filecoinSector.fields.activationEpoch != null}
 						<div>
 							<dt>Activation Epoch</dt>
-							<dd><NumberValue value={filecoinSector.activationEpoch} /></dd>
+							<dd><NumberValue value={filecoinSector.fields.activationEpoch} /></dd>
 						</div>
 					{/if}
 
-					{#if filecoinSector.expirationEpoch != null}
+					{#if filecoinSector.fields.expirationEpoch != null}
 						<div>
 							<dt>Expiration Epoch</dt>
-							<dd><NumberValue value={filecoinSector.expirationEpoch} /></dd>
+							<dd><NumberValue value={filecoinSector.fields.expirationEpoch} /></dd>
 						</div>
 					{/if}
 				</dl>

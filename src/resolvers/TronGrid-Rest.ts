@@ -8,10 +8,10 @@ import { TransportType } from '$/constants/TransportType.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { TronTokenStandard } from '$/schema/TronToken.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	TronNodeBlock,
 	TronNodeContractValue,
@@ -222,12 +222,13 @@ export default {
 					],
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$network: (network) => network.$network,
 			restEndpoints: (network) => network.restEndpoints,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork_Timestamp,
@@ -259,8 +260,9 @@ export default {
 					createAccountFeeSun: chainParameters == null ? undefined : chainParameterValue(chainParameters.chainParameter, 'getCreateAccountFee'),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
 			latestBlockHash: (timestamp) => timestamp.latestBlockHash,
 			latestBlockTimeMs: (timestamp) => timestamp.latestBlockTimeMs,
@@ -273,8 +275,8 @@ export default {
 			maintenanceIntervalMs: (timestamp) => timestamp.maintenanceIntervalMs,
 			transactionFeeSun: (timestamp) => timestamp.transactionFeeSun,
 			createAccountFeeSun: (timestamp) => timestamp.createAccountFeeSun,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronBlock,
@@ -290,8 +292,9 @@ export default {
 					}),
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (block) => block.hash,
 			$parent: (block) => block.$parent,
 			parentHash: (block) => block.parentHash,
@@ -301,8 +304,8 @@ export default {
 			version: (block) => block.version,
 			transactionCount: (block) => block.transactionCount,
 			$$transactions: (block) => block.$$transactions,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronTransaction,
@@ -327,8 +330,9 @@ export default {
 					}),
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$block: (transaction) => transaction.$block,
 			blockHeight: (transaction) => transaction.blockHeight,
 			timestampMs: (transaction) => transaction.timestampMs,
@@ -343,8 +347,8 @@ export default {
 			assetName: (transaction) => transaction.assetName,
 			rawDataHex: (transaction) => transaction.rawDataHex,
 			signatures: (transaction) => transaction.signatures,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronAccount,
@@ -365,14 +369,15 @@ export default {
 					latestOperationTimestampMs: account.latest_opration_time,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (account) => account.name,
 			balanceSun: (account) => account.balanceSun,
 			createdTimestampMs: (account) => account.createdTimestampMs,
 			latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronWitness,
@@ -386,6 +391,7 @@ export default {
 				return witnessFields(witness)
 			}
 			},
+			})({
 				fields: {
 					url: (witness) => witness.url,
 					voteCount: (witness) => witness.voteCount,
@@ -408,11 +414,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			restEndpoints: (restEndpoints) => restEndpoints,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork,
@@ -428,11 +435,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$timestamps: (timestamps) => timestamps,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork,
@@ -445,11 +453,12 @@ export default {
 					(await listWitnesses({ restBaseUrl: tronGridMainnetRestBaseUrl })).witnesses,
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$witnesses: (witnesses) => witnesses,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork,
@@ -478,11 +487,12 @@ export default {
 					)),
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$blocks: (blocks) => blocks,
-		}
-		}),
+		},
+			}),
 
 
 
@@ -503,11 +513,12 @@ export default {
 					}),
 				).$$transactions
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$transactions: (transactions) => transactions,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronAccount,
@@ -537,11 +548,12 @@ export default {
 						]
 				))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$transactions: (transactions) => transactions,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronAccount,
@@ -571,11 +583,12 @@ export default {
 						]
 				))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$tokens: (tokens) => tokens,
-		}
-		}),
+		},
+			}),
 
 	],
 }

@@ -3,15 +3,16 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { blockheadFarcasterConnectionAuthMethodByAuthMethod } from '$/constants/Blockhead.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,28 +36,12 @@
 		never
 	> = $props()
 
-	const connection = useEntity(
-		EntityType.BlockheadFarcasterAccountConnection,
+	const connection = useEntity(entityCollectionsContext, EntityType.BlockheadFarcasterAccountConnection,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
-			],
-			username: {},
-			displayName: {},
-			$icon: {},
-			bio: {},
-			...(open ?
-				{
-					verifications: {},
-					custody: {},
-					authMethod: {},
-					signedAt: {},
-				}
-			:
-				{}),
-		},
+			], fields: { username: true, displayName: true, $icon: true, bio: true, ...(open ? ({ verifications: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } }),
 	)
 
 
@@ -83,10 +68,10 @@
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(connection)}
-				{#if connection.$icon?.[EntityMetaKey.Id].url}
+				{#if connection.fields.$icon?.[EntityMetaKey.Id].url}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={connection.$icon[EntityMetaKey.Id].url}
+						src={connection.fields.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -106,7 +91,7 @@
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(connection)}
-				{connection.displayName ?? connection.username ?? String(entityId.fid)}
+				{connection.fields.displayName ?? connection.fields.username ?? String(entityId.fid)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -118,13 +103,13 @@
 		>
 			{#snippet children(connection)}
 				{#if (
-					connection.username !== undefined
-					&& connection.username !== (
-						connection.displayName ?? connection.username ?? String(entityId.fid)
+					connection.fields.username !== undefined
+					&& connection.fields.username !== (
+						connection.fields.displayName ?? connection.fields.username ?? String(entityId.fid)
 					)
 				)}
 					<span data-text="muted">
-						@{connection.username}
+						@{connection.fields.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -146,10 +131,10 @@
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(connection)}
-				{#if connection.bio}
+				{#if connection.fields.bio}
 					<p>
 						<TruncatedValue
-							value={connection.bio}
+							value={connection.fields.bio}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -158,54 +143,54 @@
 				<dl data-column-item="center">
 					{#if (
 						open
-						&& connection.username
+						&& connection.fields.username
 					)}
 						<div>
 							<dt>Username</dt>
-							<dd>@{connection.username}</dd>
+							<dd>@{connection.fields.username}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& connection.authMethod
+						&& connection.fields.authMethod
 						)}
 						<div>
 							<dt>Auth method</dt>
 							<dd>
-								{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.authMethod].label}
+								{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.fields.authMethod].label}
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& connection.custody
+						&& connection.fields.custody
 						)}
 						<div>
 							<dt>Custody</dt>
-							<dd>{connection.custody}</dd>
+							<dd>{connection.fields.custody}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& connection.verifications
-						&& connection.verifications.length
+						&& connection.fields.verifications
+						&& connection.fields.verifications.length
 						)}
 						<div>
 							<dt>Verifications</dt>
-							<dd>{connection.verifications.join(', ')}</dd>
+							<dd>{connection.fields.verifications.join(', ')}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& connection.signedAt !== undefined
+						&& connection.fields.signedAt !== undefined
 					)}
 						<div>
 							<dt>Signed at</dt>
-							<dd><Timestamp timestamp={connection.signedAt} /></dd>
+							<dd><Timestamp timestamp={connection.fields.signedAt} /></dd>
 						</div>
 					{/if}
 				</dl>

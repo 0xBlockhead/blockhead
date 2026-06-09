@@ -3,8 +3,8 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -27,30 +27,12 @@
 	> = $props()
 
 	import { ipfsResourceCanonicalUri, ipfsResourceHref } from '$/lib/ipfs.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const ipfs = useEntity(
-		EntityType.IpfsResource,
+	const ipfs = useEntity(entityCollectionsContext, EntityType.IpfsResource,
 		entityId,
-		{
-			$: [Source.Ipfs_Rest],
-			canonicalUri: {},
-			gatewayOrigin: {},
-			gatewayUrl: {},
-			fileName: {},
-			extension: {},
-			contentType: {},
-			contentLength: {},
-			displayType: {},
-			isContentTypeInferred: {},
-			text: {},
-			cidVersion: {},
-			cidMultibase: {},
-			cidMulticodecCode: {},
-			cidMultihashCode: {},
-			cidMultihashDigestHex: {},
-			isCidSubdomainSafe: {},
-		},
+		({ sources: [Source.Ipfs_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, cidVersion: true, cidMultibase: true, cidMulticodecCode: true, cidMultihashCode: true, cidMultihashDigestHex: true, isCidSubdomainSafe: true } }),
 	)
 
 
@@ -105,12 +87,12 @@
 				<dd>
 					<ResourceBoundary resource={ipfs}>
 						{#snippet children(ipfs)}
-							{#if ipfs.contentType !== undefined}
+							{#if ipfs.fields.contentType !== undefined}
 								<TruncatedValue
-									value={ipfs.contentType}
+									value={ipfs.fields.contentType}
 									format={TruncatedValueFormat.Visual}
 								/>
-								{#if ipfs.isContentTypeInferred}
+								{#if ipfs.fields.isContentTypeInferred}
 									{' '}<span data-text="muted">(inferred)</span>
 								{/if}
 							{:else if !open}
@@ -128,7 +110,7 @@
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
 								<TruncatedValue
-									value={ipfs.canonicalUri}
+									value={ipfs.fields.canonicalUri}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -144,7 +126,7 @@
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
 								<TruncatedValue
-									value={ipfs.gatewayOrigin}
+									value={ipfs.fields.gatewayOrigin}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -160,12 +142,12 @@
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
 								<a
-									href={ipfs.gatewayUrl}
+									href={ipfs.fields.gatewayUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue
-										value={ipfs.gatewayUrl}
+										value={ipfs.fields.gatewayUrl}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</a>
@@ -181,9 +163,9 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.contentLength !== undefined}
+								{#if ipfs.fields.contentLength !== undefined}
 									<NumberValue
-										value={ipfs.contentLength}
+										value={ipfs.fields.contentLength}
 										options={{ maximumFractionDigits: 0 }}
 									/>
 									{' '}
@@ -201,9 +183,9 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.fileName !== undefined}
+								{#if ipfs.fields.fileName !== undefined}
 									<TruncatedValue
-										value={ipfs.fileName}
+										value={ipfs.fields.fileName}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -219,8 +201,8 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.extension !== undefined}
-									.{ipfs.extension}
+								{#if ipfs.fields.extension !== undefined}
+									.{ipfs.fields.extension}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -234,7 +216,7 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{ipfs.displayType}
+								{ipfs.fields.displayType}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -247,8 +229,8 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.cidVersion !== undefined}
-									{String(ipfs.cidVersion)}
+								{#if ipfs.fields.cidVersion !== undefined}
+									{String(ipfs.fields.cidVersion)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -262,9 +244,9 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.cidMultibase !== undefined}
+								{#if ipfs.fields.cidMultibase !== undefined}
 									<TruncatedValue
-										value={ipfs.cidMultibase}
+										value={ipfs.fields.cidMultibase}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -280,8 +262,8 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.cidMulticodecCode !== undefined}
-									{String(ipfs.cidMulticodecCode)}
+								{#if ipfs.fields.cidMulticodecCode !== undefined}
+									{String(ipfs.fields.cidMulticodecCode)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -295,8 +277,8 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.cidMultihashCode !== undefined}
-									{String(ipfs.cidMultihashCode)}
+								{#if ipfs.fields.cidMultihashCode !== undefined}
+									{String(ipfs.fields.cidMultihashCode)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -310,9 +292,9 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.cidMultihashDigestHex !== undefined}
+								{#if ipfs.fields.cidMultihashDigestHex !== undefined}
 									<TruncatedValue
-										value={ipfs.cidMultihashDigestHex}
+										value={ipfs.fields.cidMultihashDigestHex}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -328,8 +310,8 @@
 					<dd>
 						<ResourceBoundary resource={ipfs}>
 							{#snippet children(ipfs)}
-								{#if ipfs.isCidSubdomainSafe !== undefined}
-									{ipfs.isCidSubdomainSafe ? 'Yes' : 'No'}
+								{#if ipfs.fields.isCidSubdomainSafe !== undefined}
+									{ipfs.fields.isCidSubdomainSafe ? 'Yes' : 'No'}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -396,13 +378,13 @@
 				>
 					{#snippet children(ipfs)}
 						<FileDetails
-							contentSize={ipfs.contentLength}
-							contentType={ipfs.contentType}
-							displayType={ipfs.displayType}
-							extension={ipfs.extension}
-							fileName={ipfs.fileName}
-							src={ipfs.gatewayUrl}
-							text={ipfs.text}
+							contentSize={ipfs.fields.contentLength}
+							contentType={ipfs.fields.contentType}
+							displayType={ipfs.fields.displayType}
+							extension={ipfs.fields.extension}
+							fileName={ipfs.fields.fileName}
+							src={ipfs.fields.gatewayUrl}
+							text={ipfs.fields.text}
 						/>
 					{/snippet}
 				</ResourceBoundary>

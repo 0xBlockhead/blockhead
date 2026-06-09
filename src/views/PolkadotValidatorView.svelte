@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const polkadotValidator = useEntity(
-		EntityType.PolkadotValidator,
+	const polkadotValidator = useEntity(entityCollectionsContext, EntityType.PolkadotValidator,
 		entityId,
-		{
-			commissionPerBillion: {},
-			totalStakePlancks: {},
-		},
+		({ fields: { commissionPerBillion: true, totalStakePlancks: true } }),
 	)
 
 
@@ -66,17 +63,17 @@
 		>
 			{#snippet children(polkadotValidator)}
 				<dl>
-					{#if polkadotValidator.commissionPerBillion != null}
+					{#if polkadotValidator.fields.commissionPerBillion != null}
 						<div>
 							<dt>Commission Per Billion</dt>
-							<dd><NumberValue value={polkadotValidator.commissionPerBillion} /></dd>
+							<dd><NumberValue value={polkadotValidator.fields.commissionPerBillion} /></dd>
 						</div>
 					{/if}
 
-					{#if polkadotValidator.totalStakePlancks != null}
+					{#if polkadotValidator.fields.totalStakePlancks != null}
 						<div>
 							<dt>Total Stake Plancks</dt>
-							<dd><NumberValue value={polkadotValidator.totalStakePlancks} /> plancks</dd>
+							<dd><NumberValue value={polkadotValidator.fields.totalStakePlancks} /> plancks</dd>
 						</div>
 					{/if}
 				</dl>

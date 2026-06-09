@@ -10,9 +10,9 @@ import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -38,12 +38,13 @@ export default {
 					restEndpoints: [...hyperliquidMainnetRestEndpoints],
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$network: (snapshot) => snapshot.$network,
 			restEndpoints: (snapshot) => snapshot.restEndpoints,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidPerpMarket,
@@ -62,12 +63,13 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			maxLeverage: (snapshot) => snapshot.maxLeverage,
 			onlyIsolated: (snapshot) => snapshot.onlyIsolated,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidSpotAsset,
@@ -88,14 +90,15 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (snapshot) => snapshot.name,
 			szDecimals: (snapshot) => snapshot.szDecimals,
 			weiDecimals: (snapshot) => snapshot.weiDecimals,
 			tokenId: (snapshot) => snapshot.tokenId,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidAccount,
@@ -127,12 +130,13 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			accountRole: (snapshot) => snapshot.accountRole,
 			$masterAccount: (snapshot) => snapshot.$masterAccount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidValidator,
@@ -158,8 +162,9 @@ export default {
 					isJailed: validator.isJailed,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (snapshot) => snapshot.name,
 			$signer: (snapshot) => snapshot.$signer,
 			commission: (snapshot) => snapshot.commission,
@@ -167,8 +172,8 @@ export default {
 			stake: (snapshot) => snapshot.stake,
 			isActive: (snapshot) => snapshot.isActive,
 			isJailed: (snapshot) => snapshot.isJailed,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -208,11 +213,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$timestamps: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -241,11 +247,12 @@ export default {
 						isJailed: validator.isJailed,
 					}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$validators: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -266,11 +273,12 @@ export default {
 						}),
 					}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$perpMarkets: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -293,10 +301,11 @@ export default {
 						}),
 					}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$spotAssets: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

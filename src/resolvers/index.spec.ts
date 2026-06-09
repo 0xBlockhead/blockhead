@@ -9,10 +9,10 @@ import {
 	entityFieldDefinitions,
 	entityIdProjectionNameForId,
 	entityIdProjectionNames,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 import {
 	fieldNamesWithLiveResolverByEntityType,
@@ -67,12 +67,12 @@ describe('resolver registry live resolver architecture', () => {
 		const liveDefinitions = Object.values(resolverRootLivePartsByEntityType).flat()
 
 		expect(liveDefinitions.length).toBeGreaterThan(0)
-		expect(new Set(liveDefinitions.map((resolver) => resolver.definitionIndex)).size).toBe(
-			liveDefinitions.length,
-		)
-		expect(liveDefinitions.every((resolver) => (
-			resolverDefinitions[resolver.definitionIndex] === resolver
-		))).toBe(true)
+			expect(new Set(liveDefinitions.map((part) => part.resolver.definitionIndex)).size).toBe(
+				liveDefinitions.length,
+			)
+			expect(liveDefinitions.every((part) => (
+				resolverDefinitions[part.resolver.definitionIndex] === part.resolver
+			))).toBe(true)
 	})
 
 	it('keeps resolver parts anchored to materialized resolver and field positions', () => {
@@ -106,9 +106,9 @@ describe('resolver registry live resolver architecture', () => {
 		const evmNetworkRootLiveParts = resolverRootLivePartsByEntityType[EntityType.EvmNetwork] ?? []
 
 		expect(fieldNamesWithLiveResolverByEntityType[EntityType.EvmNetwork]).toContain('blockHeight')
-		expect(evmNetworkRootLiveParts.some((resolver) => (
-			resolver.resolveLive?.fields.includes('blockHeight')
-		))).toBe(true)
+			expect(evmNetworkRootLiveParts.some((part) => (
+				part.publisher.publishes.blockHeight === true
+			))).toBe(true)
 		expect(evmNetworkLiveParts.every((resolverPart) => (
 			resolverDefinitions[resolverPart.resolver.definitionIndex] === resolverPart.resolver
 			&& Object.values(resolverPart.resolver.fields)[resolverPart.partIndex] != null
@@ -119,11 +119,11 @@ describe('resolver registry live resolver architecture', () => {
 		const rootLiveFields = new Set(
 			Object.values(resolverRootLivePartsByEntityType)
 				.flat()
-				.flatMap((resolver) => (
-					resolver.resolveLive?.fields.map((fieldName) => (
-						resolverPartsKey(resolver.entityType, fieldName)
-					)) ?? []
-				)),
+					.flatMap((part) => (
+						Object.keys(part.publisher.publishes).map((fieldName) => (
+							resolverPartsKey(part.entityType, fieldName)
+						))
+					)),
 		)
 		expect(rootLiveFields.size).toBeGreaterThan(0)
 		expect(Object.values(resolverRootLivePartsByEntityType).flat().every((resolver) => (
@@ -169,6 +169,7 @@ describe('resolver registry live resolver architecture', () => {
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ({}),
 			},
+		})({
 			fields: {
 				$$networks: {
 					parentSelectors: [EntityIdProjection.Identity],
@@ -181,6 +182,7 @@ describe('resolver registry live resolver architecture', () => {
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ({}),
 			},
+		})({
 			fields: {
 				$$networks: {
 					parentSelectors: [EntityIdProjection.Identity],

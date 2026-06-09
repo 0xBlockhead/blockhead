@@ -10,10 +10,10 @@
 		marketKindByMarketKind,
 	} from '$/constants/Market.ts'
 
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -62,13 +62,12 @@
 
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const marketPrice = useEntity(
-		EntityType.MarketPrice,
+	const marketPrice = useEntity(entityCollectionsContext, EntityType.MarketPrice,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
 				Source.Coingecko_Rest,
 				Source.Coingecko_OpenApi,
@@ -77,11 +76,7 @@
 				Source.Defillama_OpenApi,
 				Source.TradingView_Rest,
 				Source.Blockscout_Rest,
-			],
-			$parentMarket: {},
-			...((open || layout === EntityLayout.Value) && {
-			$$quotes: {
-				$: [
+			], fields: { $parentMarket: true, ...((open || layout === EntityLayout.Value) && ({ $$quotes: ({ sources: [
 					Source.Blockscout_Rest,
 					Source.Coingecko_Rest,
 					Source.Coingecko_OpenApi,
@@ -89,11 +84,7 @@
 					Source.Coinpaprika_OpenApi,
 					Source.Defillama_OpenApi,
 					Source.TradingView_Rest,
-				],
-				$limit: 32,
-			},
-			}),
-		},
+				], limit: 32 }) })) } }),
 	)
 
 
@@ -132,7 +123,7 @@
 		>
 			{#snippet children(marketPrice)}
 				{@const headQuoteId = (
-					(marketPrice.$$quotes ?? [])
+					(marketPrice.fields.$$quotes?.values ?? [])
 						.toSorted((
 							leftQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
 							rightQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
@@ -180,7 +171,7 @@
 					>
 							{#snippet children(marketPrice)}
 								{@const headQuoteId = (
-								(marketPrice.$$quotes ?? [])
+								(marketPrice.fields.$$quotes?.values ?? [])
 									.toSorted((
 										leftQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
 										rightQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
@@ -230,7 +221,7 @@
 					>
 						{#snippet children(marketPrice)}
 							<MarketView
-								entityId={marketPrice.$parentMarket?.[EntityMetaKey.Id] ?? entityId.$market}
+								entityId={marketPrice.fields.$parentMarket?.[EntityMetaKey.Id] ?? entityId.$market}
 								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}

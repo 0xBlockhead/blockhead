@@ -2,7 +2,7 @@ import { getJson } from '$/lib/http.ts'
 import Youtube from '$/sources/Youtube/index.ts'
 import { youtubeApiV3Base } from '$/sources/Youtube/Rest/constants.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 export const youtubeApiV3Get = async <T>(
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,

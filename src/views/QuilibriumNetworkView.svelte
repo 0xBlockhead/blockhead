@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -24,38 +25,21 @@
 		open?: boolean
 	} = $props()
 
-	const network = useEntity(
-		EntityType.Network,
+	const network = useEntity(entityCollectionsContext, EntityType.Network,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-			environment: {},
-			$$executionEnvironments: {},
-			$$consensusMechanisms: {},
-			$$nativeAssets: {},
-		},
+			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } }),
 	)
 
-	const quilibriumNetwork = useEntity(
-		EntityType.QuilibriumNetwork,
+	const quilibriumNetwork = useEntity(entityCollectionsContext, EntityType.QuilibriumNetwork,
 		{
 			networkSlug: 'quilibrium',
 		},
-		{
-			$: [
+		({ sources: [
 				Source.QuilibriumDocs_Rest,
 				Source.QuilibriumNodeRpc_Grpc,
-			],
-			docsEndpoints: {},
-			nodeInterfaces: {},
-			protocolFacts: {},
-			serviceLayers: {},
-			$protocolDocument: {},
-			$masterShard: {},
-		},
+			], fields: { docsEndpoints: true, nodeInterfaces: true, protocolFacts: true, serviceLayers: true, $protocolDocument: true, $masterShard: true } }),
 	)
 
 
@@ -90,7 +74,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				<span>{network.name}</span>
+				<span>{network.fields.name}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -102,7 +86,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.name}
+				{network.fields.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -117,17 +101,17 @@
 				<dl class="network-summary-head" data-column-item="center">
 					<div>
 						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
+						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 					</div>
 
 					<ResourceBoundary resource={quilibriumNetwork}>
 						{#snippet children(quilibriumNetwork)}
-							{#if quilibriumNetwork.$masterShard != null}
+							{#if quilibriumNetwork.fields.$masterShard != null}
 								<div>
 									<dt>Master shard</dt>
 									<dd>
 										<QuilibriumShardView
-											entityId={quilibriumNetwork.$masterShard[EntityMetaKey.Id]}
+											entityId={quilibriumNetwork.fields.$masterShard[EntityMetaKey.Id]}
 											layout={EntityLayout.Value}
 										/>
 									</dd>
@@ -164,15 +148,15 @@
 			{#snippet SectionQuilibriumProtocol()}
 				<ResourceBoundary resource={quilibriumNetwork}>
 					{#snippet children(quilibriumNetwork)}
-						{#if quilibriumNetwork.$protocolDocument != null}
+						{#if quilibriumNetwork.fields.$protocolDocument != null}
 							<p>
 								<strong>Protocol document:</strong>
-								{quilibriumNetwork.$protocolDocument[EntityMetaKey.Id].category}
-								{quilibriumNetwork.$protocolDocument[EntityMetaKey.Id].number}
+								{quilibriumNetwork.fields.$protocolDocument[EntityMetaKey.Id].category}
+								{quilibriumNetwork.fields.$protocolDocument[EntityMetaKey.Id].number}
 							</p>
 						{/if}
 
-						{#each quilibriumNetwork.protocolFacts as fact}
+						{#each quilibriumNetwork.fields.protocolFacts?.values ?? [] as fact}
 							<p><strong>{fact.label}:</strong> {fact.value}</p>
 						{/each}
 					{/snippet}
@@ -182,7 +166,7 @@
 			{#snippet SectionQuilibriumServices()}
 				<ResourceBoundary resource={quilibriumNetwork}>
 					{#snippet children(quilibriumNetwork)}
-						{#each quilibriumNetwork.serviceLayers as serviceLayer}
+						{#each quilibriumNetwork.fields.serviceLayers?.values ?? [] as serviceLayer}
 							<p><strong>{serviceLayer.label}:</strong> {serviceLayer.description}</p>
 						{:else}
 							<p data-text="muted">No service layers listed for this network yet.</p>
@@ -194,7 +178,7 @@
 			{#snippet SectionQuilibriumInterfaces()}
 				<ResourceBoundary resource={quilibriumNetwork}>
 					{#snippet children(quilibriumNetwork)}
-						{#each quilibriumNetwork.nodeInterfaces as nodeInterface}
+						{#each quilibriumNetwork.fields.nodeInterfaces?.values ?? [] as nodeInterface}
 							<p><strong>{nodeInterface.label}:</strong> {nodeInterface.transportType} on port {nodeInterface.port}</p>
 						{:else}
 							<p data-text="muted">No node interfaces listed for this network yet.</p>
@@ -206,8 +190,8 @@
 			{#snippet SectionQuilibriumConsensus()}
 					<ResourceBoundary resource={network}>
 						{#snippet children(network)}
-							{#if (network.$$consensusMechanisms?.length ?? 0) > 0}
-								<p><strong>Consensus mechanisms:</strong> {network.$$consensusMechanisms?.length ?? 0}</p>
+							{#if (network.fields.$$consensusMechanisms?.values.length ?? 0) > 0}
+								<p><strong>Consensus mechanisms:</strong> {network.fields.$$consensusMechanisms?.values.length ?? 0}</p>
 							{:else}
 								<p data-text="muted">No consensus mechanisms mapped for this network yet.</p>
 							{/if}

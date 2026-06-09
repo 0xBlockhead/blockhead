@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { fxEmbedApiOrigins } from '$/sources/FxEmbed/Rest/constants.ts'
 import FxEmbedRestSource from '$/sources/FxEmbed/Rest/index.ts'
 

@@ -3,7 +3,7 @@ import { type as arktype } from 'arktype'
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { origin } from '$/sources/CoinMarketCap/Rest/constants.ts'
 import CoinMarketCapRestSource from '$/sources/CoinMarketCap/Rest/index.ts'
 

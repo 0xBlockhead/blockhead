@@ -5,9 +5,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.L2Beat_Rest,
@@ -44,8 +44,9 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (snapshot) => snapshot.name,
 			slug: (snapshot) => snapshot.slug,
 			type: (snapshot) => snapshot.type,
@@ -55,8 +56,8 @@ export default {
 			isUpcoming: (snapshot) => snapshot.isUpcoming,
 			isUnderReview: (snapshot) => snapshot.isUnderReview,
 			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType._Global,
@@ -93,11 +94,12 @@ export default {
 						}),
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$evmNetworks: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -121,11 +123,12 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$parent: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -147,11 +150,12 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$rollup: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -198,11 +202,12 @@ export default {
 					})
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$settledRollups: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -241,10 +246,11 @@ export default {
 					},
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$childLayers: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

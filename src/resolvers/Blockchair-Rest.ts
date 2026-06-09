@@ -5,9 +5,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	BlockchairBitcoinLikeChain,
 	BlockchairBitcoinLikeBlock,
@@ -123,11 +123,12 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$network: (network) => network.$network,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoBlock,
@@ -156,8 +157,9 @@ export default {
 					transactionCount: dashboard.block.transaction_count,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (block) => block.hash,
 			timestampMs: (block) => block.timestampMs,
 			merkleRoot: (block) => block.merkleRoot,
@@ -166,8 +168,8 @@ export default {
 			sizeBytes: (block) => block.sizeBytes,
 			weightUnits: (block) => block.weightUnits,
 			transactionCount: (block) => block.transactionCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoTransaction,
@@ -194,8 +196,9 @@ export default {
 					isCoinbase: transactionDashboard.transaction.is_coinbase,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$block: (transaction) => transaction.$block,
 			version: (transaction) => transaction.version,
 			lockTime: (transaction) => transaction.lockTime,
@@ -204,8 +207,8 @@ export default {
 			weightUnits: (transaction) => transaction.weightUnits,
 			feeSats: (transaction) => transaction.feeSats,
 			isCoinbase: (transaction) => transaction.isCoinbase,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoInput,
@@ -241,14 +244,15 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$spentOutput: (input) => input.$spentOutput,
 			scriptSigAsm: (input) => input.scriptSigAsm,
 			sequence: (input) => input.sequence,
 			witness: (input) => input.witness,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoOutput,
@@ -280,15 +284,16 @@ export default {
 					isSpent: output.spending_transaction_hash != null,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			valueSats: (output) => output.valueSats,
 			scriptPubKeyHex: (output) => output.scriptPubKeyHex,
 			scriptPubKeyType: (output) => output.scriptPubKeyType,
 			$address: (output) => output.$address,
 			isSpent: (output) => output.isSpent,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
@@ -299,11 +304,12 @@ export default {
 					[EntityMetaKey.Id]: entityId,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$network: (network) => network,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
@@ -346,11 +352,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$timestamps: (timestamps) => timestamps,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
@@ -368,11 +375,12 @@ export default {
 					block,
 				))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$blocks: (blocks) => blocks,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoNetwork,
@@ -390,11 +398,12 @@ export default {
 					transaction,
 				))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$transactions: (transactions) => transactions,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoBlock,
@@ -426,11 +435,12 @@ export default {
 					isCoinbase: transaction.is_coinbase,
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$transactions: (transactions) => transactions,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoTransaction,
@@ -468,11 +478,12 @@ export default {
 					}
 				))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$inputs: (inputs) => inputs,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoTransaction,
@@ -506,10 +517,11 @@ export default {
 					}
 				))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$outputs: (outputs) => outputs,
-		}
-		}),
+		},
+			}),
 	],
 }

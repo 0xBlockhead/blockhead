@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { ensEthereumChainId } from '$/constants/Ens.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// State
@@ -19,13 +20,9 @@
 		entityId: EntityId<typeof schema, EntityType.EnsName>
 	} = $props()
 
-	const ens = useEntity(
-		EntityType.EnsName,
+	const ens = useEntity(entityCollectionsContext, EntityType.EnsName,
 		entityId,
-		{
-			$: [Source.Voltaire_JsonRpc],
-			$resolverContract: {},
-		},
+		({ sources: [Source.Voltaire_JsonRpc], fields: { $resolverContract: true } }),
 	)
 
 
@@ -42,7 +39,7 @@
 	resource={ens}
 >
 	{#snippet children(ens)}
-		{@const contractId = ens.$resolverContract?.[EntityMetaKey.Id]}
+		{@const contractId = ens.fields.$resolverContract?.[EntityMetaKey.Id]}
 		{#if contractId}
 			<section>
 				<EvmNetworkView

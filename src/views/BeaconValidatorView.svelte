@@ -3,13 +3,14 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -48,23 +49,24 @@
 	)
 
 
-	const validator = useEntity(
-		EntityType.BeaconValidator,
+	const validator = useEntity(entityCollectionsContext, EntityType.BeaconValidator,
 		entityId,
 		(
 			open ?
 				{
-					$: [
+					sources: [
 						Source.Beacon_Rest,
 					],
-					balanceGwei: {},
-					effectiveBalanceGwei: {},
-					pubkey: {},
-					slashed: {},
-					status: {},
+					fields: {
+						balanceGwei: true,
+						effectiveBalanceGwei: true,
+						pubkey: true,
+						slashed: true,
+						status: true,
+					},
 				}
 			:
-				{}
+				{ fields: {} }
 		),
 	)
 
@@ -117,47 +119,47 @@
 						resource={validator}
 					>
 						{#snippet children(validator)}
-							{#if validator.balanceGwei !== undefined}
+							{#if validator.fields.balanceGwei !== undefined}
 								<div>
 									<dt>Balance</dt>
 									<dd>
-										<NumberValue value={validator.balanceGwei} />
+										<NumberValue value={validator.fields.balanceGwei} />
 										gwei
 									</dd>
 								</div>
 							{/if}
 
-							{#if validator.effectiveBalanceGwei !== undefined}
+							{#if validator.fields.effectiveBalanceGwei !== undefined}
 								<div>
 									<dt>Effective balance</dt>
 									<dd>
-										<NumberValue value={validator.effectiveBalanceGwei} />
+										<NumberValue value={validator.fields.effectiveBalanceGwei} />
 										gwei
 									</dd>
 								</div>
 							{/if}
 
-							{#if validator.status !== undefined}
+							{#if validator.fields.status !== undefined}
 								<div>
 									<dt>Status</dt>
-									<dd>{validator.status}</dd>
+									<dd>{validator.fields.status}</dd>
 								</div>
 							{/if}
 
-							{#if validator.slashed !== undefined}
+							{#if validator.fields.slashed !== undefined}
 								<div>
 									<dt>Slashed</dt>
-									<dd>{validator.slashed ? 'Yes' : 'No'}</dd>
+									<dd>{validator.fields.slashed ? 'Yes' : 'No'}</dd>
 								</div>
 							{/if}
 
-							{#if validator.pubkey !== undefined}
+							{#if validator.fields.pubkey !== undefined}
 								<div>
 									<dt>Pubkey</dt>
 									<dd>
 										<TruncatedValue
 											format={TruncatedValueFormat.Visual}
-											value={validator.pubkey}
+											value={validator.fields.pubkey}
 										/>
 									</dd>
 								</div>

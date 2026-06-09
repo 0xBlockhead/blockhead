@@ -1,7 +1,7 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import Subscan from '$/sources/Subscan/index.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	SubscanBlock,
 	SubscanExtrinsic,

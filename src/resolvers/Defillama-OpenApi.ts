@@ -26,12 +26,12 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 /** Coin prices use `$/sources/Defillama/OpenApi` + checked-in `openapi.d.ts` (`GET /prices/current/{coins}`). */
 export default {
@@ -71,12 +71,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				price: (timestamp) => timestamp.price,
 				transport: (timestamp) => timestamp.transport,
 				providerAssetId: (timestamp) => timestamp.providerAssetId,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
@@ -114,7 +115,8 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				open: (timestamp) => timestamp.open,
 				high: (timestamp) => timestamp.high,
 				low: (timestamp) => timestamp.low,
@@ -124,7 +126,7 @@ export default {
 				tradeCount: (timestamp) => timestamp.tradeCount,
 				vwap: (timestamp) => timestamp.vwap,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType._Global,
@@ -146,10 +148,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$markets: (markets) => markets,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType._Global,
@@ -158,10 +161,11 @@ export default {
 				throw new Error('Defillama_OpenApi: $$marketTimeIntervalTimestamps is not implemented')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketTimeIntervalTimestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType._Global,
@@ -185,10 +189,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketPrices: (marketPrices) => marketPrices,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Coin,
@@ -207,10 +212,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithCoinAsBase: (markets) => markets,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Coin,
@@ -235,10 +241,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithCoinAsQuote: (markets) => markets,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Currency,
@@ -259,10 +266,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithCurrencyAsQuote: (markets) => markets,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Currency,
@@ -279,10 +287,11 @@ export default {
 				return markets
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithCurrencyAsBase: (markets) => markets,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Market,
@@ -330,10 +339,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketTimeIntervalTimestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.MarketPrice,
@@ -378,10 +388,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$quotes: (quotes) => quotes,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.MarketPrice,
@@ -392,10 +403,11 @@ export default {
 				}
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$parentMarket: (market) => market,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
@@ -406,10 +418,11 @@ export default {
 				}
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$parentMarket: (market) => market,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.EvmNetwork,
@@ -423,9 +436,10 @@ export default {
 				return iconMedia
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$icon: (icon) => icon,
 			},
-		}),
+			}),
 	],
 }

@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -19,28 +20,11 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = useEntity(
-		EntityType.NearNetwork_Timestamp,
+	const snapshot = useEntity(entityCollectionsContext, EntityType.NearNetwork_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.NearRpc_JsonRpc,
-			],
-			headHeight: {},
-			headHash: {},
-			epochId: {},
-			epochHeight: {},
-			epochStartHeight: {},
-			chunkCount: {},
-			gasPriceYoctoNear: {},
-			currentValidatorCount: {},
-			nextValidatorCount: {},
-			currentProposalCount: {},
-			protocolVersion: {},
-			latestProtocolVersion: {},
-			nodeVersion: {},
-			syncing: {},
-		},
+			], fields: { headHeight: true, headHash: true, epochId: true, epochHeight: true, epochStartHeight: true, chunkCount: true, gasPriceYoctoNear: true, currentValidatorCount: true, nextValidatorCount: true, currentProposalCount: true, protocolVersion: true, latestProtocolVersion: true, nodeVersion: true, syncing: true } }),
 	)
 
 
@@ -65,10 +49,10 @@
 			placeholderText="Loading NEAR network snapshot..."
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.headHeight !== undefined}
-					<NumberValue value={snapshot.headHeight} />
-				{:else if snapshot.gasPriceYoctoNear !== undefined}
-					<NumberValue value={snapshot.gasPriceYoctoNear} />
+				{#if snapshot.fields.headHeight !== undefined}
+					<NumberValue value={snapshot.fields.headHeight} />
+				{:else if snapshot.fields.gasPriceYoctoNear !== undefined}
+					<NumberValue value={snapshot.fields.gasPriceYoctoNear} />
 					yoctoNEAR
 				{:else}
 					<Timestamp timestamp={entityId.timestampMs} />
@@ -84,99 +68,99 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.headHeight !== undefined}
+					{#if snapshot.fields.headHeight !== undefined}
 						<div>
 							<dt>Head height</dt>
-							<dd><NumberValue value={snapshot.headHeight} /></dd>
+							<dd><NumberValue value={snapshot.fields.headHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.chunkCount !== undefined}
+					{#if snapshot.fields.chunkCount !== undefined}
 						<div>
 							<dt>Chunks</dt>
-							<dd><NumberValue value={snapshot.chunkCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.chunkCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.currentValidatorCount !== undefined}
+					{#if snapshot.fields.currentValidatorCount !== undefined}
 						<div>
 							<dt>Validators</dt>
-							<dd><NumberValue value={snapshot.currentValidatorCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.currentValidatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.gasPriceYoctoNear !== undefined}
+					{#if snapshot.fields.gasPriceYoctoNear !== undefined}
 						<div>
 							<dt>Gas price</dt>
-							<dd><NumberValue value={snapshot.gasPriceYoctoNear} /> yoctoNEAR</dd>
+							<dd><NumberValue value={snapshot.fields.gasPriceYoctoNear} /> yoctoNEAR</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.headHash != null}
+					{#if open && snapshot.fields.headHash != null}
 						<div>
 							<dt>Head hash</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.headHash}
+									value={snapshot.fields.headHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.epochHeight !== undefined}
+					{#if open && snapshot.fields.epochHeight !== undefined}
 						<div>
 							<dt>Epoch height</dt>
-							<dd><NumberValue value={snapshot.epochHeight} /></dd>
+							<dd><NumberValue value={snapshot.fields.epochHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.epochStartHeight !== undefined}
+					{#if open && snapshot.fields.epochStartHeight !== undefined}
 						<div>
 							<dt>Epoch start</dt>
-							<dd><NumberValue value={snapshot.epochStartHeight} /></dd>
+							<dd><NumberValue value={snapshot.fields.epochStartHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.nextValidatorCount !== undefined}
+					{#if open && snapshot.fields.nextValidatorCount !== undefined}
 						<div>
 							<dt>Next validators</dt>
-							<dd><NumberValue value={snapshot.nextValidatorCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.nextValidatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.currentProposalCount !== undefined}
+					{#if open && snapshot.fields.currentProposalCount !== undefined}
 						<div>
 							<dt>Current proposals</dt>
-							<dd><NumberValue value={snapshot.currentProposalCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.currentProposalCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.protocolVersion !== undefined}
+					{#if open && snapshot.fields.protocolVersion !== undefined}
 						<div>
 							<dt>Protocol version</dt>
-							<dd><NumberValue value={snapshot.protocolVersion} /></dd>
+							<dd><NumberValue value={snapshot.fields.protocolVersion} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.latestProtocolVersion !== undefined}
+					{#if open && snapshot.fields.latestProtocolVersion !== undefined}
 						<div>
 							<dt>Latest protocol</dt>
-							<dd><NumberValue value={snapshot.latestProtocolVersion} /></dd>
+							<dd><NumberValue value={snapshot.fields.latestProtocolVersion} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.nodeVersion != null}
+					{#if open && snapshot.fields.nodeVersion != null}
 						<div>
 							<dt>Node version</dt>
-							<dd>{snapshot.nodeVersion}</dd>
+							<dd>{snapshot.fields.nodeVersion}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.syncing !== undefined}
+					{#if open && snapshot.fields.syncing !== undefined}
 						<div>
 							<dt>Sync</dt>
-							<dd>{snapshot.syncing ? 'Syncing' : 'Synchronized'}</dd>
+							<dd>{snapshot.fields.syncing ? 'Syncing' : 'Synchronized'}</dd>
 						</div>
 					{/if}
 				</dl>

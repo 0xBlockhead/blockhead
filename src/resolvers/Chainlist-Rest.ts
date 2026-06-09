@@ -20,14 +20,14 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import type { Entity } from '$/schema/$schema.ts'
-import { UrlString } from '$/schema/$Url.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	ChainlistExplorerLike,
 	ChainlistChainPairing,
@@ -288,14 +288,15 @@ export default {
 					relationshipType: parentLayer.relationshipType,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$fromNetwork: (bridge) => bridge.$fromNetwork,
 			$toNetwork: (bridge) => bridge.$toNetwork,
 			url: (bridge) => bridge.url,
 			relationshipType: (bridge) => bridge.relationshipType,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -387,8 +388,9 @@ export default {
 					...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(icon, MediaType.Image)),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (network) => network.name,
 			$nativeCoin: (network) => network.$nativeCoin,
 			$nativeCoinInstance: (network) => network.$nativeCoinInstance,
@@ -402,8 +404,8 @@ export default {
 			peeringId: (network) => network.peeringId,
 			slip44: (network) => network.slip44,
 			$icon: (network) => network.$icon,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType._Global,
@@ -415,11 +417,12 @@ export default {
 							[{ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } } }]
 					))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$evmNetworks: (networks) => networks,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -447,11 +450,12 @@ export default {
 						relationshipType: String(chain.parent?.type ?? 'unknown'),
 					}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$bridges: (bridges) => bridges,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -470,11 +474,12 @@ export default {
 						[{ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } } }]
 				})
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$childLayers: (childLayers) => childLayers,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -506,11 +511,12 @@ export default {
 						[{ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(candidate.chainId) } } }]
 				))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$testnets: (testnets) => testnets,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -550,11 +556,12 @@ export default {
 						}
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$mainnet: (mainnet) => mainnet,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -586,11 +593,12 @@ export default {
 						})()
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$siblingShardNetworks: (siblingShardNetworks) => siblingShardNetworks,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -606,11 +614,12 @@ export default {
 					}),
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$blockExplorerUrls: (blockExplorerUrls) => blockExplorerUrls,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -623,10 +632,11 @@ export default {
 					(chain.faucets ?? []).filter((url) => url.length > 0),
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$faucetUrls: (faucetUrls) => faucetUrls,
-		}
-		}),
+		},
+			}),
 	],
 }

@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,14 +28,9 @@
 		>
 	> = $props()
 
-	const solanaProgram = useEntity(
-		EntityType.SolanaProgram,
+	const solanaProgram = useEntity(entityCollectionsContext, EntityType.SolanaProgram,
 		entityId,
-		{
-			name: {},
-			$programAccount: {},
-			$upgradeAuthority: {},
-		},
+		({ fields: { name: true, $programAccount: true, $upgradeAuthority: true } }),
 	)
 
 
@@ -68,19 +64,19 @@
 		>
 			{#snippet children(solanaProgram)}
 				<dl>
-					{#if solanaProgram.name != null}
+					{#if solanaProgram.fields.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{solanaProgram.name}</dd>
+							<dd>{solanaProgram.fields.name}</dd>
 						</div>
 					{/if}
 
-					{#if solanaProgram.$programAccount}
+					{#if solanaProgram.fields.$programAccount}
 						<div>
 							<dt>Program account</dt>
 							<dd>
 								<SolanaAccountView
-									entityId={solanaProgram.$programAccount[EntityMetaKey.Id]}
+									entityId={solanaProgram.fields.$programAccount[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -88,12 +84,12 @@
 						</div>
 					{/if}
 
-					{#if solanaProgram.$upgradeAuthority}
+					{#if solanaProgram.fields.$upgradeAuthority}
 						<div>
 							<dt>Upgrade authority</dt>
 							<dd>
 								<SolanaAccountView
-									entityId={solanaProgram.$upgradeAuthority[EntityMetaKey.Id]}
+									entityId={solanaProgram.fields.$upgradeAuthority[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

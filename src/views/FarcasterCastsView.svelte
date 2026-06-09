@@ -1,17 +1,18 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -78,20 +79,14 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parentFeed = useEntity(
-				EntityType.FarcasterFeed,
+			{@const parentFeed = useEntity(entityCollectionsContext, EntityType.FarcasterFeed,
 				entityFieldReference.entityId,
-				{
-					$: [
+				({ sources: [
 						import.meta.env.PUBLIC_NEYNAR_API_KEY?.trim() ?
 							Source.Neynar_Rest
 						:
 							Source.Snapchain_Rest,
-					],
-					$$entries: {
-						$limit: limit,
-					},
-				},
+					], fields: { $$entries: ({ limit: limit }) } }),
 			)}
 			{@const casts = derive(
 				parentFeed,

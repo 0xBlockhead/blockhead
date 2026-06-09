@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit'
 import { type as arktype } from 'arktype'
 
 import EvmAccountSchema from '$/schema/EvmAccount.ts'
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 import type { PageLoad } from './$types.ts'
 

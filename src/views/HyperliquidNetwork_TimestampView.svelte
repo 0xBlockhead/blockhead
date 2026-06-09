@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -19,21 +20,11 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = useEntity(
-		EntityType.HyperliquidNetwork_Timestamp,
+	const snapshot = useEntity(entityCollectionsContext, EntityType.HyperliquidNetwork_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Hyperliquid_Rest,
-			],
-			perpMarketCount: {},
-			spotAssetCount: {},
-			spotPairCount: {},
-			validatorCount: {},
-			activeValidatorCount: {},
-			jailedValidatorCount: {},
-			totalStake: {},
-		},
+			], fields: { perpMarketCount: true, spotAssetCount: true, spotPairCount: true, validatorCount: true, activeValidatorCount: true, jailedValidatorCount: true, totalStake: true } }),
 	)
 
 
@@ -57,11 +48,11 @@
 			placeholderText="Loading Hyperliquid network snapshot..."
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.perpMarketCount !== undefined}
-					<NumberValue value={snapshot.perpMarketCount} />
+				{#if snapshot.fields.perpMarketCount !== undefined}
+					<NumberValue value={snapshot.fields.perpMarketCount} />
 					perps
-				{:else if snapshot.validatorCount !== undefined}
-					<NumberValue value={snapshot.validatorCount} />
+				{:else if snapshot.fields.validatorCount !== undefined}
+					<NumberValue value={snapshot.fields.validatorCount} />
 					validators
 				{:else}
 					<Timestamp timestamp={entityId.timestampMs} />
@@ -81,52 +72,52 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.perpMarketCount !== undefined}
+					{#if snapshot.fields.perpMarketCount !== undefined}
 						<div>
 							<dt>Perp markets</dt>
-							<dd><NumberValue value={snapshot.perpMarketCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.perpMarketCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.spotPairCount !== undefined}
+					{#if snapshot.fields.spotPairCount !== undefined}
 						<div>
 							<dt>Spot pairs</dt>
-							<dd><NumberValue value={snapshot.spotPairCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.spotPairCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.validatorCount !== undefined}
+					{#if snapshot.fields.validatorCount !== undefined}
 						<div>
 							<dt>Validators</dt>
-							<dd><NumberValue value={snapshot.validatorCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.validatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.activeValidatorCount !== undefined}
+					{#if open && snapshot.fields.activeValidatorCount !== undefined}
 						<div>
 							<dt>Active validators</dt>
-							<dd><NumberValue value={snapshot.activeValidatorCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.activeValidatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.jailedValidatorCount !== undefined}
+					{#if open && snapshot.fields.jailedValidatorCount !== undefined}
 						<div>
 							<dt>Jailed validators</dt>
-							<dd><NumberValue value={snapshot.jailedValidatorCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.jailedValidatorCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.spotAssetCount !== undefined}
+					{#if open && snapshot.fields.spotAssetCount !== undefined}
 						<div>
 							<dt>Spot assets</dt>
-							<dd><NumberValue value={snapshot.spotAssetCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.spotAssetCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.totalStake !== undefined}
+					{#if open && snapshot.fields.totalStake !== undefined}
 						<div>
 							<dt>Total stake</dt>
-							<dd><NumberValue value={snapshot.totalStake} /></dd>
+							<dd><NumberValue value={snapshot.fields.totalStake} /></dd>
 						</div>
 					{/if}
 				</dl>

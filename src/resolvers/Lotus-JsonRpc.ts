@@ -10,9 +10,9 @@ import { TransportType } from '$/constants/TransportType.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type { LotusTipset } from '$/sources/Lotus/JsonRpc/types.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
@@ -114,12 +114,13 @@ export default {
 					],
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$network: (network) => network.$network,
 			rpcEndpoints: (network) => network.rpcEndpoints,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork_Timestamp,
@@ -166,8 +167,9 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			headHeight: (timestamp) => timestamp.headHeight,
 			headTipsetKey: (timestamp) => timestamp.headTipsetKey,
 			headBlockCount: (timestamp) => timestamp.headBlockCount,
@@ -178,8 +180,8 @@ export default {
 			blockDelaySeconds: (timestamp) => timestamp.blockDelaySeconds,
 			totalRawBytePower: (timestamp) => timestamp.totalRawBytePower,
 			totalQualityAdjustedPower: (timestamp) => timestamp.totalQualityAdjustedPower,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinTipset,
@@ -209,14 +211,15 @@ export default {
 					),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$parent: (tipset) => tipset.$parent,
 			parentWeight: (tipset) => tipset.parentWeight,
 			timestampMs: (tipset) => tipset.timestampMs,
 			$$blocks: (tipset) => tipset.$$blocks,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinBlock,
@@ -232,14 +235,15 @@ export default {
 				if (block == null) throw new Error(`Lotus_JsonRpc: block not found for ${entityId.cid}`)
 				return block
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$tipset: (block) => block.$tipset,
 			$miner: (block) => block.$miner,
 			ticketVrFProof: (block) => block.ticketVrFProof,
 			winCount: (block) => block.winCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinSector,
@@ -251,13 +255,14 @@ export default {
 				if (sector == null) throw new Error(`Lotus_JsonRpc: sector not found for ${entityId.$miner.minerAddress}:${entityId.sectorNumber.toString()}`)
 				return sector
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			sealedCid: (sector) => sector.sealedCid,
 			activationEpoch: (sector) => sector.activationEpoch,
 			expirationEpoch: (sector) => sector.expirationEpoch,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinActor,
@@ -275,13 +280,14 @@ export default {
 					balanceAttoFil: BigInt(actor.Balance),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			actorCodeCid: (actor) => actor.actorCodeCid,
 			nonce: (actor) => actor.nonce,
 			balanceAttoFil: (actor) => actor.balanceAttoFil,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
@@ -296,11 +302,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			rpcEndpoints: (rpcEndpoints) => rpcEndpoints,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
@@ -322,11 +329,12 @@ export default {
 					),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$headTipset: (headTipset) => headTipset,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
@@ -342,11 +350,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$timestamps: (timestamps) => timestamps,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
@@ -359,11 +368,12 @@ export default {
 					await getHead({ rpcUrl: lotusRpcUrl }),
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$headMiners: (headMiners) => headMiners,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
@@ -404,11 +414,12 @@ export default {
 					}
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$tipsets: (tipsets) => tipsets,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinTipset,
@@ -424,11 +435,12 @@ export default {
 					}),
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$blocks: (blocks) => blocks,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinMiner,
@@ -439,10 +451,11 @@ export default {
 					resolverContextRowLimit(context),
 				)
 			)
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$sectors: (sectors) => sectors,
-		}
-		}),
+		},
+			}),
 	],
 }

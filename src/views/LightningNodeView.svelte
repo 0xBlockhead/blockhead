@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,23 +28,12 @@
 		>
 	> = $props()
 
-	const node = useEntity(
-		EntityType.LightningNode,
+	const node = useEntity(entityCollectionsContext, EntityType.LightningNode,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
-			],
-			alias: {},
-			capacitySats: {},
-			channelCount: {},
-			countryCode: {},
-			city: {},
-			...open && {
-				networkAddresses: {},
-			},
-		},
+			], fields: { alias: true, capacitySats: true, channelCount: true, countryCode: true, city: true, ...(open && ({ networkAddresses: true })) } }),
 	)
 
 
@@ -74,7 +64,7 @@
 			resource={node}
 		>
 			{#snippet children(lightningNode)}
-				{lightningNode.alias ?? entityId.publicKey}
+				{lightningNode.fields.alias ?? entityId.publicKey}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -96,35 +86,35 @@
 						</dd>
 					</div>
 
-					{#if lightningNode.channelCount != null}
+					{#if lightningNode.fields.channelCount != null}
 						<div>
 							<dt>Channels</dt>
-							<dd><NumberValue value={lightningNode.channelCount} /></dd>
+							<dd><NumberValue value={lightningNode.fields.channelCount} /></dd>
 						</div>
 					{/if}
 
-					{#if lightningNode.capacitySats != null}
+					{#if lightningNode.fields.capacitySats != null}
 						<div>
 							<dt>Capacity</dt>
-							<dd>{lightningNode.capacitySats.toString()} sats</dd>
+							<dd>{lightningNode.fields.capacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if lightningNode.countryCode != null}
+					{#if lightningNode.fields.countryCode != null}
 						<div>
 							<dt>Country</dt>
-							<dd>{lightningNode.countryCode}</dd>
+							<dd>{lightningNode.fields.countryCode}</dd>
 						</div>
 					{/if}
 
-					{#if lightningNode.city != null}
+					{#if lightningNode.fields.city != null}
 						<div>
 							<dt>City</dt>
-							<dd>{lightningNode.city}</dd>
+							<dd>{lightningNode.fields.city}</dd>
 						</div>
 					{/if}
 
-					{#each open ? lightningNode.networkAddresses : [] as address}
+					{#each open ? lightningNode.fields.networkAddresses?.values ?? [] : [] as address}
 						<div>
 							<dt>Address</dt>
 							<dd><code>{address}</code></dd>

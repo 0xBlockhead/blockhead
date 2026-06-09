@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 // Types/constants

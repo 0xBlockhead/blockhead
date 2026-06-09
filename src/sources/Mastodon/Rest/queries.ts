@@ -1,4 +1,4 @@
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { mastodonGet } from '$/sources/Mastodon/Rest/client.ts'
 import { mastodonInstanceOrigin } from '$/sources/Mastodon/Rest/constants.ts'

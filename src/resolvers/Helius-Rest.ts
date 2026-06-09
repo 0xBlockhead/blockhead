@@ -5,9 +5,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
 
 const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
@@ -117,16 +117,17 @@ export default {
 					),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$block: (transaction) => transaction.$block,
 			slot: (transaction) => transaction.slot,
 			$feePayer: (transaction) => transaction.$feePayer,
 			feeLamports: (transaction) => transaction.feeLamports,
 			status: (transaction) => transaction.status,
 			$$instructions: (transaction) => transaction.$$instructions,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaInstruction,
@@ -143,13 +144,14 @@ export default {
 				if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${entityId.$transaction.signature}:${entityId.instructionIndex}`)
 				return instruction
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$program: (instruction) => instruction.$program,
 			data: (instruction) => instruction.data,
 			$$accounts: (instruction) => instruction.$$accounts,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction,
@@ -163,10 +165,11 @@ export default {
 					),
 				)
 			)
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$instructions: (instructions) => instructions,
-		}
-		}),
+		},
+			}),
 	],
 }

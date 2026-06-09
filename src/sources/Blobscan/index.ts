@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { blobscanRestOrigins } from '$/sources/Blobscan/Rest/constants.ts'
 import BlobscanRestSource from '$/sources/Blobscan/Rest/index.ts'
 

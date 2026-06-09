@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,14 +27,10 @@
 		>
 	> = $props()
 
-	const dogecoinAuxPowParentBlockHeader = useEntity(
+	const dogecoinAuxPowParentBlockHeader = useEntity(entityCollectionsContext, 
 		EntityType.DogecoinAuxPowParentBlockHeader,
 		entityId,
-		{
-			hash: {},
-			merkleRoot: {},
-			nonce: {},
-		},
+		({ fields: { hash: true, merkleRoot: true, nonce: true } }),
 	)
 
 
@@ -64,32 +61,32 @@
 		>
 			{#snippet children(dogecoinAuxPowParentBlockHeader)}
 				<dl>
-					{#if dogecoinAuxPowParentBlockHeader.hash != null}
+					{#if dogecoinAuxPowParentBlockHeader.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={dogecoinAuxPowParentBlockHeader.hash}
+									value={dogecoinAuxPowParentBlockHeader.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if dogecoinAuxPowParentBlockHeader.merkleRoot != null}
+					{#if dogecoinAuxPowParentBlockHeader.fields.merkleRoot != null}
 						<div>
 							<dt>Merkle Root</dt>
 							<dd>
 								<TruncatedValue
-									value={dogecoinAuxPowParentBlockHeader.merkleRoot}
+									value={dogecoinAuxPowParentBlockHeader.fields.merkleRoot}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if dogecoinAuxPowParentBlockHeader.nonce != null}
+					{#if dogecoinAuxPowParentBlockHeader.fields.nonce != null}
 						<div>
 							<dt>Nonce</dt>
-							<dd><NumberValue value={dogecoinAuxPowParentBlockHeader.nonce} /></dd>
+							<dd><NumberValue value={dogecoinAuxPowParentBlockHeader.fields.nonce} /></dd>
 						</div>
 					{/if}
 				</dl>

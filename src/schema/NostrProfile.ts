@@ -1,13 +1,13 @@
 import { type } from 'arktype'
-import { lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
+import { lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { UrlString } from '$/schema/$Url.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 
 const NostrPubkey = type(
 	'/^[0-9a-f]{64}$/' as type.cast<string>,

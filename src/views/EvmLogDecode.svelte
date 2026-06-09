@@ -2,8 +2,8 @@
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -26,7 +26,8 @@
 	} from '$/lib/calldata-decode.ts'
 
 	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	const emptyTopicHex: `0x${string}` = '0x0000000000000000000000000000000000000000000000000000000000000000'
 
@@ -39,30 +40,24 @@
 			null,
 	)
 
-	const topic = useEntity(
-		EntityType.EvmTopic,
+	const topic = useEntity(entityCollectionsContext, EntityType.EvmTopic,
 		(
 			topic0Hex != null ?
 				{ hex: topic0Hex }
 			:
 					{ hex: emptyTopicHex }
 		) satisfies EntityId<typeof schema, EntityType.EvmTopic>,
-		{
-			$: [
+		({ sources: [
 				Source.Openchain_Rest,
-			],
-			signatures: {},
-		},
+			], fields: { signatures: true } }),
 	)
 
-	const emitterContract = useEntity(
-		EntityType.EvmContract,
+	const emitterContract = useEntity(entityCollectionsContext, EntityType.EvmContract,
 		emitterContractId ?? {
 			$network: { caip2: { namespace: 'eip155' as const, reference: String(0) } },
 			address: '0x0000000000000000000000000000000000000000',
 		},
-		{
-			$: (
+		({ sources: (
 				open && emitterContractId ?
 					[
 						Source.Sourcify_Rest,
@@ -70,11 +65,7 @@
 					]
 				:
 					[]
-			),
-			...(open && emitterContractId && {
-				abi: {},
-			}),
-		},
+			), fields: { ...(open && emitterContractId && ({ abi: true })) } }),
 	)
 
 
@@ -82,13 +73,13 @@
 		if (!open || topic0Hex == null || data == null)
 			return null
 
-		for (const signature of topic.current?.signatures ?? []) {
+		for (const signature of topic.current?.fields.signatures ?? []) {
 			const decoded = decodeLogWithSignature(signature, topics, data)
 			if (decoded)
 				return { signature, decoded, source: 'catalog' as const }
 		}
 
-		const abi = emitterContract.current?.abi
+		const abi = emitterContract.current?.fields.abi
 		if (abi?.length) {
 			const fromAbi = decodeLogWithContractAbi(abi, topics, data)
 			if (fromAbi)

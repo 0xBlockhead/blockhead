@@ -5,7 +5,7 @@
 
 import type { PrecompileEntry } from '$/constants/precompiles/types.ts'
 import { standardPrecompiles } from '$/constants/precompiles/standard.ts'
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 type ShemnonSchedule = {
 	name?: string

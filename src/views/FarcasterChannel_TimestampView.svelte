@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,16 +36,12 @@
 		>
 	> = $props()
 
-	const farcasterChannelTimestamp = useEntity(
+	const farcasterChannelTimestamp = useEntity(entityCollectionsContext, 
 		EntityType.FarcasterChannel_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Farcaster_Rest,
-			],
-			followerCount: {},
-			memberCount: {},
-		},
+			], fields: { followerCount: true, memberCount: true } }),
 	)
 
 
@@ -90,11 +87,11 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: farcasterChannelTimestamp.followerCount,
+								value: farcasterChannelTimestamp.fields.followerCount,
 							},
 							{
 								label: 'Members',
-								value: farcasterChannelTimestamp.memberCount,
+								value: farcasterChannelTimestamp.fields.memberCount,
 							},
 						]}
 					/>

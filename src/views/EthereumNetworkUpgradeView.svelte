@@ -2,16 +2,17 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -39,25 +40,11 @@
 		>
 	> = $props()
 
-	const networkUpgrade = useEntity(
-		EntityType.EthereumNetworkUpgrade,
+	const networkUpgrade = useEntity(entityCollectionsContext, EntityType.EthereumNetworkUpgrade,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-			activationBlock: {},
-			activationEpoch: {},
-			activationTimestampMs: {},
-			$networkExecutionUpgrade: {},
-			...(open ?
-				{
-					$networkConsensusUpgrade: {},
-				}
-			:
-				{}),
-		},
+			], fields: { name: true, activationBlock: true, activationEpoch: true, activationTimestampMs: true, $networkExecutionUpgrade: true, ...(open ? ({ $networkConsensusUpgrade: true }) : ({  })) } }),
 	)
 
 
@@ -90,7 +77,7 @@
 	{#snippet Title()}
 		{(
 			networkUpgrade.ready ?
-				(networkUpgrade.current.name ?? entityId.upgradeId)
+				(networkUpgrade.current?.fields.name ?? entityId.upgradeId)
 			:
 				entityId.upgradeId
 		)}
@@ -116,14 +103,14 @@
 		>
 			{#snippet children(networkUpgrade)}
 				<dl data-column-item="center">
-					{#if contentOpen && networkUpgrade.activationBlock !== undefined}
+					{#if contentOpen && networkUpgrade.fields.activationBlock !== undefined}
 						<div>
 							<dt>Activation block</dt>
 							<dd>
 									<EvmBlockView
 										entityId={{
 											$network: entityId.$network,
-											blockNumber: BigInt(networkUpgrade.activationBlock),
+											blockNumber: BigInt(networkUpgrade.fields.activationBlock),
 										}}
 										layout={EntityLayout.Value}
 										open={false}
@@ -132,32 +119,32 @@
 						</div>
 					{/if}
 
-					{#if networkUpgrade.activationEpoch !== undefined}
+					{#if networkUpgrade.fields.activationEpoch !== undefined}
 						<div>
 							<dt>Activation epoch</dt>
 							<dd>
-								<NumberValue value={networkUpgrade.activationEpoch} />
+								<NumberValue value={networkUpgrade.fields.activationEpoch} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if networkUpgrade.activationTimestampMs !== undefined}
+					{#if networkUpgrade.fields.activationTimestampMs !== undefined}
 						<div>
 							<dt>Activation time</dt>
 							<dd>
 								<Timestamp
-									timestamp={networkUpgrade.activationTimestampMs}
+									timestamp={networkUpgrade.fields.activationTimestampMs}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-						{#if open && networkUpgrade.$networkExecutionUpgrade}
+						{#if open && networkUpgrade.fields.$networkExecutionUpgrade}
 							<div>
 								<dt>Execution layer</dt>
 								<dd>
 								<EthereumExecutionUpgradeView
-									entityId={networkUpgrade.$networkExecutionUpgrade[EntityMetaKey.Id]}
+									entityId={networkUpgrade.fields.$networkExecutionUpgrade[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
@@ -167,12 +154,12 @@
 						{/if}
 
 						{#if open}
-							{#if networkUpgrade.$networkConsensusUpgrade}
+							{#if networkUpgrade.fields.$networkConsensusUpgrade}
 								<div>
 								<dt>Consensus layer</dt>
 								<dd>
 									<EthereumConsensusUpgradeView
-										entityId={networkUpgrade.$networkConsensusUpgrade[EntityMetaKey.Id]}
+										entityId={networkUpgrade.fields.$networkConsensusUpgrade[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}

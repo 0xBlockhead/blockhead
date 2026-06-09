@@ -1,13 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
@@ -43,7 +43,8 @@
 		>
 	> = $props()
 
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// Components
@@ -78,22 +79,21 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
+				entityFieldReference.entityId,({ fields: {
 					[entityFieldReference.fieldName]: {
-						$: [
+						sources: [
 							Source.Local_Internal,
 						],
 					},
-				},
+				} }),
 			)}
 			{@const peers = derive(
 				parent,
 				(parent) => {
-					const blockheadRoomPeers: Entity<typeof schema, EntityType.BlockheadRoomPeer>[] = (
-						parent[entityFieldReference.fieldName] ?? []
+					const blockheadRoomPeers: readonly Entity<typeof schema, EntityType.BlockheadRoomPeer>[] = (
+						parent.fields[entityFieldReference.fieldName]?.values ?? []
 					)
 					return (
 						blockheadRoomPeers.map((value) => ({

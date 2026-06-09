@@ -9,7 +9,7 @@ import type {
 	YoutubeApiVideosListResponse,
 } from '$/sources/Youtube/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const channelParts = 'snippet,statistics'
 const videoParts = 'snippet,statistics,contentDetails'

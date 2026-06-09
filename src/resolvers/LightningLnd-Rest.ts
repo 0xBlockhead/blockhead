@@ -7,13 +7,13 @@ import { lightningNetworkId } from '$/constants/LightningNetwork.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
 import { LightningHtlcDirection } from '$/schema/LightningHtlc.ts'
 import { LightningInvoiceState } from '$/schema/LightningInvoice.ts'
 import { LightningPaymentStatus } from '$/schema/LightningPayment.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	LndChannel,
 	LndHtlc,
@@ -225,11 +225,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				name: (network) => network.name,
 				$settlementNetwork: (network) => network.$settlementNetwork,
 			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
@@ -254,13 +255,14 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				alias: (node) => node.alias,
 				color: (node) => node.color,
 				channelCount: (node) => node.channelCount,
 				networkAddresses: (node) => node.networkAddresses,
 			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel,
@@ -275,7 +277,8 @@ export default {
 				return channelFieldsFromLndChannel(channel, info.identity_pubkey)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				status: (channel) => channel.status,
 				$node0: (channel) => channel.$node0,
 				$node1: (channel) => channel.$node1,
@@ -289,7 +292,7 @@ export default {
 				private: (channel) => channel.private,
 				initiator: (channel) => channel.initiator,
 			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningInvoice,
@@ -306,7 +309,8 @@ export default {
 				return invoiceFieldsFromLndInvoice(invoice)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				paymentRequest: (invoice) => invoice.paymentRequest,
 				memo: (invoice) => invoice.memo,
 				valueMsat: (invoice) => invoice.valueMsat,
@@ -319,7 +323,7 @@ export default {
 				addIndex: (invoice) => invoice.addIndex,
 				settleIndex: (invoice) => invoice.settleIndex,
 			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningPayment,
@@ -336,7 +340,8 @@ export default {
 				return paymentFieldsFromLndPayment(payment)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				paymentRequest: (payment) => payment.paymentRequest,
 				valueMsat: (payment) => payment.valueMsat,
 				feeMsat: (payment) => payment.feeMsat,
@@ -346,7 +351,7 @@ export default {
 				preimage: (payment) => payment.preimage,
 				paymentIndex: (payment) => payment.paymentIndex,
 			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningHtlc,
@@ -364,14 +369,15 @@ export default {
 				return htlcFieldsFromLndHtlc(channel, htlc, entityId.htlcIndex)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				direction: (htlc) => htlc.direction,
 				amountMsat: (htlc) => htlc.amountMsat,
 				expiryHeight: (htlc) => htlc.expiryHeight,
 				hashLock: (htlc) => htlc.hashLock,
 				state: (htlc) => htlc.state,
 			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -393,10 +399,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$nodes: (nodes) => nodes,
 			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -409,10 +416,11 @@ export default {
 					.map((channel) => channelFieldsFromLndChannel(channel, info.identity_pubkey))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$channels: (channels) => channels,
 			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -433,10 +441,11 @@ export default {
 				))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$invoices: (invoices) => invoices,
 			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -452,10 +461,11 @@ export default {
 				).map(paymentFieldsFromLndPayment)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$payments: (payments) => payments,
 			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
@@ -472,10 +482,11 @@ export default {
 					.map((channel) => channelFieldsFromLndChannel(channel, info.identity_pubkey))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$channels: (channels) => channels,
 			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel,
@@ -491,9 +502,10 @@ export default {
 				))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$htlcs: (htlcs) => htlcs,
 			},
-		}),
+			}),
 	],
 }

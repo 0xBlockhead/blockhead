@@ -1,17 +1,17 @@
 import { type } from 'arktype'
 
 import { canonicalIpfsCidString } from '$/lib/multiformats.ts'
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 	type EntityIdentityValueNormalizer,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { UrlString } from '$/schema/$Url.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
+import { Source } from '$/sources/Source.ts'
 
 const canonicalIpfsIdentityValue: EntityIdentityValueNormalizer = (value) => (
 	canonicalIpfsCidString(String(value)) ?? value

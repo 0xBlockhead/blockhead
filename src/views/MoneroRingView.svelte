@@ -4,14 +4,15 @@
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -63,17 +64,14 @@
 		>
 			{#snippet body()}
 				{#if open}
-					{@const moneroRing = useEntity(
-						EntityType.MoneroRing,
+					{@const moneroRing = useEntity(entityCollectionsContext, EntityType.MoneroRing,
 						entityId,
-						{
-							$$members: {},
-						},
+						({ fields: { $$members: true } }),
 					)}
 					{@const moneroRingMembers = derive(
 						moneroRing,
-						(moneroRing): Entity<typeof schema, EntityType.MoneroRingMember>[] => (
-							moneroRing.$$members ?? []
+						(moneroRing): readonly Entity<typeof schema, EntityType.MoneroRingMember>[] => (
+							moneroRing.fields.$$members?.values ?? []
 						),
 					)}
 					<EntitiesList

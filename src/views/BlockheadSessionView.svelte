@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { blockheadSessionStatusByStatus } from '$/constants/Blockhead.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,30 +39,13 @@
 	> = $props()
 
 	const session = $derived(
-		useEntity(
-			EntityType.BlockheadSession,
+		useEntity(entityCollectionsContext, EntityType.BlockheadSession,
 			entityId,
-			{
-				$: [
+			({ sources: [
 					Source.Local_Internal,
-				],
-				name: {},
-				status: {},
-				createdAt: {},
-				updatedAt: {},
-				lockedAt: {},
-				...(open ?
-					{
-						simulationCount: {},
-						$$actions: {
-							$: [
+				], fields: { name: true, status: true, createdAt: true, updatedAt: true, lockedAt: true, ...(open ? ({ simulationCount: true, $$actions: ({ sources: [
 								Source.Local_Internal,
-							],
-						},
-					}
-				:
-					{}),
-			},
+							] }) }) : ({  })) } }),
 		),
 	)
 
@@ -93,7 +77,7 @@
 			placeholderText="Loading session…"
 		>
 			{#snippet children(session)}
-				{session.name ?? entityId.id}
+				{session.fields.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -125,7 +109,7 @@
 						placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{blockheadSessionStatusByStatus[session.status]?.label ?? String(session.status)}
+								{blockheadSessionStatusByStatus[session.fields.status]?.label ?? String(session.fields.status)}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -140,14 +124,14 @@
 							placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{#if session.updatedAt !== undefined}
+								{#if session.fields.updatedAt !== undefined}
 									<Timestamp
-										timestamp={session.updatedAt}
+										timestamp={session.fields.updatedAt}
 									/>
 								{:else}
-									{#if session.createdAt !== undefined}
+									{#if session.fields.createdAt !== undefined}
 										<Timestamp
-											timestamp={session.createdAt}
+											timestamp={session.fields.createdAt}
 										/>
 									{/if}
 								{/if}
@@ -166,9 +150,9 @@
 							placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{#if session.createdAt !== undefined}
+								{#if session.fields.createdAt !== undefined}
 									<Timestamp
-										timestamp={session.createdAt}
+										timestamp={session.fields.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -184,9 +168,9 @@
 							placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{#if session.updatedAt !== undefined}
+								{#if session.fields.updatedAt !== undefined}
 									<Timestamp
-										timestamp={session.updatedAt}
+										timestamp={session.fields.updatedAt}
 									/>
 								{/if}
 							{/snippet}
@@ -202,9 +186,9 @@
 							placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{#if session.lockedAt !== undefined}
+								{#if session.fields.lockedAt !== undefined}
 									<Timestamp
-										timestamp={session.lockedAt}
+										timestamp={session.fields.lockedAt}
 									/>
 								{/if}
 							{/snippet}
@@ -220,8 +204,8 @@
 							placeholderText="Loading session…"
 						>
 							{#snippet children(session)}
-								{#if session.simulationCount !== undefined}
-									{String(session.simulationCount)}
+								{#if session.fields.simulationCount !== undefined}
+									{String(session.fields.simulationCount)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

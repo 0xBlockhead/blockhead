@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,14 +27,9 @@
 		>
 	> = $props()
 
-	const cosmosDenom = useEntity(
-		EntityType.CosmosDenom,
+	const cosmosDenom = useEntity(entityCollectionsContext, EntityType.CosmosDenom,
 		entityId,
-		{
-			display: {},
-			base: {},
-			symbol: {},
-		},
+		({ fields: { display: true, base: true, symbol: true } }),
 	)
 
 
@@ -62,24 +58,24 @@
 		>
 			{#snippet children(cosmosDenom)}
 				<dl>
-					{#if cosmosDenom.display != null}
+					{#if cosmosDenom.fields.display != null}
 						<div>
 							<dt>Display</dt>
-							<dd>{cosmosDenom.display}</dd>
+							<dd>{cosmosDenom.fields.display}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosDenom.base != null}
+					{#if cosmosDenom.fields.base != null}
 						<div>
 							<dt>Base</dt>
-							<dd>{cosmosDenom.base}</dd>
+							<dd>{cosmosDenom.fields.base}</dd>
 						</div>
 					{/if}
 
-					{#if cosmosDenom.symbol != null}
+					{#if cosmosDenom.fields.symbol != null}
 						<div>
 							<dt>Symbol</dt>
-							<dd>{cosmosDenom.symbol}</dd>
+							<dd>{cosmosDenom.fields.symbol}</dd>
 						</div>
 					{/if}
 				</dl>

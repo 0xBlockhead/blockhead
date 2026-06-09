@@ -1,15 +1,15 @@
 import { type } from 'arktype'
 
-import { EvmAddress, lowercaseHexIdentityValue } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress, lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 	type EntityIdentityValueNormalizer,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const lowercaseIdentityValue: EntityIdentityValueNormalizer = (value) => (
 	String(value).toLowerCase()

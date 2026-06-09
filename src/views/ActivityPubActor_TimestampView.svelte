@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -39,18 +40,13 @@
 		>
 	> = $props()
 
-	const activityPubActorTimestamp = useEntity(
+	const activityPubActorTimestamp = useEntity(entityCollectionsContext, 
 		EntityType.ActivityPubActor_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Mastodon_Rest,
 				Source.Fedi_Rest,
-			],
-			followersCount: {},
-			followingCount: {},
-			statusesCount: {},
-		},
+			], fields: { followersCount: true, followingCount: true, statusesCount: true } }),
 	)
 
 
@@ -96,15 +92,15 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: activityPubActorTimestamp.followersCount,
+								value: activityPubActorTimestamp.fields.followersCount,
 							},
 							{
 								label: 'Following',
-								value: activityPubActorTimestamp.followingCount,
+								value: activityPubActorTimestamp.fields.followingCount,
 							},
 							{
 								label: 'Statuses',
-								value: activityPubActorTimestamp.statusesCount,
+								value: activityPubActorTimestamp.fields.statusesCount,
 							},
 						]}
 					/>

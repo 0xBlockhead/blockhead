@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { redditPublicApiOrigins } from '$/sources/RedditPublic/Rest/constants.ts'
 import RedditPublicJsonSource from '$/sources/RedditPublic/Rest/index.ts'
 

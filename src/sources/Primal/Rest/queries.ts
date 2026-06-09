@@ -7,7 +7,7 @@ import type {
 	PrimalTimelineEvents,
 } from '$/sources/Primal/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const clampPrimalLimit = (limit: number) => (
 	Math.min(1000, Math.max(1, limit))

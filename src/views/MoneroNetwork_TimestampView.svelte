@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -19,43 +20,11 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = useEntity(
-		EntityType.MoneroNetwork_Timestamp,
+	const snapshot = useEntity(entityCollectionsContext, EntityType.MoneroNetwork_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.MoneroDaemonRpc_JsonRpc,
-			],
-			height: {},
-			targetHeight: {},
-			topBlockHash: {},
-			difficulty: {},
-			wideDifficulty: {},
-			cumulativeDifficulty: {},
-			wideCumulativeDifficulty: {},
-			blockSizeLimit: {},
-			blockSizeMedian: {},
-			blockWeightLimit: {},
-			blockWeightMedian: {},
-			databaseSize: {},
-			freeSpace: {},
-			greyPeerlistSize: {},
-			whitePeerlistSize: {},
-			incomingConnections: {},
-			outgoingConnections: {},
-			txCount: {},
-			txPoolSize: {},
-			altBlocksCount: {},
-			targetSeconds: {},
-			rpcConnections: {},
-			mainnet: {},
-			nettype: {},
-			offline: {},
-			synchronized: {},
-			wasBootstrapEverUsed: {},
-			version: {},
-			status: {},
-		},
+			], fields: { height: true, targetHeight: true, topBlockHash: true, difficulty: true, wideDifficulty: true, cumulativeDifficulty: true, wideCumulativeDifficulty: true, blockSizeLimit: true, blockSizeMedian: true, blockWeightLimit: true, blockWeightMedian: true, databaseSize: true, freeSpace: true, greyPeerlistSize: true, whitePeerlistSize: true, incomingConnections: true, outgoingConnections: true, txCount: true, txPoolSize: true, altBlocksCount: true, targetSeconds: true, rpcConnections: true, mainnet: true, nettype: true, offline: true, synchronized: true, wasBootstrapEverUsed: true, version: true, status: true } }),
 	)
 
 
@@ -80,10 +49,10 @@
 			placeholderText="Loading Monero network snapshot..."
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.height !== undefined}
-					<NumberValue value={snapshot.height} />
-				{:else if snapshot.txPoolSize !== undefined}
-					<NumberValue value={snapshot.txPoolSize} />
+				{#if snapshot.fields.height !== undefined}
+					<NumberValue value={snapshot.fields.height} />
+				{:else if snapshot.fields.txPoolSize !== undefined}
+					<NumberValue value={snapshot.fields.txPoolSize} />
 					in pool
 				{:else}
 					<Timestamp timestamp={entityId.timestampMs} />
@@ -99,121 +68,121 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.height !== undefined}
+					{#if snapshot.fields.height !== undefined}
 						<div>
 							<dt>Height</dt>
-							<dd><NumberValue value={snapshot.height} /></dd>
+							<dd><NumberValue value={snapshot.fields.height} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.synchronized !== undefined}
+					{#if snapshot.fields.synchronized !== undefined}
 						<div>
 							<dt>Sync</dt>
-							<dd>{snapshot.synchronized ? 'Synchronized' : 'Syncing'}</dd>
+							<dd>{snapshot.fields.synchronized ? 'Synchronized' : 'Syncing'}</dd>
 						</div>
 					{/if}
 
-					{#if snapshot.txPoolSize !== undefined}
+					{#if snapshot.fields.txPoolSize !== undefined}
 						<div>
 							<dt>Tx pool</dt>
-							<dd><NumberValue value={snapshot.txPoolSize} /></dd>
+							<dd><NumberValue value={snapshot.fields.txPoolSize} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.difficulty !== undefined}
+					{#if snapshot.fields.difficulty !== undefined}
 						<div>
 							<dt>Difficulty</dt>
-							<dd><NumberValue value={snapshot.wideDifficulty ?? snapshot.difficulty} /></dd>
+							<dd><NumberValue value={snapshot.fields.wideDifficulty ?? snapshot.fields.difficulty} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.topBlockHash != null}
+					{#if open && snapshot.fields.topBlockHash != null}
 						<div>
 							<dt>Top block</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.topBlockHash}
+									value={snapshot.fields.topBlockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.targetHeight !== undefined && snapshot.targetHeight !== 0n}
+					{#if open && snapshot.fields.targetHeight !== undefined && snapshot.fields.targetHeight !== 0n}
 						<div>
 							<dt>Target height</dt>
-							<dd><NumberValue value={snapshot.targetHeight} /></dd>
+							<dd><NumberValue value={snapshot.fields.targetHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.txCount !== undefined}
+					{#if open && snapshot.fields.txCount !== undefined}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={snapshot.txCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.txCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.incomingConnections !== undefined}
+					{#if open && snapshot.fields.incomingConnections !== undefined}
 						<div>
 							<dt>Connections</dt>
 							<dd>
-								<NumberValue value={snapshot.incomingConnections} />
+								<NumberValue value={snapshot.fields.incomingConnections} />
 								in /
-								<NumberValue value={snapshot.outgoingConnections ?? 0} />
+								<NumberValue value={snapshot.fields.outgoingConnections ?? 0} />
 								out
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.whitePeerlistSize !== undefined}
+					{#if open && snapshot.fields.whitePeerlistSize !== undefined}
 						<div>
 							<dt>Peerlist</dt>
 							<dd>
-								<NumberValue value={snapshot.whitePeerlistSize} />
+								<NumberValue value={snapshot.fields.whitePeerlistSize} />
 								white /
-								<NumberValue value={snapshot.greyPeerlistSize ?? 0} />
+								<NumberValue value={snapshot.fields.greyPeerlistSize ?? 0} />
 								grey
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.blockWeightLimit !== undefined}
+					{#if open && snapshot.fields.blockWeightLimit !== undefined}
 						<div>
 							<dt>Block weight</dt>
 							<dd>
-								<NumberValue value={snapshot.blockWeightMedian ?? 0} />
+								<NumberValue value={snapshot.fields.blockWeightMedian ?? 0} />
 								median /
-								<NumberValue value={snapshot.blockWeightLimit} />
+								<NumberValue value={snapshot.fields.blockWeightLimit} />
 								limit
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.databaseSize !== undefined}
+					{#if open && snapshot.fields.databaseSize !== undefined}
 						<div>
 							<dt>Database</dt>
-							<dd><NumberValue value={snapshot.databaseSize} /> bytes</dd>
+							<dd><NumberValue value={snapshot.fields.databaseSize} /> bytes</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.targetSeconds !== undefined}
+					{#if open && snapshot.fields.targetSeconds !== undefined}
 						<div>
 							<dt>Target</dt>
-							<dd><NumberValue value={snapshot.targetSeconds} /> s</dd>
+							<dd><NumberValue value={snapshot.fields.targetSeconds} /> s</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.nettype != null}
+					{#if open && snapshot.fields.nettype != null}
 						<div>
 							<dt>Network type</dt>
-							<dd>{snapshot.nettype}</dd>
+							<dd>{snapshot.fields.nettype}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.status != null}
+					{#if open && snapshot.fields.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{snapshot.status}</dd>
+							<dd>{snapshot.fields.status}</dd>
 						</div>
 					{/if}
 				</dl>

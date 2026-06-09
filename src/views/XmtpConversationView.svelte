@@ -4,13 +4,14 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { xmtpConversationConsentStateByConsentState } from '$/constants/Social/Xmtp.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -37,18 +38,11 @@
 		>
 	> = $props()
 
-	const conversation = useEntity(
-		EntityType.XmtpConversation,
+	const conversation = useEntity(entityCollectionsContext, EntityType.XmtpConversation,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Local_Internal,
-			],
-			peerInboxId: {},
-			topic: {},
-			createdAtMs: {},
-			consentState: {},
-		},
+			], fields: { peerInboxId: true, topic: true, createdAtMs: true, consentState: true } }),
 	)
 
 
@@ -81,14 +75,14 @@
 			placeholderText="Loading conversation…"
 		>
 			{#snippet children(conversation)}
-				{#if conversation.topic != null && conversation.topic !== ''}
+				{#if conversation.fields.topic != null && conversation.fields.topic !== ''}
 					<TruncatedValue
-						value={conversation.topic}
+						value={conversation.fields.topic}
 						format={TruncatedValueFormat.Visual}
 					/>
-				{:else if conversation.peerInboxId != null && conversation.peerInboxId !== ''}
+				{:else if conversation.fields.peerInboxId != null && conversation.fields.peerInboxId !== ''}
 					<TruncatedValue
-						value={conversation.peerInboxId}
+						value={conversation.fields.peerInboxId}
 						format={TruncatedValueFormat.Visual}
 					/>
 				{:else}
@@ -120,8 +114,8 @@
 						placeholderText="Loading conversation…"
 					>
 						{#snippet children(conversation)}
-							{#if conversation.consentState !== undefined}
-								{xmtpConversationConsentStateByConsentState[conversation.consentState].label}
+							{#if conversation.fields.consentState !== undefined}
+								{xmtpConversationConsentStateByConsentState[conversation.fields.consentState].label}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -137,9 +131,9 @@
 							placeholderText="Loading conversation…"
 						>
 							{#snippet children(conversation)}
-								{#if conversation.peerInboxId != null && conversation.peerInboxId !== ''}
+								{#if conversation.fields.peerInboxId != null && conversation.fields.peerInboxId !== ''}
 									<TruncatedValue
-										value={conversation.peerInboxId}
+										value={conversation.fields.peerInboxId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -156,9 +150,9 @@
 							placeholderText="Loading conversation…"
 						>
 							{#snippet children(conversation)}
-								{#if conversation.topic != null && conversation.topic !== ''}
+								{#if conversation.fields.topic != null && conversation.fields.topic !== ''}
 									<TruncatedValue
-										value={conversation.topic}
+										value={conversation.fields.topic}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -175,9 +169,9 @@
 							placeholderText="Loading conversation…"
 						>
 							{#snippet children(conversation)}
-								{#if conversation.createdAtMs !== undefined}
+								{#if conversation.fields.createdAtMs !== undefined}
 									<Timestamp
-										timestamp={conversation.createdAtMs}
+										timestamp={conversation.fields.createdAtMs}
 									/>
 								{/if}
 							{/snippet}

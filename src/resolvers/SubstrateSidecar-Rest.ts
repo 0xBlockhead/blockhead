@@ -8,9 +8,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 type SidecarBlockEvent = {
 	method: string
@@ -134,16 +134,17 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (block) => block.hash,
 			$parent: (block) => block.$parent,
 			stateRoot: (block) => block.stateRoot,
 			extrinsicsRoot: (block) => block.extrinsicsRoot,
 			$$extrinsics: (block) => block.$$extrinsics,
 			$$events: (block) => block.$$events,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
@@ -183,15 +184,16 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (extrinsic) => extrinsic.hash,
 			$signer: (extrinsic) => extrinsic.$signer,
 			$pallet: (extrinsic) => extrinsic.$pallet,
 			callName: (extrinsic) => extrinsic.callName,
 			success: (extrinsic) => extrinsic.success,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotEvent,
@@ -242,13 +244,14 @@ export default {
 					eventName: eventName,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$extrinsic: (event) => event.$extrinsic,
 			$pallet: (event) => event.$pallet,
 			eventName: (event) => event.eventName,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotAccount,
@@ -269,12 +272,13 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			nonce: (account) => account.nonce,
 			freeBalancePlancks: (account) => account.freeBalancePlancks,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotPallet,
@@ -289,11 +293,12 @@ export default {
 					index: pallet.index,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			index: (pallet) => pallet.index,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotValidator,
@@ -325,13 +330,14 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$controller: (validator) => validator.$controller,
 			commissionPerBillion: (validator) => validator.commissionPerBillion,
 			totalStakePlancks: (validator) => validator.totalStakePlancks,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotNetwork,
@@ -370,11 +376,12 @@ export default {
 							]
 					})
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$validators: (validators) => validators,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
@@ -395,11 +402,12 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$parent: (parent) => parent,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
@@ -443,11 +451,12 @@ export default {
 					}),
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$extrinsics: (extrinsics) => extrinsics,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
@@ -505,10 +514,11 @@ export default {
 					}
 				})
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$events: (events) => events,
-		}
-		}),
+		},
+			}),
 	],
 }

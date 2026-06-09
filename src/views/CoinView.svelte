@@ -3,7 +3,7 @@
 	import type { ComponentProps } from 'svelte'
 	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
 	import { catalogCoinIdentitySources } from '$/constants/Market.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { catalogCoinUsdMarketIdByCoinId } from '$/constants/MarketCatalog.ts'
 	import { blockscoutHostedNetworks } from '$/sources/Blockscout/Rest/constants.ts'
 
@@ -12,8 +12,8 @@
 		marketKindByMarketKind,
 	} from '$/constants/Market.ts'
 
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -21,7 +21,8 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -74,42 +75,17 @@
 		)),
 	)
 
-	const coin = useEntity(
-		EntityType.Coin,
+	const coin = useEntity(entityCollectionsContext, EntityType.Coin,
 		entityId,
-		{
-			$: [...catalogCoinIdentitySources],
-			$logo: {},
-			decimals: {},
-			name: {},
-			symbol: {},
-			marketCapRank: {},
-			marketCapUsd: {
-				$: catalogCoinIdentitySources,
-			},
-			...(open && hasBlockscoutNativeSnapshots && {
-				$$timestamps: {
-					$: [
+		({ sources: [...catalogCoinIdentitySources], fields: { $logo: true, decimals: true, name: true, symbol: true, marketCapRank: true, marketCapUsd: ({ sources: catalogCoinIdentitySources }), ...(open && hasBlockscoutNativeSnapshots && ({ $$timestamps: ({ sources: [
 						Source.Blockscout_Rest,
-					],
-					$limit: 8,
-				},
-			}),
-			...(open && {
-				$$coinInstances: {
-					$: [
+					], limit: 8 }) })), ...(open && ({ $$coinInstances: ({ sources: [
 						Source.Constants_Internal,
 						Source.Coingecko_Rest,
-					],
-				},
-				$$bridgeCapabilities: {
-					$: [
+					] }), $$bridgeCapabilities: ({ sources: [
 						Source.Constants_Internal,
 						Source.Lifi_Rest,
-					],
-				},
-			}),
-		},
+					] }) })) } }),
 	)
 
 
@@ -143,10 +119,10 @@
 			resource={coin}
 		>
 			{#snippet children(coin)}
-				{#if coin.$logo?.[EntityMetaKey.Id].url !== undefined}
+				{#if coin.fields.$logo?.[EntityMetaKey.Id].url !== undefined}
 					<IconComponent
-						src={coin.$logo[EntityMetaKey.Id].url}
-						alt={coin.symbol ?? coin.name ?? entityId.coinId}
+						src={coin.fields.$logo[EntityMetaKey.Id].url}
+						alt={coin.fields.symbol ?? coin.fields.name ?? entityId.coinId}
 					/>
 				{/if}
 			{/snippet}
@@ -165,7 +141,7 @@
 			placeholderText="Loading…"
 		>
 			{#snippet children(coin)}
-				{formatCoinHeadingLabel(coin, entityId.coinId)}
+				{formatCoinHeadingLabel(coin.fields, entityId.coinId)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -191,8 +167,8 @@
 				<dd>
 					<ResourceBoundary resource={coin}>
 						{#snippet children(coin)}
-							{#if coin.marketCapRank != null && Number.isFinite(coin.marketCapRank)}
-								{String(coin.marketCapRank)}
+							{#if coin.fields.marketCapRank != null && Number.isFinite(coin.fields.marketCapRank)}
+								{String(coin.fields.marketCapRank)}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -204,11 +180,11 @@
 				<dd>
 					<ResourceBoundary resource={coin}>
 						{#snippet children(coin)}
-							{#if coin.marketCapUsd != null && Number.isFinite(coin.marketCapUsd)}
+							{#if coin.fields.marketCapUsd != null && Number.isFinite(coin.fields.marketCapUsd)}
 								<CurrencyAmount
 									currency="USD"
 									scale={1}
-									value={coin.marketCapUsd}
+									value={coin.fields.marketCapUsd}
 								/>
 							{/if}
 						{/snippet}
@@ -226,7 +202,7 @@
 					<ResourceBoundary resource={coin}>
 						{#snippet children(coin)}
 							{@const headTimestampId = (
-								(coin.$$timestamps ?? [])
+								(coin.fields.$$timestamps?.values ?? [])
 									.toSorted((
 											leftRow: Entity<typeof schema, EntityType.Coin_Timestamp>,
 											rightRow: Entity<typeof schema, EntityType.Coin_Timestamp>,
@@ -258,8 +234,8 @@
 					<dd>
 						<ResourceBoundary resource={coin}>
 							{#snippet children(coin)}
-								{#if coin.decimals !== undefined}
-									{String(coin.decimals)}
+								{#if coin.fields.decimals !== undefined}
+									{String(coin.fields.decimals)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -291,10 +267,10 @@
 						sectionIdPrefix={idPrefix}
 						sections={collapsibleTabsSections([
 							{ id: 'coin-instances', label: 'Instances' },
-							...((coin.$$coinInstances ?? []).some((row: Entity<typeof schema, EntityType.EvmCoinInstance>) => (
+							...((coin.fields.$$coinInstances?.values ?? []).some((row: Entity<typeof schema, EntityType.EvmCoinInstance>) => (
 								row.representation === CoinInstanceRepresentation.BridgeWrapped
 							)) ? [{ id: 'coin-wrapped', label: 'Wrapped' } as const] : []),
-							...((coin.$$bridgeCapabilities ?? []).length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' } as const] : []),
+							...((coin.fields.$$bridgeCapabilities?.values ?? []).length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' } as const] : []),
 						])}
 						class="coin-view-collapsible-topology"
 						data-card
@@ -327,7 +303,7 @@
 						{/snippet}
 
 						{#snippet SectionCoinWrapped({ id, label })}
-							{#if (coin.$$coinInstances ?? []).some((row: Entity<typeof schema, EntityType.EvmCoinInstance>) => (
+							{#if (coin.fields.$$coinInstances?.values ?? []).some((row: Entity<typeof schema, EntityType.EvmCoinInstance>) => (
 								row.representation === CoinInstanceRepresentation.BridgeWrapped
 							))}
 								<EvmCoinInstancesView
@@ -346,7 +322,7 @@
 						{/snippet}
 
 						{#snippet SectionCoinBridgeCapabilities({ id, label })}
-							{#if (coin.$$bridgeCapabilities ?? []).length}
+							{#if (coin.fields.$$bridgeCapabilities?.values ?? []).length}
 								<CoinBridgeCapabilitiesView
 									CollapsibleProps={{ canToggle: false }}
 									href={resolve('/bridge')}

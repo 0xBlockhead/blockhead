@@ -8,9 +8,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -54,14 +54,15 @@ export default {
 					extrinsicsRoot: block.extrinsics_root,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (snapshot) => snapshot.hash,
 			$parent: (snapshot) => snapshot.$parent,
 			stateRoot: (snapshot) => snapshot.stateRoot,
 			extrinsicsRoot: (snapshot) => snapshot.extrinsicsRoot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
@@ -96,14 +97,15 @@ export default {
 					success: extrinsic.success,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (snapshot) => snapshot.hash,
 			$signer: (snapshot) => snapshot.$signer,
 			$pallet: (snapshot) => snapshot.$pallet,
 			callName: (snapshot) => snapshot.callName,
 			success: (snapshot) => snapshot.success,
-		}
-		}),
+		},
+			}),
 	],
 }

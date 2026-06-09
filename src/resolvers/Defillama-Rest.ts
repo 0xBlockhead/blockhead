@@ -6,9 +6,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 /**
  * Transport-only lane for DeFiLlama **Pro** REST (`getProCurrentPrices` in `$/sources/Defillama/Rest/queries.ts`).
@@ -53,6 +53,7 @@ export default {
 				}
 				}
 			},
+			})({
 				fields: {
 					price: (snapshot) => snapshot.price,
 					transport: (snapshot) => snapshot.transport,
@@ -105,11 +106,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$quotes: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.MarketPrice,
@@ -117,10 +119,11 @@ export default {
 				[EntityIdProjection.Identity]: async (entityId) => ({
 				[EntityMetaKey.Id]: entityId.$market,
 			})
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$parentMarket: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

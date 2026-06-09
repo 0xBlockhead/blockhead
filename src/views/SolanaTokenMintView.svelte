@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const solanaTokenMint = useEntity(
-		EntityType.SolanaTokenMint,
+	const solanaTokenMint = useEntity(entityCollectionsContext, EntityType.SolanaTokenMint,
 		entityId,
-		{
-			supply: {},
-			decimals: {},
-		},
+		({ fields: { supply: true, decimals: true } }),
 	)
 
 
@@ -66,17 +63,17 @@
 		>
 			{#snippet children(solanaTokenMint)}
 				<dl>
-					{#if solanaTokenMint.supply != null}
+					{#if solanaTokenMint.fields.supply != null}
 						<div>
 							<dt>Supply</dt>
-							<dd><NumberValue value={solanaTokenMint.supply} /></dd>
+							<dd><NumberValue value={solanaTokenMint.fields.supply} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaTokenMint.decimals != null}
+					{#if solanaTokenMint.fields.decimals != null}
 						<div>
 							<dt>Decimals</dt>
-							<dd><NumberValue value={solanaTokenMint.decimals} /></dd>
+							<dd><NumberValue value={solanaTokenMint.fields.decimals} /></dd>
 						</div>
 					{/if}
 				</dl>

@@ -3,9 +3,9 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -47,26 +47,15 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { formatValue } from '$/lib/number.ts'
 
 	const actorCoinDetailAnchorKey = stringify(entityId)
 
-	const actorCoin = useEntity(
-		EntityType.EvmNetworkActorCoinBalance,
+	const actorCoin = useEntity(entityCollectionsContext, EntityType.EvmNetworkActorCoinBalance,
 		entityId,
-		{
-			$: [Source.Allium_Rest],
-			symbol: {},
-			balance: {},
-			...(open ?
-				{
-					decimals: {},
-					usdValue: {},
-				}
-			:
-				{}),
-		},
+		({ sources: [Source.Allium_Rest], fields: { symbol: true, balance: true, ...(open ? ({ decimals: true, usdValue: true }) : ({  })) } }),
 	)
 
 
@@ -74,16 +63,16 @@
 	const formattedBalance = $derived.by(() => {
 		const currentActorCoin = actorCoin.current
 
-		if (currentActorCoin?.balance == null)
+		if (currentActorCoin?.fields.balance == null)
 			return undefined
 
-		if (currentActorCoin.decimals == null || currentActorCoin.decimals <= 0)
-			return formatValue(Number(currentActorCoin.balance))
+		if (currentActorCoin.fields.decimals == null || currentActorCoin.fields.decimals <= 0)
+			return formatValue(Number(currentActorCoin.fields.balance))
 
-		const divisor = 10n ** BigInt(currentActorCoin.decimals)
-		const integerPart = currentActorCoin.balance / divisor
-		const fractionalPart = currentActorCoin.balance % divisor
-		const fractionalPartString = String(fractionalPart).padStart(currentActorCoin.decimals, '0').replace(/0+$/, '')
+		const divisor = 10n ** BigInt(currentActorCoin.fields.decimals)
+		const integerPart = currentActorCoin.fields.balance / divisor
+		const fractionalPart = currentActorCoin.fields.balance % divisor
+		const fractionalPartString = String(fractionalPart).padStart(currentActorCoin.fields.decimals, '0').replace(/0+$/, '')
 
 		return (
 			fractionalPartString ?
@@ -119,7 +108,7 @@
 		>
 			{#snippet children(actorCoin)}
 				{formattedBalance ?? '—'}
-				{actorCoin.symbol ?? ''}
+				{actorCoin.fields.symbol ?? ''}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -131,7 +120,7 @@
 		>
 			{#snippet children(actorCoin)}
 				{formattedBalance ?? '—'}
-				{actorCoin.symbol ?? ''}
+				{actorCoin.fields.symbol ?? ''}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -180,9 +169,9 @@
 							placeholderText="Loading balance…"
 						>
 							{#snippet children(actorCoin)}
-								{#if actorCoin.balance !== undefined}
+								{#if actorCoin.fields.balance !== undefined}
 									{formattedBalance}
-									{actorCoin.symbol ?? ''}
+									{actorCoin.fields.symbol ?? ''}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -199,8 +188,8 @@
 							placeholderText="Loading balance…"
 						>
 							{#snippet children(actorCoin)}
-								{#if actorCoin.usdValue !== undefined}
-									{String(actorCoin.usdValue)}
+								{#if actorCoin.fields.usdValue !== undefined}
+									{String(actorCoin.fields.usdValue)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -217,8 +206,8 @@
 							placeholderText="Loading balance…"
 						>
 							{#snippet children(actorCoin)}
-								{#if actorCoin.decimals !== undefined}
-									{String(actorCoin.decimals)}
+								{#if actorCoin.fields.decimals !== undefined}
+									{String(actorCoin.fields.decimals)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -257,9 +246,9 @@
 				>
 					{#snippet children(actorCoin)}
 						{#if (
-							actorCoin.symbol == null
-							&& actorCoin.decimals == null
-							&& actorCoin.balance == null
+							actorCoin.fields.symbol == null
+							&& actorCoin.fields.decimals == null
+							&& actorCoin.fields.balance == null
 						)}
 							<div data-row="wrap align-center gap-2">
 								<p data-text="muted">

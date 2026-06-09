@@ -4,9 +4,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const hyperliquidHipRows = async () => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
@@ -56,24 +56,26 @@ export default {
 				if (proposal == null) throw new Error(`HyperliquidDocs_Rest: HIP not found ${entityId.number.toString()}`)
 				return proposal
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
 			documentTitle: (snapshot) => snapshot.documentTitle,
 			documentStatus: (snapshot) => snapshot.documentStatus,
 			documentBody: (snapshot) => snapshot.documentBody,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: hyperliquidHipRows
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType.SpecificationRealm,
@@ -83,11 +85,12 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Hyperliquid) throw new Error('HyperliquidDocs_Rest: $$proposals only supports Hyperliquid')
 				return hyperliquidHipRows()
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType.SpecificationProposalKind,
@@ -97,10 +100,11 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Hyperliquid || entityId.category !== ProposalCategory.Hip) throw new Error('HyperliquidDocs_Rest: $$proposals only supports Hyperliquid HIPs')
 				return hyperliquidHipRows()
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

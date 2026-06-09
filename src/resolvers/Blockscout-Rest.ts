@@ -12,11 +12,11 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import type { Entity, EntityId } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	EvmInternalCallType,
 	EvmTokenStandard,
@@ -977,8 +977,9 @@ export default {
 				})
 			}
 			},
+		})({
 				fields: {},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
@@ -1242,6 +1243,7 @@ export default {
 				}
 				}
 			},
+			})({
 				fields: {},
 			}),
 
@@ -1273,6 +1275,7 @@ export default {
 				return evmLogEntityFromIdAndWire(entityId, log)
 			}
 			},
+			})({
 				fields: {
 					topics: (entity) => entity.topics,
 				},
@@ -1317,8 +1320,9 @@ export default {
 				return entity
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmInternalTransfer,
@@ -1358,8 +1362,9 @@ export default {
 				return entity
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337SmartAccount,
@@ -1405,8 +1410,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337Bundler,
@@ -1435,8 +1441,9 @@ export default {
 				)
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337Paymaster,
@@ -1468,8 +1475,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337AccountFactory,
@@ -1501,8 +1509,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmUserOperation,
@@ -1706,8 +1715,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
@@ -1763,8 +1773,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Market_Timestamp,
@@ -1798,8 +1809,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
@@ -1826,8 +1838,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Coin_Timestamp,
@@ -1861,7 +1874,8 @@ export default {
 				}
 			}
 			},
-			fields: {},
+			})({
+				fields: {},
 			}),
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -1877,6 +1891,7 @@ export default {
 				)
 			}
 			},
+			})({
 				fields: {
 					$$transactions: {
 						resolveCount: (count) => count,
@@ -1898,6 +1913,7 @@ export default {
 				)
 			}
 			},
+			})({
 				fields: {
 					$$blocks: {
 						resolveCount: (count) => count,
@@ -1924,6 +1940,7 @@ export default {
 				)
 			}
 			},
+			})({
 				fields: {
 					$$transactions: {
 						resolveCount: (count) => count,
@@ -1950,6 +1967,7 @@ export default {
 				)
 			}
 			},
+			})({
 				fields: {
 					$$tokenTransfers: {
 						resolveCount: (count) => count,
@@ -1975,7 +1993,8 @@ export default {
 				return header.transactions.length
 			}
 			},
-			fields: {
+			})({
+				fields: {
 				$$transactions: {
 					resolveCount: (count) => count,
 				},
@@ -2080,6 +2099,7 @@ export default {
 					)
 				}
 			},
+			})({
 				fields: {
 					$$blocks: (entity) => entity,
 				},
@@ -2131,6 +2151,7 @@ export default {
 					)
 				}
 			},
+			})({
 				fields: {
 					$$transactions: (entity) => entity,
 				},
@@ -2190,6 +2211,7 @@ export default {
 					)
 				}
 			},
+			})({
 				fields: {
 					$$transactions: (entity) => entity,
 				},
@@ -2240,6 +2262,7 @@ export default {
 					return entities
 				}
 			},
+			})({
 				fields: {
 					$$tokenTransfers: (entity) => entity,
 				},
@@ -2290,10 +2313,11 @@ export default {
 				return entities
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$internalTransfers: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
@@ -2304,10 +2328,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$erc20TokenAllowances: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -2362,10 +2387,11 @@ export default {
 				return tokenTransfers
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$erc20TokenTransfers: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -2423,10 +2449,11 @@ export default {
 				return tokenTransfers
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$nftTokenTransfers: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -2472,10 +2499,11 @@ export default {
 				return entities
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$contracts: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -2509,10 +2537,11 @@ export default {
 				})
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$erc4337SmartAccounts: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -2551,10 +2580,11 @@ export default {
 				})
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$erc4337Bundlers: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -2593,10 +2623,11 @@ export default {
 				})
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$erc4337Paymasters: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -2635,10 +2666,11 @@ export default {
 				})
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$erc4337AccountFactories: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -2684,10 +2716,11 @@ export default {
 				return entities
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$userOperations: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -2711,10 +2744,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$gasEstimateTimestamps: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Coin,
@@ -2746,10 +2780,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.MarketPrice,
@@ -2798,10 +2833,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$quotes: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
@@ -2842,10 +2878,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$logs: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
@@ -2886,10 +2923,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$tokenTransfers: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
@@ -2930,10 +2968,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$internalTransfers: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
@@ -2986,10 +3025,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$userOperations: (entity) => entity,
 			},
-		}),
+			}),
 
 			defineResolver(Source.Blockscout_Rest, {
 				entityType: EntityType.EvmBlock,
@@ -3039,6 +3079,7 @@ export default {
 					)
 				}
 			},
+			})({
 				fields: {
 					$$transactions: (entity) => entity,
 				},
@@ -3069,10 +3110,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$deployer: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
@@ -3100,10 +3142,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$creationTransaction: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
@@ -3148,10 +3191,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$implementation: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
@@ -3170,10 +3214,11 @@ export default {
 				return abi == null ? undefined : evmAbiFromJsonString(abi)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				abi: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
@@ -3193,10 +3238,11 @@ export default {
 				return evmContractRuntimeCodeFromGetCodeHex(codeHex)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				code: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
@@ -3216,10 +3262,11 @@ export default {
 				return evmContractBytecodeHashFromGetCodeHex(codeHex)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				codeHash: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
@@ -3259,9 +3306,10 @@ export default {
 				})
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				storageSlotReads: (entity) => entity,
 			},
-		}),
+			}),
 	],
 }

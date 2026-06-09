@@ -1,19 +1,19 @@
 import { type } from 'arktype'
 
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import type {
 	EntityDefinition,
 	EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { UrlString } from '$/schema/$Url.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import EvmAccount from '$/schema/EvmAccount.ts'
 import Network from '$/schema/EvmNetwork.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const contractPositionProtocol = type({
 	key: 'string',

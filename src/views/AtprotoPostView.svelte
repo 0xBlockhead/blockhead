@@ -2,16 +2,17 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,39 +39,15 @@
 
 	const idKey = stringify(entityId)
 
-	const post = useEntity(
-		EntityType.AtprotoPost,
+	const post = useEntity(entityCollectionsContext, EntityType.AtprotoPost,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Atproto_Xrpc,
 				Source.Atproto_BskySocial_Xrpc,
-			],
-			text: {},
-			createdAt: {},
-			...(open ?
-				{
-					$author: {},
-					$parent: {},
-					$root: {},
-					indexedAt: {},
-					replyCount: {},
-					repostCount: {},
-					likeCount: {},
-					quoteCount: {},
-					$$timestamps: {
-						$: [
+			], fields: { text: true, createdAt: true, ...(open ? ({ $author: true, $parent: true, $root: true, indexedAt: true, replyCount: true, repostCount: true, likeCount: true, quoteCount: true, $$timestamps: ({ sources: [
 							Source.Atproto_Xrpc,
 							Source.Atproto_BskySocial_Xrpc,
-						],
-						$limit: 1,
-					},
-					langs: {},
-					selfLabelValues: {},
-				}
-			:
-				{}),
-		},
+						], limit: 1 }), langs: true, selfLabelValues: true }) : ({  })) } }),
 	)
 
 
@@ -110,12 +87,12 @@
 			placeholderText="Loading post…"
 		>
 			{#snippet children(post)}
-				{#if post.text}
+				{#if post.fields.text}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={post.text}
+						value={post.fields.text}
 					/>
 					{:else}
 						<span data-text="font-monospace">
@@ -134,10 +111,10 @@
 			resource={post}
 		>
 			{#snippet children(post)}
-				{#if post.createdAt}
+				{#if post.fields.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={post.createdAt}
+							timestamp={post.fields.createdAt}
 						/>
 					</span>
 				{/if}
@@ -161,33 +138,33 @@
 			placeholderText="Loading post…"
 		>
 			{#snippet children(post)}
-				{#if post.text}
+				{#if post.fields.text}
 					<p>
 						<TruncatedValue
-							value={post.text}
+							value={post.fields.text}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
 				{/if}
 
 				<dl data-column-item="center">
-					{#if post.createdAt}
+					{#if post.fields.createdAt}
 						<div>
 							<dt>Published</dt>
 							<dd>
 								<Timestamp
-									timestamp={post.createdAt}
+									timestamp={post.fields.createdAt}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && post.$author}
+					{#if contentOpen && post.fields.$author}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<AtprotoActorView
-									entityId={post.$author[EntityMetaKey.Id]}
+									entityId={post.fields.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -195,12 +172,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && post.$parent}
+					{#if contentOpen && post.fields.$parent}
 						<div>
 							<dt>Reply to</dt>
 							<dd>
 								<svelte:self
-									entityId={post.$parent[EntityMetaKey.Id]}
+									entityId={post.fields.$parent[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -208,12 +185,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && post.$root && post.$root[EntityMetaKey.Id].uri !== post.$parent?.[EntityMetaKey.Id].uri}
+					{#if contentOpen && post.fields.$root && post.fields.$root[EntityMetaKey.Id].uri !== post.fields.$parent?.[EntityMetaKey.Id].uri}
 						<div>
 							<dt>Thread root</dt>
 							<dd>
 								<svelte:self
-									entityId={post.$root[EntityMetaKey.Id]}
+									entityId={post.fields.$root[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -226,44 +203,44 @@
 							metrics={[
 								{
 									label: 'Replies',
-									value: post.$$timestamps[0]?.replyCount ?? post.replyCount,
+									value: post.fields.$$timestamps[0]?.replyCount ?? post.fields.replyCount,
 								},
 								{
 									label: 'Reposts',
-									value: post.$$timestamps[0]?.repostCount ?? post.repostCount,
+									value: post.fields.$$timestamps[0]?.repostCount ?? post.fields.repostCount,
 								},
 								{
 									label: 'Likes',
-									value: post.$$timestamps[0]?.likeCount ?? post.likeCount,
+									value: post.fields.$$timestamps[0]?.likeCount ?? post.fields.likeCount,
 								},
 								{
 									label: 'Quotes',
-									value: post.$$timestamps[0]?.quoteCount ?? post.quoteCount,
+									value: post.fields.$$timestamps[0]?.quoteCount ?? post.fields.quoteCount,
 								},
 							]}
 						/>
 					{/if}
 
-					{#if contentOpen && post.langs?.length}
+					{#if contentOpen && post.fields.langs?.length}
 						<div>
 							<dt>Languages</dt>
-							<dd>{post.langs.join(', ')}</dd>
+							<dd>{post.fields.langs.join(', ')}</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && post.selfLabelValues?.length}
+					{#if contentOpen && post.fields.selfLabelValues?.length}
 						<div>
 							<dt>Self labels</dt>
-							<dd>{post.selfLabelValues.join(', ')}</dd>
+							<dd>{post.fields.selfLabelValues.join(', ')}</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && post.indexedAt}
+					{#if contentOpen && post.fields.indexedAt}
 						<div>
 							<dt>Indexed</dt>
 							<dd>
 								<Timestamp
-									timestamp={post.indexedAt}
+									timestamp={post.fields.indexedAt}
 								/>
 							</dd>
 						</div>

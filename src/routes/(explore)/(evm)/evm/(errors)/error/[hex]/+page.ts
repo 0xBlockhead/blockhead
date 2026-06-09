@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit'
 
 import { type as arktype } from 'arktype'
 
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 import type { PageLoad } from './$types.ts'
 

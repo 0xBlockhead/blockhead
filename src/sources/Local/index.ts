@@ -1,5 +1,5 @@
 
-import { type SourceProviderDefinition, SourceProvider } from '$/sources/$SourceProvider.ts'
+import { type SourceProviderDefinition, SourceProvider } from '$/sources/SourceProvider.ts'
 import LocalInternalSource from '$/sources/Local/Internal/index.ts'
 
 export default {

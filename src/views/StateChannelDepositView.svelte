@@ -1,16 +1,17 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,17 +39,9 @@
 		>
 	> = $props()
 
-	const deposit = useEntity(
-		EntityType.StateChannelDeposit,
+	const deposit = useEntity(entityCollectionsContext, EntityType.StateChannelDeposit,
 		entityId,
-		{
-			$: [Source.Local_Internal],
-			availableBalance: {},
-			lockedBalance: {},
-			lastUpdated: {},
-			$account: {},
-			$network: {},
-		},
+		({ sources: [Source.Local_Internal], fields: { availableBalance: true, lockedBalance: true, lastUpdated: true, $account: true, $network: true } }),
 	)
 
 
@@ -85,11 +78,11 @@
 				placeholderText="…"
 			>
 				{#snippet children(deposit)}
-					{#if deposit.$account?.[EntityMetaKey.Id].address !== undefined}
+					{#if deposit.fields.$account?.[EntityMetaKey.Id].address !== undefined}
 						<EvmAccountView
-							entityId={deposit.$account[EntityMetaKey.Id]}
+							entityId={deposit.fields.$account[EntityMetaKey.Id]}
 							href={resolve('/account/[address]', {
-								address: deposit.$account[EntityMetaKey.Id].address,
+								address: deposit.fields.$account[EntityMetaKey.Id].address,
 							})}
 							layout={EntityLayout.Value}
 							open={false}
@@ -117,24 +110,24 @@
 				placeholderText="Loading channel deposit…"
 			>
 				{#snippet children(deposit)}
-					{#if deposit.$account?.[EntityMetaKey.Id].address !== undefined}
+					{#if deposit.fields.$account?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>Account</dt>
 							<dd>
-									{#if deposit.$network !== undefined}
+									{#if deposit.fields.$network !== undefined}
 										<EvmNetworkAccountView
 											entityId={{
-												$network: deposit.$network[EntityMetaKey.Id],
-											$actor: deposit.$account[EntityMetaKey.Id],
+												$network: deposit.fields.$network[EntityMetaKey.Id],
+											$actor: deposit.fields.$account[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Title}
 											open={false}
 									/>
 								{:else}
 									<EvmAccountView
-										entityId={deposit.$account[EntityMetaKey.Id]}
+										entityId={deposit.fields.$account[EntityMetaKey.Id]}
 										href={resolve('/account/[address]', {
-											address: deposit.$account[EntityMetaKey.Id].address,
+											address: deposit.fields.$account[EntityMetaKey.Id].address,
 										})}
 										layout={EntityLayout.Title}
 										open={false}
@@ -144,30 +137,30 @@
 						</div>
 					{/if}
 
-					{#if deposit.availableBalance !== undefined}
+					{#if deposit.fields.availableBalance !== undefined}
 						<div>
 							<dt>Available</dt>
 							<dd>
-								<NumberValue value={deposit.availableBalance} />
+								<NumberValue value={deposit.fields.availableBalance} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if deposit.lockedBalance !== undefined}
+					{#if deposit.fields.lockedBalance !== undefined}
 						<div>
 							<dt>Locked</dt>
 							<dd>
-								<NumberValue value={deposit.lockedBalance} />
+								<NumberValue value={deposit.fields.lockedBalance} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if deposit.lastUpdated !== undefined}
+					{#if deposit.fields.lastUpdated !== undefined}
 						<div>
 							<dt>Last updated</dt>
 							<dd>
 								<Timestamp
-									timestamp={deposit.lastUpdated}
+									timestamp={deposit.fields.lastUpdated}
 								/>
 							</dd>
 						</div>

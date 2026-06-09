@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const nearChunk = useEntity(
-		EntityType.NearChunk,
+	const nearChunk = useEntity(entityCollectionsContext, EntityType.NearChunk,
 		entityId,
-		{
-			shardId: {},
-			gasUsed: {},
-		},
+		({ fields: { shardId: true, gasUsed: true } }),
 	)
 
 
@@ -76,17 +73,17 @@
 		>
 			{#snippet children(nearChunk)}
 				<dl>
-					{#if nearChunk.shardId != null}
+					{#if nearChunk.fields.shardId != null}
 						<div>
 							<dt>Shard ID</dt>
-							<dd><NumberValue value={nearChunk.shardId} /></dd>
+							<dd><NumberValue value={nearChunk.fields.shardId} /></dd>
 						</div>
 					{/if}
 
-					{#if nearChunk.gasUsed != null}
+					{#if nearChunk.fields.gasUsed != null}
 						<div>
 							<dt>Gas Used</dt>
-							<dd><NumberValue value={nearChunk.gasUsed} /></dd>
+							<dd><NumberValue value={nearChunk.fields.gasUsed} /></dd>
 						</div>
 					{/if}
 				</dl>

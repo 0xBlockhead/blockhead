@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -19,15 +20,11 @@
 		open?: boolean
 	} = $props()
 
-	const networkStack = useEntity(
-		EntityType.NetworkStack,
+	const networkStack = useEntity(entityCollectionsContext, EntityType.NetworkStack,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			label: {},
-		},
+			], fields: { label: true } }),
 	)
 
 
@@ -49,7 +46,7 @@
 			resource={networkStack}
 		>
 			{#snippet children(stack)}
-				{stack.label}
+				{stack.fields.label}
 			{/snippet}
 		</ResourceBoundary>
 

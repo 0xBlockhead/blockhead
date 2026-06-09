@@ -9,14 +9,15 @@
 		specificationRealmById,
 	} from '$/constants/SpecificationProposal.ts'
 
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import ProposalSchema from '$/schema/SpecificationProposal.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -86,11 +87,9 @@
 	}
 
 
-	const proposal = useEntity(
-		EntityType.SpecificationProposal,
+	const proposal = useEntity(entityCollectionsContext, EntityType.SpecificationProposal,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				entityId.realm === SpecificationRealm.Bitcoin && entityId.category === ProposalCategory.Bip ?
 					Source.BitcoinBips_Github
 				: entityId.realm === SpecificationRealm.BitcoinCash && entityId.category === ProposalCategory.Chip ?
@@ -128,42 +127,26 @@
 					Source.ZcashZips_Github
 				:
 					Source.Constants_Internal,
-			],
-			documentBody: {},
-			documentCategory: {},
-			documentStatus: {},
-			documentTitle: {},
-		},
+			], fields: { documentBody: true, documentCategory: true, documentStatus: true, documentTitle: true } }),
 	)
 
-	const specificationRealm = useEntity(
-		EntityType.SpecificationRealm,
+	const specificationRealm = useEntity(entityCollectionsContext, EntityType.SpecificationRealm,
 		{
 			realm: entityId.realm,
 		},
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			label: {},
-			slug: {},
-		},
+			], fields: { label: true, slug: true } }),
 	)
 
-	const proposalKind = useEntity(
-		EntityType.SpecificationProposalKind,
+	const proposalKind = useEntity(entityCollectionsContext, EntityType.SpecificationProposalKind,
 		{
 			realm: entityId.realm,
 			category: entityId.category,
 		},
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			label: {},
-			labelPlural: {},
-			slug: {},
-		},
+			], fields: { label: true, labelPlural: true, slug: true } }),
 	)
 
 
@@ -203,7 +186,7 @@
 		>
 			{#snippet children(proposalKind)}
 				<span>
-					{`${proposalKind.label ?? entityId.category}-${entityId.number}`}
+					{`${proposalKind.fields.label ?? entityId.category}-${entityId.number}`}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -224,9 +207,9 @@
 					>
 						{#snippet children(proposalKind)}
 							{proposalHeadingTitle(
-								proposal,
+								proposal.fields,
 								entityId,
-								proposalKind.label ?? entityId.category,
+								proposalKind.fields.label ?? entityId.category,
 							)}
 						{/snippet}
 					</ResourceBoundary>
@@ -255,8 +238,8 @@
 							placeholderText="Loading proposal…"
 						>
 							{#snippet children(proposal)}
-								{#if proposal.documentCategory}
-									{proposal.documentCategory}
+								{#if proposal.fields.documentCategory}
+									{proposal.fields.documentCategory}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -270,7 +253,7 @@
 							placeholderText="Loading proposal…"
 						>
 							{#snippet children(proposal)}
-								{proposal.documentStatus}
+								{proposal.fields.documentStatus}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -284,14 +267,14 @@
 								placeholderText="Loading specification realm…"
 							>
 								{#snippet children(specificationRealm)}
-									{#if specificationRealm.slug != null}
+									{#if specificationRealm.fields.slug != null}
 										<a href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-											specificationRealmSlug: specificationRealm.slug,
+											specificationRealmSlug: specificationRealm.fields.slug,
 										})}>
-											{specificationRealm.label ?? entityId.realm}
+											{specificationRealm.fields.label ?? entityId.realm}
 										</a>
 									{:else}
-										{specificationRealm.label ?? entityId.realm}
+										{specificationRealm.fields.label ?? entityId.realm}
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -313,17 +296,17 @@
 										placeholderText="Loading proposal kind…"
 									>
 										{#snippet children(proposalKind)}
-											{#if specificationRealm.slug != null && proposalKind.slug != null}
+											{#if specificationRealm.fields.slug != null && proposalKind.fields.slug != null}
 												<a
 													href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {
-														specificationRealmSlug: specificationRealm.slug,
-														proposalKindSlug: proposalKind.slug,
+														specificationRealmSlug: specificationRealm.fields.slug,
+														proposalKindSlug: proposalKind.fields.slug,
 													})}
 												>
-													{proposalKind.labelPlural ?? proposalKind.label ?? entityId.category}
+													{proposalKind.fields.labelPlural ?? proposalKind.fields.label ?? entityId.category}
 												</a>
 											{:else}
-												{proposalKind.labelPlural ?? proposalKind.label ?? entityId.category}
+												{proposalKind.fields.labelPlural ?? proposalKind.fields.label ?? entityId.category}
 											{/if}
 										{/snippet}
 									</ResourceBoundary>
@@ -367,10 +350,10 @@
 			>
 				{#snippet children(proposal)}
 					<h3>Document body</h3>
-					{#if !proposal.documentBody}
+					{#if !proposal.fields.documentBody}
 						<p data-text="muted">No proposal body available.</p>
 					{:else}
-						<Markdown content={proposal.documentBody} />
+						<Markdown content={proposal.fields.documentBody} />
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

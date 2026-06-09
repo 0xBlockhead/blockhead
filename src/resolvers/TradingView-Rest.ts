@@ -14,9 +14,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { stringify } from 'devalue'
 
 export default {
@@ -49,13 +49,14 @@ export default {
 					providerAssetId: market.ticker,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			price: (snapshot) => snapshot.price,
 			transport: (snapshot) => snapshot.transport,
 			providerAssetId: (snapshot) => snapshot.providerAssetId,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType._Global,
@@ -85,11 +86,12 @@ export default {
 							}]
 					))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$markets: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType._Global,
@@ -121,11 +123,12 @@ export default {
 							}]
 					))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$marketPrices: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Coin,
@@ -155,11 +158,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$marketsWithCoinAsBase: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Coin,
@@ -167,11 +171,12 @@ export default {
 				[EntityIdProjection.Identity]: async (entityId) => {
 				throw new Error(`TradingView_Rest: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$marketsWithCoinAsQuote: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Currency,
@@ -193,11 +198,12 @@ export default {
 				}
 				return markets
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$marketsWithCurrencyAsQuote: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Currency,
@@ -213,11 +219,12 @@ export default {
 				}
 				return markets
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$marketsWithCurrencyAsBase: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.MarketPrice,
@@ -248,10 +255,11 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$quotes: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

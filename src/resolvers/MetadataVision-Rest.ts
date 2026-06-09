@@ -6,9 +6,9 @@ import {
 import { schema } from '$/schema/index.ts'
 import type { EntityFieldValues } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { EntityIdProjection } from '$/schema/$schema.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 export default {
@@ -54,14 +54,15 @@ export default {
 					)
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			openGraphTitle: (snapshot) => snapshot.openGraphTitle,
 			openGraphDescription: (snapshot) => snapshot.openGraphDescription,
 			publisher: (snapshot) => snapshot.publisher,
 			$openGraphImage: (snapshot) => snapshot.$openGraphImage,
 			$siteIcon: (snapshot) => snapshot.$siteIcon,
-		}
-		}),
+		},
+			}),
 	],
 }

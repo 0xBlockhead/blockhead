@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -30,19 +31,20 @@
 		>
 	> = $props()
 
-	const committee = useEntity(
-		EntityType.BeaconSyncCommittee,
+	const committee = useEntity(entityCollectionsContext, EntityType.BeaconSyncCommittee,
 		entityId,
 		(
 			open ?
 				{
-					$: [
+					sources: [
 						Source.Beacon_Rest,
 					],
-					validatorIndices: {},
+					fields: {
+						validatorIndices: true,
+					},
 				}
 			:
-				{}
+				{ fields: {} }
 		),
 	)
 
@@ -90,8 +92,8 @@
 							placeholderText="Loading sync committee…"
 						>
 							{#snippet children(committee)}
-								{#if committee.validatorIndices !== undefined}
-									<NumberValue value={committee.validatorIndices.length} />
+								{#if committee.fields.validatorIndices !== undefined}
+									<NumberValue value={committee.fields.validatorIndices.length} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

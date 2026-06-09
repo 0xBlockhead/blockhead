@@ -5,7 +5,7 @@
 
 import { coinMarketCapFetch } from '$/sources/CoinMarketCap/Rest/client.ts'
 import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import type {
 	CoinMarketCapInfoLatestResponse,

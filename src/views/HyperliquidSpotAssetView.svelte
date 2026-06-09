@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const hyperliquidSpotAsset = useEntity(
-		EntityType.HyperliquidSpotAsset,
+	const hyperliquidSpotAsset = useEntity(entityCollectionsContext, EntityType.HyperliquidSpotAsset,
 		entityId,
-		{
-			name: {},
-			szDecimals: {},
-		},
+		({ fields: { name: true, szDecimals: true } }),
 	)
 
 
@@ -66,17 +63,17 @@
 		>
 			{#snippet children(hyperliquidSpotAsset)}
 				<dl>
-					{#if hyperliquidSpotAsset.name != null}
+					{#if hyperliquidSpotAsset.fields.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{hyperliquidSpotAsset.name}</dd>
+							<dd>{hyperliquidSpotAsset.fields.name}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidSpotAsset.szDecimals != null}
+					{#if hyperliquidSpotAsset.fields.szDecimals != null}
 						<div>
 							<dt>Sz Decimals</dt>
-							<dd><NumberValue value={hyperliquidSpotAsset.szDecimals} /></dd>
+							<dd><NumberValue value={hyperliquidSpotAsset.fields.szDecimals} /></dd>
 						</div>
 					{/if}
 				</dl>

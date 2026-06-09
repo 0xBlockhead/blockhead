@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import MoneroDaemonRpcJsonRpc from '$/sources/MoneroDaemonRpc/JsonRpc/index.ts'
 
 export default {

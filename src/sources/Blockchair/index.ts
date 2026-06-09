@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import { blockchairOrigins } from '$/sources/Blockchair/Rest/constants.ts'
 import BlockchairRestSource from '$/sources/Blockchair/Rest/index.ts'
 

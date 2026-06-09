@@ -1,13 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { CoinId } from '$/constants/Coin.ts'
 	import { catalogCoinIdentitySources } from '$/constants/Market.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { enabledSources } from '$/sources/index.ts'
 	import { stringify } from 'devalue'
@@ -97,7 +97,8 @@
 
 
 	import type { DeclarativeOrderBy } from '$/lib/tanstackDb/orderBySteps.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
@@ -135,22 +136,19 @@
 		{/snippet}
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
-				{@const parent = useEntity(
+				{@const parent = useEntity(entityCollectionsContext,
 					entityFieldReference.entityType,
-					entityFieldReference.entityId,
-					{
-						$: catalogCoinSources,
-						[entityFieldReference.fieldName]: {
-							$: catalogCoinSources,
-							$orderBy: globalCoinsFieldOrderBy,
-							$limit: limit,
+					entityFieldReference.entityId,({ sources: catalogCoinSources, fields: { [entityFieldReference.fieldName]: {
+							sources: catalogCoinSources,
+							orderBy: [...globalCoinsFieldOrderBy],
+							limit: limit,
 						},
-					},
+					} }),
 				)}
 				{@const coins = derive(
 					parent,
-					(parent): Entity<typeof schema, EntityType.Coin>[] => {
-						const sourceCoins = parent[entityFieldReference.fieldName]
+					(parent): readonly Entity<typeof schema, EntityType.Coin>[] => {
+						const sourceCoins = parent.fields[entityFieldReference.fieldName]?.values
 						const orderedCoins = (
 							sourceCoins == null ?
 								[]

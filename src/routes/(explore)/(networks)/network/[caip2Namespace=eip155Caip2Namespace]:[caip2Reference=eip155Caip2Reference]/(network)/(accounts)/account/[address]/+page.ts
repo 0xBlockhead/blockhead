@@ -5,7 +5,7 @@ import { type as arktype } from 'arktype'
 import EvmNetworkAccountSchema from '$/schema/EvmNetworkAccount.ts'
 import EvmAccountSchema from '$/schema/EvmAccount.ts'
 import NetworkSchema from '$/schema/EvmNetwork.ts'
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 import type { PageLoad } from './$types.ts'
 

@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import DogecoinCoreJsonRpc from '$/sources/DogecoinCore/JsonRpc/index.ts'
 
 export default {

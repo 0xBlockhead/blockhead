@@ -10,13 +10,13 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const evmNetworkIdFromChainId = (chainId: number) => ({
 	caip2: {
@@ -110,16 +110,17 @@ export default {
 					),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			coinId: (coinInstance) => coinInstance.coinId,
 			name: (coinInstance) => coinInstance.name,
 			symbol: (coinInstance) => coinInstance.symbol,
 			decimals: (coinInstance) => coinInstance.decimals,
 			caip19: (coinInstance) => coinInstance.caip19,
 			$icon: (coinInstance) => coinInstance.$icon,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmNetworkActorCoinBalance,
@@ -177,14 +178,15 @@ export default {
 							{}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			symbol: (balance) => balance.symbol,
 			decimals: (balance) => balance.decimals,
 			balance: (balance) => balance.balance,
 			usdValue: (balance) => balance.usdValue,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
@@ -250,11 +252,12 @@ export default {
 						))
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$ownedCoins: (ownedCoins) => ownedCoins,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType._Global,
@@ -328,10 +331,11 @@ export default {
 
 				return evmNetworkActorCoinBalanceRows.slice(0, subsetRowLimit)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$actorCoins: (actorCoins) => actorCoins,
-		}
-		}),
+		},
+			}),
 	],
 }

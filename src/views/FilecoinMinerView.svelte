@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const filecoinMiner = useEntity(
-		EntityType.FilecoinMiner,
+	const filecoinMiner = useEntity(entityCollectionsContext, EntityType.FilecoinMiner,
 		entityId,
-		{
-			peerId: {},
-			qualityAdjustedPower: {},
-		},
+		({ fields: { peerId: true, qualityAdjustedPower: true } }),
 	)
 
 
@@ -66,21 +63,21 @@
 		>
 			{#snippet children(filecoinMiner)}
 				<dl>
-					{#if filecoinMiner.peerId != null}
+					{#if filecoinMiner.fields.peerId != null}
 						<div>
 							<dt>Peer ID</dt>
 							<dd>
 								<TruncatedValue
-									value={filecoinMiner.peerId}
+									value={filecoinMiner.fields.peerId}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if filecoinMiner.qualityAdjustedPower != null}
+					{#if filecoinMiner.fields.qualityAdjustedPower != null}
 						<div>
 							<dt>Quality Adjusted Power</dt>
-							<dd><NumberValue value={filecoinMiner.qualityAdjustedPower} /></dd>
+							<dd><NumberValue value={filecoinMiner.fields.qualityAdjustedPower} /></dd>
 						</div>
 					{/if}
 				</dl>

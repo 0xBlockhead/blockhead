@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import LightningMempoolSpaceRest from '$/sources/LightningMempoolSpace/Rest/index.ts'
 
 export default {

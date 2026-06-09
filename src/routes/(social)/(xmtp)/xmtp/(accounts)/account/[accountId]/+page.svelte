@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import { type as arktype } from 'arktype'
-	import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State

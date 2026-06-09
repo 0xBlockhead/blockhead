@@ -27,12 +27,12 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { schema } from '$/schema/index.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.CoinMarketCap_Rest,
@@ -75,12 +75,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				name: (coin) => coin.name,
 				symbol: (coin) => coin.symbol,
 				$logo: (coin) => coin.$logo,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market_Timestamp,
@@ -150,13 +151,14 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				price: (timestamp) => timestamp.price,
 				transport: (timestamp) => timestamp.transport,
 				providerAssetId: (timestamp) => timestamp.providerAssetId,
 				caip19: (timestamp) => timestamp.caip2,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
@@ -198,7 +200,8 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				open: (timestamp) => timestamp.open,
 				high: (timestamp) => timestamp.high,
 				low: (timestamp) => timestamp.low,
@@ -208,7 +211,7 @@ export default {
 				tradeCount: (timestamp) => timestamp.tradeCount,
 				vwap: (timestamp) => timestamp.vwap,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType._Global,
@@ -229,10 +232,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$coins: (coins) => coins,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType._Global,
@@ -251,10 +255,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$markets: (markets) => markets,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType._Global,
@@ -263,10 +268,11 @@ export default {
 				throw new Error('CoinMarketCap_Rest: $$marketTimeIntervalTimestamps is not implemented')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketTimeIntervalTimestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType._Global,
@@ -287,10 +293,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketPrices: (marketPrices) => marketPrices,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Coin,
@@ -309,10 +316,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithCoinAsBase: (markets) => markets,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Coin,
@@ -337,10 +345,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithCoinAsQuote: (markets) => markets,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Currency,
@@ -361,10 +370,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithCurrencyAsQuote: (markets) => markets,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Currency,
@@ -381,10 +391,11 @@ export default {
 				return markets
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithCurrencyAsBase: (markets) => markets,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market,
@@ -433,10 +444,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketTimeIntervalTimestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.MarketPrice,
@@ -483,10 +495,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$quotes: (quotes) => quotes,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.MarketPrice,
@@ -497,10 +510,11 @@ export default {
 				}
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$parentMarket: (market) => market,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
@@ -511,9 +525,10 @@ export default {
 				}
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$parentMarket: (market) => market,
 			},
-		}),
+			}),
 	],
 }

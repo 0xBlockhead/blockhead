@@ -12,16 +12,17 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { Source } from '$/sources/Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -45,27 +46,12 @@
 		>
 	> = $props()
 
-	const step = useEntity(
-		EntityType.BridgeRouteStep,
+	const step = useEntity(entityCollectionsContext, EntityType.BridgeRouteStep,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
-			],
-			$fromNetwork: {},
-			$toNetwork: {},
-			$fromToken: {},
-			$toToken: {},
-			...(open && {
-				stepType: {},
-				tool: {},
-				railId: {},
-				settlementModel: {},
-				verificationModel: {},
-				assetOutcome: {},
-			}),
-		},
+			], fields: { $fromNetwork: true, $toNetwork: true, $fromToken: true, $toToken: true, ...(open && ({ stepType: true, tool: true, railId: true, settlementModel: true, verificationModel: true, assetOutcome: true })) } }),
 	)
 
 
@@ -97,8 +83,8 @@
 		>
 			{#snippet children(step)}
 				{(
-					step.tool != null && step.tool !== '' ?
-						(bridgeToolByKey[step.tool]?.label ?? step.tool)
+					step.fields.tool != null && step.fields.tool !== '' ?
+						(bridgeToolByKey[step.fields.tool]?.label ?? step.fields.tool)
 					:
 						`Step ${entityId.index + 1}`
 				)}
@@ -122,8 +108,8 @@
 						placeholderText="Loading step…"
 					>
 						{#snippet children(step)}
-							{#if step.stepType !== undefined}
-								{bridgeRouteStepTypeByWire[step.stepType]?.label ?? step.stepType}
+							{#if step.fields.stepType !== undefined}
+								{bridgeRouteStepTypeByWire[step.fields.stepType]?.label ?? step.fields.stepType}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -138,12 +124,12 @@
 						placeholderText="Loading step…"
 					>
 						{#snippet children(step)}
-							{#if step.tool !== undefined}
+							{#if step.fields.tool !== undefined}
 								{(
-									step.tool !== '' ?
-										(bridgeToolByKey[step.tool]?.label ?? step.tool)
+									step.fields.tool !== '' ?
+										(bridgeToolByKey[step.fields.tool]?.label ?? step.fields.tool)
 									:
-										step.tool
+										step.fields.tool
 								)}
 							{/if}
 						{/snippet}
@@ -160,8 +146,8 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.railId !== undefined}
-									{bridgeRailById[step.railId]?.label ?? step.railId}
+								{#if step.fields.railId !== undefined}
+									{bridgeRailById[step.fields.railId]?.label ?? step.fields.railId}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -178,8 +164,8 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.settlementModel !== undefined}
-									{bridgeSettlementModelBySettlementModel[step.settlementModel].label}
+								{#if step.fields.settlementModel !== undefined}
+									{bridgeSettlementModelBySettlementModel[step.fields.settlementModel].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -196,8 +182,8 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.verificationModel !== undefined}
-									{bridgeVerificationModelByVerificationModel[step.verificationModel].label}
+								{#if step.fields.verificationModel !== undefined}
+									{bridgeVerificationModelByVerificationModel[step.fields.verificationModel].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -214,8 +200,8 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.assetOutcome !== undefined}
-									{bridgeAssetOutcomeByAssetOutcome[step.assetOutcome].label}
+								{#if step.fields.assetOutcome !== undefined}
+									{bridgeAssetOutcomeByAssetOutcome[step.fields.assetOutcome].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -231,9 +217,9 @@
 						placeholderText="Loading step…"
 					>
 						{#snippet children(step)}
-							{#if step.$fromNetwork}
+							{#if step.fields.$fromNetwork}
 								<EvmNetworkView
-									entityId={step.$fromNetwork[EntityMetaKey.Id]}
+									entityId={step.fields.$fromNetwork[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -251,9 +237,9 @@
 						placeholderText="Loading step…"
 					>
 						{#snippet children(step)}
-							{#if step.$toNetwork}
+							{#if step.fields.$toNetwork}
 								<EvmNetworkView
-									entityId={step.$toNetwork[EntityMetaKey.Id]}
+									entityId={step.fields.$toNetwork[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -272,9 +258,9 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.$fromToken}
+								{#if step.fields.$fromToken}
 									<EvmCoinInstanceView
-										entityId={step.$fromToken[EntityMetaKey.Id]}
+										entityId={step.fields.$fromToken[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 										showTypeAnnotation={false}
@@ -295,9 +281,9 @@
 							placeholderText="Loading step…"
 						>
 							{#snippet children(step)}
-								{#if step.$toToken}
+								{#if step.fields.$toToken}
 									<EvmCoinInstanceView
-										entityId={step.$toToken[EntityMetaKey.Id]}
+										entityId={step.fields.$toToken[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 										showTypeAnnotation={false}

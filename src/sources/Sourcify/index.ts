@@ -2,7 +2,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { origin } from '$/sources/Sourcify/Rest/constants.ts'
 import SourcifyRestSource from '$/sources/Sourcify/Rest/index.ts'
 

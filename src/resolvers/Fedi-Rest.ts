@@ -9,12 +9,12 @@ import { optionalTimestampMs } from '$/lib/time.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import type { EntityFieldValues } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	MastodonApiV1Account,
 	MastodonApiV1MediaAttachment,
@@ -251,7 +251,8 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				instanceOrigin: (actor) => actor.instanceOrigin,
 				localAccountId: (actor) => actor.localAccountId,
 				username: (actor) => actor.username,
@@ -270,7 +271,7 @@ export default {
 				locked: (actor) => actor.locked,
 				createdAt: (actor) => actor.createdAt,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubNote,
@@ -286,7 +287,8 @@ export default {
 				return activityPubNoteFieldsFromMastodonStatus(s, entityId.instanceOrigin)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				content: (note) => note.content,
 				createdAt: (note) => note.createdAt,
 				editedAt: (note) => note.editedAt,
@@ -304,7 +306,7 @@ export default {
 				$inReplyTo: (note) => note.$inReplyTo,
 				$reblogOf: (note) => note.$reblogOf,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubActor_Timestamp,
@@ -324,12 +326,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				followersCount: (timestamp) => timestamp.followersCount,
 				followingCount: (timestamp) => timestamp.followingCount,
 				statusesCount: (timestamp) => timestamp.statusesCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubNote_Timestamp,
@@ -349,12 +352,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				favouriteCount: (timestamp) => timestamp.favouriteCount,
 				reblogCount: (timestamp) => timestamp.reblogCount,
 				replyCount: (timestamp) => timestamp.replyCount,
 			},
-		}),
+			}),
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
@@ -365,10 +369,11 @@ export default {
 				return optionalNonemptyString(instance.title)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				fediInstanceTitle: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
@@ -383,10 +388,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				fediInstanceDescription: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
@@ -398,10 +404,11 @@ export default {
 				return optionalNonemptyString(instance.version)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				fediInstanceVersion: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
@@ -426,10 +433,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$activityPubActors: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
@@ -457,10 +465,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$activityPubNotes: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubActor,
@@ -526,10 +535,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (actor) => actor,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubActor,
@@ -560,10 +570,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$notes: (actor) => actor,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubNote,
@@ -589,10 +600,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (note) => note,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Fedi_Rest, {
 			entityType: EntityType.ActivityPubNote,
@@ -623,9 +635,10 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$thread: (note) => note,
 			},
-		}),
+			}),
 	],
 }

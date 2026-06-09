@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { nostrBandApiOrigins } from '$/sources/NostrBand/Rest/constants.ts'
 import NostrBandRestSource from '$/sources/NostrBand/Rest/index.ts'
 

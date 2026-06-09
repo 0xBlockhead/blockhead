@@ -1,12 +1,12 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { type as arktype } from 'arktype'
@@ -15,8 +15,9 @@
 
 
 	// Context
-	import { writeLocalWatchedEvmAccount } from '$/collections/$localMutations.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { writeLocalWatchedEvmAccount } from '$/collections/localMutations.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -131,22 +132,21 @@
 				{/if}
 			</form>
 
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
+				entityFieldReference.entityId,({ fields: {
 					[entityFieldReference.fieldName]: {
-						$: [
+						sources: [
 							Source.Local_Internal,
 						],
 					},
-				},
+				} }),
 			)}
 			{@const actors = derive(
 				parent,
 				(parent) => {
-					const evmAccounts: Entity<typeof schema, EntityType.EvmAccount>[] = (
-						parent[entityFieldReference.fieldName] ?? []
+					const evmAccounts: readonly Entity<typeof schema, EntityType.EvmAccount>[] = (
+						parent.fields[entityFieldReference.fieldName]?.values ?? []
 					)
 					return (
 						evmAccounts.map((value) => ({

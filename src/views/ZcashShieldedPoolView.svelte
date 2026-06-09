@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const zcashShieldedPool = useEntity(
-		EntityType.ZcashShieldedPool,
+	const zcashShieldedPool = useEntity(entityCollectionsContext, EntityType.ZcashShieldedPool,
 		entityId,
-		{
-			activationNetworkUpgrade: {},
-			noteProtocol: {},
-		},
+		({ fields: { activationNetworkUpgrade: true, noteProtocol: true } }),
 	)
 
 
@@ -61,17 +58,17 @@
 		>
 			{#snippet children(zcashShieldedPool)}
 				<dl data-column-item="center">
-					{#if zcashShieldedPool.activationNetworkUpgrade != null}
+					{#if zcashShieldedPool.fields.activationNetworkUpgrade != null}
 						<div>
 							<dt>Activation upgrade</dt>
-							<dd>{zcashShieldedPool.activationNetworkUpgrade}</dd>
+							<dd>{zcashShieldedPool.fields.activationNetworkUpgrade}</dd>
 						</div>
 					{/if}
 
-					{#if zcashShieldedPool.noteProtocol != null}
+					{#if zcashShieldedPool.fields.noteProtocol != null}
 						<div>
 							<dt>Note protocol</dt>
-							<dd>{zcashShieldedPool.noteProtocol}</dd>
+							<dd>{zcashShieldedPool.fields.noteProtocol}</dd>
 						</div>
 					{/if}
 				</dl>

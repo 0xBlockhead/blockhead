@@ -7,9 +7,9 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const nearNepRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
@@ -51,14 +51,15 @@ export default {
 					documentBody: body,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
 			documentTitle: (snapshot) => snapshot.documentTitle,
 			documentStatus: (snapshot) => snapshot.documentStatus,
 			documentBody: (snapshot) => snapshot.documentBody,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.NearNeps_Github, {
 			entityType: EntityType._Global,
@@ -67,11 +68,12 @@ export default {
 				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
 				return nearNepRows(await getContents())
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.NearNeps_Github, {
 			entityType: EntityType.SpecificationRealm,
@@ -82,11 +84,12 @@ export default {
 				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
 				return nearNepRows(await getContents())
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.NearNeps_Github, {
 			entityType: EntityType.SpecificationProposalKind,
@@ -97,10 +100,11 @@ export default {
 				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
 				return nearNepRows(await getContents())
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

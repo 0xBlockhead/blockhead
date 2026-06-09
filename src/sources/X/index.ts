@@ -3,7 +3,7 @@ import { type as arktype } from 'arktype'
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { xApiOrigins } from '$/sources/X/Rest/constants.ts'
 import XApiV2Source from '$/sources/X/Rest/index.ts'
 

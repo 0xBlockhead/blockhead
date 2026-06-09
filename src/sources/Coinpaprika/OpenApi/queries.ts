@@ -13,9 +13,9 @@ import type { MarketVenueId } from '$/constants/MarketVenue.ts'
 import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { optionalPublicEnvString } from '$/lib/sources.ts'
 import type { EntityId } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import {
 	coinpaprikaMarketVenueIdByHostnameFragment,

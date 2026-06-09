@@ -7,7 +7,7 @@
  */
 
 import { duneFetch } from '$/sources/Dune/Rest/client.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import type {
 	DuneExecuteQueryBody,

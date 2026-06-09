@@ -3,9 +3,9 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 	import {
 		EvmInternalCallType,
@@ -16,7 +16,8 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -50,29 +51,9 @@
 		>
 	> = $props()
 
-	const transfer = useEntity(
-		EntityType.EvmInternalTransfer,
+	const transfer = useEntity(entityCollectionsContext, EntityType.EvmInternalTransfer,
 		entityId,
-		{
-			$: [Source.Blockscout_Rest],
-			value: {},
-			$from: {},
-			$to: {},
-			...(open && {
-				callType: {},
-				success: {},
-				$case: {
-					callType: {
-						[EvmInternalCallType.Create]: {
-							$createdContract: {},
-						},
-						[EvmInternalCallType.Create2]: {
-							$createdContract: {},
-						},
-					},
-				},
-			}),
-		},
+		({ sources: [Source.Blockscout_Rest], fields: { value: true, $from: true, $to: true, ...(open && ({ callType: true, success: true, $createdContract: true })) } }),
 	)
 
 
@@ -147,32 +128,32 @@
 						<dd>{String(entityId.internalIndex)}</dd>
 					</div>
 
-					{#if transfer.callType}
+					{#if transfer.fields.callType}
 						<div>
 							<dt>Call type</dt>
-							<dd>{evmInternalCallTypeByCallType[transfer.callType].label}</dd>
+							<dd>{evmInternalCallTypeByCallType[transfer.fields.callType].label}</dd>
 						</div>
 					{/if}
 
-					{#if transfer.success !== undefined}
+					{#if transfer.fields.success !== undefined}
 						<div>
 							<dt>Success</dt>
-							<dd>{transfer.success ? 'Yes' : 'No'}</dd>
+							<dd>{transfer.fields.success ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						(
-							transfer.callType === EvmInternalCallType.Create
-							|| transfer.callType === EvmInternalCallType.Create2
+							transfer.fields.callType === EvmInternalCallType.Create
+							|| transfer.fields.callType === EvmInternalCallType.Create2
 						)
-						&& transfer.$createdContract
+						&& transfer.fields.$createdContract
 					)}
 						<div>
 							<dt>Created contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={transfer.$createdContract[EntityMetaKey.Id]}
+									entityId={transfer.fields.$createdContract[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={true}
 									showTypeAnnotation={false}

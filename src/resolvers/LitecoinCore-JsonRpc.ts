@@ -8,9 +8,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const assertLitecoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
@@ -91,8 +91,9 @@ export default {
 					)),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (snapshot) => snapshot.hash,
 			$parent: (snapshot) => snapshot.$parent,
 			timestampMs: (snapshot) => snapshot.timestampMs,
@@ -103,8 +104,8 @@ export default {
 			weightUnits: (snapshot) => snapshot.weightUnits,
 			transactionCount: (snapshot) => snapshot.transactionCount,
 			$$transactions: (snapshot) => snapshot.$$transactions,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LitecoinCore_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
@@ -132,15 +133,16 @@ export default {
 					isCoinbase: transaction.vin.some((input) => input.coinbase != null),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			version: (snapshot) => snapshot.version,
 			lockTime: (snapshot) => snapshot.lockTime,
 			sizeBytes: (snapshot) => snapshot.sizeBytes,
 			virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
 			weightUnits: (snapshot) => snapshot.weightUnits,
 			isCoinbase: (snapshot) => snapshot.isCoinbase,
-		}
-		}),
+		},
+			}),
 	],
 }

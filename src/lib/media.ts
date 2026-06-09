@@ -1,4 +1,4 @@
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import { MediaTransport, type MediaType } from '$/schema/Media.ts'
 import { gatewayUrls as ipfsGatewayUrls } from '$/sources/Ipfs/Rest/constants.ts'
 import { parseIpfsCid } from '$/lib/multiformats.ts'

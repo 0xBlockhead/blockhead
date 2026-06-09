@@ -16,15 +16,15 @@ import {
 	liquidProbeAssetId,
 } from '$/constants/ElementsNetwork.ts'
 import { ElementsPegDirection } from '$/schema/ElementsPeg.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 /**

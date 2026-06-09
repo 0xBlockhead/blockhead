@@ -3,13 +3,14 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -39,27 +40,12 @@
 		>
 	> = $props()
 
-	const epoch = useEntity(
-		EntityType.BeaconEpoch,
+	const epoch = useEntity(entityCollectionsContext, EntityType.BeaconEpoch,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Beacon_Rest,
 				Source.BeaconchaIn_Rest,
-			],
-			startSlot: {},
-			endSlot: {},
-			...(open && {
-				slotCount: {},
-				finalized: {},
-				globalParticipationRate: {},
-				validatorsCount: {},
-				attestationsCount: {},
-				attesterSlashingsCount: {},
-				proposerSlashingsCount: {},
-				withdrawalsCount: {},
-			}),
-		},
+			], fields: { startSlot: true, endSlot: true, ...(open && ({ slotCount: true, finalized: true, globalParticipationRate: true, validatorsCount: true, attestationsCount: true, attesterSlashingsCount: true, proposerSlashingsCount: true, withdrawalsCount: true })) } }),
 	)
 
 
@@ -119,12 +105,12 @@
 					>
 						{#snippet children(epoch)}
 							{#if (
-								epoch.startSlot !== undefined
-								&& epoch.endSlot !== undefined
+								epoch.fields.startSlot !== undefined
+								&& epoch.fields.endSlot !== undefined
 							)}
-								<NumberValue value={epoch.startSlot} />
+								<NumberValue value={epoch.fields.startSlot} />
 								to
-								<NumberValue value={epoch.endSlot} />
+								<NumberValue value={epoch.fields.endSlot} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -140,8 +126,8 @@
 							placeholderText="Loading epoch…"
 						>
 							{#snippet children(epoch)}
-								{#if epoch.slotCount !== undefined}
-									<NumberValue value={epoch.slotCount} />
+								{#if epoch.fields.slotCount !== undefined}
+									<NumberValue value={epoch.fields.slotCount} />
 								{:else}
 									<span data-text="muted">Slot span unavailable from beacon API.</span>
 								{/if}
@@ -155,53 +141,53 @@
 						placeholderText="Loading epoch…"
 					>
 						{#snippet children(epoch)}
-				{#if epoch.finalized !== undefined}
+				{#if epoch.fields.finalized !== undefined}
 					<div>
 						<dt>Finalized</dt>
-						<dd>{epoch.finalized ? 'Yes' : 'No'}</dd>
+						<dd>{epoch.fields.finalized ? 'Yes' : 'No'}</dd>
 					</div>
 				{/if}
 
-				{#if epoch.globalParticipationRate !== undefined}
+				{#if epoch.fields.globalParticipationRate !== undefined}
 					<div>
 						<dt>Participation</dt>
-						<dd>{(epoch.globalParticipationRate * 100).toFixed(2)}%</dd>
+						<dd>{(epoch.fields.globalParticipationRate * 100).toFixed(2)}%</dd>
 					</div>
 				{/if}
 
-				{#if epoch.validatorsCount !== undefined}
+				{#if epoch.fields.validatorsCount !== undefined}
 					<div>
 						<dt>Validators</dt>
-						<dd><NumberValue value={epoch.validatorsCount} /></dd>
+						<dd><NumberValue value={epoch.fields.validatorsCount} /></dd>
 					</div>
 				{/if}
 
-				{#if epoch.attestationsCount !== undefined}
+				{#if epoch.fields.attestationsCount !== undefined}
 					<div>
 						<dt>Attestations</dt>
-						<dd><NumberValue value={epoch.attestationsCount} /></dd>
+						<dd><NumberValue value={epoch.fields.attestationsCount} /></dd>
 					</div>
 				{/if}
 
-				{#if epoch.withdrawalsCount !== undefined}
+				{#if epoch.fields.withdrawalsCount !== undefined}
 					<div>
 						<dt>Withdrawals</dt>
-						<dd><NumberValue value={epoch.withdrawalsCount} /></dd>
+						<dd><NumberValue value={epoch.fields.withdrawalsCount} /></dd>
 					</div>
 				{/if}
 
 				{#if (
-					epoch.attesterSlashingsCount !== undefined
-					|| epoch.proposerSlashingsCount !== undefined
+					epoch.fields.attesterSlashingsCount !== undefined
+					|| epoch.fields.proposerSlashingsCount !== undefined
 				)}
 					<div>
 						<dt>Slashings</dt>
 						<dd>
-							{#if epoch.attesterSlashingsCount !== undefined}
-								<NumberValue value={epoch.attesterSlashingsCount} /> attester
+							{#if epoch.fields.attesterSlashingsCount !== undefined}
+								<NumberValue value={epoch.fields.attesterSlashingsCount} /> attester
 							{/if}
-							{#if epoch.proposerSlashingsCount !== undefined}
-								<NumberValue value={epoch.proposerSlashingsCount} /> proposer
+							{#if epoch.fields.proposerSlashingsCount !== undefined}
+								<NumberValue value={epoch.fields.proposerSlashingsCount} /> proposer
 							{/if}
 						</dd>
 					</div>

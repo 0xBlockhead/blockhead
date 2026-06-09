@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -39,18 +40,13 @@
 		>
 	> = $props()
 
-	const activityPubNoteTimestamp = useEntity(
+	const activityPubNoteTimestamp = useEntity(entityCollectionsContext, 
 		EntityType.ActivityPubNote_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Mastodon_Rest,
 				Source.Fedi_Rest,
-			],
-			favouriteCount: {},
-			reblogCount: {},
-			replyCount: {},
-		},
+			], fields: { favouriteCount: true, reblogCount: true, replyCount: true } }),
 	)
 
 
@@ -96,15 +92,15 @@
 						metrics={[
 							{
 								label: 'Favourites',
-								value: activityPubNoteTimestamp.favouriteCount,
+								value: activityPubNoteTimestamp.fields.favouriteCount,
 							},
 							{
 								label: 'Reblogs',
-								value: activityPubNoteTimestamp.reblogCount,
+								value: activityPubNoteTimestamp.fields.reblogCount,
 							},
 							{
 								label: 'Replies',
-								value: activityPubNoteTimestamp.replyCount,
+								value: activityPubNoteTimestamp.fields.replyCount,
 							},
 						]}
 					/>

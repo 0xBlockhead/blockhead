@@ -1,12 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { blo } from 'blo'
 	import { stringify } from 'devalue'
 
@@ -44,15 +44,14 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	const evmNetworkAccountDetailAnchorKey = stringify(entityId)
 
-	const network = useEntity(
-		EntityType.EvmNetwork,
+	const network = useEntity(entityCollectionsContext, EntityType.EvmNetwork,
 		entityId.$network,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
 				...(open ?
 					[
@@ -63,55 +62,46 @@
 				:
 					[]
 				),
-			],
-			name: {},
-			$icon: {
-				$: [
+			], fields: { name: true, $icon: ({ sources: [
 					Source.Constants_Internal,
 					Source.Chainlist_Rest,
-				],
-			},
-		},
+				] }) } }),
 	)
 
-	const actor = useEntity(
-		EntityType.EvmAccount,
+	const actor = useEntity(entityCollectionsContext, EntityType.EvmAccount,
 		entityId.$actor,
-		{
-			$: [
+		({ sources: [
 				Source.Voltaire_JsonRpc,
-			],
-			$primaryName: {},
-			$icon: {},
-		},
+			], fields: { $primaryName: true, $icon: true } }),
 	)
 
-	const evmNetworkAccount = useEntity(
-		EntityType.EvmNetworkAccount,
+	const evmNetworkAccount = useEntity(entityCollectionsContext, EntityType.EvmNetworkAccount,
 		entityId,
 		open ?
 			{
-				$$ownedCoins: {
-					$: [
-						Source.Allium_Rest,
-					],
-				},
-				$: [
+				sources: [
 					Source.Blockscout_Rest,
 				],
-				isContract: {},
-				$$transactions: {},
-				$$tokenTransfers: {},
-				$$internalTransfers: {},
-				transactionCount: {},
-				tokenTransferCount: {},
-				firstTransactionAt: {},
-				lastTransactionAt: {},
-				nftCount: {},
-				contractPositions: {},
+				fields: {
+					$$ownedCoins: {
+						sources: [
+							Source.Allium_Rest,
+						],
+					},
+					isContract: true,
+					$$transactions: true,
+					$$tokenTransfers: true,
+					$$internalTransfers: true,
+					transactionCount: true,
+					tokenTransferCount: true,
+					firstTransactionAt: true,
+					lastTransactionAt: true,
+					nftCount: true,
+					contractPositions: true,
+				},
 			}
 		:
-			{},
+			{ fields: {} },
 	)
 
 
@@ -156,7 +146,7 @@
 			{/snippet}
 
 			{#snippet children(actor)}
-				{@const avatarUrl = actor.$icon?.[EntityMetaKey.Id].url}
+				{@const avatarUrl = actor.fields.$icon?.[EntityMetaKey.Id].url}
 				<IconComponent
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
@@ -171,8 +161,8 @@
 			resource={actor}
 		>
 			{#snippet children(actor)}
-				{#if actor.$primaryName?.[EntityMetaKey.Id].name}
-					{actor.$primaryName?.[EntityMetaKey.Id].name}
+				{#if actor.fields.$primaryName?.[EntityMetaKey.Id].name}
+					{actor.fields.$primaryName?.[EntityMetaKey.Id].name}
 				{:else}
 					<TruncatedValue
 						format={TruncatedValueFormat.Visual}
@@ -262,8 +252,8 @@
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(evmNetworkAccount)}
-								{#if evmNetworkAccount.transactionCount !== undefined}
-									<NumberValue value={evmNetworkAccount.transactionCount} />
+								{#if evmNetworkAccount.fields.transactionCount !== undefined}
+									<NumberValue value={evmNetworkAccount.fields.transactionCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -276,7 +266,7 @@
 					placeholderText="Loading network activity…"
 				>
 					{#snippet children(evmNetworkAccount)}
-						{#if evmNetworkAccount.isContract === true}
+						{#if evmNetworkAccount.fields.isContract === true}
 							<div>
 								<dt>Contract</dt>
 								<dd>
@@ -303,8 +293,8 @@
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(evmNetworkAccount)}
-								{#if evmNetworkAccount.tokenTransferCount !== undefined}
-									<NumberValue value={evmNetworkAccount.tokenTransferCount} />
+								{#if evmNetworkAccount.fields.tokenTransferCount !== undefined}
+									<NumberValue value={evmNetworkAccount.fields.tokenTransferCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -320,8 +310,8 @@
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(evmNetworkAccount)}
-								{#if evmNetworkAccount.nftCount !== undefined}
-									<NumberValue value={evmNetworkAccount.nftCount} />
+								{#if evmNetworkAccount.fields.nftCount !== undefined}
+									<NumberValue value={evmNetworkAccount.fields.nftCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -337,8 +327,8 @@
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(evmNetworkAccount)}
-								{#if evmNetworkAccount.firstTransactionAt !== undefined}
-									<Timestamp timestamp={evmNetworkAccount.firstTransactionAt} />
+								{#if evmNetworkAccount.fields.firstTransactionAt !== undefined}
+									<Timestamp timestamp={evmNetworkAccount.fields.firstTransactionAt} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -354,8 +344,8 @@
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(evmNetworkAccount)}
-								{#if evmNetworkAccount.lastTransactionAt !== undefined}
-									<Timestamp timestamp={evmNetworkAccount.lastTransactionAt} />
+								{#if evmNetworkAccount.fields.lastTransactionAt !== undefined}
+									<Timestamp timestamp={evmNetworkAccount.fields.lastTransactionAt} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -405,9 +395,9 @@
 					placeholderText="Loading positions…"
 				>
 					{#snippet children(evmNetworkAccount)}
-						{#if (evmNetworkAccount.contractPositions ?? []).length}
+						{#if (evmNetworkAccount.fields.contractPositions?.values ?? []).length}
 							<ul data-evmNetworkAccounts="unstyled">
-								{#each evmNetworkAccount.contractPositions ?? [] as contractPosition (`${contractPosition.protocol.key}:${contractPosition.name}`)}
+								{#each evmNetworkAccount.fields.contractPositions?.values ?? [] as contractPosition (`${contractPosition.protocol.key}:${contractPosition.name}`)}
 									<li data-column="gap-1">
 										<div data-row="wrap align-baseline gap-2">
 											<strong>{contractPosition.name}</strong>
@@ -435,7 +425,7 @@
 							</ul>
 						{:else}
 							<p data-text="muted">
-								No contract positions on this evmNetworkAccount.
+								No contract positions on this evmNetworkAccount.fields.
 							</p>
 						{/if}
 					{/snippet}
@@ -450,15 +440,15 @@
 				{ id: 'activity-transactions', label: 'Transactions' },
 				...(
 					!evmNetworkAccount.ready
-					|| evmNetworkAccount.current.tokenTransferCount !== undefined
-					|| (evmNetworkAccount.current.$$tokenTransfers ?? []).length > 0
+					|| evmNetworkAccount.current?.fields.tokenTransferCount !== undefined
+					|| (evmNetworkAccount.current?.fields.$$tokenTransfers?.values.length ?? 0) > 0
 				) ?
 					([{ id: 'activity-token-transfers', label: 'Token transfers' }] as const)
 				:
 					[],
 				...(
 					!evmNetworkAccount.ready
-					|| (evmNetworkAccount.current.$$internalTransfers ?? []).length > 0
+					|| (evmNetworkAccount.current?.fields.$$internalTransfers?.values.length ?? 0) > 0
 				) ?
 					([{ id: 'activity-internal-transfers', label: 'Internal transfers' }] as const)
 				:

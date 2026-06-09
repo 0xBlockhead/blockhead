@@ -6,9 +6,9 @@ import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const assertNearMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug.near.slug) {
@@ -40,12 +40,13 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			amountYoctoNear: (snapshot) => snapshot.amountYoctoNear,
 			storageUsageBytes: (snapshot) => snapshot.storageUsageBytes,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearBlock,
@@ -75,14 +76,15 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (snapshot) => snapshot.hash,
 			$parent: (snapshot) => snapshot.$parent,
 			epochId: (snapshot) => snapshot.epochId,
 			timestampMs: (snapshot) => snapshot.timestampMs,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearTransaction,
@@ -152,14 +154,15 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$signer: (snapshot) => snapshot.$signer,
 			$receiver: (snapshot) => snapshot.$receiver,
 			nonce: (snapshot) => snapshot.nonce,
 			$$actions: (snapshot) => snapshot.$$actions,
 			$$executionOutcomes: (snapshot) => snapshot.$$executionOutcomes,
-		}
-		}),
+		},
+			}),
 	],
 }

@@ -5,9 +5,9 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const dipMetadataValue = (text: string, key: string) => (
 	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
@@ -46,24 +46,26 @@ export default {
 					documentBody: text,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
 			documentTitle: (snapshot) => snapshot.documentTitle,
 			documentStatus: (snapshot) => snapshot.documentStatus,
 			documentBody: (snapshot) => snapshot.documentBody,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.DogecoinDips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: dogecoinDipProposalRows
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.DogecoinDips_Github, {
 			entityType: EntityType.SpecificationRealm,
@@ -75,11 +77,12 @@ export default {
 				}
 				return dogecoinDipProposalRows()
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.DogecoinDips_Github, {
 			entityType: EntityType.SpecificationProposalKind,
@@ -91,10 +94,11 @@ export default {
 				}
 				return dogecoinDipProposalRows()
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { gatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
 import SwarmRestSource from '$/sources/Swarm/Rest/index.ts'
 

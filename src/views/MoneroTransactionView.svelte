@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,14 +27,9 @@
 		>
 	> = $props()
 
-	const moneroTransaction = useEntity(
-		EntityType.MoneroTransaction,
+	const moneroTransaction = useEntity(entityCollectionsContext, EntityType.MoneroTransaction,
 		entityId,
-		{
-			version: {},
-			unlockTime: {},
-			feeAtomicUnits: {},
-		},
+		({ fields: { version: true, unlockTime: true, feeAtomicUnits: true } }),
 	)
 
 
@@ -67,24 +63,24 @@
 		>
 			{#snippet children(moneroTransaction)}
 				<dl>
-					{#if moneroTransaction.version != null}
+					{#if moneroTransaction.fields.version != null}
 						<div>
 							<dt>Version</dt>
-							<dd><NumberValue value={moneroTransaction.version} /></dd>
+							<dd><NumberValue value={moneroTransaction.fields.version} /></dd>
 						</div>
 					{/if}
 
-					{#if moneroTransaction.unlockTime != null}
+					{#if moneroTransaction.fields.unlockTime != null}
 						<div>
 							<dt>Unlock Time</dt>
-							<dd><NumberValue value={moneroTransaction.unlockTime} /></dd>
+							<dd><NumberValue value={moneroTransaction.fields.unlockTime} /></dd>
 						</div>
 					{/if}
 
-					{#if moneroTransaction.feeAtomicUnits != null}
+					{#if moneroTransaction.fields.feeAtomicUnits != null}
 						<div>
 							<dt>Fee Atomic Units</dt>
-							<dd><NumberValue value={moneroTransaction.feeAtomicUnits} /> atomic units</dd>
+							<dd><NumberValue value={moneroTransaction.fields.feeAtomicUnits} /> atomic units</dd>
 						</div>
 					{/if}
 				</dl>

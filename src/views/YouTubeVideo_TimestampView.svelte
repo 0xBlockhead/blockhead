@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,18 +36,12 @@
 		>
 	> = $props()
 
-	const youTubeVideoTimestamp = useEntity(
-		EntityType.YouTubeVideo_Timestamp,
+	const youTubeVideoTimestamp = useEntity(entityCollectionsContext, EntityType.YouTubeVideo_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
-			],
-			viewCount: {},
-			likeCount: {},
-			commentCount: {},
-		},
+			], fields: { viewCount: true, likeCount: true, commentCount: true } }),
 	)
 
 
@@ -92,15 +87,15 @@
 						metrics={[
 							{
 								label: 'Views',
-								value: youTubeVideoTimestamp.viewCount,
+								value: youTubeVideoTimestamp.fields.viewCount,
 							},
 							{
 								label: 'Likes',
-								value: youTubeVideoTimestamp.likeCount,
+								value: youTubeVideoTimestamp.fields.likeCount,
 							},
 							{
 								label: 'Comments',
-								value: youTubeVideoTimestamp.commentCount,
+								value: youTubeVideoTimestamp.fields.commentCount,
 							},
 						]}
 					/>

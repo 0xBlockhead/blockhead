@@ -5,13 +5,14 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -37,29 +38,13 @@
 		never
 	> = $props()
 
-	const atprotoNetwork = useEntity(
-		EntityType.AtprotoNetwork,
+	const atprotoNetwork = useEntity(entityCollectionsContext, EntityType.AtprotoNetwork,
 		entityId,
-		{
-			$: [Source.Constants_Internal],
-			protocolName: {},
-			registryLabel: {},
-			...(open ?
-				{
-					homeUrl: {},
-					docsUrl: {},
-					topology: {},
-					$$atprotoActors: {
-						$: [
+		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$atprotoActors: ({ sources: [
 							Source.Constants_Internal,
 							Source.Atproto_Xrpc,
 							Source.Atproto_BskySocial_Xrpc,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 
@@ -99,7 +84,7 @@
 			placeholderText="Loading AT Protocol directory…"
 		>
 			{#snippet children(atprotoNetwork)}
-				{atprotoNetwork.protocolName ?? 'AT Protocol'}
+				{atprotoNetwork.fields.protocolName ?? 'AT Protocol'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -124,46 +109,46 @@
 				placeholderText="Loading AT Protocol directory…"
 			>
 				{#snippet children(atprotoNetwork)}
-					{#if atprotoNetwork.registryLabel}
+					{#if atprotoNetwork.fields.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{atprotoNetwork.registryLabel}</dd>
+							<dd>{atprotoNetwork.fields.registryLabel}</dd>
 						</div>
-					{:else if atprotoNetwork.protocolName}
+					{:else if atprotoNetwork.fields.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{atprotoNetwork.protocolName}</dd>
+							<dd>{atprotoNetwork.fields.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if _contentOpen}
 						<div>
 							<dt>Accounts</dt>
-							<dd>{String(atprotoNetwork.$$atprotoActors?.length ?? 0)}</dd>
+							<dd>{String(atprotoNetwork.fields.$$atprotoActors?.values.length ?? 0)}</dd>
 						</div>
 
-						{#if atprotoNetwork.topology}
+						{#if atprotoNetwork.fields.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{atprotoNetwork.topology}</dd>
+								<dd>{atprotoNetwork.fields.topology}</dd>
 							</div>
 						{/if}
 
-						{#if atprotoNetwork.homeUrl}
+						{#if atprotoNetwork.fields.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={atprotoNetwork.homeUrl}>{atprotoNetwork.homeUrl}</a>
+									<a href={atprotoNetwork.fields.homeUrl}>{atprotoNetwork.fields.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if atprotoNetwork.docsUrl != null && atprotoNetwork.docsUrl !== ''}
+						{#if atprotoNetwork.fields.docsUrl != null && atprotoNetwork.fields.docsUrl !== ''}
 							<div>
 								<dt>Documentation</dt>
 								<dd>
-									<a href={atprotoNetwork.docsUrl}>
-										{atprotoNetwork.docsUrl}
+									<a href={atprotoNetwork.fields.docsUrl}>
+										{atprotoNetwork.fields.docsUrl}
 									</a>
 								</dd>
 							</div>

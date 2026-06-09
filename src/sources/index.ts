@@ -1,15 +1,16 @@
 import { env as publicEnv } from '$env/dynamic/public'
 import { type as arktype, type Type } from 'arktype'
 
-import {
-	Source,
-	type SourceDefinition,
-	type SourcePublicEnv,
-} from '$/sources/$Source.ts'
+import type { SourceDefinition as SourceDefinitionTemplate, SourcePublicEnv } from '$/sources/$sources.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-import {
-	type SourceProviderDefinition,
-} from '$/sources/$SourceProvider.ts'
+import { Source } from '$/sources/Source.ts'
+
+export { Source }
+
+export type SourceDefinition = SourceDefinitionTemplate<SourceProvider, Source>
+
+export type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 import Allium from '$/sources/Allium/index.ts'
 import Amboss from '$/sources/Amboss/index.ts'
@@ -114,7 +115,6 @@ import Zcashd from '$/sources/Zcashd/index.ts'
 import Zebra from '$/sources/Zebra/index.ts'
 import ZeroG from '$/sources/ZeroG/index.ts'
 
-export { Source }
 
 const sourceProviderDefinitions = [
 	Allium,

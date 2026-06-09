@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,14 +27,9 @@
 		>
 	> = $props()
 
-	const dataBlob = useEntity(
-		EntityType.ZeroGDataBlob,
+	const dataBlob = useEntity(entityCollectionsContext, EntityType.ZeroGDataBlob,
 		entityId,
-		{
-			sizeBytes: {},
-			erasureCodingScheme: {},
-			aggregatedSignature: {},
-		},
+		({ fields: { sizeBytes: true, erasureCodingScheme: true, aggregatedSignature: true } }),
 	)
 
 
@@ -82,26 +78,26 @@
 		>
 			{#snippet children(dataBlob)}
 				<dl>
-					{#if dataBlob.sizeBytes != null}
+					{#if dataBlob.fields.sizeBytes != null}
 						<div>
 							<dt>Size</dt>
-							<dd>{dataBlob.sizeBytes.toString()} bytes</dd>
+							<dd>{dataBlob.fields.sizeBytes.toString()} bytes</dd>
 						</div>
 					{/if}
 
-					{#if dataBlob.erasureCodingScheme != null}
+					{#if dataBlob.fields.erasureCodingScheme != null}
 						<div>
 							<dt>Encoding</dt>
-							<dd>{dataBlob.erasureCodingScheme}</dd>
+							<dd>{dataBlob.fields.erasureCodingScheme}</dd>
 						</div>
 					{/if}
 
-					{#if dataBlob.aggregatedSignature != null}
+					{#if dataBlob.fields.aggregatedSignature != null}
 						<div>
 							<dt>DA signature</dt>
 							<dd>
 								<TruncatedValue
-									value={dataBlob.aggregatedSignature}
+									value={dataBlob.fields.aggregatedSignature}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

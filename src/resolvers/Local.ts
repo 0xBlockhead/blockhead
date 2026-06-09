@@ -6,13 +6,13 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import type { EntityId } from '$/schema/$schema.ts'
-import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 import { schema } from '$/schema/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const sliceNormalizedRowsForSubset = <_Row>(
 	normalizedCatalogRows: readonly _Row[],
@@ -53,8 +53,9 @@ export default {
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ({})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BridgeTransaction,
@@ -67,8 +68,9 @@ export default {
 				return {}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.XmtpConversation,
@@ -89,13 +91,14 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				peerInboxId: (conversation) => conversation.peerInboxId,
 				topic: (conversation) => conversation.topic,
 				createdAtMs: (conversation) => conversation.createdAtMs,
 				consentState: (conversation) => conversation.consentState,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSource,
@@ -108,8 +111,9 @@ export default {
 				return {}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWallet,
@@ -130,7 +134,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				name: (wallet) => wallet.name,
 				icon: (wallet) => wallet.icon,
 				protocol: (wallet) => wallet.protocol,
@@ -140,7 +145,7 @@ export default {
 				websiteUrl: (wallet) => wallet.websiteUrl,
 				capabilities: (wallet) => wallet.capabilities,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWalletAccount,
@@ -168,13 +173,14 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$network: (account) => account.$network,
 				address: (account) => account.address,
 				label: (account) => account.label,
 				capabilities: (account) => account.capabilities,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWalletConnection,
@@ -214,7 +220,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				status: (connection) => connection.status,
 				protocol: (connection) => connection.protocol,
 				transportKind: (connection) => connection.transportKind,
@@ -228,7 +235,7 @@ export default {
 				sessionTopic: (connection) => connection.sessionTopic,
 				error: (connection) => connection.error,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadPanelTree,
@@ -241,8 +248,9 @@ export default {
 				return {}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoom,
@@ -258,12 +266,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				createdAt: (room) => room.createdAt,
 				createdBy: (room) => room.createdBy,
 				name: (room) => room.name,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSession,
@@ -282,7 +291,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				name: (session) => session.name,
 				status: (session) => session.status,
 				createdAt: (session) => session.createdAt,
@@ -290,7 +300,7 @@ export default {
 				lockedAt: (session) => session.lockedAt,
 				simulationCount: (session) => session.simulationCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSessionAction,
@@ -315,14 +325,15 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$session: (action) => action.$session,
 				indexInSequence: (action) => action.indexInSequence,
 				action: (action) => action.action,
 				createdAt: (action) => action.createdAt,
 				updatedAt: (action) => action.updatedAt,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoomPeer,
@@ -343,7 +354,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$room: (peer) => peer.$room,
 				peerId: (peer) => peer.peerId,
 				displayName: (peer) => peer.displayName,
@@ -353,7 +365,7 @@ export default {
 				disconnectedAt: (peer) => peer.disconnectedAt,
 				isConnected: (peer) => peer.isConnected,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSharedAddress,
@@ -374,7 +386,8 @@ export default {
 					}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$network: (address) => address.$network,
 				$room: (address) => address.$room,
 				peerId: (address) => address.peerId,
@@ -382,7 +395,7 @@ export default {
 				targetPeerIds: (address) => address.targetPeerIds,
 				sharedAt: (address) => address.sharedAt,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
@@ -408,7 +421,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$network: (channel) => channel.$network,
 				$participant0: (channel) => channel.$participant0,
 				$participant1: (channel) => channel.$participant1,
@@ -422,7 +436,7 @@ export default {
 				createdAt: (channel) => channel.createdAt,
 				updatedAt: (channel) => channel.updatedAt,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelDeposit,
@@ -443,7 +457,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$channel: (deposit) => deposit.$channel,
 				$network: (deposit) => deposit.$network,
 				$account: (deposit) => deposit.$account,
@@ -451,7 +466,7 @@ export default {
 				lockedBalance: (deposit) => deposit.lockedBalance,
 				lastUpdated: (deposit) => deposit.lastUpdated,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelTransfer,
@@ -473,7 +488,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$channel: (transfer) => transfer.$channel,
 				$from: (transfer) => transfer.$from,
 				$to: (transfer) => transfer.$to,
@@ -482,7 +498,7 @@ export default {
 				timestamp: (transfer) => transfer.timestamp,
 				status: (transfer) => transfer.status,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelState,
@@ -509,7 +525,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$channel: (state) => state.$channel,
 				intent: (state) => state.intent,
 				version: (state) => state.version,
@@ -519,7 +536,7 @@ export default {
 				isFinal: (state) => state.isFinal,
 				timestamp: (state) => state.timestamp,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversation,
@@ -541,7 +558,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				name: (conversation) => conversation.name,
 				pinned: (conversation) => conversation.pinned,
 				systemPrompt: (conversation) => conversation.systemPrompt,
@@ -550,7 +568,7 @@ export default {
 				createdAt: (conversation) => conversation.createdAt,
 				updatedAt: (conversation) => conversation.updatedAt,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversationTurn,
@@ -576,7 +594,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$conversation: (turn) => turn.$conversation,
 				parentId: (turn) => turn.parentId,
 				userPrompt: (turn) => turn.userPrompt,
@@ -587,15 +606,16 @@ export default {
 				createdAt: (turn) => turn.createdAt,
 				promptVersion: (turn) => turn.promptVersion,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.EvmContract,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ({})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
@@ -606,10 +626,11 @@ export default {
 						}))
 				)
 			},
-			fields: {
+		})({
+				fields: {
 				$$actors: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -624,10 +645,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$xmtpConversations: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.XmtpNetwork,
@@ -642,10 +664,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$xmtpConversations: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -660,10 +683,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockheadSources: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -678,10 +702,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockheadWallets: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -700,10 +725,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockheadWalletConnections: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -724,10 +750,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockheadWalletAccounts: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -742,10 +769,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockheadSessions: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSession,
@@ -768,10 +796,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$actions: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -786,10 +815,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockheadPanelTrees: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -804,10 +834,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockheadFarcasterAccountConnections: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -822,10 +853,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockheadAgentConversations: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversation,
@@ -844,10 +876,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$turns: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -869,10 +902,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$bridgeTransactions: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoom,
@@ -889,10 +923,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$peers: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -907,10 +942,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockheadRoomPeers: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -925,10 +961,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockheadRooms: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -943,10 +980,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$stateChannels: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
@@ -965,10 +1003,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$transfers: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
@@ -987,10 +1026,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$states: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
@@ -1009,10 +1049,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$deposits: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
@@ -1027,10 +1068,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockheadSharedAddresses: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.EvmProtocol,
@@ -1045,10 +1087,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$evmSelectors: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.EvmProtocol,
@@ -1063,10 +1106,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$evmTopics: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.EvmProtocol,
@@ -1081,9 +1125,10 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$evmErrors: (entity) => entity,
 			},
-		}),
+			}),
 	],
 }

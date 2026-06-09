@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// State
@@ -33,19 +34,12 @@
 		>
 	> = $props()
 
-	const xUserTimestamp = useEntity(
-		EntityType.XUser_Timestamp,
+	const xUserTimestamp = useEntity(entityCollectionsContext, EntityType.XUser_Timestamp,
 		entityId,
-		{
-			$: (
+		({ sources: (
 				resolverDefinitionsByEntityType[EntityType.XUser_Timestamp]?.map((resolver) => resolver.source)
 				?? [Source.Local_Internal]
-			),
-			followerCount: {},
-			followingCount: {},
-			tweetCount: {},
-			listedCount: {},
-		},
+			), fields: { followerCount: true, followingCount: true, tweetCount: true, listedCount: true } }),
 	)
 
 
@@ -91,19 +85,19 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: xUserTimestamp.followerCount,
+								value: xUserTimestamp.fields.followerCount,
 							},
 							{
 								label: 'Following',
-								value: xUserTimestamp.followingCount,
+								value: xUserTimestamp.fields.followingCount,
 							},
 							{
 								label: 'Posts',
-								value: xUserTimestamp.tweetCount,
+								value: xUserTimestamp.fields.tweetCount,
 							},
 							{
 								label: 'Listed',
-								value: xUserTimestamp.listedCount,
+								value: xUserTimestamp.fields.listedCount,
 							},
 						]}
 					/>

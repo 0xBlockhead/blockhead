@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { rawOrigin } from '$/sources/TrustWalletAssets/Github/constants.ts'
 import TrustWalletAssetsGithubSource from '$/sources/TrustWalletAssets/Github/index.ts'
 

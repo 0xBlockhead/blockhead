@@ -1,11 +1,12 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		selectorHex,
@@ -13,13 +14,9 @@
 		selectorHex: `0x${string}`
 	} = $props()
 
-	const evmSelector = useEntity(
-		EntityType.EvmSelector,
+	const evmSelector = useEntity(entityCollectionsContext, EntityType.EvmSelector,
 		{ hex: selectorHex },
-		{
-			$: [Source.Openchain_Rest],
-			signatures: {},
-		},
+		({ sources: [Source.Openchain_Rest], fields: { signatures: true } }),
 	)
 
 
@@ -33,9 +30,9 @@
 	placeholderText=""
 >
 	{#snippet children(selector)}
-		{#if selector.signatures?.length}
+		{#if selector.fields.signatures?.length}
 			<code data-row="wrap gap-1">
-				{#each selector.signatures as signature (signature)}
+				{#each selector.fields.signatures as signature (signature)}
 					<span>{signature}</span>
 				{/each}
 			</code>

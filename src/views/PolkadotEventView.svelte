@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,9 @@
 		>
 	> = $props()
 
-	const polkadotEvent = useEntity(
-		EntityType.PolkadotEvent,
+	const polkadotEvent = useEntity(entityCollectionsContext, EntityType.PolkadotEvent,
 		entityId,
-		{
-			eventName: {},
-		},
+		({ fields: { eventName: true } }),
 	)
 
 
@@ -72,10 +70,10 @@
 		>
 			{#snippet children(polkadotEvent)}
 				<dl>
-					{#if polkadotEvent.eventName != null}
+					{#if polkadotEvent.fields.eventName != null}
 						<div>
 							<dt>Event Name</dt>
-							<dd>{polkadotEvent.eventName}</dd>
+							<dd>{polkadotEvent.fields.eventName}</dd>
 						</div>
 					{/if}
 				</dl>

@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import NearRpcJsonRpc from '$/sources/NearRpc/JsonRpc/index.ts'
 
 export default {

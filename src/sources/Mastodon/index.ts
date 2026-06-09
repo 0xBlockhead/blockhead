@@ -3,7 +3,7 @@ import { type as arktype } from 'arktype'
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { mastodonOrigins } from '$/sources/Mastodon/Rest/constants.ts'
 import MastodonRestSource from '$/sources/Mastodon/Rest/index.ts'
 

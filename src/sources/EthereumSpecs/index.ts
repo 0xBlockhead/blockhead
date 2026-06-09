@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { rawOrigin } from '$/sources/Github/Rest/constants.ts'
 import EthereumSpecsGithubSource from '$/sources/EthereumSpecs/Github/index.ts'
 

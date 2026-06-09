@@ -6,9 +6,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -61,12 +61,13 @@ export default {
 					endpoint: zeroGStorageNodeDefaultLocalRpcUrl,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$operator: (snapshot) => snapshot.$operator,
 			endpoint: (snapshot) => snapshot.endpoint,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataBlob,
@@ -83,12 +84,13 @@ export default {
 					})),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			sizeBytes: (snapshot) => snapshot.sizeBytes,
 			$$chunks: (snapshot) => snapshot.$$chunks,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataChunk,
@@ -107,11 +109,12 @@ export default {
 					chunkRoot,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$storageNode: (snapshot) => snapshot.$storageNode,
 			chunkRoot: (snapshot) => snapshot.chunkRoot,
-		}
-		}),
+		},
+			}),
 	],
 }

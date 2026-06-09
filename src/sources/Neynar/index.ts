@@ -3,7 +3,7 @@ import { type as arktype } from 'arktype'
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { origin } from '$/sources/Neynar/Rest/constants.ts'
 import NeynarRestSource from '$/sources/Neynar/Rest/index.ts'
 

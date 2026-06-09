@@ -1,12 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 	import {
 		apiChainByChainId,
@@ -23,7 +23,8 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -85,82 +86,60 @@
 
 
 	const evmNetworkAccountPortfolioSlices = evmNetworkAccountSliceChainIds.map((chainId) => (
-		useEntity(
+		useEntity(entityCollectionsContext, 
 			EntityType.EvmNetworkAccount,
 			{
 				$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 				$actor: entityId,
 			},
-			open ?
-				{
-					...(apiChainByChainId[chainId] != null ?
-						{
-							$$ownedCoins: {
-								$: [
-									Source.Allium_Rest,
-								],
-							},
-						}
-						:
-							{}),
-							...(blockscoutHostedNetworks.some((network) => network.chainId === chainId) ?
-							{
-								$: [
-									Source.Blockscout_Rest,
-								],
-								$$transactions: {},
-								$$tokenTransfers: {},
-								$$internalTransfers: {},
-								isContract: {},
-								transactionCount: {},
-								tokenTransferCount: {},
-								firstTransactionAt: {},
-								lastTransactionAt: {},
-								nftCount: {},
-							}
-						:
-							{}),
-					}
-				:
-					{},
+			{
+				...(open && blockscoutHostedNetworks.some((network) => network.chainId === chainId) && {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				}),
+				fields: {
+					...(open && apiChainByChainId[chainId] != null && {
+						$$ownedCoins: {
+							sources: [
+								Source.Allium_Rest,
+							],
+						},
+					}),
+					...(open && blockscoutHostedNetworks.some((network) => network.chainId === chainId) && {
+						$$transactions: true,
+						$$tokenTransfers: true,
+						$$internalTransfers: true,
+						isContract: true,
+						transactionCount: true,
+						tokenTransferCount: true,
+						firstTransactionAt: true,
+						lastTransactionAt: true,
+						nftCount: true,
+					}),
+				},
+			},
 		)
 	))
 
 	const idKey = stringify(entityId)
 
-	const actor = useEntity(
-		EntityType.EvmAccount,
+	const actor = useEntity(entityCollectionsContext, EntityType.EvmAccount,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Voltaire_JsonRpc,
 				...(open ?
 					[Source.TheGraph_Graphql]
 				:
 					[]
 				),
-			],
-			$primaryName: {
-				$: [
+			], fields: { $primaryName: ({ sources: [
 					Source.Voltaire_JsonRpc,
-				],
-			},
-			$icon: {
-				$: [
+				] }), $icon: ({ sources: [
 					Source.Voltaire_JsonRpc,
-				],
-			},
-			...(open ?
-				{
-					$$ensNamesOwned: {
-						$: [
+				] }), ...(open ? ({ $$ensNamesOwned: ({ sources: [
 							Source.TheGraph_Graphql,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
@@ -170,7 +149,7 @@
 		const firstContractChainId = $derived.by(() => {
 			for (let index = 0; index < evmNetworkAccountSliceChainIds.length; index += 1) {
 				const chainId = evmNetworkAccountSliceChainIds[index]
-				if (portfolioSliceAtChain(chainId)?.current?.isContract === true) {
+				if (portfolioSliceAtChain(chainId)?.current?.fields.isContract === true) {
 					return chainId
 				}
 			}
@@ -186,7 +165,7 @@
 			const slice = evmNetworkAccountPortfolioSlices[_index]
 			const chainFacetId = evmNetworkAccountSliceChainIds[_index]
 			if (slice.ready !== true || apiChainByChainId[chainFacetId] == null) return
-			for (const value of slice.current.$$ownedCoins ?? []) merged.push({
+			for (const value of slice.current?.fields.$$ownedCoins?.values ?? []) merged.push({
 				value,
 			})
 		}
@@ -237,7 +216,7 @@
 			{/snippet}
 
 			{#snippet children(actor)}
-				{@const avatarUrl = actor.$icon?.[EntityMetaKey.Id].url}
+				{@const avatarUrl = actor.fields.$icon?.[EntityMetaKey.Id].url}
 				<IconComponent
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
@@ -259,8 +238,8 @@
 			{/snippet}
 
 			{#snippet children(actor)}
-				{#if actor.$primaryName?.[EntityMetaKey.Id].name}
-					{actor.$primaryName?.[EntityMetaKey.Id].name}
+				{#if actor.fields.$primaryName?.[EntityMetaKey.Id].name}
+					{actor.fields.$primaryName?.[EntityMetaKey.Id].name}
 				{:else}
 					<TruncatedValue
 						format={TruncatedValueFormat.Visual}
@@ -355,11 +334,14 @@
 			{/snippet}
 
 			{#snippet SectionActorEns({ id, label })}
-				{#if true}
-					{#snippet ActorEnsNamesBody(actor: Entity<typeof schema, EntityType.EvmAccount>)}
-						{#if (actor.$$ensNamesOwned ?? []).length}
+				<ResourceBoundary
+					placeholderText="Loading account…"
+					resource={actor}
+				>
+					{#snippet children(actorResult)}
+						{#if (actorResult.fields.$$ensNamesOwned?.values ?? []).length}
 							<ul data-evmAccounts="unstyled">
-								{#each actor.$$ensNamesOwned ?? [] as nameRef (`${nameRef[EntityMetaKey.Id].name}`)}
+								{#each actorResult.fields.$$ensNamesOwned?.values ?? [] as nameRef (`${nameRef[EntityMetaKey.Id].name}`)}
 									<li>
 										<a
 											data-link
@@ -387,13 +369,7 @@
 							</div>
 						{/if}
 					{/snippet}
-
-					<ResourceBoundary
-						children={ActorEnsNamesBody}
-						placeholderText="Loading account…"
-						resource={actor}
-					/>
-				{/if}
+				</ResourceBoundary>
 			{/snippet}
 		</CollapsibleTabs>
 

@@ -3,8 +3,8 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -37,19 +37,14 @@
 	> = $props()
 
 	import { getEvmSelectorPath } from '$/lib/signature-paths.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const selector = useEntity(
-		EntityType.EvmSelector,
+	const selector = useEntity(entityCollectionsContext, EntityType.EvmSelector,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Openchain_Rest,
-			],
-			...(open && {
-				signatures: {},
-			}),
-		},
+			], fields: { ...(open && ({ signatures: true })) } }),
 	)
 
 
@@ -81,7 +76,7 @@
 			placeholderText="Loading decoded function selector…"
 		>
 			{#snippet children(selector)}
-				{selector.signatures?.[0] ?? entityId.hex}
+				{selector.fields.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -122,14 +117,14 @@
 								placeholderText="Loading decoded calldata prefixes…"
 							>
 								{#snippet children(selector)}
-									{#if selector.signatures?.length}
+									{#if selector.fields.signatures?.length}
 										<ul>
-											{#each selector.signatures as sig (sig)}
+											{#each selector.fields.signatures as sig (sig)}
 												<li><code>{sig}</code></li>
 											{/each}
 										</ul>
 									{:else}
-										<p data-text="muted">No ABI signatures matched this function selector.</p>
+										<p data-text="muted">No ABI signatures matched this function selector.fields.</p>
 									{/if}
 								{/snippet}
 							</ResourceBoundary>

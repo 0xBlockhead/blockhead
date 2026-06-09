@@ -2,15 +2,20 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { Entity, EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { blockheadAgentConversationTurnStatusByStatus } from '$/constants/Blockhead.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
+
+	type ResourceFields = {
+		fields: Record<string, any>
+	}
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -30,27 +35,11 @@
 		>
 	> = $props()
 
-	const turn = useEntity(
-		EntityType.BlockheadAgentConversationTurn,
+	const turn = useEntity(entityCollectionsContext, EntityType.BlockheadAgentConversationTurn,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Local_Internal,
-			],
-			userPrompt: {},
-			assistantText: {},
-			status: {},
-			createdAt: {},
-			...(open ?
-				{
-					providerId: {},
-					promptVersion: {},
-					parentId: {},
-					error: {},
-				}
-			:
-				{}),
-		},
+			], fields: { userPrompt: true, assistantText: true, status: true, createdAt: true, ...(open ? ({ providerId: true, promptVersion: true, parentId: true, error: true }) : ({  })) } }),
 	)
 
 
@@ -78,9 +67,9 @@
 
 	{#snippet Title()}
 		{#if true}
-			{#snippet TurnPromptHeading(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
+			{#snippet TurnPromptHeading(turn: ResourceFields)}
 				<TruncatedValue
-					value={turn.userPrompt}
+					value={turn.fields.userPrompt}
 					format={TruncatedValueFormat.Visual}
 				/>
 			{/snippet}
@@ -97,11 +86,11 @@
 		<ResourceBoundary
 			resource={turn}
 		>
-			{#snippet children(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
-				{#if turn.createdAt !== undefined}
+			{#snippet children(turn: ResourceFields)}
+				{#if turn.fields.createdAt !== undefined}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={turn.createdAt}
+							timestamp={turn.fields.createdAt}
 						/>
 					</span>
 				{/if}
@@ -120,15 +109,15 @@
 			resource={turn}
 			placeholderText="Loading turn…"
 		>
-			{#snippet children(turn)}
-				{#if turn.userPrompt !== ''}
-					<p>{turn.userPrompt}</p>
+			{#snippet children(turn: ResourceFields)}
+				{#if turn.fields.userPrompt !== ''}
+					<p>{turn.fields.userPrompt}</p>
 				{:else}
 					<p data-text="muted">Empty prompt.</p>
 				{/if}
 
-				{#if open && turn.assistantText != null && turn.assistantText !== ''}
-					<p>{turn.assistantText}</p>
+				{#if open && turn.fields.assistantText != null && turn.fields.assistantText !== ''}
+					<p>{turn.fields.assistantText}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -138,9 +127,9 @@
 				<dt>Status</dt>
 				<dd>
 					{#if true}
-						{#snippet TurnStatusRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
-							{#if turn.status !== undefined}
-							{blockheadAgentConversationTurnStatusByStatus[turn.status].label}
+						{#snippet TurnStatusRow(turn: ResourceFields)}
+							{#if turn.fields.status !== undefined}
+							{blockheadAgentConversationTurnStatusByStatus[turn.fields.status].label}
 							{/if}
 						{/snippet}
 
@@ -158,10 +147,10 @@
 					<dt>Created</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnCreatedRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
-								{#if turn.createdAt !== undefined}
+							{#snippet TurnCreatedRow(turn: ResourceFields)}
+								{#if turn.fields.createdAt !== undefined}
 									<Timestamp
-										timestamp={turn.createdAt}
+										timestamp={turn.fields.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -181,10 +170,10 @@
 					<dt>Provider</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnProviderRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
-								{#if turn.providerId != null && turn.providerId !== ''}
+							{#snippet TurnProviderRow(turn: ResourceFields)}
+								{#if turn.fields.providerId != null && turn.fields.providerId !== ''}
 									<TruncatedValue
-										value={turn.providerId}
+										value={turn.fields.providerId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{:else}
@@ -209,9 +198,9 @@
 					<dt>Prompt version</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnPromptVersionRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
-								{#if turn.promptVersion !== ''}
-									{turn.promptVersion}
+							{#snippet TurnPromptVersionRow(turn: ResourceFields)}
+								{#if turn.fields.promptVersion !== ''}
+									{turn.fields.promptVersion}
 								{:else}
 									<span data-text="muted">
 										Not recorded.
@@ -234,10 +223,10 @@
 					<dt>Parent turn</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnParentRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
-								{#if turn.parentId != null && turn.parentId !== ''}
+							{#snippet TurnParentRow(turn: ResourceFields)}
+								{#if turn.fields.parentId != null && turn.fields.parentId !== ''}
 									<svelte:self
-										entityId={{ id: turn.parentId }}
+										entityId={{ id: turn.fields.parentId }}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -263,9 +252,9 @@
 					<dt>Error</dt>
 					<dd>
 						{#if true}
-							{#snippet TurnErrorRow(turn: Entity<typeof schema, EntityType.BlockheadAgentConversationTurn>)}
-								{#if turn.error != null && turn.error !== ''}
-									{turn.error}
+							{#snippet TurnErrorRow(turn: ResourceFields)}
+								{#if turn.fields.error != null && turn.fields.error !== ''}
+									{turn.fields.error}
 								{:else}
 									<span data-text="muted">
 										None.

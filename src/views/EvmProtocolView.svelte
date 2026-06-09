@@ -3,14 +3,15 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -31,28 +32,12 @@
 		never
 	> = $props()
 
-	const protocol = useEntity(
-		EntityType.EvmProtocol,
+	const protocol = useEntity(entityCollectionsContext, EntityType.EvmProtocol,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
 				Source.Local_Internal,
-			],
-			protocolName: {},
-			registryLabel: {},
-			...(open ?
-				{
-					homeUrl: {},
-					docsUrl: {},
-					topology: {},
-					$$evmTopics: {},
-					$$evmSelectors: {},
-					$$evmErrors: {},
-				}
-			:
-				{}),
-		},
+			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$evmTopics: true, $$evmSelectors: true, $$evmErrors: true }) : ({  })) } }),
 	)
 
 	const entityViewDetailCarouselScrollProps = {
@@ -105,61 +90,61 @@
 				placeholderText="Loading EVM protocol…"
 			>
 				{#snippet children(protocol)}
-					{#if protocol.registryLabel}
+					{#if protocol.fields.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{protocol.registryLabel}</dd>
+							<dd>{protocol.fields.registryLabel}</dd>
 						</div>
-					{:else if protocol.protocolName}
+					{:else if protocol.fields.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{protocol.protocolName}</dd>
+							<dd>{protocol.fields.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Topics</dt>
-							<dd>{String(protocol.$$evmTopics?.length ?? 0)}</dd>
+							<dd>{String(protocol.fields.$$evmTopics?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Selectors</dt>
-							<dd>{String(protocol.$$evmSelectors?.length ?? 0)}</dd>
+							<dd>{String(protocol.fields.$$evmSelectors?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Errors</dt>
-							<dd>{String(protocol.$$evmErrors?.length ?? 0)}</dd>
+							<dd>{String(protocol.fields.$$evmErrors?.values.length ?? 0)}</dd>
 						</div>
 					{/if}
 
-					{#if open && protocol.homeUrl}
+					{#if open && protocol.fields.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={protocol.homeUrl}>{protocol.homeUrl}</a>
+								<a href={protocol.fields.homeUrl}>{protocol.fields.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && protocol.docsUrl}
+					{#if open && protocol.fields.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-								<a href={protocol.docsUrl}>{protocol.docsUrl}</a>
+								<a href={protocol.fields.docsUrl}>{protocol.fields.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && protocol.topology}
+					{#if open && protocol.fields.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{protocol.topology}</dd>
+							<dd>{protocol.fields.topology}</dd>
 						</div>
 					{/if}
 				{/snippet}

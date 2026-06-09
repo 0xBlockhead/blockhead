@@ -1,13 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
@@ -44,7 +44,8 @@
 		>
 	> = $props()
 
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// Components
@@ -79,27 +80,24 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
-					$: [
+				entityFieldReference.entityId,({ sources: [
 						Source.Youtube_Rest,
 						Source.Piped_Rest,
-					],
-					[entityFieldReference.fieldName]: {
-						$: [
+					], fields: { [entityFieldReference.fieldName]: {
+						sources: [
 							Source.Youtube_Rest,
 							Source.Piped_Rest,
 						],
 						limit,
 					},
-				},
+				} }),
 			)}
 			{@const comments = derive(
 				parent,
 				(parent) => {
-					const youTubeComments: Entity<typeof schema, EntityType.YouTubeComment>[] = parent[entityFieldReference.fieldName] ?? []
+					const youTubeComments: readonly Entity<typeof schema, EntityType.YouTubeComment>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
 					return youTubeComments.map((comment) => comment[EntityMetaKey.Id])
 				},
 			)}

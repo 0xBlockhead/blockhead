@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import HyperliquidJsonRpc from '$/sources/Hyperliquid/JsonRpc/index.ts'
 import HyperliquidRest from '$/sources/Hyperliquid/Rest/index.ts'
 

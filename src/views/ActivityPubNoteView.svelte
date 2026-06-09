@@ -2,11 +2,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { mastodonVisibilityByVisibility } from '$/constants/Social/MastodonVisibility.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -42,7 +42,8 @@
 	> = $props()
 
 	import { htmlToPlainText } from '$/lib/html.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	const idKey = stringify(entityId)
 
@@ -53,43 +54,15 @@
 		contentWarningRevealed = false
 	})
 
-	const note = useEntity(
-		EntityType.ActivityPubNote,
+	const note = useEntity(entityCollectionsContext, EntityType.ActivityPubNote,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Mastodon_Rest,
 				Source.Fedi_Rest,
-			],
-			content: {},
-			createdAt: {},
-			sensitive: {},
-			spoilerText: {},
-			...(open ?
-				{
-					$author: {},
-					$inReplyTo: {},
-					$reblogOf: {},
-					favouriteCount: {},
-					reblogCount: {},
-					replyCount: {},
-					$$timestamps: {
-						$: [
+			], fields: { content: true, createdAt: true, sensitive: true, spoilerText: true, ...(open ? ({ $author: true, $inReplyTo: true, $reblogOf: true, favouriteCount: true, reblogCount: true, replyCount: true, $$timestamps: ({ sources: [
 							Source.Mastodon_Rest,
 							Source.Fedi_Rest,
-						],
-						$limit: 1,
-					},
-					visibility: {},
-					language: {},
-					statusUrl: {},
-					editedAt: {},
-					activityStreamsUri: {},
-					$$media: {},
-				}
-			:
-				{}),
-		},
+						], limit: 1 }), visibility: true, language: true, statusUrl: true, editedAt: true, activityStreamsUri: true, $$media: true }) : ({  })) } }),
 	)
 
 
@@ -131,16 +104,16 @@
 		>
 			{#snippet children(note)}
 				{@const hasContentWarning = (
-					(note.spoilerText?.trim().length ?? 0) > 0
-					|| note.sensitive === true
+					(note.fields.spoilerText?.trim().length ?? 0) > 0
+					|| note.fields.sensitive === true
 				)}
 				{@const mastodonPlainBody = (
 					hasContentWarning && !contentWarningRevealed ?
-						(note.spoilerText?.trim() || 'Sensitive content')
-					: note.content == null ?
+						(note.fields.spoilerText?.trim() || 'Sensitive content')
+					: note.fields.content == null ?
 						''
 					:
-						htmlToPlainText(note.content)
+						htmlToPlainText(note.fields.content)
 				)}
 				{#if mastodonPlainBody !== ''}
 					<TruncatedValue
@@ -166,10 +139,10 @@
 			resource={note}
 		>
 			{#snippet children(note)}
-				{#if note.createdAt}
+				{#if note.fields.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={note.createdAt}
+							timestamp={note.fields.createdAt}
 						/>
 					</span>
 				{/if}
@@ -198,14 +171,14 @@
 			>
 				{#snippet children(note)}
 					{@const hasContentWarning = (
-						(note.spoilerText?.trim().length ?? 0) > 0
-						|| note.sensitive === true
+						(note.fields.spoilerText?.trim().length ?? 0) > 0
+						|| note.fields.sensitive === true
 					)}
 					{#if !hasContentWarning || contentWarningRevealed}
-						{#if note.content != null}
+						{#if note.fields.content != null}
 							<p>
 								<TruncatedValue
-									value={htmlToPlainText(note.content)}
+									value={htmlToPlainText(note.fields.content)}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</p>
@@ -223,12 +196,12 @@
 						placeholderText="Loading note…"
 					>
 						{#snippet children(note)}
-							{#if note.$author}
+							{#if note.fields.$author}
 								<div>
-									<dt>{note.$reblogOf ? 'Boosted by' : 'Author'}</dt>
+									<dt>{note.fields.$reblogOf ? 'Boosted by' : 'Author'}</dt>
 									<dd>
 										<ActivityPubActorView
-											entityId={note.$author[EntityMetaKey.Id]}
+											entityId={note.fields.$author[EntityMetaKey.Id]}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -246,12 +219,12 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.$inReplyTo}
+						{#if note.fields.$inReplyTo}
 							<div>
 								<dt>In reply to</dt>
 								<dd>
 									<svelte:self
-										entityId={note.$inReplyTo[EntityMetaKey.Id]}
+										entityId={note.fields.$inReplyTo[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -268,15 +241,15 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.$reblogOf && (
-							note.$reblogOf[EntityMetaKey.Id].instanceOrigin !== entityId.instanceOrigin
-							|| note.$reblogOf[EntityMetaKey.Id].localStatusId !== entityId.localStatusId
+						{#if note.fields.$reblogOf && (
+							note.fields.$reblogOf[EntityMetaKey.Id].instanceOrigin !== entityId.instanceOrigin
+							|| note.fields.$reblogOf[EntityMetaKey.Id].localStatusId !== entityId.localStatusId
 						)}
 							<div>
 								<dt>Reblog of</dt>
 								<dd>
 									<svelte:self
-										entityId={note.$reblogOf[EntityMetaKey.Id]}
+										entityId={note.fields.$reblogOf[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -294,8 +267,8 @@
 				>
 					{#snippet children(note)}
 						{@const hasContentWarning = (
-							(note.spoilerText?.trim().length ?? 0) > 0
-							|| note.sensitive === true
+							(note.fields.spoilerText?.trim().length ?? 0) > 0
+							|| note.fields.sensitive === true
 						)}
 						{#if hasContentWarning && !contentWarningRevealed}
 							<div>
@@ -305,7 +278,7 @@
 										class="activitypub-content-warning"
 										data-column="gap-2"
 									>
-										<p>{note.spoilerText?.trim() || 'Sensitive content'}</p>
+										<p>{note.fields.spoilerText?.trim() || 'Sensitive content'}</p>
 										<button
 											type="button"
 											onclick={() => {
@@ -317,13 +290,13 @@
 									</div>
 								</dd>
 							</div>
-						{:else if note.content != null || (note.$$media?.length ?? 0) > 0}
-							{#if (note.$$media?.length ?? 0) > 0}
+						{:else if note.fields.content != null || (note.fields.$$media?.values.length ?? 0) > 0}
+							{#if (note.fields.$$media?.values.length ?? 0) > 0}
 								<div>
 									<dt>Media</dt>
 									<dd>
 										<div data-column="gap-3">
-											{#each note.$$media ?? [] as media (media[EntityMetaKey.Id].url)}
+											{#each note.fields.$$media.values as media (media[EntityMetaKey.Id].url)}
 												<Media
 													alt=""
 													media={{ url: media[EntityMetaKey.Id].url }}
@@ -344,11 +317,11 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.visibility}
+						{#if note.fields.visibility}
 							<div>
 								<dt>Visibility</dt>
 								<dd>
-									{mastodonVisibilityByVisibility[note.visibility]?.label ?? note.visibility}
+									{mastodonVisibilityByVisibility[note.fields.visibility]?.label ?? note.fields.visibility}
 								</dd>
 							</div>
 						{/if}
@@ -362,42 +335,42 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.sensitive != null}
+						{#if note.fields.sensitive != null}
 							<div>
 								<dt>Sensitive</dt>
 								<dd>
-									{note.sensitive ? 'Yes' : 'No'}
+									{note.fields.sensitive ? 'Yes' : 'No'}
 								</dd>
 							</div>
 						{/if}
 
-						{#if note.language}
+						{#if note.fields.language}
 							<div>
 								<dt>Language</dt>
-								<dd>{note.language}</dd>
+								<dd>{note.fields.language}</dd>
 							</div>
 						{/if}
 
-						{#if note.editedAt != null}
+						{#if note.fields.editedAt != null}
 							<div>
 								<dt>Edited</dt>
 								<dd>
 									<Timestamp
-										timestamp={note.editedAt}
+										timestamp={note.fields.editedAt}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if note.activityStreamsUri}
+						{#if note.fields.activityStreamsUri}
 							<div>
 								<dt>Activity Streams URI</dt>
 								<dd>
 									<a
-										href={note.activityStreamsUri}
+										href={note.fields.activityStreamsUri}
 										rel="noreferrer"
 										target="_blank"
-									>{note.activityStreamsUri}</a>
+									>{note.fields.activityStreamsUri}</a>
 								</dd>
 							</div>
 						{/if}
@@ -415,15 +388,15 @@
 							metrics={[
 								{
 									label: 'Favourites',
-									value: note.$$timestamps[0]?.favouriteCount ?? note.favouriteCount,
+									value: note.fields.$$timestamps[0]?.favouriteCount ?? note.fields.favouriteCount,
 								},
 								{
 									label: 'Reblogs',
-									value: note.$$timestamps[0]?.reblogCount ?? note.reblogCount,
+									value: note.fields.$$timestamps[0]?.reblogCount ?? note.fields.reblogCount,
 								},
 								{
 									label: 'Replies',
-									value: note.$$timestamps[0]?.replyCount ?? note.replyCount,
+									value: note.fields.$$timestamps[0]?.replyCount ?? note.fields.replyCount,
 								},
 							]}
 						/>
@@ -437,15 +410,15 @@
 					placeholderText="Loading note…"
 				>
 					{#snippet children(note)}
-						{#if note.statusUrl}
+						{#if note.fields.statusUrl}
 							<div>
 								<dt>Status URL</dt>
 								<dd>
 									<a
-										href={note.statusUrl}
+										href={note.fields.statusUrl}
 										rel="noreferrer"
 										target="_blank"
-									>{note.statusUrl}</a>
+									>{note.fields.statusUrl}</a>
 								</dd>
 							</div>
 						{/if}
@@ -487,8 +460,8 @@
 				>
 					{#snippet children(note)}
 						{@const mastodonThreadMetadataUnset = (
-							htmlToPlainText(note.content ?? '').trim() === ''
-							&& note.createdAt == null
+							htmlToPlainText(note.fields.content ?? '').trim() === ''
+							&& note.fields.createdAt == null
 						)}
 						{#if mastodonThreadMetadataUnset}
 							<div data-row="wrap align-center gap-2">

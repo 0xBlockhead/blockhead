@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,20 +28,12 @@
 		>
 	> = $props()
 
-	const block = useEntity(
-		EntityType.CosmosBlock,
+	const block = useEntity(entityCollectionsContext, EntityType.CosmosBlock,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.CometBft_Rest,
 				Source.CosmosSdk_Rest,
-			],
-			hash: {},
-			...(open && {
-				proposerConsensusAddress: {},
-			}),
-			timestampMs: {},
-		},
+			], fields: { hash: true, ...(open && ({ proposerConsensusAddress: true })), timestampMs: true } }),
 	)
 
 
@@ -100,34 +93,34 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if block.hash != null}
+					{#if block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={block.hash}
+									value={block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && block.proposerConsensusAddress != null}
+					{#if open && block.fields.proposerConsensusAddress != null}
 						<div>
 							<dt>Proposer consensus address</dt>
 							<dd>
 								<TruncatedValue
-									value={block.proposerConsensusAddress}
+									value={block.fields.proposerConsensusAddress}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if block.timestampMs != null}
+					{#if block.fields.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.timestampMs} /></dd>
+							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

@@ -1,14 +1,14 @@
 import { type } from 'arktype'
 
-import { UrlString } from '$/schema/$Url.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	entityType: EntityType.PayjoinDirectory,

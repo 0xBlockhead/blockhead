@@ -1,14 +1,14 @@
 import { type } from 'arktype'
 
 // Signed channel state snapshot (Nitro-style); not wired to Local catalog or resolvers yet.
-import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 const stateChannelAllocationRow = type({
 	destination: EvmAddress,

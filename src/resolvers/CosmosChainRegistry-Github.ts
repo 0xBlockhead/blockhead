@@ -6,11 +6,11 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	CosmosChainRegistryAssetList,
 	CosmosChainRegistryChain,
@@ -78,13 +78,14 @@ export default {
 					...(iconMedia != null && { $icon: iconMedia }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (snapshot) => snapshot.name,
 			environment: (snapshot) => snapshot.environment,
 			$icon: (snapshot) => snapshot.$icon,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.AssetInstance,
@@ -99,13 +100,14 @@ export default {
 				if (asset == null) throw new Error(`CosmosChainRegistry_Github: asset not found for ${entityId.assetKey}`)
 				return assetInstanceFields(asset)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (snapshot) => snapshot.name,
 			symbol: (snapshot) => snapshot.symbol,
 			decimals: (snapshot) => snapshot.decimals,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.Network,
@@ -120,10 +122,11 @@ export default {
 					}),
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$nativeAssets: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

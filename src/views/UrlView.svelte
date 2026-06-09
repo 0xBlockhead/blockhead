@@ -1,16 +1,17 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -32,26 +33,15 @@
 		>
 	> = $props()
 
-	const url = useEntity(
-		EntityType.Url,
+	const url = useEntity(entityCollectionsContext, EntityType.Url,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
 				Source.MetadataVision_Rest,
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
 				Source.Lifi_Rest,
-			],
-			catalogName: {},
-			catalogStandard: {},
-			catalogIcon: {},
-			openGraphTitle: {},
-			openGraphDescription: {},
-			publisher: {},
-			$siteIcon: {},
-			$openGraphImage: {},
-		},
+			], fields: { catalogName: true, catalogStandard: true, catalogIcon: true, openGraphTitle: true, openGraphDescription: true, publisher: true, $siteIcon: true, $openGraphImage: true } }),
 	)
 
 
@@ -82,7 +72,7 @@
 			placeholderText="Loading URL entity…"
 		>
 			{#snippet children(url)}
-				{url.openGraphTitle ?? url.catalogName ?? entityId.url}
+				{url.fields.openGraphTitle ?? url.fields.catalogName ?? entityId.url}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -102,10 +92,10 @@
 		{#if contentOpen}
 			<ResourceBoundary resource={url}>
 				{#snippet children(url)}
-					{#if url.openGraphDescription != null}
+					{#if url.fields.openGraphDescription != null}
 						<p>
 							<TruncatedValue
-								value={url.openGraphDescription}
+								value={url.fields.openGraphDescription}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</p>
@@ -120,8 +110,8 @@
 				<dd>
 					<ResourceBoundary resource={url}>
 						{#snippet children(url)}
-							{#if url.publisher != null}
-								{url.publisher}
+							{#if url.fields.publisher != null}
+								{url.fields.publisher}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -134,8 +124,8 @@
 					<dd>
 						<ResourceBoundary resource={url}>
 							{#snippet children(url)}
-								{#if url.catalogStandard != null}
-									{url.catalogStandard}
+								{#if url.fields.catalogStandard != null}
+									{url.fields.catalogStandard}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -150,12 +140,12 @@
 						<ResourceBoundary resource={url}>
 							{#snippet children(url)}
 								{#if (
-									url.$openGraphImage != null
-									&& url.$openGraphImage[EntityMetaKey.Id].url
+									url.fields.$openGraphImage != null
+									&& url.fields.$openGraphImage[EntityMetaKey.Id].url
 								)}
 									<Media
-										alt={url.openGraphTitle ?? ''}
-										media={{ url: url.$openGraphImage[EntityMetaKey.Id].url }}
+										alt={url.fields.openGraphTitle ?? ''}
+										media={{ url: url.fields.$openGraphImage[EntityMetaKey.Id].url }}
 									/>
 								{/if}
 							{/snippet}
@@ -169,7 +159,7 @@
 				<dd>
 					<ResourceBoundary resource={url}>
 						{#snippet children(url)}
-							{#if url.openGraphTitle != null}
+							{#if url.fields.openGraphTitle != null}
 								<a
 									href={entityId.url}
 									rel="noreferrer"
@@ -178,7 +168,7 @@
 									{entityId.url}
 								</a>
 							{:else}
-								{#if url.catalogName != null}
+								{#if url.fields.catalogName != null}
 									<a
 										href={entityId.url}
 										rel="noreferrer"

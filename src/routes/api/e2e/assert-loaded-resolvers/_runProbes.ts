@@ -12,8 +12,8 @@ import {
 	EntityMetaKey,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { entityDefinitionByType } from '$/schema/index.ts'
 import { schema } from '$/schema/index.ts'
 import {
@@ -25,7 +25,7 @@ import {
 	resolverValuePartsByEntityTypeAndFieldName,
 } from '$/resolvers/index.ts'
 import type { ResolverContext } from '$/resolvers/$resolvers.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	EntityId,
 	EntityType as SchemaEntityType,
@@ -55,8 +55,9 @@ const resolverContext = {
 	IdentityFilter: [],
 	ParentIdentityFilter: [],
 	SourceFilter: [],
+	ir: {},
 	publicEnv: {},
-}
+} satisfies ResolverContext
 
 const probeTimeoutMs = 30_000
 

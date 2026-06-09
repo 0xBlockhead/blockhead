@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,15 +27,10 @@
 		>
 	> = $props()
 
-	const bitcoinCashBcmrMetadata = useEntity(
+	const bitcoinCashBcmrMetadata = useEntity(entityCollectionsContext, 
 		EntityType.BitcoinCashBcmrMetadata,
 		entityId,
-		{
-			name: {},
-			description: {},
-			symbol: {},
-			decimals: {},
-		},
+		({ fields: { name: true, description: true, symbol: true, decimals: true } }),
 	)
 
 
@@ -64,34 +60,34 @@
 			placeholderText={`Loading Bitcoin Cash Metadata Registry Entry...`}
 		>
 			{#snippet children(bitcoinCashBcmrMetadata)}
-				{#if bitcoinCashBcmrMetadata.description != null}
+				{#if bitcoinCashBcmrMetadata.fields.description != null}
 					<p>
 						<TruncatedValue
-							value={bitcoinCashBcmrMetadata.description}
+							value={bitcoinCashBcmrMetadata.fields.description}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
 				{/if}
 
 				<dl>
-					{#if bitcoinCashBcmrMetadata.name != null}
+					{#if bitcoinCashBcmrMetadata.fields.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{bitcoinCashBcmrMetadata.name}</dd>
+							<dd>{bitcoinCashBcmrMetadata.fields.name}</dd>
 						</div>
 					{/if}
 
-					{#if bitcoinCashBcmrMetadata.symbol != null}
+					{#if bitcoinCashBcmrMetadata.fields.symbol != null}
 						<div>
 							<dt>Symbol</dt>
-							<dd>{bitcoinCashBcmrMetadata.symbol}</dd>
+							<dd>{bitcoinCashBcmrMetadata.fields.symbol}</dd>
 						</div>
 					{/if}
 
-					{#if bitcoinCashBcmrMetadata.decimals != null}
+					{#if bitcoinCashBcmrMetadata.fields.decimals != null}
 						<div>
 							<dt>Decimals</dt>
-							<dd><NumberValue value={bitcoinCashBcmrMetadata.decimals} /></dd>
+							<dd><NumberValue value={bitcoinCashBcmrMetadata.fields.decimals} /></dd>
 						</div>
 					{/if}
 				</dl>

@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -23,14 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const utxoOutput = useEntity(EntityType.UtxoOutput, entityId, {
-		valueSats: {},
-		scriptPubKeyAsm: {},
-		scriptPubKeyHex: {},
-		scriptPubKeyType: {},
-		$address: {},
-		isSpent: {},
-	})
+	const utxoOutput = useEntity(entityCollectionsContext, EntityType.UtxoOutput, entityId, ({ fields: { valueSats: true, scriptPubKeyAsm: true, scriptPubKeyHex: true, scriptPubKeyType: true, $address: true, isSpent: true } }))
 
 
 	// Components
@@ -72,55 +66,55 @@
 		>
 			{#snippet children(utxoOutput)}
 				<dl>
-					{#if utxoOutput.valueSats != null}
+					{#if utxoOutput.fields.valueSats != null}
 						<div>
 							<dt>Value Sats</dt>
-							<dd><NumberValue value={utxoOutput.valueSats} /> sats</dd>
+							<dd><NumberValue value={utxoOutput.fields.valueSats} /> sats</dd>
 						</div>
 					{/if}
 
-					{#if utxoOutput.scriptPubKeyAsm != null}
+					{#if utxoOutput.fields.scriptPubKeyAsm != null}
 						<div>
 							<dt>Script Pub Key Asm</dt>
 							<dd>
 								<TruncatedValue
-									value={utxoOutput.scriptPubKeyAsm}
+									value={utxoOutput.fields.scriptPubKeyAsm}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if utxoOutput.scriptPubKeyHex != null}
+					{#if utxoOutput.fields.scriptPubKeyHex != null}
 						<div>
 							<dt>Script Pub Key Hex</dt>
 							<dd>
 								<TruncatedValue
-									value={utxoOutput.scriptPubKeyHex}
+									value={utxoOutput.fields.scriptPubKeyHex}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if utxoOutput.scriptPubKeyType != null}
+					{#if utxoOutput.fields.scriptPubKeyType != null}
 						<div>
 							<dt>Script Pub Key Type</dt>
 							<dd>
 								<TruncatedValue
-									value={utxoOutput.scriptPubKeyType}
+									value={utxoOutput.fields.scriptPubKeyType}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if utxoOutput.$address}
+					{#if utxoOutput.fields.$address}
 						<div>
 							<dt>Address</dt>
 							<dd>
 								<UtxoAddressView
-									entityId={utxoOutput.$address[EntityMetaKey.Id]}
+									entityId={utxoOutput.fields.$address[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -128,10 +122,10 @@
 						</div>
 					{/if}
 
-					{#if utxoOutput.isSpent != null}
+					{#if utxoOutput.fields.isSpent != null}
 						<div>
 							<dt>Is Spent</dt>
-							<dd>{utxoOutput.isSpent ? 'Yes' : 'No'}</dd>
+							<dd>{utxoOutput.fields.isSpent ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

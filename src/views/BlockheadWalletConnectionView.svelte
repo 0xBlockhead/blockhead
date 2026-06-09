@@ -5,14 +5,15 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { blockheadWalletConnectionStatusByStatus } from '$/constants/Blockhead.ts'
 	import { walletProtocolByProtocol } from '$/constants/Wallet.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,26 +39,12 @@
 		>
 	> = $props()
 
-	const walletConnection = $derived(useEntity(
+	const walletConnection = $derived(useEntity(entityCollectionsContext, 
 		EntityType.BlockheadWalletConnection,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Local_Internal,
-			],
-			status: {},
-			protocol: {},
-			transportKind: {},
-			scopes: {},
-			$$connectedAccounts: {},
-			$activeAccount: {},
-			selected: {},
-			connectedAt: {},
-			disconnectedAt: {},
-			sessionId: {},
-			sessionTopic: {},
-			error: {},
-		},
+			], fields: { status: true, protocol: true, transportKind: true, scopes: true, $$connectedAccounts: true, $activeAccount: true, selected: true, connectedAt: true, disconnectedAt: true, sessionId: true, sessionTopic: true, error: true } }),
 	))
 
 
@@ -114,25 +101,25 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>Status</dt>
-						<dd>{blockheadWalletConnectionStatusByStatus[walletConnection.status].label}</dd>
+						<dd>{blockheadWalletConnectionStatusByStatus[walletConnection.fields.status].label}</dd>
 					</div>
 
 					<div>
 						<dt>Protocol</dt>
-						<dd>{walletProtocolByProtocol[walletConnection.protocol].label}</dd>
+						<dd>{walletProtocolByProtocol[walletConnection.fields.protocol].label}</dd>
 					</div>
 
 					<div>
 						<dt>Transport</dt>
-						<dd>{walletConnection.transportKind}</dd>
+						<dd>{walletConnection.fields.transportKind}</dd>
 					</div>
 
-					{#if walletConnection.$activeAccount}
+					{#if walletConnection.fields.$activeAccount}
 						<div>
 							<dt>Active account</dt>
 							<dd>
 								<BlockheadWalletAccountView
-									entityId={walletConnection.$activeAccount.__id}
+									entityId={walletConnection.fields.$activeAccount.__id}
 									open={false}
 								/>
 							</dd>
@@ -142,7 +129,7 @@
 					{#if open}
 						<div>
 							<dt>Selected</dt>
-							<dd>{walletConnection.selected ? 'Yes' : 'No'}</dd>
+							<dd>{walletConnection.fields.selected ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
@@ -150,38 +137,38 @@
 						<div>
 							<dt>Connected at</dt>
 							<dd>
-								<Timestamp timestamp={walletConnection.connectedAt} />
+								<Timestamp timestamp={walletConnection.fields.connectedAt} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && walletConnection.disconnectedAt != null}
+					{#if open && walletConnection.fields.disconnectedAt != null}
 						<div>
 							<dt>Disconnected at</dt>
 							<dd>
-								<Timestamp timestamp={walletConnection.disconnectedAt} />
+								<Timestamp timestamp={walletConnection.fields.disconnectedAt} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && walletConnection.sessionId != null}
+					{#if open && walletConnection.fields.sessionId != null}
 						<div>
 							<dt>Session ID</dt>
 							<dd>
 								<TruncatedValue
-									value={walletConnection.sessionId}
+									value={walletConnection.fields.sessionId}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && walletConnection.sessionTopic != null}
+					{#if open && walletConnection.fields.sessionTopic != null}
 						<div>
 							<dt>Session topic</dt>
 							<dd>
 								<TruncatedValue
-									value={walletConnection.sessionTopic}
+									value={walletConnection.fields.sessionTopic}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
@@ -198,9 +185,9 @@
 			placeholderText="Loading wallet connection…"
 		>
 			{#snippet children(walletConnection)}
-				{#if walletConnection.error}
+				{#if walletConnection.fields.error}
 					<p role="alert">
-						{walletConnection.error}
+						{walletConnection.fields.error}
 					</p>
 				{/if}
 
@@ -223,9 +210,9 @@
 					{/snippet}
 
 					{#snippet SectionWalletAccounts()}
-						{#if walletConnection.$$connectedAccounts.length}
+						{#if walletConnection.fields.$connectedAccounts.length}
 							<ul data-column="gap-1">
-								{#each walletConnection.$$connectedAccounts as account (stringify(account))}
+								{#each walletConnection.fields.$connectedAccounts as account (stringify(account))}
 									<li>
 										<BlockheadWalletAccountView entityId={account.__id} />
 									</li>

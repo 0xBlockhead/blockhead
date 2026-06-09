@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -23,11 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const hyperliquidAccount = useEntity(EntityType.HyperliquidAccount, entityId, {
-		accountRole: {},
-		$masterAccount: {},
-		$agentAccount: {},
-	})
+	const hyperliquidAccount = useEntity(entityCollectionsContext, EntityType.HyperliquidAccount, entityId, ({ fields: { accountRole: true, $masterAccount: true, $agentAccount: true } }))
 
 
 	// Components
@@ -59,19 +56,19 @@
 		>
 			{#snippet children(hyperliquidAccount)}
 				<dl>
-					{#if hyperliquidAccount.accountRole != null}
+					{#if hyperliquidAccount.fields.accountRole != null}
 						<div>
 							<dt>Role</dt>
-							<dd>{hyperliquidAccount.accountRole}</dd>
+							<dd>{hyperliquidAccount.fields.accountRole}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidAccount.$masterAccount != null}
+					{#if hyperliquidAccount.fields.$masterAccount != null}
 						<div>
 							<dt>Master account</dt>
 							<dd>
 								<Self
-									entityId={hyperliquidAccount.$masterAccount[EntityMetaKey.Id]}
+									entityId={hyperliquidAccount.fields.$masterAccount[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -79,12 +76,12 @@
 						</div>
 					{/if}
 
-					{#if hyperliquidAccount.$agentAccount != null}
+					{#if hyperliquidAccount.fields.$agentAccount != null}
 						<div>
 							<dt>Agent account</dt>
 							<dd>
 								<Self
-									entityId={hyperliquidAccount.$agentAccount[EntityMetaKey.Id]}
+									entityId={hyperliquidAccount.fields.$agentAccount[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

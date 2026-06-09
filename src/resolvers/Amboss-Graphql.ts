@@ -6,10 +6,10 @@ import { lightningNetworkId } from '$/constants/LightningNetwork.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -62,8 +62,9 @@ export default {
 					),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			alias: (snapshot) => snapshot.alias,
 			color: (snapshot) => snapshot.color,
 			capacitySats: (snapshot) => snapshot.capacitySats,
@@ -72,8 +73,8 @@ export default {
 			countryCode: (snapshot) => snapshot.countryCode,
 			city: (snapshot) => snapshot.city,
 			networkAddresses: (snapshot) => snapshot.networkAddresses,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningChannel,
@@ -126,16 +127,17 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			shortChannelId: (snapshot) => snapshot.shortChannelId,
 			status: (snapshot) => snapshot.status,
 			capacitySats: (snapshot) => snapshot.capacitySats,
 			$node0: (snapshot) => snapshot.$node0,
 			$node1: (snapshot) => snapshot.$node1,
 			feeRatePpm: (snapshot) => snapshot.feeRatePpm,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningNetwork,
@@ -153,10 +155,11 @@ export default {
 						},
 					}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$nodes: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

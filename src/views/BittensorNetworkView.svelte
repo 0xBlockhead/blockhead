@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -24,39 +25,18 @@
 		open?: boolean
 	} = $props()
 
-	const network = useEntity(
-		EntityType.Network,
+	const network = useEntity(entityCollectionsContext, EntityType.Network,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-			environment: {},
-			$networkStack: {},
-			$$executionEnvironments: {},
-			$$consensusMechanisms: {},
-			$$nativeAssets: {},
-		},
+			], fields: { name: true, environment: true, $networkStack: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } }),
 	)
 
-	const bittensorNetwork = useEntity(
-		EntityType.BittensorNetwork,
+	const bittensorNetwork = useEntity(entityCollectionsContext, EntityType.BittensorNetwork,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Bittensor_JsonRpc,
-			],
-			$$timestamps: {
-				$limit: 1,
-			},
-			$$blocks: {
-				$limit: open ? 12 : 1,
-			},
-			$$subnets: {
-				$limit: 24,
-			},
-		},
+			], fields: { $$timestamps: ({ limit: 1 }), $$blocks: ({ limit: open ? 12 : 1 }), $$subnets: ({ limit: 24 }) } }),
 	)
 
 
@@ -98,7 +78,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.name}
+				{network.fields.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,8 +91,8 @@
 		<dl class="network-summary-head" data-column-item="center">
 				<ResourceBoundary resource={bittensorNetwork}>
 					{#snippet children(bittensorNetwork)}
-						{@const block = bittensorNetwork.$$blocks?.at(0)}
-						{@const subnetCount = bittensorNetwork.$$subnets?.length ?? 0}
+						{@const block = bittensorNetwork.fields.$$blocks?.values.at(0)}
+						{@const subnetCount = bittensorNetwork.fields.$$subnets?.values.length ?? 0}
 						{#if block != null}
 							<div>
 								<dt>Finalized block</dt>
@@ -136,18 +116,18 @@
 
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-						{@const nativeAssetCount = network.$$nativeAssets?.length ?? 0}
+						{@const nativeAssetCount = network.fields.$$nativeAssets?.values.length ?? 0}
 						<div>
 							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
+							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 						</div>
 
-					{#if open && network.$networkStack != null}
+					{#if open && network.fields.$networkStack != null}
 						<div>
 							<dt>Stack</dt>
 							<dd>
 								<NetworkStackView
-									entityId={network.$networkStack[EntityMetaKey.Id]}
+									entityId={network.fields.$networkStack[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -199,7 +179,7 @@
 				{#snippet SectionBittensorSubtensor()}
 				<ResourceBoundary resource={bittensorNetwork}>
 					{#snippet children(bittensorNetwork)}
-						{@const block = bittensorNetwork.$$blocks?.at(0)}
+						{@const block = bittensorNetwork.fields.$$blocks?.values.at(0)}
 						<div>
 							{#if block != null}
 								<BittensorBlockView
@@ -278,7 +258,7 @@
 			{#snippet SectionBittensorConsensus()}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-						{@const consensusMechanismCount = network.$$consensusMechanisms?.length ?? 0}
+						{@const consensusMechanismCount = network.fields.$$consensusMechanisms?.values.length ?? 0}
 						<div>
 							{#if consensusMechanismCount > 0}
 								<p><strong>Consensus:</strong> {consensusMechanismCount}</p>
@@ -333,7 +313,7 @@
 			{#snippet SectionBittensorAssetsSubnets()}
 				<ResourceBoundary resource={bittensorNetwork}>
 					{#snippet children(bittensorNetwork)}
-						<p><strong>Subnet assets:</strong> {bittensorNetwork.$$subnets?.length ?? 0} alpha-token markets are represented by subnet identities and DynamicInfo wire snapshots.</p>
+						<p><strong>Subnet assets:</strong> {bittensorNetwork.fields.$$subnets?.values.length ?? 0} alpha-token markets are represented by subnet identities and DynamicInfo wire snapshots.</p>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}

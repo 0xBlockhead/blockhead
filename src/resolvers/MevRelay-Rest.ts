@@ -6,12 +6,12 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import type { Entity } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import type { ProposerPayloadDelivered } from '$/sources/MevRelay/Rest/types.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const parsePayloadSlot = (payload: ProposerPayloadDelivered): number | undefined => {
 	const raw = payload.slot
@@ -82,14 +82,15 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			builderPubkey: (snapshot) => snapshot.builderPubkey,
 			value: (snapshot) => snapshot.value,
 			blockNumber: (snapshot) => snapshot.blockNumber,
 			$executionBlock: (snapshot) => snapshot.$executionBlock,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.MevBuilder,
@@ -110,11 +111,12 @@ export default {
 					deliveredPayloadCount,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			deliveredPayloadCount: (snapshot) => snapshot.deliveredPayloadCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -169,11 +171,12 @@ export default {
 				}
 				return out
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$mevProposerPayloadDelivered: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -211,10 +214,11 @@ export default {
 					},
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$mevBuilders: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

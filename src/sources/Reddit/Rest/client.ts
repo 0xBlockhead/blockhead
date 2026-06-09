@@ -8,7 +8,7 @@ import {
 import Reddit from '$/sources/Reddit/index.ts'
 import type { RedditOAuthTokenResponse } from '$/sources/Reddit/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const basicAuthB64 = (id: string, sec: string) => globalThis.btoa(`${id}:${sec}`)
 

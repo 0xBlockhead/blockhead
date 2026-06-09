@@ -1,11 +1,11 @@
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export default {

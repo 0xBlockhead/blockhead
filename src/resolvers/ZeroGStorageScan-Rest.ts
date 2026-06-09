@@ -5,9 +5,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const assertZeroGMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (!('networkSlug' in network) || network.networkSlug !== '0g') {
@@ -122,13 +122,14 @@ export default {
 					})),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 			$$storageNodes: (snapshot) => snapshot.$$storageNodes,
 			$$dataBlobs: (snapshot) => snapshot.$$dataBlobs,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork_Timestamp,
@@ -137,8 +138,9 @@ export default {
 				assertZeroGMainnet(entityId.$network)
 				return zeroGStorageTimestampFields()
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			storageLogSyncHeight: (snapshot) => snapshot.storageLogSyncHeight,
 			storageLayer1LogSyncHeight: (snapshot) => snapshot.storageLayer1LogSyncHeight,
 			storageTransactionCount: (snapshot) => snapshot.storageTransactionCount,
@@ -152,8 +154,8 @@ export default {
 			storageTotalWinCount: (snapshot) => snapshot.storageTotalWinCount,
 			expiredFileCount: (snapshot) => snapshot.expiredFileCount,
 			prunedFileCount: (snapshot) => snapshot.prunedFileCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageNode,
@@ -174,13 +176,14 @@ export default {
 					totalReward: miner.totalReward,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$operator: (snapshot) => snapshot.$operator,
 			balance: (snapshot) => snapshot.balance,
 			totalReward: (snapshot) => snapshot.totalReward,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGDataBlob,
@@ -224,13 +227,14 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
 			sizeBytes: (snapshot) => snapshot.sizeBytes,
 			$storageLogEntry: (snapshot) => snapshot.$storageLogEntry,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageLogEntry,
@@ -262,14 +266,15 @@ export default {
 					commitment: transaction.rootHash,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$dataBlob: (snapshot) => snapshot.$dataBlob,
 			$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
 			sequenceNumber: (snapshot) => snapshot.sequenceNumber,
 			commitment: (snapshot) => snapshot.commitment,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
@@ -286,11 +291,12 @@ export default {
 					},
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$timestamps: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
@@ -315,11 +321,12 @@ export default {
 					miningAttempts: miner.miningAttempts,
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$storageNodes: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
@@ -343,10 +350,11 @@ export default {
 					},
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$dataBlobs: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

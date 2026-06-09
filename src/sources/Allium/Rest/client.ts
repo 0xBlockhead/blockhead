@@ -1,6 +1,6 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/lib/sources.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import Allium from '$/sources/Allium/index.ts'
 import { baseUrl } from '$/sources/Allium/Rest/constants.ts'

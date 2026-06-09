@@ -3,16 +3,17 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { youTubeVideoCategoryByCategoryId, youTubeVideoLiveBroadcastPhaseByLiveBroadcastContent } from '$/constants/Social/YouTube.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -40,46 +41,18 @@
 		>
 	> = $props()
 
-	const video = useEntity(
-		EntityType.YouTubeVideo,
+	const video = useEntity(entityCollectionsContext, EntityType.YouTubeVideo,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
-			],
-			title: {},
-			description: {},
-			publishedAt: {},
-			publishedAtMs: {},
-			viewCount: {},
-			likeCount: {},
-			durationSeconds: {},
-			commentCount: {},
-			$$timestamps: {
-				$: [
+			], fields: { title: true, description: true, publishedAt: true, publishedAtMs: true, viewCount: true, likeCount: true, durationSeconds: true, commentCount: true, $$timestamps: ({ sources: [
 					Source.Youtube_Rest,
 					Source.Piped_Rest,
-				],
-				$limit: 1,
-			},
-			categoryId: {},
-			liveBroadcastContent: {},
-			tags: {},
-			thumbnailUrl: {},
-			$author: {},
-			...(open ?
-				{
-					$$comments: {
-						$: [
+				], limit: 1 }), categoryId: true, liveBroadcastContent: true, tags: true, thumbnailUrl: true, $author: true, ...(open ? ({ $$comments: ({ sources: [
 							Source.Youtube_Rest,
 							Source.Piped_Rest,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 	const idKey = stringify(entityId)
@@ -112,10 +85,10 @@
 	{#snippet Icon()}
 		<ResourceBoundary resource={video}>
 			{#snippet children(video)}
-				{#if video.thumbnailUrl}
+				{#if video.fields.thumbnailUrl}
 					<IconComponent
-						src={video.thumbnailUrl}
-						alt={video.title ?? entityId.videoId}
+						src={video.fields.thumbnailUrl}
+						alt={video.fields.title ?? entityId.videoId}
 					/>
 				{/if}
 			{/snippet}
@@ -134,7 +107,7 @@
 			placeholderText="Loading video…"
 		>
 			{#snippet children(video)}
-				{video.title ?? entityId.videoId}
+				{video.fields.title ?? entityId.videoId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -154,10 +127,10 @@
 			placeholderText="Loading video…"
 		>
 			{#snippet children(video)}
-				{#if video.description}
+				{#if video.fields.description}
 					<p>
 						<TruncatedValue
-							value={video.description}
+							value={video.fields.description}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -176,15 +149,15 @@
 							metrics={[
 								{
 									label: 'Views',
-									value: video.$$timestamps[0]?.viewCount ?? video.viewCount,
+									value: video.fields.$$timestamps[0]?.viewCount ?? video.fields.viewCount,
 								},
 								{
 									label: 'Likes',
-									value: video.$$timestamps[0]?.likeCount ?? video.likeCount,
+									value: video.fields.$$timestamps[0]?.likeCount ?? video.fields.likeCount,
 								},
 								{
 									label: 'Comments',
-									value: video.$$timestamps[0]?.commentCount ?? video.commentCount,
+									value: video.fields.$$timestamps[0]?.commentCount ?? video.fields.commentCount,
 								},
 							]}
 						/>
@@ -201,8 +174,8 @@
 							placeholderText="Loading video…"
 						>
 							{#snippet children(video)}
-								{#if video.categoryId}
-									{youTubeVideoCategoryByCategoryId[video.categoryId]?.label ?? video.categoryId}
+								{#if video.fields.categoryId}
+									{youTubeVideoCategoryByCategoryId[video.fields.categoryId]?.label ?? video.fields.categoryId}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -219,8 +192,8 @@
 							placeholderText="Loading video…"
 						>
 							{#snippet children(video)}
-								{#if video.liveBroadcastContent}
-									{youTubeVideoLiveBroadcastPhaseByLiveBroadcastContent[video.liveBroadcastContent].label}
+								{#if video.fields.liveBroadcastContent}
+									{youTubeVideoLiveBroadcastPhaseByLiveBroadcastContent[video.fields.liveBroadcastContent].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -237,8 +210,8 @@
 							placeholderText="Loading video…"
 						>
 							{#snippet children(video)}
-								{#if video.tags}
-									{video.tags.join(', ')}
+								{#if video.fields.tags}
+									{video.fields.tags.join(', ')}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -255,8 +228,8 @@
 							placeholderText="Loading video…"
 						>
 							{#snippet children(video)}
-								{#if video.durationSeconds != null}
-									{String(video.durationSeconds)}
+								{#if video.fields.durationSeconds != null}
+									{String(video.fields.durationSeconds)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -273,10 +246,10 @@
 							placeholderText="Loading video…"
 						>
 							{#snippet children(video)}
-								{#if video.publishedAtMs != null}
-									<Timestamp timestamp={video.publishedAtMs} />
-								{:else if video.publishedAt != null}
-									{video.publishedAt}
+								{#if video.fields.publishedAtMs != null}
+									<Timestamp timestamp={video.fields.publishedAtMs} />
+								{:else if video.fields.publishedAt != null}
+									{video.fields.publishedAt}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -293,9 +266,9 @@
 							placeholderText="Loading video…"
 						>
 							{#snippet children(video)}
-								{#if video.$author}
+								{#if video.fields.$author}
 									<YouTubeChannelView
-										entityId={video.$author[EntityMetaKey.Id]}
+										entityId={video.fields.$author[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -341,8 +314,8 @@
 					placeholderText="Loading video…"
 				>
 					{#snippet children(video)}
-						{#if video.description}
-							<p>{video.description}</p>
+						{#if video.fields.description}
+							<p>{video.fields.description}</p>
 						{:else}
 							<div data-row="wrap align-center gap-2">
 								<p data-text="muted">

@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { CalldataExample } from '$/constants/calldata-examples.ts'
 	import { calldataExamples } from '$/constants/calldata-examples.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { untrack } from 'svelte'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { afterNavigate, goto } from '$app/navigation'
 	import { page } from '$app/state'
 
@@ -142,47 +143,39 @@
 	)
 
 
-	const selectorEntity = useEntity(
-		EntityType.EvmSelector,
+	const selectorEntity = useEntity(entityCollectionsContext, EntityType.EvmSelector,
 		(selector ?
 			{ hex: normalizedSelector ?? selector }
 		:
 			{ hex: IDLE_SELECTOR_HEX }
 		),
-		{
-			$: [
+		({ sources: [
 				Source.Openchain_Rest,
-			],
-			signatures: {},
-		},
+			], fields: { signatures: true } }),
 	)
 
-	const topicEntity = useEntity(
-		EntityType.EvmTopic,
+	const topicEntity = useEntity(entityCollectionsContext, EntityType.EvmTopic,
 		(topic ?
 			{ hex: normalizedTopic ?? topic }
 		:
 			{ hex: IDLE_TOPIC_HEX }
 		),
-		{
-			$: [
+		({ sources: [
 				Source.Openchain_Rest,
-			],
-			signatures: {},
-		},
+			], fields: { signatures: true } }),
 	)
 
 
 	const functionSignatures = $derived(
 		selector ?
-			(selectorEntity.current?.signatures ?? EMPTY_SIGNATURES)
+			(selectorEntity.current?.fields.signatures ?? EMPTY_SIGNATURES)
 		:
 			EMPTY_SIGNATURES,
 	)
 
 	const eventSignatures = $derived(
 		topic ?
-			(topicEntity.current?.signatures ?? EMPTY_SIGNATURES)
+			(topicEntity.current?.fields.signatures ?? EMPTY_SIGNATURES)
 		:
 			EMPTY_SIGNATURES,
 	)
@@ -328,7 +321,7 @@
 												{#snippet children(row)}
 													<Heading>
 														<a href={getEvmSelectorPath(normalizedSelector)}>
-															{signatureForDecode ?? row.signatures?.[0] ?? normalizedSelector}
+															{signatureForDecode ?? row.fields.signatures?.[0] ?? normalizedSelector}
 														</a>
 													</Heading>
 											{/snippet}
@@ -427,7 +420,7 @@
 												{#snippet children(row)}
 													<Heading>
 														<a href={getEvmTopicPath(normalizedTopic)}>
-															{eventSignatureForDecode ?? row.signatures?.[0] ?? normalizedTopic}
+															{eventSignatureForDecode ?? row.fields.signatures?.[0] ?? normalizedTopic}
 														</a>
 													</Heading>
 											{/snippet}

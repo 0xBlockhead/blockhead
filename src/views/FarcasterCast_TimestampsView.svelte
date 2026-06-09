@@ -1,15 +1,16 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -50,26 +51,23 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
-					$: [
+				entityFieldReference.entityId,({ sources: [
 						Source.Snapchain_Rest,
-					],
-					[entityFieldReference.fieldName]: {
-						$: [
+					], fields: { [entityFieldReference.fieldName]: {
+						sources: [
 							Source.Snapchain_Rest,
 						],
-						$limit: 64,
+						limit: 64,
 					},
-				},
+				} }),
 			)}
 			{@const farcasterCastTimestamps = derive(
 				parent,
 				(parent) => {
-					const farcasterCastTimestamps: Entity<typeof schema, EntityType.FarcasterCast_Timestamp>[] = (
-						parent[entityFieldReference.fieldName] ?? []
+					const farcasterCastTimestamps: readonly Entity<typeof schema, EntityType.FarcasterCast_Timestamp>[] = (
+						parent.fields[entityFieldReference.fieldName]?.values ?? []
 					)
 					return farcasterCastTimestamps.map((value) => ({
 						value,

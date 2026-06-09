@@ -1,13 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
@@ -35,7 +35,8 @@
 		>
 	> = $props()
 
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// Components
@@ -65,22 +66,21 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const pool = useEntity(
+			{@const pool = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
+				entityFieldReference.entityId,({ fields: {
 					[entityFieldReference.fieldName]: {
-						$: [
+						sources: [
 							Source.Dexscreener_OpenApi,
 						],
-						$limit: 64,
+						limit: 64,
 					},
-				},
+				} }),
 			)}
 			{@const timestamps = derive(
 				pool,
 				(pool) => {
-					const liquidityPoolTimestamps: Entity<typeof schema, EntityType.LiquidityPool_Timestamp>[] = pool[entityFieldReference.fieldName] ?? []
+					const liquidityPoolTimestamps: readonly Entity<typeof schema, EntityType.LiquidityPool_Timestamp>[] = pool.fields[entityFieldReference.fieldName]?.values ?? []
 					return liquidityPoolTimestamps.map((value) => ({
 						value,
 					}))

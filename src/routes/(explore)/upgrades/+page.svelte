@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 
 	// Components
 	import EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'

@@ -5,7 +5,7 @@
 		networkUpgrades,
 	} from '$/constants/EthereumNetworkUpgrades.ts'
 
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { stringify } from 'devalue'
 
 

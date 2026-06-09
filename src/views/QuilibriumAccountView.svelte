@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,9 @@
 		>
 	> = $props()
 
-	const quilibriumAccount = useEntity(
-		EntityType.QuilibriumAccount,
+	const quilibriumAccount = useEntity(entityCollectionsContext, EntityType.QuilibriumAccount,
 		entityId,
-		{
-			accountKind: {},
-		},
+		({ fields: { accountKind: true } }),
 	)
 
 
@@ -64,10 +62,10 @@
 		>
 			{#snippet children(quilibriumAccount)}
 				<dl>
-					{#if quilibriumAccount.accountKind != null}
+					{#if quilibriumAccount.fields.accountKind != null}
 						<div>
 							<dt>Account Kind</dt>
-							<dd>{quilibriumAccount.accountKind}</dd>
+							<dd>{quilibriumAccount.fields.accountKind}</dd>
 						</div>
 					{/if}
 				</dl>

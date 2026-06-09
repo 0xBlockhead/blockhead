@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -19,24 +20,11 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = useEntity(
-		EntityType.FilecoinNetwork_Timestamp,
+	const snapshot = useEntity(entityCollectionsContext, EntityType.FilecoinNetwork_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Lotus_JsonRpc,
-			],
-			headHeight: {},
-			headTipsetKey: {},
-			headBlockCount: {},
-			headTimestampMs: {},
-			networkVersion: {},
-			lotusVersion: {},
-			lotusAgent: {},
-			blockDelaySeconds: {},
-			totalRawBytePower: {},
-			totalQualityAdjustedPower: {},
-		},
+			], fields: { headHeight: true, headTipsetKey: true, headBlockCount: true, headTimestampMs: true, networkVersion: true, lotusVersion: true, lotusAgent: true, blockDelaySeconds: true, totalRawBytePower: true, totalQualityAdjustedPower: true } }),
 	)
 
 
@@ -61,10 +49,10 @@
 			placeholderText="Loading Filecoin network snapshot..."
 		>
 			{#snippet children(snapshot)}
-				{#if snapshot.headHeight !== undefined}
-					<NumberValue value={snapshot.headHeight} />
-				{:else if snapshot.networkVersion !== undefined}
-					<NumberValue value={snapshot.networkVersion} />
+				{#if snapshot.fields.headHeight !== undefined}
+					<NumberValue value={snapshot.fields.headHeight} />
+				{:else if snapshot.fields.networkVersion !== undefined}
+					<NumberValue value={snapshot.fields.networkVersion} />
 				{:else}
 					<Timestamp timestamp={entityId.timestampMs} />
 				{/if}
@@ -79,71 +67,71 @@
 		>
 			{#snippet children(snapshot)}
 				<dl data-column-item="center">
-					{#if snapshot.headHeight !== undefined}
+					{#if snapshot.fields.headHeight !== undefined}
 						<div>
 							<dt>Head height</dt>
-							<dd><NumberValue value={snapshot.headHeight} /></dd>
+							<dd><NumberValue value={snapshot.fields.headHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.headBlockCount !== undefined}
+					{#if snapshot.fields.headBlockCount !== undefined}
 						<div>
 							<dt>Head blocks</dt>
-							<dd><NumberValue value={snapshot.headBlockCount} /></dd>
+							<dd><NumberValue value={snapshot.fields.headBlockCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.networkVersion !== undefined}
+					{#if snapshot.fields.networkVersion !== undefined}
 						<div>
 							<dt>Network version</dt>
-							<dd><NumberValue value={snapshot.networkVersion} /></dd>
+							<dd><NumberValue value={snapshot.fields.networkVersion} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.totalQualityAdjustedPower !== undefined}
+					{#if snapshot.fields.totalQualityAdjustedPower !== undefined}
 						<div>
 							<dt>Quality-adjusted power</dt>
-							<dd><NumberValue value={snapshot.totalQualityAdjustedPower} /></dd>
+							<dd><NumberValue value={snapshot.fields.totalQualityAdjustedPower} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.headTipsetKey != null}
+					{#if open && snapshot.fields.headTipsetKey != null}
 						<div>
 							<dt>Head key</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.headTipsetKey}
+									value={snapshot.fields.headTipsetKey}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.headTimestampMs !== undefined}
+					{#if open && snapshot.fields.headTimestampMs !== undefined}
 						<div>
 							<dt>Head time</dt>
-							<dd><Timestamp timestamp={snapshot.headTimestampMs} /></dd>
+							<dd><Timestamp timestamp={snapshot.fields.headTimestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.lotusVersion != null}
+					{#if open && snapshot.fields.lotusVersion != null}
 						<div>
 							<dt>Lotus</dt>
-							<dd>{snapshot.lotusAgent} {snapshot.lotusVersion}</dd>
+							<dd>{snapshot.fields.lotusAgent} {snapshot.fields.lotusVersion}</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.blockDelaySeconds !== undefined}
+					{#if open && snapshot.fields.blockDelaySeconds !== undefined}
 						<div>
 							<dt>Block delay</dt>
-							<dd><NumberValue value={snapshot.blockDelaySeconds} /> s</dd>
+							<dd><NumberValue value={snapshot.fields.blockDelaySeconds} /> s</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.totalRawBytePower !== undefined}
+					{#if open && snapshot.fields.totalRawBytePower !== undefined}
 						<div>
 							<dt>Raw byte power</dt>
-							<dd><NumberValue value={snapshot.totalRawBytePower} /></dd>
+							<dd><NumberValue value={snapshot.fields.totalRawBytePower} /></dd>
 						</div>
 					{/if}
 				</dl>

@@ -1,7 +1,7 @@
 import { optionalPublicEnvString } from '$/lib/sources.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import { Source } from '$/sources/Source.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 
 export const pipedApiDefaultOrigin = 'https://pipedapi.kavin.rocks' as const
 

@@ -15,7 +15,7 @@ import {
 import {
 	EntityFieldCardinality,
 	entityFieldDefinitions,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { entityDefinitionByType } from '$/schema/index.ts'
 import {
 	defaultResolverContextRowLimit,
@@ -90,19 +90,11 @@ describe('useEntity resolver architecture', () => {
 		expect(readFileSync(
 			join(srcPath, 'collections', '$collections.ts'),
 			'utf8',
-		)).toContain('persistedCollectionOptions')
+		)).toContain('createCollection')
 		expect(readFileSync(
-			join(srcPath, 'collections', '$queries.svelte.ts'),
+			join(srcPath, 'collections', '$collections.ts'),
 			'utf8',
-		)).toContain('createLiveQueryCollection')
-		expect(readFileSync(
-			join(srcPath, 'collections', '$queries.svelte.ts'),
-			'utf8',
-		)).toContain('orderByIrFromSteps')
-		expect(readFileSync(
-			join(srcPath, 'collections', '$queries.svelte.ts'),
-			'utf8',
-		)).toContain('fieldCountRowsResources')
+		)).toContain('loadCollectionQueryIr')
 	})
 
 	it('does not retain field-specific resolver entry points or context compatibility aliases', () => {
@@ -181,13 +173,13 @@ describe('useEntity resolver architecture', () => {
 
 	it('keeps count fields in the unified useEntity result with known-length fallback', () => {
 		const queryPipeline = readFileSync(
-			join(srcPath, 'collections', '$queries.svelte.ts'),
+			join(srcPath, 'collections', '$collections.ts'),
 			'utf8',
 		)
 
-		expect(queryPipeline).toContain('totalCount: fieldCountByField[fieldName]')
-		expect(queryPipeline).toContain('totalCount: values.length')
-		expect(queryPipeline).toContain('selection[fieldName]?.$count === true')
+		expect(queryPipeline).toContain('totalCount')
+		expect(queryPipeline).toContain('selectedFieldSelection.count === true')
+		expect(queryPipeline).toContain('Count:${fieldRequest.entityType}:${fieldRequest.fieldName}')
 		expect(queryPipeline).not.toMatch(/\bexport const useEntityField(?:Count)?\b/)
 	})
 

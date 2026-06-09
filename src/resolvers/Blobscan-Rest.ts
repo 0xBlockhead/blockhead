@@ -2,9 +2,9 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
 } from '$/resolvers/$resolvers.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { EntityIdProjection } from '$/schema/$EntityDefinition.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { EntityIdProjection } from '$/schema/$schema.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 const blobscanChainId = async (network: { caip2: { reference: string } }) => {
@@ -45,11 +45,12 @@ export default {
 				[EntityIdProjection.Identity]: async (entityId, _context) => {
 				return (await blobscanBlobDetail(entityId))?.blob?.commitment
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			kzgCommitment: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Blobscan_Rest, {
 			entityType: EntityType.EvmBlob,
@@ -66,10 +67,11 @@ export default {
 							[]
 					))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			blobDataStorageReferences: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

@@ -10,10 +10,10 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
@@ -236,7 +236,8 @@ const lensGraphqlResolvers = {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				address: (account) => account.address,
 				localName: (account) => account.localName,
 				displayName: (account) => account.displayName,
@@ -246,7 +247,7 @@ const lensGraphqlResolvers = {
 				followingCount: (account) => account.followingCount,
 				$icon: (account) => account.$icon,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
@@ -318,7 +319,8 @@ const lensGraphqlResolvers = {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				text: (post) => post.text,
 				timestamp: (post) => post.timestamp,
 				isEdited: (post) => post.isEdited,
@@ -335,7 +337,7 @@ const lensGraphqlResolvers = {
 				$root: (post) => post.$root,
 				$author: (post) => post.$author,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount_Timestamp,
@@ -350,11 +352,12 @@ const lensGraphqlResolvers = {
 				return lensAccountTimestampFieldsFromWire(wire)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				followerCount: (timestamp) => timestamp.followerCount,
 				followingCount: (timestamp) => timestamp.followingCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost_Timestamp,
@@ -367,7 +370,8 @@ const lensGraphqlResolvers = {
 				return lensPostTimestampFieldsFromWire(p)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				commentCount: (timestamp) => timestamp.commentCount,
 				repostCount: (timestamp) => timestamp.repostCount,
 				quoteCount: (timestamp) => timestamp.quoteCount,
@@ -375,7 +379,7 @@ const lensGraphqlResolvers = {
 				collectCount: (timestamp) => timestamp.collectCount,
 				reactionCount: (timestamp) => timestamp.reactionCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensNetwork,
@@ -397,10 +401,11 @@ const lensGraphqlResolvers = {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$lensAccounts: (accounts) => accounts,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensNetwork,
@@ -426,10 +431,11 @@ const lensGraphqlResolvers = {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$lensPosts: (posts) => posts,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
@@ -449,10 +455,11 @@ const lensGraphqlResolvers = {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
@@ -478,10 +485,11 @@ const lensGraphqlResolvers = {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$comments: (comments) => comments,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
@@ -583,10 +591,11 @@ const lensGraphqlResolvers = {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
@@ -615,10 +624,11 @@ const lensGraphqlResolvers = {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$posts: (posts) => posts,
 			},
-		}),
+			}),
 	],
 }
 

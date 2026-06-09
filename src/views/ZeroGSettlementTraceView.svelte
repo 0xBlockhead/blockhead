@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,14 +27,9 @@
 		>
 	> = $props()
 
-	const zeroGSettlementTrace = useEntity(
-		EntityType.ZeroGSettlementTrace,
+	const zeroGSettlementTrace = useEntity(entityCollectionsContext, EntityType.ZeroGSettlementTrace,
 		entityId,
-		{
-			settlementTransactionHash: {},
-			acknowledgementSignature: {},
-			rewardAmount: {},
-		},
+		({ fields: { settlementTransactionHash: true, acknowledgementSignature: true, rewardAmount: true } }),
 	)
 
 
@@ -77,32 +73,32 @@
 		>
 			{#snippet children(zeroGSettlementTrace)}
 				<dl>
-					{#if zeroGSettlementTrace.settlementTransactionHash != null}
+					{#if zeroGSettlementTrace.fields.settlementTransactionHash != null}
 						<div>
 							<dt>Settlement Transaction Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGSettlementTrace.settlementTransactionHash}
+									value={zeroGSettlementTrace.fields.settlementTransactionHash}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if zeroGSettlementTrace.acknowledgementSignature != null}
+					{#if zeroGSettlementTrace.fields.acknowledgementSignature != null}
 						<div>
 							<dt>Acknowledgement Signature</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGSettlementTrace.acknowledgementSignature}
+									value={zeroGSettlementTrace.fields.acknowledgementSignature}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if zeroGSettlementTrace.rewardAmount != null}
+					{#if zeroGSettlementTrace.fields.rewardAmount != null}
 						<div>
 							<dt>Reward Amount</dt>
-							<dd><NumberValue value={zeroGSettlementTrace.rewardAmount} /></dd>
+							<dd><NumberValue value={zeroGSettlementTrace.fields.rewardAmount} /></dd>
 						</div>
 					{/if}
 				</dl>

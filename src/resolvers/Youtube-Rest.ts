@@ -10,13 +10,13 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { YouTubeLiveBroadcastContent } from '$/schema/YouTubeVideo.ts'
-import { UrlString } from '$/schema/$Url.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import { youtubeNetworkSeedChannels } from '$/constants/Social/YouTube.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	YoutubeApiChannel,
 	YoutubeApiComment,
@@ -83,7 +83,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				title: (channel) => channel.title,
 				description: (channel) => channel.description,
 				customUrl: (channel) => channel.customUrl,
@@ -94,7 +95,7 @@ export default {
 				publishedAtMs: (channel) => channel.publishedAtMs,
 				$icon: (channel) => channel.$icon,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeVideo,
@@ -180,7 +181,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				title: (video) => video.title,
 				description: (video) => video.description,
 				publishedAt: (video) => video.publishedAt,
@@ -195,7 +197,7 @@ export default {
 				$author: (video) => video.$author,
 				thumbnailUrl: (video) => video.thumbnailUrl,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubePlaylist,
@@ -232,7 +234,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				title: (playlist) => playlist.title,
 				description: (playlist) => playlist.description,
 				itemCount: (playlist) => playlist.itemCount,
@@ -240,7 +243,7 @@ export default {
 				publishedAtMs: (playlist) => playlist.publishedAtMs,
 				$channel: (playlist) => playlist.$channel,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeComment,
@@ -305,7 +308,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				text: (comment) => comment.text,
 				authorDisplayName: (comment) => comment.authorDisplayName,
 				authorChannelId: (comment) => comment.authorChannelId,
@@ -317,7 +321,7 @@ export default {
 				$video: (comment) => comment.$video,
 				$parentComment: (comment) => comment.$parentComment,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeChannel_Timestamp,
@@ -340,12 +344,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				subscriberCount: (timestamp) => timestamp.subscriberCount,
 				videoCount: (timestamp) => timestamp.videoCount,
 				viewCount: (timestamp) => timestamp.viewCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeVideo_Timestamp,
@@ -368,12 +373,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				viewCount: (timestamp) => timestamp.viewCount,
 				likeCount: (timestamp) => timestamp.likeCount,
 				commentCount: (timestamp) => timestamp.commentCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeComment_Timestamp,
@@ -402,11 +408,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				likeCount: (timestamp) => timestamp.likeCount,
 				replyCount: (timestamp) => timestamp.replyCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubePlaylist_Timestamp,
@@ -423,10 +430,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				itemCount: (timestamp) => timestamp.itemCount,
 			},
-		}),
+			}),
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeNetwork,
 			resolve: {
@@ -446,10 +454,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$youtubeChannels: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeNetwork,
@@ -471,10 +480,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$youtubeVideos: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeNetwork,
@@ -508,10 +518,11 @@ export default {
 				return refs.slice(0, limit)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$youtubePlaylists: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeChannel,
@@ -540,10 +551,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (channel) => channel,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeChannel,
@@ -565,10 +577,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$videos: (channel) => channel,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeChannel,
@@ -584,12 +597,13 @@ export default {
 				return count
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$videos: {
 					resolveCount: (count) => count,
 				},
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeChannel,
@@ -611,10 +625,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$playlists: (channel) => channel,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubePlaylist,
@@ -637,10 +652,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (playlist) => playlist,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubePlaylist,
@@ -667,10 +683,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$videos: (playlist) => playlist,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubePlaylist,
@@ -685,12 +702,13 @@ export default {
 				return playlist.contentDetails.itemCount
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$videos: {
 					resolveCount: (count) => count,
 				},
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeVideo,
@@ -719,10 +737,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (video) => video,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeVideo,
@@ -767,10 +786,11 @@ export default {
 				return refs.slice(0, limit)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$comments: (video) => video,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeVideo,
@@ -786,12 +806,13 @@ export default {
 				return count
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$comments: {
 					resolveCount: (count) => count,
 				},
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeComment,
@@ -825,10 +846,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (comment) => comment,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeComment,
@@ -877,10 +899,11 @@ export default {
 				return refs.slice(0, limit)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$replies: (comment) => comment,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YouTubeComment,
@@ -902,11 +925,12 @@ export default {
 				return thread.snippet.totalReplyCount
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$replies: {
 					resolveCount: (count) => count,
 				},
 			},
-		}),
+			}),
 	],
 }

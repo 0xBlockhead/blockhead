@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,10 @@
 		>
 	> = $props()
 
-	const bitcoinCashCashTokenNft = useEntity(
+	const bitcoinCashCashTokenNft = useEntity(entityCollectionsContext, 
 		EntityType.BitcoinCashCashTokenNft,
 		entityId,
-		{
-			capability: {},
-		},
+		({ fields: { capability: true } }),
 	)
 
 
@@ -60,10 +59,10 @@
 		>
 			{#snippet children(bitcoinCashCashTokenNft)}
 				<dl>
-					{#if bitcoinCashCashTokenNft.capability != null}
+					{#if bitcoinCashCashTokenNft.fields.capability != null}
 						<div>
 							<dt>Capability</dt>
-							<dd>{bitcoinCashCashTokenNft.capability}</dd>
+							<dd>{bitcoinCashCashTokenNft.fields.capability}</dd>
 						</div>
 					{/if}
 				</dl>

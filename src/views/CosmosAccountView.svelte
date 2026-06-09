@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,14 +27,9 @@
 		>
 	> = $props()
 
-	const cosmosAccount = useEntity(
-		EntityType.CosmosAccount,
+	const cosmosAccount = useEntity(entityCollectionsContext, EntityType.CosmosAccount,
 		entityId,
-		{
-			accountNumber: {},
-			sequence: {},
-			balanceUatom: {},
-		},
+		({ fields: { accountNumber: true, sequence: true, balanceUatom: true } }),
 	)
 
 
@@ -67,24 +63,24 @@
 		>
 			{#snippet children(cosmosAccount)}
 				<dl>
-					{#if cosmosAccount.balanceUatom != null}
+					{#if cosmosAccount.fields.balanceUatom != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={cosmosAccount.balanceUatom} /> uatom</dd>
+							<dd><NumberValue value={cosmosAccount.fields.balanceUatom} /> uatom</dd>
 						</div>
 					{/if}
 
-					{#if cosmosAccount.accountNumber != null}
+					{#if cosmosAccount.fields.accountNumber != null}
 						<div>
 							<dt>Account Number</dt>
-							<dd><NumberValue value={cosmosAccount.accountNumber} /></dd>
+							<dd><NumberValue value={cosmosAccount.fields.accountNumber} /></dd>
 						</div>
 					{/if}
 
-					{#if cosmosAccount.sequence != null}
+					{#if cosmosAccount.fields.sequence != null}
 						<div>
 							<dt>Sequence</dt>
-							<dd><NumberValue value={cosmosAccount.sequence} /></dd>
+							<dd><NumberValue value={cosmosAccount.fields.sequence} /></dd>
 						</div>
 					{/if}
 				</dl>

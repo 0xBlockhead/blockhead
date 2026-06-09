@@ -1,6 +1,6 @@
-import { Source } from '$/sources/$Source.ts'
-import { SourceProvider } from '$/sources/$SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceDefinition } from '$/sources/index.ts'
 
 const L2BeatRestSource = {
 	provider: SourceProvider.L2Beat,

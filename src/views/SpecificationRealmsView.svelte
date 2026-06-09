@@ -1,12 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { entityDefinitionByType, schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
@@ -113,26 +113,26 @@
 	)
 
 
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const parent = useEntity(
+	const parent = useEntity(entityCollectionsContext,
 		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
+		entityFieldReference.entityId,({ sources: [
 				Source.Constants_Internal,
-			],
-			[entityFieldReference.fieldName]: {
-				$limit: 512,
-				label: {},
+			], fields: { [entityFieldReference.fieldName]: {
+				limit: 512,
+				fields: {
+					label: true,
+				},
 			},
-		},
+		} }),
 	)
 
 	const specificationRealms = derive(
 		parent,
 		(parent) => {
-			const specificationRealms: Entity<typeof schema, EntityType.SpecificationRealm>[] = parent[entityFieldReference.fieldName] ?? []
+			const specificationRealms: readonly Entity<typeof schema, EntityType.SpecificationRealm>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
 			return (
 				specificationRealms
 					.toSorted((first, second) => (

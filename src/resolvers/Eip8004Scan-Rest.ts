@@ -9,10 +9,10 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.Eip8004Scan_Rest,
@@ -66,8 +66,9 @@ export default {
 					...(detail.contactEndpoint != null && { contactEndpoint: detail.contactEndpoint }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			standard: (snapshot) => snapshot.standard,
 			format: (snapshot) => snapshot.format,
 			tokenUri: (snapshot) => snapshot.tokenUri,
@@ -84,8 +85,8 @@ export default {
 			active: (snapshot) => snapshot.active,
 			supportedTrust: (snapshot) => snapshot.supportedTrust,
 			contactEndpoint: (snapshot) => snapshot.contactEndpoint,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Eip8004Scan_Rest, {
 			entityType: EntityType._Global,
@@ -110,10 +111,11 @@ export default {
 					}))
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$eip8004Services: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

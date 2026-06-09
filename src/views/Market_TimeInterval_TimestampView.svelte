@@ -4,7 +4,7 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Iso4217 } from '$/constants/Currency.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 
 	import {
 		MarketAssetKind,
@@ -12,14 +12,15 @@
 		marketOhlcCandleSources,
 	} from '$/constants/Market.ts'
 
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -51,26 +52,13 @@
 		>
 	> = $props()
 
-	const marketTimeIntervalTimestamp = useEntity(
+	const marketTimeIntervalTimestamp = useEntity(entityCollectionsContext, 
 		EntityType.Market_TimeInterval_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
 				...marketOhlcCandleSources,
-			],
-			$parentMarket: {},
-			close: {},
-			...(open && {
-				open: {},
-				high: {},
-				low: {},
-				volume: {},
-				quoteVolume: {},
-				tradeCount: {},
-				vwap: {},
-			}),
-		},
+			], fields: { $parentMarket: true, close: true, ...(open && ({ open: true, high: true, low: true, volume: true, quoteVolume: true, tradeCount: true, vwap: true })) } }),
 	)
 
 
@@ -119,11 +107,11 @@
 			placeholderText="Loading OHLC candle…"
 		>
 			{#snippet children(marketTimeIntervalTimestamp)}
-				{#if marketTimeIntervalTimestamp.close !== undefined}
+				{#if marketTimeIntervalTimestamp.fields.close !== undefined}
 					<CurrencyAmount
 						currency={quoteCurrency}
 						showDecimalPlaces={6}
-						value={marketTimeIntervalTimestamp.close}
+						value={marketTimeIntervalTimestamp.fields.close}
 					/>
 				{:else}
 					<Timestamp
@@ -140,11 +128,11 @@
 			placeholderText="Loading OHLC candle…"
 		>
 			{#snippet children(marketTimeIntervalTimestamp)}
-				{#if marketTimeIntervalTimestamp.close !== undefined}
+				{#if marketTimeIntervalTimestamp.fields.close !== undefined}
 					<CurrencyAmount
 						currency={quoteCurrency}
 						showDecimalPlaces={6}
-						value={marketTimeIntervalTimestamp.close}
+						value={marketTimeIntervalTimestamp.fields.close}
 					/>
 				{:else}
 					<Timestamp
@@ -162,14 +150,14 @@
 		>
 			{#snippet children(marketTimeIntervalTimestamp)}
 				<dl data-column-item="center">
-					{#if marketTimeIntervalTimestamp.close !== undefined}
+					{#if marketTimeIntervalTimestamp.fields.close !== undefined}
 						<div>
 							<dt>Close</dt>
 							<dd>
 								<CurrencyAmount
 									currency={quoteCurrency}
 									showDecimalPlaces={6}
-									value={marketTimeIntervalTimestamp.close}
+									value={marketTimeIntervalTimestamp.fields.close}
 								/>
 							</dd>
 						</div>
@@ -188,7 +176,7 @@
 						<dt>Market</dt>
 						<dd>
 							<MarketView
-								entityId={marketTimeIntervalTimestamp.$parentMarket?.[EntityMetaKey.Id] ?? entityId.$market}
+								entityId={marketTimeIntervalTimestamp.fields.$parentMarket?.[EntityMetaKey.Id] ?? entityId.$market}
 								layout={EntityLayout.Title}
 								open={false}
 							/>
@@ -197,7 +185,7 @@
 
 					{#if (
 						open
-						&& marketTimeIntervalTimestamp.open !== undefined
+						&& marketTimeIntervalTimestamp.fields.open !== undefined
 					)}
 						<div>
 							<dt>Open</dt>
@@ -205,7 +193,7 @@
 								<CurrencyAmount
 									currency={quoteCurrency}
 									showDecimalPlaces={6}
-									value={marketTimeIntervalTimestamp.open}
+									value={marketTimeIntervalTimestamp.fields.open}
 								/>
 							</dd>
 						</div>
@@ -213,7 +201,7 @@
 
 					{#if (
 						open
-						&& marketTimeIntervalTimestamp.high !== undefined
+						&& marketTimeIntervalTimestamp.fields.high !== undefined
 					)}
 						<div>
 							<dt>High</dt>
@@ -221,7 +209,7 @@
 								<CurrencyAmount
 									currency={quoteCurrency}
 									showDecimalPlaces={6}
-									value={marketTimeIntervalTimestamp.high}
+									value={marketTimeIntervalTimestamp.fields.high}
 								/>
 							</dd>
 						</div>
@@ -229,7 +217,7 @@
 
 					{#if (
 						open
-						&& marketTimeIntervalTimestamp.low !== undefined
+						&& marketTimeIntervalTimestamp.fields.low !== undefined
 					)}
 						<div>
 							<dt>Low</dt>
@@ -237,7 +225,7 @@
 								<CurrencyAmount
 									currency={quoteCurrency}
 									showDecimalPlaces={6}
-									value={marketTimeIntervalTimestamp.low}
+									value={marketTimeIntervalTimestamp.fields.low}
 								/>
 							</dd>
 						</div>
@@ -245,14 +233,14 @@
 
 					{#if (
 						open
-						&& marketTimeIntervalTimestamp.volume !== undefined
+						&& marketTimeIntervalTimestamp.fields.volume !== undefined
 					)}
 						<div>
 							<dt>Volume</dt>
 							<dd>
 								<CurrencyAmount
 									currency={quoteCurrency}
-									value={marketTimeIntervalTimestamp.volume}
+									value={marketTimeIntervalTimestamp.fields.volume}
 								/>
 							</dd>
 						</div>
@@ -260,14 +248,14 @@
 
 					{#if (
 						open
-						&& marketTimeIntervalTimestamp.quoteVolume !== undefined
+						&& marketTimeIntervalTimestamp.fields.quoteVolume !== undefined
 					)}
 						<div>
 							<dt>Quote volume</dt>
 							<dd>
 								<CurrencyAmount
 									currency={quoteCurrency}
-									value={marketTimeIntervalTimestamp.quoteVolume}
+									value={marketTimeIntervalTimestamp.fields.quoteVolume}
 								/>
 							</dd>
 						</div>
@@ -275,13 +263,13 @@
 
 					{#if (
 						open
-						&& marketTimeIntervalTimestamp.tradeCount !== undefined
+						&& marketTimeIntervalTimestamp.fields.tradeCount !== undefined
 					)}
 						<div>
 							<dt>Trade count</dt>
 							<dd>
 								<NumberValue
-									value={marketTimeIntervalTimestamp.tradeCount}
+									value={marketTimeIntervalTimestamp.fields.tradeCount}
 								/>
 							</dd>
 						</div>
@@ -289,7 +277,7 @@
 
 					{#if (
 						open
-						&& marketTimeIntervalTimestamp.vwap !== undefined
+						&& marketTimeIntervalTimestamp.fields.vwap !== undefined
 					)}
 						<div>
 							<dt>VWAP</dt>
@@ -297,7 +285,7 @@
 								<CurrencyAmount
 									currency={quoteCurrency}
 									showDecimalPlaces={6}
-									value={marketTimeIntervalTimestamp.vwap}
+									value={marketTimeIntervalTimestamp.fields.vwap}
 								/>
 							</dd>
 						</div>

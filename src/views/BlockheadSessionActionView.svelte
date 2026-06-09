@@ -2,16 +2,17 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { Entity, EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ActionType, actionTypeDefinitionByActionType, actionTypeDefinitions } from '$/constants/actions.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { updateLocalBlockheadSessionActionType } from '$/collections/$localMutations.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { updateLocalBlockheadSessionActionType } from '$/collections/localMutations.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// State
@@ -33,18 +34,12 @@
 	> = $props()
 
 	const sessionAction = $derived(
-		useEntity(
+		useEntity(entityCollectionsContext, 
 			EntityType.BlockheadSessionAction,
 			entityId,
-			{
-				$: [
+			({ sources: [
 					Source.Local_Internal,
-				],
-				indexInSequence: {},
-				action: {},
-				createdAt: {},
-				updatedAt: {},
-			},
+				], fields: { indexInSequence: true, action: true, createdAt: true, updatedAt: true } }),
 		),
 	)
 
@@ -55,7 +50,11 @@
 	)
 
 	const updateActionType = (
-		sessionAction: Entity<typeof schema, EntityType.BlockheadSessionAction>,
+		sessionAction: {
+			$session: Entity<typeof schema, EntityType.BlockheadSessionAction>['$session']
+			indexInSequence: Entity<typeof schema, EntityType.BlockheadSessionAction>['indexInSequence']
+			createdAt: Entity<typeof schema, EntityType.BlockheadSessionAction>['createdAt']
+		},
 		actionType: ActionType,
 	) => {
 		updateLocalBlockheadSessionActionType(
@@ -89,9 +88,9 @@
 			placeholderText="Loading action…"
 		>
 			{#snippet children(sessionAction)}
-				{actionTypeDefinitionByActionType[sessionAction.action.type].icon}
+				{actionTypeDefinitionByActionType[sessionAction.fields.action.type].icon}
 				{' '}
-				{actionTypeDefinitionByActionType[sessionAction.action.type].label}
+				{actionTypeDefinitionByActionType[sessionAction.fields.action.type].label}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -106,7 +105,7 @@
 						placeholderText="Loading action…"
 					>
 						{#snippet children(sessionAction)}
-							{String(sessionAction.indexInSequence)}
+							{String(sessionAction.fields.indexInSequence)}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -121,10 +120,14 @@
 					>
 						{#snippet children(sessionAction)}
 							<select
-								value={sessionAction.action.type}
+								value={sessionAction.fields.action.type}
 								onchange={(event) => {
 									updateActionType(
-										sessionAction,
+										{
+											$session: sessionAction.fields.$session,
+											indexInSequence: sessionAction.fields.indexInSequence,
+											createdAt: sessionAction.fields.createdAt,
+										},
 										actionTypeFromValue(event.currentTarget.value),
 									)
 								}}

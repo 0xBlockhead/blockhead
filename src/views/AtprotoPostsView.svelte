@@ -1,18 +1,19 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -72,7 +73,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const atprotoNetworkOrAccount = useEntity(
+			{@const atprotoNetworkOrAccount = useEntity(entityCollectionsContext, 
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				(
@@ -80,55 +81,63 @@
 						(
 							fieldOpen ?
 								{
-									$: [Source.Constants_Internal],
-									protocolName: {},
-									$$atprotoActors: {
-										$: [
-											Source.Constants_Internal,
-											Source.Atproto_Xrpc,
-											Source.Atproto_BskySocial_Xrpc,
-										],
-										$$posts: {
-											$: [
+									sources: [Source.Constants_Internal],
+									fields: {
+										protocolName: true,
+										$$atprotoActors: {
+											sources: [
+												Source.Constants_Internal,
 												Source.Atproto_Xrpc,
 												Source.Atproto_BskySocial_Xrpc,
 											],
-											$limit: limit,
+											fields: {
+												$$posts: {
+													sources: [
+														Source.Atproto_Xrpc,
+														Source.Atproto_BskySocial_Xrpc,
+													],
+													limit: limit,
+												},
+											},
 										},
 									},
 								}
 							:
 								{
-									$: [Source.Constants_Internal],
-									protocolName: {},
+									sources: [Source.Constants_Internal],
+									fields: {
+										protocolName: true,
+									},
 								}
 						)
 					:
 						(
 							fieldOpen ?
 								{
-									$$posts: {
-										$: [
-											Source.Atproto_Xrpc,
-											Source.Atproto_BskySocial_Xrpc,
-										],
-										$limit: limit,
+									fields: {
+										$$posts: {
+											sources: [
+												Source.Atproto_Xrpc,
+												Source.Atproto_BskySocial_Xrpc,
+											],
+											limit: limit,
+										},
 									},
 								}
 							:
-								{}
+								{ fields: {} }
 						)
 				),
 			)}
 			{@const posts = derive(
 				atprotoNetworkOrAccount,
 				(atprotoNetworkOrAccount) => {
-					const atprotoPosts: Entity<typeof schema, EntityType.AtprotoPost>[] = (
+					const atprotoPosts: readonly Entity<typeof schema, EntityType.AtprotoPost>[] = (
 						entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-							(atprotoNetworkOrAccount.$$atprotoActors ?? [])
+							(atprotoNetworkOrAccount.fields.$$atprotoActors?.values ?? [])
 								.flatMap((actor: Entity<typeof schema, EntityType.AtprotoActor>) => actor.$$posts ?? [])
 						:
-							(atprotoNetworkOrAccount.$$posts ?? [])
+							(atprotoNetworkOrAccount.fields.$$posts?.values ?? [])
 					)
 					return atprotoPosts
 				},

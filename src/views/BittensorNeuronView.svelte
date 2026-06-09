@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -19,15 +20,11 @@
 		open?: boolean
 	} = $props()
 
-	const neuron = useEntity(
-		EntityType.BittensorNeuron,
+	const neuron = useEntity(entityCollectionsContext, EntityType.BittensorNeuron,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Bittensor_JsonRpc,
-			],
-			uid: {},
-		},
+			], fields: { uid: true } }),
 	)
 
 
@@ -75,7 +72,7 @@
 
 					<div>
 						<dt>UID</dt>
-						<dd><NumberValue value={neuron.uid} /></dd>
+						<dd><NumberValue value={neuron.fields.uid} /></dd>
 					</div>
 				</dl>
 			{/snippet}

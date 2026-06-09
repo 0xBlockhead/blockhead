@@ -3,9 +3,9 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 	import {
 		EvmTokenStandard,
@@ -16,7 +16,8 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -51,33 +52,9 @@
 		>
 	> = $props()
 
-	const transfer = useEntity(
-		EntityType.EvmTokenTransfer,
+	const transfer = useEntity(entityCollectionsContext, EntityType.EvmTokenTransfer,
 		entityId,
-		{
-			$: [Source.Blockscout_Rest],
-			standard: {},
-			amount: {},
-			tokenSymbol: {},
-			...(open && {
-				tokenDecimals: {},
-				tokenName: {},
-				$from: {},
-				$to: {},
-				$tokenContract: {},
-				$coinInstance: {},
-				$case: {
-					standard: {
-						[EvmTokenStandard.Erc721]: {
-							tokenId: {},
-						},
-						[EvmTokenStandard.Erc1155]: {
-							tokenId: {},
-						},
-					},
-				},
-			}),
-		},
+		({ sources: [Source.Blockscout_Rest], fields: { standard: true, amount: true, tokenSymbol: true, ...(open && ({ tokenDecimals: true, tokenName: true, $from: true, $to: true, $tokenContract: true, $coinInstance: true })) } }),
 	)
 
 
@@ -151,39 +128,39 @@
 
 					<div>
 						<dt>Standard</dt>
-						<dd>{evmTokenStandardByStandard[transfer.standard].label}</dd>
+						<dd>{evmTokenStandardByStandard[transfer.fields.standard].label}</dd>
 					</div>
 
 					<div>
 						<dt>Amount</dt>
 						<dd>
-							<NumberValue value={transfer.amount} />
+							<NumberValue value={transfer.fields.amount} />
 						</dd>
 					</div>
 
 					{#if (
 						(
-							transfer.standard === EvmTokenStandard.Erc721
-							|| transfer.standard === EvmTokenStandard.Erc1155
+							transfer.fields.standard === EvmTokenStandard.Erc721
+							|| transfer.fields.standard === EvmTokenStandard.Erc1155
 						)
-						&& transfer.tokenId !== undefined
+						&& transfer.fields.tokenId !== undefined
 					)}
 						<div>
 							<dt>Token ID</dt>
 							<dd>
-								<NumberValue value={transfer.tokenId} />
+								<NumberValue value={transfer.fields.tokenId} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if transfer.$from?.[EntityMetaKey.Id].address !== undefined}
+					{#if transfer.fields.$from?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>From</dt>
 							<dd>
 								<EvmNetworkAccountView
 									entityId={{
 										$network: entityId.$network,
-										$actor: transfer.$from[EntityMetaKey.Id],
+										$actor: transfer.fields.$from[EntityMetaKey.Id],
 									}}
 									layout={EntityLayout.Title}
 									open={false}
@@ -192,14 +169,14 @@
 						</div>
 					{/if}
 
-					{#if transfer.$to?.[EntityMetaKey.Id].address !== undefined}
+					{#if transfer.fields.$to?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>To</dt>
 							<dd>
 								<EvmNetworkAccountView
 									entityId={{
 										$network: entityId.$network,
-										$actor: transfer.$to[EntityMetaKey.Id],
+										$actor: transfer.fields.$to[EntityMetaKey.Id],
 									}}
 									layout={EntityLayout.Title}
 									open={false}
@@ -208,24 +185,24 @@
 						</div>
 					{/if}
 
-					{#if transfer.$coinInstance}
+					{#if transfer.fields.$coinInstance}
 						<div>
 							<dt>Token</dt>
 							<dd>
 								<EvmCoinInstanceView
-									entityId={transfer.$coinInstance[EntityMetaKey.Id]}
+									entityId={transfer.fields.$coinInstance[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
-					{:else if transfer.$tokenContract}
+					{:else if transfer.fields.$tokenContract}
 						<div>
 							<dt>Token contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={transfer.$tokenContract[EntityMetaKey.Id]}
+									entityId={transfer.fields.$tokenContract[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}

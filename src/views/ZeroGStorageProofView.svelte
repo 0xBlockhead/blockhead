@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const zeroGStorageProof = useEntity(
-		EntityType.ZeroGStorageProof,
+	const zeroGStorageProof = useEntity(entityCollectionsContext, EntityType.ZeroGStorageProof,
 		entityId,
-		{
-			proofKind: {},
-			verifiedAtBlock: {},
-		},
+		({ fields: { proofKind: true, verifiedAtBlock: true } }),
 	)
 
 
@@ -76,21 +73,21 @@
 		>
 			{#snippet children(zeroGStorageProof)}
 				<dl>
-					{#if zeroGStorageProof.proofKind != null}
+					{#if zeroGStorageProof.fields.proofKind != null}
 						<div>
 							<dt>Proof Kind</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGStorageProof.proofKind}
+									value={zeroGStorageProof.fields.proofKind}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if zeroGStorageProof.verifiedAtBlock != null}
+					{#if zeroGStorageProof.fields.verifiedAtBlock != null}
 						<div>
 							<dt>Verified At Block</dt>
-							<dd><NumberValue value={zeroGStorageProof.verifiedAtBlock} /></dd>
+							<dd><NumberValue value={zeroGStorageProof.fields.verifiedAtBlock} /></dd>
 						</div>
 					{/if}
 				</dl>

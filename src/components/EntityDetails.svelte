@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityType } from '$/schema/$EntityType.ts'
+	import type { EntityType } from '$/schema/EntityType.ts'
 
 	import type { Snippet } from 'svelte'
 

@@ -3,15 +3,16 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { farcasterFeedKindByVariant } from '$/constants/Social/Farcaster.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -46,17 +47,13 @@
 		>
 	> = $props()
 
-	const feed = useEntity(
-		EntityType.FarcasterFeed,
+	const feed = useEntity(entityCollectionsContext, EntityType.FarcasterFeed,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
 				Source.Farcaster_Rest,
-			],
-			label: {},
-		},
+			], fields: { label: true } }),
 	)
 
 
@@ -105,10 +102,10 @@
 		>
 			{#snippet children(feed)}
 				{(
-					feed.label != null
-					&& feed.label !== ''
+					feed.fields.label != null
+					&& feed.fields.label !== ''
 				) ?
-					feed.label
+					feed.fields.label
 				: entityId.variant === 'byUser' ?
 					`FID ${String(entityId.fid)}`
 				: entityId.variant === 'byChannel' ?
@@ -139,8 +136,8 @@
 						placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
 					>
 						{#snippet children(feed)}
-							{#if feed.label != null && feed.label !== ''}
-								{feed.label}
+							{#if feed.fields.label != null && feed.fields.label !== ''}
+								{feed.fields.label}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

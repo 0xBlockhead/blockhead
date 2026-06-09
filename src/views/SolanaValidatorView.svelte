@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,15 +27,9 @@
 		>
 	> = $props()
 
-	const solanaValidator = useEntity(
-		EntityType.SolanaValidator,
+	const solanaValidator = useEntity(entityCollectionsContext, EntityType.SolanaValidator,
 		entityId,
-		{
-			nodePubkey: {},
-			activatedStakeLamports: {},
-			commission: {},
-			delinquent: {},
-		},
+		({ fields: { nodePubkey: true, activatedStakeLamports: true, commission: true, delinquent: true } }),
 	)
 
 
@@ -68,35 +63,35 @@
 		>
 			{#snippet children(solanaValidator)}
 				<dl>
-					{#if solanaValidator.nodePubkey != null}
+					{#if solanaValidator.fields.nodePubkey != null}
 						<div>
 							<dt>Node Pubkey</dt>
 							<dd>
 								<TruncatedValue
-									value={solanaValidator.nodePubkey}
+									value={solanaValidator.fields.nodePubkey}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if solanaValidator.activatedStakeLamports != null}
+					{#if solanaValidator.fields.activatedStakeLamports != null}
 						<div>
 							<dt>Activated Stake Lamports</dt>
-							<dd><NumberValue value={solanaValidator.activatedStakeLamports} /> lamports</dd>
+							<dd><NumberValue value={solanaValidator.fields.activatedStakeLamports} /> lamports</dd>
 						</div>
 					{/if}
 
-					{#if solanaValidator.commission != null}
+					{#if solanaValidator.fields.commission != null}
 						<div>
 							<dt>Commission</dt>
-							<dd><NumberValue value={solanaValidator.commission} /></dd>
+							<dd><NumberValue value={solanaValidator.fields.commission} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaValidator.delinquent != null}
+					{#if solanaValidator.fields.delinquent != null}
 						<div>
 							<dt>Delinquent</dt>
-							<dd>{solanaValidator.delinquent ? 'Yes' : 'No'}</dd>
+							<dd>{solanaValidator.fields.delinquent ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

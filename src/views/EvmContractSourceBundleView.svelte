@@ -3,13 +3,14 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -41,17 +42,11 @@
 		never
 	> = $props()
 
-	const sourceBundle = useEntity(
-		EntityType.EvmContractSourceBundle,
+	const sourceBundle = useEntity(entityCollectionsContext, EntityType.EvmContractSourceBundle,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Sourcify_Rest,
-			],
-			...(open && {
-				files: {},
-			}),
-		},
+			], fields: { ...(open && ({ files: true })) } }),
 	)
 
 
@@ -76,9 +71,9 @@
 			placeholderText="Loading source bundle…"
 		>
 			{#snippet children(sourceBundle)}
-				{#if Object.keys(sourceBundle.files ?? {}).length > 0}
+				{#if Object.keys(sourceBundle.fields.files ?? {}).length > 0}
 					<code>
-						{String(Object.keys(sourceBundle.files ?? {})[0])
+						{String(Object.keys(sourceBundle.fields.files ?? {})[0])
 							.split('/')
 							.at(-1)}
 					</code>
@@ -95,8 +90,8 @@
 			placeholderText="Loading source bundle…"
 		>
 			{#snippet children(sourceBundle)}
-				{Object.keys(sourceBundle.files ?? {}).length} file{(
-					Object.keys(sourceBundle.files ?? {}).length === 1 ?
+				{Object.keys(sourceBundle.fields.files ?? {}).length} file{(
+					Object.keys(sourceBundle.fields.files ?? {}).length === 1 ?
 						''
 					:
 						's'
@@ -127,9 +122,9 @@
 							placeholderText="Loading source files…"
 						>
 							{#snippet children(sourceBundle)}
-								{#if Object.keys(sourceBundle.files ?? {}).length > 0}
+								{#if Object.keys(sourceBundle.fields.files ?? {}).length > 0}
 									<div data-column="gap-2">
-										{#each Object.entries(sourceBundle.files ?? {}) as [path, content] (path)}
+										{#each Object.entries(sourceBundle.fields.files ?? {}) as [path, content] (path)}
 											<details>
 												<summary><code>{path}</code></summary>
 												<pre data-text="font-monospace">{content}</pre>

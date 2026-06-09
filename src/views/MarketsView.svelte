@@ -1,11 +1,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { MarketKind } from '$/constants/Market.ts'
 	import { marketCatalogFieldSources } from '$/constants/Market.ts'
@@ -42,7 +42,8 @@
 		>
 	> = $props()
 
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// Components
@@ -79,22 +80,19 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
-					$: [
+				entityFieldReference.entityId,({ sources: [
 						...marketCatalogFieldSources,
-					],
-					[entityFieldReference.fieldName]: {
-						$limit: 8192,
+					], fields: { [entityFieldReference.fieldName]: {
+						limit: 8192,
 					},
-				},
+				} }),
 			)}
 			{@const markets = derive(
 				parent,
 				(parent) => {
-					const markets: Entity<typeof schema, EntityType.Market>[] = parent[entityFieldReference.fieldName] ?? []
+					const markets: readonly Entity<typeof schema, EntityType.Market>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
 					return (
 						Object.values(
 							Object.groupBy(

@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -32,15 +33,11 @@
 		never
 	> = $props()
 
-	const kind = useEntity(
-		EntityType.SpecificationProposalKind,
+	const kind = useEntity(entityCollectionsContext, EntityType.SpecificationProposalKind,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			$$proposals: {
-				$: [
+			], fields: { $$proposals: ({ sources: [
 					Source.BitcoinBips_Github,
 					Source.BitcoinCashChips_Gitlab,
 					Source.Caips_Github,
@@ -56,26 +53,16 @@
 					Source.QuilibriumDocs_Rest,
 					Source.SolanaSimds_Github,
 					Source.ZcashZips_Github,
-				],
-				$limit: 2048,
-			},
-			label: {},
-			labelPlural: {},
-			slug: {},
-		},
+				], limit: 2048 }), label: true, labelPlural: true, slug: true } }),
 	)
 
-	const specificationRealm = useEntity(
-		EntityType.SpecificationRealm,
+	const specificationRealm = useEntity(entityCollectionsContext, EntityType.SpecificationRealm,
 		{
 			realm: entityId.realm,
 		},
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			slug: {},
-		},
+			], fields: { slug: true } }),
 	)
 
 
@@ -96,19 +83,19 @@
 
 	const href = $derived(
 		hrefProp ?? (
-			kindRow?.slug != null && specificationRealmRow?.slug != null ?
+			kindRow?.fields.slug != null && specificationRealmRow?.fields.slug != null ?
 				resolve(
 					'/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
 					{
-						specificationRealmSlug: specificationRealmRow.slug,
-						proposalKindSlug: kindRow.slug,
+						specificationRealmSlug: specificationRealmRow.fields.slug,
+						proposalKindSlug: kindRow.fields.slug,
 					},
 				)
-			: specificationRealmRow?.slug != null ?
+			: specificationRealmRow?.fields.slug != null ?
 				resolve(
 					'/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
 					{
-						specificationRealmSlug: specificationRealmRow.slug,
+						specificationRealmSlug: specificationRealmRow.fields.slug,
 					},
 				)
 			:
@@ -129,7 +116,7 @@
 	entityType={EntityType.SpecificationProposalKind}
 	{entityId}
 	{href}
-	title={kindRow?.labelPlural ?? kindRow?.label ?? `${entityId.category}`}
+	title={kindRow?.fields.labelPlural ?? kindRow?.fields.label ?? `${entityId.category}`}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -141,7 +128,7 @@
 		>
 			{#snippet children(kind)}
 				<span>
-					{kind.label ?? entityId.category}
+					{kind.fields.label ?? entityId.category}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -154,7 +141,7 @@
 		>
 			{#snippet children(kind)}
 				<span>
-					{kind.labelPlural ?? kind.label ?? entityId.category}
+					{kind.fields.labelPlural ?? kind.fields.label ?? entityId.category}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -164,7 +151,7 @@
 		<dl data-column-item="center">
 			{#if (
 				open
-				&& kindRow?.labelPlural !== undefined
+				&& kindRow?.fields.labelPlural !== undefined
 			)}
 				<div>
 					<dt>Label plural</dt>
@@ -174,7 +161,7 @@
 							placeholderText="Loading proposal kind…"
 						>
 							{#snippet children(kind)}
-								{kind.labelPlural}
+								{kind.fields.labelPlural}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -201,8 +188,8 @@
 					id={`${stringify(entityId)}:proposals`}
 					open
 					title={
-						kind.labelPlural
-						?? kind.label
+						kind.fields.labelPlural
+						?? kind.fields.label
 						?? 'Proposals'
 					}
 				/>

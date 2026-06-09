@@ -13,10 +13,10 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	PrimalNostrEvent,
 	PrimalNostrProfileMetadata,
@@ -598,7 +598,8 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				pubkey: (profile) => profile.pubkey,
 				displayName: (profile) => profile.displayName,
 				about: (profile) => profile.about,
@@ -610,7 +611,7 @@ export default {
 				$icon: (profile) => profile.$icon,
 				$banner: (profile) => profile.$banner,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
@@ -629,7 +630,8 @@ export default {
 				return noteFieldValuesFromEvent(event)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				eventId: (note) => note.eventId,
 				kind: (note) => note.kind,
 				pubkey: (note) => note.pubkey,
@@ -641,7 +643,7 @@ export default {
 				rootEventId: (note) => note.rootEventId,
 				$replyToNote: (note) => note.$replyToNote,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrRelay,
@@ -650,8 +652,9 @@ export default {
 				throw new Error('Primal_Rest: NostrRelay is unsupported')
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrRepost,
@@ -676,7 +679,8 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				eventId: (repost) => repost.eventId,
 				kind: (repost) => repost.kind,
 				pubkey: (repost) => repost.pubkey,
@@ -687,7 +691,7 @@ export default {
 				$repostedNote: (repost) => repost.$repostedNote,
 				$repostedArticle: (repost) => repost.$repostedArticle,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrReaction,
@@ -716,7 +720,8 @@ export default {
 				return values
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				eventId: (reaction) => reaction.eventId,
 				kind: (reaction) => reaction.kind,
 				pubkey: (reaction) => reaction.pubkey,
@@ -727,7 +732,7 @@ export default {
 				$targetNote: (reaction) => reaction.$targetNote,
 				content: (reaction) => reaction.content,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrArticle,
@@ -757,7 +762,8 @@ export default {
 				return articleFieldValuesFromEvent(event)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				kind: (article) => article.kind,
 				pubkey: (article) => article.pubkey,
 				identifier: (article) => article.identifier,
@@ -769,7 +775,7 @@ export default {
 				publishedAt: (article) => article.publishedAt,
 				$author: (article) => article.$author,
 			},
-		}),
+			}),
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
@@ -779,10 +785,11 @@ export default {
 				}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$nostrProfiles: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNetwork,
@@ -791,10 +798,11 @@ export default {
 				throw new Error('Primal_Rest: $$nostrNotes is unsupported; use NostrProfile.$$notes')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$nostrNotes: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNetwork,
@@ -803,10 +811,11 @@ export default {
 				throw new Error('Primal_Rest: $$nostrReposts is unsupported; use NostrProfile.$$reposts')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$nostrReposts: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNetwork,
@@ -815,10 +824,11 @@ export default {
 				throw new Error('Primal_Rest: $$nostrArticles is unsupported; use NostrProfile.$$articles')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$nostrArticles: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfile,
@@ -844,10 +854,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$notes: (profile) => profile,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfile,
@@ -873,10 +884,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$reposts: (profile) => profile,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfile,
@@ -893,10 +905,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$articles: (profile) => profile,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
@@ -922,10 +935,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$replies: (note) => note,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
@@ -951,10 +965,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$reactions: (note) => note,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
@@ -977,9 +992,10 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$replyToNote: (note) => note,
 			},
-		}),
+			}),
 	],
 }

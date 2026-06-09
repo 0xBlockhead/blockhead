@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,29 +28,9 @@
 		>
 	> = $props()
 
-	const zcashShieldedAction = useEntity(
-		EntityType.ZcashShieldedAction,
+	const zcashShieldedAction = useEntity(entityCollectionsContext, EntityType.ZcashShieldedAction,
 		entityId,
-		{
-			actionKind: {},
-			...open && {
-				valueCommitment: {},
-				$case: {
-					actionKind: {
-						[ZcashShieldedActionKind.Spend]: {
-							nullifier: {},
-						},
-						[ZcashShieldedActionKind.Output]: {
-							noteCommitment: {},
-						},
-						[ZcashShieldedActionKind.Action]: {
-							nullifier: {},
-							noteCommitment: {},
-						},
-					},
-				},
-			},
-		},
+		({ fields: { actionKind: true, ...(open && ({ valueCommitment: true })) } }),
 	)
 
 
@@ -91,51 +72,51 @@
 		>
 			{#snippet children(zcashShieldedAction)}
 				<dl data-column-item="center">
-					{#if zcashShieldedAction.actionKind != null}
+					{#if zcashShieldedAction.fields.actionKind != null}
 						<div>
 							<dt>Kind</dt>
-							<dd>{zcashShieldedAction.actionKind}</dd>
+							<dd>{zcashShieldedAction.fields.actionKind}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
 						&& (
-							zcashShieldedAction.actionKind === ZcashShieldedActionKind.Spend
-							|| zcashShieldedAction.actionKind === ZcashShieldedActionKind.Action
+							zcashShieldedAction.fields.actionKind === ZcashShieldedActionKind.Spend
+							|| zcashShieldedAction.fields.actionKind === ZcashShieldedActionKind.Action
 						)
-						&& zcashShieldedAction.nullifier != null
+						&& zcashShieldedAction.fields.nullifier != null
 					)}
 						<div>
 							<dt>Nullifier</dt>
-							<dd>{zcashShieldedAction.nullifier}</dd>
+							<dd>{zcashShieldedAction.fields.nullifier}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
 						&& (
-							zcashShieldedAction.actionKind === ZcashShieldedActionKind.Output
-							|| zcashShieldedAction.actionKind === ZcashShieldedActionKind.Action
+							zcashShieldedAction.fields.actionKind === ZcashShieldedActionKind.Output
+							|| zcashShieldedAction.fields.actionKind === ZcashShieldedActionKind.Action
 						)
-						&& zcashShieldedAction.noteCommitment != null
+						&& zcashShieldedAction.fields.noteCommitment != null
 					)}
 						<div>
 							<dt>Note Commitment</dt>
 							<dd>
 								<TruncatedValue
-									value={zcashShieldedAction.noteCommitment}
+									value={zcashShieldedAction.fields.noteCommitment}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if open && zcashShieldedAction.valueCommitment != null}
+					{#if open && zcashShieldedAction.fields.valueCommitment != null}
 						<div>
 							<dt>Value Commitment</dt>
 							<dd>
 								<TruncatedValue
-									value={zcashShieldedAction.valueCommitment}
+									value={zcashShieldedAction.fields.valueCommitment}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>

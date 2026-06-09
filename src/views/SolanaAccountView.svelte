@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,16 +28,9 @@
 		>
 	> = $props()
 
-	const solanaAccount = useEntity(
-		EntityType.SolanaAccount,
+	const solanaAccount = useEntity(entityCollectionsContext, EntityType.SolanaAccount,
 		entityId,
-		{
-			$ownerProgram: {},
-			lamports: {},
-			rentEpoch: {},
-			executable: {},
-			dataEncoding: {},
-		},
+		({ fields: { $ownerProgram: true, lamports: true, rentEpoch: true, executable: true, dataEncoding: true } }),
 	)
 
 
@@ -71,12 +65,12 @@
 		>
 			{#snippet children(solanaAccount)}
 				<dl>
-					{#if solanaAccount.$ownerProgram}
+					{#if solanaAccount.fields.$ownerProgram}
 						<div>
 							<dt>Owner program</dt>
 							<dd>
 								<SolanaProgramView
-									entityId={solanaAccount.$ownerProgram[EntityMetaKey.Id]}
+									entityId={solanaAccount.fields.$ownerProgram[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -84,33 +78,33 @@
 						</div>
 					{/if}
 
-					{#if solanaAccount.lamports != null}
+					{#if solanaAccount.fields.lamports != null}
 						<div>
 							<dt>Lamports</dt>
-							<dd><NumberValue value={solanaAccount.lamports} /></dd>
+							<dd><NumberValue value={solanaAccount.fields.lamports} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaAccount.rentEpoch != null}
+					{#if solanaAccount.fields.rentEpoch != null}
 						<div>
 							<dt>Rent Epoch</dt>
-							<dd><NumberValue value={solanaAccount.rentEpoch} /></dd>
+							<dd><NumberValue value={solanaAccount.fields.rentEpoch} /></dd>
 						</div>
 					{/if}
 
-					{#if solanaAccount.executable != null}
+					{#if solanaAccount.fields.executable != null}
 						<div>
 							<dt>Executable</dt>
-							<dd>{solanaAccount.executable ? 'Yes' : 'No'}</dd>
+							<dd>{solanaAccount.fields.executable ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if solanaAccount.dataEncoding != null}
+					{#if solanaAccount.fields.dataEncoding != null}
 						<div>
 							<dt>Data Encoding</dt>
 							<dd>
 								<TruncatedValue
-									value={solanaAccount.dataEncoding}
+									value={solanaAccount.fields.dataEncoding}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

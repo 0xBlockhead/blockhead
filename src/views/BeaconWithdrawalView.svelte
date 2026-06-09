@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -28,18 +29,19 @@
 		Pick<ComponentProps<typeof EntityView>, 'showTypeAnnotation'>
 	> = $props()
 
-	const withdrawal = useEntity(
-		EntityType.BeaconWithdrawal,
+	const withdrawal = useEntity(entityCollectionsContext, EntityType.BeaconWithdrawal,
 		entityId,
 		open
 			? {
-					$: [Source.Beacon_Rest],
-					validatorIndex: {},
-					$validator: {},
-					$account: {},
-					amountGwei: {},
+					sources: [Source.Beacon_Rest],
+					fields: {
+						validatorIndex: true,
+						$validator: true,
+						$account: true,
+						amountGwei: true,
+					},
 				}
-			: {},
+			: { fields: {} },
 	)
 
 	// Components
@@ -82,19 +84,19 @@
 			>
 				{#snippet children(withdrawal)}
 					<dl data-column-item="center">
-						{#if withdrawal.validatorIndex !== undefined}
+						{#if withdrawal.fields.validatorIndex !== undefined}
 							<div>
 								<dt>Validator index</dt>
-								<dd><NumberValue value={withdrawal.validatorIndex} /></dd>
+								<dd><NumberValue value={withdrawal.fields.validatorIndex} /></dd>
 							</div>
 						{/if}
 
-						{#if withdrawal.$validator !== undefined}
+						{#if withdrawal.fields.$validator !== undefined}
 							<div>
 								<dt>Validator</dt>
 								<dd>
 									<BeaconValidatorView
-										entityId={withdrawal.$validator[EntityMetaKey.Id]}
+										entityId={withdrawal.fields.$validator[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -102,12 +104,12 @@
 							</div>
 						{/if}
 
-						{#if withdrawal.$account !== undefined}
+						{#if withdrawal.fields.$account !== undefined}
 							<div>
 								<dt>Recipient</dt>
 								<dd>
 									<EvmAccountView
-										entityId={withdrawal.$account[EntityMetaKey.Id]}
+										entityId={withdrawal.fields.$account[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -115,10 +117,10 @@
 							</div>
 						{/if}
 
-						{#if withdrawal.amountGwei !== undefined}
+						{#if withdrawal.fields.amountGwei !== undefined}
 							<div>
 								<dt>Amount (gwei)</dt>
-								<dd><NumberValue value={withdrawal.amountGwei} /></dd>
+								<dd><NumberValue value={withdrawal.fields.amountGwei} /></dd>
 							</div>
 						{/if}
 					</dl>

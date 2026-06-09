@@ -11,13 +11,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -38,21 +39,12 @@
 		>
 	> = $props()
 
-	const capability = useEntity(
-		EntityType.CoinBridgeCapability,
+	const capability = useEntity(entityCollectionsContext, EntityType.CoinBridgeCapability,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
-			],
-			...(open && {
-				railId: {},
-				settlementModel: {},
-				verificationModel: {},
-				assetOutcome: {},
-			}),
-		},
+			], fields: { ...(open && ({ railId: true, settlementModel: true, verificationModel: true, assetOutcome: true })) } }),
 	)
 
 
@@ -105,7 +97,7 @@
 						placeholderText="Loading capability…"
 					>
 						{#snippet children(capability)}
-							{bridgeRailById[capability.railId]?.label ?? capability.railId}
+							{capability.fields.railId == null ? '–' : bridgeRailById[capability.fields.railId]?.label ?? capability.fields.railId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -118,7 +110,7 @@
 						placeholderText="Loading capability…"
 					>
 						{#snippet children(capability)}
-							{bridgeSettlementModelBySettlementModel[capability.settlementModel].label}
+							{capability.fields.settlementModel == null ? '–' : bridgeSettlementModelBySettlementModel[capability.fields.settlementModel].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -131,7 +123,7 @@
 						placeholderText="Loading capability…"
 					>
 						{#snippet children(capability)}
-							{bridgeVerificationModelByVerificationModel[capability.verificationModel].label}
+							{capability.fields.verificationModel == null ? '–' : bridgeVerificationModelByVerificationModel[capability.fields.verificationModel].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -144,7 +136,7 @@
 						placeholderText="Loading capability…"
 					>
 						{#snippet children(capability)}
-							{bridgeAssetOutcomeByAssetOutcome[capability.assetOutcome].label}
+							{capability.fields.assetOutcome == null ? '–' : bridgeAssetOutcomeByAssetOutcome[capability.fields.assetOutcome].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

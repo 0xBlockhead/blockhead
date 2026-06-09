@@ -1,17 +1,18 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -73,19 +74,15 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const global = useEntity(
-				EntityType._Global,
+			{@const global = useEntity(entityCollectionsContext, EntityType._Global,
 				entityFieldReference.entityId,
-				{
-					$: [Source.Local_Internal],
-					$$blockheadFarcasterAccountConnections: {},
-				},
+				({ sources: [Source.Local_Internal], fields: { $$blockheadFarcasterAccountConnections: true } }),
 			)}
 			{@const connections = derive(
 				global,
 					(global) => {
-						const connections: Entity<typeof schema, EntityType.BlockheadFarcasterAccountConnection>[] = (
-							global.$$blockheadFarcasterAccountConnections ?? []
+						const connections: readonly Entity<typeof schema, EntityType.BlockheadFarcasterAccountConnection>[] = (
+							global.fields.$$blockheadFarcasterAccountConnections?.values ?? []
 						)
 						return (
 							connections.map((result) => ({

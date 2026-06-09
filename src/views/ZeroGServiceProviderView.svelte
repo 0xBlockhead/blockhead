@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -23,12 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const serviceProvider = useEntity(EntityType.ZeroGServiceProvider, entityId, {
-		serviceKind: {},
-		$operator: {},
-		verificationMethod: {},
-		$$requests: {},
-	})
+	const serviceProvider = useEntity(entityCollectionsContext, EntityType.ZeroGServiceProvider, entityId, ({ fields: { serviceKind: true, $operator: true, verificationMethod: true, $$requests: true } }))
 
 
 	// Components
@@ -65,19 +61,19 @@
 		>
 			{#snippet children(serviceProvider)}
 				<dl>
-					{#if serviceProvider.serviceKind != null}
+					{#if serviceProvider.fields.serviceKind != null}
 						<div>
 							<dt>Service</dt>
-							<dd>{serviceProvider.serviceKind}</dd>
+							<dd>{serviceProvider.fields.serviceKind}</dd>
 						</div>
 					{/if}
 
-					{#if serviceProvider.$operator != null}
+					{#if serviceProvider.fields.$operator != null}
 						<div>
 							<dt>Operator</dt>
 							<dd>
 								<EvmAccountView
-									entityId={serviceProvider.$operator[EntityMetaKey.Id]}
+									entityId={serviceProvider.fields.$operator[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -85,19 +81,19 @@
 						</div>
 					{/if}
 
-					{#if serviceProvider.verificationMethod != null}
+					{#if serviceProvider.fields.verificationMethod != null}
 						<div>
 							<dt>Verification</dt>
-							<dd>{serviceProvider.verificationMethod}</dd>
+							<dd>{serviceProvider.fields.verificationMethod}</dd>
 						</div>
 					{/if}
 
-					{#if serviceProvider.$$requests != null && serviceProvider.$$requests.length}
+					{#if serviceProvider.fields.$$requests != null && serviceProvider.fields.$$requests?.values.length}
 						<div>
 							<dt>Requests</dt>
 							<dd>
 								<ul>
-									{#each serviceProvider.$$requests as request (request[EntityMetaKey.Id].requestId)}
+									{#each serviceProvider.fields.$$requests.values as request (request[EntityMetaKey.Id].requestId)}
 										<li>
 											<ZeroGServiceRequestView
 												entityId={request[EntityMetaKey.Id]}

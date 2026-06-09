@@ -10,9 +10,9 @@ import { caip2ByNetworkSlug } from '$/constants/Network.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	MoneroRpcInfo,
 	MoneroRpcTransaction,
@@ -175,12 +175,13 @@ export default {
 						rpcEndpoints: [...moneroMainnetRpcEndpoints],
 					}
 				}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 					$network: (network) => network.$network,
 					rpcEndpoints: (network) => network.rpcEndpoints,
-				}
-		}),
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroBlock,
@@ -220,16 +221,17 @@ export default {
 						})),
 					}
 				}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 					hash: (block) => block.hash,
 					$parent: (block) => block.$parent,
 					timestampMs: (block) => block.timestampMs,
 					difficulty: (block) => block.difficulty,
 					weightBytes: (block) => block.weightBytes,
 					$$transactions: (block) => block.$$transactions,
-				}
-		}),
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroTransaction,
@@ -240,16 +242,17 @@ export default {
 						await getMoneroTransaction(entityId),
 					)
 				)
-			},
-			fields: {
+			}
+		})({
+				fields: {
 					$block: (transaction) => transaction.$block,
 					version: (transaction) => transaction.version,
 					unlockTime: (transaction) => transaction.unlockTime,
 					feeAtomicUnits: (transaction) => transaction.feeAtomicUnits,
 					$$keyImages: (transaction) => transaction.$$keyImages,
 					$$stealthOutputs: (transaction) => transaction.$$stealthOutputs,
-				}
-		}),
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroKeyImage,
@@ -266,11 +269,12 @@ export default {
 						entityId.inputIndex,
 					)
 				}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 					$ring: (keyImage) => keyImage.$ring,
-				}
-		}),
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRing,
@@ -294,11 +298,12 @@ export default {
 						})),
 					}
 				}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 					$$members: (ring) => ring.$$members,
-				}
-		}),
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRingMember,
@@ -314,11 +319,12 @@ export default {
 						entityId.memberIndex,
 					)
 				}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 					globalOutputIndex: (ringMember) => ringMember.globalOutputIndex,
-				}
-		}),
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroStealthOutput,
@@ -335,12 +341,13 @@ export default {
 						entityId.outputIndex,
 					)
 				}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 					publicKey: (output) => output.publicKey,
 					commitment: (output) => output.commitment,
-				}
-		}),
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
@@ -407,11 +414,12 @@ export default {
 						},
 					]
 				}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 					$$timestamps: (timestamps) => timestamps,
-				}
-		}),
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
@@ -438,11 +446,12 @@ export default {
 						},
 					}))
 				}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 					$$blocks: (blocks) => blocks,
-				}
-		}),
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRing,
@@ -464,10 +473,11 @@ export default {
 						),
 					}))
 				}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 					$$members: (members) => members,
-				}
-		}),
+				},
+			}),
 	],
 }

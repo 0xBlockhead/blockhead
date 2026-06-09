@@ -3,10 +3,10 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
@@ -37,27 +37,14 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const sharedAddress = useEntity(
-		EntityType.BlockheadSharedAddress,
+	const sharedAddress = useEntity(entityCollectionsContext, EntityType.BlockheadSharedAddress,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Local_Internal,
-			],
-			peerId: {},
-			sharedAt: {},
-			...(open ?
-				{
-					$account: {},
-					$room: {},
-					$network: {},
-					targetPeerIds: {},
-				}
-				:
-				{}),
-		},
+			], fields: { peerId: true, sharedAt: true, ...(open ? ({ $account: true, $room: true, $network: true, targetPeerIds: true }) : ({  })) } }),
 	)
 
 
@@ -114,21 +101,21 @@
 						</div>
 
 						{#if (
-							sharedAddress.peerId !== undefined
-							&& sharedAddress.peerId !== ''
+							sharedAddress.fields.peerId !== undefined
+							&& sharedAddress.fields.peerId !== ''
 						)}
 							<div>
 								<dt>Peer ID</dt>
-								<dd>{sharedAddress.peerId}</dd>
+								<dd>{sharedAddress.fields.peerId}</dd>
 							</div>
 						{/if}
 
-						{#if sharedAddress.sharedAt !== undefined}
+						{#if sharedAddress.fields.sharedAt !== undefined}
 							<div>
 								<dt>Shared at</dt>
 								<dd>
 									<Timestamp
-										timestamp={sharedAddress.sharedAt}
+										timestamp={sharedAddress.fields.sharedAt}
 									/>
 								</dd>
 							</div>
@@ -136,16 +123,16 @@
 
 						{#if (
 							open
-							&& sharedAddress.$account !== undefined
-							&& sharedAddress.$network !== undefined
+							&& sharedAddress.fields.$account !== undefined
+							&& sharedAddress.fields.$network !== undefined
 						)}
 							<div>
 								<dt>Account</dt>
 								<dd>
 									<EvmNetworkAccountView
 										entityId={{
-											$network: sharedAddress.$network[EntityMetaKey.Id],
-											$actor: sharedAddress.$account[EntityMetaKey.Id],
+											$network: sharedAddress.fields.$network[EntityMetaKey.Id],
+											$actor: sharedAddress.fields.$account[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Title}
 										open={false}
@@ -155,29 +142,29 @@
 						{/if}
 						{#if (
 							open
-							&& sharedAddress.$room !== undefined
+							&& sharedAddress.fields.$room !== undefined
 							)}
 								<div>
 									<dt>Room</dt>
-									<dd>{sharedAddress.$room[EntityMetaKey.Id].id}</dd>
+									<dd>{sharedAddress.fields.$room[EntityMetaKey.Id].id}</dd>
 								</div>
 							{/if}
 						{#if (
 							open
-							&& sharedAddress.$network !== undefined
+							&& sharedAddress.fields.$network !== undefined
 							)}
 								<div>
 									<dt>Execution chain ID</dt>
-									<dd>{String(evmChainIdFromCaip2(`${sharedAddress.$network[EntityMetaKey.Id].caip2.namespace}:${sharedAddress.$network[EntityMetaKey.Id].caip2.reference}`))}</dd>
+									<dd>{String(evmChainIdFromCaip2(`${sharedAddress.fields.$network[EntityMetaKey.Id].caip2.namespace}:${sharedAddress.fields.$network[EntityMetaKey.Id].caip2.reference}`))}</dd>
 								</div>
 							{/if}
 						{#if (
 							open
-							&& (sharedAddress.targetPeerIds ?? []).length
+							&& (sharedAddress.fields.targetPeerIds ?? []).length
 						)}
 							<div>
 								<dt>Target peer IDs</dt>
-								<dd>{(sharedAddress.targetPeerIds ?? []).join(', ')}</dd>
+								<dd>{(sharedAddress.fields.targetPeerIds ?? []).join(', ')}</dd>
 							</div>
 						{/if}
 					</dl>
@@ -212,12 +199,12 @@
 				>
 					{#snippet children(sharedAddress)}
 						{#if (
-							(sharedAddress.peerId === undefined || sharedAddress.peerId === '')
-							&& !(sharedAddress.$account !== undefined && sharedAddress.$network !== undefined)
-							&& sharedAddress.$room === undefined
-							&& sharedAddress.$network === undefined
-							&& !(sharedAddress.targetPeerIds ?? []).length
-							&& sharedAddress.sharedAt === undefined
+							(sharedAddress.fields.peerId === undefined || sharedAddress.fields.peerId === '')
+							&& !(sharedAddress.fields.$account !== undefined && sharedAddress.fields.$network !== undefined)
+							&& sharedAddress.fields.$room === undefined
+							&& sharedAddress.fields.$network === undefined
+							&& !(sharedAddress.fields.targetPeerIds ?? []).length
+							&& sharedAddress.fields.sharedAt === undefined
 						)}
 							<div data-row="wrap align-center gap-2">
 								<p data-text="muted">

@@ -5,7 +5,7 @@ import type {
 	RedditApiSubredditAbout,
 } from '$/sources/Reddit/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 export const getInfo = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>, id: string) => (
 	oauthGetJson<RedditApiInfoResponse>(

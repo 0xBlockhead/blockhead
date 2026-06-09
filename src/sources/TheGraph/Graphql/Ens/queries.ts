@@ -1,4 +1,4 @@
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { graphql, queryEns } from '$/sources/TheGraph/Graphql/Ens/client.ts'
 import { EnsDomainFragment } from '$/sources/TheGraph/Graphql/Ens/types.ts'

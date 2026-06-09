@@ -3,7 +3,7 @@ import { type as arktype } from 'arktype'
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { gatewayOrigin } from '$/sources/TheGraph/Graphql/constants.ts'
 import TheGraphGraphqlSource from '$/sources/TheGraph/Graphql/index.ts'
 

@@ -4,8 +4,8 @@ import {
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 const AtUri = type(
 	'/^at:\\/\\/[^\\/]+\\/app\\.bsky\\.feed\\.post\\/[^\\/]+$/' as type.cast<string>,

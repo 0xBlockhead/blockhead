@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,15 +27,9 @@
 		>
 	> = $props()
 
-	const utxoInput = useEntity(
-		EntityType.UtxoInput,
+	const utxoInput = useEntity(entityCollectionsContext, EntityType.UtxoInput,
 		entityId,
-		{
-			coinbaseScript: {},
-			scriptSigAsm: {},
-			sequence: {},
-			witness: {},
-		},
+		({ fields: { coinbaseScript: true, scriptSigAsm: true, sequence: true, witness: true } }),
 	)
 
 
@@ -77,41 +72,41 @@
 		>
 			{#snippet children(utxoInput)}
 				<dl>
-					{#if utxoInput.coinbaseScript != null}
+					{#if utxoInput.fields.coinbaseScript != null}
 						<div>
 							<dt>Coinbase Script</dt>
 							<dd>
 								<TruncatedValue
-									value={utxoInput.coinbaseScript}
+									value={utxoInput.fields.coinbaseScript}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if utxoInput.scriptSigAsm != null}
+					{#if utxoInput.fields.scriptSigAsm != null}
 						<div>
 							<dt>Script Sig Asm</dt>
 							<dd>
 								<TruncatedValue
-									value={utxoInput.scriptSigAsm}
+									value={utxoInput.fields.scriptSigAsm}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if utxoInput.sequence != null}
+					{#if utxoInput.fields.sequence != null}
 						<div>
 							<dt>Sequence</dt>
-							<dd><NumberValue value={utxoInput.sequence} /></dd>
+							<dd><NumberValue value={utxoInput.fields.sequence} /></dd>
 						</div>
 					{/if}
 
-					{#if utxoInput.witness != null}
+					{#if utxoInput.fields.witness.values.length}
 						<div>
 							<dt>Witness</dt>
 							<dd>
 								<ul>
-									{#each utxoInput.witness as witness (witness)}
+									{#each utxoInput.fields.witness.values as witness (witness)}
 										<li>
 											<TruncatedValue
 												value={witness}

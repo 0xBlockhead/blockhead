@@ -1,15 +1,15 @@
 import { type } from 'arktype'
 
-import { UrlString } from '$/schema/$Url.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 export default {
 	entityType: EntityType.MediaObject,

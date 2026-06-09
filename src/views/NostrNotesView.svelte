@@ -1,18 +1,19 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -76,7 +77,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				(
@@ -84,57 +85,57 @@
 						(
 							fieldOpen ?
 								{
-									$: [Source.Constants_Internal],
+									sources: [Source.Constants_Internal],
 									$$nostrNotes: {
-										$: [Source.NostrBand_Rest],
-										$limit: limit,
+										sources: [Source.NostrBand_Rest],
+										limit: limit,
 									},
 									$$nostrProfiles: {
-										$: [
+										sources: [
 											Source.Constants_Internal,
 											Source.NostrBand_Rest,
 											Source.Primal_Rest,
 										],
 										$$notes: {
-											$: [
+											sources: [
 												Source.NostrBand_Rest,
 												Source.Primal_Rest,
 											],
-											$limit: limit,
+											limit: limit,
 										},
 									},
 								}
 							:
 								{
-									$: [Source.Constants_Internal],
+									sources: [Source.Constants_Internal],
 								}
 						)
 					: entityFieldReference.entityType === EntityType.NostrProfile ?
 						{
-							$: [
+							sources: [
 								Source.NostrBand_Rest,
 								Source.Primal_Rest,
 							],
 							$$notes: {
-								$: [
+								sources: [
 									Source.NostrBand_Rest,
 									Source.Primal_Rest,
 								],
-								$limit: limit,
+								limit: limit,
 							},
 						}
 					:
 						{
-							$: [
+							sources: [
 								Source.NostrBand_Rest,
 								Source.Primal_Rest,
 							],
 							$$replies: {
-								$: [
+								sources: [
 									Source.NostrBand_Rest,
 									Source.Primal_Rest,
 								],
-								$limit: limit,
+								limit: limit,
 							},
 						}
 				),
@@ -142,7 +143,7 @@
 			{@const notes = derive(
 				parent,
 				(parent) => {
-					const nostrNotes: Entity<typeof schema, EntityType.NostrNote>[] = (
+					const nostrNotes: readonly Entity<typeof schema, EntityType.NostrNote>[] = (
 						entityFieldReference.entityType === EntityType.NostrNetwork ?
 							[
 								...(parent.$$nostrNotes ?? []),
@@ -150,7 +151,7 @@
 									.flatMap((profile: Entity<typeof schema, EntityType.NostrProfile>) => profile.$$notes ?? []),
 							]
 						:
-							(parent[entityFieldReference.fieldName] ?? [])
+							(parent.fields[entityFieldReference.fieldName]?.values ?? [])
 					)
 					return nostrNotes
 				},

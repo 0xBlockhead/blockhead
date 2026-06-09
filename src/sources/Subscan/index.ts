@@ -1,6 +1,6 @@
 import { type as arktype } from 'arktype'
 
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import SubscanRest from '$/sources/Subscan/Rest/index.ts'
 
 export default {

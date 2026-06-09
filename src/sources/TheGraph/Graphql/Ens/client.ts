@@ -3,7 +3,7 @@ import {
 	type TadaDocumentNode,
 } from 'gql.tada'
 
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { queryTheGraph } from '$/sources/TheGraph/Graphql/client.ts'
 

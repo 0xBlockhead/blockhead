@@ -9,9 +9,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -84,14 +84,15 @@ export default {
 					})),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$parent: (snapshot) => snapshot.$parent,
 			parentWeight: (snapshot) => snapshot.parentWeight,
 			timestampMs: (snapshot) => snapshot.timestampMs,
 			$$blocks: (snapshot) => snapshot.$$blocks,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinBlock,
@@ -129,13 +130,14 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$tipset: (snapshot) => snapshot.$tipset,
 			$miner: (snapshot) => snapshot.$miner,
 			winCount: (snapshot) => snapshot.winCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinMessage,
@@ -170,16 +172,17 @@ export default {
 					}),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$from: (snapshot) => snapshot.$from,
 			$to: (snapshot) => snapshot.$to,
 			method: (snapshot) => snapshot.method,
 			nonce: (snapshot) => snapshot.nonce,
 			valueAttoFil: (snapshot) => snapshot.valueAttoFil,
 			gasLimit: (snapshot) => snapshot.gasLimit,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinActor,
@@ -195,11 +198,12 @@ export default {
 					balanceAttoFil: BigInt(address.balance),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			balanceAttoFil: (snapshot) => snapshot.balanceAttoFil,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinMiner,
@@ -235,14 +239,15 @@ export default {
 					qualityAdjustedPower: BigInt(address.miner.qualityAdjPower),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$owner: (snapshot) => snapshot.$owner,
 			$worker: (snapshot) => snapshot.$worker,
 			peerId: (snapshot) => snapshot.peerId,
 			qualityAdjustedPower: (snapshot) => snapshot.qualityAdjustedPower,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinBlock,
@@ -275,10 +280,11 @@ export default {
 					valueAttoFil: BigInt(message.value),
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$messages: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

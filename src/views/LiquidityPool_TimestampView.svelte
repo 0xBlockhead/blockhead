@@ -3,10 +3,10 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,27 +38,14 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const poolTimestamp = useEntity(
-		EntityType.LiquidityPool_Timestamp,
+	const poolTimestamp = useEntity(entityCollectionsContext, EntityType.LiquidityPool_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Dexscreener_OpenApi,
-			],
-			$parentLiquidityPool: {},
-			priceUsd: {},
-			priceNative: {},
-			liquidityUsd: {},
-			volumeUsd24h: {},
-			priceChangePercent24h: {},
-			transactionBuys24h: {},
-			transactionSells24h: {},
-			marketCapUsd: {},
-			fdvUsd: {},
-			transport: {},
-		},
+			], fields: { $parentLiquidityPool: true, priceUsd: true, priceNative: true, liquidityUsd: true, volumeUsd24h: true, priceChangePercent24h: true, transactionBuys24h: true, transactionSells24h: true, marketCapUsd: true, fdvUsd: true, transport: true } }),
 	)
 
 
@@ -85,8 +72,8 @@
 			resource={poolTimestamp}
 		>
 			{#snippet children(poolTimestamp)}
-				{#if poolTimestamp.priceUsd !== undefined}
-					{poolTimestamp.priceUsd}
+				{#if poolTimestamp.fields.priceUsd !== undefined}
+					{poolTimestamp.fields.priceUsd}
 				{:else}
 					<Timestamp
 						timestamp={entityId.timestampMs}
@@ -122,107 +109,107 @@
 						<dt>Pool</dt>
 						<dd>
 							<LiquidityPoolView
-								entityId={poolTimestamp.$parentLiquidityPool?.[EntityMetaKey.Id] ?? entityId.$liquidityPool}
+								entityId={poolTimestamp.fields.$parentLiquidityPool?.[EntityMetaKey.Id] ?? entityId.$liquidityPool}
 								layout={EntityLayout.Title}
 								open={false}
 							/>
 						</dd>
 					</div>
 
-					{#if poolTimestamp.priceUsd !== undefined}
+					{#if poolTimestamp.fields.priceUsd !== undefined}
 						<div>
 							<dt>Price USD</dt>
-							<dd>{poolTimestamp.priceUsd}</dd>
+							<dd>{poolTimestamp.fields.priceUsd}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.priceNative !== undefined
+						&& poolTimestamp.fields.priceNative !== undefined
 					)}
 						<div>
 							<dt>Price native</dt>
-							<dd>{poolTimestamp.priceNative}</dd>
+							<dd>{poolTimestamp.fields.priceNative}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.liquidityUsd !== undefined
+						&& poolTimestamp.fields.liquidityUsd !== undefined
 					)}
 						<div>
 							<dt>Liquidity USD</dt>
-							<dd>{String(poolTimestamp.liquidityUsd)}</dd>
+							<dd>{String(poolTimestamp.fields.liquidityUsd)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.volumeUsd24h !== undefined
+						&& poolTimestamp.fields.volumeUsd24h !== undefined
 					)}
 						<div>
 							<dt>Volume USD 24h</dt>
-							<dd>{String(poolTimestamp.volumeUsd24h)}</dd>
+							<dd>{String(poolTimestamp.fields.volumeUsd24h)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.priceChangePercent24h !== undefined
+						&& poolTimestamp.fields.priceChangePercent24h !== undefined
 					)}
 						<div>
 							<dt>Price change 24h</dt>
-							<dd>{String(poolTimestamp.priceChangePercent24h)}%</dd>
+							<dd>{String(poolTimestamp.fields.priceChangePercent24h)}%</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.transactionBuys24h !== undefined
+						&& poolTimestamp.fields.transactionBuys24h !== undefined
 					)}
 						<div>
 							<dt>Buys 24h</dt>
-							<dd>{String(poolTimestamp.transactionBuys24h)}</dd>
+							<dd>{String(poolTimestamp.fields.transactionBuys24h)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.transactionSells24h !== undefined
+						&& poolTimestamp.fields.transactionSells24h !== undefined
 					)}
 						<div>
 							<dt>Sells 24h</dt>
-							<dd>{String(poolTimestamp.transactionSells24h)}</dd>
+							<dd>{String(poolTimestamp.fields.transactionSells24h)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.marketCapUsd !== undefined
+						&& poolTimestamp.fields.marketCapUsd !== undefined
 					)}
 						<div>
 							<dt>Market cap USD</dt>
-							<dd>{String(poolTimestamp.marketCapUsd)}</dd>
+							<dd>{String(poolTimestamp.fields.marketCapUsd)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.fdvUsd !== undefined
+						&& poolTimestamp.fields.fdvUsd !== undefined
 					)}
 						<div>
 							<dt>FDV USD</dt>
-							<dd>{String(poolTimestamp.fdvUsd)}</dd>
+							<dd>{String(poolTimestamp.fields.fdvUsd)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& poolTimestamp.transport !== undefined
+						&& poolTimestamp.fields.transport !== undefined
 					)}
 						<div>
 							<dt>Transport</dt>
-							<dd>{poolTimestamp.transport}</dd>
+							<dd>{poolTimestamp.fields.transport}</dd>
 						</div>
 					{/if}
 				</dl>

@@ -1,4 +1,4 @@
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { fediGet } from '$/sources/Fedi/Rest/client.ts'
 import { fediInstanceOrigin } from '$/sources/Fedi/Rest/constants.ts'

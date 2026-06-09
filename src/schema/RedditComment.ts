@@ -4,8 +4,8 @@ import {
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 const RedditCommentFullname = type(
 	'/^t1_[A-Za-z0-9]+$/' as type.cast<string>,

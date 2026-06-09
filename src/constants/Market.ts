@@ -74,7 +74,7 @@ export type MarketTimeInterval = {
 
 // Constants
 
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 /**
  * `days` values accepted by CoinGecko `GET /coins/{id}/ohlc` for USD candles (numeric days).

@@ -4,15 +4,15 @@ import {
 	EntityFieldType,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { UrlString } from '$/schema/$Url.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import Network from '$/schema/EvmNetwork.ts'
 import {
 	ExecutionProtocol,
 	NetworkExecutionUpgradeLayer,
 } from '$/schema/NetworkUpgradeProtocols.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	entityType: EntityType.EthereumExecutionUpgrade,

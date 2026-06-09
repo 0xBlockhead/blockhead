@@ -1,13 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import type { MarketTimeInterval } from '$/constants/Market.ts'
 	import { marketOhlcCandleSources } from '$/constants/Market.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
@@ -49,7 +49,8 @@
 	} from '$/lib/marketOhlcCandles.ts'
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// Components
@@ -83,21 +84,20 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const market = useEntity(
+			{@const market = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
+				entityFieldReference.entityId,({ fields: {
 					[entityFieldReference.fieldName]: {
-						$: [...marketOhlcCandleSources],
-						$limit: limit,
+						sources: [...marketOhlcCandleSources],
+						limit: limit,
 					},
-				},
+				} }),
 			)}
 			{@const points = derive(
 				market,
 				(market) => {
-					const marketTimeIntervalTimestamps: Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
-						market[entityFieldReference.fieldName] ?? []
+					const marketTimeIntervalTimestamps: readonly Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
+						market.fields[entityFieldReference.fieldName]?.values ?? []
 					)
 					return (
 						(

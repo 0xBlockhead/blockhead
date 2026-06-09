@@ -4,13 +4,13 @@ import { entityFieldCollectionItemKey } from '$/collections/$collections.ts'
 import {
 	entityCollectionByEntityType,
 	entityFieldCollections,
-} from '$/collections/$entityCollections.ts'
+} from '$/collections/entityCollections.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import type { Entity, EntityId } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import { stringify } from 'devalue'
 
 export const writeLocalWatchedEvmAccount = (accountEntityId: EntityId<typeof schema, EntityType.EvmAccount>) => {
@@ -132,7 +132,12 @@ export const deleteLocalBlockheadSessionAction = (
 
 export const updateLocalBlockheadSessionActionType = (
 	entityId: EntityId<typeof schema, EntityType.BlockheadSessionAction>,
-	sessionAction: Entity<typeof schema, EntityType.BlockheadSessionAction>,
+	sessionAction: Pick<
+		Entity<typeof schema, EntityType.BlockheadSessionAction>,
+		| '$session'
+		| 'indexInSequence'
+		| 'createdAt'
+	>,
 	actionType: ActionType,
 ) => {
 	const fields = {

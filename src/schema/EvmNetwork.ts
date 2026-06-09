@@ -7,11 +7,11 @@ import {
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { networkFields } from '$/schema/Network.ts'
-import { UrlString } from '$/schema/$Url.ts'
-import { Source } from '$/sources/$Source.ts'
+import { UrlString } from '$/schema/UrlString.ts'
+import { Source } from '$/sources/Source.ts'
 
 const executionEndpointField = type({
 	url: UrlString,

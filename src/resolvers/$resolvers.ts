@@ -1,38 +1,45 @@
 import type { QueryClient } from '@tanstack/query-core'
+import type { LoadSubsetOptions } from '@tanstack/db'
 
-import type { EntityIdProjectionName } from '$/schema/$EntityDefinition.ts'
-import type { EntityFieldName, EntityId, EntityType, Schema } from '$/schema/$schema.ts'
+import type { EntityFieldName, EntityFieldSingleResolvedValue, EntityId, EntityIdProjectionName, EntityType, Schema } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
-import type { Source, SourcePublicEnv } from '$/sources/$Source.ts'
+import type { Source } from '$/sources/Source.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 
-export type ResolverContext = {
-	Filters: readonly ResolverFilter[]
-	Sorts: readonly ResolverSort[]
-	Pagination: ResolverPagination
-	IdentityFilter: readonly string[]
-	ParentIdentityFilter: readonly string[]
-	SourceFilter: readonly Source[]
-	publicEnv: SourcePublicEnv
-}
-
-export type SourceResolverContext<_Source extends Source> = Omit<ResolverContext, 'publicEnv'> & {
-	publicEnv: SourcePublicEnvFor<_Source>
-}
-
 export type ResolverFilter = {
-	fieldPath: readonly (string | number)[]
-	operator: string
-	value?: unknown
+	readonly fieldPath: readonly string[]
+	readonly operator: 'eq' | 'in' | 'unknown'
+	readonly value: unknown
 }
 
 export type ResolverSort = {
-	fieldPath: readonly (string | number)[]
-	direction: 'asc' | 'desc'
+	readonly fieldPath: readonly string[]
+	readonly direction: 'asc' | 'desc'
 }
 
 export type ResolverPagination = {
-	limit?: number
+	readonly limit?: number
+	readonly offset?: number
+	readonly cursor?: unknown
+}
+
+export type ResolverSubset = {
+	readonly Filters: readonly ResolverFilter[]
+	readonly Sorts: readonly ResolverSort[]
+	readonly Pagination: ResolverPagination
+	readonly SourceFilter?: readonly string[]
+	readonly IdentityFilter: readonly string[]
+	readonly ParentIdentityFilter: readonly string[]
+	readonly ir: LoadSubsetOptions
+}
+
+export type ResolverContext = ResolverSubset & {
+	readonly publicEnv: SourcePublicEnv
+}
+
+export type SourceResolverContext<_Source extends Source> = Omit<ResolverContext, 'publicEnv'> & {
+	readonly publicEnv: SourcePublicEnvFor<_Source>
 }
 
 /** When hydrate/live-query omits `LIMIT`, list field resolvers still need a cap. */
@@ -42,49 +49,70 @@ export const resolverContextRowLimit = (
 	context: ResolverContext,
 ) => context.Pagination.limit ?? defaultResolverContextRowLimit
 
-export type ResolveLiveContext<
+export type ResolveLiveFieldHandle<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
+	_FieldName extends EntityFieldName<_Schema, _EntityType>,
 > = {
-	parentEntityId: EntityId<_Schema, _EntityType>
-	queryClient: QueryClient
-	signal: AbortSignal
-	invalidateFields: (fieldNames: readonly string[]) => void
-	invalidateCounts: (fieldNames: readonly string[]) => void
-	writeFieldRows: (fieldName: EntityFieldName<_Schema, _EntityType>, rows: readonly {
-		source: Source
+	readonly replaceRows: (rows: readonly {
+		source: string
 		value: unknown
 	}[]) => void
-	writeFieldCounts: (fieldName: EntityFieldName<_Schema, _EntityType>, rows: readonly {
-		source: Source
-		value: number
-	}[]) => void
+	readonly invalidate: () => void
+	readonly count: {
+		readonly replaceRows: (rows: readonly {
+			source: string
+			value: number
+		}[]) => void
+		readonly invalidate: () => void
+	}
 }
 
-type FieldSelectorObject<
+export type ResolveLiveFields<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-	_Snapshot,
 > = {
-	parentSelectors?: readonly EntityIdProjectionName[]
-	select?: (
-		snapshot: _Snapshot,
-		entityId: EntityId<_Schema, _EntityType>,
-		context: ResolverContext,
-	) => unknown
-	resolveCount?: (
-		snapshot: _Snapshot,
-		entityId: EntityId<_Schema, _EntityType>,
-		context: ResolverContext,
-	) => number
-	resolveLive?: (
-		context: ResolveLiveContext<_Schema, _EntityType>,
-	) => void | (() => void) | Promise<void | (() => void)>
+	readonly [
+		_FieldName in EntityFieldName<_Schema, _EntityType>
+	]: ResolveLiveFieldHandle<_Schema, _EntityType, _FieldName>
+} & {
+	readonly invalidate: (fieldNames: readonly EntityFieldName<_Schema, _EntityType>[]) => void
+}
+
+export type ResolveLivePublisherContext<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = {
+	readonly parentEntityId: EntityId<_Schema, _EntityType>
+	readonly queryClient: QueryClient
+	readonly signal: AbortSignal
+	readonly trigger: ResolverSubset & {
+		readonly fieldName?: EntityFieldName<_Schema, _EntityType>
+		readonly sources?: readonly string[]
+	}
+	readonly fields: ResolveLiveFields<_Schema, _EntityType>
+}
+
+type ResolveLivePublishers<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = {
+	readonly [_PublisherName in string]: {
+		readonly publishes: Partial<{
+			readonly [
+				_FieldName in EntityFieldName<_Schema, _EntityType>
+			]: true
+		}>
+		readonly start: (
+			context: ResolveLivePublisherContext<_Schema, _EntityType>,
+		) => void | (() => void) | Promise<void | (() => void)>
+	}
 }
 
 export type FieldSelector<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
+	_FieldName extends string,
 	_Snapshot,
 > = (
 	| ((
@@ -92,81 +120,90 @@ export type FieldSelector<
 		entityId: EntityId<_Schema, _EntityType>,
 		context: ResolverContext,
 	) => unknown)
-	| FieldSelectorObject<_Schema, _EntityType, _Snapshot>
+	| {
+		readonly parentSelectors?: readonly string[]
+		readonly select?: (
+			snapshot: _Snapshot,
+			entityId: EntityId<_Schema, _EntityType>,
+			context: ResolverContext,
+		) => unknown
+		readonly resolveCount?: (
+			snapshot: _Snapshot,
+			entityId: EntityId<_Schema, _EntityType>,
+			context: ResolverContext,
+		) => number
+		readonly resolveLive?: {
+			readonly start: (
+				context: ResolveLivePublisherContext<_Schema, _EntityType> & {
+					readonly field: _FieldName extends EntityFieldName<_Schema, _EntityType> ?
+						ResolveLiveFieldHandle<_Schema, _EntityType, _FieldName>
+					:
+						never
+				},
+			) => void | (() => void) | Promise<void | (() => void)>
+		}
+		readonly partial?: boolean
+	}
 )
 
-export type ResolverDefinition<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_Snapshot,
-> = {
-	entityType: _EntityType
-	resolve: Partial<Record<EntityIdProjectionName, (
-		entityId: EntityId<_Schema, _EntityType>,
-		context: ResolverContext,
-	) => Promise<_Snapshot>>>
-	fields: Partial<Record<EntityFieldName<_Schema, _EntityType>, FieldSelector<_Schema, _EntityType, _Snapshot>>>
-	resolveLive?: {
-		fields: readonly EntityFieldName<_Schema, _EntityType>[]
-		run: (
-			context: ResolveLiveContext<_Schema, _EntityType>,
-		) => void | (() => void) | Promise<void | (() => void)>
-	}
-}
-
-type SourceResolverFunction<_Context> = {
-	resolve(
-		entityId: any,
-		context: _Context,
-	): Promise<any>
-}['resolve']
 
 export type SourceResolverDefinition = {
-	definitionIndex: number
-	entityType: EntityType<typeof schema>
-	resolve: Partial<Record<EntityIdProjectionName, SourceResolverFunction<ResolverContext>>>
-	fields: Partial<Record<string, any>>
-	resolveLive?: {
-		fields: readonly EntityFieldName<typeof schema, EntityType<typeof schema>>[]
-		run: (
-			context: ResolveLiveContext<typeof schema, EntityType<typeof schema>>,
-		) => void | (() => void) | Promise<void | (() => void)>
-	}
-	source: Source
+	readonly definitionIndex: number
+	readonly source: Source
+	readonly entityType: EntityType<typeof schema>
+	readonly resolve: Partial<Record<string, any>>
+	readonly fields: Partial<Record<string, any>>
+	readonly resolveLive?: ResolveLivePublishers<typeof schema, EntityType<typeof schema>>
 }
 
 export type ResolverPart = {
-	resolver: SourceResolverDefinition
-	partIndex: number
-	source: Source
-	entityType: EntityType<typeof schema>
-	fieldName: EntityFieldName<typeof schema, EntityType<typeof schema>>
-	parentSelectors?: readonly EntityIdProjectionName[]
-	select?: FieldSelectorObject<typeof schema, EntityType<typeof schema>, any>['select']
-	resolveCount?: FieldSelectorObject<typeof schema, EntityType<typeof schema>, any>['resolveCount']
-	resolveLive?: FieldSelectorObject<typeof schema, EntityType<typeof schema>, any>['resolveLive']
+	readonly resolver: SourceResolverDefinition
+	readonly partIndex: number
+	readonly source: Source
+	readonly entityType: EntityType<typeof schema>
+	readonly fieldName: string
+	readonly parentSelectors?: readonly string[]
+	readonly select?: (
+		snapshot: unknown,
+		entityId: EntityId<Schema, EntityType<Schema>>,
+		context: ResolverContext,
+	) => unknown
+	readonly resolveCount?: (
+		snapshot: unknown,
+		entityId: EntityId<Schema, EntityType<Schema>>,
+		context: ResolverContext,
+	) => number
+	readonly resolveLive?: {
+		readonly start: (context: Record<string, unknown>) => void | (() => void) | Promise<void | (() => void)>
+	}
+	readonly partial?: boolean
 }
+
+type ResolverSnapshot<_Resolve> = any
 
 export const defineResolver = <
 	const _Source extends Source,
 	const _EntityType extends EntityType<typeof schema>,
+	const _Resolve extends Partial<{
+		readonly [_ProjectionName in EntityIdProjectionName]: (
+			entityId: EntityId<typeof schema, _EntityType>,
+			context: SourceResolverContext<_Source>,
+		) => Promise<unknown>
+	}>,
 >(
 	_source: _Source,
 	resolver: {
-		entityType: _EntityType
-		resolve: Partial<Record<EntityIdProjectionName, (
-			entityId: EntityId<typeof schema, _EntityType>,
-			context: SourceResolverContext<_Source>,
-		) => Promise<any>>>
-		fields: Partial<Record<
-			EntityFieldName<typeof schema, _EntityType>,
-			FieldSelector<typeof schema, _EntityType, any>
-		>>
-		resolveLive?: {
-			fields: readonly EntityFieldName<typeof schema, _EntityType>[]
-			run: (
-				context: ResolveLiveContext<typeof schema, _EntityType>,
-			) => void | (() => void) | Promise<void | (() => void)>
-		}
-	},
-) => resolver
+	entityType: _EntityType
+	resolve: _Resolve
+	resolveLive?: ResolveLivePublishers<typeof schema, _EntityType>
+},
+) => (facets: {
+	fields: Partial<{
+		readonly [
+			_FieldName in EntityFieldName<typeof schema, _EntityType>
+		]: FieldSelector<typeof schema, _EntityType, _FieldName, ResolverSnapshot<_Resolve>>
+	}>
+}) => ({
+	...resolver,
+	...facets,
+})

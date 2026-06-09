@@ -5,9 +5,9 @@ import {
 	type EntityDefinition,
 	type EntityFieldDefinition,
 	type EntityIdentityValueNormalizer,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const lowercaseIdentityValue: EntityIdentityValueNormalizer = (value) => (
 	String(value).toLowerCase()

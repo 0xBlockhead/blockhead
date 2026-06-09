@@ -1,7 +1,7 @@
 // Types
 
 import { CoinId } from '$/constants/Coin.ts'
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 
 /**
  * Blockscout REST API v2 base path.

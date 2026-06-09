@@ -1,13 +1,13 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { MarketTimeInterval } from '$/constants/Market.ts'
 	import { marketOhlcCandleSources } from '$/constants/Market.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -38,28 +38,26 @@
 	} from '$/lib/marketOhlcCandles.ts'
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const market = useEntity(
+	const market = useEntity(entityCollectionsContext,
 		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
+		entityFieldReference.entityId,({ sources: [
 				Source.Constants_Internal,
 				...marketOhlcCandleSources,
-			],
-			[entityFieldReference.fieldName]: {
-				$: [...marketOhlcCandleSources],
-				$limit: limit,
+			], fields: { [entityFieldReference.fieldName]: {
+				sources: [...marketOhlcCandleSources],
+				limit: limit,
 			},
-		},
+		} }),
 	)
 
 	const marketTimeIntervalTimestamps = derive(
 		market,
 		(market) => {
-			const marketTimeIntervalTimestamps: Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
-				market[entityFieldReference.fieldName] ?? []
+			const marketTimeIntervalTimestamps: readonly Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
+				market.fields[entityFieldReference.fieldName]?.values ?? []
 			)
 			return (
 				dedupeCandleEntitiesById(marketTimeIntervalTimestamps)

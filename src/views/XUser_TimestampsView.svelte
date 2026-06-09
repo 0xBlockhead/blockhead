@@ -1,16 +1,17 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -59,22 +60,19 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: xUserTimestampSources,
-			[entityFieldReference.fieldName]: {
-				$: xUserTimestampSources,
-				$limit: 64,
+		entityFieldReference.entityId,({ sources: xUserTimestampSources, fields: { [entityFieldReference.fieldName]: {
+				sources: xUserTimestampSources,
+				limit: 64,
 			},
-		},
+		} }),
 	)}
 			{@const xUserTimestamps = derive(
 		parent,
 		(parent) => {
-			const xUserTimestamps: Entity<typeof schema, EntityType.XUser_Timestamp>[] = (
-				parent[entityFieldReference.fieldName] ?? []
+			const xUserTimestamps: readonly Entity<typeof schema, EntityType.XUser_Timestamp>[] = (
+				parent.fields[entityFieldReference.fieldName]?.values ?? []
 			)
 			return xUserTimestamps.map((value) => ({
 				value,

@@ -2,9 +2,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { Entity, EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { Source } from '$/sources/$Source.ts'
+	import type { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
@@ -13,6 +13,11 @@
 		transportType: string
 		providerName?: string
 	}
+
+	type NetworkTransportEndpointFieldName =
+		| 'restEndpoints'
+		| 'rpcEndpoints'
+		| 'storageEndpoints'
 
 	type NetworkTransportEndpointEntityType =
 		| EntityType.CosmosNetwork
@@ -27,7 +32,8 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		parentEntityType,
@@ -45,7 +51,7 @@
 		{
 			parentEntityType: NetworkTransportEndpointEntityType
 			parentEntityId: EntityId<typeof schema, NetworkTransportEndpointEntityType>
-			endpointFieldNames: readonly (keyof Entity<typeof schema, NetworkTransportEndpointEntityType> & string)[]
+			endpointFieldNames: readonly NetworkTransportEndpointFieldName[]
 			fieldSources: readonly Source[]
 			listEntityType: EntityType
 			emptyText?: string
@@ -81,15 +87,15 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				parentEntityType,
 				parentEntityId,
 				{
-					$: [...fieldSources],
-					...Object.fromEntries(
+					sources: [...fieldSources],
+					fields: Object.fromEntries(
 						endpointFieldNames.map((fieldName) => [
 							fieldName,
-							{},
+							true as const,
 						]),
 					),
 				},
@@ -98,9 +104,9 @@
 				parent,
 				(parent): NetworkTransportEndpoint[] => (
 					endpointFieldNames.flatMap((fieldName) => {
-						const tses = parent[fieldName]
+						const tses = parent.fields[fieldName]
 						return (
-							tses as NetworkTransportEndpoint[] | undefined
+							tses?.values as NetworkTransportEndpoint[] | undefined
 						) ?? []
 					})
 				),

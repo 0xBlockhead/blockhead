@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,21 +27,9 @@
 		>
 	> = $props()
 
-	const account = useEntity(
-		EntityType.TronAccount,
+	const account = useEntity(entityCollectionsContext, EntityType.TronAccount,
 		entityId,
-		{
-			name: {},
-			balanceSun: {},
-			totalTransactionCount: {},
-			isContract: {},
-			...open && {
-				createdTimestampMs: {},
-				latestOperationTimestampMs: {},
-				bandwidthRemaining: {},
-				energyRemaining: {},
-			},
-		},
+		({ fields: { name: true, balanceSun: true, totalTransactionCount: true, isContract: true, ...(open && ({ createdTimestampMs: true, latestOperationTimestampMs: true, bandwidthRemaining: true, energyRemaining: true })) } }),
 	)
 
 
@@ -75,45 +64,45 @@
 		>
 			{#snippet children(account)}
 				<dl data-column-item="center">
-					{#if account.name != null}
+					{#if account.fields.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{account.name}</dd>
+							<dd>{account.fields.name}</dd>
 						</div>
 					{/if}
 
-					{#if account.balanceSun != null}
+					{#if account.fields.balanceSun != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={account.balanceSun} /></dd>
+							<dd><NumberValue value={account.fields.balanceSun} /></dd>
 						</div>
 					{/if}
 
-					{#if account.totalTransactionCount != null}
+					{#if account.fields.totalTransactionCount != null}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={account.totalTransactionCount} /></dd>
+							<dd><NumberValue value={account.fields.totalTransactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if account.isContract != null}
+					{#if account.fields.isContract != null}
 						<div>
 							<dt>Contract</dt>
-							<dd>{account.isContract ? 'Yes' : 'No'}</dd>
+							<dd>{account.fields.isContract ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if open && account.createdTimestampMs != null}
+					{#if open && account.fields.createdTimestampMs != null}
 						<div>
 							<dt>Created</dt>
-							<dd><Timestamp timestamp={account.createdTimestampMs} /></dd>
+							<dd><Timestamp timestamp={account.fields.createdTimestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && account.latestOperationTimestampMs != null}
+					{#if open && account.fields.latestOperationTimestampMs != null}
 						<div>
 							<dt>Latest operation</dt>
-							<dd><Timestamp timestamp={account.latestOperationTimestampMs} /></dd>
+							<dd><Timestamp timestamp={account.fields.latestOperationTimestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

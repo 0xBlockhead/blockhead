@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -23,14 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const storageNode = useEntity(EntityType.ZeroGStorageNode, entityId, {
-		$operator: {},
-		endpoint: {},
-		balance: {},
-		totalReward: {},
-		winCount: {},
-		miningAttempts: {},
-	})
+	const storageNode = useEntity(entityCollectionsContext, EntityType.ZeroGStorageNode, entityId, ({ fields: { $operator: true, endpoint: true, balance: true, totalReward: true, winCount: true, miningAttempts: true } }))
 
 
 	// Components
@@ -67,12 +61,12 @@
 		>
 			{#snippet children(storageNode)}
 				<dl>
-					{#if storageNode.$operator != null}
+					{#if storageNode.fields.$operator != null}
 						<div>
 							<dt>Operator</dt>
 							<dd>
 								<EvmAccountView
-									entityId={storageNode.$operator[EntityMetaKey.Id]}
+									entityId={storageNode.fields.$operator[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -80,38 +74,38 @@
 						</div>
 					{/if}
 
-					{#if storageNode.endpoint != null}
+					{#if storageNode.fields.endpoint != null}
 						<div>
 							<dt>Endpoint</dt>
-							<dd>{storageNode.endpoint}</dd>
+							<dd>{storageNode.fields.endpoint}</dd>
 						</div>
 					{/if}
 
-					{#if storageNode.balance != null}
+					{#if storageNode.fields.balance != null}
 						<div>
 							<dt>Balance</dt>
-							<dd>{storageNode.balance}</dd>
+							<dd>{storageNode.fields.balance}</dd>
 						</div>
 					{/if}
 
-					{#if storageNode.totalReward != null}
+					{#if storageNode.fields.totalReward != null}
 						<div>
 							<dt>Total reward</dt>
-							<dd>{storageNode.totalReward}</dd>
+							<dd>{storageNode.fields.totalReward}</dd>
 						</div>
 					{/if}
 
-					{#if storageNode.winCount != null}
+					{#if storageNode.fields.winCount != null}
 						<div>
 							<dt>Wins</dt>
-							<dd><NumberValue value={storageNode.winCount} /></dd>
+							<dd><NumberValue value={storageNode.fields.winCount} /></dd>
 						</div>
 					{/if}
 
-					{#if storageNode.miningAttempts != null}
+					{#if storageNode.fields.miningAttempts != null}
 						<div>
 							<dt>Mining attempts</dt>
-							<dd><NumberValue value={storageNode.miningAttempts} /></dd>
+							<dd><NumberValue value={storageNode.fields.miningAttempts} /></dd>
 						</div>
 					{/if}
 				</dl>

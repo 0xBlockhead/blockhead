@@ -10,9 +10,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const quilibriumDocumentRows = async () => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
@@ -62,15 +62,16 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			docsEndpoints: (snapshot) => snapshot.docsEndpoints,
 			nodeInterfaces: (snapshot) => snapshot.nodeInterfaces,
 			protocolFacts: (snapshot) => snapshot.protocolFacts,
 			serviceLayers: (snapshot) => snapshot.serviceLayers,
 			$protocolDocument: (snapshot) => snapshot.$protocolDocument,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.SpecificationProposal,
@@ -84,14 +85,15 @@ export default {
 				if (document == null) throw new Error(`QuilibriumDocs_Rest: document not found ${entityId.number.toString()}`)
 				return document
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
 			documentTitle: (snapshot) => snapshot.documentTitle,
 			documentStatus: (snapshot) => snapshot.documentStatus,
 			documentBody: (snapshot) => snapshot.documentBody,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.QuilibriumNetwork,
@@ -106,21 +108,23 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$protocolDocument: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[EntityIdProjection.Identity]: quilibriumDocumentRows
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.SpecificationRealm,
@@ -130,11 +134,12 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Quilibrium) throw new Error('QuilibriumDocs_Rest: $$proposals only supports Quilibrium')
 				return quilibriumDocumentRows()
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.SpecificationProposalKind,
@@ -144,10 +149,11 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Quilibrium || entityId.category !== ProposalCategory.ProtocolDocument) throw new Error('QuilibriumDocs_Rest: $$proposals only supports Quilibrium protocol documents')
 				return quilibriumDocumentRows()
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$proposals: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

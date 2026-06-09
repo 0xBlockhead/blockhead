@@ -3,14 +3,15 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,26 +36,18 @@
 		>
 	> = $props()
 
-	const currencyTimestamp = useEntity(
-		EntityType.Currency_Timestamp,
+	const currencyTimestamp = useEntity(entityCollectionsContext, EntityType.Currency_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			marketCap: {},
-		},
+			], fields: { marketCap: true } }),
 	)
 
-	const currency = useEntity(
-		EntityType.Currency,
+	const currency = useEntity(entityCollectionsContext, EntityType.Currency,
 		entityId.$currency,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-		},
+			], fields: { name: true } }),
 	)
 
 
@@ -82,10 +75,10 @@
 			placeholderText="Loading snapshot…"
 		>
 			{#snippet children(currencyTimestamp)}
-				{#if currencyTimestamp.marketCap !== undefined}
+				{#if currencyTimestamp.fields.marketCap !== undefined}
 					<CurrencyAmount
 						currency="USD"
-						value={currencyTimestamp.marketCap}
+						value={currencyTimestamp.fields.marketCap}
 					/>
 				{:else}
 					<span>
@@ -102,10 +95,10 @@
 			placeholderText="Loading snapshot…"
 		>
 			{#snippet children(currencyTimestamp)}
-				{#if currencyTimestamp.marketCap !== undefined}
+				{#if currencyTimestamp.fields.marketCap !== undefined}
 					<CurrencyAmount
 						currency="USD"
-						value={currencyTimestamp.marketCap}
+						value={currencyTimestamp.fields.marketCap}
 					/>
 				{:else}
 					<span>
@@ -129,7 +122,7 @@
 		>
 			{#snippet children(currencyTimestamp)}
 				<dl data-column-item="center">
-					{#if currencyTimestamp.marketCap !== undefined}
+					{#if currencyTimestamp.fields.marketCap !== undefined}
 						<div>
 							<dt>
 								FX turnover weight (USD)
@@ -148,7 +141,7 @@
 							<dd>
 								<CurrencyAmount
 									currency="USD"
-									value={currencyTimestamp.marketCap}
+									value={currencyTimestamp.fields.marketCap}
 								/>
 							</dd>
 						</div>
@@ -161,7 +154,7 @@
 								placeholderText="Loading currency…"
 							>
 								{#snippet children(currency)}
-									{currency.name ?? entityId.$currency.iso4217}
+									{currency.fields.name ?? entityId.$currency.iso4217}
 								{/snippet}
 							</ResourceBoundary>
 						</dd>

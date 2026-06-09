@@ -3,15 +3,16 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -43,23 +44,11 @@
 		never
 	> = $props()
 
-	const verification = useEntity(
-		EntityType.EvmContractVerification,
+	const verification = useEntity(entityCollectionsContext, EntityType.EvmContractVerification,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Sourcify_Rest,
-			],
-			...(open && {
-				match: {},
-				creationMatch: {},
-				runtimeMatch: {},
-				verifiedAtMs: {},
-				matchId: {},
-				$compilation: {},
-				$sourceBundle: {},
-			}),
-		},
+			], fields: { ...(open && ({ match: true, creationMatch: true, runtimeMatch: true, verifiedAtMs: true, matchId: true, $compilation: true, $sourceBundle: true })) } }),
 	)
 
 
@@ -97,7 +86,7 @@
 			placeholderText="Loading verification…"
 		>
 			{#snippet children(verification)}
-				{verification.match ?? 'Verified source'}
+				{verification.fields.match ?? 'Verified source'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -116,7 +105,7 @@
 	})}
 		{#if contentOpen}
 			<dl data-column-item="center">
-				{#if verificationRow?.match}
+				{#if verificationRow?.fields.match}
 					<div>
 						<dt>Match</dt>
 						<dd>
@@ -125,13 +114,13 @@
 								placeholderText="Loading verification record…"
 							>
 								{#snippet children(verification)}
-									<code>{verification.match}</code>
+									<code>{verification.fields.match}</code>
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
 					</div>
 				{/if}
-				{#if verificationRow?.creationMatch}
+				{#if verificationRow?.fields.creationMatch}
 					<div>
 						<dt>Creation match</dt>
 						<dd>
@@ -140,13 +129,13 @@
 								placeholderText="Loading verification record…"
 							>
 								{#snippet children(verification)}
-									<code>{verification.creationMatch}</code>
+									<code>{verification.fields.creationMatch}</code>
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
 					</div>
 				{/if}
-				{#if verificationRow?.runtimeMatch}
+				{#if verificationRow?.fields.runtimeMatch}
 					<div>
 						<dt>Runtime match</dt>
 						<dd>
@@ -155,13 +144,13 @@
 								placeholderText="Loading verification record…"
 							>
 								{#snippet children(verification)}
-									<code>{verification.runtimeMatch}</code>
+									<code>{verification.fields.runtimeMatch}</code>
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
 					</div>
 				{/if}
-				{#if verificationRow?.verifiedAtMs}
+				{#if verificationRow?.fields.verifiedAtMs}
 					<div>
 						<dt>Verified at</dt>
 						<dd>
@@ -170,13 +159,13 @@
 								placeholderText="Loading verification record…"
 							>
 								{#snippet children(verification)}
-									<Timestamp timestamp={verification.verifiedAtMs} />
+									<Timestamp timestamp={verification.fields.verifiedAtMs} />
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
 					</div>
 				{/if}
-				{#if verificationRow?.matchId}
+				{#if verificationRow?.fields.matchId}
 					<div>
 						<dt>Match id</dt>
 						<dd>
@@ -185,7 +174,7 @@
 								placeholderText="Loading verification record…"
 							>
 								{#snippet children(verification)}
-									{verification.matchId}
+									{verification.fields.matchId}
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -198,20 +187,20 @@
 	{#snippet Details({ open })}
 		<ResourceBoundary resource={verification}>
 			{#snippet children(verification)}
-				{#if verification.$compilation}
+				{#if verification.fields.$compilation}
 					<section id={`${verificationIdKey}:compilation`}>
 						<EvmContractCompilationView
-							entityId={verification.$compilation[EntityMetaKey.Id]}
+							entityId={verification.fields.$compilation[EntityMetaKey.Id]}
 							layout={EntityLayout.SummaryDetails}
 							open={true}
 						/>
 					</section>
 				{/if}
 
-				{#if verification.$sourceBundle}
+				{#if verification.fields.$sourceBundle}
 					<section id={`${verificationIdKey}:source-bundle`}>
 						<EvmContractSourceBundleView
-							entityId={verification.$sourceBundle[EntityMetaKey.Id]}
+							entityId={verification.fields.$sourceBundle[EntityMetaKey.Id]}
 							layout={EntityLayout.SummaryDetails}
 							open={true}
 						/>

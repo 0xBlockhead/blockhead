@@ -8,7 +8,7 @@ import { keccak256String, toHex } from '@tevm/voltaire/Hash'
 import { fromBytes, toBytes } from '@tevm/voltaire/Hex'
 
 import type { DecodedCalldata, DecodedParam } from '$/typescript/DecodedCalldata.ts'
-import type { EvmAbiEntry } from '$/schema/$EvmAbi.ts'
+import type { EvmAbiEntry } from '$/schema/EvmAbi.ts'
 
 /** Compute 4-byte function selector from full signature string (e.g. "transfer(address,uint256)"). */
 export const functionSelectorFromSignature = (signature: string): `0x${string}` | null => {

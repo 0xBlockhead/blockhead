@@ -2,8 +2,8 @@
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -21,7 +21,8 @@
 	} from '$/lib/calldata-decode.ts'
 
 	import { getEvmSelectorPath, normalizeEvmSelectorHex } from '$/lib/signature-paths.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	const emptySelectorHex: `0x${string}` = '0x00000000'
 
@@ -34,20 +35,16 @@
 			null,
 	)
 
-	const selector = useEntity(
-		EntityType.EvmSelector,
+	const selector = useEntity(entityCollectionsContext, EntityType.EvmSelector,
 		(
 			selectorHex != null ?
 				{ hex: selectorHex }
 			:
 					{ hex: emptySelectorHex }
 		) satisfies EntityId<typeof schema, EntityType.EvmSelector>,
-		{
-			$: [
+		({ sources: [
 				Source.Openchain_Rest,
-			],
-			signatures: {},
-		},
+			], fields: { signatures: true } }),
 	)
 
 
@@ -55,7 +52,7 @@
 		if (!open)
 			return null
 
-		const signatures = selector.current?.signatures
+		const signatures = selector.current?.fields.signatures
 		if (!signatures?.length)
 			return null
 

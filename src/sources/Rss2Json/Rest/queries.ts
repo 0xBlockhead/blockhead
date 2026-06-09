@@ -1,7 +1,7 @@
 import { normalizeRssFeedUrl } from '$/sources/Rss/Rest/constants.ts'
 import { rss2JsonGet } from '$/sources/Rss2Json/Rest/client.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const clampRss2JsonCount = (limit: number) => (
 	Math.min(50, Math.max(1, limit))

@@ -1,12 +1,12 @@
 import {
 	entityCollectionByEntityType,
 	entityFieldCollections,
-} from '$/collections/$entityCollections.ts'
+} from '$/collections/entityCollections.ts'
 import { WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import { stringify } from 'devalue'
 import { SvelteMap } from 'svelte/reactivity'
 import { createAptosAip62Adapter } from './adapters/aptosAip62.ts'

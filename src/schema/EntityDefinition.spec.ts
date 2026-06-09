@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	EntityMetaKey,
 	entityIdentityIdsFromFields,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import ActivityPubActor from '$/schema/ActivityPubActor.ts'
 import AtprotoActor from '$/schema/AtprotoActor.ts'
 import CosmosBlock from '$/schema/CosmosBlock.ts'

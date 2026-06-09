@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const nearContract = useEntity(
-		EntityType.NearContract,
+	const nearContract = useEntity(entityCollectionsContext, EntityType.NearContract,
 		entityId,
-		{
-			codeHash: {},
-			codeSizeBytes: {},
-		},
+		({ fields: { codeHash: true, codeSizeBytes: true } }),
 	)
 
 
@@ -66,21 +63,21 @@
 		>
 			{#snippet children(nearContract)}
 				<dl>
-					{#if nearContract.codeHash != null}
+					{#if nearContract.fields.codeHash != null}
 						<div>
 							<dt>Code Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={nearContract.codeHash}
+									value={nearContract.fields.codeHash}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if nearContract.codeSizeBytes != null}
+					{#if nearContract.fields.codeSizeBytes != null}
 						<div>
 							<dt>Code Size Bytes</dt>
-							<dd><NumberValue value={nearContract.codeSizeBytes} /> bytes</dd>
+							<dd><NumberValue value={nearContract.fields.codeSizeBytes} /> bytes</dd>
 						</div>
 					{/if}
 				</dl>

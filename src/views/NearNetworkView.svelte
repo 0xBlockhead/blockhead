@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -24,35 +25,18 @@
 		open?: boolean
 	} = $props()
 
-	const network = useEntity(
-		EntityType.NearNetwork,
+	const network = useEntity(entityCollectionsContext, EntityType.NearNetwork,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			slug: {},
-			name: {},
-			environment: {},
-			rpcEndpoints: {},
-			$$blocks: {
-				$limit: 1,
-			},
-			$$timestamps: {
-				$limit: 1,
-			},
-		},
+			], fields: { slug: true, name: true, environment: true, rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1 }) } }),
 	)
 
-	const baseNetwork = useEntity(
-		EntityType.Network,
+	const baseNetwork = useEntity(entityCollectionsContext, EntityType.Network,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			$$nativeAssets: {},
-		},
+			], fields: { $$nativeAssets: true } }),
 	)
 
 
@@ -95,7 +79,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.name}
+				{network.fields.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -107,7 +91,7 @@
 	{#snippet Content({ open })}
 			<ResourceBoundary resource={network}>
 				{#snippet children(network)}
-					{@const block = network.$$blocks?.at(0)}
+					{@const block = network.fields.$$blocks?.values.at(0)}
 					<dl class="network-summary-head" data-column-item="center">
 						{#if block != null}
 							<div>
@@ -123,19 +107,19 @@
 
 					<div>
 						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
+						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 					</div>
 
 					{#if open}
 						<div>
 							<dt>RPC endpoints</dt>
-							<dd>{network.rpcEndpoints.length}</dd>
+							<dd>{network.fields.rpcEndpoints?.values.length ?? 0}</dd>
 						</div>
 					{/if}
 
 						<ResourceBoundary resource={baseNetwork}>
 							{#snippet children(baseNetwork)}
-								{@const nativeAssetCount = baseNetwork.$$nativeAssets?.length ?? 0}
+								{@const nativeAssetCount = baseNetwork.fields.$$nativeAssets?.values.length ?? 0}
 								{#if nativeAssetCount > 0}
 									<div>
 										<dt>Native asset</dt>

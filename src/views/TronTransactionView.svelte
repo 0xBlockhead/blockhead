@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,23 +27,9 @@
 		>
 	> = $props()
 
-	const transaction = useEntity(
-		EntityType.TronTransaction,
+	const transaction = useEntity(entityCollectionsContext, EntityType.TronTransaction,
 		entityId,
-		{
-			blockHeight: {},
-			timestampMs: {},
-			contractType: {},
-			result: {},
-			feeSun: {},
-			amountSun: {},
-			assetName: {},
-			...open && {
-				expirationTimestampMs: {},
-				rawDataHex: {},
-				signatures: {},
-			},
-		},
+		({ fields: { blockHeight: true, timestampMs: true, contractType: true, result: true, feeSun: true, amountSun: true, assetName: true, ...(open && ({ expirationTimestampMs: true, rawDataHex: true, signatures: true })) } }),
 	)
 
 
@@ -77,54 +64,54 @@
 		>
 			{#snippet children(transaction)}
 				<dl data-column-item="center">
-					{#if transaction.result != null}
+					{#if transaction.fields.result != null}
 						<div>
 							<dt>Result</dt>
-							<dd>{transaction.result}</dd>
+							<dd>{transaction.fields.result}</dd>
 						</div>
 					{/if}
 
-					{#if transaction.contractType != null}
+					{#if transaction.fields.contractType != null}
 						<div>
 							<dt>Contract type</dt>
-							<dd>{transaction.contractType}</dd>
+							<dd>{transaction.fields.contractType}</dd>
 						</div>
 					{/if}
 
-					{#if transaction.blockHeight != null}
+					{#if transaction.fields.blockHeight != null}
 						<div>
 							<dt>Block</dt>
-							<dd>{transaction.blockHeight.toString()}</dd>
+							<dd>{transaction.fields.blockHeight.toString()}</dd>
 						</div>
 					{/if}
 
-					{#if transaction.amountSun != null}
+					{#if transaction.fields.amountSun != null}
 						<div>
 							<dt>Amount</dt>
-							<dd><NumberValue value={transaction.amountSun} /></dd>
+							<dd><NumberValue value={transaction.fields.amountSun} /></dd>
 						</div>
 					{/if}
 
-					{#if transaction.feeSun != null}
+					{#if transaction.fields.feeSun != null}
 						<div>
 							<dt>Fee</dt>
-							<dd><NumberValue value={transaction.feeSun} /></dd>
+							<dd><NumberValue value={transaction.fields.feeSun} /></dd>
 						</div>
 					{/if}
 
-					{#if transaction.timestampMs != null}
+					{#if transaction.fields.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={transaction.timestampMs} /></dd>
+							<dd><Timestamp timestamp={transaction.fields.timestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && transaction.rawDataHex != null}
+					{#if open && transaction.fields.rawDataHex != null}
 						<div>
 							<dt>Raw data</dt>
 							<dd>
 								<TruncatedValue
-									value={transaction.rawDataHex}
+									value={transaction.fields.rawDataHex}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

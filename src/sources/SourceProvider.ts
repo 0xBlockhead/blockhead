@@ -1,6 +1,7 @@
 import type { Type } from 'arktype'
 
-import type { SourceDefinition, SourcePublicEnv } from '$/sources/$Source.ts'
+import type { Source } from '$/sources/Source.ts'
+import type { SourceDefinition, SourcePublicEnv } from '$/sources/$sources.ts'
 
 export type SourceOrigin = {
 	origin: string
@@ -13,7 +14,7 @@ export type SourceProviderDefinition = {
 	label: string
 	env?: Type<SourcePublicEnv>
 	origins?: readonly SourceOrigin[]
-	sources: readonly SourceDefinition[]
+	sources: readonly SourceDefinition<SourceProvider, Source>[]
 }
 
 export enum SourceProvider {

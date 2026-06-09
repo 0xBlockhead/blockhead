@@ -5,11 +5,11 @@ import {
 	MarketTimeIntervalUnit,
 	type MarketTimeInterval,
 } from '$/constants/Market.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 
 export type OhlcCandle = readonly [
@@ -93,7 +93,7 @@ export const candlesFromOhlc = (
 
 
 export const dedupeCandleEntitiesById = (
-	rows: (
+	rows: readonly (
 		Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>
 		& { [EntityMetaKey.IdKey]?: string }
 	)[],

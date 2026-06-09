@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const hyperliquidBlock = useEntity(
-		EntityType.HyperliquidBlock,
+	const hyperliquidBlock = useEntity(entityCollectionsContext, EntityType.HyperliquidBlock,
 		entityId,
-		{
-			hash: {},
-			timestampMs: {},
-		},
+		({ fields: { hash: true, timestampMs: true } }),
 	)
 
 
@@ -75,21 +72,21 @@
 		>
 			{#snippet children(hyperliquidBlock)}
 				<dl>
-					{#if hyperliquidBlock.hash != null}
+					{#if hyperliquidBlock.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={hyperliquidBlock.hash}
+									value={hyperliquidBlock.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidBlock.timestampMs != null}
+					{#if hyperliquidBlock.fields.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={hyperliquidBlock.timestampMs} /></dd>
+							<dd><Timestamp timestamp={hyperliquidBlock.fields.timestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

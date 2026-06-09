@@ -9,9 +9,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.Superchain_Github,
@@ -80,16 +80,17 @@ export default {
 					})(),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (snapshot) => snapshot.name,
 			namespace: (snapshot) => snapshot.namespace,
 			environment: (snapshot) => snapshot.environment,
 			$parent: (snapshot) => snapshot.$parent,
 			layerNumber: (snapshot) => snapshot.layerNumber,
 			$mainnet: (snapshot) => snapshot.$mainnet,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Superchain_Github, {
 			entityType: EntityType.EvmNetwork,
@@ -127,11 +128,12 @@ export default {
 						}]
 				))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$childLayers: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 			defineResolver(Source.Superchain_Github, {
 				entityType: EntityType.EvmNetwork,
@@ -157,10 +159,11 @@ export default {
 							}]
 					))
 				}
-				},
-			fields: {
+				}
+		})({
+				fields: {
 				$$testnets: (snapshot) => snapshot,
-			}
-		}),
+			},
+			}),
 	],
 }

@@ -3,15 +3,16 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -37,29 +38,15 @@
 		>
 	> = $props()
 
-	const subreddit = useEntity(
-		EntityType.RedditSubreddit,
+	const subreddit = useEntity(entityCollectionsContext, EntityType.RedditSubreddit,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Reddit_Rest,
 				Source.Reddit_PublicJson,
-			],
-			title: {},
-			publicDescription: {},
-			subscriberCount: {},
-			activeUserCount: {},
-			$$timestamps: {
-				$: [
+			], fields: { title: true, publicDescription: true, subscriberCount: true, activeUserCount: true, $$timestamps: ({ sources: [
 					Source.Reddit_Rest,
 					Source.Reddit_PublicJson,
-				],
-				$limit: 1,
-			},
-			createdAt: {},
-			over18: {},
-			$icon: {},
-		},
+				], limit: 1 }), createdAt: true, over18: true, $icon: true } }),
 	)
 
 	const idKey = stringify(entityId)
@@ -93,11 +80,11 @@
 			placeholderText="Loading subreddit…"
 		>
 			{#snippet children(subreddit)}
-				{#if subreddit.$icon !== undefined}
+				{#if subreddit.fields.$icon !== undefined}
 					<IconComponent
-						alt={subreddit.title ?? entityId.name}
+						alt={subreddit.fields.title ?? entityId.name}
 						shape={IconShape.Circle}
-						src={subreddit.$icon[EntityMetaKey.Id].url}
+						src={subreddit.fields.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
 			{/snippet}
@@ -116,7 +103,7 @@
 			placeholderText="Loading subreddit…"
 		>
 			{#snippet children(subreddit)}
-				{subreddit.title ?? `r/${entityId.name}`}
+				{subreddit.fields.title ?? `r/${entityId.name}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -136,10 +123,10 @@
 			placeholderText="Loading subreddit…"
 		>
 			{#snippet children(subreddit)}
-				{#if subreddit.publicDescription}
+				{#if subreddit.fields.publicDescription}
 					<p>
 						<TruncatedValue
-							value={subreddit.publicDescription}
+							value={subreddit.fields.publicDescription}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -150,30 +137,30 @@
 						metrics={[
 							{
 								label: 'Subscribers',
-								value: subreddit.$$timestamps[0]?.subscriberCount ?? subreddit.subscriberCount,
+								value: subreddit.fields.$$timestamps[0]?.subscriberCount ?? subreddit.fields.subscriberCount,
 							},
 							{
 								label: 'Active users',
-								value: subreddit.$$timestamps[0]?.activeUserCount ?? subreddit.activeUserCount,
+								value: subreddit.fields.$$timestamps[0]?.activeUserCount ?? subreddit.fields.activeUserCount,
 							},
 						]}
 					/>
 
-					{#if subreddit.createdAt != null}
+					{#if subreddit.fields.createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
 								<Timestamp
-									timestamp={subreddit.createdAt}
+									timestamp={subreddit.fields.createdAt}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if subreddit.over18 != null}
+					{#if subreddit.fields.over18 != null}
 						<div>
 							<dt>NSFW</dt>
-							<dd>{subreddit.over18 ? 'Yes' : 'No'}</dd>
+							<dd>{subreddit.fields.over18 ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

@@ -15,7 +15,7 @@ import type {
 	PipedStream,
 } from '$/sources/Piped/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 const clampPipedLimit = (limit: number) => (
 	Math.min(100, Math.max(1, limit))

@@ -12,7 +12,7 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 </script>
 
 

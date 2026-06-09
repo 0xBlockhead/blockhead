@@ -3,12 +3,14 @@ import { type } from 'arktype'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
-	conditionalFieldGroup,
 	type EntityDefinition,
 	type EntityFieldEntry,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import {
+	conditionalFieldGroup,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import Transaction from '$/schema/UtxoTransaction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 

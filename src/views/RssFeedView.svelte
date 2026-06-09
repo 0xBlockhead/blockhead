@@ -3,14 +3,15 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,33 +42,15 @@
 		>
 	> = $props()
 
-	const feed = useEntity(
-		EntityType.RssFeed,
+	const feed = useEntity(entityCollectionsContext, EntityType.RssFeed,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Rss_Rest,
 				Source.Rss2Json_Rest,
-			],
-			title: {},
-			description: {},
-			link: {},
-			siteUrl: {},
-			language: {},
-			lastBuildDate: {},
-			imageUrl: {},
-			...(open ?
-				{
-					$$items: {
-						$: [
+			], fields: { title: true, description: true, link: true, siteUrl: true, language: true, lastBuildDate: true, imageUrl: true, ...(open ? ({ $$items: ({ sources: [
 							Source.Rss_Rest,
 							Source.Rss2Json_Rest,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 	const idKey = stringify(entityId)
@@ -96,10 +79,10 @@
 	{#snippet Icon()}
 		<ResourceBoundary resource={feed}>
 			{#snippet children(feed)}
-				{#if feed.imageUrl}
+				{#if feed.fields.imageUrl}
 					<IconComponent
-						src={feed.imageUrl}
-						alt={feed.title ?? entityId.feedUrl}
+						src={feed.fields.imageUrl}
+						alt={feed.fields.title ?? entityId.feedUrl}
 					/>
 				{/if}
 			{/snippet}
@@ -119,7 +102,7 @@
 			placeholderText="Loading feed…"
 		>
 			{#snippet children(feed)}
-				{feed.title ?? entityId.feedUrl}
+				{feed.fields.title ?? entityId.feedUrl}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -129,10 +112,10 @@
 			resource={feed}
 		>
 			{#snippet children(feed)}
-				{#if feed.lastBuildDate != null}
+				{#if feed.fields.lastBuildDate != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={feed.lastBuildDate}
+							timestamp={feed.fields.lastBuildDate}
 						/>
 					</span>
 				{/if}
@@ -161,61 +144,61 @@
 				placeholderText="Loading feed…"
 			>
 				{#snippet children(feed)}
-					{#if feed.description}
+					{#if feed.fields.description}
 						<p>
 							<TruncatedValue
-								value={feed.description}
+								value={feed.fields.description}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</p>
 					{/if}
 
-					{#if feed.link}
+					{#if feed.fields.link}
 						<div>
 							<dt>Link</dt>
 							<dd>
 								<a
-									href={feed.link}
+									href={feed.fields.link}
 									rel="noreferrer"
 									target="_blank"
-								>{feed.link}</a>
+								>{feed.fields.link}</a>
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& feed.siteUrl
+						&& feed.fields.siteUrl
 					)}
 						<div>
 							<dt>Site</dt>
 							<dd>
 								<a
-									href={feed.siteUrl}
+									href={feed.fields.siteUrl}
 									rel="noreferrer"
 									target="_blank"
-								>{feed.siteUrl}</a>
+								>{feed.fields.siteUrl}</a>
 							</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& feed.language
+						&& feed.fields.language
 					)}
 						<div>
 							<dt>Language</dt>
-							<dd>{feed.language}</dd>
+							<dd>{feed.fields.language}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& feed.lastBuildDate != null
+						&& feed.fields.lastBuildDate != null
 					)}
 						<div>
 							<dt>Last build</dt>
 							<dd>
 								<Timestamp
-									timestamp={feed.lastBuildDate}
+									timestamp={feed.fields.lastBuildDate}
 								/>
 							</dd>
 						</div>

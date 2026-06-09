@@ -1,14 +1,14 @@
 import { type } from 'arktype'
 
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
-import type { EntityDefinition, EntityFieldDefinition } from '$/schema/$EntityDefinition.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import type { EntityDefinition, EntityFieldDefinition } from '$/schema/$schema.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/EvmNetwork.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	entityType: EntityType.BeaconValidator,

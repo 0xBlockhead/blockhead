@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,14 +27,9 @@
 		>
 	> = $props()
 
-	const transfer = useEntity(
-		EntityType.TronTokenTransfer,
+	const transfer = useEntity(entityCollectionsContext, EntityType.TronTokenTransfer,
 		entityId,
-		{
-			standard: {},
-			amount: {},
-			timestampMs: {},
-		},
+		({ fields: { standard: true, amount: true, timestampMs: true } }),
 	)
 
 
@@ -64,24 +60,24 @@
 		>
 			{#snippet children(transfer)}
 				<dl data-column-item="center">
-					{#if transfer.standard != null}
+					{#if transfer.fields.standard != null}
 						<div>
 							<dt>Standard</dt>
-							<dd>{transfer.standard}</dd>
+							<dd>{transfer.fields.standard}</dd>
 						</div>
 					{/if}
 
-					{#if transfer.amount != null}
+					{#if transfer.fields.amount != null}
 						<div>
 							<dt>Amount</dt>
-							<dd><NumberValue value={transfer.amount} /></dd>
+							<dd><NumberValue value={transfer.fields.amount} /></dd>
 						</div>
 					{/if}
 
-					{#if transfer.timestampMs != null}
+					{#if transfer.fields.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={transfer.timestampMs} /></dd>
+							<dd><Timestamp timestamp={transfer.fields.timestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

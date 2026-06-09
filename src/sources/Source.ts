@@ -1,13 +1,3 @@
-import type { Type } from 'arktype'
-
-import type { SourceProvider } from '$/sources/$SourceProvider.ts'
-
-/** String-keyed map of public env (matches `$env/dynamic/public` after coercing missing values to `''`). */
-export type SourcePublicEnv = {
-	readonly [key: string]: string
-	readonly [key: `PUBLIC_${string}`]: string
-}
-
 export enum Source {
 	Allium_Rest = 'Allium_Rest',
 	Amboss_Graphql = 'Amboss_Graphql',
@@ -122,9 +112,3 @@ export enum Source {
 	ZeroGStorageScan_Rest = 'ZeroGStorageScan_Rest',
 }
 
-export type SourceDefinition = {
-	provider: SourceProvider
-	source: Source
-	label: string
-	env?: Type<SourcePublicEnv>
-}

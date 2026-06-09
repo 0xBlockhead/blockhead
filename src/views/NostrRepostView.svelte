@@ -3,14 +3,15 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -40,24 +41,12 @@
 		>
 	> = $props()
 
-	const repost = useEntity(
-		EntityType.NostrRepost,
+	const repost = useEntity(entityCollectionsContext, EntityType.NostrRepost,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
-			],
-			eventId: {},
-			pubkey: {},
-			createdAt: {},
-			repostedEventId: {},
-			$author: {},
-			$repostedArticle: {},
-			$repostedNote: {
-				content: {},
-			},
-		},
+			], fields: { eventId: true, pubkey: true, createdAt: true, repostedEventId: true, $author: true, $repostedArticle: true, $repostedNote: ({ fields: { content: true } }) } }),
 	)
 
 
@@ -93,22 +82,22 @@
 			placeholderText="Loading repost…"
 		>
 			{#snippet children(repost)}
-				{#if repost.$repostedNote?.content}
+				{#if repost.fields.$repostedNote?.content}
 					<TruncatedValue
 						endLength={16}
 						format={TruncatedValueFormat.Visual}
 						startLength={64}
-						value={repost.$repostedNote.content}
+						value={repost.fields.$repostedNote.content}
 					/>
-				{:else if repost.$repostedArticle}
+				{:else if repost.fields.$repostedArticle}
 					<NostrArticleView
-						entityId={repost.$repostedArticle[EntityMetaKey.Id]}
+						entityId={repost.fields.$repostedArticle[EntityMetaKey.Id]}
 						layout={EntityLayout.Title}
 						open={false}
 					/>
-				{:else if repost.repostedEventId}
+				{:else if repost.fields.repostedEventId}
 					<TruncatedValue
-						value={repost.repostedEventId}
+						value={repost.fields.repostedEventId}
 						format={TruncatedValueFormat.Visual}
 					/>
 				{:else}
@@ -140,9 +129,9 @@
 							placeholderText="Loading repost…"
 						>
 							{#snippet children(repost)}
-								{#if repost.eventId}
+								{#if repost.fields.eventId}
 									<TruncatedValue
-										value={repost.eventId}
+										value={repost.fields.eventId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -160,9 +149,9 @@
 						placeholderText="Loading repost…"
 					>
 						{#snippet children(repost)}
-							{#if repost.createdAt != null}
+							{#if repost.fields.createdAt != null}
 								<Timestamp
-									timestamp={repost.createdAt}
+									timestamp={repost.fields.createdAt}
 								/>
 							{/if}
 						{/snippet}
@@ -179,9 +168,9 @@
 							placeholderText="Loading repost…"
 						>
 							{#snippet children(repost)}
-								{#if repost.$author}
+								{#if repost.fields.$author}
 									<NostrProfileView
-										entityId={repost.$author[EntityMetaKey.Id]}
+										entityId={repost.fields.$author[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -199,9 +188,9 @@
 							placeholderText="Loading repost…"
 						>
 							{#snippet children(repost)}
-								{#if repost.$repostedNote}
+								{#if repost.fields.$repostedNote}
 									<NostrNoteView
-										entityId={repost.$repostedNote[EntityMetaKey.Id]}
+										entityId={repost.fields.$repostedNote[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -219,9 +208,9 @@
 							placeholderText="Loading repost…"
 						>
 							{#snippet children(repost)}
-								{#if repost.$repostedArticle}
+								{#if repost.fields.$repostedArticle}
 									<NostrArticleView
-										entityId={repost.$repostedArticle[EntityMetaKey.Id]}
+										entityId={repost.fields.$repostedArticle[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>

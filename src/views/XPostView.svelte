@@ -3,15 +3,16 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -36,42 +37,15 @@
 		>
 	> = $props()
 
-	const post = useEntity(
-		EntityType.XPost,
+	const post = useEntity(entityCollectionsContext, EntityType.XPost,
 		entityId,
-		{
-			$: (
+		({ sources: (
 				resolverDefinitionsByEntityType[EntityType.XPost]?.map((r) => r.source)
 				?? [Source.Local_Internal]
-			),
-			text: {},
-			createdAt: {},
-			$author: {
-				username: {},
-				name: {},
-			},
-			...(open ?
-				{
-					likeCount: {},
-					retweetCount: {},
-					replyCount: {},
-					quoteCount: {},
-					$$timestamps: {
-						$: (
+			), fields: { text: true, createdAt: true, $author: ({ fields: { username: true, name: true } }), ...(open ? ({ likeCount: true, retweetCount: true, replyCount: true, quoteCount: true, $$timestamps: ({ sources: (
 							resolverDefinitionsByEntityType[EntityType.XPost_Timestamp]?.map((r) => r.source)
 							?? [Source.Local_Internal]
-						),
-						$limit: 1,
-					},
-					conversationId: {},
-					$replyToPost: {},
-					$quotedPost: {},
-					postUrl: {},
-					$$media: {},
-				}
-			:
-				{}),
-		},
+						), limit: 1 }), conversationId: true, $replyToPost: true, $quotedPost: true, postUrl: true, $$media: true }) : ({  })) } }),
 	)
 
 
@@ -109,12 +83,12 @@
 			placeholderText="Loading X post…"
 		>
 			{#snippet children(post)}
-				{#if post.text}
+				{#if post.fields.text}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={post.text}
+						value={post.fields.text}
 					/>
 					{:else}
 						<TruncatedValue
@@ -131,10 +105,10 @@
 			resource={post}
 		>
 			{#snippet children(post)}
-				{#if post.createdAt != null}
+				{#if post.fields.createdAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={post.createdAt}
+							timestamp={post.fields.createdAt}
 						/>
 					</span>
 				{/if}
@@ -158,10 +132,10 @@
 				placeholderText="Loading X post…"
 			>
 				{#snippet children(post)}
-					{#if post.text}
+					{#if post.fields.text}
 						<p>
 							<TruncatedValue
-								value={post.text}
+								value={post.fields.text}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</p>
@@ -176,12 +150,12 @@
 				placeholderText="Loading X post…"
 			>
 				{#snippet children(post)}
-					{#if post.$author}
+					{#if post.fields.$author}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<XUserView
-									entityId={post.$author[EntityMetaKey.Id]}
+									entityId={post.fields.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -201,19 +175,19 @@
 							metrics={[
 								{
 									label: 'Likes',
-									value: post.$$timestamps[0]?.likeCount ?? post.likeCount,
+									value: post.fields.$$timestamps[0]?.likeCount ?? post.fields.likeCount,
 								},
 								{
 									label: 'Reposts',
-									value: post.$$timestamps[0]?.retweetCount ?? post.retweetCount,
+									value: post.fields.$$timestamps[0]?.retweetCount ?? post.fields.retweetCount,
 								},
 								{
 									label: 'Replies',
-									value: post.$$timestamps[0]?.replyCount ?? post.replyCount,
+									value: post.fields.$$timestamps[0]?.replyCount ?? post.fields.replyCount,
 								},
 								{
 									label: 'Quotes',
-									value: post.$$timestamps[0]?.quoteCount ?? post.quoteCount,
+									value: post.fields.$$timestamps[0]?.quoteCount ?? post.fields.quoteCount,
 								},
 							]}
 						/>
@@ -225,12 +199,12 @@
 					placeholderText="Loading X post…"
 				>
 					{#snippet children(post)}
-						{#if post.$replyToPost}
+						{#if post.fields.$replyToPost}
 							<div>
 								<dt>Reply to</dt>
 								<dd>
 									<svelte:self
-										entityId={post.$replyToPost[EntityMetaKey.Id]}
+										entityId={post.fields.$replyToPost[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -245,12 +219,12 @@
 					placeholderText="Loading X post…"
 				>
 					{#snippet children(post)}
-						{#if post.$quotedPost}
+						{#if post.fields.$quotedPost}
 							<div>
 								<dt>Quoted post</dt>
 								<dd>
 									<svelte:self
-										entityId={post.$quotedPost[EntityMetaKey.Id]}
+										entityId={post.fields.$quotedPost[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -265,18 +239,18 @@
 					placeholderText="Loading X post…"
 				>
 					{#snippet children(post)}
-						{#if post.postUrl}
+						{#if post.fields.postUrl}
 							<div>
 								<dt>Post URL</dt>
 								<dd>
 									<a
-										href={post.postUrl}
+										href={post.fields.postUrl}
 										rel="noreferrer noopener"
 										target="_blank"
 									>
 										<TruncatedValue
 											format={TruncatedValueFormat.Visual}
-											value={post.postUrl}
+											value={post.fields.postUrl}
 										/>
 									</a>
 								</dd>
@@ -321,9 +295,9 @@
 					placeholderText="Loading X post…"
 				>
 					{#snippet children(post)}
-						{#if post.$author}
+						{#if post.fields.$author}
 							<XUserView
-								entityId={post.$author[EntityMetaKey.Id]}
+								entityId={post.fields.$author[EntityMetaKey.Id]}
 								layout={EntityLayout.Summary}
 							/>
 						{/if}
@@ -339,22 +313,22 @@
 					>
 						{#snippet children(post)}
 							<div>
-								{#if post.$replyToPost}
+								{#if post.fields.$replyToPost}
 									<div>
 										<strong>Reply to:</strong>
 										<svelte:self
-											entityId={post.$replyToPost[EntityMetaKey.Id]}
+											entityId={post.fields.$replyToPost[EntityMetaKey.Id]}
 											layout={EntityLayout.Value}
 											open={false}
 										/>
 									</div>
 								{/if}
 
-								{#if post.$quotedPost}
+								{#if post.fields.$quotedPost}
 									<div>
 										<strong>Quoted post:</strong>
 										<svelte:self
-											entityId={post.$quotedPost[EntityMetaKey.Id]}
+											entityId={post.fields.$quotedPost[EntityMetaKey.Id]}
 											layout={EntityLayout.Value}
 											open={false}
 										/>
@@ -362,11 +336,11 @@
 								{/if}
 
 								{#if (
-									post.$replyToPost == null
-									&& post.$quotedPost == null
+									post.fields.$replyToPost == null
+									&& post.fields.$quotedPost == null
 								)}
 									<p data-text="muted">
-										No reply or quote references on this post.
+										No reply or quote references on this post.fields.
 									</p>
 								{/if}
 							</div>
@@ -382,9 +356,9 @@
 					placeholderText="Loading X post…"
 				>
 					{#snippet children(post)}
-						{#if (post.$$media?.length ?? 0) > 0}
+						{#if (post.fields.$$media?.values.length ?? 0) > 0}
 							<div data-column="gap-3">
-								{#each post.$$media ?? [] as media (media[EntityMetaKey.Id].url)}
+								{#each post.fields.$$media.values as media (media[EntityMetaKey.Id].url)}
 									<Media
 										alt=""
 										media={{ url: media[EntityMetaKey.Id].url }}
@@ -393,7 +367,7 @@
 							</div>
 						{:else}
 							<p data-text="muted">
-								No media attachments on this post.
+								No media attachments on this post.fields.
 							</p>
 						{/if}
 					{/snippet}

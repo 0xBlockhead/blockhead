@@ -1,15 +1,16 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -33,13 +34,13 @@
 		never
 	> = $props()
 
-	const calldata = useEntity(
-		EntityType.EvmCalldata,
+	const calldata = useEntity(entityCollectionsContext, EntityType.EvmCalldata,
 		entityId,
 		{
-			$: [
+			sources: [
 				Source.Local_Internal,
 			],
+			fields: {},
 		},
 	)
 

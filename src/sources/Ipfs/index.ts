@@ -2,7 +2,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { gatewayUrls } from '$/sources/Ipfs/Rest/constants.ts'
 import IpfsRestSource from '$/sources/Ipfs/Rest/index.ts'
 

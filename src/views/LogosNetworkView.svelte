@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -23,18 +24,11 @@
 		open?: boolean
 	} = $props()
 
-	const network = useEntity(
-		EntityType.Network,
+	const network = useEntity(entityCollectionsContext, EntityType.Network,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-			environment: {},
-			$$executionEnvironments: {},
-			$$consensusMechanisms: {},
-		},
+			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true } }),
 	)
 
 
@@ -68,7 +62,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				<span>{network.name}</span>
+				<span>{network.fields.name}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -80,7 +74,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.name}
+				{network.fields.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -132,11 +126,11 @@
 			{#snippet SectionLogosExecution()}
 					<ResourceBoundary resource={network}>
 						{#snippet children(network)}
-							{#if (network.$$executionEnvironments?.length ?? 0) > 0}
-								<p><strong>Execution environments:</strong> {network.$$executionEnvironments?.length ?? 0}</p>
+							{#if (network.fields.$$executionEnvironments?.values.length ?? 0) > 0}
+								<p><strong>Execution environments:</strong> {network.fields.$$executionEnvironments?.values.length ?? 0}</p>
 							{/if}
 
-							<p><strong>Environment:</strong> {networkEnvironmentByEnvironment[network.environment].label}</p>
+							<p><strong>Environment:</strong> {networkEnvironmentByEnvironment[network.fields.environment].label}</p>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
@@ -144,8 +138,8 @@
 			{#snippet SectionLogosConsensus()}
 					<ResourceBoundary resource={network}>
 						{#snippet children(network)}
-							{#if (network.$$consensusMechanisms?.length ?? 0) > 0}
-								<p><strong>Consensus mechanisms:</strong> {network.$$consensusMechanisms?.length ?? 0}</p>
+							{#if (network.fields.$$consensusMechanisms?.values.length ?? 0) > 0}
+								<p><strong>Consensus mechanisms:</strong> {network.fields.$$consensusMechanisms?.values.length ?? 0}</p>
 							{:else}
 								<p data-text="muted">No consensus mechanisms mapped for this network yet.</p>
 							{/if}

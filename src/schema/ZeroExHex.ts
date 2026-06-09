@@ -1,5 +1,5 @@
 import { type } from 'arktype'
-import type { EntityIdentityValueNormalizer } from '$/schema/$EntityDefinition.ts'
+import type { EntityIdentityValueNormalizer } from '$/schema/$schema.ts'
 
 
 /** JSON-RPC / EVM hex with `0x` prefix (any length). Prefer literals or Tevm `Hex.*` — see `$/lib/hexLowerOfByteSize.ts`. */

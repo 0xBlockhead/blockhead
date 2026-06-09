@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import ThreeXplRestSource from '$/sources/ThreeXpl/Rest/index.ts'
 import { threeXplOrigins } from '$/sources/ThreeXpl/Rest/constants.ts'
 

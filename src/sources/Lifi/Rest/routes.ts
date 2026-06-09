@@ -4,10 +4,10 @@
  */
 
 import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { throwIfHttpNotOk } from '$/lib/http.ts'
 import { bridgeRouteStepEntityFieldsFromLifiQuoteStep } from '$/sources/Lifi/Rest/bridgeRouteSteps.ts'
 import { lifiRestFetch } from '$/sources/Lifi/Rest/client.ts'

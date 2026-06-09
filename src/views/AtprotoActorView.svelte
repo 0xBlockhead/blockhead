@@ -2,16 +2,17 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -38,37 +39,15 @@
 
 	const idKey = stringify(entityId)
 
-	const actor = useEntity(
-		EntityType.AtprotoActor,
+	const actor = useEntity(entityCollectionsContext, EntityType.AtprotoActor,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Atproto_Xrpc,
 				Source.Atproto_BskySocial_Xrpc,
-			],
-			did: {},
-			displayName: {},
-			handle: {},
-			$icon: {},
-			...(open ?
-				{
-					$banner: {},
-					description: {},
-					followersCount: {},
-					followsCount: {},
-					postsCount: {},
-					$$timestamps: {
-						$: [
+			], fields: { did: true, displayName: true, handle: true, $icon: true, ...(open ? ({ $banner: true, description: true, followersCount: true, followsCount: true, postsCount: true, $$timestamps: ({ sources: [
 							Source.Atproto_Xrpc,
 							Source.Atproto_BskySocial_Xrpc,
-						],
-						$limit: 1,
-					},
-					indexedAt: {},
-				}
-			:
-				{}),
-		},
+						], limit: 1 }), indexedAt: true }) : ({  })) } }),
 	)
 
 
@@ -99,10 +78,10 @@
 			resource={actor}
 		>
 			{#snippet children(actor)}
-				{@const atprotoBrandIconSrc = actor.$icon?.[EntityMetaKey.Id].url}
+				{@const atprotoBrandIconSrc = actor.fields.$icon?.[EntityMetaKey.Id].url}
 				{#if atprotoBrandIconSrc}
 					<IconComponent
-						alt={actor.displayName ?? actor.handle ?? ''}
+						alt={actor.fields.displayName ?? actor.fields.handle ?? ''}
 						shape={IconShape.Circle}
 						src={atprotoBrandIconSrc}
 					/>
@@ -123,8 +102,8 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(actor)}
-					{actor.displayName
-						?? actor.handle
+					{actor.fields.displayName
+						?? actor.fields.handle
 						?? ('did' in entityId ? entityId.did : entityId.handle)}
 				{/snippet}
 		</ResourceBoundary>
@@ -136,13 +115,13 @@
 		>
 			{#snippet children(actor)}
 					{@const atprotoSummaryHeadingLine = (
-						actor.displayName
-						?? actor.handle
+						actor.fields.displayName
+						?? actor.fields.handle
 						?? ('did' in entityId ? entityId.did : entityId.handle)
 					)}
-				{#if actor.handle && actor.handle !== atprotoSummaryHeadingLine}
+				{#if actor.fields.handle && actor.fields.handle !== atprotoSummaryHeadingLine}
 					<span data-text="muted">
-						@{actor.handle}
+						@{actor.fields.handle}
 					</span>
 				{/if}
 			{/snippet}
@@ -161,10 +140,10 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(actor)}
-				{#if actor.description}
+				{#if actor.fields.description}
 					<p>
 						<TruncatedValue
-							value={actor.description}
+							value={actor.fields.description}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -182,8 +161,8 @@
 							placeholderText="Loading profile…"
 						>
 							{#snippet children(actor)}
-								{#if actor.handle}
-									{actor.handle}
+								{#if actor.fields.handle}
+									{actor.fields.handle}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -201,15 +180,15 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: actor.$$timestamps[0]?.followersCount ?? actor.followersCount,
+									value: actor.fields.$$timestamps[0]?.followersCount ?? actor.fields.followersCount,
 								},
 								{
 									label: 'Following',
-									value: actor.$$timestamps[0]?.followsCount ?? actor.followsCount,
+									value: actor.fields.$$timestamps[0]?.followsCount ?? actor.fields.followsCount,
 								},
 								{
 									label: 'Posts',
-									value: actor.$$timestamps[0]?.postsCount ?? actor.postsCount,
+									value: actor.fields.$$timestamps[0]?.postsCount ?? actor.fields.postsCount,
 								},
 							]}
 						/>
@@ -223,13 +202,13 @@
 					placeholderText="Loading profile…"
 				>
 					{#snippet children(actor)}
-						{#if actor.$banner != null}
+						{#if actor.fields.$banner != null}
 							<div>
 								<dt>Banner</dt>
 								<dd>
-									<a href={actor.$banner[EntityMetaKey.Id].url}>
+									<a href={actor.fields.$banner[EntityMetaKey.Id].url}>
 										<TruncatedValue
-											value={actor.$banner[EntityMetaKey.Id].url}
+											value={actor.fields.$banner[EntityMetaKey.Id].url}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</a>
@@ -246,12 +225,12 @@
 					placeholderText="Loading profile…"
 				>
 					{#snippet children(actor)}
-						{#if actor.indexedAt != null}
+						{#if actor.fields.indexedAt != null}
 							<div>
 								<dt>Indexed</dt>
 								<dd>
 									<Timestamp
-										timestamp={actor.indexedAt}
+										timestamp={actor.fields.indexedAt}
 									/>
 								</dd>
 							</div>
@@ -293,9 +272,9 @@
 				>
 					{#snippet children(actor)}
 						{@const atprotoProfileUnset = (
-							actor.handle == null
-							&& actor.displayName == null
-							&& actor.description == null
+							actor.fields.handle == null
+							&& actor.fields.displayName == null
+							&& actor.fields.description == null
 						)}
 						{#if atprotoProfileUnset}
 							<div data-row="wrap align-center gap-2">
@@ -329,12 +308,12 @@
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve(
 								'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
-									{ did: encodeURIComponent(actor.did) },
+									{ did: encodeURIComponent(actor.fields.did) },
 							)}
 								entityFieldReference={{
 									entityType: EntityType.AtprotoActor,
 									entityId: {
-										did: actor.did,
+										did: actor.fields.did,
 									},
 									fieldName: '$$posts',
 								}}
@@ -356,12 +335,12 @@
 								entityFieldReference={{
 									entityType: EntityType.AtprotoActor,
 									entityId: {
-										did: actor.did,
+										did: actor.fields.did,
 									},
 									fieldName: '$$timestamps',
 								}}
 								href={resolve('/(social)/(atproto)/atproto/actor/[did]', {
-									did: encodeURIComponent(actor.did),
+									did: encodeURIComponent(actor.fields.did),
 								})}
 								id={`${idKey}:metric-snapshots`}
 								title="Metric snapshots"

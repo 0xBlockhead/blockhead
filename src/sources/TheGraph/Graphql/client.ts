@@ -7,7 +7,7 @@ import { getJson } from '$/lib/http.ts'
 import {
 	optionalPublicEnvString,
 } from '$/lib/sources.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import TheGraph from '$/sources/TheGraph/index.ts'
 

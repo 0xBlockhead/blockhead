@@ -12,14 +12,15 @@
 	} from '$/constants/Market.ts'
 
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -67,25 +68,16 @@
 	)
 
 
-	const market = useEntity(
-		EntityType.Market,
+	const market = useEntity(entityCollectionsContext, EntityType.Market,
 		entityId,
-		{
-			$: (
+		({ sources: (
 				entityId.marketKind === MarketKind.Spot ?
 					[]
 				:
 					[...marketDerivativeObservationSources]
-			),
-			...(open && entityId.marketKind !== MarketKind.Spot && {
-					$$derivativeTimestamps: {
-						$: [
+			), fields: { ...(open && entityId.marketKind !== MarketKind.Spot && ({ $$derivativeTimestamps: ({ sources: [
 							...marketDerivativeObservationSources,
-						],
-						$limit: 64,
-					},
-				}),
-			},
+						], limit: 64 }) })) } }),
 		)
 
 
@@ -136,7 +128,7 @@
 				{#if entityId.marketKind !== MarketKind.Spot}
 					<ResourceBoundary resource={market}>
 						{#snippet children(market)}
-							{@const derivativeTimestamp = market.$$derivativeTimestamps?.at(0)}
+							{@const derivativeTimestamp = market.fields.$$derivativeTimestamps?.values.at(0)}
 							{#if derivativeTimestamp != null}
 								<div>
 									<dt>Latest derivative observation</dt>

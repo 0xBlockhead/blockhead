@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { rssFeedOrigins } from '$/sources/Rss/Rest/constants.ts'
 import RssRestSource from '$/sources/Rss/Rest/index.ts'
 

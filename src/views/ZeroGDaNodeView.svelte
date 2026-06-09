@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -23,11 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const zeroGDaNode = useEntity(EntityType.ZeroGDaNode, entityId, {
-		$quorum: {},
-		$operator: {},
-		endpoint: {},
-	})
+	const zeroGDaNode = useEntity(entityCollectionsContext, EntityType.ZeroGDaNode, entityId, ({ fields: { $quorum: true, $operator: true, endpoint: true } }))
 
 
 	// Components
@@ -60,12 +57,12 @@
 		>
 			{#snippet children(zeroGDaNode)}
 				<dl>
-					{#if zeroGDaNode.$operator != null}
+					{#if zeroGDaNode.fields.$operator != null}
 						<div>
 							<dt>Operator</dt>
 							<dd>
 								<EvmAccountView
-									entityId={zeroGDaNode.$operator[EntityMetaKey.Id]}
+									entityId={zeroGDaNode.fields.$operator[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -73,19 +70,19 @@
 						</div>
 					{/if}
 
-					{#if zeroGDaNode.endpoint != null}
+					{#if zeroGDaNode.fields.endpoint != null}
 						<div>
 							<dt>Endpoint</dt>
-							<dd>{zeroGDaNode.endpoint}</dd>
+							<dd>{zeroGDaNode.fields.endpoint}</dd>
 						</div>
 					{/if}
 
-					{#if zeroGDaNode.$quorum != null}
+					{#if zeroGDaNode.fields.$quorum != null}
 						<div>
 							<dt>Quorum</dt>
 							<dd>
 								<ZeroGDaQuorumView
-									entityId={zeroGDaNode.$quorum[EntityMetaKey.Id]}
+									entityId={zeroGDaNode.fields.$quorum[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

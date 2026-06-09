@@ -1,15 +1,16 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -40,15 +41,11 @@
 			>
 	> = $props()
 
-	const bundler = useEntity(
-		EntityType.Erc4337Bundler,
+	const bundler = useEntity(entityCollectionsContext, EntityType.Erc4337Bundler,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Blockscout_Rest,
-			],
-			userOperationsCount: {},
-		},
+			], fields: { userOperationsCount: true } }),
 	)
 
 
@@ -101,10 +98,10 @@
 		>
 			{#snippet children(bundler)}
 				<dl data-column-item="center">
-					{#if bundler.userOperationsCount !== undefined}
+					{#if bundler.fields.userOperationsCount !== undefined}
 						<div>
 							<dt>User operations</dt>
-							<dd data-text="mono">{String(bundler.userOperationsCount)}</dd>
+							<dd data-text="mono">{String(bundler.fields.userOperationsCount)}</dd>
 						</div>
 					{/if}
 					<div>

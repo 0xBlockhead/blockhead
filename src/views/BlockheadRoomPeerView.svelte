@@ -1,16 +1,17 @@
 	<script lang="ts">
 	// Types/constants
 		import type { ComponentProps } from 'svelte'
-		import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-		import { EntityType } from '$/schema/$EntityType.ts'
+		import { EntityMetaKey } from '$/schema/$schema.ts'
+		import { EntityType } from '$/schema/EntityType.ts'
 		import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -42,27 +43,11 @@
 	> = $props()
 
 	
-	const peer = useEntity(
-		EntityType.BlockheadRoomPeer,
+	const peer = useEntity(entityCollectionsContext, EntityType.BlockheadRoomPeer,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Local_Internal,
-			],
-			displayName: {},
-			isConnected: {},
-			...(open ?
-				{
-					$room: {},
-					peerId: {},
-					joinedAt: {},
-					lastSeenAt: {},
-					connectedAt: {},
-					disconnectedAt: {},
-				}
-			:
-				{}),
-		},
+			], fields: { displayName: true, isConnected: true, ...(open ? ({ $room: true, peerId: true, joinedAt: true, lastSeenAt: true, connectedAt: true, disconnectedAt: true }) : ({  })) } }),
 	)
 
 
@@ -93,7 +78,7 @@
 			placeholderText="Loading peer…"
 		>
 			{#snippet children(peer)}
-				{titleProp ?? peer.displayName ?? peer.peerId ?? entityId.id}
+				{titleProp ?? peer.fields.displayName ?? peer.fields.peerId ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -114,7 +99,7 @@
 				<dd>
 					<ResourceBoundary resource={peer}>
 						{#snippet children(peer)}
-							{peer.isConnected ? 'Yes' : 'No'}
+							{peer.fields.isConnected ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -131,11 +116,11 @@
 
 				<ResourceBoundary resource={peer}>
 					{#snippet children(peer)}
-						{#if peer.peerId !== undefined && peer.peerId !== ''}
+						{#if peer.fields.peerId !== undefined && peer.fields.peerId !== ''}
 							<div>
 								<dt>libp2p peer ID</dt>
 								<dd>
-									{peer.peerId}
+									{peer.fields.peerId}
 								</dd>
 							</div>
 						{/if}
@@ -146,12 +131,12 @@
 			{#if open}
 				<ResourceBoundary resource={peer}>
 					{#snippet children(peer)}
-						{#if peer.$room != null}
+						{#if peer.fields.$room != null}
 							<div>
 								<dt>Room session</dt>
 								<dd>
 									<BlockheadRoomView
-										entityId={peer.$room[EntityMetaKey.Id]}
+										entityId={peer.fields.$room[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -159,38 +144,38 @@
 							</div>
 						{/if}
 
-						{#if peer.joinedAt != null}
+						{#if peer.fields.joinedAt != null}
 							<div>
 								<dt>Joined</dt>
 								<dd>
-									<Timestamp timestamp={peer.joinedAt} />
+									<Timestamp timestamp={peer.fields.joinedAt} />
 								</dd>
 							</div>
 						{/if}
 
-						{#if peer.lastSeenAt != null}
+						{#if peer.fields.lastSeenAt != null}
 							<div>
 								<dt>Last seen</dt>
 								<dd>
-									<Timestamp timestamp={peer.lastSeenAt} />
+									<Timestamp timestamp={peer.fields.lastSeenAt} />
 								</dd>
 							</div>
 						{/if}
 
-						{#if peer.connectedAt != null}
+						{#if peer.fields.connectedAt != null}
 							<div>
 								<dt>Connected</dt>
 								<dd>
-									<Timestamp timestamp={peer.connectedAt} />
+									<Timestamp timestamp={peer.fields.connectedAt} />
 								</dd>
 							</div>
 						{/if}
 
-						{#if peer.disconnectedAt != null}
+						{#if peer.fields.disconnectedAt != null}
 							<div>
 								<dt>Disconnected</dt>
 								<dd>
-									<Timestamp timestamp={peer.disconnectedAt} />
+									<Timestamp timestamp={peer.fields.disconnectedAt} />
 								</dd>
 							</div>
 						{/if}

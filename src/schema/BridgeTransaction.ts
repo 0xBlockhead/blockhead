@@ -1,7 +1,7 @@
 import { type } from 'arktype'
 import Actor from '$/schema/EvmAccount.ts'
-import type { EntityDefinition, EntityFieldDefinition } from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import type { EntityDefinition, EntityFieldDefinition } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import EvmTransaction from '$/schema/EvmTransaction.ts'
 
 export default {

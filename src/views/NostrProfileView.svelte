@@ -3,15 +3,16 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,48 +42,21 @@
 		>
 	> = $props()
 
-	const profile = useEntity(
-		EntityType.NostrProfile,
+	const profile = useEntity(entityCollectionsContext, EntityType.NostrProfile,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
-			],
-			pubkey: {},
-			displayName: {},
-			about: {},
-			nip05: {},
-			lud16: {},
-			lud06: {},
-			website: {},
-			metadataUpdatedAt: {},
-			$icon: {},
-			$banner: {},
-			...(open ?
-				{
-					$$notes: {
-						$: [
+			], fields: { pubkey: true, displayName: true, about: true, nip05: true, lud16: true, lud06: true, website: true, metadataUpdatedAt: true, $icon: true, $banner: true, ...(open ? ({ $$notes: ({ sources: [
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
-						],
-					},
-					$$articles: {
-						$: [
+						] }), $$articles: ({ sources: [
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
-						],
-					},
-					$$reposts: {
-						$: [
+						] }), $$reposts: ({ sources: [
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 
@@ -120,12 +94,12 @@
 		>
 			{#snippet children(profile)}
 				{#if (
-					profile.$icon
-					&& profile.$icon[EntityMetaKey.Id].url
+					profile.fields.$icon
+					&& profile.fields.$icon[EntityMetaKey.Id].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={profile.$icon[EntityMetaKey.Id].url}
+						src={profile.fields.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -146,8 +120,8 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(profile)}
-				{#if profile.displayName}
-					{profile.displayName}
+				{#if profile.fields.displayName}
+					{profile.fields.displayName}
 				{:else}
 					{#if Value}
 					{@render Value()}
@@ -172,10 +146,10 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(profile)}
-				{#if profile.about}
+				{#if profile.fields.about}
 					<p>
 						<TruncatedValue
-							value={profile.about}
+							value={profile.fields.about}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -193,7 +167,7 @@
 							placeholderText="Loading profile…"
 						>
 							{#snippet children(profile)}
-								{profile.nip05}
+								{profile.fields.nip05}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -213,7 +187,7 @@
 						>
 							{#snippet children(profile)}
 								<TruncatedValue
-									value={profile.pubkey}
+									value={profile.fields.pubkey}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -234,9 +208,9 @@
 							placeholderText="Loading profile…"
 							>
 								{#snippet children(profile)}
-									{#if profile.$banner !== undefined}
+									{#if profile.fields.$banner !== undefined}
 										<img
-											src={profile.$banner[EntityMetaKey.Id].url}
+											src={profile.fields.$banner[EntityMetaKey.Id].url}
 											alt=""
 										/>
 									{/if}
@@ -259,10 +233,10 @@
 						>
 							{#snippet children(profile)}
 								<a
-									href={profile.website}
+									href={profile.fields.website}
 									rel="noreferrer"
 									target="_blank"
-								>{profile.website}</a>
+								>{profile.fields.website}</a>
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -280,7 +254,7 @@
 							placeholderText="Loading profile…"
 						>
 							{#snippet children(profile)}
-								{profile.lud16}
+								{profile.fields.lud16}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -298,7 +272,7 @@
 							placeholderText="Loading profile…"
 						>
 							{#snippet children(profile)}
-								{profile.lud06}
+								{profile.fields.lud06}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -317,7 +291,7 @@
 						>
 							{#snippet children(profile)}
 								<Timestamp
-									timestamp={profile.metadataUpdatedAt}
+									timestamp={profile.fields.metadataUpdatedAt}
 								/>
 							{/snippet}
 						</ResourceBoundary>

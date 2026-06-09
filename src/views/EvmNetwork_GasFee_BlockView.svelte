@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -37,17 +38,9 @@
 		>
 	> = $props()
 
-	const networkGasFeeBlock = useEntity(
-		EntityType.EvmNetwork_GasFee_Block,
+	const networkGasFeeBlock = useEntity(entityCollectionsContext, EntityType.EvmNetwork_GasFee_Block,
 		entityId,
-		{
-			$: [Source.Voltaire_JsonRpc],
-			baseFeePerGas: {},
-			legacyGasPrice: {},
-			maxPriorityFeePerGas: {},
-			gasUsedRatio: {},
-			priorityFeeRewardAt50thPercentile: {},
-		},
+		({ sources: [Source.Voltaire_JsonRpc], fields: { baseFeePerGas: true, legacyGasPrice: true, maxPriorityFeePerGas: true, gasUsedRatio: true, priorityFeeRewardAt50thPercentile: true } }),
 	)
 
 
@@ -73,11 +66,11 @@
 			resource={networkGasFeeBlock}
 		>
 			{#snippet children(networkGasFeeBlock)}
-				{#if networkGasFeeBlock.baseFeePerGas !== undefined}
-					<NumberValue value={networkGasFeeBlock.baseFeePerGas} />
+				{#if networkGasFeeBlock.fields.baseFeePerGas !== undefined}
+					<NumberValue value={networkGasFeeBlock.fields.baseFeePerGas} />
 					wei
-				{:else if networkGasFeeBlock.legacyGasPrice !== undefined}
-					<NumberValue value={networkGasFeeBlock.legacyGasPrice} />
+				{:else if networkGasFeeBlock.fields.legacyGasPrice !== undefined}
+					<NumberValue value={networkGasFeeBlock.fields.legacyGasPrice} />
 					wei
 				{:else}
 					<span>
@@ -94,11 +87,11 @@
 			resource={networkGasFeeBlock}
 		>
 			{#snippet children(networkGasFeeBlock)}
-				{#if networkGasFeeBlock.baseFeePerGas !== undefined}
-					<NumberValue value={networkGasFeeBlock.baseFeePerGas} />
+				{#if networkGasFeeBlock.fields.baseFeePerGas !== undefined}
+					<NumberValue value={networkGasFeeBlock.fields.baseFeePerGas} />
 					wei
-				{:else if networkGasFeeBlock.legacyGasPrice !== undefined}
-					<NumberValue value={networkGasFeeBlock.legacyGasPrice} />
+				{:else if networkGasFeeBlock.fields.legacyGasPrice !== undefined}
+					<NumberValue value={networkGasFeeBlock.fields.legacyGasPrice} />
 					wei
 				{:else}
 					<span>
@@ -125,31 +118,31 @@
 		>
 			{#snippet children(networkGasFeeBlock)}
 				<dl data-column-item="center">
-					{#if networkGasFeeBlock.baseFeePerGas !== undefined}
+					{#if networkGasFeeBlock.fields.baseFeePerGas !== undefined}
 						<div>
 							<dt>Base fee</dt>
 							<dd>
-								<NumberValue value={networkGasFeeBlock.baseFeePerGas} />
+								<NumberValue value={networkGasFeeBlock.fields.baseFeePerGas} />
 								wei
 							</dd>
 						</div>
 					{/if}
 
-					{#if networkGasFeeBlock.legacyGasPrice !== undefined}
+					{#if networkGasFeeBlock.fields.legacyGasPrice !== undefined}
 						<div>
 							<dt>Suggested gas price</dt>
 							<dd>
-								<NumberValue value={networkGasFeeBlock.legacyGasPrice} />
+								<NumberValue value={networkGasFeeBlock.fields.legacyGasPrice} />
 								wei
 							</dd>
 						</div>
 					{/if}
 
-					{#if networkGasFeeBlock.maxPriorityFeePerGas !== undefined}
+					{#if networkGasFeeBlock.fields.maxPriorityFeePerGas !== undefined}
 						<div>
 							<dt>Max priority fee</dt>
 							<dd>
-								<NumberValue value={networkGasFeeBlock.maxPriorityFeePerGas} />
+								<NumberValue value={networkGasFeeBlock.fields.maxPriorityFeePerGas} />
 								wei
 							</dd>
 						</div>
@@ -157,32 +150,32 @@
 
 					{#if (
 						open
-						&& networkGasFeeBlock.gasUsedRatio !== undefined
+						&& networkGasFeeBlock.fields.gasUsedRatio !== undefined
 					)}
 						<div>
 							<dt>Gas used ratio</dt>
-							<dd>{String(networkGasFeeBlock.gasUsedRatio)}</dd>
+							<dd>{String(networkGasFeeBlock.fields.gasUsedRatio)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& networkGasFeeBlock.priorityFeeRewardAt50thPercentile !== undefined
+						&& networkGasFeeBlock.fields.priorityFeeRewardAt50thPercentile !== undefined
 					)}
 						<div>
 							<dt>Priority fee at 50th percentile</dt>
 							<dd>
-								<NumberValue value={networkGasFeeBlock.priorityFeeRewardAt50thPercentile} />
+								<NumberValue value={networkGasFeeBlock.fields.priorityFeeRewardAt50thPercentile} />
 								wei
 							</dd>
 						</div>
 					{/if}
 
-					{#if networkGasFeeBlock.baseFeePerBlobGas !== undefined}
+					{#if networkGasFeeBlock.fields.baseFeePerBlobGas !== undefined}
 						<div>
 							<dt>Blob base fee</dt>
 							<dd>
-								<NumberValue value={networkGasFeeBlock.baseFeePerBlobGas} />
+								<NumberValue value={networkGasFeeBlock.fields.baseFeePerBlobGas} />
 								wei
 							</dd>
 						</div>
@@ -190,11 +183,11 @@
 
 					{#if (
 						open
-						&& networkGasFeeBlock.blobGasUsedRatio !== undefined
+						&& networkGasFeeBlock.fields.blobGasUsedRatio !== undefined
 					)}
 						<div>
 							<dt>Blob gas used ratio</dt>
-							<dd>{String(networkGasFeeBlock.blobGasUsedRatio)}</dd>
+							<dd>{String(networkGasFeeBlock.fields.blobGasUsedRatio)}</dd>
 						</div>
 					{/if}
 

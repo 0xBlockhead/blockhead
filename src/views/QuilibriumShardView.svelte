@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,9 @@
 		>
 	> = $props()
 
-	const quilibriumShard = useEntity(
-		EntityType.QuilibriumShard,
+	const quilibriumShard = useEntity(entityCollectionsContext, EntityType.QuilibriumShard,
 		entityId,
-		{
-			shardKind: {},
-		},
+		({ fields: { shardKind: true } }),
 	)
 
 
@@ -74,10 +72,10 @@
 		>
 			{#snippet children(quilibriumShard)}
 				<dl>
-					{#if quilibriumShard.shardKind != null}
+					{#if quilibriumShard.fields.shardKind != null}
 						<div>
 							<dt>Shard Kind</dt>
-							<dd>{quilibriumShard.shardKind}</dd>
+							<dd>{quilibriumShard.fields.shardKind}</dd>
 						</div>
 					{/if}
 				</dl>

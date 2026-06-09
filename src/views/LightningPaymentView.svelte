@@ -4,13 +4,14 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { LightningPaymentStatus } from '$/schema/LightningPayment.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -28,19 +29,11 @@
 		>
 	> = $props()
 
-	const payment = useEntity(
-		EntityType.LightningPayment,
+	const payment = useEntity(entityCollectionsContext, EntityType.LightningPayment,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.LightningLnd_Rest,
-			],
-			valueMsat: {},
-			feeMsat: {},
-			status: {},
-			failureReason: {},
-			paymentRequest: {},
-		},
+			], fields: { valueMsat: true, feeMsat: true, status: true, failureReason: true, paymentRequest: true } }),
 	)
 
 
@@ -78,40 +71,40 @@
 		>
 			{#snippet children(lightningPayment)}
 				<dl>
-					{#if lightningPayment.status != null}
+					{#if lightningPayment.fields.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{lightningPayment.status === LightningPaymentStatus.InFlight ? 'In Flight' : lightningPayment.status}</dd>
+							<dd>{lightningPayment.fields.status === LightningPaymentStatus.InFlight ? 'In Flight' : lightningPayment.fields.status}</dd>
 						</div>
 					{/if}
 
-					{#if lightningPayment.valueMsat != null}
+					{#if lightningPayment.fields.valueMsat != null}
 						<div>
 							<dt>Amount</dt>
-							<dd>{lightningPayment.valueMsat.toString()} msat</dd>
+							<dd>{lightningPayment.fields.valueMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if lightningPayment.feeMsat != null}
+					{#if lightningPayment.fields.feeMsat != null}
 						<div>
 							<dt>Fee</dt>
-							<dd>{lightningPayment.feeMsat.toString()} msat</dd>
+							<dd>{lightningPayment.fields.feeMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if lightningPayment.failureReason != null}
+					{#if lightningPayment.fields.failureReason != null}
 						<div>
 							<dt>Failure</dt>
-							<dd>{lightningPayment.failureReason}</dd>
+							<dd>{lightningPayment.fields.failureReason}</dd>
 						</div>
 					{/if}
 
-					{#if lightningPayment.paymentRequest != null}
+					{#if lightningPayment.fields.paymentRequest != null}
 						<div>
 							<dt>Payment request</dt>
 							<dd>
 								<TruncatedValue
-									value={lightningPayment.paymentRequest}
+									value={lightningPayment.fields.paymentRequest}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -39,21 +40,11 @@
 		>
 	> = $props()
 
-	const relay = useEntity(
-		EntityType.NostrRelay,
+	const relay = useEntity(entityCollectionsContext, EntityType.NostrRelay,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.NostrBand_Rest,
-			],
-			name: {},
-			description: {},
-			software: {},
-			version: {},
-			supportedNipCount: {},
-			isPaid: {},
-			limit: {},
-		},
+			], fields: { name: true, description: true, software: true, version: true, supportedNipCount: true, isPaid: true } }),
 	)
 
 
@@ -90,8 +81,8 @@
 			placeholderText="Loading relay…"
 		>
 			{#snippet children(relay)}
-				{#if relay.name}
-					{relay.name}
+				{#if relay.fields.name}
+					{relay.fields.name}
 				{:else}
 					{#if Value}
 					{@render Value()}
@@ -116,10 +107,10 @@
 			placeholderText="Loading relay…"
 		>
 			{#snippet children(relay)}
-				{#if open && relay.description}
+				{#if open && relay.fields.description}
 					<p>
 						<TruncatedValue
-							value={relay.description}
+							value={relay.fields.description}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -140,7 +131,7 @@
 							placeholderText="Loading relay…"
 						>
 							{#snippet children(relay)}
-								{relay.software}
+								{relay.fields.software}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -159,7 +150,7 @@
 							placeholderText="Loading relay…"
 						>
 							{#snippet children(relay)}
-								{relay.version}
+								{relay.fields.version}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -178,7 +169,7 @@
 							placeholderText="Loading relay…"
 						>
 							{#snippet children(relay)}
-								{String(relay.supportedNipCount)}
+								{String(relay.fields.supportedNipCount)}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -197,7 +188,7 @@
 							placeholderText="Loading relay…"
 						>
 							{#snippet children(relay)}
-								{relay.isPaid ? 'Yes' : 'No'}
+								{relay.fields.isPaid ? 'Yes' : 'No'}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -216,7 +207,7 @@
 							placeholderText="Loading relay…"
 						>
 							{#snippet children(relay)}
-								{String(relay.limit)}
+								{String(relay.fields.limit)}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>

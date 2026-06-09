@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,26 +28,11 @@
 		>
 	> = $props()
 
-	const snapshot = useEntity(
-		EntityType.LightningNetwork_Timestamp,
+	const snapshot = useEntity(entityCollectionsContext, EntityType.LightningNetwork_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.LightningMempoolSpace_Rest,
-			],
-			nodeCount: {},
-			channelCount: {},
-			totalCapacitySats: {},
-			averageFeeRatePpm: {},
-			medianFeeRatePpm: {},
-			...open && {
-				torNodeCount: {},
-				clearnetNodeCount: {},
-				unannouncedNodeCount: {},
-				averageCapacitySats: {},
-				medianCapacitySats: {},
-			},
-		},
+			], fields: { nodeCount: true, channelCount: true, totalCapacitySats: true, averageFeeRatePpm: true, medianFeeRatePpm: true, ...(open && ({ torNodeCount: true, clearnetNodeCount: true, unannouncedNodeCount: true, averageCapacitySats: true, medianCapacitySats: true })) } }),
 	)
 
 
@@ -70,11 +56,11 @@
 			placeholderText="Loading snapshot…"
 		>
 			{#snippet children(lightningNetworkTimestamp)}
-				{#if lightningNetworkTimestamp.nodeCount != null}
-					<NumberValue value={lightningNetworkTimestamp.nodeCount} />
+				{#if lightningNetworkTimestamp.fields.nodeCount != null}
+					<NumberValue value={lightningNetworkTimestamp.fields.nodeCount} />
 					nodes
-				{:else if lightningNetworkTimestamp.channelCount != null}
-					<NumberValue value={lightningNetworkTimestamp.channelCount} />
+				{:else if lightningNetworkTimestamp.fields.channelCount != null}
+					<NumberValue value={lightningNetworkTimestamp.fields.channelCount} />
 					channels
 				{:else}
 					Snapshot
@@ -90,73 +76,73 @@
 		>
 			{#snippet children(lightningNetworkTimestamp)}
 				<dl>
-					{#if lightningNetworkTimestamp.nodeCount != null}
+					{#if lightningNetworkTimestamp.fields.nodeCount != null}
 						<div>
 							<dt>Nodes</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.nodeCount} /></dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.fields.nodeCount} /></dd>
 						</div>
 					{/if}
 
-					{#if lightningNetworkTimestamp.channelCount != null}
+					{#if lightningNetworkTimestamp.fields.channelCount != null}
 						<div>
 							<dt>Channels</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.channelCount} /></dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.fields.channelCount} /></dd>
 						</div>
 					{/if}
 
-					{#if lightningNetworkTimestamp.totalCapacitySats != null}
+					{#if lightningNetworkTimestamp.fields.totalCapacitySats != null}
 						<div>
 							<dt>Capacity</dt>
-							<dd>{lightningNetworkTimestamp.totalCapacitySats.toString()} sats</dd>
+							<dd>{lightningNetworkTimestamp.fields.totalCapacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if lightningNetworkTimestamp.averageFeeRatePpm != null}
+					{#if lightningNetworkTimestamp.fields.averageFeeRatePpm != null}
 						<div>
 							<dt>Average fee rate</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.averageFeeRatePpm} /> ppm</dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.fields.averageFeeRatePpm} /> ppm</dd>
 						</div>
 					{/if}
 
-					{#if lightningNetworkTimestamp.medianFeeRatePpm != null}
+					{#if lightningNetworkTimestamp.fields.medianFeeRatePpm != null}
 						<div>
 							<dt>Median fee rate</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.medianFeeRatePpm} /> ppm</dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.fields.medianFeeRatePpm} /> ppm</dd>
 						</div>
 					{/if}
 
-					{#if open && lightningNetworkTimestamp.torNodeCount != null}
+					{#if open && lightningNetworkTimestamp.fields.torNodeCount != null}
 						<div>
 							<dt>Tor nodes</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.torNodeCount} /></dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.fields.torNodeCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && lightningNetworkTimestamp.clearnetNodeCount != null}
+					{#if open && lightningNetworkTimestamp.fields.clearnetNodeCount != null}
 						<div>
 							<dt>Clearnet nodes</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.clearnetNodeCount} /></dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.fields.clearnetNodeCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && lightningNetworkTimestamp.unannouncedNodeCount != null}
+					{#if open && lightningNetworkTimestamp.fields.unannouncedNodeCount != null}
 						<div>
 							<dt>Unannounced nodes</dt>
-							<dd><NumberValue value={lightningNetworkTimestamp.unannouncedNodeCount} /></dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.fields.unannouncedNodeCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && lightningNetworkTimestamp.averageCapacitySats != null}
+					{#if open && lightningNetworkTimestamp.fields.averageCapacitySats != null}
 						<div>
 							<dt>Average capacity</dt>
-							<dd>{lightningNetworkTimestamp.averageCapacitySats.toString()} sats</dd>
+							<dd>{lightningNetworkTimestamp.fields.averageCapacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if open && lightningNetworkTimestamp.medianCapacitySats != null}
+					{#if open && lightningNetworkTimestamp.fields.medianCapacitySats != null}
 						<div>
 							<dt>Median capacity</dt>
-							<dd>{lightningNetworkTimestamp.medianCapacitySats.toString()} sats</dd>
+							<dd>{lightningNetworkTimestamp.fields.medianCapacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 				</dl>

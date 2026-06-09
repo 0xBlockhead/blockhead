@@ -1,12 +1,12 @@
 import { type } from 'arktype'
 
 import {
+	conditionalOn,
 	EntityFieldCardinality,
 	EntityFieldType,
-	conditionalOn,
 	type EntityFieldDefinition,
-} from './$EntityDefinition.ts'
-import { EntityType } from './$EntityType.ts'
+} from './$schema.ts'
+import { EntityType } from './EntityType.ts'
 
 enum VerifyType {
 	A = 'A',

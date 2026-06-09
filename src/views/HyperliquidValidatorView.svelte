@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -23,15 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const hyperliquidValidator = useEntity(EntityType.HyperliquidValidator, entityId, {
-		name: {},
-		$signer: {},
-		commission: {},
-		recentBlockCount: {},
-		isActive: {},
-		stake: {},
-		isJailed: {},
-	})
+	const hyperliquidValidator = useEntity(entityCollectionsContext, EntityType.HyperliquidValidator, entityId, ({ fields: { name: true, $signer: true, commission: true, recentBlockCount: true, isActive: true, stake: true, isJailed: true } }))
 
 
 	// Components
@@ -60,19 +53,19 @@
 		>
 			{#snippet children(hyperliquidValidator)}
 				<dl>
-					{#if hyperliquidValidator.name != null}
+					{#if hyperliquidValidator.fields.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{hyperliquidValidator.name}</dd>
+							<dd>{hyperliquidValidator.fields.name}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.$signer != null}
+					{#if hyperliquidValidator.fields.$signer != null}
 						<div>
 							<dt>Signer</dt>
 							<dd>
 								<HyperliquidAccountView
-									entityId={hyperliquidValidator.$signer[EntityMetaKey.Id]}
+									entityId={hyperliquidValidator.fields.$signer[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -80,38 +73,38 @@
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.commission != null}
+					{#if hyperliquidValidator.fields.commission != null}
 						<div>
 							<dt>Commission</dt>
-							<dd>{hyperliquidValidator.commission}</dd>
+							<dd>{hyperliquidValidator.fields.commission}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.recentBlockCount != null}
+					{#if hyperliquidValidator.fields.recentBlockCount != null}
 						<div>
 							<dt>Recent blocks</dt>
-							<dd><NumberValue value={hyperliquidValidator.recentBlockCount} /></dd>
+							<dd><NumberValue value={hyperliquidValidator.fields.recentBlockCount} /></dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.isActive != null}
+					{#if hyperliquidValidator.fields.isActive != null}
 						<div>
 							<dt>Active</dt>
-							<dd>{hyperliquidValidator.isActive ? 'Yes' : 'No'}</dd>
+							<dd>{hyperliquidValidator.fields.isActive ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.stake != null}
+					{#if hyperliquidValidator.fields.stake != null}
 						<div>
 							<dt>Stake</dt>
-							<dd><NumberValue value={hyperliquidValidator.stake} /></dd>
+							<dd><NumberValue value={hyperliquidValidator.fields.stake} /></dd>
 						</div>
 					{/if}
 
-					{#if hyperliquidValidator.isJailed != null}
+					{#if hyperliquidValidator.fields.isJailed != null}
 						<div>
 							<dt>Jailed</dt>
-							<dd>{hyperliquidValidator.isJailed ? 'Yes' : 'No'}</dd>
+							<dd>{hyperliquidValidator.fields.isJailed ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

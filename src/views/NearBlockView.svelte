@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,20 +28,11 @@
 		>
 	> = $props()
 
-	const block = useEntity(
-		EntityType.NearBlock,
+	const block = useEntity(entityCollectionsContext, EntityType.NearBlock,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.NearRpc_JsonRpc,
-			],
-			hash: {},
-			timestampMs: {},
-			$$chunks: {},
-			...open && {
-				epochId: {},
-			},
-		},
+			], fields: { hash: true, timestampMs: true, $$chunks: true, ...(open && ({ epochId: true })) } }),
 	)
 
 
@@ -90,38 +82,38 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if entityId.hash != null || block.hash != null}
+					{#if entityId.hash != null || block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={entityId.hash ?? block.hash}
+									value={entityId.hash ?? block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-						{#if (block.$$chunks?.length ?? 0) > 0}
+						{#if (block.fields.$$chunks?.values.length ?? 0) > 0}
 							<div>
 								<dt>Chunks</dt>
-								<dd><NumberValue value={block.$$chunks?.length ?? 0} /></dd>
+								<dd><NumberValue value={block.fields.$$chunks?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 
-					{#if block.timestampMs != null}
+					{#if block.fields.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.timestampMs} /></dd>
+							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && block.epochId != null}
+					{#if open && block.fields.epochId != null}
 						<div>
 							<dt>Epoch ID</dt>
 							<dd>
 								<TruncatedValue
-									value={block.epochId}
+									value={block.fields.epochId}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -23,12 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const zeroGServiceRequest = useEntity(EntityType.ZeroGServiceRequest, entityId, {
-		$requester: {},
-		requestHash: {},
-		responseHash: {},
-		$settlementTrace: {},
-	})
+	const zeroGServiceRequest = useEntity(entityCollectionsContext, EntityType.ZeroGServiceRequest, entityId, ({ fields: { $requester: true, requestHash: true, responseHash: true, $settlementTrace: true } }))
 
 
 	// Components
@@ -61,12 +57,12 @@
 		>
 			{#snippet children(zeroGServiceRequest)}
 				<dl>
-					{#if zeroGServiceRequest.$requester != null}
+					{#if zeroGServiceRequest.fields.$requester != null}
 						<div>
 							<dt>Requester</dt>
 							<dd>
 								<EvmAccountView
-									entityId={zeroGServiceRequest.$requester[EntityMetaKey.Id]}
+									entityId={zeroGServiceRequest.fields.$requester[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -74,36 +70,36 @@
 						</div>
 					{/if}
 
-					{#if zeroGServiceRequest.requestHash != null}
+					{#if zeroGServiceRequest.fields.requestHash != null}
 						<div>
 							<dt>Request Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGServiceRequest.requestHash}
+									value={zeroGServiceRequest.fields.requestHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if zeroGServiceRequest.responseHash != null}
+					{#if zeroGServiceRequest.fields.responseHash != null}
 						<div>
 							<dt>Response Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={zeroGServiceRequest.responseHash}
+									value={zeroGServiceRequest.fields.responseHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if zeroGServiceRequest.$settlementTrace != null}
+					{#if zeroGServiceRequest.fields.$settlementTrace != null}
 						<div>
 							<dt>Settlement</dt>
 							<dd>
 								<ZeroGSettlementTraceView
-									entityId={zeroGServiceRequest.$settlementTrace[EntityMetaKey.Id]}
+									entityId={zeroGServiceRequest.fields.$settlementTrace[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

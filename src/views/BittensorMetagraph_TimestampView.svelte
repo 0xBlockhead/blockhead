@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -19,16 +20,11 @@
 		open?: boolean
 	} = $props()
 
-	const metagraph = useEntity(
-		EntityType.BittensorMetagraph_Timestamp,
+	const metagraph = useEntity(entityCollectionsContext, EntityType.BittensorMetagraph_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Bittensor_JsonRpc,
-			],
-			metagraphByteLength: {},
-			neuronCount: {},
-		},
+			], fields: { metagraphByteLength: true, neuronCount: true } }),
 	)
 
 
@@ -52,11 +48,11 @@
 			placeholderText="Loading Bittensor metagraph…"
 		>
 			{#snippet children(metagraph)}
-				{#if metagraph.neuronCount !== undefined}
-					<NumberValue value={metagraph.neuronCount} />
+				{#if metagraph.fields.neuronCount !== undefined}
+					<NumberValue value={metagraph.fields.neuronCount} />
 					neurons
-				{:else if metagraph.metagraphByteLength !== undefined}
-					<NumberValue value={metagraph.metagraphByteLength} />
+				{:else if metagraph.fields.metagraphByteLength !== undefined}
+					<NumberValue value={metagraph.fields.metagraphByteLength} />
 					bytes
 				{:else}
 					Subnet {entityId.$subnet.netuid}
@@ -77,17 +73,17 @@
 						<dd><Timestamp timestamp={entityId.timestampMs} /></dd>
 					</div>
 
-					{#if metagraph.metagraphByteLength !== undefined}
+					{#if metagraph.fields.metagraphByteLength !== undefined}
 						<div>
 							<dt>Metagraph bytes</dt>
-							<dd><NumberValue value={metagraph.metagraphByteLength} /></dd>
+							<dd><NumberValue value={metagraph.fields.metagraphByteLength} /></dd>
 						</div>
 					{/if}
 
-					{#if open && metagraph.neuronCount !== undefined}
+					{#if open && metagraph.fields.neuronCount !== undefined}
 						<div>
 							<dt>Neurons</dt>
-							<dd><NumberValue value={metagraph.neuronCount} /></dd>
+							<dd><NumberValue value={metagraph.fields.neuronCount} /></dd>
 						</div>
 					{/if}
 				</dl>

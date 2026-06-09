@@ -1,17 +1,17 @@
 import { type } from 'arktype'
 
 // Concentrated-liquidity AMM pool row. Dexscreener-backed slices expose pair tokens, volume, and TVL only; on-chain curve fields are optional until an execution RPC or pool indexer maps them.
-import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
-import { UrlString } from '$/schema/$Url.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/EvmNetwork.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	entityType: EntityType.LiquidityPool,

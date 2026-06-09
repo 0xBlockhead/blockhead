@@ -11,11 +11,11 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	BeaconFinalityCheckpoints,
 	BeaconForkScheduleEntry,
@@ -71,12 +71,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				startSlot: (epoch) => epoch.startSlot,
 				endSlot: (epoch) => epoch.endSlot,
 				slotCount: (epoch) => epoch.slotCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
@@ -98,7 +99,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				bodyRoot: (slot) => slot.bodyRoot,
 				canonical: (slot) => slot.canonical,
 				epoch: (slot) => slot.epoch,
@@ -108,7 +110,7 @@ export default {
 				signature: (slot) => slot.signature,
 				stateRoot: (slot) => slot.stateRoot,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconValidator,
@@ -132,14 +134,15 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				balanceGwei: (validator) => validator.balanceGwei,
 				effectiveBalanceGwei: (validator) => validator.effectiveBalanceGwei,
 				pubkey: (validator) => validator.pubkey,
 				slashed: (validator) => validator.slashed,
 				status: (validator) => validator.status,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconCommittee,
@@ -155,10 +158,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				validatorIndices: (committee) => committee.validatorIndices,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSyncCommittee,
@@ -173,10 +177,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				validatorIndices: (committee) => committee.validatorIndices,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconAttestation,
@@ -193,11 +198,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				committeeIndex: (attestation) => attestation.committeeIndex,
 				aggregationBits: (attestation) => attestation.aggregationBits,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconWithdrawal,
@@ -229,13 +235,14 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				validatorIndex: (withdrawal) => withdrawal.validatorIndex,
 				$validator: (withdrawal) => withdrawal.$validator,
 				$account: (withdrawal) => withdrawal.$account,
 				amountGwei: (withdrawal) => withdrawal.amountGwei,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumBeaconFinality_Timestamp,
@@ -258,7 +265,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				currentJustifiedCheckpointEpoch: (timestamp) => timestamp.currentJustifiedCheckpointEpoch,
 				currentJustifiedCheckpointRoot: (timestamp) => timestamp.currentJustifiedCheckpointRoot,
 				previousJustifiedCheckpointEpoch: (timestamp) => timestamp.previousJustifiedCheckpointEpoch,
@@ -266,7 +274,7 @@ export default {
 				finalizedCheckpointEpoch: (timestamp) => timestamp.finalizedCheckpointEpoch,
 				finalizedCheckpointRoot: (timestamp) => timestamp.finalizedCheckpointRoot,
 			},
-		}),
+			}),
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
@@ -287,10 +295,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconSlots: (epoch) => epoch,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -326,10 +335,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconEpochs: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -364,10 +374,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconSlots: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -395,10 +406,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconValidators: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
@@ -420,10 +432,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconCommittees: (slot) => slot,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
@@ -442,10 +455,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconAttestations: (slot) => slot,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
@@ -464,10 +478,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconWithdrawals: (slot) => slot,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
@@ -487,10 +502,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconSlashings: (slot) => slot,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -516,10 +532,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconCommittees: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -542,10 +559,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconSyncCommittees: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -569,10 +587,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconAttestations: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -596,10 +615,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconWithdrawals: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -624,10 +644,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconSlashings: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EvmNetwork,
@@ -643,10 +664,11 @@ export default {
 				]
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$beaconFinalityTimestamps: (network) => network,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumConsensusUpgrade,
@@ -656,10 +678,11 @@ export default {
 				return forkScheduleEntry?.previousVersion
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				previousForkVersion: (upgrade) => upgrade,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumConsensusUpgrade,
@@ -669,9 +692,10 @@ export default {
 				return forkScheduleEntry?.currentVersion
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				currentForkVersion: (upgrade) => upgrade,
 			},
-		}),
+			}),
 	],
 }

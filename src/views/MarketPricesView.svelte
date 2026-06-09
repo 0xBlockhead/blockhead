@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -11,8 +11,8 @@
 		marketSpotPriceSources,
 	} from '$/constants/Market.ts'
 
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
@@ -20,7 +20,8 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		title = 'Spot quote index',
@@ -79,24 +80,21 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const market = useEntity(
+			{@const market = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
-				entityFieldReference.entityId,
-				{
-					$: [
+				entityFieldReference.entityId,({ sources: [
 						...marketCatalogFieldSources,
-					],
-					[entityFieldReference.fieldName]: {
-						$: marketSpotPriceSources,
-						$limit: limit,
+					], fields: { [entityFieldReference.fieldName]: {
+						sources: marketSpotPriceSources,
+						limit: limit,
 					},
-				},
+				} }),
 			)}
 			{@const prices = derive(
 				market,
 				(market) => {
-					const marketPrices: Entity<typeof schema, EntityType.MarketPrice>[] = (
-						market[entityFieldReference.fieldName] ?? []
+					const marketPrices: readonly Entity<typeof schema, EntityType.MarketPrice>[] = (
+						market.fields[entityFieldReference.fieldName]?.values ?? []
 					)
 					return (
 						Object.values(

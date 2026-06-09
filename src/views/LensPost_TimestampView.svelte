@@ -2,14 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -35,20 +36,11 @@
 		>
 	> = $props()
 
-	const lensPostTimestamp = useEntity(
-		EntityType.LensPost_Timestamp,
+	const lensPostTimestamp = useEntity(entityCollectionsContext, EntityType.LensPost_Timestamp,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Lens_Graphql,
-			],
-			commentCount: {},
-			repostCount: {},
-			quoteCount: {},
-			bookmarkCount: {},
-			collectCount: {},
-			reactionCount: {},
-		},
+			], fields: { commentCount: true, repostCount: true, quoteCount: true, bookmarkCount: true, collectCount: true, reactionCount: true } }),
 	)
 
 
@@ -94,27 +86,27 @@
 						metrics={[
 							{
 								label: 'Comments',
-								value: lensPostTimestamp.commentCount,
+								value: lensPostTimestamp.fields.commentCount,
 							},
 							{
 								label: 'Reposts',
-								value: lensPostTimestamp.repostCount,
+								value: lensPostTimestamp.fields.repostCount,
 							},
 							{
 								label: 'Quotes',
-								value: lensPostTimestamp.quoteCount,
+								value: lensPostTimestamp.fields.quoteCount,
 							},
 							{
 								label: 'Bookmarks',
-								value: lensPostTimestamp.bookmarkCount,
+								value: lensPostTimestamp.fields.bookmarkCount,
 							},
 							{
 								label: 'Collects',
-								value: lensPostTimestamp.collectCount,
+								value: lensPostTimestamp.fields.collectCount,
 							},
 							{
 								label: 'Reactions',
-								value: lensPostTimestamp.reactionCount,
+								value: lensPostTimestamp.fields.reactionCount,
 							},
 						]}
 					/>

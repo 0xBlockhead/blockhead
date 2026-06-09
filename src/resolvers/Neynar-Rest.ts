@@ -9,13 +9,13 @@ import type { CastHash } from '$/schema/FarcasterCast.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+} from '$/schema/$schema.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const zeroXLowerHexCastHash = (hash: string): CastHash => {
 	const hex = (
@@ -165,7 +165,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				username: (user) => user.username,
 				displayName: (user) => user.displayName,
 				$icon: (user) => user.$icon,
@@ -175,7 +176,7 @@ export default {
 				followerCount: (user) => user.followerCount,
 				followingCount: (user) => user.followingCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
@@ -220,14 +221,15 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				username: (connection) => connection.username,
 				displayName: (connection) => connection.displayName,
 				$icon: (connection) => connection.$icon,
 				bio: (connection) => connection.bio,
 				verifications: (connection) => connection.verifications,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterCast,
@@ -704,7 +706,8 @@ export default {
 				} satisfies Partial<FieldValuesCast>
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				fid: (cast) => cast.fid,
 				hash: (cast) => cast.hash,
 				username: (cast) => cast.username,
@@ -725,7 +728,7 @@ export default {
 				threadHash: (cast) => cast.threadHash,
 				$channel: (cast) => cast.$channel,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterFeed,
@@ -839,10 +842,11 @@ export default {
 					)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$entries: (entries) => entries,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterUser,
@@ -877,10 +881,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$casts: (casts) => casts,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterChannel,
@@ -915,10 +920,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$casts: (casts) => casts,
 			},
-		}),
+			}),
 
 	],
 }

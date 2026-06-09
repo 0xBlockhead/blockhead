@@ -7,10 +7,10 @@ import { lightningMempoolSpaceRestBaseUrl, lightningNetworkId } from '$/constant
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	MempoolSpaceLightningChannel,
 	MempoolSpaceLightningChannelNode,
@@ -180,12 +180,13 @@ export default {
 					},
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (snapshot) => snapshot.name,
 			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork_Timestamp,
@@ -199,8 +200,9 @@ export default {
 					})).latest,
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			nodeCount: (snapshot) => snapshot.nodeCount,
 			channelCount: (snapshot) => snapshot.channelCount,
 			totalCapacitySats: (snapshot) => snapshot.totalCapacitySats,
@@ -211,8 +213,8 @@ export default {
 			medianCapacitySats: (snapshot) => snapshot.medianCapacitySats,
 			averageFeeRatePpm: (snapshot) => snapshot.averageFeeRatePpm,
 			medianFeeRatePpm: (snapshot) => snapshot.medianFeeRatePpm,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNode,
@@ -227,8 +229,9 @@ export default {
 					}),
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			alias: (snapshot) => snapshot.alias,
 			color: (snapshot) => snapshot.color,
 			capacitySats: (snapshot) => snapshot.capacitySats,
@@ -238,8 +241,8 @@ export default {
 			countryCode: (snapshot) => snapshot.countryCode,
 			city: (snapshot) => snapshot.city,
 			networkAddresses: (snapshot) => snapshot.networkAddresses,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningChannel,
@@ -254,8 +257,9 @@ export default {
 					}),
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			shortChannelId: (snapshot) => snapshot.shortChannelId,
 			status: (snapshot) => snapshot.status,
 			capacitySats: (snapshot) => snapshot.capacitySats,
@@ -270,8 +274,8 @@ export default {
 			feeRatePpm: (snapshot) => snapshot.feeRatePpm,
 			$node0: (snapshot) => snapshot.$node0,
 			$node1: (snapshot) => snapshot.$node1,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -287,11 +291,12 @@ export default {
 					),
 				]
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$timestamps: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -305,11 +310,12 @@ export default {
 					})
 				).slice(0, resolverContextRowLimit(context)).map(nodeReferenceFromMempoolSpaceRankedNode)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$nodes: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -342,11 +348,12 @@ export default {
 					}),
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$channels: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNode,
@@ -373,10 +380,11 @@ export default {
 					}),
 				}))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$channels: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

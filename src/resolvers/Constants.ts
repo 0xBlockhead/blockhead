@@ -83,12 +83,12 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import {
 	precompilesByChainId,
@@ -351,8 +351,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumExecutionUpgrade,
@@ -368,8 +369,9 @@ export default {
 				return { ...networkExecutionUpgrade }
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumConsensusUpgrade,
@@ -385,8 +387,9 @@ export default {
 				return { ...networkConsensusUpgrade }
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MarketVenue,
@@ -398,8 +401,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency,
@@ -416,8 +420,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency_Timestamp,
@@ -435,16 +440,18 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => ({})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmContract,
@@ -469,8 +476,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
@@ -483,8 +491,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
@@ -504,8 +513,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.CoinBridgeCapability,
@@ -521,24 +531,27 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => ({})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => ({})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Url,
@@ -547,8 +560,9 @@ export default {
 				{}
 			)
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
@@ -580,8 +594,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MevRelay,
@@ -590,8 +605,9 @@ export default {
 				url: `https://${entityId.host}`,
 			})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
@@ -617,8 +633,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NearNetwork,
@@ -640,8 +657,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
@@ -673,8 +691,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
@@ -693,8 +712,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SolanaNetwork,
@@ -714,8 +734,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NetworkStack,
@@ -724,8 +745,9 @@ export default {
 				label: networkStackByNetworkStackId[entityId.networkStackId].label,
 			})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ElementsNetwork,
@@ -757,8 +779,9 @@ export default {
 				}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ExecutionEnvironment,
@@ -767,8 +790,9 @@ export default {
 				label: executionEnvironmentByExecutionEnvironmentId[entityId.executionEnvironmentId].label,
 			})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ConsensusMechanism,
@@ -777,8 +801,9 @@ export default {
 				label: consensusMechanismById[entityId.consensusMechanismId].label,
 			})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.AssetInstance,
@@ -790,8 +815,9 @@ export default {
 				}),
 			})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.BittensorSubnet,
@@ -800,8 +826,9 @@ export default {
 				name: entityId.netuid === 0 ? 'Root' : `Subnet ${entityId.netuid}`,
 			})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NetworkUpgrade,
@@ -810,24 +837,27 @@ export default {
 				name: entityId.upgradeId,
 			})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.CosmosGovernanceProposal,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => ({})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.PolkadotReferendum,
 			resolve: {
 				[EntityIdProjection.Identity]: async (_entityId) => ({})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SpecificationRealm,
@@ -840,8 +870,9 @@ export default {
 				slug: specificationRealmById[entityId.realm].slug,
 			})
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SpecificationProposalKind,
@@ -854,190 +885,204 @@ export default {
 				}
 			)
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => activityPubNetworkFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.AtprotoNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => atprotoNetworkFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EnsProtocol,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ensProtocolFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmProtocol,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => evmProtocolFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.IpfsProtocol,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => ipfsProtocolFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SwarmProtocol,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => swarmProtocolFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.LensNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => lensNetworkFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => nostrNetworkFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => redditNetworkFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RssNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => rssNetworkFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => xNetworkFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XmtpNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => xmtpNetworkFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.YouTubeNetwork,
 			resolve: {
 				[EntityIdProjection.Identity]: async () => youtubeNetworkFieldValues
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
 				registryLabel: (entity) => entity.registryLabel,
 				topology: (entity) => entity.topology,
 			},
-		}),
+			}),
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 				resolve: {
@@ -1049,10 +1094,11 @@ export default {
 				}))
 			)
 				},
-			fields: {
+		})({
+				fields: {
 				$$networks: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
@@ -1114,10 +1160,11 @@ export default {
 					})
 					}
 			},
-					fields: {
+				})({
+				fields: {
 						$$networkUpgrades: (entity) => entity,
 					},
-				}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
@@ -1138,6 +1185,7 @@ export default {
 				}
 				}
 			},
+			})({
 				fields: {
 					$networkStack: (entity) => entity,
 				},
@@ -1157,10 +1205,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$networkStack: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
@@ -1176,10 +1225,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$networkStack: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
@@ -1200,10 +1250,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$executionEnvironments: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
@@ -1219,10 +1270,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$executionEnvironments: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
@@ -1238,10 +1290,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$executionEnvironments: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
@@ -1262,10 +1315,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$consensusMechanisms: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
@@ -1281,10 +1335,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$consensusMechanisms: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
@@ -1300,10 +1355,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$consensusMechanisms: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
@@ -1332,10 +1388,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$nativeAssets: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
@@ -1354,10 +1411,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$faucetUrls: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
@@ -1376,10 +1434,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$blockExplorerUrls: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
@@ -1395,10 +1454,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$specificationRealms: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
@@ -1409,10 +1469,11 @@ export default {
 				}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$proposalKinds: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SpecificationRealm,
@@ -1427,10 +1488,11 @@ export default {
 					}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$proposalKinds: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.SpecificationProposalKind,
@@ -1443,10 +1505,11 @@ export default {
 				}
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$specificationRealm: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
@@ -1464,10 +1527,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$coins: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
@@ -1483,10 +1547,11 @@ export default {
 				))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketVenues: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MarketVenue,
@@ -1510,10 +1575,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$markets: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
@@ -1528,10 +1594,11 @@ export default {
 				))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$currencies: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Currency,
@@ -1550,10 +1617,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
@@ -1569,10 +1637,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$markets: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
@@ -1590,10 +1659,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketPrices: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
@@ -1606,10 +1676,11 @@ export default {
 				]
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithCoinAsBase: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Coin,
@@ -1620,10 +1691,11 @@ export default {
 				}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithCoinAsQuote: (entity) => entity,
 			},
-		}),
+			}),
 
 			defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.Coin,
@@ -1650,6 +1722,7 @@ export default {
 					]
 				}
 				},
+			})({
 				fields: {
 					$$coinInstances: (entity) => entity,
 				},
@@ -1662,10 +1735,11 @@ export default {
 				throw new Error('Constants_Internal: $$outboundBridgeCapabilities is not implemented')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$outboundBridgeCapabilities: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
@@ -1674,10 +1748,11 @@ export default {
 				throw new Error('Constants_Internal: $$inboundBridgeCapabilities is not implemented')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$inboundBridgeCapabilities: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
@@ -1686,10 +1761,11 @@ export default {
 				throw new Error('Constants_Internal: $canonicalInstance is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$canonicalInstance: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
@@ -1704,10 +1780,11 @@ export default {
 				throw new Error('Constants_Internal: CoinInstance representation unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				representation: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market,
@@ -1723,10 +1800,11 @@ export default {
 					undefined
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$baseCoin: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market,
@@ -1747,10 +1825,11 @@ export default {
 					[]
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketPrices: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market,
@@ -1759,10 +1838,11 @@ export default {
 				throw new Error('Constants_Internal: $$marketTimeIntervalTimestamps is not implemented')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketTimeIntervalTimestamps: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.MarketPrice,
@@ -1773,10 +1853,11 @@ export default {
 				}
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$parentMarket: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
@@ -1787,10 +1868,11 @@ export default {
 				}
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$parentMarket: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
@@ -1799,10 +1881,11 @@ export default {
 				throw new Error('Constants_Internal: $$marketsWithInstanceAsBase is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithInstanceAsBase: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
@@ -1811,10 +1894,11 @@ export default {
 				throw new Error('Constants_Internal: $$marketsWithInstanceAsQuote is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$marketsWithInstanceAsQuote: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
@@ -1829,10 +1913,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				hasBlobParameterExecutionUpgrade: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
@@ -1842,10 +1927,11 @@ export default {
 				return beaconRestBaseByExecutionChainId[Number(entityId.caip2.reference)]?.consensusProtocol
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				consensusProtocol: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
@@ -1866,10 +1952,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$mevRelays: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
@@ -1935,10 +2022,11 @@ export default {
 					})
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$upgrades: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
@@ -1952,10 +2040,11 @@ export default {
 					.map((networkExecutionUpgrade) => ({ ...networkExecutionUpgrade }))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$executionUpgrades: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
@@ -1969,10 +2058,11 @@ export default {
 					.map((networkConsensusUpgrade) => ({ ...networkConsensusUpgrade }))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$consensusUpgrades: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.EthereumNetworkUpgrade,
@@ -1988,10 +2078,11 @@ export default {
 					)
 				}
 				},
-			fields: {
+		})({
+				fields: {
 				$networkExecutionUpgrade: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumNetworkUpgrade,
@@ -2007,10 +2098,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$networkConsensusUpgrade: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumNetworkUpgrade,
@@ -2050,10 +2142,11 @@ export default {
 				return proposals
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$proposals: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumExecutionUpgrade,
@@ -2068,10 +2161,11 @@ export default {
 				return proposals
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$proposals: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EthereumConsensusUpgrade,
@@ -2121,10 +2215,11 @@ export default {
 				throw new Error(`Constants_Internal: NetworkConsensusUpgrade ${entityId.upgradeId} has no $$proposals`)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$proposals: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.LensNetwork,
@@ -2135,10 +2230,11 @@ export default {
 				}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$lensAccounts: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.LensNetwork,
@@ -2147,10 +2243,11 @@ export default {
 				throw new Error('Constants_Internal: $$lensPosts is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$lensPosts: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
@@ -2161,10 +2258,11 @@ export default {
 				}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$nostrProfiles: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
@@ -2173,10 +2271,11 @@ export default {
 				throw new Error('Constants_Internal: $$nostrNotes is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$nostrNotes: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
@@ -2187,10 +2286,11 @@ export default {
 				}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$nostrRelays: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
@@ -2199,10 +2299,11 @@ export default {
 				throw new Error('Constants_Internal: $$nostrReposts is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$nostrReposts: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NostrNetwork,
@@ -2211,10 +2312,11 @@ export default {
 				throw new Error('Constants_Internal: $$nostrArticles is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$nostrArticles: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.AtprotoNetwork,
@@ -2225,10 +2327,11 @@ export default {
 				}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$atprotoActors: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.AtprotoNetwork,
@@ -2237,10 +2340,11 @@ export default {
 				throw new Error('Constants_Internal: $$atprotoPosts is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$atprotoPosts: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ActivityPubNetwork,
@@ -2251,10 +2355,11 @@ export default {
 				}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$activityPubActors: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ActivityPubNetwork,
@@ -2263,10 +2368,11 @@ export default {
 				throw new Error('Constants_Internal: $$activityPubNotes is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$activityPubNotes: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditNetwork,
@@ -2277,10 +2383,11 @@ export default {
 				}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$redditSubreddits: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RedditNetwork,
@@ -2289,10 +2396,11 @@ export default {
 				throw new Error('Constants_Internal: $$redditLinks is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$redditLinks: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RssNetwork,
@@ -2303,10 +2411,11 @@ export default {
 				}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$rssFeeds: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.RssNetwork,
@@ -2315,10 +2424,11 @@ export default {
 				throw new Error('Constants_Internal: $$rssItems is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$rssItems: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XNetwork,
@@ -2329,10 +2439,11 @@ export default {
 				}))
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$xUsers: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XNetwork,
@@ -2341,10 +2452,11 @@ export default {
 				throw new Error('Constants_Internal: $$xPosts is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$xPosts: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.XmtpNetwork,
@@ -2353,10 +2465,11 @@ export default {
 				throw new Error('Constants_Internal: $$xmtpConversations is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$xmtpConversations: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.YouTubeNetwork,
@@ -2367,10 +2480,11 @@ export default {
 					}))
 				)
 				},
-			fields: {
+		})({
+				fields: {
 				$$youtubeChannels: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.YouTubeNetwork,
@@ -2381,10 +2495,11 @@ export default {
 					}))
 				)
 				},
-			fields: {
+		})({
+				fields: {
 				$$youtubeVideos: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 				entityType: EntityType.YouTubeNetwork,
@@ -2395,10 +2510,11 @@ export default {
 					}))
 				)
 				},
-			fields: {
+		})({
+				fields: {
 				$$youtubePlaylists: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
@@ -2407,10 +2523,11 @@ export default {
 				throw new Error('Constants_Internal: $$liquidityPositions is unsupported')
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$liquidityPositions: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmContract,
@@ -2429,10 +2546,11 @@ export default {
 				))?.name
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				precompileName: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmNetwork,
@@ -2458,10 +2576,11 @@ export default {
 					})
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$contracts: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
@@ -2487,10 +2606,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$nativeAssets: (entity) => entity,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
@@ -2515,9 +2635,10 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$nativeAssets: (entity) => entity,
 			},
-		}),
+			}),
 	],
 }

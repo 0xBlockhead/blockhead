@@ -2,15 +2,16 @@
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -24,25 +25,16 @@
 		open?: boolean
 	} = $props()
 
-	const network = useEntity(
-		EntityType.Network,
+	const network = useEntity(entityCollectionsContext, EntityType.Network,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			slug: {},
-			name: {},
-			environment: {},
-			$$nativeAssets: {},
-		},
+			], fields: { slug: true, name: true, environment: true, $$nativeAssets: true } }),
 	)
 
-	const utxoNetwork = useEntity(
-		EntityType.UtxoNetwork,
+	const utxoNetwork = useEntity(entityCollectionsContext, EntityType.UtxoNetwork,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Blockchair_Rest,
 				Source.Esplora_Rest,
 				Source.MempoolSpace_Rest,
@@ -51,15 +43,7 @@
 				Source.DogecoinCore_JsonRpc,
 				Source.BitcoinCashNode_JsonRpc,
 				Source.Zcashd_JsonRpc,
-			],
-			$$blocks: {
-				$limit: 1,
-			},
-			$$timestamps: {
-				$limit: 1,
-				suggestedTransactionFeePerByteSats: {},
-			},
-		},
+			], fields: { $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1, fields: { suggestedTransactionFeePerByteSats: true } }) } }),
 	)
 
 
@@ -98,7 +82,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				<span>{network.slug}</span>
+				<span>{network.fields.slug}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -110,7 +94,7 @@
 			{/snippet}
 
 			{#snippet children(network)}
-				{network.name}
+				{network.fields.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -122,8 +106,8 @@
 	{#snippet Content()}
 			<ResourceBoundary resource={utxoNetwork}>
 				{#snippet children(utxoNetwork)}
-					{@const block = utxoNetwork.$$blocks?.at(0)}
-					{@const timestamp = utxoNetwork.$$timestamps?.at(0)}
+					{@const block = utxoNetwork.fields.$$blocks?.values.at(0)}
+					{@const timestamp = utxoNetwork.fields.$$timestamps?.values.at(0)}
 					<dl class="network-summary-head" data-column-item="center">
 						{#if block != null}
 							<div>
@@ -149,11 +133,11 @@
 
 			<ResourceBoundary resource={network}>
 				{#snippet children(network)}
-					{@const nativeAssetCount = network.$$nativeAssets?.length ?? 0}
+					{@const nativeAssetCount = network.fields.$$nativeAssets?.values.length ?? 0}
 					<dl data-column-item="center">
 						<div>
 							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
+							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 						</div>
 
 						{#if nativeAssetCount > 0}

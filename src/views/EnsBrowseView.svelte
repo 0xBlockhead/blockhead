@@ -2,9 +2,9 @@
 	// Types/constants
 	import { ensEthereumChainId } from '$/constants/Ens.ts'
 	import { TransportType } from '$/constants/TransportType.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 	import {
 		normalizeEnsName,
@@ -13,7 +13,8 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -100,19 +101,14 @@
 		searchTerm == null ?
 			undefined
 		:
-			useEntity(
+			useEntity(entityCollectionsContext, 
 				EntityType.EnsSearch,
 				{
 					query: searchTerm,
 				},
-				{
-					$$ensNames: {
-						$: [
+				({ fields: { $$ensNames: ({ sources: [
 							Source.TheGraph_Graphql,
-						],
-						$limit: 32,
-					},
-				},
+						], limit: 32 }) } }),
 			),
 	)
 
@@ -123,7 +119,7 @@
 			derive(
 				ensSearch,
 				(ensSearch) => (
-					ensSearch.$$ensNames ?? []
+					ensSearch.fields.$$ensNames?.values ?? []
 				),
 			),
 	)

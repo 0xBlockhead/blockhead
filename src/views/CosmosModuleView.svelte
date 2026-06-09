@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 	let {
 		entityId,
@@ -23,9 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const cosmosModule = useEntity(EntityType.CosmosModule, entityId, {
-		$authority: {},
-	})
+	const cosmosModule = useEntity(entityCollectionsContext, EntityType.CosmosModule, entityId, ({ fields: { $authority: true } }))
 
 
 	// Components
@@ -53,12 +52,12 @@
 		>
 			{#snippet children(cosmosModule)}
 				<dl>
-					{#if cosmosModule.$authority != null}
+					{#if cosmosModule.fields.$authority != null}
 						<div>
 							<dt>Authority</dt>
 							<dd>
 								<CosmosAccountView
-									entityId={cosmosModule.$authority[EntityMetaKey.Id]}
+									entityId={cosmosModule.fields.$authority[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

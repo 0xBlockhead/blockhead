@@ -14,9 +14,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type { EsploraAsset } from '$/sources/Esplora/Rest/types.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
@@ -108,8 +108,9 @@ export default {
 					transactionCount: block.tx_count,
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			hash: (snapshot) => snapshot.hash,
 			$parent: (snapshot) => snapshot.$parent,
 			timestampMs: (snapshot) => snapshot.timestampMs,
@@ -119,8 +120,8 @@ export default {
 			sizeBytes: (snapshot) => snapshot.sizeBytes,
 			weightUnits: (snapshot) => snapshot.weightUnits,
 			transactionCount: (snapshot) => snapshot.transactionCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.UtxoTransaction,
@@ -155,8 +156,9 @@ export default {
 					isCoinbase: transaction.vin.some((input) => input.is_coinbase),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$block: (snapshot) => snapshot.$block,
 			version: (snapshot) => snapshot.version,
 			lockTime: (snapshot) => snapshot.lockTime,
@@ -165,8 +167,8 @@ export default {
 			virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
 			feeSats: (snapshot) => snapshot.feeSats,
 			isCoinbase: (snapshot) => snapshot.isCoinbase,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset,
@@ -188,8 +190,9 @@ export default {
 
 				return elementsAssetFieldsFromWire(asset)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			name: (snapshot) => snapshot.name,
 			ticker: (snapshot) => snapshot.ticker,
 			precision: (snapshot) => snapshot.precision,
@@ -199,8 +202,8 @@ export default {
 			burnedAmount: (snapshot) => snapshot.burnedAmount,
 			hasBlindedIssuances: (snapshot) => snapshot.hasBlindedIssuances,
 			reissuanceTokenCount: (snapshot) => snapshot.reissuanceTokenCount,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
@@ -220,11 +223,12 @@ export default {
 
 					return elementsAssetRowFromWire(liquidNetworkId, asset)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$nativeAsset: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
@@ -243,10 +247,11 @@ export default {
 					.slice(0, resolverContextRowLimit(context))
 						.map((asset) => elementsAssetRowFromWire(liquidNetworkId, asset))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$assets: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

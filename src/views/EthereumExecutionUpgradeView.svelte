@@ -2,16 +2,17 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { executionProtocolByProtocol } from '$/constants/EvmNetwork.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -40,22 +41,12 @@
 		>
 	> = $props()
 
-	const networkExecutionUpgrade = useEntity(
+	const networkExecutionUpgrade = useEntity(entityCollectionsContext, 
 		EntityType.EthereumExecutionUpgrade,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			name: {},
-			slug: {},
-			...(open && {
-				protocol: {},
-				activationBlock: {},
-				activationEpoch: {},
-				activationTimestampMs: {},
-			}),
-		},
+			], fields: { name: true, slug: true, ...(open && ({ protocol: true, activationBlock: true, activationEpoch: true, activationTimestampMs: true })) } }),
 	)
 
 
@@ -89,7 +80,7 @@
 			placeholderText="Loading execution upgrade…"
 		>
 			{#snippet children(networkExecutionUpgrade)}
-				{networkExecutionUpgrade.name ?? entityId.upgradeId}
+				{networkExecutionUpgrade.fields.name ?? entityId.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -107,23 +98,23 @@
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
-				&& networkExecutionUpgrade.protocol !== undefined
+				&& networkExecutionUpgrade.fields.protocol !== undefined
 			)}
 				<div>
 					<dt>Execution fork</dt>
 					<dd>
-								{executionProtocolByProtocol[networkExecutionUpgrade.protocol].label}
+								{executionProtocolByProtocol[networkExecutionUpgrade.fields.protocol].label}
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkExecutionUpgrade.activationBlock !== undefined}
+			{#if contentOpen && networkExecutionUpgrade.fields.activationBlock !== undefined}
 				<div>
 					<dt>Activation block</dt>
 					<dd>
 									<EvmBlockView
 										entityId={{
 											$network: entityId.$network,
-											blockNumber: BigInt(networkExecutionUpgrade.activationBlock),
+											blockNumber: BigInt(networkExecutionUpgrade.fields.activationBlock),
 										}}
 										layout={EntityLayout.Value}
 										open={false}
@@ -131,20 +122,20 @@
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkExecutionUpgrade.activationEpoch !== undefined}
+			{#if contentOpen && networkExecutionUpgrade.fields.activationEpoch !== undefined}
 				<div>
 					<dt>Activation epoch</dt>
 					<dd>
-								<NumberValue value={networkExecutionUpgrade.activationEpoch} />
+								<NumberValue value={networkExecutionUpgrade.fields.activationEpoch} />
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkExecutionUpgrade.activationTimestampMs !== undefined}
+			{#if contentOpen && networkExecutionUpgrade.fields.activationTimestampMs !== undefined}
 				<div>
 					<dt>Activation time</dt>
 					<dd>
 								<Timestamp
-									timestamp={networkExecutionUpgrade.activationTimestampMs}
+									timestamp={networkExecutionUpgrade.fields.activationTimestampMs}
 								/>
 					</dd>
 				</div>

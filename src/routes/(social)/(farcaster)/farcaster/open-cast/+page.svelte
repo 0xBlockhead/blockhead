@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import { type as arktype } from 'arktype'
-	import { UrlString } from '$/schema/$Url.ts'
+	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context

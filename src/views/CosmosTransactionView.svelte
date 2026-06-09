@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,15 +27,9 @@
 		>
 	> = $props()
 
-	const cosmosTransaction = useEntity(
-		EntityType.CosmosTransaction,
+	const cosmosTransaction = useEntity(entityCollectionsContext, EntityType.CosmosTransaction,
 		entityId,
-		{
-			code: {},
-			gasWanted: {},
-			gasUsed: {},
-			memo: {},
-		},
+		({ fields: { code: true, gasWanted: true, gasUsed: true, memo: true } }),
 	)
 
 
@@ -68,31 +63,31 @@
 		>
 			{#snippet children(cosmosTransaction)}
 				<dl>
-					{#if cosmosTransaction.code != null}
+					{#if cosmosTransaction.fields.code != null}
 						<div>
 							<dt>Code</dt>
-							<dd><NumberValue value={cosmosTransaction.code} /></dd>
+							<dd><NumberValue value={cosmosTransaction.fields.code} /></dd>
 						</div>
 					{/if}
 
-					{#if cosmosTransaction.gasWanted != null}
+					{#if cosmosTransaction.fields.gasWanted != null}
 						<div>
 							<dt>Gas Wanted</dt>
-							<dd><NumberValue value={cosmosTransaction.gasWanted} /></dd>
+							<dd><NumberValue value={cosmosTransaction.fields.gasWanted} /></dd>
 						</div>
 					{/if}
 
-					{#if cosmosTransaction.gasUsed != null}
+					{#if cosmosTransaction.fields.gasUsed != null}
 						<div>
 							<dt>Gas Used</dt>
-							<dd><NumberValue value={cosmosTransaction.gasUsed} /></dd>
+							<dd><NumberValue value={cosmosTransaction.fields.gasUsed} /></dd>
 						</div>
 					{/if}
 
-					{#if cosmosTransaction.memo != null}
+					{#if cosmosTransaction.fields.memo != null}
 						<div>
 							<dt>Memo</dt>
-							<dd>{cosmosTransaction.memo}</dd>
+							<dd>{cosmosTransaction.fields.memo}</dd>
 						</div>
 					{/if}
 				</dl>

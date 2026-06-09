@@ -1,6 +1,6 @@
 import { jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 type JsonRpcResponse<_Result> = {

@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,11 +28,9 @@
 		>
 	> = $props()
 
-	const transaction = useEntity(
-		EntityType.UtxoTransaction,
+	const transaction = useEntity(entityCollectionsContext, EntityType.UtxoTransaction,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Esplora_Rest,
 				Source.Blockchair_Rest,
 				Source.ThreeXpl_Rest,
@@ -39,15 +38,7 @@
 				Source.LitecoinCore_JsonRpc,
 				Source.DogecoinCore_JsonRpc,
 				Source.Zcashd_JsonRpc,
-			],
-			version: {},
-			lockTime: {},
-			sizeBytes: {},
-			virtualSizeBytes: {},
-			weightUnits: {},
-			feeSats: {},
-			isCoinbase: {},
-		},
+			], fields: { version: true, lockTime: true, sizeBytes: true, virtualSizeBytes: true, weightUnits: true, feeSats: true, isCoinbase: true } }),
 	)
 
 
@@ -93,52 +84,52 @@
 		>
 			{#snippet children(transaction)}
 				<dl>
-					{#if transaction.version != null}
+					{#if transaction.fields.version != null}
 						<div>
 							<dt>Version</dt>
-							<dd><NumberValue value={transaction.version} /></dd>
+							<dd><NumberValue value={transaction.fields.version} /></dd>
 						</div>
 					{/if}
 
-					{#if transaction.feeSats != null}
+					{#if transaction.fields.feeSats != null}
 						<div>
 							<dt>Fee</dt>
-							<dd>{transaction.feeSats.toString()} sats</dd>
+							<dd>{transaction.fields.feeSats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if transaction.sizeBytes != null}
+					{#if transaction.fields.sizeBytes != null}
 						<div>
 							<dt>Size</dt>
-							<dd><NumberValue value={transaction.sizeBytes} /> bytes</dd>
+							<dd><NumberValue value={transaction.fields.sizeBytes} /> bytes</dd>
 						</div>
 					{/if}
 
-					{#if transaction.virtualSizeBytes != null}
+					{#if transaction.fields.virtualSizeBytes != null}
 						<div>
 							<dt>Virtual size</dt>
-							<dd><NumberValue value={transaction.virtualSizeBytes} /> vB</dd>
+							<dd><NumberValue value={transaction.fields.virtualSizeBytes} /> vB</dd>
 						</div>
 					{/if}
 
-					{#if transaction.weightUnits != null}
+					{#if transaction.fields.weightUnits != null}
 						<div>
 							<dt>Weight</dt>
-							<dd><NumberValue value={transaction.weightUnits} /> WU</dd>
+							<dd><NumberValue value={transaction.fields.weightUnits} /> WU</dd>
 						</div>
 					{/if}
 
-					{#if transaction.lockTime != null}
+					{#if transaction.fields.lockTime != null}
 						<div>
 							<dt>Lock time</dt>
-							<dd><NumberValue value={transaction.lockTime} /></dd>
+							<dd><NumberValue value={transaction.fields.lockTime} /></dd>
 						</div>
 					{/if}
 
-					{#if transaction.isCoinbase != null}
+					{#if transaction.fields.isCoinbase != null}
 						<div>
 							<dt>Coinbase</dt>
-							<dd>{transaction.isCoinbase ? 'Yes' : 'No'}</dd>
+							<dd>{transaction.fields.isCoinbase ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

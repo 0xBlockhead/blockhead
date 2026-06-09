@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,15 +27,9 @@
 		>
 	> = $props()
 
-	const filecoinMessage = useEntity(
-		EntityType.FilecoinMessage,
+	const filecoinMessage = useEntity(entityCollectionsContext, EntityType.FilecoinMessage,
 		entityId,
-		{
-			method: {},
-			nonce: {},
-			valueAttoFil: {},
-			gasLimit: {},
-		},
+		({ fields: { method: true, nonce: true, valueAttoFil: true, gasLimit: true } }),
 	)
 
 
@@ -68,31 +63,31 @@
 		>
 			{#snippet children(filecoinMessage)}
 				<dl>
-					{#if filecoinMessage.method != null}
+					{#if filecoinMessage.fields.method != null}
 						<div>
 							<dt>Method</dt>
-							<dd><NumberValue value={filecoinMessage.method} /></dd>
+							<dd><NumberValue value={filecoinMessage.fields.method} /></dd>
 						</div>
 					{/if}
 
-					{#if filecoinMessage.nonce != null}
+					{#if filecoinMessage.fields.nonce != null}
 						<div>
 							<dt>Nonce</dt>
-							<dd><NumberValue value={filecoinMessage.nonce} /></dd>
+							<dd><NumberValue value={filecoinMessage.fields.nonce} /></dd>
 						</div>
 					{/if}
 
-					{#if filecoinMessage.valueAttoFil != null}
+					{#if filecoinMessage.fields.valueAttoFil != null}
 						<div>
 							<dt>Value</dt>
-							<dd><NumberValue value={filecoinMessage.valueAttoFil} /> attoFIL</dd>
+							<dd><NumberValue value={filecoinMessage.fields.valueAttoFil} /> attoFIL</dd>
 						</div>
 					{/if}
 
-					{#if filecoinMessage.gasLimit != null}
+					{#if filecoinMessage.fields.gasLimit != null}
 						<div>
 							<dt>Gas Limit</dt>
-							<dd><NumberValue value={filecoinMessage.gasLimit} /></dd>
+							<dd><NumberValue value={filecoinMessage.fields.gasLimit} /></dd>
 						</div>
 					{/if}
 				</dl>

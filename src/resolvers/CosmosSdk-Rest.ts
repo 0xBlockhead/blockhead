@@ -4,12 +4,12 @@ import {
 } from '$/resolvers/$resolvers.ts'
 import { cosmosHubCaip2, cosmosHubRestBaseUrl } from '$/constants/CosmosNetwork.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
+} from '$/schema/$schema.ts'
 import type { CosmosSdkTxResponse } from '$/sources/CosmosSdk/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -140,11 +140,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$network: (network) => network.$network,
 				restEndpoints: (network) => network.restEndpoints,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork_Timestamp,
@@ -193,7 +194,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
 				latestBlockHash: (timestamp) => timestamp.latestBlockHash,
 				latestBlockTimeMs: (timestamp) => timestamp.latestBlockTimeMs,
@@ -210,7 +212,7 @@ export default {
 				notBondedTokens: (timestamp) => timestamp.notBondedTokens,
 				governanceProposalCount: (timestamp) => timestamp.governanceProposalCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 				entityType: EntityType.CosmosBlock,
@@ -233,13 +235,14 @@ export default {
 				}
 			}
 				},
-			fields: {
+		})({
+				fields: {
 				hash: (block) => block.hash,
 				proposerConsensusAddress: (block) => block.proposerConsensusAddress,
 				timestampMs: (block) => block.timestampMs,
 				transactionCount: (block) => block.transactionCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosTransaction,
@@ -269,7 +272,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$block: (transaction) => transaction.$block,
 				code: (transaction) => transaction.code,
 				gasWanted: (transaction) => transaction.gasWanted,
@@ -277,7 +281,7 @@ export default {
 				memo: (transaction) => transaction.memo,
 				$$messages: (transaction) => transaction.$$messages,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosAccount,
@@ -299,11 +303,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				accountNumber: (account) => account.accountNumber,
 				sequence: (account) => account.sequence,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosValidator,
@@ -317,14 +322,15 @@ export default {
 				})).validator)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				consensusPubkey: (validator) => validator.consensusPubkey,
 				moniker: (validator) => validator.moniker,
 				jailed: (validator) => validator.jailed,
 				status: (validator) => validator.status,
 				tokens: (validator) => validator.tokens,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosMessage,
@@ -343,12 +349,13 @@ export default {
 				return cosmosMessage
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				typeUrl: (message) => message.typeUrl,
 				$signer: (message) => message.$signer,
 				$contract: (message) => message.$contract,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosGovernanceProposal,
@@ -366,11 +373,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				title: (proposal) => proposal.title,
 				status: (proposal) => proposal.status,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosDenom,
@@ -389,12 +397,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				display: (denom) => denom.display,
 				base: (denom) => denom.base,
 				symbol: (denom) => denom.symbol,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosModule,
@@ -418,10 +427,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$authority: (module) => module.$authority,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosContract,
@@ -452,12 +462,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				codeId: (contract) => contract.codeId,
 				$creator: (contract) => contract.$creator,
 				$admin: (contract) => contract.$admin,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
@@ -473,10 +484,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				restEndpoints: (endpoints) => endpoints,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
@@ -493,10 +505,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
@@ -525,10 +538,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$blocks: (blocks) => blocks,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
@@ -542,10 +556,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$validators: (validators) => validators,
 			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
@@ -559,10 +574,11 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$governanceProposals: (proposals) => proposals,
 			},
-		}),
+			}),
 
 
 		defineResolver(Source.CosmosSdk_Rest, {
@@ -580,9 +596,10 @@ export default {
 				)
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$messages: (messages) => messages,
 			},
-		}),
+			}),
 	],
 }

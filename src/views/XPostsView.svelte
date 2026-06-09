@@ -1,19 +1,20 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -64,24 +65,21 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [Source.Constants_Internal],
-			[entityFieldReference.fieldName]: {
-				$: [
+		entityFieldReference.entityId,({ sources: [Source.Constants_Internal], fields: { [entityFieldReference.fieldName]: {
+				sources: [
 					Source.X_Rest,
 					Source.X_FxEmbed_Rest,
 				],
 			},
-		},
+		} }),
 	)}
 			{@const posts = derive(
 		parent,
 		(parent) => {
-			const xPosts: Entity<typeof schema, EntityType.XPost>[] = (
-				parent[entityFieldReference.fieldName] ?? []
+			const xPosts: readonly Entity<typeof schema, EntityType.XPost>[] = (
+				parent.fields[entityFieldReference.fieldName]?.values ?? []
 			)
 			return (
 				xPosts

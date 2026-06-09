@@ -1,12 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
@@ -39,7 +39,8 @@
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
 
 	// Components
@@ -75,36 +76,36 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				(
 					entityFieldReference.entityType === EntityType.YouTubeNetwork ?
 							{
-								$: [
+								sources: [
 									Source.Constants_Internal,
 									Source.Youtube_Rest,
 								],
 								$$youtubePlaylists: {
-									$: [
+									sources: [
 										Source.Constants_Internal,
 										Source.Youtube_Rest,
 								],
-								$limit: limit,
+								limit: limit,
 							},
 						}
 					:
 							{
-								$: [
+								sources: [
 									Source.Youtube_Rest,
 									Source.Piped_Rest,
 								],
 								$$playlists: {
-									$: [
+									sources: [
 										Source.Youtube_Rest,
 										Source.Piped_Rest,
 								],
-								$limit: limit,
+								limit: limit,
 							},
 						}
 				),
@@ -112,8 +113,8 @@
 			{@const playlists = derive(
 				parent,
 				(parent) => {
-					const youTubePlaylists: Entity<typeof schema, EntityType.YouTubePlaylist>[] = (
-						parent[entityFieldReference.fieldName] ?? []
+					const youTubePlaylists: readonly Entity<typeof schema, EntityType.YouTubePlaylist>[] = (
+						parent.fields[entityFieldReference.fieldName]?.values ?? []
 					)
 					return (
 						youTubePlaylists.map((playlist) => ({

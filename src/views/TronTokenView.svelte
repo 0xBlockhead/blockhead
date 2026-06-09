@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,20 +27,9 @@
 		>
 	> = $props()
 
-	const token = useEntity(
-		EntityType.TronToken,
+	const token = useEntity(entityCollectionsContext, EntityType.TronToken,
 		entityId,
-		{
-			standard: {},
-			name: {},
-			symbol: {},
-			decimals: {},
-			totalSupply: {},
-			...open && {
-				createdTimestampMs: {},
-				holderCount: {},
-			},
-		},
+		({ fields: { standard: true, name: true, symbol: true, decimals: true, totalSupply: true, ...(open && ({ createdTimestampMs: true, holderCount: true })) } }),
 	)
 
 
@@ -63,7 +53,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={token}>
 			{#snippet children(token)}
-				{token.symbol ?? token.name ?? entityId.tokenId}
+				{token.fields.symbol ?? token.fields.name ?? entityId.tokenId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -75,45 +65,45 @@
 		>
 			{#snippet children(token)}
 				<dl data-column-item="center">
-					{#if token.standard != null}
+					{#if token.fields.standard != null}
 						<div>
 							<dt>Standard</dt>
-							<dd>{token.standard}</dd>
+							<dd>{token.fields.standard}</dd>
 						</div>
 					{/if}
 
-					{#if token.name != null}
+					{#if token.fields.name != null}
 						<div>
 							<dt>Name</dt>
-							<dd>{token.name}</dd>
+							<dd>{token.fields.name}</dd>
 						</div>
 					{/if}
 
-					{#if token.symbol != null}
+					{#if token.fields.symbol != null}
 						<div>
 							<dt>Symbol</dt>
-							<dd>{token.symbol}</dd>
+							<dd>{token.fields.symbol}</dd>
 						</div>
 					{/if}
 
-					{#if token.decimals != null}
+					{#if token.fields.decimals != null}
 						<div>
 							<dt>Decimals</dt>
-							<dd><NumberValue value={token.decimals} /></dd>
+							<dd><NumberValue value={token.fields.decimals} /></dd>
 						</div>
 					{/if}
 
-					{#if token.totalSupply != null}
+					{#if token.fields.totalSupply != null}
 						<div>
 							<dt>Total supply</dt>
-							<dd><NumberValue value={token.totalSupply} /></dd>
+							<dd><NumberValue value={token.fields.totalSupply} /></dd>
 						</div>
 					{/if}
 
-					{#if open && token.createdTimestampMs != null}
+					{#if open && token.fields.createdTimestampMs != null}
 						<div>
 							<dt>Created</dt>
-							<dd><Timestamp timestamp={token.createdTimestampMs} /></dd>
+							<dd><Timestamp timestamp={token.fields.createdTimestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

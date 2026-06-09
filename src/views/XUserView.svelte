@@ -3,16 +3,17 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -37,11 +38,9 @@
 		>
 	> = $props()
 
-	const user = useEntity(
-		EntityType.XUser,
+	const user = useEntity(entityCollectionsContext, EntityType.XUser,
 		entityId,
-		{
-			$: (
+		({ sources: (
 				'id' in entityId ?
 					(
 						resolverDefinitionsByEntityType[EntityType.XUser]?.map((r) => r.source)
@@ -49,30 +48,10 @@
 					)
 				:
 					[Source.X_FxEmbed_Rest]
-			),
-			id: {},
-			username: {},
-			name: {},
-			description: {},
-			location: {},
-			websiteUrl: {},
-			verified: {},
-			createdAt: {},
-			followerCount: {},
-			followingCount: {},
-			tweetCount: {},
-			listedCount: {},
-			$$timestamps: {
-				$: (
+			), fields: { id: true, username: true, name: true, description: true, location: true, websiteUrl: true, verified: true, createdAt: true, followerCount: true, followingCount: true, tweetCount: true, listedCount: true, $$timestamps: ({ sources: (
 					resolverDefinitionsByEntityType[EntityType.XUser_Timestamp]?.map((r) => r.source)
 					?? [Source.Local_Internal]
-				),
-				$limit: 1,
-			},
-			$icon: {},
-			$profileBanner: {},
-			$$posts: {},
-		},
+				), limit: 1 }), $icon: true, $profileBanner: true, $$posts: true } }),
 	)
 
 
@@ -104,11 +83,11 @@
 			placeholderText="Loading X profile…"
 		>
 			{#snippet children(user)}
-				{#if user.$icon !== undefined}
+				{#if user.fields.$icon !== undefined}
 					<IconComponent
-						alt={user.name ?? user.username ?? ''}
+						alt={user.fields.name ?? user.fields.username ?? ''}
 						shape={IconShape.Circle}
-						src={user.$icon[EntityMetaKey.Id].url}
+						src={user.fields.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
 			{/snippet}
@@ -128,7 +107,7 @@
 			placeholderText="Loading X profile…"
 		>
 			{#snippet children(user)}
-				{user.name ?? user.username ?? ('id' in entityId ? entityId.id : entityId.username)}
+				{user.fields.name ?? user.fields.username ?? ('id' in entityId ? entityId.id : entityId.username)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -140,13 +119,13 @@
 		>
 			{#snippet children(user)}
 				{#if (
-					user.username !== undefined
-					&& user.username !== (
-						user.name ?? ('id' in entityId ? entityId.id : entityId.username)
+					user.fields.username !== undefined
+					&& user.fields.username !== (
+						user.fields.name ?? ('id' in entityId ? entityId.id : entityId.username)
 					)
 				)}
 					<span data-text="muted">
-						@{user.username}
+						@{user.fields.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -168,10 +147,10 @@
 			placeholderText="Loading X profile…"
 		>
 			{#snippet children(user)}
-				{#if user.description}
+				{#if user.fields.description}
 					<p>
 						<TruncatedValue
-							value={user.description}
+							value={user.fields.description}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -190,19 +169,19 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: user.$$timestamps[0]?.followerCount ?? user.followerCount,
+									value: user.fields.$$timestamps[0]?.followerCount ?? user.fields.followerCount,
 								},
 								{
 									label: 'Following',
-									value: user.$$timestamps[0]?.followingCount ?? user.followingCount,
+									value: user.fields.$$timestamps[0]?.followingCount ?? user.fields.followingCount,
 								},
 								{
 									label: 'Posts',
-									value: user.$$timestamps[0]?.tweetCount ?? user.tweetCount,
+									value: user.fields.$$timestamps[0]?.tweetCount ?? user.fields.tweetCount,
 								},
 								{
 									label: 'Listed',
-									value: user.$$timestamps[0]?.listedCount ?? user.listedCount,
+									value: user.fields.$$timestamps[0]?.listedCount ?? user.fields.listedCount,
 								},
 							]}
 						/>
@@ -219,8 +198,8 @@
 							placeholderText="Loading X profile…"
 						>
 							{#snippet children(user)}
-								{#if user.verified != null}
-									{user.verified ? 'Yes' : 'No'}
+								{#if user.fields.verified != null}
+									{user.fields.verified ? 'Yes' : 'No'}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -237,15 +216,15 @@
 							placeholderText="Loading X profile…"
 						>
 							{#snippet children(user)}
-								{#if user.websiteUrl}
+								{#if user.fields.websiteUrl}
 									<a
-										href={user.websiteUrl}
+										href={user.fields.websiteUrl}
 										rel="noreferrer noopener"
 										target="_blank"
 									>
 										<TruncatedValue
 											format={TruncatedValueFormat.Visual}
-											value={user.websiteUrl}
+											value={user.fields.websiteUrl}
 										/>
 									</a>
 								{/if}
@@ -264,8 +243,8 @@
 							placeholderText="Loading X profile…"
 						>
 							{#snippet children(user)}
-								{#if user.location}
-									{user.location}
+								{#if user.fields.location}
+									{user.fields.location}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -282,9 +261,9 @@
 							placeholderText="Loading X profile…"
 						>
 							{#snippet children(user)}
-								{#if user.createdAt != null}
+								{#if user.fields.createdAt != null}
 									<Timestamp
-										timestamp={user.createdAt}
+										timestamp={user.fields.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -327,25 +306,25 @@
 				>
 					{#snippet children(user)}
 						<div>
-							{#if user.description}
-								<p><strong>Description:</strong> {user.description}</p>
+							{#if user.fields.description}
+								<p><strong>Description:</strong> {user.fields.description}</p>
 							{/if}
 
-							{#if user.$profileBanner?.[EntityMetaKey.Id].url != null}
+							{#if user.fields.$profileBanner?.[EntityMetaKey.Id].url != null}
 								<figure>
 									<Media
 										alt=""
-										media={{ url: user.$profileBanner[EntityMetaKey.Id].url }}
+										media={{ url: user.fields.$profileBanner[EntityMetaKey.Id].url }}
 									/>
 								</figure>
 							{/if}
 
 							{#if (
-								user.name === undefined
-								&& user.username === undefined
-								&& user.description === undefined
-								&& user.$icon === undefined
-								&& user.$profileBanner === undefined
+								user.fields.name === undefined
+								&& user.fields.username === undefined
+								&& user.fields.description === undefined
+								&& user.fields.$icon === undefined
+								&& user.fields.$profileBanner === undefined
 							)}
 								<p data-text="muted">
 									User details are not available yet.
@@ -359,17 +338,17 @@
 			{#snippet SectionPosts()}
 				<ResourceBoundary resource={user}>
 					{#snippet children(user)}
-						{#if (user.$$posts?.length)}
+						{#if (user.fields.$$posts?.values.length)}
 							<XPostsView
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve(
 									'/(social)/(x)/x/user/[userId]',
-									{ userId: user.id },
+									{ userId: user.fields.id },
 								)}
 								entityFieldReference={{
 									entityType: EntityType.XUser,
 									entityId: {
-										id: user.id,
+										id: user.fields.id,
 									},
 									fieldName: '$$posts',
 								}}
@@ -388,12 +367,12 @@
 							entityFieldReference={{
 								entityType: EntityType.XUser,
 								entityId: {
-									id: user.id,
+									id: user.fields.id,
 								},
 								fieldName: '$$timestamps',
 							}}
 							href={resolve('/(social)/(x)/x/user/[userId]', {
-								userId: user.id,
+								userId: user.fields.id,
 							})}
 							id={`${userIdKey}:metric-snapshots`}
 							title="Metric snapshots"

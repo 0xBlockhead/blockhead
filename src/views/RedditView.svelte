@@ -3,14 +3,15 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -33,36 +34,17 @@
 
 	const networkIdKey = stringify(entityId)
 
-	const redditNetwork = useEntity(
-		EntityType.RedditNetwork,
+	const redditNetwork = useEntity(entityCollectionsContext, EntityType.RedditNetwork,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Constants_Internal,
-			],
-			protocolName: {},
-			registryLabel: {},
-			...(open ?
-				{
-					docsUrl: {},
-					homeUrl: {},
-					topology: {},
-					$$redditLinks: {
-						$: [
+			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$redditLinks: ({ sources: [
 							Source.Reddit_Rest,
 							Source.Reddit_PublicJson,
-						],
-					},
-					$$redditSubreddits: {
-						$: [
+						] }), $$redditSubreddits: ({ sources: [
 							Source.Reddit_Rest,
 							Source.Reddit_PublicJson,
-						],
-					},
-				}
-			:
-				{}),
-		},
+						] }) }) : ({  })) } }),
 	)
 
 
@@ -110,58 +92,58 @@
 				placeholderText="Loading Reddit…"
 			>
 				{#snippet children(redditNetwork)}
-					{#if redditNetwork.registryLabel}
+					{#if redditNetwork.fields.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{redditNetwork.registryLabel}</dd>
+							<dd>{redditNetwork.fields.registryLabel}</dd>
 						</div>
-					{:else if redditNetwork.protocolName}
+					{:else if redditNetwork.fields.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{redditNetwork.protocolName}</dd>
+							<dd>{redditNetwork.fields.protocolName}</dd>
 						</div>
 					{/if}
 
 						{#if open}
 							<div>
 								<dt>Communities</dt>
-								<dd>{String(redditNetwork.$$redditSubreddits?.length ?? 0)}</dd>
+								<dd>{String(redditNetwork.fields.$$redditSubreddits?.values.length ?? 0)}</dd>
 							</div>
 						{/if}
 
 						{#if open}
 							<div>
 								<dt>Submissions</dt>
-								<dd>{String(redditNetwork.$$redditLinks?.length ?? 0)}</dd>
+								<dd>{String(redditNetwork.fields.$$redditLinks?.values.length ?? 0)}</dd>
 							</div>
 						{/if}
 
-						{#if open && redditNetwork.homeUrl}
+						{#if open && redditNetwork.fields.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={redditNetwork.homeUrl}>
-										{redditNetwork.homeUrl}
+									<a href={redditNetwork.fields.homeUrl}>
+										{redditNetwork.fields.homeUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if open && redditNetwork.docsUrl}
+						{#if open && redditNetwork.fields.docsUrl}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={redditNetwork.docsUrl}>
-										{redditNetwork.docsUrl}
+									<a href={redditNetwork.fields.docsUrl}>
+										{redditNetwork.fields.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if open && redditNetwork.topology}
+						{#if open && redditNetwork.fields.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{redditNetwork.topology}</dd>
+								<dd>{redditNetwork.fields.topology}</dd>
 							</div>
 						{/if}
 				{/snippet}

@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,13 +27,9 @@
 		>
 	> = $props()
 
-	const litecoinMwebOutput = useEntity(
-		EntityType.LitecoinMwebOutput,
+	const litecoinMwebOutput = useEntity(entityCollectionsContext, EntityType.LitecoinMwebOutput,
 		entityId,
-		{
-			commitment: {},
-			senderPubkey: {},
-		},
+		({ fields: { commitment: true, senderPubkey: true } }),
 	)
 
 
@@ -74,23 +71,23 @@
 		>
 			{#snippet children(litecoinMwebOutput)}
 				<dl>
-					{#if litecoinMwebOutput.commitment != null}
+					{#if litecoinMwebOutput.fields.commitment != null}
 						<div>
 							<dt>Commitment</dt>
 							<dd>
 								<TruncatedValue
-									value={litecoinMwebOutput.commitment}
+									value={litecoinMwebOutput.fields.commitment}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>
 					{/if}
 
-					{#if litecoinMwebOutput.senderPubkey != null}
+					{#if litecoinMwebOutput.fields.senderPubkey != null}
 						<div>
 							<dt>Sender Pubkey</dt>
 							<dd>
 								<TruncatedValue
-									value={litecoinMwebOutput.senderPubkey}
+									value={litecoinMwebOutput.fields.senderPubkey}
 									format={TruncatedValueFormat.Abbr}
 								/></dd>
 						</div>

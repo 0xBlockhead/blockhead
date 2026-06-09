@@ -1,17 +1,18 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -69,25 +70,27 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const activityPubNetwork = useEntity(
+			{@const activityPubNetwork = useEntity(entityCollectionsContext,
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				{
-					$: [Source.Constants_Internal],
-					protocolName: {},
-					$$activityPubActors: {
-						$: [
-							Source.Constants_Internal,
-							Source.Mastodon_Rest,
-							Source.Fedi_Rest,
-						],
+					sources: [Source.Constants_Internal],
+					fields: {
+						protocolName: true,
+						$$activityPubActors: {
+							sources: [
+								Source.Constants_Internal,
+								Source.Mastodon_Rest,
+								Source.Fedi_Rest,
+							],
+						},
 					},
 				},
 			)}
 			{@const actors = derive(
 				activityPubNetwork,
 				(activityPubNetwork) => (
-					activityPubNetwork.$$activityPubActors ?? []
+					activityPubNetwork.fields.$$activityPubActors?.values ?? []
 				),
 			)}
 			{#key stringify(entityFieldReference.entityId)}

@@ -1,6 +1,6 @@
 import { getJson } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/lib/sources.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { fediApiBase } from '$/sources/Fedi/Rest/constants.ts'
 import Fedi from '$/sources/Fedi/index.ts'

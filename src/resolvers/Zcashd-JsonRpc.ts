@@ -8,11 +8,11 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -121,12 +121,13 @@ export default {
 						}
 				)
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			activationNetworkUpgrade: (snapshot) => snapshot.activationNetworkUpgrade,
 			noteProtocol: (snapshot) => snapshot.noteProtocol,
-		}
-		}),
+		},
+			}),
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
@@ -143,15 +144,16 @@ export default {
 					),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			version: (snapshot) => snapshot.version,
 			lockTime: (snapshot) => snapshot.lockTime,
 			sizeBytes: (snapshot) => snapshot.sizeBytes,
 			weightUnits: (snapshot) => snapshot.weightUnits,
 			$$zcashShieldedActions: (snapshot) => snapshot.$$zcashShieldedActions,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.ZcashShieldedAction,
@@ -168,14 +170,15 @@ export default {
 				if (shieldedAction == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${entityId.$transaction.txId}`)
 				return shieldedAction
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$pool: (snapshot) => snapshot.$pool,
 			actionKind: (snapshot) => snapshot.actionKind,
 			nullifier: (snapshot) => snapshot.nullifier,
 			noteCommitment: (snapshot) => snapshot.noteCommitment,
 			valueCommitment: (snapshot) => snapshot.valueCommitment,
-		}
-		}),
+		},
+			}),
 	],
 }

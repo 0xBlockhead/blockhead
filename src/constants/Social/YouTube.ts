@@ -1,7 +1,7 @@
 // Types
 
 import type { EntityId } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { YouTubeLiveBroadcastContent } from '$/schema/YouTubeVideo.ts'
 import { schema } from '$/schema/index.ts'
 

@@ -1,15 +1,16 @@
 <script lang="ts">
 	// Types/constants
 	import type { Snippet } from 'svelte'
-	import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -26,19 +27,15 @@
 		}
 	} = $props()
 
-	const transaction = useEntity(
-		EntityType.EvmTransaction,
+	const transaction = useEntity(entityCollectionsContext, EntityType.EvmTransaction,
 		{
 			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			txHash: ZeroExHex.assert(params.transactionId ?? ''),
 		},
-		{
-			$: [
+		({ sources: [
 				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
-			],
-			$block: {},
-		},
+			], fields: { $block: true } }),
 	)
 
 
@@ -60,8 +57,8 @@
 		placeholderText="Loading transaction block…"
 	>
 		{#snippet children(transaction)}
-			{#if transaction.$block?.[EntityMetaKey.Id]}
-				{@const blockEntityId = transaction.$block[EntityMetaKey.Id]}
+			{#if transaction.fields.$block?.[EntityMetaKey.Id]}
+				{@const blockEntityId = transaction.fields.$block[EntityMetaKey.Id]}
 				<ParentPageCollapsible
 					href={resolve(
 						'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]',

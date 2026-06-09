@@ -1,18 +1,19 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -69,34 +70,33 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentEntityType = entityFieldReference.entityType}
-			{@const parent = useEntity(
+			{@const parent = useEntity(entityCollectionsContext,
 				parentEntityType,
-				entityFieldReference.entityId,
-				{
+				entityFieldReference.entityId,({ fields: {
 					...(parentEntityType === EntityType.EvmNetwork && {
 						blockHeight: {
-							$: [
+							sources: [
 								Source.Voltaire_JsonRpc,
 							],
 						},
 					}),
 					[entityFieldReference.fieldName]: {
-						$: [
+						sources: [
 							Source.Voltaire_JsonRpc,
 						],
 						...(parentEntityType === EntityType.EvmNetwork && {
-							$limit: 8,
+							limit: 8,
 						}),
 					},
-				},
+				} }),
 			)}
 			{@const blobs = derive(
 				parent,
 				(parent) => (
 					parentEntityType === EntityType.EvmNetwork ?
-						(parent[entityFieldReference.fieldName] ?? [])
+						(parent.fields[entityFieldReference.fieldName]?.values ?? [])
 					:
-						(parent[entityFieldReference.fieldName] ?? [])
+						(parent.fields[entityFieldReference.fieldName]?.values ?? [])
 				),
 			)}
 			<div data-column="gap-3">

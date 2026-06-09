@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,9 @@
 		>
 	> = $props()
 
-	const daQuorum = useEntity(
-		EntityType.ZeroGDaQuorum,
+	const daQuorum = useEntity(entityCollectionsContext, EntityType.ZeroGDaQuorum,
 		entityId,
-		{
-			selectionMethod: {},
-		},
+		({ fields: { selectionMethod: true } }),
 	)
 
 
@@ -65,11 +63,11 @@
 			placeholderText="Loading 0G DA quorum…"
 		>
 			{#snippet children(daQuorum)}
-				{#if daQuorum.selectionMethod != null}
+				{#if daQuorum.fields.selectionMethod != null}
 					<dl>
 						<div>
 							<dt>Selection</dt>
-							<dd>{daQuorum.selectionMethod}</dd>
+							<dd>{daQuorum.fields.selectionMethod}</dd>
 						</div>
 					</dl>
 				{/if}

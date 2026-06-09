@@ -3,12 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -26,12 +27,9 @@
 		>
 	> = $props()
 
-	const zeroGConsensusNetwork = useEntity(
-		EntityType.ZeroGConsensusNetwork,
+	const zeroGConsensusNetwork = useEntity(entityCollectionsContext, EntityType.ZeroGConsensusNetwork,
 		entityId,
-		{
-			sharedStakingStatusSource: {},
-		},
+		({ fields: { sharedStakingStatusSource: true } }),
 	)
 
 
@@ -64,10 +62,10 @@
 		>
 			{#snippet children(zeroGConsensusNetwork)}
 				<dl>
-					{#if zeroGConsensusNetwork.sharedStakingStatusSource != null}
+					{#if zeroGConsensusNetwork.fields.sharedStakingStatusSource != null}
 						<div>
 							<dt>Shared staking status source</dt>
-							<dd>{zeroGConsensusNetwork.sharedStakingStatusSource}</dd>
+							<dd>{zeroGConsensusNetwork.fields.sharedStakingStatusSource}</dd>
 						</div>
 					{/if}
 				</dl>

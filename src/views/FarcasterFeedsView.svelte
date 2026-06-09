@@ -2,16 +2,17 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -90,15 +91,9 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parentNetwork = useEntity(
-				EntityType.FarcasterNetwork,
+			{@const parentNetwork = useEntity(entityCollectionsContext, EntityType.FarcasterNetwork,
 				entityFieldReference.entityId,
-				{
-					$$feeds: {
-						$: [Source.Farcaster_Rest],
-						$limit: limit,
-					},
-				},
+				({ fields: { $$feeds: ({ sources: [Source.Farcaster_Rest], limit: limit }) } }),
 			)}
 			{@const feeds = derive(
 				parentNetwork,

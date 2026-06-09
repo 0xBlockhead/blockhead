@@ -1,6 +1,6 @@
 import { getJson } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/lib/sources.ts'
-import { Source } from '$/sources/$Source.ts'
+import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import CoinMarketCap from '$/sources/CoinMarketCap/index.ts'
 import { baseUrl } from '$/sources/CoinMarketCap/Rest/constants.ts'

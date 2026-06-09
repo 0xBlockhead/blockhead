@@ -4,9 +4,9 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type { ThreeXplBlockEvent } from '$/sources/ThreeXpl/Rest/types.ts'
 
 const threeXplBlockchain = (
@@ -74,12 +74,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				hash: (block) => block.hash,
 				$parent: (block) => block.$parent,
 				timestampMs: (block) => block.timestampMs,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.MoneroTransaction,
@@ -102,10 +103,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$block: (transaction) => transaction.$block,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.NearBlock,
@@ -132,12 +134,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				hash: (block) => block.hash,
 				$parent: (block) => block.$parent,
 				timestampMs: (block) => block.timestampMs,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.NearTransaction,
@@ -151,8 +154,9 @@ export default {
 				return {}
 			}
 			},
-			fields: {},
-		}),
+		})({
+				fields: {},
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.PolkadotBlock,
@@ -178,11 +182,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				hash: (block) => block.hash,
 				$parent: (block) => block.$parent,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 				entityType: EntityType.SolanaBlock,
@@ -207,12 +212,13 @@ export default {
 				}
 			}
 				},
-			fields: {
+		})({
+				fields: {
 				blockHash: (block) => block.blockHash,
 				timestampMs: (block) => block.timestampMs,
 				transactionCount: (block) => block.transactionCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.SolanaTransaction,
@@ -236,11 +242,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$block: (transaction) => transaction.$block,
 				slot: (transaction) => transaction.slot,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronBlock,
@@ -268,13 +275,14 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				hash: (block) => block.hash,
 				$parent: (block) => block.$parent,
 				timestampMs: (block) => block.timestampMs,
 				transactionCount: (block) => block.transactionCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronTransaction,
@@ -301,12 +309,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$block: (transaction) => transaction.$block,
 				blockHeight: (transaction) => transaction.blockHeight,
 				timestampMs: (transaction) => transaction.timestampMs,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.UtxoBlock,
@@ -326,12 +335,13 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				hash: (block) => block.hash,
 				timestampMs: (block) => block.timestampMs,
 				transactionCount: (block) => block.transactionCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.UtxoTransaction,
@@ -354,10 +364,11 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$block: (transaction) => transaction.$block,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.MoneroBlock,
@@ -382,10 +393,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$transactions: (transactions) => transactions,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 				entityType: EntityType.SolanaBlock,
@@ -414,10 +426,11 @@ export default {
 				}))
 			}
 				},
-			fields: {
+		})({
+				fields: {
 				$$transactions: (transactions) => transactions,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronBlock,
@@ -443,10 +456,11 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$transactions: (transactions) => transactions,
 			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.UtxoBlock,
@@ -471,9 +485,10 @@ export default {
 				}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$transactions: (transactions) => transactions,
 			},
-		}),
+			}),
 	],
 }

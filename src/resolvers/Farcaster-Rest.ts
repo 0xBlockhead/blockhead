@@ -8,14 +8,14 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+} from '$/schema/$schema.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import type { CastHash } from '$/schema/FarcasterCast.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 const normalizeMediaUrl = (value: string | null | undefined): string | undefined => {
@@ -127,11 +127,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$primaryEvmAccount: (user) => user.$primaryEvmAccount,
 				$$verifiedAddresses: (user) => user.$$verifiedAddresses,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel,
@@ -216,7 +217,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				name: (channel) => channel.name,
 				url: (channel) => channel.url,
 				description: (channel) => channel.description,
@@ -234,7 +236,7 @@ export default {
 				externalLinkUrl: (channel) => channel.externalLinkUrl,
 				followedAt: (channel) => channel.followedAt,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel_Timestamp,
@@ -258,11 +260,12 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				followerCount: (timestamp) => timestamp.followerCount,
 				memberCount: (timestamp) => timestamp.memberCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterCast,
@@ -319,7 +322,8 @@ export default {
 				}
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				fid: (cast) => cast.fid,
 				hash: (cast) => cast.hash,
 				username: (cast) => cast.username,
@@ -332,7 +336,7 @@ export default {
 				replyCount: (cast) => cast.replyCount,
 				threadHash: (cast) => cast.threadHash,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterNetwork,
@@ -341,14 +345,15 @@ export default {
 				farcasterNetworkFieldValues
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				protocolName: (network) => network.protocolName,
 				homeUrl: (network) => network.homeUrl,
 				docsUrl: (network) => network.docsUrl,
 				registryLabel: (network) => network.registryLabel,
 				topology: (network) => network.topology,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterFeed,
@@ -364,10 +369,11 @@ export default {
 					{ label: 'Following' }
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				label: (feed) => feed.label,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel,
@@ -397,10 +403,11 @@ export default {
 				]
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel,
@@ -412,10 +419,11 @@ export default {
 				})
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				followerCount: (followerCount) => followerCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel,
@@ -427,10 +435,11 @@ export default {
 				})
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				memberCount: (memberCount) => memberCount,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterNetwork,
@@ -445,10 +454,11 @@ export default {
 				]
 			)
 			},
-			fields: {
+		})({
+				fields: {
 				$$feeds: (feeds) => feeds,
 			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterNetwork,
@@ -463,9 +473,10 @@ export default {
 					}))
 			}
 			},
-			fields: {
+		})({
+				fields: {
 				$$channels: (channels) => channels,
 			},
-		}),
+			}),
 	],
 }

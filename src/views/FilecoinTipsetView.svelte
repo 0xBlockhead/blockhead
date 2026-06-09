@@ -3,14 +3,15 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -28,20 +29,11 @@
 		>
 	> = $props()
 
-	const tipset = useEntity(
-		EntityType.FilecoinTipset,
+	const tipset = useEntity(entityCollectionsContext, EntityType.FilecoinTipset,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Filfox_Rest,
-			],
-			timestampMs: {},
-			$$blocks: {},
-			...open && {
-				$parent: {},
-				parentWeight: {},
-			},
-		},
+			], fields: { timestampMs: true, $$blocks: true, ...(open && ({ $parent: true, parentWeight: true })) } }),
 	)
 
 
@@ -95,20 +87,20 @@
 						<dd>{entityId.tipsetKey}</dd>
 					</div>
 
-						{#if (tipset.$$blocks?.length ?? 0) > 0}
+						{#if (tipset.fields.$$blocks?.values.length ?? 0) > 0}
 							<div>
 								<dt>Blocks</dt>
-								<dd><NumberValue value={tipset.$$blocks?.length ?? 0} /></dd>
+								<dd><NumberValue value={tipset.fields.$$blocks?.values.length ?? 0} /></dd>
 							</div>
 						{/if}
 
-					{#if open && tipset.$parent != null}
+					{#if open && tipset.fields.$parent != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<EntityView
 									entityType={EntityType.FilecoinTipset}
-									entityId={tipset.$parent[EntityMetaKey.Id]}
+									entityId={tipset.fields.$parent[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -116,17 +108,17 @@
 						</div>
 					{/if}
 
-					{#if open && tipset.parentWeight != null}
+					{#if open && tipset.fields.parentWeight != null}
 						<div>
 							<dt>Parent weight</dt>
-							<dd><NumberValue value={tipset.parentWeight} /></dd>
+							<dd><NumberValue value={tipset.fields.parentWeight} /></dd>
 						</div>
 					{/if}
 
-					{#if tipset.timestampMs != null}
+					{#if tipset.fields.timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={tipset.timestampMs} /></dd>
+							<dd><Timestamp timestamp={tipset.fields.timestampMs} /></dd>
 						</div>
 					{/if}
 				</dl>

@@ -3,9 +3,9 @@
 		import type { ComponentProps, Snippet } from 'svelte'
 		import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
@@ -13,7 +13,8 @@
 
 	// Context
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -52,32 +53,15 @@
 		>
 	> = $props()
 
-	const comment = useEntity(
-		EntityType.YouTubeComment,
+	const comment = useEntity(entityCollectionsContext, EntityType.YouTubeComment,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
-			],
-			text: {},
-			authorDisplayName: {},
-			authorChannelId: {},
-			$author: {},
-			likeCount: {},
-			replyCount: {},
-			$$timestamps: {
-				$: [
+			], fields: { text: true, authorDisplayName: true, authorChannelId: true, $author: true, likeCount: true, replyCount: true, $$timestamps: ({ sources: [
 					Source.Youtube_Rest,
 					Source.Piped_Rest,
-				],
-				$limit: 1,
-			},
-			publishedAt: {},
-			publishedAtMs: {},
-			$video: {},
-			$parentComment: {},
-		},
+				], limit: 1 }), publishedAt: true, publishedAtMs: true, $video: true, $parentComment: true } }),
 	)
 
 	const idKey = stringify(entityId)
@@ -121,8 +105,8 @@
 			{#snippet children(comment)}
 				<TruncatedValue
 					value={(
-						comment.text ?
-							comment.text.replaceAll('\n', ' ')
+						comment.fields.text ?
+							comment.fields.text.replaceAll('\n', ' ')
 						:
 							entityId.commentId
 					)}
@@ -153,10 +137,10 @@
 			placeholderText="Loading YouTube comment…"
 		>
 			{#snippet children(comment)}
-				{#if comment.text}
+				{#if comment.fields.text}
 					<p>
 						<TruncatedValue
-							value={comment.text}
+							value={comment.fields.text}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</p>
@@ -171,11 +155,11 @@
 					placeholderText="Loading YouTube comment…"
 				>
 					{#snippet children(comment)}
-						{#if comment.authorDisplayName}
+						{#if comment.fields.authorDisplayName}
 							<div>
 								<dt>Author</dt>
 								<dd>
-									{comment.authorDisplayName}
+									{comment.fields.authorDisplayName}
 								</dd>
 							</div>
 						{/if}
@@ -190,11 +174,11 @@
 							metrics={[
 								{
 									label: 'Likes',
-									value: comment.$$timestamps[0]?.likeCount ?? comment.likeCount,
+									value: comment.fields.$$timestamps[0]?.likeCount ?? comment.fields.likeCount,
 								},
 								{
 									label: 'Replies',
-									value: comment.$$timestamps[0]?.replyCount ?? comment.replyCount,
+									value: comment.fields.$$timestamps[0]?.replyCount ?? comment.fields.replyCount,
 								},
 							]}
 						/>
@@ -205,14 +189,14 @@
 					placeholderText="Loading YouTube comment…"
 				>
 					{#snippet children(comment)}
-						{#if comment.publishedAtMs != null || comment.publishedAt != null}
+						{#if comment.fields.publishedAtMs != null || comment.fields.publishedAt != null}
 							<div>
 								<dt>Published</dt>
 								<dd>
-									{#if comment.publishedAtMs != null}
-										<Timestamp timestamp={comment.publishedAtMs} />
-									{:else if comment.publishedAt != null}
-										{comment.publishedAt}
+									{#if comment.fields.publishedAtMs != null}
+										<Timestamp timestamp={comment.fields.publishedAtMs} />
+									{:else if comment.fields.publishedAt != null}
+										{comment.fields.publishedAt}
 									{/if}
 								</dd>
 							</div>
@@ -224,19 +208,19 @@
 					placeholderText="Loading YouTube comment…"
 				>
 					{#snippet children(comment)}
-						{#if comment.$author || comment.authorChannelId}
+						{#if comment.fields.$author || comment.fields.authorChannelId}
 							<div>
 								<dt>Channel</dt>
 								<dd>
-									{#if comment.$author}
+									{#if comment.fields.$author}
 										<YouTubeChannelView
-											entityId={comment.$author[EntityMetaKey.Id]}
+											entityId={comment.fields.$author[EntityMetaKey.Id]}
 											layout={EntityLayout.Value}
 											open={false}
 										/>
-									{:else if comment.authorChannelId}
+									{:else if comment.fields.authorChannelId}
 										<YouTubeChannelView
-											entityId={{ channelId: comment.authorChannelId }}
+											entityId={{ channelId: comment.fields.authorChannelId }}
 											layout={EntityLayout.Value}
 											open={false}
 										/>
@@ -252,12 +236,12 @@
 					placeholderText="Loading YouTube comment…"
 				>
 					{#snippet children(comment)}
-						{#if comment.$video !== undefined}
+						{#if comment.fields.$video !== undefined}
 							<div>
 								<dt>Video</dt>
 								<dd>
 									<YouTubeVideoView
-										entityId={comment.$video[EntityMetaKey.Id]}
+										entityId={comment.fields.$video[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -272,12 +256,12 @@
 					placeholderText="Loading YouTube comment…"
 				>
 					{#snippet children(comment)}
-						{#if comment.$parentComment !== undefined}
+						{#if comment.fields.$parentComment !== undefined}
 							<div>
 								<dt>Parent comment</dt>
 								<dd>
 									<svelte:self
-										entityId={comment.$parentComment[EntityMetaKey.Id]}
+										entityId={comment.fields.$parentComment[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -294,30 +278,19 @@
 		open: _open,
 	})}
 		{#if _open}
-			{@const repliesParent = useEntity(
-				EntityType.YouTubeComment,
+			{@const repliesParent = useEntity(entityCollectionsContext, EntityType.YouTubeComment,
 				entityId,
-				{
-					$: [
+				({ sources: [
 						Source.Youtube_Rest,
 						Source.Piped_Rest,
-					],
-					$parentComment: {},
-					replyCount: {
-						$: [Source.Youtube_Rest],
-					},
-					$$replies: {
-						$: [
+					], fields: { $parentComment: true, replyCount: ({ sources: [Source.Youtube_Rest] }), $$replies: ({ sources: [
 							Source.Youtube_Rest,
-						],
-							$limit: 50,
-					},
-				},
+						], limit: 50 }) } }),
 				)}
 				{@const replies = derive(
 					repliesParent,
 					(repliesParent) => {
-						const youTubeComments: Entity<typeof schema, EntityType.YouTubeComment>[] = repliesParent.$$replies ?? []
+						const youTubeComments: readonly Entity<typeof schema, EntityType.YouTubeComment>[] = repliesParent.$$replies ?? []
 						return youTubeComments.map((reply) => reply[EntityMetaKey.Id])
 					},
 				)}

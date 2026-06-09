@@ -10,13 +10,14 @@
 		ensTextRecordLabelByKey,
 	} from '$/constants/Ens.ts'
 
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	import { resolve } from '$app/paths'
 
 
@@ -58,21 +59,12 @@
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const ens = useEntity(
-		EntityType.EnsName,
+	const ens = useEntity(entityCollectionsContext, EntityType.EnsName,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Voltaire_JsonRpc,
 				Source.TheGraph_Graphql,
-			],
-			textRecords: {},
-			...(open ? {
-				resolverTextKeys: {},
-			}
-		:
-			{}),
-		},
+			], fields: { textRecords: true, ...(open ? ({ resolverTextKeys: true }) : ({  })) } }),
 	)
 
 	const textRecords = derive(ens, (ens) => (
@@ -86,12 +78,12 @@
 			[
 				...[...new Set([
 					...(
-						ens.textRecords === undefined ?
+						ens.fields.textRecords === undefined ?
 							[]
 						:
-							Object.keys(ens.textRecords)
+							Object.keys(ens.fields.textRecords)
 					),
-					...(ens.resolverTextKeys ?? []),
+					...(ens.fields.resolverTextKeys?.values ?? []),
 				])].filter((key) => (
 					excludeRecordKeys == null
 					|| !excludeRecordKeys.has(key)
@@ -151,7 +143,7 @@
 			)}
 			{@const recordValue = (
 				ens.ready ?
-					ens.current.textRecords?.[item]
+					ens.current?.fields.textRecords?.[item]
 				:
 					undefined
 			)}

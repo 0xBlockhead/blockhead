@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,16 +28,11 @@
 		>
 	> = $props()
 
-	const market = useEntity(
-		EntityType.HyperliquidPerpMarket,
+	const market = useEntity(entityCollectionsContext, EntityType.HyperliquidPerpMarket,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Hyperliquid_Rest,
-			],
-			maxLeverage: {},
-			onlyIsolated: {},
-		},
+			], fields: { maxLeverage: true, onlyIsolated: true } }),
 	)
 
 
@@ -72,17 +68,17 @@
 		>
 			{#snippet children(market)}
 				<dl>
-					{#if market.maxLeverage != null}
+					{#if market.fields.maxLeverage != null}
 						<div>
 							<dt>Max leverage</dt>
-							<dd><NumberValue value={market.maxLeverage} />x</dd>
+							<dd><NumberValue value={market.fields.maxLeverage} />x</dd>
 						</div>
 					{/if}
 
-					{#if market.onlyIsolated != null}
+					{#if market.fields.onlyIsolated != null}
 						<div>
 							<dt>Only isolated</dt>
-							<dd>{market.onlyIsolated ? 'Yes' : 'No'}</dd>
+							<dd>{market.fields.onlyIsolated ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

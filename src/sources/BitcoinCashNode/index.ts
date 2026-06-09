@@ -1,4 +1,4 @@
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/$SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import BitcoinCashNodeJsonRpc from '$/sources/BitcoinCashNode/JsonRpc/index.ts'
 
 export default {

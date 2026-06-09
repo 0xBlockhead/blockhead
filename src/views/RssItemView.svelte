@@ -3,10 +3,10 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
@@ -41,33 +41,15 @@
 	> = $props()
 
 	import { syndicationHtmlToSafeHtml } from '$/lib/markdown.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 
-	const item = useEntity(
-		EntityType.RssItem,
+	const item = useEntity(entityCollectionsContext, EntityType.RssItem,
 		entityId,
-		{
-			$: [
+		({ sources: [
 				Source.Rss_Rest,
 				Source.Rss2Json_Rest,
-			],
-			title: {},
-			link: {},
-			publishedAt: {},
-			$feed: {},
-			...(open ?
-				{
-					description: {},
-					content: {},
-					author: {},
-					updatedAt: {},
-					categories: {},
-					enclosureUrl: {},
-					commentsUrl: {},
-				}
-			:
-				{}),
-		},
+			], fields: { title: true, link: true, publishedAt: true, $feed: true, ...(open ? ({ description: true, content: true, author: true, updatedAt: true, categories: true, enclosureUrl: true, commentsUrl: true }) : ({  })) } }),
 	)
 
 
@@ -103,7 +85,7 @@
 			placeholderText="Loading item…"
 		>
 			{#snippet children(item)}
-				{item.title ?? entityId.guid}
+				{item.fields.title ?? entityId.guid}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -113,10 +95,10 @@
 			resource={item}
 		>
 			{#snippet children(item)}
-				{#if item.publishedAt != null}
+				{#if item.fields.publishedAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={item.publishedAt}
+							timestamp={item.fields.publishedAt}
 						/>
 					</span>
 				{/if}
@@ -152,12 +134,12 @@
 						</dd>
 					</div>
 
-					{#if item.$feed}
+					{#if item.fields.$feed}
 						<div>
 							<dt>Feed</dt>
 							<dd>
 								<RssFeedView
-									entityId={item.$feed[EntityMetaKey.Id]}
+									entityId={item.fields.$feed[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -165,35 +147,35 @@
 						</div>
 					{/if}
 
-					{#if item.author}
+					{#if item.fields.author}
 						<div>
 							<dt>Author</dt>
-							<dd>{item.author}</dd>
+							<dd>{item.fields.author}</dd>
 						</div>
 					{/if}
 
-					{#if item.link}
+					{#if item.fields.link}
 						<div>
 							<dt>Link</dt>
 							<dd>
 								<a
-									href={item.link}
+									href={item.fields.link}
 									rel="noreferrer"
 									target="_blank"
-								>{item.link}</a>
+								>{item.fields.link}</a>
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& item.publishedAt != null
+						&& item.fields.publishedAt != null
 					)}
 						<div>
 							<dt>Published</dt>
 							<dd>
 								<Timestamp
-									timestamp={item.publishedAt}
+									timestamp={item.fields.publishedAt}
 								/>
 							</dd>
 						</div>
@@ -201,13 +183,13 @@
 
 					{#if (
 						open
-						&& item.updatedAt != null
+						&& item.fields.updatedAt != null
 					)}
 						<div>
 							<dt>Updated</dt>
 							<dd>
 								<Timestamp
-									timestamp={item.updatedAt}
+									timestamp={item.fields.updatedAt}
 								/>
 							</dd>
 						</div>
@@ -215,42 +197,42 @@
 
 					{#if (
 						open
-						&& item.categories
+						&& item.fields.categories
 					)}
 						<div>
 							<dt>Categories</dt>
-							<dd>{item.categories.join(', ')}</dd>
+							<dd>{item.fields.categories.join(', ')}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& item.enclosureUrl
+						&& item.fields.enclosureUrl
 					)}
 						<div>
 							<dt>Enclosure</dt>
 							<dd>
 								<a
-									href={item.enclosureUrl}
+									href={item.fields.enclosureUrl}
 									rel="noreferrer"
 									target="_blank"
-								>{item.enclosureUrl}</a>
+								>{item.fields.enclosureUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& item.commentsUrl
+						&& item.fields.commentsUrl
 					)}
 						<div>
 							<dt>Comments</dt>
 							<dd>
 								<a
-									href={item.commentsUrl}
+									href={item.fields.commentsUrl}
 									rel="noreferrer"
 									target="_blank"
-								>{item.commentsUrl}</a>
+								>{item.fields.commentsUrl}</a>
 							</dd>
 						</div>
 					{/if}
@@ -289,9 +271,9 @@
 					placeholderText="Loading item…"
 				>
 					{#snippet children(item)}
-						{#if item.description}
+						{#if item.fields.description}
 							<div class="rss-html">
-								{@html syndicationHtmlToSafeHtml(item.description)}
+								{@html syndicationHtmlToSafeHtml(item.fields.description)}
 							</div>
 						{:else}
 							<p data-text="muted">No description.</p>
@@ -306,9 +288,9 @@
 					placeholderText="Loading item…"
 				>
 					{#snippet children(item)}
-						{#if item.content}
+						{#if item.fields.content}
 							<div class="rss-html">
-								{@html syndicationHtmlToSafeHtml(item.content)}
+								{@html syndicationHtmlToSafeHtml(item.fields.content)}
 							</div>
 						{:else}
 							<p data-text="muted">No full content.</p>

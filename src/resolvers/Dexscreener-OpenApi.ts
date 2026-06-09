@@ -6,10 +6,10 @@ import {
 import {
 	EntityIdProjection,
 	EntityMetaKey,
-} from '$/schema/$EntityDefinition.ts'
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+} from '$/schema/$schema.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default {
 	source: Source.Dexscreener_OpenApi,
@@ -78,8 +78,9 @@ export default {
 					...(latestDexPair.txns?.h24.sells != null && { transactionSells24h: latestDexPair.txns.h24.sells }),
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$baseToken: (snapshot) => snapshot.$baseToken,
 			$quoteToken: (snapshot) => snapshot.$quoteToken,
 			baseTokenSymbol: (snapshot) => snapshot.baseTokenSymbol,
@@ -97,8 +98,8 @@ export default {
 			priceChangePercent24h: (snapshot) => snapshot.priceChangePercent24h,
 			transactionBuys24h: (snapshot) => snapshot.transactionBuys24h,
 			transactionSells24h: (snapshot) => snapshot.transactionSells24h,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
@@ -136,8 +137,9 @@ export default {
 					transport: 'Dexscreener OpenAPI',
 				}
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			priceUsd: (snapshot) => snapshot.priceUsd,
 			priceNative: (snapshot) => snapshot.priceNative,
 			liquidityUsd: (snapshot) => snapshot.liquidityUsd,
@@ -148,8 +150,8 @@ export default {
 			marketCapUsd: (snapshot) => snapshot.marketCapUsd,
 			fdvUsd: (snapshot) => snapshot.fdvUsd,
 			transport: (snapshot) => snapshot.transport,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType._Global,
@@ -198,11 +200,12 @@ export default {
 
 				return liquidityPools.slice(0, resolverContextRowLimit(context))
 			}
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$liquidityPools: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool,
@@ -216,11 +219,12 @@ export default {
 					},
 				},
 			]
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$$timestamps: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
@@ -228,10 +232,11 @@ export default {
 				[EntityIdProjection.Identity]: async (entityId) => ({
 				[EntityMetaKey.Id]: entityId.$liquidityPool,
 			})
-			},
-			fields: {
+			}
+		})({
+				fields: {
 			$parentLiquidityPool: (snapshot) => snapshot,
-		}
-		}),
+		},
+			}),
 	],
 }

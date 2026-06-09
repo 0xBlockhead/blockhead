@@ -1,7 +1,7 @@
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { rss2JsonApiOrigins } from '$/sources/Rss2Json/Rest/constants.ts'
 import Rss2JsonRestSource from '$/sources/Rss2Json/Rest/index.ts'
 

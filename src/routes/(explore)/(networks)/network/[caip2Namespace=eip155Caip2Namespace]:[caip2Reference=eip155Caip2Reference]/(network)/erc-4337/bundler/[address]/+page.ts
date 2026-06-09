@@ -4,7 +4,7 @@ import { type as arktype } from 'arktype'
 
 import Erc4337BundlerSchema from '$/schema/Erc4337Bundler.ts'
 import NetworkSchema from '$/schema/EvmNetwork.ts'
-import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 import type { PageLoad } from './$types.ts'
 

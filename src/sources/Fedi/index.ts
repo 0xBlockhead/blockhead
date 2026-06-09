@@ -3,7 +3,7 @@ import { type as arktype } from 'arktype'
 import {
 	type SourceProviderDefinition,
 	SourceProvider,
-} from '$/sources/$SourceProvider.ts'
+} from '$/sources/SourceProvider.ts'
 import { fediOrigins } from '$/sources/Fedi/Rest/constants.ts'
 import FediRestSource from '$/sources/Fedi/Rest/index.ts'
 

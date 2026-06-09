@@ -3,13 +3,14 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { useEntity } from '$/collections/$collections.ts'
+	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
 	// State
 	let {
 		entityId,
@@ -27,13 +28,9 @@
 		>
 	> = $props()
 
-	const nearReceipt = useEntity(
-		EntityType.NearReceipt,
+	const nearReceipt = useEntity(entityCollectionsContext, EntityType.NearReceipt,
 		entityId,
-		{
-			$predecessor: {},
-			$receiver: {},
-		},
+		({ fields: { $predecessor: true, $receiver: true } }),
 	)
 
 
@@ -67,12 +64,12 @@
 		>
 			{#snippet children(nearReceipt)}
 				<dl>
-					{#if nearReceipt.$predecessor != null}
+					{#if nearReceipt.fields.$predecessor != null}
 						<div>
 							<dt>Predecessor</dt>
 							<dd>
 								<NearAccountView
-									entityId={nearReceipt.$predecessor[EntityMetaKey.Id]}
+									entityId={nearReceipt.fields.$predecessor[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
@@ -81,12 +78,12 @@
 						</div>
 					{/if}
 
-					{#if nearReceipt.$receiver != null}
+					{#if nearReceipt.fields.$receiver != null}
 						<div>
 							<dt>Receiver</dt>
 							<dd>
 								<NearAccountView
-									entityId={nearReceipt.$receiver[EntityMetaKey.Id]}
+									entityId={nearReceipt.fields.$receiver[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}

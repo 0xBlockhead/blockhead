@@ -7,8 +7,8 @@
 
 // Types
 import type { Entity } from '$/schema/$schema.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import {
 	ExecutionProtocol,
