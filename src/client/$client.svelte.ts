@@ -56,6 +56,10 @@ type EntityResolvedFields<
 	_EntityType extends EntityTypeName<_Schema>,
 > = Partial<Record<string, EntityFieldSingleResolvedValue<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>>>
 
+type ResolverEntityReferenceValue<_Schema extends Schema> = ResolverObject & {
+	readonly [EntityMetaKey.Id]: EntityId<_Schema, EntityTypeName<_Schema>>
+}
+
 type ProductQueryKey = readonly [
 	collectionId: string,
 ] | readonly [
@@ -335,17 +339,46 @@ const materializeResolverFieldValue = <
 	if (referenceEntityDefinition == null)
 		throw new Error(`${fieldDefinition.name}: missing reference entity definition`)
 
-	if (entityFieldCardinalityIsMultiple(fieldDefinition.cardinality))
-		return (value as { readonly [EntityMetaKey.Id]: EntityId<Schema, EntityTypeName<Schema>> }[]).map((item) => ({
-			...item,
-			[EntityMetaKey.IdKey]: entityIdKey(referenceEntityDefinition, item[EntityMetaKey.Id]),
-		})) as EntityFieldSingleResolvedValue<_Schema, _EntityType, _FieldName>
+	if (entityFieldCardinalityIsMultiple(fieldDefinition.cardinality)) {
+		if (!Array.isArray(value))
+			throw new Error(`${fieldDefinition.name}: multiple reference field requires array`)
 
+		return value.map((item) => {
+			if (
+				item == null
+				|| typeof item !== 'object'
+				|| item instanceof Array
+				|| !(EntityMetaKey.Id in item)
+				|| item[EntityMetaKey.Id] == null
+				|| typeof item[EntityMetaKey.Id] !== 'object'
+				|| item[EntityMetaKey.Id] instanceof Array
+			)
+				throw new Error(`${fieldDefinition.name}: invalid entity reference`)
+
+			const reference = item as ResolverEntityReferenceValue<_Schema>
+			return {
+				...reference,
+				[EntityMetaKey.IdKey]: entityIdKey(referenceEntityDefinition, reference[EntityMetaKey.Id]),
+			}
+		}) as EntityFieldSingleResolvedValue<_Schema, _EntityType, _FieldName>
+	}
+
+	if (
+		typeof value !== 'object'
+		|| value instanceof Array
+		|| !(EntityMetaKey.Id in value)
+		|| value[EntityMetaKey.Id] == null
+		|| typeof value[EntityMetaKey.Id] !== 'object'
+		|| value[EntityMetaKey.Id] instanceof Array
+	)
+		throw new Error(`${fieldDefinition.name}: invalid entity reference`)
+
+	const reference = value as ResolverEntityReferenceValue<_Schema>
 	return {
-		...(value as { readonly [EntityMetaKey.Id]: EntityId<Schema, EntityTypeName<Schema>> }),
+		...reference,
 		[EntityMetaKey.IdKey]: entityIdKey(
 			referenceEntityDefinition,
-			(value as { readonly [EntityMetaKey.Id]: EntityId<Schema, EntityTypeName<Schema>> })[EntityMetaKey.Id],
+			reference[EntityMetaKey.Id],
 		),
 	} as EntityFieldSingleResolvedValue<_Schema, _EntityType, _FieldName>
 }
@@ -1242,16 +1275,16 @@ const loadCollectionSubset = async <_Schema extends Schema>(
 							),
 						)
 						validateResolverFieldValue(context.entityDefinitionByType, fieldDefinition, value)
-							return (
-								entityFieldCardinalityIsMultiple(fieldDefinition.cardinality) && Array.isArray(value) ?
-									value
-								: entityFieldCardinalityIsMultiple(fieldDefinition.cardinality) ?
-									[]
-								: fieldDefinition.cardinality === EntityFieldCardinality.Zero ?
-									[]
-								:
-									[value]
-							).map((rowValue) => ({
+						return (
+							entityFieldCardinalityIsMultiple(fieldDefinition.cardinality) && Array.isArray(value) ?
+								value
+							: entityFieldCardinalityIsMultiple(fieldDefinition.cardinality) ?
+								[]
+							: fieldDefinition.cardinality === EntityFieldCardinality.Zero ?
+								[]
+							:
+								[value]
+						).map((rowValue) => ({
 							...fieldRowFieldsFromValue(rowValue),
 							fieldName: fieldRequest.fieldName,
 							[EntityMetaKey.ParentId]: candidate.entityId,
@@ -1822,7 +1855,7 @@ const projectSubscribeEntity = <
 				row[EntityMetaKey.Fields],
 			).some((identityId) => parentIdKeys.includes(entityIdKey(entityDefinition, identityId)))
 	))
-	const fields = Object.create(null) as SubscribeResult<_Schema, _EntityType, _Selection>['fields']
+	const fields: SubscribeResult<_Schema, _EntityType, _Selection>['fields'] = {}
 	let pending = false
 	for (const fieldName of Object.keys(selectedFields)) {
 		const selectedField = selectedFields[fieldName]
@@ -2419,42 +2452,9 @@ export const subscribeEntity = <
 				}
 				return {
 					...fieldQuery,
-					rows: {
-						get status() {
-							return rows.status
-						},
-						get toArray() {
-							const projectedRows: (
-								ProjectionFieldQuery<_Schema>['rows'] extends readonly (infer _Row)[] ?
-									_Row[]
-								:
-									undefined
-							) = []
-							for (const row of rows.toArray)
-								projectedRows.push({
-									[EntityMetaKey.ParentIdKey]: row[EntityMetaKey.ParentIdKey],
-									[EntityMetaKey.Source]: row[EntityMetaKey.Source],
-									[EntityMetaKey.Value]: row[EntityMetaKey.Value] as EntityFieldSingleResolvedValue<_Schema, EntityTypeName<_Schema>, EntityFieldName<_Schema, EntityTypeName<_Schema>>>,
-								})
-							return projectedRows
-						},
-						subscribeChanges: rows.subscribeChanges,
-					},
+					rows,
 					...(counts != null && {
-						counts: {
-							get status() {
-								return counts.status
-							},
-							get toArray() {
-								return counts.toArray.map((row) => ({
-									[EntityMetaKey.ParentIdKey]: row[EntityMetaKey.ParentIdKey],
-									[EntityMetaKey.Source]: row[EntityMetaKey.Source],
-									[EntityMetaKey.Value]: row[EntityMetaKey.Value],
-									filterKey: row.filterKey,
-								}))
-							},
-							subscribeChanges: counts.subscribeChanges,
-						},
+						counts,
 					}),
 				}
 			})

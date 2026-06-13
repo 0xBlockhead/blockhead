@@ -643,6 +643,11 @@ const fixtureResolverIndexes = (
 				},
 			},
 		}),
+		createResolver(calls, 18, Source.Beacon_Rest, {
+			id: createResolve(calls, 18, Source.Beacon_Rest, 'id'),
+		}, {
+			$primaryNetwork: () => 'not-a-reference',
+		}),
 	]
 	return indexResolvers(
 		fixtureSchema,
@@ -2287,6 +2292,38 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 			}),
 		])
 		subscription.unsubscribe()
+	})
+
+	it('rejects invalid resolver references before collection persistence', async () => {
+		const { context } = await createFixtureContext()
+		await expect(subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				$primaryNetwork: {
+					sources: [
+						Source.Beacon_Rest,
+					],
+				},
+			},
+		})).rejects.toEqual([
+			expect.objectContaining({
+				selectorAddress: [
+					EntityType.Network,
+					'$primaryNetwork',
+				],
+				dimension: 'field',
+				entityType: EntityType.Network,
+				entityId: {
+					id: 'parent',
+				},
+				fieldName: '$primaryNetwork',
+				message: expect.stringContaining('all compatible Resolver Definitions failed'),
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.Network].$primaryNetwork.toArray.filter((row) => (
+			row[EntityMetaKey.Source] === Source.Beacon_Rest
+		))).toEqual([])
 	})
 
 	it('resolves conditional fields through parent id discriminators', async () => {

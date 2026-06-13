@@ -97,19 +97,19 @@ export const indexSourceProviders = <
 				...providerSubset,
 				...sourceSubset,
 			}
-			return [[
+			return [{
 				sourceDefinition,
-				(
+				publicEnv: (
 					Object.keys(merged).length === 0 ?
 						resolverPublicEnv
 					:
 						merged
 				),
-			] as const]
+			}]
 		})
 	})
 
-	const sources = enabledSourceEntries.map(([sourceDefinition]) => sourceDefinition)
+	const sources = enabledSourceEntries.map((entry) => entry.sourceDefinition)
 
 	return {
 		sourceProviderByProvider: Object.fromEntries(sourceProviders.map((sourceProvider) => [
@@ -123,9 +123,9 @@ export const indexSourceProviders = <
 		resolverPublicEnv,
 		sources,
 		resolverPublicEnvBySource: new Map(
-			enabledSourceEntries.map(([sourceDefinition, publicEnv]) => ([
-				sourceDefinition.source,
-				publicEnv,
+			enabledSourceEntries.map((entry) => ([
+				entry.sourceDefinition.source,
+				entry.publicEnv,
 			])),
 		),
 		enabledSources: new Set(
