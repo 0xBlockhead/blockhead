@@ -60,13 +60,6 @@ const resolverContext = {
 
 const probeTimeoutMs = 30_000
 
-const entityDefinitionAcceptsEntityId = (
-	entityDefinition: EntityDefinition,
-	accepts: readonly string[],
-	entityId: unknown,
-) => accepts.includes(entityIdProjectionNameForId(entityDefinition, entityId) ?? '')
-
-
 const withProbeTimeout = async <_Value>(
 	key: string,
 	resolve: () => Promise<_Value>,

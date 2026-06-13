@@ -226,14 +226,9 @@ export type EntityIdFromDefinition<_EntityDefinition extends EntityDefinition> =
 	_EntityDefinition['id']['infer']
 )
 
-const entityIdentityObjectRecord = (value: unknown): Record<string, unknown> => (
-	value != null
-	&& typeof value === 'object'
-	&& !Array.isArray(value) ?
-		Object.fromEntries(Object.entries(value))
-	:
-		{}
-)
+const entityIdentityObjectRecord = (
+	value: object,
+): Record<string, unknown> => Object.fromEntries(Object.entries(value))
 
 const entityIdentityValue = (
 	fieldName: string,
@@ -267,7 +262,7 @@ const entityIdHasOnlyKeys = (
 
 export const entityIdProjectionNameForId = (
 	entityDefinition: EntityDefinition,
-	entityId: unknown,
+	entityId: object,
 ): EntityIdProjectionName | undefined => {
 	if (entityDefinition.id(entityId) instanceof arktype.errors)
 		return undefined
