@@ -8,7 +8,7 @@
 </script>
 
 
-<script lang="ts" generics="Data">
+<script lang="ts" generics="Data extends {} | null">
 	// Types/constants
 	import type { Snippet } from 'svelte'
 
@@ -77,7 +77,9 @@
 				<p>{resource.error instanceof Error ? resource.error.message : String(resource.error)}</p>
 			</div>
 		{/if}
-	{:else if current === undefined && !resource.ready}
+	{:else if current !== undefined}
+		{@render children(current)}
+	{:else}
 		{#if Pending}
 			{@render Pending()}
 		{:else}
@@ -101,8 +103,6 @@
 				</div>
 			{/if}
 		{/if}
-	{:else}
-		{@render children(current as Data)}
 	{/if}
 </Boundary>
 

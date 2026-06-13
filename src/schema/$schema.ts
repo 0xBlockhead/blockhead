@@ -138,32 +138,33 @@ export const entityFieldPrimitiveValueIsValid = (
 	value: unknown,
 ) => !(fieldDefinition.primitiveType(value) instanceof arktype.errors)
 
-type EntityFieldDefinitionBase<_Source extends string = string> = {
-	defaultSources?: _Source[]
-	when?: EntityFieldCondition
-}
-
 export type EntityFieldDefinition<_Source extends string = string> = (
-	| (EntityFieldDefinitionBase<_Source> & {
-		name: string
-		type: EntityFieldType.Primitive
-		primitiveType: SchemaType
-		cardinality: EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
-	})
-	| (EntityFieldDefinitionBase<_Source> & {
-		name: `$${string}`
-		type: EntityFieldType.EntityReference
-		entityType: string
-		entityId?: SchemaType
-		cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne
-	})
-	| (EntityFieldDefinitionBase<_Source> & {
-		name: `$$${string}`
-		type: EntityFieldType.EntitiesReference
-		entityType: string
-		entityId?: SchemaType
-		cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
-	})
+	& {
+		defaultSources?: _Source[]
+		when?: EntityFieldCondition
+	}
+	& (
+		| {
+			name: string
+			type: EntityFieldType.Primitive
+			primitiveType: SchemaType
+			cardinality: EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+		}
+		| {
+			name: `$${string}`
+			type: EntityFieldType.EntityReference
+			entityType: string
+			entityId?: SchemaType
+			cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne
+		}
+		| {
+			name: `$$${string}`
+			type: EntityFieldType.EntitiesReference
+			entityType: string
+			entityId?: SchemaType
+			cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+		}
+	)
 )
 
 export type EntityFieldGroupDefinition<_Source extends string = string> = {
@@ -195,7 +196,6 @@ export function entityFieldDefinitionsFromEntries<
 >(
 	fields: _Fields,
 ): readonly EntityFieldDefinitionFromEntry<_Fields[number]>[]
-
 export function entityFieldDefinitionsFromEntries(
 	fields: readonly EntityFieldEntry[],
 ): readonly EntityFieldDefinition[] {
@@ -215,13 +215,11 @@ export function entityFieldDefinitions<
 >(
 	entityDefinition: _EntityDefinition,
 ): readonly EntityFieldDefinitions<_EntityDefinition>[]
-
 export function entityFieldDefinitions(
 	entityDefinition: EntityDefinition,
 ): readonly EntityFieldDefinition[] {
 	return entityFieldDefinitionsFromEntries(entityDefinition.fields)
 }
-
 export type EntityIdFromDefinition<_EntityDefinition extends EntityDefinition> = (
 	_EntityDefinition['id']['infer']
 )
@@ -480,7 +478,6 @@ export function conditionalOn<
 	fieldName: _FieldName
 	values: _Values
 }
-
 export function conditionalOn<
 	const _Fields extends readonly EntityFieldDefinition[],
 	const _FieldName extends NonConditionalArrayPrimitiveFieldName<_Fields>,
@@ -498,7 +495,6 @@ export function conditionalOn<
 	itemIndex: _ItemIndex
 	values: _Values
 }
-
 export function conditionalOn(
 	_fields: readonly EntityFieldDefinition[],
 	fieldName: string,
@@ -534,7 +530,6 @@ export function conditionalFieldGroup<
 	}
 	readonly fields: _ConditionalFields
 }
-
 export function conditionalFieldGroup<
 	const _Fields extends readonly EntityFieldDefinition[],
 	const _FieldName extends NonConditionalArrayPrimitiveFieldName<_Fields>,
@@ -558,7 +553,6 @@ export function conditionalFieldGroup<
 	}
 	readonly fields: _ConditionalFields
 }
-
 export function conditionalFieldGroup(
 	_fields: readonly EntityFieldDefinition[],
 	fieldName: string,
