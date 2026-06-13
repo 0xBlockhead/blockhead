@@ -7,8 +7,7 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -17,7 +16,7 @@
 	} = $props()
 
 
-	const network = useEntity(entityCollectionsContext, EntityType.Network,
+	const network = subscribe(EntityType.Network,
 		{
 			networkSlug: params.networkSlug,
 		},

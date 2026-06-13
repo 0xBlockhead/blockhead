@@ -1,6 +1,6 @@
 import {
 	defineResolver,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { nearBlocksMainnetRestBaseUrl } from '$/constants/NearNetwork.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {

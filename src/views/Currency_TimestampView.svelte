@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,14 +35,14 @@
 		>
 	> = $props()
 
-	const currencyTimestamp = useEntity(entityCollectionsContext, EntityType.Currency_Timestamp,
+	const currencyTimestamp = subscribe(EntityType.Currency_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { marketCap: true } }),
 	)
 
-	const currency = useEntity(entityCollectionsContext, EntityType.Currency,
+	const currency = subscribe(EntityType.Currency,
 		entityId.$currency,
 		({ sources: [
 				Source.Constants_Internal,

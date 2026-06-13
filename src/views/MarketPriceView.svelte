@@ -62,10 +62,9 @@
 
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const marketPrice = useEntity(entityCollectionsContext, EntityType.MarketPrice,
+	const marketPrice = subscribe(EntityType.MarketPrice,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,

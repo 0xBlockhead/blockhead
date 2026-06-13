@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,7 +39,7 @@
 		>
 	> = $props()
 
-	const networkUpgrade = useEntity(entityCollectionsContext, EntityType.EthereumNetworkUpgrade,
+	const networkUpgrade = subscribe(EntityType.EthereumNetworkUpgrade,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,

@@ -6,7 +6,7 @@ import {
 } from '$/constants/QuilibriumNetwork.ts'
 import {
 	defineResolver,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,

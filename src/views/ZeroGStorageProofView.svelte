@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,7 +26,7 @@
 		>
 	> = $props()
 
-	const zeroGStorageProof = useEntity(entityCollectionsContext, EntityType.ZeroGStorageProof,
+	const zeroGStorageProof = subscribe(EntityType.ZeroGStorageProof,
 		entityId,
 		({ fields: { proofKind: true, verifiedAtBlock: true } }),
 	)

@@ -1,8 +1,8 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
 	type SourceResolverContext,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { lightningNetworkId } from '$/constants/LightningNetwork.ts'
 import {
 	EntityIdProjection,

@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,7 +26,7 @@
 		>
 	> = $props()
 
-	const cosmosAccount = useEntity(entityCollectionsContext, EntityType.CosmosAccount,
+	const cosmosAccount = subscribe(EntityType.CosmosAccount,
 		entityId,
 		({ fields: { accountNumber: true, sequence: true, balanceUatom: true } }),
 	)

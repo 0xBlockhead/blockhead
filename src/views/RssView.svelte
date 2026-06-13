@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -39,7 +38,7 @@
 
 	const networkIdKey = stringify(entityId)
 
-	const rssNetwork = useEntity(entityCollectionsContext, EntityType.RssNetwork,
+	const rssNetwork = subscribe(EntityType.RssNetwork,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,

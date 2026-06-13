@@ -3,13 +3,10 @@
 	import { EntityMetaKey, entityFieldDefinitions } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
-	import { enabledSources } from '$/sources/index.ts'
+	import { indexSourceProviders } from '$/sources/$sources.ts'
+	import { sourceProviders } from '$/sources/index.ts'
+	import { env as publicEnv } from '$env/dynamic/public'
 	import { useCollectionCache } from './collectionCache.svelte.ts'
-
-	type CollectionCache = {
-		status: string
-		rows: any[]
-	}
 
 	type CollectionEntityDefinition = {
 		entityType: string
@@ -20,9 +17,7 @@
 	}
 
 
-	const inspectableEntityCollectionByEntityType: any = entityCollectionByEntityType
-
-	const inspectableEntityFieldCollections: any = entityFieldCollections
+	const { enabledSources } = indexSourceProviders(sourceProviders, publicEnv)
 
 	const collectionEntityDefinitions: readonly CollectionEntityDefinition[] = schema.map((entityDefinition) => ({
 		entityType: entityDefinition.entityType,
@@ -32,19 +27,19 @@
 		})),
 	}))
 
-	const entityCaches: Record<string, CollectionCache> = Object.fromEntries(
+	const entityCaches = Object.fromEntries(
 		schema.map((entityDefinition) => [
 			entityDefinition.entityType,
-			useCollectionCache(inspectableEntityCollectionByEntityType[entityDefinition.entityType]),
+			useCollectionCache(entityCollectionByEntityType[entityDefinition.entityType]),
 		]),
 	)
 
-	const fieldCaches: Record<string, CollectionCache> = Object.fromEntries(
+	const fieldCaches = Object.fromEntries(
 		schema.flatMap((entityDefinition) => (
 			entityFieldDefinitions(entityDefinition).map((field) => [
 				`${entityDefinition.entityType}\0${field.name}`,
 				useCollectionCache(
-					inspectableEntityFieldCollections[entityDefinition.entityType][field.name],
+					entityFieldCollections[entityDefinition.entityType][field.name],
 				),
 			])
 		)),
@@ -55,7 +50,7 @@
 	import {
 		entityCollectionByEntityType,
 		entityFieldCollections,
-	} from '$/collections/entityCollections.ts'
+	} from '$/routes/+layout.svelte'
 
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>

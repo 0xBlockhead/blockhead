@@ -37,8 +37,7 @@
 		>
 	> = $props()
 
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -58,7 +57,7 @@
 >
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(entityCollectionsContext, EntityType.EvmNetwork,
+			{@const parent = subscribe(EntityType.EvmNetwork,
 				entityFieldReference.entityId,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [

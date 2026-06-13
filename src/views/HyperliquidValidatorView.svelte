@@ -9,8 +9,7 @@
 
 
 	// State
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
 		entityId,
@@ -24,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const hyperliquidValidator = useEntity(entityCollectionsContext, EntityType.HyperliquidValidator, entityId, ({ fields: { name: true, $signer: true, commission: true, recentBlockCount: true, isActive: true, stake: true, isJailed: true } }))
+	const hyperliquidValidator = subscribe(EntityType.HyperliquidValidator, entityId, ({ fields: { name: true, $signer: true, commission: true, recentBlockCount: true, isActive: true, stake: true, isJailed: true } }))
 
 
 	// Components

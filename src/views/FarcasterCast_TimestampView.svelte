@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -33,8 +32,7 @@
 		>
 	> = $props()
 
-	const farcasterCastTimestamp = useEntity(entityCollectionsContext, 
-		EntityType.FarcasterCast_Timestamp,
+	const farcasterCastTimestamp = subscribe(EntityType.FarcasterCast_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Snapchain_Rest,

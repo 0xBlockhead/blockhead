@@ -7,7 +7,7 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
 	type SourceResolverContext,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import {
 	EntityIdProjection,

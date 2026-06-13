@@ -37,8 +37,7 @@
 		>
 	> = $props()
 
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -69,8 +68,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const market = useEntity(entityCollectionsContext,
-				entityFieldReference.entityType,
+			{@const market = subscribe(entityFieldReference.entityType,
 				entityFieldReference.entityId,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [

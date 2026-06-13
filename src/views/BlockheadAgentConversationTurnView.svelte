@@ -14,8 +14,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -35,7 +34,7 @@
 		>
 	> = $props()
 
-	const turn = useEntity(entityCollectionsContext, EntityType.BlockheadAgentConversationTurn,
+	const turn = subscribe(EntityType.BlockheadAgentConversationTurn,
 		entityId,
 		({ sources: [
 				Source.Local_Internal,

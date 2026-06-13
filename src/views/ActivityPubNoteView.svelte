@@ -42,8 +42,7 @@
 	> = $props()
 
 	import { htmlToPlainText } from '$/lib/html.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	const idKey = stringify(entityId)
 
@@ -54,7 +53,7 @@
 		contentWarningRevealed = false
 	})
 
-	const note = useEntity(entityCollectionsContext, EntityType.ActivityPubNote,
+	const note = subscribe(EntityType.ActivityPubNote,
 		entityId,
 		({ sources: [
 				Source.Mastodon_Rest,

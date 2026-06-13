@@ -16,8 +16,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -52,7 +51,7 @@
 		>
 	> = $props()
 
-	const transfer = useEntity(entityCollectionsContext, EntityType.EvmTokenTransfer,
+	const transfer = subscribe(EntityType.EvmTokenTransfer,
 		entityId,
 		({ sources: [Source.Blockscout_Rest], fields: { standard: true, amount: true, tokenSymbol: true, ...(open && ({ tokenDecimals: true, tokenName: true, $from: true, $to: true, $tokenContract: true, $coinInstance: true })) } }),
 	)

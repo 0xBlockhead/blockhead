@@ -17,8 +17,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 	import type { ResolvedPathname } from '$app/types'
 
@@ -47,7 +46,7 @@
 		never
 	> = $props()
 
-	const global = useEntity(entityCollectionsContext, EntityType._Global,
+	const global = subscribe(EntityType._Global,
 		entityId,
 		({ sources: [
 				Source.Local_Internal,

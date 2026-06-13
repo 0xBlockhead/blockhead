@@ -32,5 +32,4 @@ export default defineConfig({
 				},
 			}),
 	testMatch: '**/*.e2e.{ts,js}',
-	testIgnore: 'src/routes/demo/**',
 })

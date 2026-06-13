@@ -24,7 +24,6 @@
 
 	import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
 	import type { Match } from '$/lib/string.ts'
-	import type { RemoteResource } from '@sveltejs/kit'
 
 	type ListItemProps = {
 		key: _Key
@@ -125,7 +124,15 @@
 			items?: ItemsInput
 			open?: boolean
 			placeholderText?: string
-			resource?: QueryLike<ItemsInput | undefined> | RemoteResource<ItemsInput | undefined>
+			resource?:
+				| QueryLike<ItemsInput | undefined>
+				| Promise<ItemsInput | undefined> & {
+					readonly [Symbol.toStringTag]: string
+					readonly current: ItemsInput | undefined
+					readonly error: object | string | undefined
+					readonly ready: boolean
+					readonly loading: boolean
+				}
 			placeholderKeys?: Set<_Key>
 			title?: string
 			UnorderedListProps?: UnorderedListForwardProps
@@ -182,14 +189,6 @@
 			[],
 	)
 
-	const rowsFromQuery = (items: ItemsInput | undefined): _Item[] => (
-		items === undefined ?
-			[]
-		:
-			[...items]
-	)
-
-
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
 	import Heading from '$/components/Heading.svelte'
@@ -239,9 +238,8 @@
 				{#snippet Content()}
 					{@render TypeAnnotationTooltip()}
 				{/snippet}
-				{#snippet children()}
-					<span data-text="annotation">{entityDefinitionByType[entityType].labelPlural}</span>
-				{/snippet}
+
+				<span data-text="annotation">{entityDefinitionByType[entityType].labelPlural}</span>
 			</Tooltip>
 		{:else}
 			<span data-text="annotation">{entityDefinitionByType[entityType].labelPlural}</span>
@@ -290,7 +288,7 @@
 				>
 					{#snippet children(resource)}
 						{#key resource}
-							{@render ListRowsFrom(rowsFromQuery(resource))}
+							{@render ListRowsFrom(resource === undefined ? [] : [...resource])}
 						{/key}
 					{/snippet}
 				</ResourceBoundary>

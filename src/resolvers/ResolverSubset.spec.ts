@@ -1,0 +1,272 @@
+import {
+	BaseQueryBuilder,
+	add,
+	and,
+	createCollection,
+	eq,
+	gt,
+	inArray,
+} from '@tanstack/db'
+import type { LoadSubsetOptions } from '@tanstack/db'
+import type { IR } from '@tanstack/db'
+import { stringify } from 'devalue'
+import {
+	describe,
+	expect,
+	it,
+} from 'vitest'
+
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	countLoadedSubsetKey,
+	fieldLoadedSubsetKey,
+	parseResolverSubset,
+} from '$/resolvers/$resolvers.ts'
+
+
+type Row = {
+	readonly [EntityMetaKey.IdKey]: string
+	readonly [EntityMetaKey.ParentIdKey]: string
+	readonly [EntityMetaKey.Source]: string
+	readonly category: string
+	readonly rank: number
+	readonly nested: {
+		readonly value: number
+	}
+}
+
+const rows = createCollection<Row, string>({
+	id: 'ResolverSubset.spec.rows',
+	getKey: (row) => row[EntityMetaKey.IdKey],
+	sync: {
+		sync: () => {},
+	},
+})
+
+const subsetOptions = (
+	query: object,
+	options: Omit<LoadSubsetOptions, 'where' | 'orderBy'> = {},
+): LoadSubsetOptions => {
+	const ir = (query as { _getQuery(): IR.QueryIR })._getQuery()
+	const where = ir.where?.[0]
+	return {
+		where: where != null && 'expression' in where ? where.expression : where,
+		orderBy: ir.orderBy,
+		...options,
+	}
+}
+
+
+describe('ResolverSubset parser', () => {
+	it('parses supported filters, source filters, identity filters, parent identity filters, sorts, and pagination', () => {
+		const whereAndOrder = new BaseQueryBuilder()
+			.from({
+				row: rows,
+			})
+			.where(({ row }) => and(
+				eq(row[EntityMetaKey.Source], 'SourceA'),
+				inArray(row[EntityMetaKey.IdKey], [
+					'entity-a',
+					'entity-b',
+				]),
+				eq(row[EntityMetaKey.ParentIdKey], 'parent-a'),
+				eq(row.category, 'public'),
+				eq(row.nested.value, 7),
+			))
+			.orderBy(
+				({ row }) => row.rank,
+				'desc',
+			)
+		const cursor = {
+			whereFrom: eq(1, 1),
+			whereCurrent: eq(2, 2),
+			lastKey: 'cursor-key',
+		}
+
+		expect(parseResolverSubset(subsetOptions(whereAndOrder, {
+			limit: 5,
+			offset: 10,
+			cursor,
+		}))).toEqual({
+			filters: [
+				{
+					fieldPath: [
+						EntityMetaKey.Source,
+					],
+					operator: 'eq',
+					value: 'SourceA',
+				},
+				{
+					fieldPath: [
+						EntityMetaKey.IdKey,
+					],
+					operator: 'in',
+					value: [
+						'entity-a',
+						'entity-b',
+					],
+				},
+				{
+					fieldPath: [
+						EntityMetaKey.ParentIdKey,
+					],
+					operator: 'eq',
+					value: 'parent-a',
+				},
+				{
+					fieldPath: [
+						'category',
+					],
+					operator: 'eq',
+					value: 'public',
+				},
+				{
+					fieldPath: [
+						'nested',
+						'value',
+					],
+					operator: 'eq',
+					value: 7,
+				},
+			],
+			sorts: [
+				{
+					fieldPath: [
+						'rank',
+					],
+					direction: 'desc',
+				},
+			],
+			pagination: {
+				limit: 5,
+				offset: 10,
+				cursor,
+			},
+			sources: [
+				'SourceA',
+			],
+			identityKeys: [
+				'entity-a',
+				'entity-b',
+			],
+			parentIdentityKeys: [
+				'parent-a',
+			],
+		})
+	})
+
+	it('parses inclusion source filters, equality identity filters, parent identity filters, and ascending sorts', () => {
+		expect(parseResolverSubset(subsetOptions(
+			new BaseQueryBuilder()
+				.from({
+					row: rows,
+				})
+				.where(({ row }) => and(
+					inArray(row[EntityMetaKey.Source], [
+						'SourceA',
+						'SourceB',
+					]),
+					eq(row[EntityMetaKey.IdKey], 'entity-a'),
+					inArray(row[EntityMetaKey.ParentIdKey], [
+						'parent-a',
+						'parent-b',
+					]),
+				))
+				.orderBy(
+					({ row }) => row.category,
+					'asc',
+				),
+		))).toMatchObject({
+			sorts: [
+				{
+					fieldPath: [
+						'category',
+					],
+					direction: 'asc',
+				},
+			],
+			sources: [
+				'SourceA',
+				'SourceB',
+			],
+			identityKeys: [
+				'entity-a',
+			],
+			parentIdentityKeys: [
+				'parent-a',
+				'parent-b',
+			],
+		})
+	})
+
+	it('rejects unsupported filter operators explicitly', () => {
+		expect(() => parseResolverSubset(subsetOptions(
+			new BaseQueryBuilder()
+				.from({
+					row: rows,
+				})
+				.where(({ row }) => gt(row.rank, 1)),
+		))).toThrow('Resolver Subset Parser unsupported where LoadSubsetOptions')
+	})
+
+	it('rejects object-valued filters instead of broad JSON-like filter values', () => {
+		expect(() => parseResolverSubset(subsetOptions(
+			new BaseQueryBuilder()
+				.from({
+					row: rows,
+				})
+				.where(({ row }) => eq(row.nested, {
+					value: 7,
+				})),
+		))).toThrow('Resolver Subset Parser unsupported where LoadSubsetOptions')
+	})
+
+	it('rejects unsupported order expressions explicitly', () => {
+		expect(() => parseResolverSubset(subsetOptions(
+			new BaseQueryBuilder()
+				.from({
+					row: rows,
+				})
+				.orderBy(({ row }) => add(row.rank, 1)),
+		))).toThrow('Resolver Subset Parser unsupported orderBy LoadSubsetOptions')
+	})
+
+	it('keys field subsets by filter, order, and window semantics while count subsets keep only filter semantics', () => {
+		const fieldKeys = new Set<string>()
+		const countKeys = new Set<string>()
+		for (let index = 0; index < 64; index += 1) {
+			const loadSubsetOptions = subsetOptions(
+				new BaseQueryBuilder()
+					.from({
+						row: rows,
+					})
+					.where(({ row }) => and(
+						eq(row[EntityMetaKey.ParentIdKey], (index & 1) === 0 ? 'parent-a' : 'parent-b'),
+						eq(row[EntityMetaKey.Source], (index & 2) === 0 ? 'SourceA' : 'SourceB'),
+						eq(row.category, (index & 4) === 0 ? 'public' : 'private'),
+					))
+					.orderBy(
+						({ row }) => row.rank,
+						(index & 8) === 0 ? 'asc' : 'desc',
+					),
+				{
+					...((index & 16) !== 0 && {
+						limit: 10,
+					}),
+					...((index & 32) !== 0 && {
+						cursor: {
+							whereFrom: eq(1, 1),
+							whereCurrent: eq(2, 2),
+							lastKey: 'cursor-key',
+						},
+					}),
+				},
+			)
+			fieldKeys.add(stringify(fieldLoadedSubsetKey(loadSubsetOptions)))
+			countKeys.add(stringify(countLoadedSubsetKey(loadSubsetOptions)))
+		}
+
+		expect(fieldKeys.size).toBe(64)
+		expect(countKeys.size).toBe(8)
+	})
+})

@@ -1,6 +1,6 @@
 import {
 	defineResolver,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	EntityIdProjection,

@@ -389,7 +389,7 @@
 	- Start with `list-sections` (pick relevant `use_cases` + `paths`)
 	- Use `get-documentation` for every relevant section after `list-sections`
 - Fixing issues:
-	- Run `svelte-autofixer` for any Svelte edits (`.svelte` / `.svelte.ts`) and repeat until no suggestions remain
+	- Run `svelte-autofixer` for any Svelte edits (`.svelte` / `.svelte.ts`) and repeat until no issues remain. Review suggestions; apply them when they identify real simplification or correctness problems. If the Svelte MCP tool is not exposed in the current session, use the local fallback: `node scripts/svelte-autofix.mjs <path> --svelte-version 5`. The fallback invokes the official `@sveltejs/mcp` autofixer handler without the CLI's import-time documentation fetch and exits non-zero only for issues, because the official handler can emit intentionally ignorable suggestions such as audited `$effect` function calls.
 
 ### Svelte components
 

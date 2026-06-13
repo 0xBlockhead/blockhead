@@ -13,8 +13,7 @@
 
 	// Context
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -53,7 +52,7 @@
 		>
 	> = $props()
 
-	const comment = useEntity(entityCollectionsContext, EntityType.YouTubeComment,
+	const comment = subscribe(EntityType.YouTubeComment,
 		entityId,
 		({ sources: [
 				Source.Youtube_Rest,
@@ -278,7 +277,7 @@
 		open: _open,
 	})}
 		{#if _open}
-			{@const repliesParent = useEntity(entityCollectionsContext, EntityType.YouTubeComment,
+			{@const repliesParent = subscribe(EntityType.YouTubeComment,
 				entityId,
 				({ sources: [
 						Source.Youtube_Rest,

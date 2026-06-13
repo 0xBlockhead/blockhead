@@ -5,13 +5,11 @@
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,12 +30,9 @@
 		never
 	> = $props()
 
-	const leverage = useEntity(entityCollectionsContext, EntityType.Leverage,
+	const leverage = subscribe(EntityType.Leverage,
 		entityId,
-		({ sources: (
-				resolverDefinitionsByEntityType[EntityType.Leverage]?.map((r) => r.source)
-				?? []
-			), fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }),
+		({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }),
 	)
 
 

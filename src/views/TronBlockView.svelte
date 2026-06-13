@@ -9,8 +9,7 @@
 
 
 	// State
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
 		entityId,
@@ -24,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const block = useEntity(entityCollectionsContext, EntityType.TronBlock, entityId, ({ fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } }))
+	const block = subscribe(EntityType.TronBlock, entityId, ({ fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } }))
 
 
 	// Components

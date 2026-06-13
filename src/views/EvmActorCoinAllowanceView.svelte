@@ -51,12 +51,11 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	const allowanceAnchorKey = stringify(entityId)
 
-	const allowance = useEntity(entityCollectionsContext, EntityType.EvmActorCoinAllowance,
+	const allowance = subscribe(EntityType.EvmActorCoinAllowance,
 		entityId,
 		({ sources: [Source.Voltaire_JsonRpc], fields: { allowance: true, lastChecked: true, ...(open ? ({ $spenderContract: true }) : ({  })) } }),
 	)

@@ -1,3 +1,4 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { keccak256, toHex } from '@tevm/voltaire/Hash'
 import { Hex, toBytes } from '@tevm/voltaire/Hex'
@@ -14,8 +15,7 @@ import type { StreamBlock } from '@tevm/voltaire/block'
 import { stringify } from 'devalue'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
@@ -461,15 +461,16 @@ const networkScopedEvmBlockFieldsFromVoltaireBlockRpc = (
 			return undefined
 		}
 	})()
-	if (blockNumber == null) {
+	if (blockHash == null || blockNumber == null) {
 		return null
 	}
 	return {
 		[EntityMetaKey.Id]: {
 			$network: evmNetworkIdFromChainId(chainId),
 			blockNumber,
-			...(blockHash != null && { hash: blockHash }),
+			hash: blockHash,
 		},
+		hash: blockHash,
 		number: blockNumber,
 		timestamp: (
 			typeof wire.timestamp === 'number' ?
@@ -519,6 +520,12 @@ export default {
 					:
 						undefined
 				)
+				const parentBlockHash = (
+					blockHeader.parentHash != null ?
+						hexLowerOfByteSize(blockHeader.parentHash, 32)
+					:
+						undefined
+				)
 				const miner = (
 					blockHeader.miner != null ?
 						hexLowerOfByteSize(blockHeader.miner, 20)
@@ -542,6 +549,7 @@ export default {
 						blockNumber,
 						...(blockHash != null && { hash: blockHash }),
 					},
+					...(blockHash != null && { hash: blockHash }),
 					number: blockNumber,
 					timestamp: ((timestampSeconds) => (
 						Number.isFinite(timestampSeconds) ? timestampSeconds * 1000 : undefined
@@ -622,11 +630,12 @@ export default {
 				return {
 					...evmBlockEntityBase,
 					$$transactions,
-					...(parentBlockNumber != null && {
+					...(parentBlockNumber != null && parentBlockHash != null && {
 							$parent: {
 								[EntityMetaKey.Id]: {
 									$network: entityId.$network,
 									blockNumber: parentBlockNumber,
+									hash: parentBlockHash,
 								},
 								number: parentBlockNumber,
 							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
@@ -1230,9 +1239,6 @@ export default {
 						'$$beaconSlots': true,
 					},
 					start: (ctx) => {
-					console.info('[Voltaire] block stream watch start', {
-						entityId: ctx.parentEntityId,
-					})
 					void (async () => {
 						const {
 							fields,
@@ -1338,9 +1344,8 @@ export default {
 									await writeRecentBlocksForTransport(jsonRpcTransport)
 									for await (const event of iterateBlockStreamEvents({
 										provider,
-										include: 'header',
+										include: 'transactions',
 										signal,
-										chainId: chainIdFromEvmNetworkId(parentEntityId),
 										fromBlock: currentHead + 1n,
 										maxQueuedBlocks: 16,
 										pollingInterval: 1_000,
@@ -1394,35 +1399,12 @@ export default {
 												}
 											}
 
-											const evmBlockRows = (
-												event.blocks
-													.map((block) => {
-														const value = networkScopedEvmBlockFieldsFromVoltaireBlockRpc(
-															chainIdFromEvmNetworkId(parentEntityId),
-															streamBlockToBlockRpcWire(block),
-														)
-														return (
-															value == null ?
-																null
-															:
-																{
-																	source: Source.Voltaire_JsonRpc,
-																	value,
-																}
-														)
-													})
-													.filter((evmBlock): evmBlock is NonNullable<typeof evmBlock> => evmBlock != null)
-											)
-											if (evmBlockRows.length > 0) {
-												fields['$$blocks'].replaceRows(evmBlockRows)
-											} else {
-												await writeRecentBlocksForTransport(jsonRpcTransport, 1)
-											}
+											await writeRecentBlocksForTransport(jsonRpcTransport, event.blocks.length)
 										} else {
 											await writeRecentBlocksForTransport(jsonRpcTransport, 1)
 										}
 
-										if (event.blocks.some((block) => block.body.transactions.length > 0)) {
+										if (event.blocks.length > 0) {
 											await fields.invalidate(activityFields)
 										}
 									}

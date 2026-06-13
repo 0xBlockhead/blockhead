@@ -1,7 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
 import { expect, test } from '@playwright/test'
 
 import {
@@ -14,27 +10,11 @@ import {
 	readTopBlockNumberFromNetworkBlocksPage,
 } from '../_e2eBrowserHelpers.ts'
 
-const thisDir = dirname(fileURLToPath(import.meta.url))
-const evmBlocksViewPath = join(thisDir, '../../src/views/EvmBlocksView.svelte')
-const blocksPagePath = join(
-	thisDir,
-	'../../src/routes/(explore)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/blocks/+page.svelte',
-)
-
 const pageErrors = (issues: string[]) => (
 	issues.filter((i) => i.startsWith('pageerror:'))
 )
 
-test.describe('/network/eip155:1/blocks (EvmBlocksView + blockHeight-driven query)', () => {
-	test('(contract) blocks page hosts EvmBlocksView; list query subscribes to head (blockHeight)', () => {
-		const pageSource = readFileSync(blocksPagePath, 'utf8')
-		expect(pageSource, blocksPagePath).toContain('EvmBlocksView')
-		const view = readFileSync(evmBlocksViewPath, 'utf8')
-		expect(view, evmBlocksViewPath).toContain('blockHeight')
-		expect(view, evmBlocksViewPath).toContain('$$blocks')
-		expect(view, evmBlocksViewPath).toContain('${id}-items')
-	})
-
+test.describe('/network/eip155:1/blocks (EvmBlocksView + $$blocks collection query)', () => {
 	test('(browser, live) ordered list: top block advances after chain head moves', async ({ page }) => {
 		test.setTimeout(400_000)
 		await installChainlistRpcsJsonStub(page)
@@ -77,7 +57,7 @@ test.describe('/network/eip155:1/blocks (EvmBlocksView + blockHeight-driven quer
 				return t != null && t > (top0 ?? 0n)
 			},
 			{
-				message: 'top list block should pass prior head after a new mainnet block (blockHeight + $$blocks refetch)',
+				message: 'top list block should pass prior head after a new mainnet block ($$blocks collection query)',
 				timeout: 180_000,
 				intervals: [3_000, 4_000, 5_000, 6_000, 8_000, 8_000],
 			},

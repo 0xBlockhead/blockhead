@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -33,7 +32,7 @@
 		never
 	> = $props()
 
-	const kind = useEntity(entityCollectionsContext, EntityType.SpecificationProposalKind,
+	const kind = subscribe(EntityType.SpecificationProposalKind,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,
@@ -56,7 +55,7 @@
 				], limit: 2048 }), label: true, labelPlural: true, slug: true } }),
 	)
 
-	const specificationRealm = useEntity(entityCollectionsContext, EntityType.SpecificationRealm,
+	const specificationRealm = subscribe(EntityType.SpecificationRealm,
 		{
 			realm: entityId.realm,
 		},

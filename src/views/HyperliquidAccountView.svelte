@@ -9,8 +9,7 @@
 
 
 	// State
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
 		entityId,
@@ -24,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const hyperliquidAccount = useEntity(entityCollectionsContext, EntityType.HyperliquidAccount, entityId, ({ fields: { accountRole: true, $masterAccount: true, $agentAccount: true } }))
+	const hyperliquidAccount = subscribe(EntityType.HyperliquidAccount, entityId, ({ fields: { accountRole: true, $masterAccount: true, $agentAccount: true } }))
 
 
 	// Components

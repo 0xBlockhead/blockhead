@@ -1,7 +1,7 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { cosmosHubCaip2, cosmosHubRestBaseUrl } from '$/constants/CosmosNetwork.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { EntityType } from '$/schema/EntityType.ts'

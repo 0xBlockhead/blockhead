@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,7 +26,7 @@
 		>
 	> = $props()
 
-	const contract = useEntity(entityCollectionsContext, EntityType.TronContract,
+	const contract = subscribe(EntityType.TronContract,
 		entityId,
 		({ fields: { name: true, verifyStatus: true, isProxy: true, ...(open && ({ compiler: true })) } }),
 	)

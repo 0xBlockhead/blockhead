@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,7 +26,7 @@
 		>
 	> = $props()
 
-	const litecoinMwebOutput = useEntity(entityCollectionsContext, EntityType.LitecoinMwebOutput,
+	const litecoinMwebOutput = subscribe(EntityType.LitecoinMwebOutput,
 		entityId,
 		({ fields: { commitment: true, senderPubkey: true } }),
 	)

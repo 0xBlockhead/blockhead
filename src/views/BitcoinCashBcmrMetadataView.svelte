@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,8 +26,7 @@
 		>
 	> = $props()
 
-	const bitcoinCashBcmrMetadata = useEntity(entityCollectionsContext, 
-		EntityType.BitcoinCashBcmrMetadata,
+	const bitcoinCashBcmrMetadata = subscribe(EntityType.BitcoinCashBcmrMetadata,
 		entityId,
 		({ fields: { name: true, description: true, symbol: true, decimals: true } }),
 	)

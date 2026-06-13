@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -32,7 +31,7 @@
 		>
 	> = $props()
 
-	const lightningNetwork = useEntity(entityCollectionsContext, EntityType.LightningNetwork,
+	const lightningNetwork = subscribe(EntityType.LightningNetwork,
 		entityId,
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,
@@ -40,7 +39,7 @@
 			], fields: { name: true, $settlementNetwork: true, $$timestamps: ({ limit: 1 }) } }),
 	)
 
-	const settlementNetwork = useEntity(entityCollectionsContext, EntityType.Network,
+	const settlementNetwork = subscribe(EntityType.Network,
 		entityId.$network,
 		({ sources: [
 				Source.Constants_Internal,

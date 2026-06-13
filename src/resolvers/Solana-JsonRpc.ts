@@ -1,7 +1,7 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { caip2ByNetworkSlug } from '$/constants/Network.ts'
 import { solanaMainnetRpcEndpoints } from '$/constants/SolanaNetwork.ts'
 import {

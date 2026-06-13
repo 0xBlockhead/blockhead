@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -60,7 +59,7 @@
 			>
 	> = $props()
 
-	const operation = useEntity(entityCollectionsContext, EntityType.EvmUserOperation,
+	const operation = subscribe(EntityType.EvmUserOperation,
 		entityId,
 		({ sources: [
 				Source.Blockscout_Rest,

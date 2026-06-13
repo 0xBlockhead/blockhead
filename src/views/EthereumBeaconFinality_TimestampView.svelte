@@ -36,11 +36,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const networkBeaconFinalityTimestamp = useEntity(entityCollectionsContext, 
-		EntityType.EthereumBeaconFinality_Timestamp,
+	const networkBeaconFinalityTimestamp = subscribe(EntityType.EthereumBeaconFinality_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Beacon_Rest,

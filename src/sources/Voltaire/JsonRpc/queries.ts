@@ -14,7 +14,10 @@ import type { ExecutionEndpoint } from '$/constants/ExecutionEndpoints.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { getHttpProvider, getWebsocketProvider } from '$/lib/voltaire.ts'
 
-import { getBlockNumber as getEvmBlockNumber } from '$/sources/Evm/JsonRpc/queries.ts'
+import {
+	getBlockByNumber as getEvmBlockByNumber,
+	getBlockNumber as getEvmBlockNumber,
+} from '$/sources/Evm/JsonRpc/queries.ts'
 import type { RpcBlockHeader, RpcLog, RpcReceipt, RpcTransaction } from '$/sources/Evm/JsonRpc/types.ts'
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -166,18 +169,29 @@ const narrowVoltaireReceiptRpc = (raw: JsonValue): VoltaireReceiptRpc | null => 
 
 
 export const streamBlockToBlockRpcWire = (
-	block: StreamBlock<BlockInclude>,
+	block: StreamBlock<BlockInclude> | VoltaireBlockRpc,
 ): VoltaireBlockRpc => {
-	const transactions: VoltaireBlockRpc['transactions'] = block.body.transactions.map((transaction) => String(transaction))
+	const transactions: VoltaireBlockRpc['transactions'] = (
+		(
+			'header' in block ?
+				// oxlint-disable-next-line typescript/no-unnecessary-condition -- Voltaire runtime can omit body despite StreamBlock typing
+				'body' in block && block.body != null ?
+					block.body.transactions
+				:
+					[]
+			:
+				block.transactions
+		) ?? []
+	).map((transaction) => String(transaction))
 	return {
-		number: String(Hex.fromBigInt(block.header.number)),
-		hash: String(Hex.fromBytes(block.hash)),
-		parentHash: String(Hex.fromBytes(block.header.parentHash)),
-		timestamp: String(Hex.fromBigInt(block.header.timestamp)),
-		miner: String(Hex.fromBytes(block.header.beneficiary)),
-		gasUsed: String(Hex.fromBigInt(block.header.gasUsed)),
-		gasLimit: String(Hex.fromBigInt(block.header.gasLimit)),
-		...(block.header.baseFeePerGas != null && { baseFeePerGas: String(Hex.fromBigInt(block.header.baseFeePerGas)) }),
+		number: 'header' in block ? String(Hex.fromBigInt(block.header.number)) : block.number,
+		hash: 'header' in block ? String(Hex.fromBytes(block.hash)) : block.hash,
+		parentHash: 'header' in block ? String(Hex.fromBytes(block.header.parentHash)) : block.parentHash,
+		timestamp: 'header' in block ? String(Hex.fromBigInt(block.header.timestamp)) : block.timestamp,
+		miner: 'header' in block ? String(Hex.fromBytes(block.header.beneficiary)) : block.miner,
+		gasUsed: 'header' in block ? String(Hex.fromBigInt(block.header.gasUsed)) : block.gasUsed,
+		gasLimit: 'header' in block ? String(Hex.fromBigInt(block.header.gasLimit)) : block.gasLimit,
+		...('header' in block ? block.header.baseFeePerGas != null && { baseFeePerGas: String(Hex.fromBigInt(block.header.baseFeePerGas)) } : block.baseFeePerGas != null && { baseFeePerGas: block.baseFeePerGas }),
 		transactions,
 	}
 }
@@ -276,29 +290,10 @@ export const createLiveBlockStream = (provider: Provider) => (
 	BlockStream({ provider })
 )
 
-const logBlockStreamEvent = (
-	chainId: number,
-	event: BlockStreamEvent<BlockInclude>,
-) => {
-	if (event.type === 'blocks') {
-		const chainHead = event.metadata.chainHead
-			const blockNumbers = event.blocks.map((b) => String(b.header.number))
-		console.info(
-			`[block stream] chainId=${String(chainId)} type=blocks chainHead=${String(chainHead)} blockNumbers=${blockNumbers.join(',')}`,
-		)
-	} else {
-		const ancestor = event.commonAncestor
-		console.info(
-				`[block stream] chainId=${String(chainId)} type=reorg removed=${String(event.removed.length)} added=${String(event.added.length)} commonAncestor=${String(ancestor.number)}`,
-		)
-	}
-}
-
 export async function* iterateBlockStreamEvents({
 	provider,
 	include = 'header',
 	signal,
-	chainId,
 	fromBlock,
 	maxQueuedBlocks,
 	pollingInterval,
@@ -307,8 +302,6 @@ export async function* iterateBlockStreamEvents({
 	provider: Provider
 	include?: BlockInclude
 	signal?: AbortSignal
-	/** When set, each `blocks` / `reorg` event is logged (E2E / no-events debugging). */
-	chainId?: number
 	fromBlock?: bigint
 	maxQueuedBlocks?: number
 	pollingInterval?: number
@@ -323,9 +316,6 @@ export async function* iterateBlockStreamEvents({
 		pollingInterval,
 		retry,
 	})) {
-		if (chainId != null) {
-			logBlockStreamEvent(chainId, event)
-		}
 		yield event
 	}
 }
@@ -385,6 +375,39 @@ export const getBlockByNumberForRpcUrl = async ({
 	blockNumber: bigint | 'latest'
 	fullTransactions?: boolean
 }): Promise<VoltaireBlockRpc | null> => {
+	if (transportType === TransportType.Http) {
+		const block = await getEvmBlockByNumber({
+			rpcUrl,
+			blockNumber,
+			txObjects: fullTransactions,
+		})
+		if (
+			block == null
+			|| block.number == null
+			|| block.hash == null
+			|| block.parentHash == null
+			|| block.timestamp == null
+			|| block.miner == null
+			|| block.gasUsed == null
+			|| block.gasLimit == null
+		)
+			return null
+
+		return {
+			number: block.number,
+			hash: block.hash,
+			parentHash: block.parentHash,
+			timestamp: block.timestamp,
+			miner: block.miner,
+			gasUsed: block.gasUsed,
+			gasLimit: block.gasLimit,
+			...(block.baseFeePerGas != null && { baseFeePerGas: block.baseFeePerGas }),
+			...(block.blobGasUsed != null && { blobGasUsed: block.blobGasUsed }),
+			...(block.excessBlobGas != null && { excessBlobGas: block.excessBlobGas }),
+			...(block.transactions != null && { transactions: block.transactions }),
+		}
+	}
+
 	const provider = getProviderForExecutionUrl({ url: rpcUrl, transportType })
 	return getBlockByNumber({ provider, blockNumber, fullTransactions })
 }
@@ -410,12 +433,17 @@ export const getRecentBlockWiresForRpcUrl = async ({
 	)
 	const wires = await Promise.all(
 		blockNumbers.map((blockNumber) => (
-			getBlockByNumberForRpcUrl({
-				rpcUrl,
-				transportType,
-				blockNumber,
-				fullTransactions: false,
-			})
+			Promise.race([
+				getBlockByNumberForRpcUrl({
+					rpcUrl,
+					transportType,
+					blockNumber,
+					fullTransactions: false,
+				}),
+				new Promise<null>((resolve) => {
+					setTimeout(() => resolve(null), 8_000)
+				}),
+			])
 		)),
 	)
 	return { blockNumbers, wires }

@@ -1,8 +1,10 @@
 <script module lang="ts">
-	export enum Layout {
-		Block = 'Block',
-		Inline = 'Inline',
+	export const Layout = {
+		Block: 'Block',
+		Inline: 'Inline',
 	}
+
+	type Layout = typeof Layout[keyof typeof Layout]
 </script>
 
 
@@ -11,19 +13,13 @@
 	import type { Snippet } from 'svelte'
 
 	import Boundary from '$/components/Boundary.svelte'
-	import type { RemoteResource } from '@sveltejs/kit'
 	import {
 		type QueryLike,
+		type QueryResourceError,
+		type RemoteResourceLike,
 		toQueryResource,
 		toQueryResourceFromRemote,
 	} from '$/lib/db/queryResource.svelte.ts'
-
-	type ResourceLike<Data> = {
-		readonly [Symbol.toStringTag]?: string
-		readonly current: Data | undefined
-		readonly error: unknown
-		readonly ready: boolean
-	}
 
 
 	// State
@@ -39,28 +35,29 @@
 		children: Snippet<[data: Data]>
 		Pending?: Snippet
 		Failed?: Snippet<[
-			error: unknown,
+			error: QueryResourceError,
 			retry: () => void,
 		]>
 		placeholderText?: string
 		resource:
 			| QueryLike<Data>
-			| RemoteResource<Data>
-			| ResourceLike<Data>
+			| RemoteResourceLike<Data>
 		boundaryKey?: string
 		layout?: Layout
 	} = $props()
 
 	const resource = $derived(
-		(Symbol.toStringTag in resourceRaw && resourceRaw[Symbol.toStringTag] === 'RemoteResource') ?
-			toQueryResourceFromRemote(() => resourceRaw as RemoteResource<Data>)
+		'data' in resourceRaw ?
+			toQueryResource(() => resourceRaw)
 		:
-			toQueryResource(() => resourceRaw as QueryLike<Data>)
+			toQueryResourceFromRemote(() => resourceRaw)
 	)
 </script>
 
 
 <Boundary {boundaryKey}>
+	{@const current = resource.current}
+
 	{#if resource.error !== undefined}
 		{#if Failed}
 			{@render Failed(
@@ -80,7 +77,7 @@
 				<p>{resource.error instanceof Error ? resource.error.message : String(resource.error)}</p>
 			</div>
 		{/if}
-	{:else if !resource.ready}
+	{:else if current === undefined && !resource.ready}
 		{#if Pending}
 			{@render Pending()}
 		{:else}
@@ -105,7 +102,7 @@
 			{/if}
 		{/if}
 	{:else}
-		{@render children(resource.current as Data)}
+		{@render children(current as Data)}
 	{/if}
 </Boundary>
 

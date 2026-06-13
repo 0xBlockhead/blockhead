@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -28,7 +27,7 @@
 		>
 	> = $props()
 
-	const witness = useEntity(entityCollectionsContext, EntityType.TronWitness,
+	const witness = subscribe(EntityType.TronWitness,
 		entityId,
 		({ sources: [
 				Source.TronGrid_Rest,

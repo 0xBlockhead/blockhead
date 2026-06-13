@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -25,14 +24,14 @@
 		open?: boolean
 	} = $props()
 
-	const network = useEntity(entityCollectionsContext, EntityType.NearNetwork,
+	const network = subscribe(EntityType.NearNetwork,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { slug: true, name: true, environment: true, rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1 }) } }),
 	)
 
-	const baseNetwork = useEntity(entityCollectionsContext, EntityType.Network,
+	const baseNetwork = subscribe(EntityType.Network,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,

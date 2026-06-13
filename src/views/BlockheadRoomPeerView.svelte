@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -43,7 +42,7 @@
 	> = $props()
 
 	
-	const peer = useEntity(entityCollectionsContext, EntityType.BlockheadRoomPeer,
+	const peer = subscribe(EntityType.BlockheadRoomPeer,
 		entityId,
 		({ sources: [
 				Source.Local_Internal,

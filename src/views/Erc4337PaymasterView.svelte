@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -42,7 +41,7 @@
 			>
 	> = $props()
 
-	const paymaster = useEntity(entityCollectionsContext, EntityType.Erc4337Paymaster,
+	const paymaster = subscribe(EntityType.Erc4337Paymaster,
 		entityId,
 		({ sources: [
 				Source.Blockscout_Rest,

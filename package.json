@@ -27,7 +27,7 @@
 		"test:e2e:boundaries": "playwright test tests/e2e/boundary-updates.e2e.ts",
 		"test:e2e:failfast": "playwright test tests/e2e/route-errors-failfast.e2e.ts",
 		"test:e2e:cors": "playwright test tests/e2e/cors-policy.e2e.ts",
-		"test:e2e:persistence": "PLAYWRIGHT_DEDICATED_SERVER=1 E2E_REAL_PERSISTENCE_PATHS=/network/1,/networks playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
+		"test:e2e:persistence": "PLAYWRIGHT_DEDICATED_SERVER=1 E2E_REAL_PERSISTENCE_PATHS=/network/eip155:1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
 		"test:e2e:persistence:full": "PLAYWRIGHT_DEDICATED_SERVER=1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts"
 	},
 	"devDependencies": {
@@ -39,7 +39,7 @@
 		"@sveltejs/mcp": "^0.1.23",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@types/node": "^25.9.1",
-		"@types/sanitize-html": "^2.16.1",
+		"@types/insane": "^1.0.0",
 		"@vitest/browser-playwright": "^4.1.7",
 		"autoprefixer": "^10.5.0",
 		"openapi-typescript": "^7.13.0",
@@ -78,9 +78,9 @@
 		"file-type": "^22.0.1",
 		"gql.tada": "^1.9.2",
 		"graphql": "^16.14.0",
+		"insane": "^2.6.2",
 		"map.prototype.getorinsertcomputed": "^1.0.1",
 		"multiformats": "^14.0.0",
-		"sanitize-html": "^2.17.4",
 		"starkdown": "^4.0.2",
 		"weakmap.prototype.getorinsertcomputed": "^1.0.0"
 	}

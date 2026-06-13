@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -39,7 +38,7 @@
 		>
 	> = $props()
 
-	const deposit = useEntity(entityCollectionsContext, EntityType.StateChannelDeposit,
+	const deposit = subscribe(EntityType.StateChannelDeposit,
 		entityId,
 		({ sources: [Source.Local_Internal], fields: { availableBalance: true, lockedBalance: true, lastUpdated: true, $account: true, $network: true } }),
 	)

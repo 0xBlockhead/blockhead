@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -47,7 +46,7 @@
 		>
 	> = $props()
 
-	const feed = useEntity(entityCollectionsContext, EntityType.FarcasterFeed,
+	const feed = subscribe(EntityType.FarcasterFeed,
 		entityId,
 		({ sources: [
 				Source.Neynar_Rest,

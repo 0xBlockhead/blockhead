@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -49,7 +48,7 @@
 	)
 
 
-	const validator = useEntity(entityCollectionsContext, EntityType.BeaconValidator,
+	const validator = subscribe(EntityType.BeaconValidator,
 		entityId,
 		(
 			open ?

@@ -1,7 +1,9 @@
-import { env as publicEnv } from '$env/dynamic/public'
-import { type as arktype, type Type } from 'arktype'
+import type { Type } from 'arktype'
 
-import type { SourceDefinition as SourceDefinitionTemplate, SourcePublicEnv } from '$/sources/$sources.ts'
+import {
+	type SourceDefinition as SourceDefinitionTemplate,
+	type SourcePublicEnv,
+} from '$/sources/$sources.ts'
 import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
 import { Source } from '$/sources/Source.ts'
@@ -255,76 +257,4 @@ type SourceEnvEntry = (
 /** Public env object shape for a `Source`, derived from its provider and source env schemas. */
 export type SourcePublicEnvFor<_Source extends Source> = (
 	Extract<SourceEnvEntry, { source: _Source }>['env']
-)
-
-/** Flattened `$env/dynamic/public` for gating and resolver `context.publicEnv`. */
-export const resolverPublicEnv = (
-	Object.fromEntries(
-		Object.entries(publicEnv).map(([key, value]) => [
-			key,
-			value ?? '',
-		]),
-	)
-) satisfies SourcePublicEnv
-
-const envSubsetFromSchema = (
-	envSchema: SourceProviderDefinition['env'] ,
-): SourcePublicEnv | null => {
-	if (envSchema == null) return {}
-	const out = envSchema(resolverPublicEnv)
-	if (out instanceof arktype.errors || typeof out !== 'object') return null
-	const subsetEntries: [string, string][] = []
-	for (const [key, value] of Object.entries(out)) {
-		if (typeof value !== 'string' || value.trim() === '') return null
-		subsetEntries.push([key, value])
-	}
-	return Object.fromEntries(subsetEntries)
-}
-
-const enabledSourceEntries = sourceProviders.flatMap((sourceProvider) => {
-	const providerSubset = envSubsetFromSchema(
-		'env' in sourceProvider ?
-			sourceProvider.env
-		:
-			undefined,
-	)
-	if (providerSubset == null) return []
-	return sourceProvider.sources.flatMap((sourceDefinition) => {
-		const sourceSubset = envSubsetFromSchema(
-			'env' in sourceDefinition ?
-				sourceDefinition.env
-			:
-				undefined,
-		)
-		if (sourceSubset == null) return []
-		const merged = {
-			...providerSubset,
-			...sourceSubset,
-		}
-		return [[
-			sourceDefinition,
-			(
-				Object.keys(merged).length === 0 ?
-					resolverPublicEnv
-				:
-					merged
-			),
-		] as const]
-	})
-})
-
-export const sources = (
-	enabledSourceEntries.map(([sourceDefinition]) => sourceDefinition)
-) satisfies readonly SourceDefinition[]
-
-/** Per-source public env passed to resolvers: validated subset when provider/source declare `env`; otherwise full {@link resolverPublicEnv}. */
-export const resolverPublicEnvBySource: ReadonlyMap<Source, SourcePublicEnv> = new Map(
-	enabledSourceEntries.map(([sourceDefinition, publicEnv]) => ([
-		sourceDefinition.source,
-		publicEnv,
-	])),
-)
-
-export const enabledSources = new Set(
-	sources.map((sourceDefinition) => sourceDefinition.source),
 )

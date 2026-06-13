@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,7 +26,7 @@
 		>
 	> = $props()
 
-	const utxoAddress = useEntity(entityCollectionsContext, EntityType.UtxoAddress,
+	const utxoAddress = subscribe(EntityType.UtxoAddress,
 		entityId,
 		({ fields: { balanceSats: true, transactionCount: true, unspentOutputCount: true, totalReceivedSats: true, totalSpentSats: true } }),
 	)

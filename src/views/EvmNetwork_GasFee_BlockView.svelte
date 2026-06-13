@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +37,7 @@
 		>
 	> = $props()
 
-	const networkGasFeeBlock = useEntity(entityCollectionsContext, EntityType.EvmNetwork_GasFee_Block,
+	const networkGasFeeBlock = subscribe(EntityType.EvmNetwork_GasFee_Block,
 		entityId,
 		({ sources: [Source.Voltaire_JsonRpc], fields: { baseFeePerGas: true, legacyGasPrice: true, maxPriorityFeePerGas: true, gasUsedRatio: true, priorityFeeRewardAt50thPercentile: true } }),
 	)

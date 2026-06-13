@@ -44,12 +44,11 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	const evmNetworkAccountDetailAnchorKey = stringify(entityId)
 
-	const network = useEntity(entityCollectionsContext, EntityType.EvmNetwork,
+	const network = subscribe(EntityType.EvmNetwork,
 		entityId.$network,
 		({ sources: [
 				Source.Constants_Internal,
@@ -68,14 +67,14 @@
 				] }) } }),
 	)
 
-	const actor = useEntity(entityCollectionsContext, EntityType.EvmAccount,
+	const actor = subscribe(EntityType.EvmAccount,
 		entityId.$actor,
 		({ sources: [
 				Source.Voltaire_JsonRpc,
 			], fields: { $primaryName: true, $icon: true } }),
 	)
 
-	const evmNetworkAccount = useEntity(entityCollectionsContext, EntityType.EvmNetworkAccount,
+	const evmNetworkAccount = subscribe(EntityType.EvmNetworkAccount,
 		entityId,
 		open ?
 			{

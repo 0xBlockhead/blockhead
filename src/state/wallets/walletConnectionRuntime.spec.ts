@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { stringify } from 'devalue'
 
 import { createAptosAip62Adapter } from './adapters/aptosAip62.ts'
 import { createBitcoinInjectedAdapter } from './adapters/bitcoinInjected.ts'
@@ -16,12 +17,21 @@ import {
 	WalletProtocol,
 	WalletTransportKind,
 } from '$/constants/Wallet.ts'
+import { ActionType } from '$/constants/actions.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+
+type MockRow = Record<string, string | number | boolean | object | readonly object[] | undefined>
 
 describe('wallet connection runtime normalization', () => {
 	afterEach(() => {
 		vi.unstubAllGlobals()
+		vi.resetModules()
+		vi.doUnmock('$/routes/+layout.svelte')
 	})
+
 	it('normalizes EIP-6963 provider details into wallet candidates', () => {
 		expect(eipCandidateFromDetail({
 			info: {
@@ -102,6 +112,284 @@ describe('wallet connection runtime normalization', () => {
 			accounts: [],
 			selected: false,
 		})
+	})
+
+	it('writes wallet local mutations through the sanctioned mutation boundary', async () => {
+		const entityUpserts: MockRow[] = []
+		const fieldUpserts: MockRow[] = []
+		const countUpserts: MockRow[] = []
+		const entityDeletes: string[] = []
+		const fieldDeletes: string[] = []
+		const countDeletes: string[] = []
+
+		vi.doMock('$/routes/+layout.svelte', () => ({
+			entityCollectionByEntityType: {
+				[EntityType.BlockheadSessionAction]: {
+					delete: (key: string) => entityDeletes.push(key),
+					utils: {
+						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+					},
+				},
+				[EntityType.BlockheadWallet]: {
+					utils: {
+						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+					},
+				},
+				[EntityType.BlockheadWalletAccount]: {
+					utils: {
+						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+					},
+				},
+				[EntityType.BlockheadWalletConnection]: {
+					delete: (key: string) => entityDeletes.push(key),
+					utils: {
+						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+					},
+				},
+			},
+			entityFieldCollections: {
+				[EntityType.BlockheadSession]: {
+					$$actions: {
+						delete: (key: string) => fieldDeletes.push(key),
+						utils: {
+							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
+						},
+					},
+				},
+				[EntityType._Global]: {
+					$$blockheadWallets: {
+						utils: {
+							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
+						},
+					},
+					$$blockheadWalletAccounts: {
+						utils: {
+							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
+						},
+					},
+					$$blockheadWalletConnections: {
+						utils: {
+							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
+						},
+					},
+				},
+			},
+			entityFieldCountCollections: {
+				[EntityType.BlockheadWalletConnection]: {
+					$$connectedAccounts: {
+						delete: (key: string) => countDeletes.push(key),
+						utils: {
+							writeUpsert: (row: MockRow) => countUpserts.push(row),
+						},
+					},
+				},
+			},
+		}))
+
+		const {
+			deleteLocalBlockheadSessionAction,
+			deleteLocalBlockheadWalletConnection,
+			writeLocalBlockheadSessionAction,
+			writeLocalBlockheadWallet,
+			writeLocalBlockheadWalletConnection,
+		} = await import('$/collections/localMutations.ts')
+
+		writeLocalBlockheadSessionAction(
+			{
+				id: 'session-1',
+			},
+			0,
+			ActionType.Swap,
+		)
+		writeLocalBlockheadWallet({
+			id: 'eip6963:com.example.wallet',
+			name: 'Example Wallet',
+			icon: 'data:image/svg+xml,example',
+			protocol: WalletProtocol.Eip6963,
+			discoveryKind: WalletDiscoveryKind.InjectedEvent,
+			transportKind: WalletTransportKind.InjectedProvider,
+			capabilities: [
+				WalletCapability.Connect,
+			],
+		})
+		writeLocalBlockheadWalletConnection({
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			selected: true,
+			connectedAt: 1,
+			scopes: [],
+			accounts: [
+				{
+					namespace: 'eip155',
+					reference: '1',
+					accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+					capabilities: [
+						WalletCapability.SignMessage,
+					],
+				},
+			],
+		})
+		deleteLocalBlockheadSessionAction(
+			{
+				id: 'session-1',
+			},
+			{
+				sessionId: 'session-1',
+				actionId: 'action-1',
+			},
+		)
+		deleteLocalBlockheadWalletConnection('eip6963:com.example.wallet')
+
+		const sessionIdKey = stringify({ id: 'session-1' })
+		const deletedSessionActionIdKey = stringify({
+			sessionId: 'session-1',
+			actionId: 'action-1',
+		})
+		const walletIdKey = stringify({ id: 'eip6963:com.example.wallet' })
+		const walletAccountIdKey = stringify({
+			caip10: {
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+			},
+		})
+		const walletConnectionIdKey = stringify({
+			$wallet: {
+				id: 'eip6963:com.example.wallet',
+			},
+		})
+
+		expect(entityUpserts).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.IdKey]: expect.stringMatching(/session-1/),
+				[EntityMetaKey.Source]: Source.Local_Internal,
+				action: expect.objectContaining({
+					type: ActionType.Swap,
+				}),
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.Id]: {
+					id: 'eip6963:com.example.wallet',
+				},
+				[EntityMetaKey.IdKey]: walletIdKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.Id]: {
+					caip10: {
+						namespace: 'eip155',
+						reference: '1',
+						accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+					},
+				},
+				[EntityMetaKey.IdKey]: walletAccountIdKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.Id]: {
+					$wallet: {
+						id: 'eip6963:com.example.wallet',
+					},
+				},
+				[EntityMetaKey.IdKey]: walletConnectionIdKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+				$$connectedAccounts: [
+					{
+						[EntityMetaKey.Id]: {
+							caip10: {
+								namespace: 'eip155',
+								reference: '1',
+								accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+							},
+						},
+					},
+				],
+			}),
+		])
+		expect(fieldUpserts.map((row) => row[EntityMetaKey.Source])).toEqual([
+			Source.Local_Internal,
+			Source.Local_Internal,
+			Source.Local_Internal,
+			Source.Local_Internal,
+		])
+		expect(fieldUpserts).toEqual([
+			expect.objectContaining({
+				fieldName: '$$actions',
+				[EntityMetaKey.ParentIdKey]: sessionIdKey,
+				valueKey: expect.stringMatching(/^Entity:/),
+			}),
+			expect.objectContaining({
+				fieldName: '$$blockheadWallets',
+				[EntityMetaKey.Value]: {
+					[EntityMetaKey.Id]: {
+						id: 'eip6963:com.example.wallet',
+					},
+					[EntityMetaKey.IdKey]: walletIdKey,
+				},
+				valueKey: `Entity:${stringify(walletIdKey)}`,
+			}),
+			expect.objectContaining({
+				fieldName: '$$blockheadWalletAccounts',
+				[EntityMetaKey.Value]: {
+					[EntityMetaKey.Id]: {
+						caip10: {
+							namespace: 'eip155',
+							reference: '1',
+							accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+						},
+					},
+					[EntityMetaKey.IdKey]: walletAccountIdKey,
+				},
+				valueKey: `Entity:${stringify(walletAccountIdKey)}`,
+			}),
+			expect.objectContaining({
+				fieldName: '$$blockheadWalletConnections',
+				[EntityMetaKey.Value]: {
+					[EntityMetaKey.Id]: {
+						$wallet: {
+							id: 'eip6963:com.example.wallet',
+						},
+					},
+					[EntityMetaKey.IdKey]: walletConnectionIdKey,
+				},
+				valueKey: `Entity:${stringify(walletConnectionIdKey)}`,
+			}),
+		])
+		expect(countUpserts).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Source]: Source.Local_Internal,
+				[EntityMetaKey.ParentIdKey]: walletConnectionIdKey,
+				[EntityMetaKey.Value]: 1,
+				fieldName: '$$connectedAccounts',
+				filterKey: stringify({}),
+			}),
+		])
+		expect(entityDeletes).toEqual([
+			stringify([
+				Source.Local_Internal,
+				deletedSessionActionIdKey,
+			]),
+			stringify([
+				Source.Local_Internal,
+				walletConnectionIdKey,
+			]),
+		])
+		expect(fieldDeletes).toEqual([
+			stringify([
+				Source.Local_Internal,
+				sessionIdKey,
+				`Entity:${stringify(deletedSessionActionIdKey)}`,
+			]),
+		])
+		expect(countDeletes).toEqual([
+			stringify([
+				Source.Local_Internal,
+				walletConnectionIdKey,
+				stringify({}),
+			]),
+		])
 	})
 
 	it('discovers Aptos injected signer globals without connecting', () => {

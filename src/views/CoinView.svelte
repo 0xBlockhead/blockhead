@@ -5,7 +5,6 @@
 	import { catalogCoinIdentitySources } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { catalogCoinUsdMarketIdByCoinId } from '$/constants/MarketCatalog.ts'
-	import { blockscoutHostedNetworks } from '$/sources/Blockscout/Rest/constants.ts'
 
 	import {
 		MarketKind,
@@ -21,8 +20,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -69,23 +67,19 @@
 	)
 
 
-	const hasBlockscoutNativeSnapshots = $derived(
-		blockscoutHostedNetworks.some((network) => (
-			network.nativeCoinId === entityId.coinId
-		)),
-	)
-
-	const coin = useEntity(entityCollectionsContext, EntityType.Coin,
-		entityId,
-		({ sources: [...catalogCoinIdentitySources], fields: { $logo: true, decimals: true, name: true, symbol: true, marketCapRank: true, marketCapUsd: ({ sources: catalogCoinIdentitySources }), ...(open && hasBlockscoutNativeSnapshots && ({ $$timestamps: ({ sources: [
-						Source.Blockscout_Rest,
-					], limit: 8 }) })), ...(open && ({ $$coinInstances: ({ sources: [
-						Source.Constants_Internal,
-						Source.Coingecko_Rest,
-					] }), $$bridgeCapabilities: ({ sources: [
-						Source.Constants_Internal,
-						Source.Lifi_Rest,
-					] }) })) } }),
+	const coin = $derived(
+		subscribe(EntityType.Coin,
+			entityId,
+			({ sources: [...catalogCoinIdentitySources], fields: { $logo: true, decimals: true, name: true, symbol: true, marketCapRank: true, marketCapUsd: ({ sources: catalogCoinIdentitySources }), ...(open && ({ $$timestamps: ({ sources: [
+							Source.Blockscout_Rest,
+						], limit: 8 }) })), ...(open && ({ $$coinInstances: ({ sources: [
+							Source.Constants_Internal,
+							Source.Coingecko_Rest,
+						] }), $$bridgeCapabilities: ({ sources: [
+							Source.Constants_Internal,
+							Source.Lifi_Rest,
+						] }) })) } }),
+		),
 	)
 
 
@@ -194,7 +188,7 @@
 
 			{#if (
 				open
-				&& hasBlockscoutNativeSnapshots
+				&& coin.current?.fields.$$timestamps?.values.length
 			)}
 			<div>
 				<dt>Latest snapshot</dt>

@@ -12,8 +12,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -42,7 +41,7 @@
 		>
 	> = $props()
 
-	const marketTimestamp = useEntity(entityCollectionsContext, EntityType.Market_Timestamp,
+	const marketTimestamp = subscribe(EntityType.Market_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Blockscout_Rest,

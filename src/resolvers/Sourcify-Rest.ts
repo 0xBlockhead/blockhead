@@ -1,6 +1,6 @@
 import {
 	defineResolver,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { evmAbiFromJsonValue } from '$/lib/evmAbi.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {

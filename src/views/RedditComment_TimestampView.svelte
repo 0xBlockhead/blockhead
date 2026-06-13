@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,8 +35,7 @@
 		>
 	> = $props()
 
-	const redditCommentTimestamp = useEntity(entityCollectionsContext, 
-		EntityType.RedditComment_Timestamp,
+	const redditCommentTimestamp = subscribe(EntityType.RedditComment_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Reddit_Rest,

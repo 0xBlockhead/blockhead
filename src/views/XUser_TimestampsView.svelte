@@ -5,13 +5,10 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -26,14 +23,6 @@
 		title?: string
 		open?: boolean
 	} = $props()
-
-
-	// Functions
-	const xUserTimestampSources = (
-		resolverDefinitionsByEntityType[EntityType.XUser_Timestamp]?.map((resolver) => resolver.source)
-		?? [Source.Local_Internal]
-	)
-
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -60,10 +49,8 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(entityCollectionsContext,
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,({ sources: xUserTimestampSources, fields: { [entityFieldReference.fieldName]: {
-				sources: xUserTimestampSources,
+			{@const parent = subscribe(entityFieldReference.entityType,
+		entityFieldReference.entityId,({ fields: { [entityFieldReference.fieldName]: {
 				limit: 64,
 			},
 		} }),

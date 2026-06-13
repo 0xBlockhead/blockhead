@@ -52,14 +52,13 @@
 	} from '$/lib/ensContentHash.ts'
 
 	import { resolveMediaUrlTransport } from '$/lib/media.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
 	} as const
 
-	const ens = useEntity(entityCollectionsContext, EntityType.EnsName,
+	const ens = subscribe(EntityType.EnsName,
 		entityId,
 		({ sources: [
 				Source.Voltaire_JsonRpc,

@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,7 +26,7 @@
 		>
 	> = $props()
 
-	const solanaValidator = useEntity(entityCollectionsContext, EntityType.SolanaValidator,
+	const solanaValidator = subscribe(EntityType.SolanaValidator,
 		entityId,
 		({ fields: { nodePubkey: true, activatedStakeLamports: true, commission: true, delinquent: true } }),
 	)

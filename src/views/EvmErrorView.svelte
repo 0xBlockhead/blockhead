@@ -37,10 +37,9 @@
 	> = $props()
 
 	import { getEvmErrorPath } from '$/lib/signature-paths.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const evmError = useEntity(entityCollectionsContext, EntityType.EvmError,
+	const evmError = subscribe(EntityType.EvmError,
 		entityId,
 		({ sources: [
 				Source.Openchain_Rest,

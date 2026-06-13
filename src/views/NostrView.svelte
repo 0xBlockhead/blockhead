@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -35,7 +34,7 @@
 		never
 	> = $props()
 
-	const network = useEntity(entityCollectionsContext, EntityType.NostrNetwork,
+	const network = subscribe(EntityType.NostrNetwork,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,

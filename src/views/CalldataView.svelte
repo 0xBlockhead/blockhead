@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -34,7 +33,7 @@
 		never
 	> = $props()
 
-	const calldata = useEntity(entityCollectionsContext, EntityType.EvmCalldata,
+	const calldata = subscribe(EntityType.EvmCalldata,
 		entityId,
 		{
 			sources: [

@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -39,7 +38,7 @@
 
 	const idKey = stringify(entityId)
 
-	const post = useEntity(entityCollectionsContext, EntityType.AtprotoPost,
+	const post = subscribe(EntityType.AtprotoPost,
 		entityId,
 		({ sources: [
 				Source.Atproto_Xrpc,

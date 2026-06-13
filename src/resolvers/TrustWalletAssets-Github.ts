@@ -1,7 +1,7 @@
 import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	defineResolver,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EntityIdProjection } from '$/schema/$schema.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'

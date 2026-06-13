@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -25,14 +24,14 @@
 		open?: boolean
 	} = $props()
 
-	const network = useEntity(entityCollectionsContext, EntityType.Network,
+	const network = subscribe(EntityType.Network,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, environment: true, $networkStack: true, $$nativeAssets: true, $$executionEnvironments: true, $$consensusMechanisms: true } }),
 	)
 
-	const hyperliquidNetwork = useEntity(entityCollectionsContext, EntityType.HyperliquidNetwork,
+	const hyperliquidNetwork = subscribe(EntityType.HyperliquidNetwork,
 		entityId,
 		({ sources: [
 				Source.Hyperliquid_JsonRpc,

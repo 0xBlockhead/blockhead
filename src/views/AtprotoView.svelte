@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -38,7 +37,7 @@
 		never
 	> = $props()
 
-	const atprotoNetwork = useEntity(entityCollectionsContext, EntityType.AtprotoNetwork,
+	const atprotoNetwork = subscribe(EntityType.AtprotoNetwork,
 		entityId,
 		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$atprotoActors: ({ sources: [
 							Source.Constants_Internal,

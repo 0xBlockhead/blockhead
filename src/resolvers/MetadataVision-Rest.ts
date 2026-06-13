@@ -2,7 +2,7 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import {
 	defineResolver,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { schema } from '$/schema/index.ts'
 import type { EntityFieldValues } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'

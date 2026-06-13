@@ -1,3 +1,4 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	bridgeToolByKey,
 	CoinInstanceRepresentation,
@@ -78,8 +79,7 @@ import { xNetworkFieldValues, xNetworkSeedUsers } from '$/constants/Social/X.ts'
 import { xmtpNetworkFieldValues } from '$/constants/Social/Xmtp.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
@@ -595,7 +595,15 @@ export default {
 			}
 			},
 		})({
-				fields: {},
+				fields: {
+					slug: (network) => network.slug,
+					name: (network) => network.name,
+					caip2: (network) => network.caip2,
+					namespace: (network) => network.namespace,
+					environment: (network) => network.environment,
+					executionEndpoints: (network) => network.executionEndpoints,
+					consensusEndpoints: (network) => network.consensusEndpoints,
+				},
 			}),
 
 		defineResolver(Source.Constants_Internal, {

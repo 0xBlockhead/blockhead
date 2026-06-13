@@ -36,11 +36,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const networkGasEstimateTimestamp = useEntity(entityCollectionsContext, 
-		EntityType.EvmNetwork_GasEstimate_Timestamp,
+	const networkGasEstimateTimestamp = subscribe(EntityType.EvmNetwork_GasEstimate_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Blockscout_Rest,

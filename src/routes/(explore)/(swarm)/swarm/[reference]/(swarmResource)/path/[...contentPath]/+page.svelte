@@ -1,21 +1,17 @@
 <script lang="ts">
-	// Types/constants
-	import {
-		getResourceAddressFromRouteParams,
-		getResourceHref,
-	} from '$/sources/Swarm/Rest/queries.ts'
-
-
 	// State
 	let {
 		params,
 	} = $props()
 
 	const entityId = $derived(
-		getResourceAddressFromRouteParams({
-			reference: params.reference,
-			contentPath: params.contentPath,
-		}),
+		params.reference.trim() === '' ?
+			undefined
+		:
+			{
+				reference: params.reference.trim().toLowerCase().replace(/^0x/, '').replace(/^\/+|\/+$/g, ''),
+				contentPath: params.contentPath.replace(/^\/+|\/+$/g, ''),
+			},
 	)
 
 

@@ -2,7 +2,7 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import { ethereumReferenceForkMetadataChainIds } from '$/constants/EthereumSpecs.ts'
 import {
 	defineResolver,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EntityIdProjection } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'

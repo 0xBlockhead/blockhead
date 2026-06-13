@@ -1,3 +1,4 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { stringify } from 'devalue'
 import { keccak256, toHex } from '@tevm/voltaire/Hash'
 import { toBytes } from '@tevm/voltaire/Hex'
@@ -7,8 +8,7 @@ import { hexLowerOfByteSize, with0xHex, zeroExLowerCase } from '$/lib/hexLowerOf
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,
@@ -852,6 +852,12 @@ export default {
 						:
 							undefined
 					)
+					const parentBlockHash = (
+						wire.parentHash != null ?
+							hexLowerOfByteSize(wire.parentHash, 32)
+						:
+							undefined
+					)
 					const timestampSeconds = (
 						wire.timestamp != null ? ((parsed) => (
 							Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
@@ -952,11 +958,12 @@ export default {
 					}
 					return {
 						...base,
-						...(parentBlockNumber != null && {
+						...(parentBlockNumber != null && parentBlockHash != null && {
 								$parent: {
 									[EntityMetaKey.Id]: {
 										$network: evmNetworkIdFromChainId(chainId),
 										blockNumber: parentBlockNumber,
+										hash: parentBlockHash,
 									},
 									number: parentBlockNumber,
 								} satisfies Entity<typeof schema, EntityType.EvmBlock>,

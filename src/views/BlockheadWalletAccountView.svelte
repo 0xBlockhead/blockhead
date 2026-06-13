@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -32,8 +31,7 @@
 		>
 	> = $props()
 
-	const walletAccount = $derived(useEntity(entityCollectionsContext, 
-		EntityType.BlockheadWalletAccount,
+	const walletAccount = $derived(subscribe(EntityType.BlockheadWalletAccount,
 		entityId,
 		({ sources: [
 				Source.Local_Internal,

@@ -1,3 +1,4 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	EvmTransactionEnvelopeType,
 	EvmTransactionExecutionStatus,
@@ -6,8 +7,7 @@ import {
 import { zeroGChainId } from '$/constants/ZeroGNetwork.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	EntityIdProjection,

@@ -1,22 +1,19 @@
-import devtoolsJson from 'vite-plugin-devtools-json';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vitest/config';
-import { playwright } from '@vitest/browser-playwright';
-import { sveltekit } from '@sveltejs/kit/vite';
-
-const repoRoot = fileURLToPath(new URL('.', import.meta.url))
+import devtoolsJson from 'vite-plugin-devtools-json'
+import { fileURLToPath } from 'node:url'
+import { resolve } from 'node:path'
+import { defineConfig } from 'vitest/config'
+import { playwright } from '@vitest/browser-playwright'
+import { sveltekit } from '@sveltejs/kit/vite'
 
 /**
  * Prebuilt `@tanstack/browser-db-sqlite-persistence` ships a worker wrapper with a
- * hardcoded `/assets/opfs-worker-*.js` URL (its own build output). That path is not
- * served by Vite/SvelteKit, so the OPFS worker 404s and terminates. Alias to package
- * source so Vite resolves `./opfs-worker?worker` into the app bundle with a real URL.
+ * Node-flavored default export shape under Vite. Alias to source so Vite bundles the
+ * OPFS worker consistently for browser tests and the app.
  */
-const tanstackBrowserSqliteSrc = resolve(
-	repoRoot,
+const tanstackBrowserSqliteSrc = fileURLToPath(new URL(
 	'node_modules/@tanstack/browser-db-sqlite-persistence/src/index.ts',
-)
+	import.meta.url,
+))
 
 export default defineConfig({
 	resolve: {
@@ -74,4 +71,4 @@ export default defineConfig({
 			}
 		]
 	}
-});
+})

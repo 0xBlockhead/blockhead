@@ -26,8 +26,7 @@
 	} from '$/lib/calldata-decode.ts'
 
 	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	const emptyTopicHex: `0x${string}` = '0x0000000000000000000000000000000000000000000000000000000000000000'
 
@@ -40,7 +39,7 @@
 			null,
 	)
 
-	const topic = useEntity(entityCollectionsContext, EntityType.EvmTopic,
+	const topic = subscribe(EntityType.EvmTopic,
 		(
 			topic0Hex != null ?
 				{ hex: topic0Hex }
@@ -52,7 +51,7 @@
 			], fields: { signatures: true } }),
 	)
 
-	const emitterContract = useEntity(entityCollectionsContext, EntityType.EvmContract,
+	const emitterContract = subscribe(EntityType.EvmContract,
 		emitterContractId ?? {
 			$network: { caip2: { namespace: 'eip155' as const, reference: String(0) } },
 			address: '0x0000000000000000000000000000000000000000',

@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,7 +31,7 @@
 		never
 	> = $props()
 
-	const protocol = useEntity(entityCollectionsContext, EntityType.EvmProtocol,
+	const protocol = subscribe(EntityType.EvmProtocol,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,

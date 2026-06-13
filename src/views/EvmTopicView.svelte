@@ -37,10 +37,9 @@
 	> = $props()
 
 	import { getEvmTopicPath } from '$/lib/signature-paths.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const topic = useEntity(entityCollectionsContext, EntityType.EvmTopic,
+	const topic = subscribe(EntityType.EvmTopic,
 		entityId,
 		({ sources: [
 				Source.Openchain_Rest,

@@ -1,6 +1,86 @@
 <script module lang="ts">
 	// Polyfills
 	import '$/polyfills.ts'
+
+	import { QueryClient } from '@tanstack/query-core'
+	import {
+		createBrowserWASQLitePersistence,
+		openBrowserWASQLiteOPFSDatabase,
+	} from '@tanstack/browser-db-sqlite-persistence'
+	import { env } from '$env/dynamic/public'
+
+	import {
+		client,
+		subscribeEntity,
+		type SubscribeSelection,
+	} from '$/client/$client.svelte.ts'
+	import { BLOCKHEAD_WA_SQLITE_DATABASE_NAME } from '$/constants/Persistence.ts'
+	import { resolvers } from '$/resolvers/index.ts'
+	import { schema } from '$/schema/index.ts'
+	import type { EntityId, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import { sourceProviders } from '$/sources/index.ts'
+
+	const appClient = client({
+		schema,
+		sourceProviders,
+	})({
+		resolvers,
+		env,
+	})({
+		queryClient: new QueryClient(),
+		persistence: createBrowserWASQLitePersistence({
+			database: await openBrowserWASQLiteOPFSDatabase({
+				databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
+			}),
+		}),
+	})
+
+	if (typeof window !== 'undefined' && '__blockheadPersistenceProbe' in window)
+		Object.defineProperty(window, '__blockheadClientProbe', {
+			value: {
+				events: appClient.events,
+				collectionSizes: () => ({
+					entities: Object.fromEntries(Object.entries(appClient.entityCollections).map(([entityType, collection]) => [
+						entityType,
+						collection.size,
+					])),
+					fields: Object.fromEntries(Object.entries(appClient.entityFieldCollections).map(([entityType, fieldCollections]) => [
+						entityType,
+						Object.fromEntries(Object.entries(fieldCollections).map(([fieldName, collection]) => [
+							fieldName,
+							collection.size,
+						])),
+					])),
+					counts: Object.fromEntries(Object.entries(appClient.entityFieldCountCollections).map(([entityType, fieldCollections]) => [
+						entityType,
+						Object.fromEntries(Object.entries(fieldCollections).map(([fieldName, collection]) => [
+							fieldName,
+							collection?.size ?? 0,
+						])),
+					])),
+				}),
+				read: <
+					const _EntityType extends EntityTypeName<typeof schema>,
+					const _Selection extends SubscribeSelection<typeof schema, _EntityType>,
+				>(
+					entityType: _EntityType,
+					entityId: EntityId<typeof schema, _EntityType>,
+					selection: _Selection,
+				) => subscribeEntity<typeof schema, _EntityType, _Selection>(
+					appClient,
+					entityType,
+					entityId,
+					selection,
+				),
+			},
+			configurable: true,
+		})
+
+	export const subscribe = appClient.subscribe
+	export const entityCollectionByEntityType = appClient.entityCollections
+	export const entityFieldCollections = appClient.entityFieldCollections
+	export const entityFieldCountCollections = appClient.entityFieldCountCollections
+	export const entityCollectionsQueryClient = appClient.queryClient
 </script>
 
 

@@ -84,7 +84,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 	try {
 		await page.goto('/', { waitUntil: 'domcontentloaded' })
 		await clearOriginOpfs(page)
-		await page.goto(`/network/${String(chainId)}`, { waitUntil: 'load' })
+		await page.goto(`/network/eip155:${String(chainId)}`, { waitUntil: 'load' })
 		await expect(page.locator('#main')).toBeVisible()
 		await assertMainSettled(page, 120_000)
 

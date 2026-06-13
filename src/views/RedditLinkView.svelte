@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +37,7 @@
 		>
 	> = $props()
 
-	const link = useEntity(entityCollectionsContext, EntityType.RedditLink,
+	const link = subscribe(EntityType.RedditLink,
 		entityId,
 		({ sources: [
 				Source.Reddit_Rest,

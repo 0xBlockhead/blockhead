@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -39,7 +38,7 @@
 		>
 	> = $props()
 
-	const atprotoActorTimestamp = useEntity(entityCollectionsContext, EntityType.AtprotoActor_Timestamp,
+	const atprotoActorTimestamp = subscribe(EntityType.AtprotoActor_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Atproto_Xrpc,

@@ -6,13 +6,10 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -37,15 +34,9 @@
 		>
 	> = $props()
 
-	const post = useEntity(entityCollectionsContext, EntityType.XPost,
+	const post = subscribe(EntityType.XPost,
 		entityId,
-		({ sources: (
-				resolverDefinitionsByEntityType[EntityType.XPost]?.map((r) => r.source)
-				?? [Source.Local_Internal]
-			), fields: { text: true, createdAt: true, $author: ({ fields: { username: true, name: true } }), ...(open ? ({ likeCount: true, retweetCount: true, replyCount: true, quoteCount: true, $$timestamps: ({ sources: (
-							resolverDefinitionsByEntityType[EntityType.XPost_Timestamp]?.map((r) => r.source)
-							?? [Source.Local_Internal]
-						), limit: 1 }), conversationId: true, $replyToPost: true, $quotedPost: true, postUrl: true, $$media: true }) : ({  })) } }),
+		({ fields: { text: true, createdAt: true, $author: ({ fields: { username: true, name: true } }), ...(open ? ({ likeCount: true, retweetCount: true, replyCount: true, quoteCount: true, $$timestamps: ({ limit: 1 }), conversationId: true, $replyToPost: true, $quotedPost: true, postUrl: true, $$media: true }) : ({  })) } }),
 	)
 
 

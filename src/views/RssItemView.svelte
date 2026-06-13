@@ -41,10 +41,9 @@
 	> = $props()
 
 	import { syndicationHtmlToSafeHtml } from '$/lib/markdown.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const item = useEntity(entityCollectionsContext, EntityType.RssItem,
+	const item = subscribe(EntityType.RssItem,
 		entityId,
 		({ sources: [
 				Source.Rss_Rest,

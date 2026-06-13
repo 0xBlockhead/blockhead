@@ -12,8 +12,7 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -41,8 +40,7 @@
 		>
 	> = $props()
 
-	const mevRelayProposerPayloadDelivered = useEntity(entityCollectionsContext, 
-		EntityType.MevRelay_ProposerPayloadDelivered,
+	const mevRelayProposerPayloadDelivered = subscribe(EntityType.MevRelay_ProposerPayloadDelivered,
 		entityId,
 		({ sources: [Source.MevRelay_Rest], fields: { builderPubkey: true, value: true, blockNumber: true, ...(open && ({ $executionBlock: true })) } }),
 	)

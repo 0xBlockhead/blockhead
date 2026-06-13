@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -24,7 +23,7 @@
 		open?: boolean
 	} = $props()
 
-	const network = useEntity(entityCollectionsContext, EntityType.Network,
+	const network = subscribe(EntityType.Network,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,

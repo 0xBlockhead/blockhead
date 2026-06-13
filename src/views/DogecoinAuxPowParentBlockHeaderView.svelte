@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,8 +26,7 @@
 		>
 	> = $props()
 
-	const dogecoinAuxPowParentBlockHeader = useEntity(entityCollectionsContext, 
-		EntityType.DogecoinAuxPowParentBlockHeader,
+	const dogecoinAuxPowParentBlockHeader = subscribe(EntityType.DogecoinAuxPowParentBlockHeader,
 		entityId,
 		({ fields: { hash: true, merkleRoot: true, nonce: true } }),
 	)

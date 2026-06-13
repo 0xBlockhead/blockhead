@@ -14,8 +14,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -33,7 +32,7 @@
 		recordId: string
 	} = $props()
 
-	const ens = useEntity(entityCollectionsContext, EntityType.EnsName,
+	const ens = subscribe(EntityType.EnsName,
 		entityId,
 		({ sources: [Source.Voltaire_JsonRpc], fields: { textRecords: true } }),
 	)

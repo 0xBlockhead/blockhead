@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -44,7 +43,7 @@
 		never
 	> = $props()
 
-	const verification = useEntity(entityCollectionsContext, EntityType.EvmContractVerification,
+	const verification = subscribe(EntityType.EvmContractVerification,
 		entityId,
 		({ sources: [
 				Source.Sourcify_Rest,

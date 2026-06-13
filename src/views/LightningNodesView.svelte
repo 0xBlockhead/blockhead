@@ -26,8 +26,7 @@
 		href?: string
 	}, Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>> = $props()
 
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -39,7 +38,7 @@
 <EntitiesList entityType={EntityType.LightningNode} {title} bind:open {id} href={href} {...EntitiesListProps}>
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(entityCollectionsContext, entityFieldReference.entityType, entityFieldReference.entityId, ({ fields: { [entityFieldReference.fieldName]: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 32 } } }))}
+			{@const parent = subscribe(entityFieldReference.entityType, entityFieldReference.entityId, ({ fields: { [entityFieldReference.fieldName]: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 32 } } }))}
 			{@const nodes = derive(parent, (parent): readonly Entity<typeof schema, EntityType.LightningNode>[] => (parent.fields[entityFieldReference.fieldName]?.values ?? []))}
 			<EntitiesList collapsible={false} showSummary={false} entityType={EntityType.LightningNode} id={`${id}-lightning-nodes`} href={href} getKey={(node) => node[EntityMetaKey.Id].publicKey} getSortValue={(node) => node[EntityMetaKey.Id].publicKey} open={true} resource={nodes} {title} UnorderedListProps={{ orientation: ListOrientation.Column }}>
 				{#snippet Empty()}<p data-text="muted">No nodes listed yet.</p>{/snippet}

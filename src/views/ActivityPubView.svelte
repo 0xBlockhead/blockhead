@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -35,7 +34,7 @@
 		never
 	> = $props()
 
-	const activityPubNetwork = useEntity(entityCollectionsContext, EntityType.ActivityPubNetwork,
+	const activityPubNetwork = subscribe(EntityType.ActivityPubNetwork,
 		entityId,
 		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, instanceTitle: ({ sources: [Source.Mastodon_Rest] }), instanceVersion: ({ sources: [Source.Mastodon_Rest] }), fediInstanceTitle: ({ sources: [Source.Fedi_Rest] }), fediInstanceVersion: ({ sources: [Source.Fedi_Rest] }), $$activityPubActors: ({ sources: [
 							Source.Constants_Internal,

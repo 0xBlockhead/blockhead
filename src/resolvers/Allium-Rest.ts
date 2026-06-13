@@ -1,8 +1,8 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { Hex } from '@tevm/voltaire/Hex'
 import { caip19Erc20, caip19Slip44 } from '$/lib/caip19.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'

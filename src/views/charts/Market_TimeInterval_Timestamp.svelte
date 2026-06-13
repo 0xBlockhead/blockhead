@@ -38,11 +38,9 @@
 	} from '$/lib/marketOhlcCandles.ts'
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const market = useEntity(entityCollectionsContext,
-		entityFieldReference.entityType,
+	const market = subscribe(entityFieldReference.entityType,
 		entityFieldReference.entityId,({ sources: [
 				Source.Constants_Internal,
 				...marketOhlcCandleSources,

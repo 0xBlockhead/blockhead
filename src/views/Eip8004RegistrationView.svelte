@@ -40,10 +40,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const registration = useEntity(entityCollectionsContext, EntityType.EvmNft,
+	const registration = subscribe(EntityType.EvmNft,
 		entityId,
 		({ sources: [
 				Source.Eip8004Scan_Rest,

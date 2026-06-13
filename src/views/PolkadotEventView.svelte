@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,7 +26,7 @@
 		>
 	> = $props()
 
-	const polkadotEvent = useEntity(entityCollectionsContext, EntityType.PolkadotEvent,
+	const polkadotEvent = subscribe(EntityType.PolkadotEvent,
 		entityId,
 		({ fields: { eventName: true } }),
 	)

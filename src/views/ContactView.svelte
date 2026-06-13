@@ -37,10 +37,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const sharedAddress = useEntity(entityCollectionsContext, EntityType.BlockheadSharedAddress,
+	const sharedAddress = subscribe(EntityType.BlockheadSharedAddress,
 		entityId,
 		({ sources: [
 				Source.Local_Internal,

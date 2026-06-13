@@ -6,14 +6,12 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,20 +36,14 @@
 		>
 	> = $props()
 
-	const user = useEntity(entityCollectionsContext, EntityType.XUser,
+	const user = subscribe(EntityType.XUser,
 		entityId,
-		({ sources: (
-				'id' in entityId ?
-					(
-						resolverDefinitionsByEntityType[EntityType.XUser]?.map((r) => r.source)
-						?? [Source.Local_Internal]
-					)
-				:
-					[Source.X_FxEmbed_Rest]
-			), fields: { id: true, username: true, name: true, description: true, location: true, websiteUrl: true, verified: true, createdAt: true, followerCount: true, followingCount: true, tweetCount: true, listedCount: true, $$timestamps: ({ sources: (
-					resolverDefinitionsByEntityType[EntityType.XUser_Timestamp]?.map((r) => r.source)
-					?? [Source.Local_Internal]
-				), limit: 1 }), $icon: true, $profileBanner: true, $$posts: true } }),
+		({
+			...(!('id' in entityId) && {
+				sources: [Source.X_FxEmbed_Rest],
+			}),
+			fields: { id: true, username: true, name: true, description: true, location: true, websiteUrl: true, verified: true, createdAt: true, followerCount: true, followingCount: true, tweetCount: true, listedCount: true, $$timestamps: ({ limit: 1 }), $icon: true, $profileBanner: true, $$posts: true },
+		}),
 	)
 
 

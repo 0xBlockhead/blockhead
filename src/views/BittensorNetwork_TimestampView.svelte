@@ -7,8 +7,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -20,7 +19,7 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = useEntity(entityCollectionsContext, EntityType.BittensorNetwork_Timestamp,
+	const snapshot = subscribe(EntityType.BittensorNetwork_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Bittensor_JsonRpc,

@@ -15,8 +15,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -43,7 +42,7 @@
 		>
 	> = $props()
 
-	const currency = useEntity(entityCollectionsContext, EntityType.Currency,
+	const currency = subscribe(EntityType.Currency,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,

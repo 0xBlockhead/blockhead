@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,7 +40,7 @@
 		>
 	> = $props()
 
-	const reaction = useEntity(entityCollectionsContext, EntityType.NostrReaction,
+	const reaction = subscribe(EntityType.NostrReaction,
 		entityId,
 		({ sources: [
 				Source.NostrBand_Rest,

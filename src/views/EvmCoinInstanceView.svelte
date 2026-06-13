@@ -41,10 +41,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const coinInstance = useEntity(entityCollectionsContext, EntityType.EvmCoinInstance,
+	const coinInstance = subscribe(EntityType.EvmCoinInstance,
 		entityId,
 		({ sources: [
 				Source.Coingecko_Rest,
@@ -53,7 +52,7 @@
 			], fields: { coinId: true, $icon: true, name: true, symbol: true, ...(open ? ({ decimals: true, caip19: true, representation: true, $canonicalInstance: ({ sources: [Source.Coingecko_Rest] }), $$outboundBridgeCapabilities: ({ sources: [Source.Lifi_Rest] }), $$inboundBridgeCapabilities: ({ sources: [Source.Lifi_Rest] }) }) : ({  })) } }),
 	)
 
-	const network = useEntity(entityCollectionsContext, EntityType.EvmNetwork,
+	const network = subscribe(EntityType.EvmNetwork,
 		entityId.$network,
 		({ sources: [
 				Source.Constants_Internal,

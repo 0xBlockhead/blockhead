@@ -37,10 +37,9 @@
 	> = $props()
 
 	import { getEvmSelectorPath } from '$/lib/signature-paths.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const selector = useEntity(entityCollectionsContext, EntityType.EvmSelector,
+	const selector = subscribe(EntityType.EvmSelector,
 		entityId,
 		({ sources: [
 				Source.Openchain_Rest,

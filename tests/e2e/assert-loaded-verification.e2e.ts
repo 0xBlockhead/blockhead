@@ -20,7 +20,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { entityDefinitionByType } from '$/schema/index.ts'
-import { Source } from '$/sources/index.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 /**

@@ -1,18 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { ChainId } from '$/constants/ChainId.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/Source.ts'
-
-	import {
-		apiChainByChainId,
-	} from '$/sources/Allium/Rest/constants.ts'
-
-	import { blockscoutHostedNetworks } from '$/sources/Blockscout/Rest/constants.ts'
 	import { blo } from 'blo'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
@@ -23,8 +19,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -53,106 +48,108 @@
 
 
 	// Functions
-	const blockscoutHostedNetworkChainIds = blockscoutHostedNetworks.map((network) => network.chainId)
+	const balanceChainIds = [
+		ChainId.Ethereum,
+		ChainId.Optimism,
+		ChainId.BNB,
+		ChainId.Polygon,
+		ChainId.Base,
+		ChainId.Arbitrum,
+		ChainId.Avalanche,
+	] as const
 
-	const alliumWalletBalanceChainIds = (
-		Object.keys(apiChainByChainId)
-			.map((key) => Number(key))
-			.filter((chainId) => (
-				Number.isFinite(chainId)
-				&& apiChainByChainId[chainId] != null
-			))
-				.toSorted((a, b) => a - b)
-	) satisfies readonly number[]
+	const activityChainIds = [
+		ChainId.Ethereum,
+		ChainId.Optimism,
+		ChainId.BNB,
+		ChainId.Gnosis,
+		ChainId.Polygon,
+		ChainId.Base,
+		ChainId.Arbitrum,
+		ChainId.EthereumSepolia,
+		ChainId.BaseSepolia,
+	] as const
 
 	const evmNetworkAccountSliceChainIds = (
-	[...new Set([
-		...alliumWalletBalanceChainIds,
-		...blockscoutHostedNetworkChainIds,
-	])]
+		[...new Set([
+			...balanceChainIds,
+			...activityChainIds,
+		])]
 			.toSorted((a, b) => a - b)
 	) satisfies readonly number[]
 
 	const chainFacetLabel = (chainId: number) => (
-		blockscoutHostedNetworks.find((network) => network.chainId === chainId)?.label
-		?? apiChainByChainId[chainId]
+		networkByCaip2[`eip155:${String(chainId)}`]?.name
 		?? `Chain · ${String(chainId)}`
 	)
 
-	const portfolioSliceAtChain = (chainId: number) => {
-		const index = evmNetworkAccountSliceChainIds.indexOf(chainId)
-		return index === -1 ? undefined : evmNetworkAccountPortfolioSlices[index]
-	}
-
-
-	const evmNetworkAccountPortfolioSlices = evmNetworkAccountSliceChainIds.map((chainId) => (
-		useEntity(entityCollectionsContext, 
-			EntityType.EvmNetworkAccount,
-			{
-				$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
-				$actor: entityId,
-			},
-			{
-				...(open && blockscoutHostedNetworks.some((network) => network.chainId === chainId) && {
-					sources: [
-						Source.Blockscout_Rest,
-					],
-				}),
-				fields: {
-					...(open && apiChainByChainId[chainId] != null && {
-						$$ownedCoins: {
-							sources: [
-								Source.Allium_Rest,
-							],
-						},
-					}),
-					...(open && blockscoutHostedNetworks.some((network) => network.chainId === chainId) && {
-						$$transactions: true,
-						$$tokenTransfers: true,
-						$$internalTransfers: true,
-						isContract: true,
-						transactionCount: true,
-						tokenTransferCount: true,
-						firstTransactionAt: true,
-						lastTransactionAt: true,
-						nftCount: true,
-					}),
+	const evmNetworkAccountPortfolioSlices = $derived(
+		evmNetworkAccountSliceChainIds.map((chainId) => (
+			subscribe(EntityType.EvmNetworkAccount,
+				{
+					$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
+					$actor: entityId,
 				},
-			},
-		)
-	))
-
-	const idKey = stringify(entityId)
-
-	const actor = useEntity(entityCollectionsContext, EntityType.EvmAccount,
-		entityId,
-		({ sources: [
-				Source.Voltaire_JsonRpc,
-				...(open ?
-					[Source.TheGraph_Graphql]
-				:
-					[]
-				),
-			], fields: { $primaryName: ({ sources: [
-					Source.Voltaire_JsonRpc,
-				] }), $icon: ({ sources: [
-					Source.Voltaire_JsonRpc,
-				] }), ...(open ? ({ $$ensNamesOwned: ({ sources: [
-							Source.TheGraph_Graphql,
-						] }) }) : ({  })) } }),
+				{
+					...(open && activityChainIds.some((activityChainId) => activityChainId === chainId) && {
+						sources: [
+							Source.Blockscout_Rest,
+						],
+					}),
+					fields: {
+						...(open && balanceChainIds.some((balanceChainId) => balanceChainId === chainId) && {
+							$$ownedCoins: {
+								sources: [
+									Source.Allium_Rest,
+								],
+							},
+						}),
+						...(open && activityChainIds.some((activityChainId) => activityChainId === chainId) && {
+							$$transactions: true,
+							$$tokenTransfers: true,
+							$$internalTransfers: true,
+							isContract: true,
+							transactionCount: true,
+							tokenTransferCount: true,
+							firstTransactionAt: true,
+							lastTransactionAt: true,
+							nftCount: true,
+						}),
+					},
+				},
+			)
+		)),
 	)
 
-	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+	const idKey = $derived(stringify(entityId))
 
+	const actor = $derived(
+		subscribe(EntityType.EvmAccount,
+			entityId,
+			({ sources: [
+					Source.Voltaire_JsonRpc,
+					...(open ?
+						[Source.TheGraph_Graphql]
+					:
+						[]
+					),
+				], fields: { $primaryName: ({ sources: [
+						Source.Voltaire_JsonRpc,
+					] }), $icon: ({ sources: [
+						Source.Voltaire_JsonRpc,
+					] }), ...(open && ({ $$ensNamesOwned: ({ sources: [
+								Source.TheGraph_Graphql,
+							] }) })) } }),
+		),
+	)
 
 	// (Derived)
-		const firstContractChainId = $derived.by(() => {
-			for (let index = 0; index < evmNetworkAccountSliceChainIds.length; index += 1) {
-				const chainId = evmNetworkAccountSliceChainIds[index]
-				if (portfolioSliceAtChain(chainId)?.current?.fields.isContract === true) {
-					return chainId
-				}
-			}
+	const firstContractChainId = $derived.by(() => {
+		for (let index = 0; index < evmNetworkAccountSliceChainIds.length; index += 1) {
+			const chainId = evmNetworkAccountSliceChainIds[index]
+			if (evmNetworkAccountPortfolioSlices[index]?.current?.fields.isContract === true)
+				return chainId
+		}
 		return undefined
 	})
 
@@ -161,16 +158,17 @@
 			value: Entity<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 		}[] = []
 
-		const pushSlice = (_index: number) => {
-			const slice = evmNetworkAccountPortfolioSlices[_index]
-			const chainFacetId = evmNetworkAccountSliceChainIds[_index]
-			if (slice.ready !== true || apiChainByChainId[chainFacetId] == null) return
+		for (let index = 0; index < evmNetworkAccountPortfolioSlices.length; index += 1) {
+			const slice = evmNetworkAccountPortfolioSlices[index]
+			const chainFacetId = evmNetworkAccountSliceChainIds[index]
+			if (
+				slice.ready !== true
+				|| !balanceChainIds.some((balanceChainId) => balanceChainId === chainFacetId)
+			) continue
 			for (const value of slice.current?.fields.$$ownedCoins?.values ?? []) merged.push({
 				value,
 			})
 		}
-
-		for (let index = 0; index < evmNetworkAccountPortfolioSlices.length; index += 1) pushSlice(index)
 
 		return merged
 	})
@@ -472,7 +470,7 @@
 						{/if}
 					{/each}
 
-					{#each alliumWalletBalanceChainIds as balancesChainId (balancesChainId)}
+					{#each balanceChainIds as balancesChainId (balancesChainId)}
 						<section
 							data-scroll-marker-label={`${chainFacetLabel(balancesChainId)} balances`}
 							id={`${idKey}:balances-net-${balancesChainId}`}
@@ -516,7 +514,7 @@
 			{/snippet}
 
 			{#snippet SectionActivity({ id, label })}
-				{#each blockscoutHostedNetworkChainIds as facetChainId (facetChainId)}
+				{#each activityChainIds as facetChainId (facetChainId)}
 					<section
 						data-scroll-marker-label={`${chainFacetLabel(facetChainId)} activity`}
 						id={`${idKey}:activity-net-${facetChainId}`}

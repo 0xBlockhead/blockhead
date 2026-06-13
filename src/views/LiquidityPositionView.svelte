@@ -5,7 +5,6 @@
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -35,15 +34,11 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const liquidityPosition = useEntity(entityCollectionsContext, EntityType.LiquidityPosition,
+	const liquidityPosition = subscribe(EntityType.LiquidityPosition,
 		entityId,
-		({ sources: (
-				resolverDefinitionsByEntityType[EntityType.LiquidityPosition]?.map((r) => r.source)
-				?? []
-			), fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }),
+		({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }),
 	)
 
 

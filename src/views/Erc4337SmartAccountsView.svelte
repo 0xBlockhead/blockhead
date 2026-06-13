@@ -13,8 +13,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -63,7 +62,7 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const network = useEntity(entityCollectionsContext, EntityType.EvmNetwork,
+			{@const network = subscribe(EntityType.EvmNetwork,
 				entityFieldReference.entityId,
 				({ fields: { $$erc4337SmartAccounts: ({ sources: [
 							Source.Blockscout_Rest,

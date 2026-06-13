@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -28,7 +27,7 @@
 		>
 	> = $props()
 
-	const invoice = useEntity(entityCollectionsContext, EntityType.LightningInvoice,
+	const invoice = subscribe(EntityType.LightningInvoice,
 		entityId,
 		({ sources: [
 				Source.LightningLnd_Rest,

@@ -90,10 +90,9 @@
 	)
 
 
-	import type { DeclarativeOrderBy } from '$/lib/tanstackDb/orderBySteps.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import type { DeclarativeOrderBy } from '$/client/$client.svelte.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -127,8 +126,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(entityCollectionsContext,
-				entityFieldReference.entityType,
+			{@const parent = subscribe(entityFieldReference.entityType,
 				entityFieldReference.entityId,({ sources: [
 						Source.Constants_Internal,
 					], fields: { [entityFieldReference.fieldName]: {

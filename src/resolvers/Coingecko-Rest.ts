@@ -1,3 +1,4 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import type { CoinId } from '$/constants/Coin.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
@@ -23,8 +24,7 @@ import { caip19Erc20, caip19Slip44, Slip44 } from '$/lib/caip19.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,

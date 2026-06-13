@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { afterNavigate, goto } from '$app/navigation'
 	import { page } from '$app/state'
 
@@ -143,7 +142,7 @@
 	)
 
 
-	const selectorEntity = useEntity(entityCollectionsContext, EntityType.EvmSelector,
+	const selectorEntity = subscribe(EntityType.EvmSelector,
 		(selector ?
 			{ hex: normalizedSelector ?? selector }
 		:
@@ -154,7 +153,7 @@
 			], fields: { signatures: true } }),
 	)
 
-	const topicEntity = useEntity(entityCollectionsContext, EntityType.EvmTopic,
+	const topicEntity = subscribe(EntityType.EvmTopic,
 		(topic ?
 			{ hex: normalizedTopic ?? topic }
 		:

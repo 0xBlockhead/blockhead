@@ -9,12 +9,10 @@
 	import { blockheadFarcasterConnectionAuthMethodByAuthMethod } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
-	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -42,14 +40,9 @@
 		>
 	> = $props()
 
-	const connection = useEntity(entityCollectionsContext, EntityType.BlockheadFarcasterAccountConnection,
+	const connection = subscribe(EntityType.BlockheadFarcasterAccountConnection,
 		entityId,
-		({ sources: (
-				resolverDefinitionsByEntityType[EntityType.BlockheadFarcasterAccountConnection]?.map((r) => r.source)
-				?? [
-					Source.Neynar_Rest,
-				]
-			), fields: { displayName: true, username: true, $icon: true, ...(open ? ({ bio: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } }),
+		({ sources: [Source.Neynar_Rest], fields: { displayName: true, username: true, $icon: true, ...(open ? ({ bio: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } }),
 	)
 
 

@@ -1,44 +1,36 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { SubscribeResult } from '$/client/$client.svelte.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-	import {
-		getResourceCanonicalUri,
-		normalizeReference,
-	} from '$/sources/Swarm/Rest/queries.ts'
-
 	import { stringify } from 'devalue'
 
-	type ResourceFields = {
-		fields: Record<string, any>
-	}
+	type SwarmResource = SubscribeResult<typeof schema, EntityType.SwarmResource>
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
-			entityId,
-			href = (
-				entityId.contentPath.replace(/^\/+|\/+$/g, '') === '' ?
-					resolve('/(explore)/(swarm)/swarm/[reference]', {
-						reference: normalizeReference(entityId.reference),
-					})
-				:
-					resolve('/(explore)/(swarm)/swarm/[reference]/(swarmResource)/path/[...contentPath]', {
-						reference: normalizeReference(entityId.reference),
-						contentPath: entityId.contentPath.replace(/^\/+|\/+$/g, ''),
-					})
-			),
+		entityId,
+		href = (
+			entityId.contentPath.replace(/^\/+|\/+$/g, '') === '' ?
+				resolve('/(explore)/(swarm)/swarm/[reference]', {
+					reference: entityId.reference.trim().toLowerCase().replace(/^0x/, '').replace(/^\/+|\/+$/g, ''),
+				})
+			:
+				resolve('/(explore)/(swarm)/swarm/[reference]/(swarmResource)/path/[...contentPath]', {
+					reference: entityId.reference.trim().toLowerCase().replace(/^0x/, '').replace(/^\/+|\/+$/g, ''),
+					contentPath: entityId.contentPath.replace(/^\/+|\/+$/g, ''),
+				})
+		),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -52,9 +44,11 @@
 		never
 	> = $props()
 
-	const swarm = useEntity(entityCollectionsContext, EntityType.SwarmResource,
-		entityId,
-		({ sources: [Source.Swarm_Rest], fields: { canonicalUri: true, fileName: true, extension: true, gatewayOrigin: true, gatewayUrl: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, ...(open && ({ $media: true })) } }),
+	const swarm = $derived(
+		subscribe(EntityType.SwarmResource,
+			entityId,
+			({ sources: [Source.Swarm_Rest], fields: { canonicalUri: true, fileName: true, extension: true, gatewayOrigin: true, gatewayUrl: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, ...(open && ({ $media: true })) } }),
+		),
 	)
 
 
@@ -88,13 +82,13 @@
 			<a
 				{href}>
 				<TruncatedValue
-					value={getResourceCanonicalUri(entityId)}
+					value={`bzz://${entityId.reference}${entityId.contentPath === '' ? '' : `/${entityId.contentPath}`}`}
 					format={TruncatedValueFormat.Visual}
 				/>
 			</a>
 		{:else}
 			<TruncatedValue
-				value={getResourceCanonicalUri(entityId)}
+				value={`bzz://${entityId.reference}${entityId.contentPath === '' ? '' : `/${entityId.contentPath}`}`}
 				format={TruncatedValueFormat.Visual}
 			/>
 		{/if}
@@ -115,7 +109,7 @@
 				<dt>Content type</dt>
 				<dd>
 					{#if true}
-						{#snippet SwarmContentTypeRow(swarm: ResourceFields)}
+						{#snippet SwarmContentTypeRow(swarm: SwarmResource)}
 							{#if swarm.fields.contentType !== undefined}
 								<TruncatedValue
 									value={swarm.fields.contentType}
@@ -142,7 +136,7 @@
 					<dt>Canonical URI</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmCanonicalUriRow(swarm: ResourceFields)}
+							{#snippet SwarmCanonicalUriRow(swarm: SwarmResource)}
 								<TruncatedValue
 									value={swarm.fields.canonicalUri}
 									format={TruncatedValueFormat.Visual}
@@ -161,7 +155,7 @@
 					<dt>Gateway</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmGatewayOriginRow(swarm: ResourceFields)}
+							{#snippet SwarmGatewayOriginRow(swarm: SwarmResource)}
 								<TruncatedValue
 									value={swarm.fields.gatewayOrigin}
 									format={TruncatedValueFormat.Visual}
@@ -180,7 +174,7 @@
 					<dt>Gateway URL</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmGatewayUrlRow(swarm: ResourceFields)}
+							{#snippet SwarmGatewayUrlRow(swarm: SwarmResource)}
 								<a
 									href={swarm.fields.gatewayUrl}
 									target="_blank"
@@ -205,7 +199,7 @@
 					<dt>Content length</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmContentLengthRow(swarm: ResourceFields)}
+							{#snippet SwarmContentLengthRow(swarm: SwarmResource)}
 								{#if swarm.fields.contentLength !== undefined}
 									<NumberValue
 										value={swarm.fields.contentLength}
@@ -228,7 +222,7 @@
 					<dt>File name</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmFileNameRow(swarm: ResourceFields)}
+							{#snippet SwarmFileNameRow(swarm: SwarmResource)}
 								{#if swarm.fields.fileName !== undefined}
 									<TruncatedValue
 										value={swarm.fields.fileName}
@@ -249,7 +243,7 @@
 					<dt>Extension</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmExtensionRow(swarm: ResourceFields)}
+							{#snippet SwarmExtensionRow(swarm: SwarmResource)}
 								{#if swarm.fields.extension !== undefined}
 									.{swarm.fields.extension}
 								{/if}
@@ -267,7 +261,7 @@
 					<dt>Display type</dt>
 					<dd>
 						{#if true}
-							{#snippet SwarmDisplayTypeRow(swarm: ResourceFields)}
+							{#snippet SwarmDisplayTypeRow(swarm: SwarmResource)}
 								{swarm.fields.displayType}
 							{/snippet}
 
@@ -293,13 +287,11 @@
 				_open ?
 					[
 						{ id: 'swarm-browse', label: 'Browse' },
-						{ id: 'swarm-record', label: 'Record' },
 						{ id: 'swarm-preview', label: 'Preview' },
 					]
 				:
 					[
 						{ id: 'swarm-browse', label: 'Browse' },
-						{ id: 'swarm-record', label: 'Record' },
 					],
 			)}
 			data-card
@@ -321,21 +313,18 @@
 				<SwarmBrowseForm {entityId} />
 			{/snippet}
 
-			{#snippet SectionSwarmRecord()}
-			{/snippet}
-
 			{#snippet SectionSwarmPreview()}
-				{#snippet SwarmPreviewBody(swarm: ResourceFields)}
+				{#snippet SwarmPreviewBody(swarm: SwarmResource)}
 					{#if swarm.fields.displayType !== undefined}
-					<FileDetails
-						contentSize={swarm.fields.contentLength}
-						contentType={swarm.fields.contentType}
-						displayType={swarm.fields.displayType}
-						extension={swarm.fields.extension}
-						fileName={swarm.fields.fileName}
-						src={swarm.fields.gatewayUrl}
-						text={swarm.fields.text}
-					/>
+						<FileDetails
+							contentSize={swarm.fields.contentLength}
+							contentType={swarm.fields.contentType}
+							displayType={swarm.fields.displayType}
+							extension={swarm.fields.extension}
+							fileName={swarm.fields.fileName}
+							src={swarm.fields.gatewayUrl}
+							text={swarm.fields.text}
+						/>
 					{/if}
 				{/snippet}
 
@@ -345,6 +334,5 @@
 				/>
 			{/snippet}
 		</CollapsibleTabs>
-
 	{/snippet}
 </EntityView>

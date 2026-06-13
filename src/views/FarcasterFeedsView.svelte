@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -91,7 +90,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parentNetwork = useEntity(entityCollectionsContext, EntityType.FarcasterNetwork,
+			{@const parentNetwork = subscribe(EntityType.FarcasterNetwork,
 				entityFieldReference.entityId,
 				({ fields: { $$feeds: ({ sources: [Source.Farcaster_Rest], limit: limit }) } }),
 			)}

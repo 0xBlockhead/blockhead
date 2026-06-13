@@ -10,8 +10,7 @@
 
 
 	// State
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
 		entityId,
@@ -29,7 +28,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'showTypeAnnotation'>
 	> = $props()
 
-	const withdrawal = useEntity(entityCollectionsContext, EntityType.BeaconWithdrawal,
+	const withdrawal = subscribe(EntityType.BeaconWithdrawal,
 		entityId,
 		open
 			? {

@@ -16,8 +16,7 @@
 
 	// Context
 	import { writeLocalWatchedEvmAccount } from '$/collections/localMutations.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -132,8 +131,7 @@
 				{/if}
 			</form>
 
-			{@const parent = useEntity(entityCollectionsContext,
-				entityFieldReference.entityType,
+			{@const parent = subscribe(entityFieldReference.entityType,
 				entityFieldReference.entityId,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [

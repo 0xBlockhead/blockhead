@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -42,7 +41,7 @@
 		>
 	> = $props()
 
-	const note = useEntity(entityCollectionsContext, EntityType.NostrNote,
+	const note = subscribe(EntityType.NostrNote,
 		entityId,
 		({ sources: [
 				Source.NostrBand_Rest,

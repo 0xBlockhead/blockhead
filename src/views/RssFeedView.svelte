@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -42,7 +41,7 @@
 		>
 	> = $props()
 
-	const feed = useEntity(entityCollectionsContext, EntityType.RssFeed,
+	const feed = subscribe(EntityType.RssFeed,
 		entityId,
 		({ sources: [
 				Source.Rss_Rest,

@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -34,7 +33,7 @@
 
 	const networkIdKey = stringify(entityId)
 
-	const redditNetwork = useEntity(entityCollectionsContext, EntityType.RedditNetwork,
+	const redditNetwork = subscribe(EntityType.RedditNetwork,
 		entityId,
 		({ sources: [
 				Source.Constants_Internal,

@@ -42,10 +42,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const contract = useEntity(entityCollectionsContext, EntityType.EvmContract,
+	const contract = subscribe(EntityType.EvmContract,
 		entityId,
 		({ sources: [
 				Source.Local_Internal,

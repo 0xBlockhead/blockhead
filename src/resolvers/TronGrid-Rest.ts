@@ -1,7 +1,7 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import { tronGridMainnetRestBaseUrl } from '$/constants/TronNetwork.ts'
 import { TransportType } from '$/constants/TransportType.ts'

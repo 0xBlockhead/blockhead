@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -29,7 +28,7 @@
 		>
 	> = $props()
 
-	const tipset = useEntity(entityCollectionsContext, EntityType.FilecoinTipset,
+	const tipset = subscribe(EntityType.FilecoinTipset,
 		entityId,
 		({ sources: [
 				Source.Filfox_Rest,

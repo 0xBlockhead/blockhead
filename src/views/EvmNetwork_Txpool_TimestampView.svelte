@@ -36,11 +36,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const networkTxpoolTimestamp = useEntity(entityCollectionsContext, 
-		EntityType.EvmNetwork_Txpool_Timestamp,
+	const networkTxpoolTimestamp = subscribe(EntityType.EvmNetwork_Txpool_Timestamp,
 		entityId,
 		({ sources: [Source.Voltaire_JsonRpc], fields: { pendingCount: true, queuedCount: true } }),
 	)

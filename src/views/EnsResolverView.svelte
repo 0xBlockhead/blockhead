@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -20,7 +19,7 @@
 		entityId: EntityId<typeof schema, EntityType.EnsName>
 	} = $props()
 
-	const ens = useEntity(entityCollectionsContext, EntityType.EnsName,
+	const ens = subscribe(EntityType.EnsName,
 		entityId,
 		({ sources: [Source.Voltaire_JsonRpc], fields: { $resolverContract: true } }),
 	)

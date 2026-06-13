@@ -19,8 +19,7 @@
 		writeLocalBlockheadSessionAction,
 	} from '$/collections/localMutations.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -87,8 +86,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(entityCollectionsContext,
-				entityFieldReference.entityType,
+			{@const parent = subscribe(entityFieldReference.entityType,
 				entityFieldReference.entityId,({ sources: [
 						Source.Local_Internal,
 					], fields: { [entityFieldReference.fieldName]: {

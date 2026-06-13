@@ -1,7 +1,11 @@
 import type { Type } from 'arktype'
 
 import type { Source } from '$/sources/Source.ts'
-import type { SourceDefinition, SourcePublicEnv } from '$/sources/$sources.ts'
+import type {
+	SourceDefinition,
+	SourceProviderDefinition as SourceProviderDefinitionTemplate,
+	SourcePublicEnv,
+} from '$/sources/$sources.ts'
 
 export type SourceOrigin = {
 	origin: string
@@ -9,9 +13,7 @@ export type SourceOrigin = {
 	corsEnabled: boolean
 }
 
-export type SourceProviderDefinition = {
-	provider: SourceProvider
-	label: string
+export type SourceProviderDefinition = SourceProviderDefinitionTemplate<SourceProvider, Source> & {
 	env?: Type<SourcePublicEnv>
 	origins?: readonly SourceOrigin[]
 	sources: readonly SourceDefinition<SourceProvider, Source>[]

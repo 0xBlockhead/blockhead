@@ -25,10 +25,9 @@
 		ipfsResourceHref,
 	} from '$/lib/ipfs.ts'
 
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const ipfs = useEntity(entityCollectionsContext, EntityType.IpfsResource,
+	const ipfs = subscribe(EntityType.IpfsResource,
 		entityId,
 		({ sources: [Source.Ipfs_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, ...(open && ({ text: true, cidVersion: true, cidMultibase: true, cidMulticodecCode: true, cidMultihashCode: true, cidMultihashDigestHex: true, isCidSubdomainSafe: true, $media: true })) } }),
 	)

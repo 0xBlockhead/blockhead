@@ -9,8 +9,7 @@
 
 
 	// State
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
 		entityId,
@@ -24,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const zeroGDaNode = useEntity(entityCollectionsContext, EntityType.ZeroGDaNode, entityId, ({ fields: { $quorum: true, $operator: true, endpoint: true } }))
+	const zeroGDaNode = subscribe(EntityType.ZeroGDaNode, entityId, ({ fields: { $quorum: true, $operator: true, endpoint: true } }))
 
 
 	// Components

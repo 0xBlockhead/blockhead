@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,7 +39,7 @@
 		>
 	> = $props()
 
-	const panelTree = useEntity(entityCollectionsContext, EntityType.BlockheadPanelTree,
+	const panelTree = subscribe(EntityType.BlockheadPanelTree,
 		entityId,
 		{
 			sources: [

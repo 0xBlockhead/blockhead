@@ -43,7 +43,7 @@ export const handle: Handle = async ({
 		responseHeaders.delete('content-length')
 		responseHeaders.delete('transfer-encoding')
 		return new Response(upstream.body, {
-			status: upstream.status,
+			status: upstream.status === 403 ? 502 : upstream.status,
 			statusText: upstream.statusText,
 			headers: responseHeaders,
 		})

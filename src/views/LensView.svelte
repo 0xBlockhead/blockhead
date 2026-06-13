@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -37,7 +36,7 @@
 
 	const networkIdKey = stringify(entityId)
 
-	const lensNetwork = useEntity(entityCollectionsContext, EntityType.LensNetwork,
+	const lensNetwork = subscribe(EntityType.LensNetwork,
 		entityId,
 		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$lensAccounts: ({ sources: [
 							Source.Constants_Internal,

@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,7 +26,7 @@
 		>
 	> = $props()
 
-	const nearChunk = useEntity(entityCollectionsContext, EntityType.NearChunk,
+	const nearChunk = subscribe(EntityType.NearChunk,
 		entityId,
 		({ fields: { shardId: true, gasUsed: true } }),
 	)

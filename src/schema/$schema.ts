@@ -1,7 +1,5 @@
-import { type as arktype, type Type, type Type as ArktypeType } from 'arktype'
+import { type as arktype } from 'arktype'
 import { stringify } from 'devalue'
-import type { EntityType as SchemaEntityType } from '$/schema/EntityType.ts'
-import type { Source } from '$/sources/Source.ts'
 
 export enum EntityMetaKey {
 	ParentId = '__parentId',
@@ -23,14 +21,23 @@ export enum EntityFieldEntryKind {
 	Group = 'Group',
 }
 
-export type EntityDefinition = {
-	readonly entityType: SchemaEntityType
+type SchemaType<_Value = unknown> = {
+	readonly infer: _Value
+	(data: unknown): _Value | InstanceType<typeof arktype.errors>
+}
+
+export type EntityDefinition<
+	_EntityType extends string = string,
+	_Source extends string = string,
+	_EntityId extends object = object,
+> = {
+	readonly entityType: _EntityType
 	readonly label: string
 	readonly labelPlural: string
-	readonly id: ArktypeType<any, any>
+	readonly id: SchemaType<_EntityId>
 	readonly lookups?: readonly EntityLookupDefinition[]
 	readonly identities?: readonly EntityIdentityDefinition[]
-	readonly fields: readonly EntityFieldEntry[]
+	readonly fields: readonly EntityFieldEntry<_Source>[]
 }
 
 export type EntityLookupDefinition = {
@@ -124,43 +131,50 @@ export const entityFieldCardinalityIsMultiple = (
 	|| cardinality === EntityFieldCardinality.ZeroOrMany
 )
 
-type EntityFieldDefinitionBase = {
-	defaultSources?: Source[]
+export const entityFieldPrimitiveValueIsValid = (
+	fieldDefinition: Extract<EntityFieldDefinition, {
+		readonly type: EntityFieldType.Primitive
+	}>,
+	value: unknown,
+) => !(fieldDefinition.primitiveType(value) instanceof arktype.errors)
+
+type EntityFieldDefinitionBase<_Source extends string = string> = {
+	defaultSources?: _Source[]
 	when?: EntityFieldCondition
 }
 
-export type EntityFieldDefinition = (
-	| (EntityFieldDefinitionBase & {
+export type EntityFieldDefinition<_Source extends string = string> = (
+	| (EntityFieldDefinitionBase<_Source> & {
 		name: string
 		type: EntityFieldType.Primitive
-		primitiveType: ArktypeType<any, any>
+		primitiveType: SchemaType
 		cardinality: EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
 	})
-	| (EntityFieldDefinitionBase & {
+	| (EntityFieldDefinitionBase<_Source> & {
 		name: `$${string}`
 		type: EntityFieldType.EntityReference
-		entityType: SchemaEntityType
-		entityId?: ArktypeType<any, any>
+		entityType: string
+		entityId?: SchemaType
 		cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne
 	})
-	| (EntityFieldDefinitionBase & {
+	| (EntityFieldDefinitionBase<_Source> & {
 		name: `$$${string}`
 		type: EntityFieldType.EntitiesReference
-		entityType: SchemaEntityType
-		entityId?: ArktypeType<any, any>
+		entityType: string
+		entityId?: SchemaType
 		cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
 	})
 )
 
-export type EntityFieldGroupDefinition = {
+export type EntityFieldGroupDefinition<_Source extends string = string> = {
 	readonly kind: EntityFieldEntryKind.Group
 	readonly when: EntityFieldCondition
-	readonly fields: readonly EntityFieldDefinition[]
+	readonly fields: readonly EntityFieldDefinition<_Source>[]
 }
 
-export type EntityFieldEntry = (
-	| EntityFieldDefinition
-	| EntityFieldGroupDefinition
+export type EntityFieldEntry<_Source extends string = string> = (
+	| EntityFieldDefinition<_Source>
+	| EntityFieldGroupDefinition<_Source>
 )
 
 export type EntityFieldDefinitionFromEntry<_Entry> = (
@@ -274,7 +288,16 @@ export const entityIdProjectionNameForId = (
 			candidate.fields.map(entityIdentityFieldKey),
 		)
 	))
-	return identity?.name ?? EntityIdProjection.Identity
+	if (identity != null)
+		return identity.name
+
+	return (
+		(entityDefinition.lookups ?? []).length === 0
+		&& (entityDefinition.identities ?? []).length === 0 ?
+			EntityIdProjection.Identity
+	:
+			undefined
+	)
 }
 
 export const validateEntityId = (
@@ -319,13 +342,13 @@ export const entityIdKey = (
 }>(
 	(id, fieldName) => ({
 		...id,
-		[fieldName]: (entityId as Record<string, unknown>)[fieldName],
+		[fieldName]: entityIdentityObjectRecord(entityId)[fieldName],
 	}),
 	{},
 ))
 
-export const entityIdentityIdsFromFields = <const _EntityId>(
-	entityDefinition: EntityDefinition,
+export const entityIdentityIdsFromFields = <const _EntityId extends object>(
+	entityDefinition: EntityDefinition<string, string, _EntityId>,
 	entityId: _EntityId,
 	fields: Partial<Record<string, unknown>>,
 ): _EntityId[] => {
@@ -364,7 +387,7 @@ export const entityIdentityIdsFromFields = <const _EntityId>(
 			return identityId instanceof arktype.errors ?
 				[]
 			:
-				[identityId as _EntityId]
+				[identityId]
 		}),
 	]
 	const idKeys = new Set<string>()
@@ -756,7 +779,7 @@ export type EntityFieldValueFromDefinition<
 > = (
 	_EntityFieldDefinition extends {
 		type: EntityFieldType.Primitive
-		primitiveType: infer _PrimitiveType extends Type<any, any>
+		primitiveType: infer _PrimitiveType extends SchemaType
 	} ?
 		{
 			[EntityFieldCardinality.Zero]: undefined
@@ -825,3 +848,19 @@ export type Entity<
 	[EntityMetaKey.Id]: EntityId<_Schema, _EntityType>
 	[EntityMetaKey.Fields]?: Partial<EntityFieldValues<_Schema, _EntityType>>
 } & Partial<EntityFieldValues<_Schema, _EntityType>>
+
+export const indexSchema = <const _Schema extends Schema>(
+	schema: _Schema,
+) => ({
+	entityDefinitionByType: Object.fromEntries(schema.map((entityDefinition) => [
+		entityDefinition.entityType,
+		entityDefinition,
+	])),
+	entityFieldDefinitionByEntityTypeAndName: Object.fromEntries(schema.map((entityDefinition) => [
+		entityDefinition.entityType,
+		Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
+			fieldDefinition.name,
+			fieldDefinition,
+		])),
+	])),
+})

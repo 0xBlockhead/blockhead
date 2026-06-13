@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +37,7 @@
 		>
 	> = $props()
 
-	const conversation = useEntity(entityCollectionsContext, EntityType.XmtpConversation,
+	const conversation = subscribe(EntityType.XmtpConversation,
 		entityId,
 		({ sources: [
 				Source.Local_Internal,

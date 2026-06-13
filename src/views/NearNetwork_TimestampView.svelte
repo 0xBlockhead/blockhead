@@ -7,8 +7,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -20,7 +19,7 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = useEntity(entityCollectionsContext, EntityType.NearNetwork_Timestamp,
+	const snapshot = subscribe(EntityType.NearNetwork_Timestamp,
 		entityId,
 		({ sources: [
 				Source.NearRpc_JsonRpc,

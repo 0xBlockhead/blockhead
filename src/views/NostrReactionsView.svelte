@@ -12,8 +12,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -80,8 +79,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(entityCollectionsContext,
-				entityFieldReference.entityType,
+			{@const parent = subscribe(entityFieldReference.entityType,
 				entityFieldReference.entityId,({ sources: [
 						Source.NostrBand_Rest,
 						Source.Primal_Rest,

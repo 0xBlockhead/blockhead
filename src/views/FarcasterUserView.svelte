@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -45,7 +44,7 @@
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const farcasterUserResource = useEntity(entityCollectionsContext, EntityType.FarcasterUser,
+	const farcasterUserResource = subscribe(EntityType.FarcasterUser,
 		entityId,
 		({ sources: [
 				Source.Neynar_Rest,
@@ -348,7 +347,7 @@
 				>
 					{#snippet body()}
 						{#if open}
-							{@const farcasterUserCasts = useEntity(entityCollectionsContext, EntityType.FarcasterUser,
+							{@const farcasterUserCasts = subscribe(EntityType.FarcasterUser,
 								entityId,
 								({ fields: { $$casts: true } }),
 							)}

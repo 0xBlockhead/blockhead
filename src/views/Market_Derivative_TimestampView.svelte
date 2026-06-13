@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +37,7 @@
 		>
 	> = $props()
 
-	const derivativeTimestamp = useEntity(entityCollectionsContext, EntityType.Market_Derivative_Timestamp,
+	const derivativeTimestamp = subscribe(EntityType.Market_Derivative_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Coingecko_OpenApi,

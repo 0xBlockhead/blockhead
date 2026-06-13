@@ -1,13 +1,10 @@
-import {
-	entityCollectionByEntityType,
-	entityFieldCollections,
-} from '$/collections/entityCollections.ts'
 import { WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/EntityType.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
-import { Source } from '$/sources/Source.ts'
-import { stringify } from 'devalue'
+import {
+	deleteLocalBlockheadWalletConnection,
+	writeLocalBlockheadWallet,
+	writeLocalBlockheadWalletConnection,
+} from '$/collections/localMutations.ts'
 import { SvelteMap } from 'svelte/reactivity'
 import { createAptosAip62Adapter } from './adapters/aptosAip62.ts'
 import { createBitcoinInjectedAdapter } from './adapters/bitcoinInjected.ts'
@@ -28,161 +25,6 @@ type WalletRuntime = {
 	destroy(): void
 }
 
-const writeGlobalWalletReference = (
-	entityId: { id: string },
-) => {
-	entityFieldCollections[EntityType._Global].$$blockheadWallets.utils.writeUpsert({
-		[EntityMetaKey.ParentId]: { scope: '$$blockheadWallets' },
-		[EntityMetaKey.ParentIdKey]: stringify({ scope: '$$blockheadWallets' }),
-		[EntityMetaKey.Source]: Source.Local_Internal,
-		[EntityMetaKey.Value]: {
-			[EntityMetaKey.Id]: entityId,
-			[EntityMetaKey.IdKey]: stringify(entityId),
-		},
-	})
-}
-
-const writeGlobalWalletConnectionReference = (
-	entityId: { $wallet: { id: string } },
-) => {
-	entityFieldCollections[EntityType._Global].$$blockheadWalletConnections.utils.writeUpsert({
-		[EntityMetaKey.ParentId]: { scope: '$$blockheadWalletConnections' },
-		[EntityMetaKey.ParentIdKey]: stringify({ scope: '$$blockheadWalletConnections' }),
-		[EntityMetaKey.Source]: Source.Local_Internal,
-		[EntityMetaKey.Value]: {
-			[EntityMetaKey.Id]: entityId,
-			[EntityMetaKey.IdKey]: stringify(entityId),
-		},
-	})
-}
-
-const writeGlobalWalletAccountReference = (
-	entityId: { caip10: { namespace: string, reference: string, accountAddress: string } },
-) => {
-	entityFieldCollections[EntityType._Global].$$blockheadWalletAccounts.utils.writeUpsert({
-		[EntityMetaKey.ParentId]: { scope: '$$blockheadWalletAccounts' },
-		[EntityMetaKey.ParentIdKey]: stringify({ scope: '$$blockheadWalletAccounts' }),
-		[EntityMetaKey.Source]: Source.Local_Internal,
-		[EntityMetaKey.Value]: {
-			[EntityMetaKey.Id]: entityId,
-			[EntityMetaKey.IdKey]: stringify(entityId),
-		},
-	})
-}
-
-
-const writeCandidate = (
-	candidate: WalletCandidate,
-) => {
-	entityCollectionByEntityType[EntityType.BlockheadWallet].utils.writeUpsert({
-		[EntityMetaKey.Id]: { id: candidate.id },
-		[EntityMetaKey.IdKey]: stringify({ id: candidate.id }),
-		[EntityMetaKey.Source]: Source.Local_Internal,
-		[EntityMetaKey.Fields]: {
-			name: candidate.name,
-			icon: candidate.icon,
-			protocol: candidate.protocol,
-			discoveryKind: candidate.discoveryKind,
-			transportKind: candidate.transportKind,
-			...(candidate.rdns != null && { rdns: candidate.rdns }),
-			capabilities: candidate.capabilities,
-		},
-		name: candidate.name,
-		icon: candidate.icon,
-		protocol: candidate.protocol,
-		discoveryKind: candidate.discoveryKind,
-		transportKind: candidate.transportKind,
-		...(candidate.rdns != null && { rdns: candidate.rdns }),
-		capabilities: candidate.capabilities,
-	})
-	writeGlobalWalletReference({ id: candidate.id })
-}
-
-const writeAccount = (
-	account: WalletAccount,
-) => {
-	const entityId = {
-		caip10: {
-			namespace: account.namespace,
-			reference: account.reference,
-			accountAddress: account.accountAddress,
-		},
-	}
-	const fields = {
-		$network: {
-			[EntityMetaKey.Id]: {
-				caip2: {
-					namespace: account.namespace,
-					reference: account.reference,
-				},
-			},
-		},
-		address: account.accountAddress,
-		capabilities: account.capabilities,
-	}
-
-	entityCollectionByEntityType[EntityType.BlockheadWalletAccount].utils.writeUpsert({
-		[EntityMetaKey.Id]: entityId,
-		[EntityMetaKey.IdKey]: stringify(entityId),
-		[EntityMetaKey.Source]: Source.Local_Internal,
-		[EntityMetaKey.Fields]: fields,
-		...fields,
-	})
-	writeGlobalWalletAccountReference(entityId)
-}
-
-const writeConnection = (
-	connection: WalletConnection,
-) => {
-	const activeAccount = connection.accounts.at(0)
-	const entityId = {
-		$wallet: {
-			id: connection.walletId,
-		},
-	}
-	const fields = {
-		status: connection.status,
-		protocol: connection.protocol,
-		transportKind: connection.transportKind,
-		scopes: connection.scopes,
-		$$connectedAccounts: connection.accounts.map((account) => ({
-			[EntityMetaKey.Id]: {
-				caip10: {
-					namespace: account.namespace,
-					reference: account.reference,
-					accountAddress: account.accountAddress,
-				},
-			},
-		})),
-		...(activeAccount != null && {
-			$activeAccount: {
-				[EntityMetaKey.Id]: {
-					caip10: {
-						namespace: activeAccount.namespace,
-						reference: activeAccount.reference,
-						accountAddress: activeAccount.accountAddress,
-					},
-				},
-			},
-		}),
-		selected: connection.selected,
-		connectedAt: connection.connectedAt,
-		...(connection.error != null && { error: connection.error }),
-	}
-
-	for (const account of connection.accounts)
-		writeAccount(account)
-
-	entityCollectionByEntityType[EntityType.BlockheadWalletConnection].utils.writeUpsert({
-		[EntityMetaKey.Id]: entityId,
-		[EntityMetaKey.IdKey]: stringify(entityId),
-		[EntityMetaKey.Source]: Source.Local_Internal,
-		[EntityMetaKey.Fields]: fields,
-		...fields,
-	})
-	writeGlobalWalletConnectionReference(entityId)
-}
-
 const createWalletRuntimeState = (): WalletRuntime => {
 	const cleanupByWalletId = new SvelteMap<string, () => void>()
 	const adapterByWalletId = new SvelteMap<string, WalletAdapter>()
@@ -197,7 +39,7 @@ const createWalletRuntimeState = (): WalletRuntime => {
 			...connections.filter((candidate) => candidate.walletId !== connection.walletId),
 			connection,
 		]
-		writeConnection(connection)
+		writeLocalBlockheadWalletConnection(connection)
 	}
 
 	const adapters = [
@@ -222,7 +64,7 @@ const createWalletRuntimeState = (): WalletRuntime => {
 			candidates = [...candidatesByAdapterId.values()].flat()
 
 			for (const candidate of nextCandidates)
-				writeCandidate(candidate)
+				writeLocalBlockheadWallet(candidate)
 		}))
 
 	const connect = async (walletId: string) => {
@@ -271,14 +113,7 @@ const createWalletRuntimeState = (): WalletRuntime => {
 		cleanupByWalletId.delete(walletId)
 		adapterByWalletId.get(walletId)?.disconnect(walletId)
 		connections = connections.filter((connection) => connection.walletId !== walletId)
-		entityCollectionByEntityType[EntityType.BlockheadWalletConnection].delete([
-			Source.Local_Internal,
-			stringify({
-				$wallet: {
-					id: walletId,
-				},
-			}),
-		].join('\x1E'))
+		deleteLocalBlockheadWalletConnection(walletId)
 	}
 
 	return {

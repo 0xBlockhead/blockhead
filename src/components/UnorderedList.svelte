@@ -608,7 +608,8 @@
 		}
 	})
 	$effect(() => {
-		const _nextRenderFingerprint = nextRenderFingerprint
+		const nextState = nextRenderState
+		const nextFingerprint = nextRenderFingerprint
 		if (
 			transitionsArmed
 			|| transitionsArmScheduled
@@ -618,8 +619,8 @@
 		void tick()
 			.then(() => tick())
 			.then(() => {
-				committedRenderState = nextRenderState
-				committedRenderFingerprint = nextRenderFingerprint
+				committedRenderState = nextState
+				committedRenderFingerprint = nextFingerprint
 				transitionsArmed = true
 			})
 			.finally(() => {

@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,8 +39,7 @@
 		>
 	> = $props()
 
-	const activityPubActorTimestamp = useEntity(entityCollectionsContext, 
-		EntityType.ActivityPubActor_Timestamp,
+	const activityPubActorTimestamp = subscribe(EntityType.ActivityPubActor_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Mastodon_Rest,

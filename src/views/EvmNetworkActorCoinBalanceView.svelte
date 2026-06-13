@@ -47,13 +47,12 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { formatValue } from '$/lib/number.ts'
 
 	const actorCoinDetailAnchorKey = stringify(entityId)
 
-	const actorCoin = useEntity(entityCollectionsContext, EntityType.EvmNetworkActorCoinBalance,
+	const actorCoin = subscribe(EntityType.EvmNetworkActorCoinBalance,
 		entityId,
 		({ sources: [Source.Allium_Rest], fields: { symbol: true, balance: true, ...(open ? ({ decimals: true, usdValue: true }) : ({  })) } }),
 	)

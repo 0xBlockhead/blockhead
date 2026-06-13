@@ -5,7 +5,6 @@
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -37,15 +36,11 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const pool = useEntity(entityCollectionsContext, EntityType.LiquidityPool,
+	const pool = subscribe(EntityType.LiquidityPool,
 		entityId,
-		({ sources: (
-				resolverDefinitionsByEntityType[EntityType.LiquidityPool]?.map((resolver) => resolver.source)
-				?? [Source.Dexscreener_OpenApi]
-			), fields: { $baseToken: true, $quoteToken: true, $hooks: true, baseTokenSymbol: true, quoteTokenSymbol: true, baseTokenDecimals: true, quoteTokenDecimals: true, fee: true, tickSpacing: true, v4PoolId: true, $$timestamps: ({ sources: [
+		({ fields: { $baseToken: true, $quoteToken: true, $hooks: true, baseTokenSymbol: true, quoteTokenSymbol: true, baseTokenDecimals: true, quoteTokenDecimals: true, fee: true, tickSpacing: true, v4PoolId: true, $$timestamps: ({ sources: [
 					Source.Dexscreener_OpenApi,
 				], limit: 64 }), sqrtPriceX96: true, liquidity: true, tick: true, volumeUSD: true, totalValueLockedUSD: true, marketCapUsd: true, fdvUsd: true, pairCreatedAtMs: true, dexscreenerLabels: true, dexId: true, dexscreenerPairUrl: true, baseTokenPriceUsd: true, baseTokenPriceQuote: true, priceChangePercent24h: true, transactionBuys24h: true, transactionSells24h: true } }),
 	)

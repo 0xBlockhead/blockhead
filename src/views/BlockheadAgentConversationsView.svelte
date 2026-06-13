@@ -13,8 +13,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -83,7 +82,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const global = useEntity(entityCollectionsContext, EntityType._Global,
+			{@const global = subscribe(EntityType._Global,
 				entityFieldReference?.entityId ?? globalId,
 				({ sources: [
 						Source.Local_Internal,

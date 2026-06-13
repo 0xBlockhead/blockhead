@@ -13,11 +13,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { entityDefinitionByType, schema } from '$/schema/index.ts'
 
-	import {
-		ethereumChainId,
-		l2BeatProjectChainIds,
-	} from '$/sources/L2Beat/Rest/constants.ts'
-
 	import { stringify as stringifyId } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
@@ -25,6 +20,8 @@
 
 	// Context
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
 	// State
 	let {
 		title = 'EVM networks',
@@ -48,18 +45,7 @@
 		>
 	> = $props()
 
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
-
-	const sortValueByChainId = new Map<number, number>([
-		[ethereumChainId, 0],
-		...l2BeatProjectChainIds.map(({ chainId }, index): [number, number] => (
-			[
-				chainId,
-				index + 1,
-			]
-		)),
-	])
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -88,16 +74,16 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(entityCollectionsContext,
-				entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+			{@const parent = subscribe(entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				({ fields: {
 					[entityFieldReference.fieldName]: {
-							sources: (
-								entityDefinitionByType[entityFieldReference.entityType].fields
-									.find((field: EntityFieldDefinition) => field.name === entityFieldReference.fieldName)
-									?.defaultSources
-								?? []
-							),
+						sources: (
+							entityDefinitionByType[entityFieldReference.entityType].fields
+								.find((field: EntityFieldDefinition) => field.name === entityFieldReference.fieldName)
+								?.defaultSources
+							?? []
+						),
 						limit: 4096,
 					},
 				} }),
@@ -126,8 +112,10 @@
 				href={href}
 				getKey={(line) => stringifyId(line.value[EntityMetaKey.Id])}
 				getSortValue={(line) => (
-					sortValueByChainId.get(Number(line.value[EntityMetaKey.Id].caip2.reference))
-					?? Number.MAX_SAFE_INTEGER + Number(line.value[EntityMetaKey.Id].caip2.reference)
+					Number(line.value[EntityMetaKey.Id].caip2.reference) === 1 ?
+						0
+					:
+						Number.MAX_SAFE_INTEGER + Number(line.value[EntityMetaKey.Id].caip2.reference)
 				)}
 				placeholderKeys={new SvelteSet<string | number>()}
 				placeholderText="Loading EVM networks…"

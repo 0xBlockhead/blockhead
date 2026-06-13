@@ -23,7 +23,7 @@ export const derive = <_Value, _Result>(
 	transform: (value: _Value) => Awaited<_Result>
 ): RemoteResource<_Result> => {
 	const current = $derived(
-		resource.ready && resource.current !== undefined ? transform(resource.current) : undefined
+		resource.current !== undefined ? transform(resource.current) : undefined
 	)
 
 	const promise = $derived(
@@ -40,7 +40,7 @@ export const derive = <_Value, _Result>(
 		},
 
 		get loading() {
-			return resource.loading
+			return resource.current === undefined && resource.loading
 		},
 
 		get error() {
@@ -48,7 +48,7 @@ export const derive = <_Value, _Result>(
 		},
 
 		get ready() {
-			return resource.ready
+			return resource.current !== undefined || resource.ready
 		},
 
 		get then() {
@@ -387,11 +387,12 @@ export type ProxiedRemoteResource<_Value> = (
 	RemoteResource<_Value>
 	& (
 		_Value extends object ?
-			{
-				[K in keyof _Value as K extends keyof RemoteResource<_Value> ? never : K]: (
-					ProxiedRemoteResource<_Value[K]>
-				)
-			}
+			Omit<
+				{
+					[K in keyof _Value]: ProxiedRemoteResource<_Value[K]>
+				},
+				keyof RemoteResource<_Value>
+			>
 		:
 			{}
 	)

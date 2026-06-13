@@ -4,14 +4,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
-	import {
-		getResourceAddressFromInput,
-		getResourceCanonicalUri,
-		getResourceHref,
-	} from '$/sources/Swarm/Rest/queries.ts'
-
-	import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
-
 
 	// State
 	let {
@@ -22,6 +14,52 @@
 
 
 	// Functions
+	const trimSlashes = (value: string) => value.replace(/^\/+|\/+$/g, '')
+
+	const referenceFromInput = (value: string) => (
+		trimSlashes(
+			value.trim()
+				.replace(/^bzz:\/\//i, '')
+				.replace(/^swarm:\/\//i, '')
+				.replace(/^https?:\/\/[^/]+\/bzz\//i, ''),
+		)
+	)
+
+	const resourceAddressFromInput = ({
+		targetInput,
+		contentPathInput = '',
+	}: {
+		targetInput: string
+		contentPathInput?: string
+	}) => {
+		const [reference, ...pathParts] = referenceFromInput(targetInput).split('/')
+		if (reference === '') return undefined
+
+		return {
+			reference: reference.toLowerCase().replace(/^0x/, ''),
+			contentPath: trimSlashes(
+				contentPathInput.trim() !== '' ?
+					contentPathInput
+				:
+					pathParts.join('/'),
+			),
+		}
+	}
+
+	const resourceHref = ({
+		reference,
+		contentPath,
+	}: EntityId<typeof schema, EntityType.SwarmResource>) => (
+		`/swarm/${encodeURIComponent(reference)}${contentPath === '' ? '' : `/path/${contentPath.split('/').map(encodeURIComponent).join('/')}`}`
+	)
+
+	const resourceCanonicalUri = ({
+		reference,
+		contentPath,
+	}: EntityId<typeof schema, EntityType.SwarmResource>) => (
+		`bzz://${reference}${contentPath === '' ? '' : `/${contentPath}`}`
+	)
+
 	const sample = ({
 		label,
 		targetInput,
@@ -35,7 +73,7 @@
 		sourceHref: string
 		sourceLabel: string
 	}) => {
-		const address = getResourceAddressFromInput({
+		const address = resourceAddressFromInput({
 			targetInput,
 			contentPathInput,
 		})
@@ -45,8 +83,8 @@
 			label,
 			sourceHref,
 			sourceLabel,
-			href: getResourceHref(address),
-			uri: getResourceCanonicalUri(address),
+			href: resourceHref(address),
+			uri: resourceCanonicalUri(address),
 		}
 	}
 
@@ -56,13 +94,13 @@
 		if (!(form instanceof HTMLFormElement)) return
 
 		const formData = new FormData(form)
-		const next = getResourceAddressFromInput({
+		const next = resourceAddressFromInput({
 			targetInput: String(formData.get('target') ?? ''),
 			contentPathInput: String(formData.get('path') ?? ''),
 		})
 		if (next === undefined) return
 
-		window.location.assign(getResourceHref(next))
+		window.location.assign(resourceHref(next))
 	}
 
 	const openSample = (href: string) => {
@@ -77,19 +115,19 @@
 	const samples = [
 		sample({
 			label: 'Bee docs landing page',
-			targetInput: `bzz://${swarmDocsLandingReference}`,
+			targetInput: 'bzz://8b6ca499eb6f3f7e5ee242f08f1de2e7e6bb1728d7f4ee5ec22091b048f34ff1',
 			sourceHref: 'https://docs.ethswarm.org',
 			sourceLabel: 'Swarm Docs',
 		}),
 		sample({
 			label: 'Swarm URI scheme',
-			targetInput: `swarm://${swarmDocsLandingReference}`,
+			targetInput: 'swarm://8b6ca499eb6f3f7e5ee242f08f1de2e7e6bb1728d7f4ee5ec22091b048f34ff1',
 			sourceHref: 'https://docs.ethswarm.org/docs/develop/upload-and-download/',
 			sourceLabel: 'Upload & Download',
 		}),
 		sample({
 			label: 'Gateway URL input',
-			targetInput: `https://gateway.ethswarm.org/bzz/${swarmDocsLandingReference}`,
+			targetInput: 'https://gateway.ethswarm.org/bzz/8b6ca499eb6f3f7e5ee242f08f1de2e7e6bb1728d7f4ee5ec22091b048f34ff1',
 			sourceHref: 'https://docs.ethswarm.org/docs/develop/upload-and-download/',
 			sourceLabel: 'Upload & Download',
 		}),

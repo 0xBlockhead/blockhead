@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -42,7 +41,7 @@
 		>
 	> = $props()
 
-	const transfer = useEntity(entityCollectionsContext, EntityType.StateChannelTransfer,
+	const transfer = subscribe(EntityType.StateChannelTransfer,
 		entityId,
 		({ sources: [Source.Local_Internal], fields: { amount: true, turnNum: true, status: true, timestamp: true, $from: true, $to: true, $channel: ({ fields: { $network: true } }) } }),
 	)

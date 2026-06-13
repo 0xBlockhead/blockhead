@@ -2,7 +2,7 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { zeroGStorageNodeDefaultLocalRpcUrl } from '$/constants/ZeroGNetwork.ts'
 import {
 	defineResolver,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,

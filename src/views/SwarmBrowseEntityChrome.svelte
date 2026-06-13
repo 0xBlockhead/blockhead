@@ -1,27 +1,21 @@
 <script lang="ts">
 	// Types/constants
 	import type { Snippet } from 'svelte'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { SubscribeResult } from '$/client/$client.svelte.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
-
-	import {
-		getResourceCanonicalUri,
-		getResourceHref,
-	} from '$/sources/Swarm/Rest/queries.ts'
-
 	import { stringify } from 'devalue'
 
-	type ResourceFields = {
-		fields: Record<string, any>
-	}
+	type SwarmResource = SubscribeResult<typeof schema, EntityType.SwarmResource>
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		entityId,
@@ -33,9 +27,11 @@
 		open?: boolean
 	} = $props()
 
-	const swarm = useEntity(entityCollectionsContext, EntityType.SwarmResource,
-		entityId,
-		({ sources: [Source.Swarm_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, ...(open && ({ $media: true })) } }),
+	const swarm = $derived(
+		subscribe(EntityType.SwarmResource,
+			entityId,
+			({ sources: [Source.Swarm_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, ...(open && ({ $media: true })) } }),
+		),
 	)
 
 
@@ -61,7 +57,7 @@
 	layout={EntityLayout.SummaryDetails}
 	entityType={EntityType.SwarmResource}
 	{entityId}
-	title={getResourceCanonicalUri(entityId)}
+	title={`bzz://${entityId.reference}${entityId.contentPath === '' ? '' : `/${entityId.contentPath}`}`}
 	bind:open
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -75,7 +71,7 @@
 
 	{#snippet Content()}
 		{#if true}
-			{#snippet SwarmChromeContentTypeRow(swarm: ResourceFields)}
+			{#snippet SwarmChromeContentTypeRow(swarm: SwarmResource)}
 				{#if swarm.fields.contentType !== undefined}
 					<TruncatedValue
 						value={swarm.fields.contentType}
@@ -152,7 +148,7 @@
 					<p>
 						<code>
 							<TruncatedValue
-								value={getResourceCanonicalUri(entityId)}
+								value={`bzz://${entityId.reference}${entityId.contentPath === '' ? '' : `/${entityId.contentPath}`}`}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</code>
@@ -169,7 +165,7 @@
 						<h2>Metadata</h2>
 					</header>
 
-					{#snippet SwarmChromeMetadataBody(swarm: ResourceFields)}
+					{#snippet SwarmChromeMetadataBody(swarm: SwarmResource)}
 						<div>
 							{#if swarm.fields.canonicalUri !== undefined}
 								<div>
@@ -288,7 +284,7 @@
 						<h2>Content</h2>
 					</header>
 
-					{#snippet SwarmChromeTextBody(swarm: ResourceFields)}
+					{#snippet SwarmChromeTextBody(swarm: SwarmResource)}
 						{#if swarm.fields.text !== undefined}
 							<pre>{swarm.fields.text}</pre>
 						{:else if swarm.fields.$media?.[EntityMetaKey.Id].url !== undefined}
@@ -308,7 +304,7 @@
 					/>
 				</section>
 			{/snippet}
-	</CollapsibleTabs>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
 

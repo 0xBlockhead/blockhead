@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -39,7 +38,7 @@
 		variant: 'trending',
 	}
 
-	const network = useEntity(entityCollectionsContext, EntityType.FarcasterNetwork,
+	const network = subscribe(EntityType.FarcasterNetwork,
 		entityId,
 		({ sources: [Source.Farcaster_Rest], fields: { ...(open ? ({ protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$channels: true, $$users: ({ sources: [Source.Snapchain_Rest] }) }) : ({  })) } }),
 	)

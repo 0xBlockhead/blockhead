@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import {
+	assertMainSettled,
 	catalogWire,
 	clearOriginOpfs,
 	clearPersistenceProbe,
@@ -9,134 +10,135 @@ import {
 	getPersistenceProbeEvents,
 	installChainlistRpcsJsonStub,
 	installPersistenceProbe,
-	persistenceMarkLoadedEvent,
-	persistenceShortCircuitDecisions,
-	waitForPersistenceShortCircuit,
 } from '../_e2eBrowserHelpers.ts'
 
 
 const gotoLoadTimeoutMs = 120_000
 
+type ProductCollectionSyncEvent = {
+	collection:
+		| {
+			kind: 'Entity'
+			entityType: string
+			id: string
+		}
+		| {
+			kind: 'Field' | 'Count'
+			entityType: string
+			fieldName: string
+			id: string
+		}
+	key: string
+}
+
+type ProductCollectionSizes = {
+	entities: Record<string, number>
+	fields: Record<string, Record<string, number>>
+	counts: Record<string, Record<string, number>>
+}
+
+type ProductSubscribeError = {
+	selectorAddress: readonly string[]
+	dimension: string
+	entityType: string
+	fieldName?: string
+	message: string
+}
+
+type ClientProbe = {
+	events: {
+		collectionSync: ProductCollectionSyncEvent[]
+	}
+	collectionSizes: () => ProductCollectionSizes
+	read: (
+		entityType: string,
+		entityId: object,
+		selection: object,
+	) => Promise<{
+		fields: {
+			name?: string
+			$$rpcUrls?: {
+				values: readonly object[]
+				totalCount?: number
+			}
+		}
+	}>
+}
+
 const pathnamesForRun = () => {
-	const includeRaw = process.env.E2E_REAL_PERSISTENCE_PATHS ?? '/networks,/network/eip155:1'
+	const includeRaw = process.env.E2E_REAL_PERSISTENCE_PATHS ?? '/network/eip155:1'
 	return includeRaw.split(',').map((path) => path.trim()).filter(Boolean)
 }
 
-const probeEventsAfter = (
-	events: Awaited<ReturnType<typeof getPersistenceProbeEvents>>,
-	startIndex: number,
+const productCollectionSyncEvents = (
+	events: ProductCollectionSyncEvent[],
 ) => (
-	events.slice(startIndex)
+	events.filter((event) => (
+		event.collection.entityType === 'EvmNetwork'
+		&& (
+			event.collection.kind === 'Entity'
+			|| event.collection.fieldName === '$$rpcUrls'
+		)
+	))
 )
 
-const assertWarmPersistenceProbe = (
-	events: Awaited<ReturnType<typeof getPersistenceProbeEvents>>,
-	startIndex: number,
-	collectionLoadedKeys: Readonly<Record<string, string>>,
-) => {
-	const collectionIds = Object.keys(collectionLoadedKeys)
-	const fresh = probeEventsAfter(events, startIndex)
-	const freshQueryFns = fresh.filter((event) => (
-		event.kind === 'queryFn'
-		&& collectionIds.includes(event.collectionId)
-	))
-	const freshRemoteLoadSubsets = fresh.filter((event) => (
-		event.kind === 'loadSubset'
-		&& collectionIds.includes(event.collectionId)
-		&& event.decision === 'remote'
-	))
-	const freshShortCircuits = fresh.filter((event) => (
-		event.kind === 'loadSubset'
-		&& collectionIds.includes(event.collectionId)
-		&& persistenceShortCircuitDecisions.includes(event.decision)
-		&& event.loadedKey === collectionLoadedKeys[event.collectionId]
-	))
+const productCollectionIds = [
+	'Entity:EvmNetwork',
+	'Field:EvmNetwork:$$rpcUrls',
+	'Count:EvmNetwork:$$rpcUrls',
+] as const
 
-	expect(
-		freshQueryFns,
-		`warm reload must not re-run queryFn for persisted collections: ${JSON.stringify(freshQueryFns)}`,
-	).toEqual([])
-	expect(
-		freshRemoteLoadSubsets,
-		`warm reload must short-circuit loadSubset without remote fetch: ${JSON.stringify(freshRemoteLoadSubsets)}`,
-	).toEqual([])
-	expect(
-		freshShortCircuits.length,
-		`warm reload must short-circuit loadSubset with the cold loadedKey for ${collectionIds.join(', ')}: ${JSON.stringify(freshShortCircuits)}`,
-	).toBeGreaterThan(0)
-}
+const readProductProbe = (
+	page: Page,
+) => page.evaluate(async () => {
+	const browserWindow: Window & {
+		__blockheadClientProbe?: ClientProbe
+	} = window
+	const probe = browserWindow.__blockheadClientProbe
+	if (probe == null)
+		throw new Error('missing blockhead client probe')
 
-const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
-	const catalogRequests = countRequestsMatching(page, catalogWire)
-
-	await page.goto(url, { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
-	await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
-	await expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
-		timeout: 120_000,
-	})
-
-	const coldCount = catalogRequests.get()
-	catalogRequests.detach()
-
-	if (coldCount === 0)
-		return false
-
-	const probeBefore = await getPersistenceProbeEvents(page)
-	const catalogCollectionLoadedKeys = Object.fromEntries(
-		[
-			...new Set(
-				probeBefore
-					.filter((event) => (
-						event.kind === 'markLoaded'
-						&& event.loadedKey.includes('Chainlist_Rest')
-					))
-					.map((event) => event.collectionId),
-			),
-		]
-			.map((collectionId) => {
-				const markLoaded = persistenceMarkLoadedEvent(probeBefore, collectionId)
-				return markLoaded != null ?
-					[
-						collectionId,
-						markLoaded.loadedKey,
-					]
-				:
-					undefined
-			})
-			.filter((entry): entry is [string, string] => entry != null),
-	)
-	await page.reload({ waitUntil: 'load', timeout: gotoLoadTimeoutMs })
-	await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
-	await expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
-		timeout: 120_000,
-	})
-
-	for (const [collectionId, loadedKey] of Object.entries(catalogCollectionLoadedKeys))
-		await waitForPersistenceShortCircuit(
-			page,
-			collectionId,
+	const result = await probe
+		.read(
+			'EvmNetwork',
 			{
-				startIndex: probeBefore.length,
-				loadedKey,
+				caip2: {
+					namespace: 'eip155',
+					reference: '1',
+				},
+			},
+			{
+				sources: [
+					'Chainlist_Rest',
+				],
+				fields: {
+					name: true,
+					$$rpcUrls: {
+						sources: [
+							'Chainlist_Rest',
+						],
+						count: true,
+					},
+				},
 			},
 		)
-
-	const probeAfter = await getPersistenceProbeEvents(page)
-	if (Object.keys(catalogCollectionLoadedKeys).length > 0)
-		assertWarmPersistenceProbe(
-			probeAfter,
-			probeBefore.length,
-			catalogCollectionLoadedKeys,
-		)
-
-	return Object.keys(catalogCollectionLoadedKeys).length > 0
-}
+		.catch((errors: ProductSubscribeError[]) => {
+			throw new Error(JSON.stringify(errors))
+		})
+	return {
+		name: result.fields.name,
+		rpcUrlCount: result.fields.$$rpcUrls?.values.length ?? 0,
+		totalCount: result.fields.$$rpcUrls?.totalCount,
+		events: [...probe.events.collectionSync],
+		sizes: probe.collectionSizes(),
+	}
+})
 
 
 test.describe.configure({ mode: 'serial' })
 
 test.describe('TanStack DB persistence', () => {
-	test('catalog field subsets hydrate from OPFS after reload without rerunning loaded collections', async ({
+	test('product entity, field, and count subsets hydrate from OPFS after reload while TanStack refreshes upstream', async ({
 		browser,
 	}) => {
 		test.setTimeout(600_000)
@@ -154,24 +156,72 @@ test.describe('TanStack DB persistence', () => {
 		await page.goto('/', { waitUntil: 'domcontentloaded', timeout: gotoLoadTimeoutMs })
 		await clearPersistenceProbe(page)
 
-		let provedCatalogPersistence = false
-
 		for (const url of pathnamesForRun()) {
-			if (url === '/networks')
-				continue
-
 			await test.step(url, async () => {
-				provedCatalogPersistence = (
-					await exerciseNetworkDetailWhenConfigured(page, url)
-					|| provedCatalogPersistence
-				)
+				await page.goto(url, { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
+				await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
+				await assertMainSettled(page, 120_000)
 			})
 		}
 
+		const cold = await readProductProbe(page)
+		const coldProductEvents = productCollectionSyncEvents(cold.events)
+
+		expect(cold.name).toBe('Ethereum Mainnet')
+		expect(cold.rpcUrlCount).toBeGreaterThan(0)
+		expect(cold.totalCount).toBe(cold.rpcUrlCount)
+		expect(cold.sizes.entities.EvmNetwork).toBeGreaterThan(0)
+		expect(cold.sizes.fields.EvmNetwork.$$rpcUrls).toBeGreaterThan(0)
+		expect(cold.sizes.counts.EvmNetwork.$$rpcUrls).toBeGreaterThan(0)
+		expect(coldProductEvents.map((event) => event.collection.kind)).toEqual(expect.arrayContaining([
+			'Entity',
+			'Field',
+			'Count',
+		]))
+		await page.waitForTimeout(2_000)
+
+		const warmCatalogRequests = countRequestsMatching(page, catalogWire)
+		await page.route('**/*', async (route) => {
+			if (catalogWire(route.request().url(), route.request().method())) {
+				await route.abort('failed')
+				return
+			}
+
+			await route.fallback()
+		})
+		await clearPersistenceProbe(page)
+		await page.reload({ waitUntil: 'load', timeout: gotoLoadTimeoutMs })
+		await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
+		await assertMainSettled(page, 120_000)
+
+		const warm = await readProductProbe(page)
+		const warmProductEvents = productCollectionSyncEvents(warm.events)
+		const warmPersistenceEvents = await getPersistenceProbeEvents(page)
+		const warmProductPersistenceLoadEvents = warmPersistenceEvents.filter((event) => (
+			event.kind === 'loadSubset'
+			&& productCollectionIds.some((collectionId) => collectionId === event.collectionId)
+		))
+
+		expect(warm.name).toBe(cold.name)
+		expect(warm.rpcUrlCount).toBe(cold.rpcUrlCount)
+		expect(warm.totalCount).toBe(cold.totalCount)
+		expect(warm.sizes.entities.EvmNetwork).toBeGreaterThan(0)
+		expect(warm.sizes.fields.EvmNetwork.$$rpcUrls).toBeGreaterThan(0)
+		expect(warm.sizes.counts.EvmNetwork.$$rpcUrls).toBeGreaterThan(0)
+		expect(warmProductEvents.map((event) => event.collection.kind)).toEqual(expect.arrayContaining([
+			'Entity',
+			'Field',
+			'Count',
+		]))
 		expect(
-			provedCatalogPersistence,
-			'at least one configured route must prove catalog collection persistence',
-		).toBe(true)
+			warmProductPersistenceLoadEvents.map((event) => `${event.collectionId}:${event.decision}`),
+		).toEqual(expect.arrayContaining([
+			...productCollectionIds.map((collectionId) => `${collectionId}:hydrated-rows`),
+		]))
+		expect(warmProductPersistenceLoadEvents.every((event) => event.decision === 'hydrated-rows')).toBe(true)
+		expect(warmPersistenceEvents.length).toBeLessThanOrEqual(500)
+		expect(warmCatalogRequests.get()).toBeGreaterThan(0)
+		warmCatalogRequests.detach()
 
 		await context.close()
 	})

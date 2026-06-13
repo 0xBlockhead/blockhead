@@ -72,7 +72,7 @@ test.describe('sidebar navigation', () => {
 /**
  * Regression guard for persisted collection `queryFn` when live queries use
  * `innerJoin` (correlated `eq(ref, ref)`): strict `parseLoadSubsetOptions` used to throw;
- * `parseLoadSubsetForQueryFn` in `$collections.ts` must keep these pages loadable.
+ * `parseLoadSubsetForQueryFn` in `$client.svelte.ts` must keep these pages loadable.
  */
 test.describe('collections query lifecycle', () => {
 	test.describe.configure({ retries: 1 })

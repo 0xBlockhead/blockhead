@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,7 +39,7 @@
 		>
 	> = $props()
 
-	const block = useEntity(entityCollectionsContext, EntityType.EvmBlock,
+	const block = subscribe(EntityType.EvmBlock,
 		entityId,
 		({ sources: [
 				Source.Blockscout_Rest,
@@ -110,8 +109,9 @@
 		href: _href,
 		open: contentOpen,
 	})}
-		<dl data-column-item="center">
-			<div>
+		{#if contentOpen}
+			<dl data-column-item="center">
+				<div>
 				<dt>Hash</dt>
 				<dd>
 					{#if entityId.hash}
@@ -293,7 +293,8 @@
 					</dd>
 				</div>
 			{/if}
-		</dl>
+			</dl>
+		{/if}
 	{/snippet}
 
 	{#snippet Details({

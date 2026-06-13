@@ -1,3 +1,4 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	beaconRestBaseByExecutionChainId,
 	slotsPerEpoch,
@@ -6,8 +7,7 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,

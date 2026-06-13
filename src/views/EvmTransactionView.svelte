@@ -50,10 +50,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const evmTransaction = useEntity(entityCollectionsContext, EntityType.EvmTransaction,
+	const evmTransaction = subscribe(EntityType.EvmTransaction,
 		entityId,
 		({ sources: [
 				Source.Blockscout_Rest,
@@ -441,7 +440,7 @@
 			{/snippet}
 
 			{#snippet SectionTrace({ id: _traceId, label: _traceLabel })}
-				{@const txTrace = useEntity(entityCollectionsContext, EntityType.EvmTransaction,
+				{@const txTrace = subscribe(EntityType.EvmTransaction,
 					entityId,
 					({ sources: [
 							Source.Blockscout_Rest,

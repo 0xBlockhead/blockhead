@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -42,7 +41,7 @@
 			>
 	> = $props()
 
-	const accountFactory = useEntity(entityCollectionsContext, EntityType.Erc4337AccountFactory,
+	const accountFactory = subscribe(EntityType.Erc4337AccountFactory,
 		entityId,
 		({ sources: [
 				Source.Blockscout_Rest,

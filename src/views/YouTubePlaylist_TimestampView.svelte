@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,8 +35,7 @@
 		>
 	> = $props()
 
-	const youTubePlaylistTimestamp = useEntity(entityCollectionsContext, 
-		EntityType.YouTubePlaylist_Timestamp,
+	const youTubePlaylistTimestamp = subscribe(EntityType.YouTubePlaylist_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Youtube_Rest,

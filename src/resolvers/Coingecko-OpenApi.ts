@@ -1,3 +1,4 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import type { CoinId } from '$/constants/Coin.ts'
 import {
 	MarketAssetKind,
@@ -20,9 +21,8 @@ import {
 import { stringify } from 'devalue'
 import {
 	defineResolver,
-	resolverContextRowLimit,
 	type SourceResolverContext,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,

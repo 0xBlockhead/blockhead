@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -41,7 +40,7 @@
 			>
 	> = $props()
 
-	const bundler = useEntity(entityCollectionsContext, EntityType.Erc4337Bundler,
+	const bundler = subscribe(EntityType.Erc4337Bundler,
 		entityId,
 		({ sources: [
 				Source.Blockscout_Rest,

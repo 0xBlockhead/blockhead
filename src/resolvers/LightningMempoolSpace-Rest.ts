@@ -1,7 +1,7 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { bitcoinMainnetCaip2 } from '$/constants/BitcoinNetwork.ts'
 import { lightningMempoolSpaceRestBaseUrl, lightningNetworkId } from '$/constants/LightningNetwork.ts'
 import {

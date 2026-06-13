@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -31,7 +30,7 @@
 		>
 	> = $props()
 
-	const attestation = useEntity(entityCollectionsContext, EntityType.BeaconAttestation,
+	const attestation = subscribe(EntityType.BeaconAttestation,
 		entityId,
 		(
 			open ?

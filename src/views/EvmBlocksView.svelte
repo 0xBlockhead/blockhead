@@ -12,8 +12,9 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		entityFieldReference,
@@ -37,13 +38,27 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	const network = subscribe(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			fields: {
+				[entityFieldReference.fieldName]: {
+					sources: [
+						Source.Voltaire_JsonRpc,
+					],
+					limit: 16,
+				},
+			},
+		},
+	)
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -69,54 +84,44 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const network = useEntity(entityCollectionsContext,
-				entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Voltaire_JsonRpc,
-						],
-						limit: 16,
-					},
-				} }),
-			)}
-			{@const blocks = derive(
-				network,
-				(network): readonly Entity<typeof schema, EntityType.EvmBlock>[] => (
-					(network.fields[entityFieldReference.fieldName]?.values ?? [])
-				),
-			)}
-			<div data-column="gap-3">
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.EvmBlock}
-					id={`${id}-items`}
-					{title}
-					open={true}
-					getKey={(row) => String(row[EntityMetaKey.Id].blockNumber)}
-					getSortValue={(row) => (
-						-Number(row[EntityMetaKey.Id].blockNumber)
-					)}
-					placeholderText="Loading execution blocks…"
-					resource={blocks}
-					UnorderedListProps={{ orientation: ListOrientation.Column }}
-				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No recent blocks yet.
-						</p>
-					{/snippet}
+			<ResourceBoundary
+				resource={network}
+				placeholderText="Loading execution blocks…"
+			>
+				{#snippet children(network)}
+					<div data-column="gap-3">
+						<EntitiesList
+							collapsible={false}
+							showSummary={false}
+							entityType={EntityType.EvmBlock}
+							id={`${id}-items`}
+							{title}
+							open={true}
+							getKey={(row) => String(row[EntityMetaKey.Id].blockNumber)}
+							getSortValue={(row) => (
+								-Number(row[EntityMetaKey.Id].blockNumber)
+							)}
+							items={(network.fields[entityFieldReference.fieldName]?.values ?? [])
+								.filter((block: Entity<typeof schema, EntityType.EvmBlock>) => block[EntityMetaKey.Id].hash != null)}
+							UnorderedListProps={{ orientation: ListOrientation.Column }}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">
+									No recent blocks yet.
+								</p>
+							{/snippet}
 
-					{#snippet Item({ item })}
-						<EvmBlockView
-							entityId={item[EntityMetaKey.Id]}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/snippet}
-				</EntitiesList>
-			</div>
+							{#snippet Item({ item })}
+								<EvmBlockView
+									entityId={item[EntityMetaKey.Id]}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{/snippet}
+						</EntitiesList>
+					</div>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

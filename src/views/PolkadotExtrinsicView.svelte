@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,7 +26,7 @@
 		>
 	> = $props()
 
-	const polkadotExtrinsic = useEntity(entityCollectionsContext, EntityType.PolkadotExtrinsic,
+	const polkadotExtrinsic = subscribe(EntityType.PolkadotExtrinsic,
 		entityId,
 		({ fields: { hash: true, callName: true, success: true } }),
 	)

@@ -9,8 +9,7 @@
 
 
 	// State
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
 		entityId,
@@ -24,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const zeroGKvEntry = useEntity(entityCollectionsContext, EntityType.ZeroGKvEntry, entityId, ({ fields: { $logEntry: true, $owner: true, valueHash: true } }))
+	const zeroGKvEntry = subscribe(EntityType.ZeroGKvEntry, entityId, ({ fields: { $logEntry: true, $owner: true, valueHash: true } }))
 
 
 	// Components

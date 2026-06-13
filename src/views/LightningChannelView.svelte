@@ -10,8 +10,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -29,7 +28,7 @@
 		>
 	> = $props()
 
-	const channel = useEntity(entityCollectionsContext, EntityType.LightningChannel,
+	const channel = subscribe(EntityType.LightningChannel,
 		entityId,
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,

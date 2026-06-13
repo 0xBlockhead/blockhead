@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -37,7 +36,7 @@
 		>
 	> = $props()
 
-	const coinTimestamp = useEntity(entityCollectionsContext, EntityType.Coin_Timestamp,
+	const coinTimestamp = subscribe(EntityType.Coin_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Blockscout_Rest,

@@ -9,7 +9,6 @@ import { TransportType } from '$/constants/TransportType.ts'
 
 /** Host suffixes that allow browser cross-origin JSON-RPC POST without `/api-proxy`. */
 const browserCorsJsonRpcOriginSuffixes = [
-	'.publicnode.com',
 	'.drpc.org',
 ] as const
 

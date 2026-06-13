@@ -19,8 +19,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -68,7 +67,7 @@
 	)
 
 
-	const market = useEntity(entityCollectionsContext, EntityType.Market,
+	const market = subscribe(EntityType.Market,
 		entityId,
 		({ sources: (
 				entityId.marketKind === MarketKind.Spot ?

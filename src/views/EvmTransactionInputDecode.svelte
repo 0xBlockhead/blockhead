@@ -21,8 +21,7 @@
 	} from '$/lib/calldata-decode.ts'
 
 	import { getEvmSelectorPath, normalizeEvmSelectorHex } from '$/lib/signature-paths.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	const emptySelectorHex: `0x${string}` = '0x00000000'
 
@@ -35,7 +34,7 @@
 			null,
 	)
 
-	const selector = useEntity(entityCollectionsContext, EntityType.EvmSelector,
+	const selector = subscribe(EntityType.EvmSelector,
 		(
 			selectorHex != null ?
 				{ hex: selectorHex }

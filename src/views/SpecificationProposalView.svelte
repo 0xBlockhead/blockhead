@@ -16,8 +16,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -87,7 +86,7 @@
 	}
 
 
-	const proposal = useEntity(entityCollectionsContext, EntityType.SpecificationProposal,
+	const proposal = subscribe(EntityType.SpecificationProposal,
 		entityId,
 		({ sources: [
 				entityId.realm === SpecificationRealm.Bitcoin && entityId.category === ProposalCategory.Bip ?
@@ -130,7 +129,7 @@
 			], fields: { documentBody: true, documentCategory: true, documentStatus: true, documentTitle: true } }),
 	)
 
-	const specificationRealm = useEntity(entityCollectionsContext, EntityType.SpecificationRealm,
+	const specificationRealm = subscribe(EntityType.SpecificationRealm,
 		{
 			realm: entityId.realm,
 		},
@@ -139,7 +138,7 @@
 			], fields: { label: true, slug: true } }),
 	)
 
-	const proposalKind = useEntity(entityCollectionsContext, EntityType.SpecificationProposalKind,
+	const proposalKind = subscribe(EntityType.SpecificationProposalKind,
 		{
 			realm: entityId.realm,
 			category: entityId.category,

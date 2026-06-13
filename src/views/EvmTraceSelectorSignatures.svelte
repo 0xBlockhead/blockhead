@@ -5,8 +5,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selectorHex,
@@ -14,7 +13,7 @@
 		selectorHex: `0x${string}`
 	} = $props()
 
-	const evmSelector = useEntity(entityCollectionsContext, EntityType.EvmSelector,
+	const evmSelector = subscribe(EntityType.EvmSelector,
 		{ hex: selectorHex },
 		({ sources: [Source.Openchain_Rest], fields: { signatures: true } }),
 	)

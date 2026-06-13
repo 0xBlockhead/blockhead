@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { stateChannelStatusByStatus } from '$/constants/StateChannel.ts'
-	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
@@ -12,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,12 +38,9 @@
 		>
 	> = $props()
 
-	const stateChannel = useEntity(entityCollectionsContext, EntityType.StateChannel,
+	const stateChannel = subscribe(EntityType.StateChannel,
 		entityId,
-		({ sources: (
-				resolverDefinitionsByEntityType[EntityType.StateChannel]?.map((resolver) => resolver.source)
-				?? [Source.Local_Internal]
-			), fields: { status: true, createdAt: true, updatedAt: true, turnNum: true, totalDeposited: true, $network: true, $participant0: true, $participant1: true, ...(open ? ({ balance0: true, balance1: true, $asset: true, $room: true }) : ({  })) } }),
+		({ sources: [Source.Local_Internal], fields: { status: true, createdAt: true, updatedAt: true, turnNum: true, totalDeposited: true, $network: true, $participant0: true, $participant1: true, ...(open ? ({ balance0: true, balance1: true, $asset: true, $room: true }) : ({  })) } }),
 	)
 
 

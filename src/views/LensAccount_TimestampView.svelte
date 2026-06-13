@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -33,7 +32,7 @@
 		>
 	> = $props()
 
-	const lensAccountTimestamp = useEntity(entityCollectionsContext, EntityType.LensAccount_Timestamp,
+	const lensAccountTimestamp = subscribe(EntityType.LensAccount_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Lens_Graphql,

@@ -2,14 +2,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { CoinId } from '$/constants/Coin.ts'
 	import { catalogCoinIdentitySources } from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { enabledSources } from '$/sources/index.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
@@ -90,16 +88,8 @@
 			],
 		] as const satisfies DeclarativeOrderBy<CoinOrderFieldRow>
 	)
-
-	const catalogCoinSources = (
-		[...catalogCoinIdentitySources].filter((source) => enabledSources.has(source))
-	)
-
-
-	import type { DeclarativeOrderBy } from '$/lib/tanstackDb/orderBySteps.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import type { DeclarativeOrderBy } from '$/client/$client.svelte.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -119,13 +109,13 @@
 
 
 <section id={id}>
-<EntitiesList
-	{...EntitiesListProps}
-	bind:open
-	entityType={EntityType.Coin}
-	id={`${id}-catalog`}
-	{title}
->
+	<EntitiesList
+		{...EntitiesListProps}
+		bind:open
+		entityType={EntityType.Coin}
+		id={`${id}-catalog`}
+		{title}
+	>
 		{#snippet TypeAnnotationTooltip()}
 			<p>
 				A logical asset id groups tickers, branding, and metadata that may span many chains.
@@ -136,75 +126,21 @@
 		{/snippet}
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
-				{@const parent = useEntity(entityCollectionsContext,
-					entityFieldReference.entityType,
-					entityFieldReference.entityId,({ sources: catalogCoinSources, fields: { [entityFieldReference.fieldName]: {
-							sources: catalogCoinSources,
+				{@const parent = subscribe(entityFieldReference.entityType,
+					entityFieldReference.entityId,({ sources: catalogCoinIdentitySources, fields: { [entityFieldReference.fieldName]: {
+							sources: catalogCoinIdentitySources,
 							orderBy: [...globalCoinsFieldOrderBy],
 							limit: limit,
 						},
 					} }),
 				)}
-				{@const coins = derive(
-					parent,
-					(parent): readonly Entity<typeof schema, EntityType.Coin>[] => {
-						const sourceCoins = parent.fields[entityFieldReference.fieldName]?.values
-						const orderedCoins = (
-							sourceCoins == null ?
-								[]
-							:
-								[...sourceCoins]
-						)
-						const filtered = (
-							orderedCoins.some((coin) => (
-								typeof coin.marketCapRank === 'number'
-								&& Number.isFinite(coin.marketCapRank)
-							)) ?
-								orderedCoins.filter((coin) => (
-									typeof coin.marketCapRank === 'number'
-									&& Number.isFinite(coin.marketCapRank)
-								))
-							:
-								orderedCoins
-						)
-						const seenCoinIds = new SvelteSet<string>()
-						const deduped = (
-							filtered.flatMap((coin) => {
-								const coinId = coin[EntityMetaKey.Id].coinId
-								if (seenCoinIds.has(coinId)) return []
-								seenCoinIds.add(coinId)
-								return [coin]
-							})
-						)
-						return deduped
-					},
-				)}
 				<ResourceBoundary
-					resource={coins}
+					resource={parent}
 				>
-					{#snippet children(coins)}
+					{#snippet children(parent)}
 						<UnorderedList
-							items={coins}
+							items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
 							getKey={(coin) => stringify(coin[EntityMetaKey.Id])}
-							getSortValue={(coin) => {
-								const rank = coin.marketCapRank
-								const rankN = (
-									typeof rank === 'number' && Number.isFinite(rank) ?
-										rank
-									:
-										Number.POSITIVE_INFINITY
-								)
-								const cap = coin.marketCapUsd
-								const capN = (
-									typeof cap === 'number' && Number.isFinite(cap) ?
-										cap
-									:
-										-Number.POSITIVE_INFINITY
-								)
-								return (
-									`${String(rankN).padStart(12, '0')}\0${String(-capN).padStart(24, '0')}\0${coin[EntityMetaKey.Id].coinId}`
-								)
-							}}
 							placeholderKeys={new SvelteSet<string | number>()}
 							orientation={ListOrientation.Column}
 						>
@@ -279,136 +215,136 @@
 		{/snippet}
 	</CollapsibleTabs>
 
-		<CollapsibleTabs
-			id={`${id}:hub-ohlc-ranges`}
-			sectionIdPrefix={id}
-			sections={[
-				{ id: 'ohlc-candles-preview', label: 'Candle index' },
-			]}
-			class="coins-view-collapsible-ohlc"
-			data-card
-			open={ohlcOpen}
-			scrollContainerProps={{
-				'data-row': 'start align-start',
-				style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
-			}}
-		>
-			{#snippet Summary({
-				open: _summaryOpen,
-			})}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<Heading>
-						OHLC ranges
-					</Heading>
-				</header>
-			{/snippet}
+	<CollapsibleTabs
+		id={`${id}:hub-ohlc-ranges`}
+		sectionIdPrefix={id}
+		sections={[
+			{ id: 'ohlc-candles-preview', label: 'Candle index' },
+		]}
+		class="coins-view-collapsible-ohlc"
+		data-card
+		open={ohlcOpen}
+		scrollContainerProps={{
+			'data-row': 'start align-start',
+			style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
+		}}
+	>
+		{#snippet Summary({
+			open: _summaryOpen,
+		})}
+			<header
+				data-row-item="flexible"
+				data-row="wrap gap-4"
+			>
+				<Heading>
+					OHLC ranges
+				</Heading>
+			</header>
+		{/snippet}
 
-			{#snippet SectionOhlcCandlesPreview({ id, label })}
-				<div data-row="wrap align-center gap-2">
-					<a href={resolve('/coins/candles')}>
-						OHLC candles
-					</a>
-					<Tooltip contentProps={{ side: 'top' }}>
-						{#snippet Content()}
-							<p>
-								Each row is one
-								<code>Market_TimeInterval_Timestamp</code>
-								candle (open/high/low/close at 1e8 USD).
-							</p>
-						{/snippet}
-						<abbr
-							class="entity-heading-tip"
-							aria-label="OHLC schema"
-						>ⓘ</abbr>
-					</Tooltip>
-				</div>
-				<Market_TimeInterval_TimestampsView
-					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType._Global,
-						entityId: { scope: '$$marketTimeIntervalTimestamps' },
-						fieldName: '$$marketTimeIntervalTimestamps',
-					}}
-					href={resolve('/coins/candles')}
-					id={`${id}:ohlc-candles-preview`}
-					limit={48}
-					title="Recent candles"
-				/>
-			{/snippet}
-		</CollapsibleTabs>
+		{#snippet SectionOhlcCandlesPreview({ id, label })}
+			<div data-row="wrap align-center gap-2">
+				<a href={resolve('/coins/candles')}>
+					OHLC candles
+				</a>
+				<Tooltip contentProps={{ side: 'top' }}>
+					{#snippet Content()}
+						<p>
+							Each row is one
+							<code>Market_TimeInterval_Timestamp</code>
+							candle (open/high/low/close at 1e8 USD).
+						</p>
+					{/snippet}
+					<abbr
+						class="entity-heading-tip"
+						aria-label="OHLC schema"
+					>ⓘ</abbr>
+				</Tooltip>
+			</div>
+			<Market_TimeInterval_TimestampsView
+				CollapsibleProps={{ canToggle: false }}
+				entityFieldReference={{
+					entityType: EntityType._Global,
+					entityId: { scope: '$$marketTimeIntervalTimestamps' },
+					fieldName: '$$marketTimeIntervalTimestamps',
+				}}
+				href={resolve('/coins/candles')}
+				id={`${id}:ohlc-candles-preview`}
+				limit={48}
+				title="Recent candles"
+			/>
+		{/snippet}
+	</CollapsibleTabs>
 
-		<CollapsibleTabs
-			id={`${id}:hub-markets`}
-			sectionIdPrefix={id}
-			sections={[
-				{ id: 'markets-index', label: 'Market index' },
-			]}
-			class="coins-view-collapsible-markets"
-			data-card
-			open={marketsOpen}
-			scrollContainerProps={{
-				'data-row': 'start align-start',
-				style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
-			}}
-		>
-			{#snippet Summary({
-				open: _summaryOpen,
-			})}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<Heading>
-						Markets
-					</Heading>
-				</header>
-			{/snippet}
+	<CollapsibleTabs
+		id={`${id}:hub-markets`}
+		sectionIdPrefix={id}
+		sections={[
+			{ id: 'markets-index', label: 'Market index' },
+		]}
+		class="coins-view-collapsible-markets"
+		data-card
+		open={marketsOpen}
+		scrollContainerProps={{
+			'data-row': 'start align-start',
+			style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
+		}}
+	>
+		{#snippet Summary({
+			open: _summaryOpen,
+		})}
+			<header
+				data-row-item="flexible"
+				data-row="wrap gap-4"
+			>
+				<Heading>
+					Markets
+				</Heading>
+			</header>
+		{/snippet}
 
-			{#snippet SectionMarketsIndex({ id, label })}
-				<div data-row="wrap align-center gap-2">
-					<a href={resolve('/markets')}>
-						All markets
-					</a>
-					<Tooltip contentProps={{ side: 'top' }}>
-						{#snippet Content()}
-							<p>
-								<code>Market</code>
-								vertices
-								(<code>$base</code>
-								·
-								<code>$quote</code>
-								·
-								<code>venue</code>
-								), with
-								<code>$$marketPrices</code>
-								/
-								<code>$$marketTimeIntervalTimestamps</code>
-								hanging off each.
-							</p>
-						{/snippet}
-						<abbr
-							class="entity-heading-tip"
-							aria-label="Market graph"
-						>ⓘ</abbr>
-					</Tooltip>
-				</div>
-				<MarketsView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/markets')}
-					entityFieldReference={{
-						entityType: EntityType._Global,
-						entityId: { scope: '$$markets' },
-						fieldName: '$$markets',
-					}}
-					id={`${id}:markets-index`}
-					open
-					title="Market index"
-				/>
-			{/snippet}
-		</CollapsibleTabs>
+		{#snippet SectionMarketsIndex({ id, label })}
+			<div data-row="wrap align-center gap-2">
+				<a href={resolve('/markets')}>
+					All markets
+				</a>
+				<Tooltip contentProps={{ side: 'top' }}>
+					{#snippet Content()}
+						<p>
+							<code>Market</code>
+							vertices
+							(<code>$base</code>
+							·
+							<code>$quote</code>
+							·
+							<code>venue</code>
+							), with
+							<code>$$marketPrices</code>
+							/
+							<code>$$marketTimeIntervalTimestamps</code>
+							hanging off each.
+						</p>
+					{/snippet}
+					<abbr
+						class="entity-heading-tip"
+						aria-label="Market graph"
+					>ⓘ</abbr>
+				</Tooltip>
+			</div>
+			<MarketsView
+				CollapsibleProps={{ canToggle: false }}
+				href={resolve('/markets')}
+				entityFieldReference={{
+					entityType: EntityType._Global,
+					entityId: { scope: '$$markets' },
+					fieldName: '$$markets',
+				}}
+				id={`${id}:markets-index`}
+				open
+				title="Market index"
+			/>
+		{/snippet}
+	</CollapsibleTabs>
 
 	<CollapsibleTabs
 		id={`${id}:hub-deployments`}
@@ -459,11 +395,3 @@
 		{/snippet}
 	</CollapsibleTabs>
 </section>
-
-
-<style>
-	.entity-details {
-		display: contents;
-	}
-
-</style>

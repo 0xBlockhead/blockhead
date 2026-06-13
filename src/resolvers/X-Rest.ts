@@ -1,7 +1,7 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	resolverContextRowLimit,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { type } from 'arktype'
 import { optionalNonemptyString } from '$/lib/string.ts'

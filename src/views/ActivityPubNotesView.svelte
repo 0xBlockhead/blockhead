@@ -2,17 +2,20 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
+	type ActivityPubNoteOrderFieldRow = {
+		localStatusId?: string
+		[EntityMetaKey.IdKey]: string
+	}
+
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		id,
@@ -38,12 +41,13 @@
 		href?: ComponentProps<typeof EntitiesList>['href']
 	} = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import type { DeclarativeOrderBy } from '$/client/$client.svelte.ts'
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ActivityPubNoteView from '$/views/ActivityPubNoteView.svelte'
 </script>
 
@@ -68,8 +72,17 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(entityCollectionsContext,
-				entityFieldReference.entityType,
+			{@const activityPubNoteOrderBy = [
+				[
+					({ fieldRow }) => fieldRow.localStatusId,
+					orderByCreatedAt,
+				],
+				[
+					({ fieldRow }) => fieldRow[EntityMetaKey.IdKey],
+					'asc',
+				],
+			] as const satisfies DeclarativeOrderBy<ActivityPubNoteOrderFieldRow>}
+			{@const parent = subscribe(entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				(
 					fieldOpen ?
@@ -80,6 +93,8 @@
 										Source.Mastodon_Rest,
 										Source.Fedi_Rest,
 									],
+									orderBy: [...activityPubNoteOrderBy],
+									limit: limit,
 								},
 							},
 						}
@@ -87,57 +102,54 @@
 						{ fields: {} }
 				),
 			)}
-			{@const notes = derive(
-				parent,
-				(parent) => {
-					const activityPubNotes: readonly Entity<typeof schema, EntityType.ActivityPubNote>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return activityPubNotes
-				},
-			)}
 			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}-${orderByCreatedAt}`}
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.ActivityPubNote}
-					id={`${id}-items`}
-					{title}
-					open={true}
-					getKey={(activityPubNote) => stringify(activityPubNote[EntityMetaKey.Id])}
-					getSortValue={(activityPubNote) => (
-						orderByCreatedAt === 'asc' ?
-							Number(activityPubNote[EntityMetaKey.Id].localStatusId) || 0
-						:
-							-(Number(activityPubNote[EntityMetaKey.Id].localStatusId) || 0)
-					)}
+				<ResourceBoundary
+					resource={parent}
 					placeholderText={(
 						fieldOpen ?
 							placeholderText
 						:
 							'Facet idle—no timeline request.'
 					)}
-					resource={notes}
 				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No notes yet.
-						</p>
-					{/snippet}
+					{#snippet children(parent)}
+						<EntitiesList
+							collapsible={false}
+							showSummary={false}
+							entityType={EntityType.ActivityPubNote}
+							id={`${id}-items`}
+							{title}
+							open={true}
+							getKey={(activityPubNote) => stringify(activityPubNote[EntityMetaKey.Id])}
+							placeholderText={(
+								fieldOpen ?
+									placeholderText
+								:
+									'Facet idle—no timeline request.'
+							)}
+							items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">
+									No notes yet.
+								</p>
+							{/snippet}
 
-					{#snippet Item({ item })}
-						{@const noteId = item[EntityMetaKey.Id]}
-						<ActivityPubNoteView
-							entityId={{
-								instanceOrigin: noteId.instanceOrigin,
-								localStatusId: noteId.localStatusId,
-							}}
-							layout={EntityLayout.Summary}
-							open={false}
-							showTypeAnnotation={false}
-						/>
+							{#snippet Item({ item })}
+								{@const noteId = item[EntityMetaKey.Id]}
+								<ActivityPubNoteView
+									entityId={{
+										instanceOrigin: noteId.instanceOrigin,
+										localStatusId: noteId.localStatusId,
+									}}
+									layout={EntityLayout.Summary}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							{/snippet}
+						</EntitiesList>
 					{/snippet}
-				</EntitiesList>
+				</ResourceBoundary>
 			{/key}
 		{/if}
 	{/snippet}

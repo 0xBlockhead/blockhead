@@ -14,8 +14,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -72,7 +71,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(entityCollectionsContext, EntityType._Global,
+			{@const parent = subscribe(EntityType._Global,
 				{ scope: '$$actors' },
 				({ sources: [
 						Source.Local_Internal,

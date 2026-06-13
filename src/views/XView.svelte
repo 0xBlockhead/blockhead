@@ -18,8 +18,7 @@
 
 	import { stringify } from 'devalue'
 
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	const entityId: EntityId<typeof schema, EntityType.XNetwork> = {
 		scope: 'XNetwork',
@@ -30,7 +29,7 @@
 
 	const networkIdKey = stringify(entityId)
 
-	const network = useEntity(entityCollectionsContext, EntityType.XNetwork,
+	const network = subscribe(EntityType.XNetwork,
 		entityId,
 		({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xUsers: ({ sources: [
 					Source.X_Rest,

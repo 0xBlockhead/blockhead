@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,7 +26,7 @@
 		>
 	> = $props()
 
-	const daQuorum = useEntity(entityCollectionsContext, EntityType.ZeroGDaQuorum,
+	const daQuorum = subscribe(EntityType.ZeroGDaQuorum,
 		entityId,
 		({ fields: { selectionMethod: true } }),
 	)

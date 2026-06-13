@@ -14,8 +14,7 @@
 	// State
 	let { entityFieldReference, title = 'Invoices', open = $bindable(true), id, href = '', ...EntitiesListProps }: WithRest<{ entityFieldReference: EntityFieldReference<typeof schema, EntityType.LightningInvoice>, title?: string, open?: boolean, id: string, href?: string }, Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>> = $props()
 
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -26,7 +25,7 @@
 <EntitiesList entityType={EntityType.LightningInvoice} {title} bind:open {id} href={href} {...EntitiesListProps}>
 	{#snippet body()}
 		{#if open}
-			{@const parent = useEntity(entityCollectionsContext, entityFieldReference.entityType, entityFieldReference.entityId, ({ fields: { [entityFieldReference.fieldName]: { sources: [Source.LightningLnd_Rest], limit: 32 } } }))}
+			{@const parent = subscribe(entityFieldReference.entityType, entityFieldReference.entityId, ({ fields: { [entityFieldReference.fieldName]: { sources: [Source.LightningLnd_Rest], limit: 32 } } }))}
 			{@const invoices = derive(parent, (parent): readonly Entity<typeof schema, EntityType.LightningInvoice>[] => (parent.fields[entityFieldReference.fieldName]?.values ?? []))}
 			<EntitiesList collapsible={false} showSummary={false} entityType={EntityType.LightningInvoice} id={`${id}-lightning-invoices`} href={href} getKey={(invoice) => stringify(invoice[EntityMetaKey.Id])} getSortValue={(invoice) => stringify(invoice[EntityMetaKey.Id])} open={true} resource={invoices} {title} UnorderedListProps={{ orientation: ListOrientation.Column }}>
 				{#snippet Empty()}<p data-text="muted">No invoices listed yet.</p>{/snippet}

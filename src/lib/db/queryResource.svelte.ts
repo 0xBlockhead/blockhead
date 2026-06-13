@@ -1,29 +1,42 @@
-// Types/constants
-import { normalizeBoundaryError } from '$/lib/errors.ts'
-import type { RemoteResource } from '@sveltejs/kit'
 import { tick, untrack } from 'svelte'
+import { createSubscriber } from 'svelte/reactivity'
 
+import { normalizeBoundaryError } from '$/lib/errors.ts'
+
+
+export type QueryResourceError = object | string
 
 export type QueryLike<Data> = {
 	data: Data
 	isLoading: boolean
 	isError: boolean
+	readonly [Symbol.toStringTag]?: undefined
 	/** When set, treat as pending while `!isReady` even if `isLoading` is false (TanStack live query hydration). */
 	isReady?: boolean
-	error?: unknown
+	error?: QueryResourceError
 	/** `useLiveQuery` exposes `status` but not `error`; use for fallback messaging */
 	status?: string
+}
+
+export type RemoteResourceLike<Data> = Promise<Data> & {
+	readonly [Symbol.toStringTag]?: string
+	readonly current: Data | undefined
+	readonly error: QueryResourceError | undefined
+	readonly ready: boolean
+	readonly loading: boolean
+	readonly subscribe?: (listener: () => void) => () => void
 }
 
 
 // Functions
 const withResolvers = () => {
 	let resolve!: (value: void | PromiseLike<void>) => void
-	let reject!: (reason?: unknown) => void
+	let reject!: (reason?: QueryResourceError) => void
 	const promise = new Promise<void>((res, rej) => {
 		resolve = res
 		reject = rej
 	})
+	void promise.catch(() => {})
 	return { promise, resolve, reject }
 }
 
@@ -36,13 +49,14 @@ const withResolvers = () => {
  */
 export class QueryResource<Data> {
 	#raw = $state.raw<Data | undefined>(undefined)
-	#error = $state.raw<unknown>(undefined)
+	#error = $state.raw<QueryResourceError | undefined>(undefined)
 	#ready = $state(false)
 	#loading = $state(true)
 	#promise = $state.raw<Promise<void> | null>(null)
-	#pending: { resolve: () => void, reject: (reason?: unknown) => void } | null = null
-
-	#current = $derived(this.#ready ? this.#raw : undefined)
+	#pending: { resolve: () => void, reject: (reason?: QueryResourceError) => void } | null = null
+	#current = $derived(
+		this.#raw
+	)
 
 	#get_promise(): Promise<void> {
 		void untrack(() => {
@@ -62,14 +76,19 @@ export class QueryResource<Data> {
 	#then = $derived.by(() => {
 		const p = this.#get_promise()
 
-		return (
-			onFulfilled?: (value: Data) => unknown,
-			onRejected?: (reason: unknown) => unknown,
+		return <_Fulfilled = Data, _Rejected = void>(
+			onFulfilled?: (value: Data) => _Fulfilled | PromiseLike<_Fulfilled>,
+			onRejected?: (reason: QueryResourceError) => _Rejected | PromiseLike<_Rejected>,
 		) => {
 			const result = (
 				p
 					.then(tick)
-					.then(() => this.#current as Data)
+					.then(() => {
+						if (this.#current === undefined)
+							throw new Error('QueryResource settled without current data')
+
+						return this.#current
+					})
 			)
 
 			if (onFulfilled != null || onRejected != null) {
@@ -91,8 +110,8 @@ export class QueryResource<Data> {
 		error,
 		pending,
 	}: {
-		data: Data
-		error: unknown
+		data: Data | undefined
+		error: QueryResourceError | undefined
 		pending: boolean
 	}) {
 		if (pending) {
@@ -152,7 +171,7 @@ export class QueryResource<Data> {
 	get catch() {
 		this.#then
 
-		return <R = never>(onRejected?: (reason: unknown) => R | PromiseLike<R>) => (
+		return <R = void>(onRejected?: (reason: QueryResourceError) => R | PromiseLike<R>) => (
 			this.#then(undefined, onRejected)
 		)
 	}
@@ -184,23 +203,25 @@ export const toQueryResource = <Data>(
 	getQuery: () => QueryLike<Data>,
 ) => {
 	const resource = new QueryResource<Data>()
-	const query = getQuery()
+	{
+		const query = getQuery()
 
-	resource.applySync({
-		data: query.data,
-		error: (
-			query.isError ?
-				normalizeBoundaryError(query.error ?? new Error(String(query.status ?? 'Query failed')))
-			:
-				undefined
-		),
-		pending: (
-			!query.isError && (
-				query.isLoading
-				|| query.isReady === false
-			)
-		),
-	})
+		resource.applySync({
+			data: query.data,
+			error: (
+				query.isError ?
+					normalizeBoundaryError(query.error ?? new Error(String(query.status ?? 'Query failed')))
+				:
+					undefined
+			),
+			pending: (
+				!query.isError && (
+					query.isLoading
+					|| query.isReady === false
+				)
+			),
+		})
+	}
 
 	$effect(() => {
 		const query = getQuery()
@@ -227,31 +248,35 @@ export const toQueryResource = <Data>(
 
 
 export const toQueryResourceFromRemote = <Data>(
-	getRemote: () => RemoteResource<Data>,
+	getRemote: () => RemoteResourceLike<Data>,
 ) => {
 	const resource = new QueryResource<Data>()
-	const remoteResource = getRemote()
-	const error = remoteResource.error
-
-	resource.applySync({
-		data: remoteResource.current as Data,
-		error: error === undefined ? undefined : error,
-		pending: (
-			error === undefined
-			&& !remoteResource.ready
-		),
-	})
-
-	$effect(() => {
-		const remoteResource = getRemote()
-		const error = remoteResource.error
+	const subscribe = createSubscriber((update) => getRemote().subscribe?.(update))
+	{
+		const remote = getRemote()
 
 		resource.applySync({
-			data: remoteResource.current as Data,
-			error: error === undefined ? undefined : error,
+			data: remote.current,
+			error: remote.error == null ? undefined : normalizeBoundaryError(remote.error),
 			pending: (
-				error === undefined
-				&& !remoteResource.ready
+				remote.error === undefined
+				&& remote.current === undefined
+				&& !remote.ready
+			),
+		})
+	}
+
+	$effect(() => {
+		subscribe()
+		const remote = getRemote()
+
+		resource.applySync({
+			data: remote.current,
+			error: remote.error == null ? undefined : normalizeBoundaryError(remote.error),
+			pending: (
+				remote.error === undefined
+				&& remote.current === undefined
+				&& !remote.ready
 			),
 		})
 	})

@@ -1,6 +1,6 @@
 import {
 	defineResolver,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import { tronSolidityNodeDefaultLocalRestUrl } from '$/constants/TronNetwork.ts'
 import {

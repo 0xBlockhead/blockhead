@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -31,7 +30,7 @@
 		>
 	> = $props()
 
-	const bridge = useEntity(entityCollectionsContext, EntityType.EvmNetworkBridge,
+	const bridge = subscribe(EntityType.EvmNetworkBridge,
 		entityId,
 		({ sources: [
 				Source.Chainlist_Rest,

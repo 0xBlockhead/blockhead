@@ -12,8 +12,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -83,7 +82,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parentPost = useEntity(entityCollectionsContext, EntityType.LensPost,
+			{@const parentPost = subscribe(EntityType.LensPost,
 				entityFieldReference.entityId,({ sources: [
 						Source.Lens_Graphql,
 					], fields: { [entityFieldReference.fieldName]: {

@@ -47,15 +47,14 @@ import {
 
 
 const resolverContext = {
-	Filters: [],
-	Sorts: [],
-	Pagination: {
+	filters: [],
+	sorts: [],
+	pagination: {
 		limit: 20,
 	},
-	IdentityFilter: [],
-	ParentIdentityFilter: [],
-	SourceFilter: [],
-	ir: {},
+	identityKeys: [],
+	parentIdentityKeys: [],
+	sources: [],
 	publicEnv: {},
 } satisfies ResolverContext
 

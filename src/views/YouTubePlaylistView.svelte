@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -37,7 +36,7 @@
 		never
 	> = $props()
 
-	const playlist = useEntity(entityCollectionsContext, EntityType.YouTubePlaylist,
+	const playlist = subscribe(EntityType.YouTubePlaylist,
 		entityId,
 		({ sources: [
 				Source.Youtube_Rest,

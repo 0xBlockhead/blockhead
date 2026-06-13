@@ -1,7 +1,7 @@
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,

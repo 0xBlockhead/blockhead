@@ -3,23 +3,16 @@ import { expect, test } from '@playwright/test'
 import {
 	assertMainSettled,
 	chainlistRpcsWire,
-	clearOriginOpfs,
-	clearPersistenceProbe,
 	collectIssues,
 	countRequestsMatching,
-	e2eBrowserNewContextOptions,
 	ethereumListsChainsJsonWire,
-	getPersistenceProbeEvents,
 	installChainlistRpcsJsonStub,
-	installPersistenceProbe,
-	persistenceMarkLoadedEvent,
-	waitForPersistenceShortCircuit,
 } from '../_e2eBrowserHelpers.ts'
 
 import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
 
 
-/** `load` can exceed the default 15s navigation timeout after OPFS + many client navigations. */
+/** `load` can exceed the default 15s navigation timeout after many client navigations. */
 const gotoLoadTimeoutMs = 120_000
 
 
@@ -40,20 +33,12 @@ test.describe('TanStack query lifecycle + cache', () => {
 		)
 	})
 
-	test('networks: cold OPFS resolves; reload hydrates from OPFS; OPFS clear refetches', async ({
-		browser,
-	}) => {
-		test.setTimeout(600_000)
-		const ctx1 = await browser.newContext(e2eBrowserNewContextOptions())
-		const page = await ctx1.newPage()
-		await installPersistenceProbe(page)
+	test('networks: cold live collection load resolves provider-backed rows', async ({ page }) => {
+		test.setTimeout(240_000)
 		await installChainlistRpcsJsonStub(page)
 		const issues = collectIssues(page)
 
-		await page.goto('/', { waitUntil: 'domcontentloaded' })
-		await clearOriginOpfs(page)
-		await clearPersistenceProbe(page)
-		await page.reload({ waitUntil: 'domcontentloaded' })
+		await page.goto('/', { waitUntil: 'domcontentloaded', timeout: gotoLoadTimeoutMs })
 		await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
 
 		const networkListSources = countRequestsMatching(page, (url, method) => (
@@ -78,102 +63,6 @@ test.describe('TanStack query lifecycle + cache', () => {
 		networkListSources.detach()
 
 		await assertMainSettled(page)
-		const probeBeforeReload = await getPersistenceProbeEvents(page)
-		const catalogCollectionLoadedKeys = Object.fromEntries(
-			[
-				...new Set(
-					probeBeforeReload
-						.filter((event) => (
-							event.kind === 'markLoaded'
-							&& event.loadedKey.includes('Chainlist_Rest')
-						))
-						.map((event) => event.collectionId),
-				),
-			]
-				.map((collectionId) => {
-					const markLoaded = persistenceMarkLoadedEvent(probeBeforeReload, collectionId)
-					return markLoaded != null ?
-						[
-							collectionId,
-							markLoaded.loadedKey,
-						]
-					:
-						undefined
-				})
-				.filter((entry): entry is [string, string] => entry != null),
-		)
-
-		const reloadNetworkListSources = countRequestsMatching(page, (url, method) => (
-			chainlistRpcsWire(url)
-			|| ethereumListsChainsJsonWire(url, method)
-		))
-		await page.reload({ waitUntil: 'load' })
-		await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
-		await expect(page.locator('#networks')).toBeVisible({ timeout: 120_000 })
-		await expect(page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()).toBeVisible({
-			timeout: 120_000,
-		})
-		reloadNetworkListSources.detach()
-
-		for (const [collectionId, loadedKey] of Object.entries(catalogCollectionLoadedKeys))
-			await waitForPersistenceShortCircuit(
-				page,
-				collectionId,
-				{
-					startIndex: probeBeforeReload.length,
-					loadedKey,
-				},
-			)
-
-		const probeAfterReload = await getPersistenceProbeEvents(page)
-		const freshRemoteLoads = probeAfterReload.slice(probeBeforeReload.length).filter((event) => (
-			event.kind === 'loadSubset'
-			&& Object.keys(catalogCollectionLoadedKeys).includes(event.collectionId)
-			&& event.decision === 'remote'
-		))
-		expect(
-			Object.keys(catalogCollectionLoadedKeys).length,
-			'reload proof needs at least one persisted catalog collection loaded key',
-		).toBeGreaterThan(0)
-		expect(
-			freshRemoteLoads,
-			`reload must hydrate persisted catalog collections from OPFS; observed provider requests ${reloadNetworkListSources.get()}`,
-		).toEqual([])
-
-		await ctx1.close()
-
-		const wipeCtx = await browser.newContext(e2eBrowserNewContextOptions())
-		const wipePage = await wipeCtx.newPage()
-		await wipePage.goto('/', { waitUntil: 'load' })
-		await clearOriginOpfs(wipePage)
-		await wipeCtx.close()
-
-		const ctx2 = await browser.newContext(e2eBrowserNewContextOptions())
-		const page2 = await ctx2.newPage()
-		await installChainlistRpcsJsonStub(page2)
-		const networkListSources2 = countRequestsMatching(page2, (url, method) => (
-			chainlistRpcsWire(url)
-			|| ethereumListsChainsJsonWire(url, method)
-		))
-		const coldRpc2 = page2.waitForResponse(
-			(r) => chainlistRpcsWire(r.url()),
-			{ timeout: 120_000 },
-		)
-		await page2.goto('/networks', { waitUntil: 'load' })
-		await coldRpc2
-		await expect(page2.locator('#networks')).toBeVisible()
-		await expect(page2.locator('#networks').getByText('Loading networks…')).toHaveCount(
-			0,
-			{ timeout: 120_000 },
-		)
-		await expect(page2.locator('#networks').locator('a[href$="/network/eip155:1"]').first()).toBeVisible()
-		expect(
-			networkListSources2.get(),
-			'empty OPFS + fresh JS should call network list resolvers',
-		).toBeGreaterThan(0)
-
-		networkListSources2.detach()
-		await ctx2.close()
 		expect(issues, issues.join('\n')).toEqual([])
 	})
 
@@ -183,8 +72,6 @@ test.describe('TanStack query lifecycle + cache', () => {
 		await installChainlistRpcsJsonStub(page)
 		const issues = collectIssues(page)
 		await page.goto('/', { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
-		await clearOriginOpfs(page)
-		await page.reload({ waitUntil: 'load', timeout: gotoLoadTimeoutMs })
 		await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
 		await assertMainSettled(page)
 

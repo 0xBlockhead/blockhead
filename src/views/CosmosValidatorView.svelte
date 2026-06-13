@@ -8,8 +8,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityId,
@@ -27,7 +26,7 @@
 		>
 	> = $props()
 
-	const cosmosValidator = useEntity(entityCollectionsContext, EntityType.CosmosValidator,
+	const cosmosValidator = subscribe(EntityType.CosmosValidator,
 		entityId,
 		({ fields: { consensusPubkey: true, moniker: true, jailed: true, status: true, tokens: true } }),
 	)

@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -79,7 +78,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parentFeed = useEntity(entityCollectionsContext, EntityType.FarcasterFeed,
+			{@const parentFeed = subscribe(EntityType.FarcasterFeed,
 				entityFieldReference.entityId,
 				({ sources: [
 						import.meta.env.PUBLIC_NEYNAR_API_KEY?.trim() ?

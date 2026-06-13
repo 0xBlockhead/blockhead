@@ -1,7 +1,7 @@
 import {
 	defineResolver,
 	type SourceResolverContext,
-} from '$/resolvers/$resolvers.ts'
+} from '$/resolvers/defineResolver.ts'
 import {
 	EntityIdProjection,
 	EntityMetaKey,

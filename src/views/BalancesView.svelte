@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -14,8 +13,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -38,14 +36,10 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmNetworkActorCoinBalanceView from '$/views/EvmNetworkActorCoinBalanceView.svelte'
 </script>
 
@@ -77,8 +71,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = useEntity(entityCollectionsContext,
-				entityFieldReference.entityType,
+			{@const parent = subscribe(entityFieldReference.entityType,
 				entityFieldReference.entityId,({ sources: [
 						Source.Allium_Rest,
 					], fields: { [entityFieldReference.fieldName]: {
@@ -88,50 +81,42 @@
 					},
 				} }),
 			)}
-			{@const tokenBalances = derive(
-				parent,
-				(parent) => {
-					const evmNetworkActorCoinBalances: readonly Entity<typeof schema, EntityType.EvmNetworkActorCoinBalance>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						evmNetworkActorCoinBalances.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmNetworkActorCoinBalance}
-				{title}
-				open={true}
-				data-entity-field-name={entityFieldReference.fieldName}
-				data-entity-field-type={entityFieldReference.entityType}
-				data-entity-field-parent={stringify(entityFieldReference.entityId)}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				placeholderKeys={new SvelteSet<string>()}
+			<ResourceBoundary
+				resource={parent}
 				placeholderText={`Loading ${title.toLowerCase()}…`}
-				resource={tokenBalances}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No balances for this wallet yet.
-					</p>
-				{/snippet}
+				{#snippet children(parent)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.EvmNetworkActorCoinBalance}
+						{title}
+						open={true}
+						data-entity-field-name={entityFieldReference.fieldName}
+						data-entity-field-type={entityFieldReference.entityType}
+						data-entity-field-parent={stringify(entityFieldReference.entityId)}
+						getKey={(evmNetworkActorCoinBalance) => stringify(evmNetworkActorCoinBalance[EntityMetaKey.Id])}
+						placeholderKeys={new SvelteSet<string>()}
+						placeholderText={`Loading ${title.toLowerCase()}…`}
+						items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No balances for this wallet yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					{@const id = item.value[EntityMetaKey.Id]}
-					<EvmNetworkActorCoinBalanceView
-						entityId={id}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<EvmNetworkActorCoinBalanceView
+								entityId={item[EntityMetaKey.Id]}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -9,8 +9,7 @@
 
 
 	// State
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
 		entityId,
@@ -24,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const solanaInstruction = useEntity(entityCollectionsContext, EntityType.SolanaInstruction, entityId, ({ fields: { $program: true, parsedType: true, data: true, $$accounts: true } }))
+	const solanaInstruction = subscribe(EntityType.SolanaInstruction, entityId, ({ fields: { $program: true, parsedType: true, data: true, $$accounts: true } }))
 
 
 	// Components

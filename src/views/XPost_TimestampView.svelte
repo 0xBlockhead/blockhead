@@ -4,14 +4,11 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { resolverDefinitionsByEntityType } from '$/resolvers/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -37,12 +34,9 @@
 		>
 	> = $props()
 
-	const xPostTimestamp = useEntity(entityCollectionsContext, EntityType.XPost_Timestamp,
+	const xPostTimestamp = subscribe(EntityType.XPost_Timestamp,
 		entityId,
-		({ sources: (
-				resolverDefinitionsByEntityType[EntityType.XPost_Timestamp]?.map((resolver) => resolver.source)
-				?? [Source.Local_Internal]
-			), fields: { likeCount: true, retweetCount: true, replyCount: true, quoteCount: true } }),
+		({ fields: { likeCount: true, retweetCount: true, replyCount: true, quoteCount: true } }),
 	)
 
 

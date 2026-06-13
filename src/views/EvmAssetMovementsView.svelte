@@ -9,8 +9,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -27,7 +26,7 @@
 		CollapsibleProps?: ComponentProps<typeof EvmInternalTransfersView>['CollapsibleProps']
 	} = $props()
 
-	const evmTransaction = useEntity(entityCollectionsContext, EntityType.EvmTransaction,
+	const evmTransaction = subscribe(EntityType.EvmTransaction,
 		entityId,
 		({ sources: [
 				Source.Blockscout_Rest,

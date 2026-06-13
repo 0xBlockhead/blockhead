@@ -12,8 +12,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -70,8 +69,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentEntityType = entityFieldReference.entityType}
-			{@const parent = useEntity(entityCollectionsContext,
-				parentEntityType,
+			{@const parent = subscribe(parentEntityType,
 				entityFieldReference.entityId,({ fields: {
 					...(parentEntityType === EntityType.EvmNetwork && {
 						blockHeight: {

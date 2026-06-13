@@ -38,10 +38,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
-	const poolTimestamp = useEntity(entityCollectionsContext, EntityType.LiquidityPool_Timestamp,
+	const poolTimestamp = subscribe(EntityType.LiquidityPool_Timestamp,
 		entityId,
 		({ sources: [
 				Source.Dexscreener_OpenApi,

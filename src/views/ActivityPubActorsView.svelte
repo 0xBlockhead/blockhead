@@ -11,8 +11,7 @@
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -70,8 +69,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const activityPubNetwork = useEntity(entityCollectionsContext,
-				entityFieldReference.entityType,
+			{@const activityPubNetwork = subscribe(entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				{
 					sources: [Source.Constants_Internal],

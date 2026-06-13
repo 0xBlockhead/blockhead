@@ -20,7 +20,7 @@
 	import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
@@ -29,13 +29,15 @@
 	type EvmNetworkViewEntityId =
 		| EntityId<typeof schema, EntityType.EvmNetwork>
 		| { chainId: number }
-
-	type EntityFieldValue = Record<string, any>
+	type EvmBlock = Entity<typeof schema, EntityType.EvmBlock>
+	type EthereumNetworkUpgrade = Entity<typeof schema, EntityType.EthereumNetworkUpgrade>
+	type BeaconEpoch = Entity<typeof schema, EntityType.BeaconEpoch>
+	type BeaconSlot = Entity<typeof schema, EntityType.BeaconSlot>
+	type EvmNetworkGasEstimateTimestamp = Entity<typeof schema, EntityType.EvmNetwork_GasEstimate_Timestamp>
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -74,22 +76,57 @@
 		beaconRestBaseByExecutionChainId[chainId]?.consensusProtocol,
 	)
 
-	const networkSummaryHead = useEntity(entityCollectionsContext, EntityType.EvmNetwork,
+	const networkSummaryHead = subscribe(
+		EntityType.EvmNetwork,
 		_entityId,
-		({ fields: { blockHeight: ({ sources: [
-					Source.Voltaire_JsonRpc,
-				] }), $$blocks: ({ sources: [
-					Source.Voltaire_JsonRpc,
-				], limit: 16 }), $$gasEstimateTimestamps: ({ sources: [
-					Source.Etherscan_Rest,
-				], limit: 1 }), $$upgrades: true, ...(separateConsensusProtocol != null && ({ $$beaconEpochs: ({ sources: [
-						Source.Beacon_Rest,
-					], limit: 1 }), $$beaconSlots: ({ sources: [
-						Source.Beacon_Rest,
-					], limit: 1 }) })) } }),
+		{
+			fields: {
+				blockHeight: {
+					sources: [
+						Source.Voltaire_JsonRpc,
+					],
+				},
+				$$blocks: {
+					sources: [
+						Source.Voltaire_JsonRpc,
+					],
+					limit: 16,
+				},
+				$$gasEstimateTimestamps: {
+					sources: [
+						Source.Etherscan_Rest,
+					],
+					limit: 1,
+				},
+				$$upgrades: true,
+				...(separateConsensusProtocol != null && {
+					$$beaconEpochs: {
+						sources: [
+							Source.Beacon_Rest,
+						],
+						limit: 1,
+					},
+					$$beaconSlots: {
+						sources: [
+							Source.Beacon_Rest,
+						],
+						limit: 1,
+					},
+				}),
+			},
+		},
 	)
 
-	const network = useEntity(entityCollectionsContext, EntityType.EvmNetwork,
+	const networkIdentity = $derived(
+		subscribe(EntityType.EvmNetwork,
+			_entityId,
+			({ sources: [
+					Source.Constants_Internal,
+				], fields: { name: true, $icon: true } }),
+		)
+	)
+
+	const network = subscribe(EntityType.EvmNetwork,
 		_entityId,
 		({ sources: [
 				Source.Constants_Internal,
@@ -225,7 +262,7 @@
 >
 	{#snippet Icon()}
 		<ResourceBoundary
-			resource={network}
+			resource={networkIdentity}
 		>
 			{#snippet Pending()}
 				<IconComponent />
@@ -250,7 +287,7 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={network}
+			resource={networkIdentity}
 			placeholderText="Resolving name…"
 		>
 			{#snippet Pending()}
@@ -292,24 +329,24 @@
 							networkSummaryHead,
 							(network) => (
 								network.fields.$$upgrades?.values
-									.filter((upgrade: EntityFieldValue) => (
+									.filter((upgrade: EthereumNetworkUpgrade) => (
 										upgrade.activationBlock !== undefined
 										&& (
 											network.fields.blockHeight === undefined
 											|| upgrade.activationBlock <= network.fields.blockHeight
 										)
 									))
-									.toSorted((leftUpgrade: EntityFieldValue, rightUpgrade: EntityFieldValue) => (
+									.toSorted((leftUpgrade: EthereumNetworkUpgrade, rightUpgrade: EthereumNetworkUpgrade) => (
 										(rightUpgrade.activationBlock ?? 0)
 											- (leftUpgrade.activationBlock ?? 0)
 									))[0]
 									?.[EntityMetaKey.Id]
 								?? network.fields.$$upgrades?.values
-									.filter((upgrade: EntityFieldValue) => (
+									.filter((upgrade: EthereumNetworkUpgrade) => (
 										upgrade.activationTimestampMs !== undefined
 										&& upgrade.activationTimestampMs <= Date.now()
 									))
-									.toSorted((leftUpgrade: EntityFieldValue, rightUpgrade: EntityFieldValue) => (
+									.toSorted((leftUpgrade: EthereumNetworkUpgrade, rightUpgrade: EthereumNetworkUpgrade) => (
 										(rightUpgrade.activationTimestampMs ?? 0)
 											- (leftUpgrade.activationTimestampMs ?? 0)
 									))[0]
@@ -340,36 +377,28 @@
 					id="network-summary-head-block"
 				>
 					<ResourceBoundary
-						resource={derive(
-							networkSummaryHead,
-							(network) => {
-								if (network.fields.blockHeight !== undefined) {
-									return network.fields.blockHeight
-								}
-								return network.fields.$$blocks?.values
-									.toSorted((leftBlock: EntityFieldValue, rightBlock: EntityFieldValue) => (
+							resource={derive(
+								networkSummaryHead,
+								(network) => (
+									network.fields.$$blocks?.values
+									.toSorted((leftBlock: EvmBlock, rightBlock: EvmBlock) => (
 										rightBlock[EntityMetaKey.Id].blockNumber
 										=== leftBlock[EntityMetaKey.Id].blockNumber ?
 											0
-										:
-											rightBlock[EntityMetaKey.Id].blockNumber
+										: rightBlock[EntityMetaKey.Id].blockNumber
 											> leftBlock[EntityMetaKey.Id].blockNumber ?
-												1
-											:
-												-1
+											1
+										:
+											-1
 									))[0]
-									?.[EntityMetaKey.Id].blockNumber
-							},
+							),
 						)}
 						placeholderText="Loading head block…"
 					>
-						{#snippet children(blockNumber)}
-							{#if blockNumber !== undefined}
+						{#snippet children(block)}
+							{#if block !== undefined}
 								<EvmBlockView
-									entityId={{
-										$network: _entityId,
-										blockNumber,
-									}}
+									entityId={block[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -391,7 +420,7 @@
 								(network) => {
 									if (network.fields.$$beaconEpochs?.values.length) {
 										return network.fields.$$beaconEpochs.values
-											.toSorted((leftEpoch: EntityFieldValue, rightEpoch: EntityFieldValue) => (
+											.toSorted((leftEpoch: BeaconEpoch, rightEpoch: BeaconEpoch) => (
 												rightEpoch[EntityMetaKey.Id].epoch - leftEpoch[EntityMetaKey.Id].epoch
 											))[0]
 											?.[EntityMetaKey.Id].epoch
@@ -400,7 +429,7 @@
 										return undefined
 									}
 									const headSlot = network.fields.$$beaconSlots.values
-										.toSorted((leftSlot: EntityFieldValue, rightSlot: EntityFieldValue) => (
+										.toSorted((leftSlot: BeaconSlot, rightSlot: BeaconSlot) => (
 											rightSlot[EntityMetaKey.Id].slot - leftSlot[EntityMetaKey.Id].slot
 										))[0]
 										?.[EntityMetaKey.Id].slot
@@ -442,7 +471,7 @@
 								networkSummaryHead,
 								(network) => {
 									return network.fields.$$beaconSlots?.values
-										.toSorted((leftSlot: EntityFieldValue, rightSlot: EntityFieldValue) => (
+										.toSorted((leftSlot: BeaconSlot, rightSlot: BeaconSlot) => (
 											rightSlot[EntityMetaKey.Id].slot - leftSlot[EntityMetaKey.Id].slot
 										))[0]
 										?.[EntityMetaKey.Id].slot
@@ -473,11 +502,11 @@
 				<dt>Gas fee estimate</dt>
 				<dd>
 					<ResourceBoundary
-						resource={derive(
-							networkSummaryHead,
-							(network) => (
-								network.fields.$$gasEstimateTimestamps?.values
-									.toSorted((leftTimestamp: EntityFieldValue, rightTimestamp: EntityFieldValue) => (
+							resource={derive(
+								networkSummaryHead,
+								(network) => (
+									network.fields.$$gasEstimateTimestamps?.values
+									.toSorted((leftTimestamp: EvmNetworkGasEstimateTimestamp, rightTimestamp: EvmNetworkGasEstimateTimestamp) => (
 										rightTimestamp[EntityMetaKey.Id].timestampMs
 											- leftTimestamp[EntityMetaKey.Id].timestampMs
 									))[0]
@@ -577,11 +606,17 @@
 						<ResourceBoundary resource={network}>
 							{#snippet children(network)}
 								{#if network.fields.$nativeCoinInstance}
-									<EvmCoinInstanceView
-										entityId={network.fields.$nativeCoinInstance[EntityMetaKey.Id]}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
+									<a
+										href={resolve(
+											'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
+											{
+												chainId: String(chainId),
+												coinInstanceSlug: 'native',
+											},
+										)}
+									>
+										{network.fields.$nativeCoin?.[EntityMetaKey.Id].coinId ?? `${network.fields.name ?? `Chain ${chainId}`} native`}
+									</a>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

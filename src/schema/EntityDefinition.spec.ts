@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+	EntityFieldCardinality,
+	EntityFieldType,
 	EntityMetaKey,
 	entityIdentityIdsFromFields,
+	entityIdProjectionNameForId,
+	validateEntityId,
+	type EntityDefinition,
 } from '$/schema/$schema.ts'
+import { type as arktype } from 'arktype'
 import ActivityPubActor from '$/schema/ActivityPubActor.ts'
 import AtprotoActor from '$/schema/AtprotoActor.ts'
 import CosmosBlock from '$/schema/CosmosBlock.ts'
@@ -17,8 +23,82 @@ import SolanaBlock from '$/schema/SolanaBlock.ts'
 import SwarmResource from '$/schema/SwarmResource.ts'
 import XUser from '$/schema/XUser.ts'
 
+const ProjectionFixture = {
+	entityType: 'ProjectionFixture',
+	label: 'Projection fixture',
+	labelPlural: 'Projection fixtures',
+	id: arktype({
+		durableId: 'string?',
+		slug: 'string?',
+		source: 'string?',
+		code: 'string?',
+	}),
+	lookups: [
+		{
+			name: 'slug',
+			fields: ['slug'],
+		},
+		{
+			name: 'sourceCode',
+			fields: [
+				'source',
+				'code',
+			],
+		},
+	],
+	identities: [
+		{
+			name: 'durableId',
+			fields: ['durableId'],
+		},
+	],
+	fields: [
+		{
+			name: 'name',
+			type: EntityFieldType.Primitive,
+			primitiveType: arktype('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+	],
+} as const satisfies EntityDefinition
 
 describe('entity identity projections', () => {
+	it('matches schema projections by exact configured shape', () => {
+		expect(entityIdProjectionNameForId(ProjectionFixture, {
+			durableId: 'entity-1',
+		})).toBe('durableId')
+		expect(entityIdProjectionNameForId(ProjectionFixture, {
+			slug: 'alice',
+		})).toBe('slug')
+		expect(entityIdProjectionNameForId(ProjectionFixture, {
+			source: 'remote',
+			code: '42',
+		})).toBe('sourceCode')
+		expect(entityIdProjectionNameForId(ProjectionFixture, {
+			durableId: 'entity-1',
+			slug: 'alice',
+		})).toBeUndefined()
+		expect(entityIdProjectionNameForId(ProjectionFixture, {
+			slug: 'alice',
+			source: 'remote',
+			code: '42',
+		})).toBeUndefined()
+		expect(entityIdProjectionNameForId(ProjectionFixture, {
+			slug: 'alice',
+			unused: 'extra',
+		})).toBeUndefined()
+		expect(entityIdProjectionNameForId(ProjectionFixture, {
+			source: 'remote',
+		})).toBeUndefined()
+		expect(() => validateEntityId(ProjectionFixture, {
+			durableId: 'entity-1',
+			slug: 'alice',
+		})).toThrow(/invalid id/)
+		expect(validateEntityId(ProjectionFixture, {
+			durableId: 'entity-1',
+		}).fields).toEqual(['durableId'])
+	})
+
 	it('keeps Farcaster lookup-only ids separate from durable cast identities', () => {
 		expect(FarcasterCast.lookups.map((lookup) => lookup.name)).toEqual([
 			'usernameHashPrefix',

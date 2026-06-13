@@ -1,31 +1,16 @@
 <script lang="ts">
 	// Types/constants
 	import { ensEthereumChainId } from '$/constants/Ens.ts'
-	import { TransportType } from '$/constants/TransportType.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
-
-	import {
-		normalizeEnsName,
-		resolveEnsReverseForRpcUrl,
-	} from '$/sources/Voltaire/JsonRpc/ens.ts'
 
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
-
-	// Functions
-	const ethereumRpcUrl = (
-		import.meta.env.PUBLIC_ETH_RPC_URL !== undefined
-		&& String(import.meta.env.PUBLIC_ETH_RPC_URL).trim().length > 0 ?
-			String(import.meta.env.PUBLIC_ETH_RPC_URL).trim()
-		:
-			undefined
-	)
 
 	const onNameSubmit = (event: SubmitEvent) => {
 		event.preventDefault()
@@ -46,20 +31,14 @@
 
 	let reverseInput = $state('')
 
-	let reverseResult = $state<{ address: `0x${string}`, name: string } | null>(null)
-
-	let reverseLoading = $state(false)
+	let reverseAddress = $state<`0x${string}` | undefined>(undefined)
 
 	let reverseError = $state<string | null>(null)
 
-	const onReverseSubmit = async (event: SubmitEvent) => {
+	const onReverseSubmit = (event: SubmitEvent) => {
 		event.preventDefault()
 		const trimmed = reverseInput.trim()
 		if (!trimmed) return
-		if (ethereumRpcUrl === undefined) {
-			reverseError = 'Set PUBLIC_ETH_RPC_URL for reverse lookup'
-			return
-		}
 		const raw = (
 			trimmed.startsWith('0x') ?
 				trimmed
@@ -70,29 +49,8 @@
 			reverseError = 'Invalid address'
 			return
 		}
-		const address = raw as `0x${string}`
-		reverseLoading = true
 		reverseError = null
-		reverseResult = null
-		try {
-			const name = await resolveEnsReverseForRpcUrl({
-				rpcUrl: ethereumRpcUrl,
-				transportType: TransportType.Http,
-				address,
-			})
-			if (name) {
-				reverseResult = {
-					address,
-					name: normalizeEnsName(name),
-				}
-			} else {
-				reverseError = 'No primary name set for this address'
-			}
-		} catch (error) {
-			reverseError = error instanceof Error ? error.message : String(error)
-		} finally {
-			reverseLoading = false
-		}
+		reverseAddress = EvmAddress.assert(raw)
 	}
 
 
@@ -101,8 +59,7 @@
 		searchTerm == null ?
 			undefined
 		:
-			useEntity(entityCollectionsContext, 
-				EntityType.EnsSearch,
+			subscribe(EntityType.EnsSearch,
 				{
 					query: searchTerm,
 				},
@@ -121,6 +78,20 @@
 				(ensSearch) => (
 					ensSearch.fields.$$ensNames?.values ?? []
 				),
+			),
+	)
+
+	const reverseAccount = $derived(
+		reverseAddress == null ?
+			undefined
+		:
+			subscribe(EntityType.EvmAccount,
+				{
+					address: reverseAddress,
+				},
+				({ fields: { $primaryName: ({ sources: [
+							Source.Voltaire_JsonRpc,
+						] }) } }),
 			),
 	)
 
@@ -236,14 +207,12 @@
 					id="ens-address-input"
 					type="text"
 					bind:value={reverseInput}
-					disabled={reverseLoading}
 					placeholder="0x…"
 				/>
 				<button
-					disabled={reverseLoading}
 					type="submit"
 				>
-					{reverseLoading ? 'Resolving…' : 'Resolve'}
+					Resolve
 				</button>
 			</div>
 		</div>
@@ -251,7 +220,7 @@
 			<p data-text="muted">{reverseError}</p>
 		{/if}
 
-		{#if reverseResult}
+		{#if reverseAddress != null && reverseAccount?.current?.fields.$primaryName != null}
 			<dl data-column-item="center">
 				<div>
 					<dt>Primary name</dt>
@@ -259,9 +228,9 @@
 						<a
 							data-link
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-								ensName: reverseResult.name,
+								ensName: reverseAccount.current.fields.$primaryName[EntityMetaKey.Id].name,
 							})}
-						>{reverseResult.name}</a>
+						>{reverseAccount.current.fields.$primaryName[EntityMetaKey.Id].name}</a>
 					</dd>
 				</div>
 				<div>
@@ -270,7 +239,7 @@
 						<EvmNetworkAccountView
 							entityId={{
 								$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
-								$actor: { address: reverseResult.address },
+								$actor: { address: reverseAddress },
 							}}
 							layout={EntityLayout.Title}
 							open={false}

@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,10 +9,14 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
+	type AtprotoPostOrderFieldRow = {
+		createdAt?: number
+		[EntityMetaKey.IdKey]: string
+	}
+
 
 	// Context
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -41,12 +44,26 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import type { DeclarativeOrderBy } from '$/client/$client.svelte.ts'
+
+	const atprotoPostOrderBy = [
+		[
+			({ fieldRow }) => fieldRow.createdAt,
+			{
+				direction: 'desc',
+			},
+		],
+		[
+			({ fieldRow }) => fieldRow[EntityMetaKey.IdKey],
+			'asc',
+		],
+	] as const satisfies DeclarativeOrderBy<AtprotoPostOrderFieldRow>
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
 </script>
 
@@ -73,8 +90,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const atprotoNetworkOrAccount = useEntity(entityCollectionsContext, 
-				entityFieldReference.entityType,
+			{@const atprotoNetworkOrAccount = subscribe(entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				(
 					entityFieldReference.entityType === EntityType.AtprotoNetwork ?
@@ -84,21 +100,13 @@
 									sources: [Source.Constants_Internal],
 									fields: {
 										protocolName: true,
-										$$atprotoActors: {
+										$$atprotoPosts: {
 											sources: [
-												Source.Constants_Internal,
 												Source.Atproto_Xrpc,
 												Source.Atproto_BskySocial_Xrpc,
 											],
-											fields: {
-												$$posts: {
-													sources: [
-														Source.Atproto_Xrpc,
-														Source.Atproto_BskySocial_Xrpc,
-													],
-													limit: limit,
-												},
-											},
+											orderBy: [...atprotoPostOrderBy],
+											limit: limit,
 										},
 									},
 								}
@@ -120,6 +128,7 @@
 												Source.Atproto_Xrpc,
 												Source.Atproto_BskySocial_Xrpc,
 											],
+											orderBy: [...atprotoPostOrderBy],
 											limit: limit,
 										},
 									},
@@ -129,48 +138,44 @@
 						)
 				),
 			)}
-			{@const posts = derive(
-				atprotoNetworkOrAccount,
-				(atprotoNetworkOrAccount) => {
-					const atprotoPosts: readonly Entity<typeof schema, EntityType.AtprotoPost>[] = (
-						entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-							(atprotoNetworkOrAccount.fields.$$atprotoActors?.values ?? [])
-								.flatMap((actor: Entity<typeof schema, EntityType.AtprotoActor>) => actor.$$posts ?? [])
-						:
-							(atprotoNetworkOrAccount.fields.$$posts?.values ?? [])
-					)
-					return atprotoPosts
-				},
-			)}
 			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.AtprotoPost}
-					id={`${id}-items`}
-					{title}
-					open={true}
-					getKey={(atprotoPost) => atprotoPost[EntityMetaKey.Id].uri}
-					getSortValue={(atprotoPost) => (
-						`${String(-(atprotoPost.createdAt ?? 0)).padStart(20, '0')}\0${atprotoPost[EntityMetaKey.Id].uri}`
-					)}
+				<ResourceBoundary
+					resource={atprotoNetworkOrAccount}
 					placeholderText={`Loading ${title.toLowerCase()}…`}
-					resource={posts}
 				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No posts yet.
-						</p>
-					{/snippet}
+					{#snippet children(atprotoNetworkOrAccount)}
+						<EntitiesList
+							collapsible={false}
+							showSummary={false}
+							entityType={EntityType.AtprotoPost}
+							id={`${id}-items`}
+							{title}
+							open={true}
+							getKey={(atprotoPost) => atprotoPost[EntityMetaKey.Id].uri}
+							placeholderText={`Loading ${title.toLowerCase()}…`}
+							items={
+								entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+									atprotoNetworkOrAccount.fields.$$atprotoPosts?.values ?? []
+								:
+									atprotoNetworkOrAccount.fields.$$posts?.values ?? []
+							}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">
+									No posts yet.
+								</p>
+							{/snippet}
 
-					{#snippet Item({ item })}
-						<AtprotoPostView
-							entityId={{ uri: item[EntityMetaKey.Id].uri }}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
+							{#snippet Item({ item })}
+								<AtprotoPostView
+									entityId={{ uri: item[EntityMetaKey.Id].uri }}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{/snippet}
+						</EntitiesList>
 					{/snippet}
-				</EntitiesList>
+				</ResourceBoundary>
 			{/key}
 		{/if}
 	{/snippet}

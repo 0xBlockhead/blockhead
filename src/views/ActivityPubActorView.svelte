@@ -37,12 +37,11 @@
 	> = $props()
 
 	import { htmlToPlainText } from '$/lib/html.ts'
-	import { useEntity } from '$/collections/$collections.ts'
-	import { entityCollectionsContext } from '$/collections/entityCollections.ts'
+	import { subscribe } from '$/routes/+layout.svelte'
 
 	const idKey = stringify(entityId)
 
-	const actor = useEntity(entityCollectionsContext, EntityType.ActivityPubActor,
+	const actor = subscribe(EntityType.ActivityPubActor,
 		entityId,
 		({ sources: [
 				Source.Mastodon_Rest,
