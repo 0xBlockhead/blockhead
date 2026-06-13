@@ -1,5 +1,5 @@
 import type { QueryClient } from '@tanstack/query-core'
-import { BaseQueryBuilder, BasicIndex, and, createCollection, createLiveQueryCollection, eq, inArray } from '@tanstack/db'
+import { BasicIndex, and, createCollection, createLiveQueryCollection, eq, inArray } from '@tanstack/db'
 import type { ContextFromSource, OrderByCallback } from '@tanstack/db'
 import type { Collection, LoadSubsetOptions, NonSingleResult } from '@tanstack/db'
 import { SyncNotInitializedError, queryCollectionOptions } from '@tanstack/query-db-collection'
@@ -1750,30 +1750,6 @@ const isDeclarativeFieldOrderBy = <
 	&& typeof orderBy[0][0] === 'function'
 )
 
-const fieldOrderByIrFromSteps = <_Schema extends Schema>(
-	context: EntityCollectionsContext<_Schema>,
-	entityType: EntityTypeName<_Schema>,
-	fieldName: EntityFieldName<_Schema, EntityTypeName<_Schema>>,
-	orderBy: DeclarativeOrderBy<EntityFieldCollectionItem<_Schema, EntityTypeName<_Schema>, EntityFieldName<_Schema, EntityTypeName<_Schema>>>>,
-): LoadSubsetOptions['orderBy'] => {
-	let builder = new BaseQueryBuilder()
-		.from({
-			fieldRow: context.entityFieldCollections[entityType][fieldName],
-		})
-	for (const step of orderBy)
-		builder = (
-			step[1] === undefined ?
-				builder.orderBy(step[0])
-			:
-				builder.orderBy(
-					step[0],
-					step[1],
-				)
-		)
-
-	return (builder as Pick<BaseQueryBuilder, '_getQuery'>)._getQuery().orderBy ?? []
-}
-
 const defaultFieldOrderBySteps = <_Schema extends Schema>() => [
 	[
 		({ fieldRow }) => fieldRow[EntityMetaKey.Source],
@@ -2172,24 +2148,9 @@ export const subscribeEntity = <
 				selectedFieldSelection.orderBy == null ?
 					undefined
 				: isDeclarativeFieldOrderBy<_Schema, _EntityType>(selectedFieldSelection.orderBy) ?
-					fieldOrderByIrFromSteps(
-						context,
-						entityType,
-						fieldDefinition.name,
-						selectedFieldSelection.orderBy,
-					)
+					undefined
 				:
 					selectedFieldSelection.orderBy
-			) ?? (
-				selectedFieldSelection.limit != null || selectedFieldSelection.offset != null ?
-					fieldOrderByIrFromSteps(
-						context,
-						entityType,
-						fieldDefinition.name,
-						defaultFieldOrderBySteps<_Schema>(),
-					)
-				:
-					undefined
 			),
 			limit: selectedFieldSelection.limit,
 			offset: selectedFieldSelection.offset,
@@ -2385,8 +2346,10 @@ export const subscribeEntity = <
 							.where(({ fieldRow }) => inArray(fieldRow[EntityMetaKey.ParentIdKey], parentIdKeysForQuery))
 							.where(({ fieldRow }) => inArray(fieldRow[EntityMetaKey.Source], [...fieldQuery.sources]))
 
-						if (fieldQuery.loadOptions.where != null)
-							builder = builder.where(() => fieldQuery.loadOptions.where!)
+						if (fieldQuery.loadOptions.where != null) {
+							const where = fieldQuery.loadOptions.where
+							builder = builder.where(() => where)
+						}
 						for (const orderBy of (
 							isDeclarativeFieldOrderBy<_Schema, _EntityType>(fieldQuery.selection.orderBy) ?
 								fieldQuery.selection.orderBy
