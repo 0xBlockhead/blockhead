@@ -18,7 +18,7 @@ export const load: PageLoad = ({ params }) => {
 	const address = EvmAddress(raw)
 	if (address instanceof arktype.errors) error(404, 'Invalid contract address')
 	return {
-		entityId: {
+		entitySelector: {
 			$network,
 			address,
 		},

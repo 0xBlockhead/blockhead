@@ -8,15 +8,18 @@ import { caip19Erc20, caip19Slip44 } from '$/lib/caip19.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { EvmCoinInstanceSelector } from '$/schema/EvmCoinInstance.ts'
+import { EvmNetworkActorCoinBalanceSelector } from '$/schema/EvmNetworkActorCoinBalance.ts'
+import { EvmNetworkAccountSelector } from '$/schema/EvmNetworkAccount.ts'
 
 const evmNetworkIdFromChainId = (chainId: number) => ({
 	caip2: {
@@ -33,15 +36,15 @@ export default {
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[EvmCoinInstanceSelector.NetworkType]: async ({ $contract, $network, type }, context) => {
 				const { CoinId, coinById, coinBySymbol } = await import('$/constants/Coin.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getTokensByChainAddress } = await import('$/sources/Allium/Rest/queries.ts')
 
-				if (entityId.type === CoinInstanceType.NativeCurrency) {
+				if (type === CoinInstanceType.NativeCurrency) {
 					const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 					const chain = (await singleFlight(fetchRpcsJson)())
-						.find((chain) => chain.chainId === Number(entityId.$network.caip2.reference))
+						.find((chain) => chain.chainId === Number(entitySelector.$network.caip2.reference))
 					const nativeCurrency = chain?.nativeCurrency
 					if (chain == null || nativeCurrency == null) throw new Error('Allium_Rest: native coin chain not in chainlist')
 
@@ -56,21 +59,21 @@ export default {
 						decimals: nativeCurrency.decimals,
 						...(chain.slip44 != null && {
 								caip19: caip19Slip44(
-									Number(entityId.$network.caip2.reference),
+									Number($network.caip2.reference),
 									chain.slip44,
 								),
 							}),
 					}
 				}
 
-				const apiChain = apiChainByChainId[Number(entityId.$network.caip2.reference)]
+				const apiChain = apiChainByChainId[Number($network.caip2.reference)]
 				if (apiChain == null) throw new Error('Allium_Rest: chain not supported by Allium API')
 
 				const token = (
 					await getTokensByChainAddress({
 						publicEnv: context.publicEnv,
 						apiChain,
-						tokenAddress: entityId.$contract.address,
+						tokenAddress: $contract.address,
 					})
 				)
 					.find((tokenOrError): tokenOrError is Exclude<typeof tokenOrError, { error: string }> => !('error' in tokenOrError))
@@ -84,7 +87,7 @@ export default {
 						:
 							CoinId.Unknown
 					)
-					const fallbackSymbol = Object.hasOwn(coinById, coinId) ? coinById[coinId].symbol : entityId.$contract.address
+					const fallbackSymbol = Object.hasOwn(coinById, coinId) ? coinById[coinId].symbol : $contract.address
 
 					return {
 						coinId,
@@ -96,8 +99,85 @@ export default {
 						decimals: token.decimals,
 					}),
 					caip19: caip19Erc20(
-						Number(entityId.$network.caip2.reference),
-						entityId.$contract.address,
+						Number($network.caip2.reference),
+						$contract.address,
+					),
+					...((
+						iconMedia,
+					) => (
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
+					))(
+						mediaFromUrl(token.attributes?.image_url == null ? undefined : String(token.attributes.image_url), MediaType.Image),
+					),
+				}
+			},
+[EvmCoinInstanceSelector.NetworkTypeContract]: async ({ $contract, $network, type }, context) => {
+				const { CoinId, coinById, coinBySymbol } = await import('$/constants/Coin.ts')
+				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
+				const { getTokensByChainAddress } = await import('$/sources/Allium/Rest/queries.ts')
+
+				if (type === CoinInstanceType.NativeCurrency) {
+					const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
+					const chain = (await singleFlight(fetchRpcsJson)())
+						.find((chain) => chain.chainId === Number(entitySelector.$network.caip2.reference))
+					const nativeCurrency = chain?.nativeCurrency
+					if (chain == null || nativeCurrency == null) throw new Error('Allium_Rest: native coin chain not in chainlist')
+
+					const symbol = nativeCurrency.symbol.toUpperCase()
+					const coinId = Object.hasOwn(coinBySymbol, symbol) ? coinBySymbol[symbol].id : CoinId.Unknown
+					const nativeCurrencyName = nativeCurrency.name
+
+					return {
+						coinId,
+						...(nativeCurrencyName !== '' && { name: nativeCurrencyName }),
+						symbol,
+						decimals: nativeCurrency.decimals,
+						...(chain.slip44 != null && {
+								caip19: caip19Slip44(
+									Number($network.caip2.reference),
+									chain.slip44,
+								),
+							}),
+					}
+				}
+
+				const apiChain = apiChainByChainId[Number($network.caip2.reference)]
+				if (apiChain == null) throw new Error('Allium_Rest: chain not supported by Allium API')
+
+				const token = (
+					await getTokensByChainAddress({
+						publicEnv: context.publicEnv,
+						apiChain,
+						tokenAddress: $contract.address,
+					})
+				)
+					.find((tokenOrError): tokenOrError is Exclude<typeof tokenOrError, { error: string }> => !('error' in tokenOrError))
+
+				if (token == null) throw new Error('Allium_Rest: token not returned for address')
+
+					const symbol = token.info?.symbol.trim().toUpperCase()
+					const coinId = (
+						symbol != null && symbol !== '' && Object.hasOwn(coinBySymbol, symbol) ?
+							coinBySymbol[symbol].id
+						:
+							CoinId.Unknown
+					)
+					const fallbackSymbol = Object.hasOwn(coinById, coinId) ? coinById[coinId].symbol : $contract.address
+
+					return {
+						coinId,
+						symbol: symbol ?? fallbackSymbol,
+						...(token.info != null && token.info.name !== '' && {
+								name: token.info.name,
+							}),
+					...(token.decimals != null && {
+						decimals: token.decimals,
+					}),
+					caip19: caip19Erc20(
+						Number($network.caip2.reference),
+						$contract.address,
 					),
 					...((
 						iconMedia,
@@ -125,29 +205,29 @@ export default {
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmNetworkActorCoinBalance,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[EvmNetworkActorCoinBalanceSelector.EvmAccountEvmCoinInstance]: async ({ $actor, $coinInstance }, context) => {
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
 
-				const apiChain = apiChainByChainId[Number(entityId.$coinInstance.$network.caip2.reference)]
+				const apiChain = apiChainByChainId[Number($coinInstance.$network.caip2.reference)]
 				if (apiChain == null) throw new Error('Allium_Rest: chain not supported for wallet balances')
 
 				const walletTokenBalance = (
 					(await getLatestWalletBalances({
 						publicEnv: context.publicEnv,
-						address: entityId.$actor.address,
+						address: $actor.address,
 						apiChain,
 						withLiquidityInfo: false,
 					})).items
 						.find((candidate) => (
 							candidate.token != null
 							&& (
-								entityId.$coinInstance.type === CoinInstanceType.NativeCurrency ?
+								entitySelector.$coinInstance.type === CoinInstanceType.NativeCurrency ?
 									candidate.token.type === 'native'
 								:
 									candidate.token.type === 'evm_erc20'
 									&& candidate.token.address.toLowerCase()
-										=== entityId.$coinInstance.$contract.address.toLowerCase()
+										=== entitySelector.$coinInstance.$contract.address.toLowerCase()
 							)
 						))
 					)
@@ -191,38 +271,38 @@ export default {
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: async ({ $actor, $network }, context) => {
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
-				type EvmNetworkActorCoinBalanceEntityId = import('$/schema/$schema.ts').EntityId<
+				type EvmNetworkActorCoinBalanceEntitySelector = import('$/schema/$schema.ts').EntitySelector<
 					typeof import('$/schema/index.ts').schema,
 					EntityType.EvmNetworkActorCoinBalance
 				>
 
-				const apiChain = apiChainByChainId[Number(entityId.$network.caip2.reference)]
+				const apiChain = apiChainByChainId[Number($network.caip2.reference)]
 				if (apiChain == null) {
-					throw new Error(`Allium_Rest: chain ${Number(entityId.$network.caip2.reference)} not supported for wallet balances`)
+					throw new Error(`Allium_Rest: chain ${Number($network.caip2.reference)} not supported for wallet balances`)
 				}
 
 				return (
 					(await getLatestWalletBalances({
 						publicEnv: context.publicEnv,
-						address: entityId.$actor.address,
+						address: $actor.address,
 						apiChain,
 						withLiquidityInfo: false,
 					}))
 						.items
-						.flatMap<{ [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }>((balanceRow) => (
+						.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balanceRow) => (
 							balanceRow.token?.type === 'native' ?
 								[{
-									[EntityMetaKey.Id]: {
-										$actor: entityId.$actor,
+									[EntityMetaKey.Selector]: {
+										$actor: entitySelector.$actor,
 										$coinInstance: {
-											$network: entityId.$network,
+											$network: entitySelector.$network,
 											type: CoinInstanceType.NativeCurrency,
 										},
 									},
-								} satisfies { [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }]
+								} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
 							:
 								(
 									balanceRow.token?.type === 'evm_erc20'
@@ -234,18 +314,18 @@ export default {
 											[]
 										:
 											[{
-												[EntityMetaKey.Id]: {
-													$actor: entityId.$actor,
+												[EntityMetaKey.Selector]: {
+													$actor: entitySelector.$actor,
 													$coinInstance: {
-														$network: entityId.$network,
+														$network: entitySelector.$network,
 														type: CoinInstanceType.Erc20Token,
 														$contract: {
-															$network: entityId.$network,
+															$network: entitySelector.$network,
 															address,
 														},
 													},
 												},
-											} satisfies { [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }]
+											} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
 									))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
 								:
 									[]
@@ -262,14 +342,14 @@ export default {
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
+				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
 				const { readNormalizedLocalInternal } = await import('$/sources/Local/Internal/catalog.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
-				type EvmNetworkActorCoinBalanceEntityId = EntityId<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+				type EvmNetworkActorCoinBalanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 
 				const subsetRowLimit = resolverContextRowLimit(context)
-				const evmNetworkActorCoinBalanceRows: { [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }[] = []
+				const evmNetworkActorCoinBalanceRows: { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }[] = []
 
 				for (const actor of readNormalizedLocalInternal().actors) {
 					if (evmNetworkActorCoinBalanceRows.length >= subsetRowLimit) break
@@ -287,17 +367,17 @@ export default {
 								withLiquidityInfo: false,
 							}))
 								.items
-								.flatMap<{ [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }>((balanceRow) => (
+								.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balanceRow) => (
 									balanceRow.token?.type === 'native' ?
 										[{
-											[EntityMetaKey.Id]: {
+											[EntityMetaKey.Selector]: {
 												$actor: { address: actor.address as `0x${string}` },
 												$coinInstance: {
 													$network: networkId,
 													type: CoinInstanceType.NativeCurrency,
 												},
 											},
-										} satisfies { [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }]
+										} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
 									:
 										(
 											balanceRow.token?.type === 'evm_erc20'
@@ -309,7 +389,7 @@ export default {
 													[]
 												:
 													[{
-														[EntityMetaKey.Id]: {
+														[EntityMetaKey.Selector]: {
 															$actor: { address: actor.address as `0x${string}` },
 															$coinInstance: {
 																$network: networkId,
@@ -320,7 +400,7 @@ export default {
 																},
 															},
 														},
-													} satisfies { [EntityMetaKey.Id]: EvmNetworkActorCoinBalanceEntityId }]
+													} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
 											))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
 										:
 											[]

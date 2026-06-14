@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Beacon_Rest,
@@ -85,7 +85,7 @@
 				entityType={EntityType.BeaconSyncCommittee}
 				id={`${id}-items`}
 				href={href}
-				getKey={(committee) => stringify(committee[EntityMetaKey.Id])}
+				getKey={(committee) => stringify(committee[EntityMetaKey.Selector])}
 				resource={committees}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -97,7 +97,7 @@
 
 				{#snippet Item({ item: committee })}
 					<BeaconSyncCommitteeView
-						entityId={committee[EntityMetaKey.Id]}
+						selector={committee[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

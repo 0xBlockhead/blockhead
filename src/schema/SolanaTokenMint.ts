@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum SolanaTokenMintSelector {
+	NetworkMintAddress = 'networkMintAddress',
+}
 
 export default {
 	entityType: EntityType.SolanaTokenMint,
@@ -15,12 +18,29 @@ export default {
 	label: 'Solana Token Mint',
 	labelPlural: 'Solana Token Mints',
 
-	id: type({
-		$network: Network.id,
-		mintAddress: 'string',
-	}),
+	selectors: [
+		{
+			name: SolanaTokenMintSelector.NetworkMintAddress,
+			fields: [
+				'$network',
+				'mintAddress',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'mintAddress',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'supply',
 			type: EntityFieldType.Primitive,

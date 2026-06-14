@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,14 +16,14 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/farcaster'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.FarcasterNetwork>
+			selector: EntitySelector<typeof schema, EntityType.FarcasterNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -34,12 +34,12 @@
 		>
 	> = $props()
 
-	const trendingFeed: EntityId<typeof schema, EntityType.FarcasterFeed> = {
+	const trendingFeed: EntitySelector<typeof schema, EntityType.FarcasterFeed> = {
 		variant: 'trending',
 	}
 
 	const network = subscribe(EntityType.FarcasterNetwork,
-		entityId,
+		selector,
 		({ sources: [Source.Farcaster_Rest], fields: { ...(open ? ({ protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$channels: true, $$users: ({ sources: [Source.Snapchain_Rest] }) }) : ({  })) } }),
 	)
 
@@ -63,7 +63,7 @@
 
 <EntityView
 	entityType={EntityType.FarcasterNetwork}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -161,10 +161,10 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const networkIdKey = stringify(entityId)}
+		{@const networkSelectorKey = stringify(selector)}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-discovery`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-discovery`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={collapsibleTabsSections([
 				{ id: 'feeds', label: 'Feeds' },
 				{ id: 'trending', label: 'Trending casts' },
@@ -188,7 +188,7 @@
 					href={resolve('/farcaster/feed')}
 					entityFieldReference={{
 						entityType: EntityType.FarcasterNetwork,
-						entityId: { scope: 'FarcasterNetwork' },
+						selector: { scope: 'FarcasterNetwork' },
 						fieldName: '$$feeds',
 					}}
 					id="feed-index"
@@ -203,7 +203,7 @@
 					href={resolve('/farcaster/feed/trending')}
 					entityFieldReference={{
 						entityType: EntityType.FarcasterFeed,
-						entityId: trendingFeed,
+						selector: trendingFeed,
 						fieldName: '$$entries',
 					}}
 					id="casts"
@@ -215,8 +215,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-community`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-community`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={collapsibleTabsSections([
 				{ id: 'channels', label: 'Channels' },
 				{ id: 'users', label: 'Users' },
@@ -241,7 +241,7 @@
 					href={resolve('/farcaster/channels')}
 					entityFieldReference={{
 						entityType: EntityType.FarcasterNetwork,
-						entityId,
+						selector,
 						fieldName: '$$channels',
 					}}
 					id="channels"
@@ -255,7 +255,7 @@
 					href={resolve('/farcaster/users')}
 					entityFieldReference={{
 						entityType: EntityType.FarcasterNetwork,
-						entityId,
+						selector,
 						fieldName: '$$users',
 					}}
 					id="users"
@@ -265,8 +265,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-accounts`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-accounts`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={collapsibleTabsSections([
 				{ id: 'accounts', label: 'Connected accounts' },
 			])}
@@ -290,7 +290,7 @@
 					href={resolve('/farcaster/accounts')}
 					entityFieldReference={{
 						entityType: EntityType._Global,
-						entityId: { scope: '$$blockheadFarcasterAccountConnections' },
+						selector: { scope: '$$blockheadFarcasterAccountConnections' },
 						fieldName: '$$blockheadFarcasterAccountConnections',
 					}}
 					id="accounts"

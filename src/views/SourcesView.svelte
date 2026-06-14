@@ -79,7 +79,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Local_Internal,
@@ -104,8 +104,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BlockheadSource}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
 				id={`${id}-items`}
 				open={true}
 				resource={sources}
@@ -119,7 +119,7 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const srcId = item.value[EntityMetaKey.Id]}
+					{@const srcId = item.value[EntityMetaKey.Selector]}
 					<BlockheadSourceView
 						layout={EntityLayout.Summary}
 						open={false}

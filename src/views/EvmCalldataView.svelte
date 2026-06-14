@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,17 +16,17 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/(explore)/(evm)/evm/(calldata)/calldata/[hex]',
-			{ hex: entityId.hex },
+			{ hex: selector.hex },
 		),
 		title = 'Calldata',
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmCalldata>
+			selector: EntitySelector<typeof schema, EntityType.EvmCalldata>
 			href?: string
 			title?: string
 			open?: boolean
@@ -35,7 +35,7 @@
 	> = $props()
 
 	const calldata = subscribe(EntityType.EvmCalldata,
-		entityId,
+		selector,
 		{
 			sources: [
 				Source.Voltaire_JsonRpc,
@@ -54,16 +54,16 @@
 
 <EntityView
 	entityType={EntityType.EvmCalldata}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{title}
-	idDragPlainText={stringify(entityId)}
+	idDragPlainText={stringify(selector)}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.hex}
+			{selector.hex}
 		</span>
 	{/snippet}
 
@@ -92,14 +92,14 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>Contract call data length</dt>
-						<dd>{String((entityId.hex.length - 2) / 2)} bytes</dd>
+						<dd>{String((selector.hex.length - 2) / 2)} bytes</dd>
 					</div>
 					{#if open}
 						<div>
 							<dt>Call/input data (<code>msg.data</code>)</dt>
 							<dd>
 								<TruncatedValue
-									value={entityId.hex}
+									value={selector.hex}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>

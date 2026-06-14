@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,14 +13,14 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BeaconWithdrawal>
+			selector: EntitySelector<typeof schema, EntityType.BeaconWithdrawal>
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
@@ -29,7 +29,7 @@
 	> = $props()
 
 	const withdrawal = subscribe(EntityType.BeaconWithdrawal,
-		entityId,
+		selector,
 		open
 			? {
 					sources: [Source.Beacon_Rest],
@@ -54,23 +54,23 @@
 
 <EntityView
 	entityType={EntityType.BeaconWithdrawal}
-	{entityId}
-	title={titleProp ?? `Withdrawal ${entityId.index} in slot ${entityId.slot.toLocaleString()}`}
+	entitySelector={selector}
+	title={titleProp ?? `Withdrawal ${selector.index} in slot ${selector.slot.toLocaleString()}`}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span data-badge="small" data-withdrawal-index={String(entityId.index)}>
-			{String(entityId.index)}
+		<span data-badge="small" data-withdrawal-index={String(selector.index)}>
+			{String(selector.index)}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Withdrawal </span>
-			<span data-badge="small" data-withdrawal-index={String(entityId.index)}>
-				{String(entityId.index)}
+			<span data-badge="small" data-withdrawal-index={String(selector.index)}>
+				{String(selector.index)}
 			</span>
 		</span>
 	{/snippet}
@@ -95,7 +95,7 @@
 								<dt>Validator</dt>
 								<dd>
 									<BeaconValidatorView
-										entityId={withdrawal.fields.$validator[EntityMetaKey.Id]}
+										selector={withdrawal.fields.$validator[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -108,7 +108,7 @@
 								<dt>Recipient</dt>
 								<dd>
 									<EvmAccountView
-										entityId={withdrawal.fields.$account[EntityMetaKey.Id]}
+										selector={withdrawal.fields.$account[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>

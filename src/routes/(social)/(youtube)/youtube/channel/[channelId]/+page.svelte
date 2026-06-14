@@ -13,6 +13,6 @@
 
 <Page>
 	<YouTubeChannelView
-		entityId={{ channelId: decodeURIComponent(params.channelId) }}
+		selector={{ channelId: decodeURIComponent(params.channelId) }}
 	/>
 </Page>

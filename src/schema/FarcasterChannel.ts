@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum FarcasterChannelSelector {
+	Id = 'id',
+}
+
 export default {
 	entityType: EntityType.FarcasterChannel,
 
 	label: 'Farcaster Channel',
 	labelPlural: 'Farcaster Channels',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: FarcasterChannelSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

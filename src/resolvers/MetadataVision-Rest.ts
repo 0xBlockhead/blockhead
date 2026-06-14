@@ -7,8 +7,8 @@ import { schema } from '$/schema/index.ts'
 import type { EntityFieldValues } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EntityIdProjection } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
+import { UrlSelector } from '$/schema/Url.ts'
 
 
 export default {
@@ -18,10 +18,10 @@ export default {
 		defineResolver(Source.MetadataVision_Rest, {
 			entityType: EntityType.Url,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[UrlSelector.Url]: async ({ url }) => {
 				const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
 				try {
-					const wire = await getOpenGraphWireForPublicHttpUrl(entityId.url)
+					const wire = await getOpenGraphWireForPublicHttpUrl(url)
 					const title = optionalNonemptyString(wire.title)
 					const description = optionalNonemptyString(wire.description)
 					const publisher = optionalNonemptyString(wire.publisher ?? wire.author)
@@ -49,7 +49,7 @@ export default {
 				}
 				catch (error) {
 					throw new Error(
-						`MetadataVision_Rest: Open Graph fetch failed for ${entityId.url}`,
+						`MetadataVision_Rest: Open Graph fetch failed for ${url}`,
 						{ cause: error },
 					)
 				}

@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum LightningChannelSelector {
+	NetworkChannelId = 'networkChannelId',
+}
 import { Source } from '$/sources/Source.ts'
 
 export enum LightningChannelStatus {
@@ -25,12 +28,29 @@ export default {
 	label: 'Lightning channel',
 	labelPlural: 'Lightning channels',
 
-	id: type({
-		$network: Network.id,
-		channelId: 'string',
-	}),
+	selectors: [
+		{
+			name: LightningChannelSelector.NetworkChannelId,
+			fields: [
+				'$network',
+				'channelId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'channelId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'shortChannelId',
 			type: EntityFieldType.Primitive,

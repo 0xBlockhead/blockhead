@@ -7,6 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum RedditLinkSelector {
+	Fullname = 'fullname',
+}
+
+
 const RedditLinkFullname = type(
 	'/^t3_[A-Za-z0-9]+$/' as type.cast<string>,
 )
@@ -17,11 +22,22 @@ export default {
 	label: 'Reddit post',
 	labelPlural: 'Reddit posts',
 
-	id: type({
-		fullname: RedditLinkFullname,
-	}),
+	selectors: [
+		{
+			name: RedditLinkSelector.Fullname,
+			fields: [
+				'fullname',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'fullname',
+			type: EntityFieldType.Primitive,
+			primitiveType: RedditLinkFullname,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'title',
 			type: EntityFieldType.Primitive,

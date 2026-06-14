@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Transaction from '$/schema/MoneroTransaction.ts'
+
+export enum MoneroStealthOutputSelector {
+	MoneroTransactionOutputIndex = 'moneroTransactionOutputIndex',
+}
 
 export default {
 	entityType: EntityType.MoneroStealthOutput,
@@ -15,12 +18,29 @@ export default {
 	label: 'Monero Stealth Output',
 	labelPlural: 'Monero Stealth Outputs',
 
-	id: type({
-		$transaction: Transaction.id,
-		outputIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: MoneroStealthOutputSelector.MoneroTransactionOutputIndex,
+			fields: [
+				'$transaction',
+				'outputIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MoneroTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'outputIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'publicKey',
 			type: EntityFieldType.Primitive,

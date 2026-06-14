@@ -22,7 +22,7 @@
 		href={resolve('/rss/items')}
 		entityFieldReference={{
 			entityType: EntityType.RssFeed,
-			entityId: {
+			selector: {
 				feedUrl: decodeURIComponent(page.params.feedKey ?? '').trim(),
 			},
 			fieldName: '$$items',

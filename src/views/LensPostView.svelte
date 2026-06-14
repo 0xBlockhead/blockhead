@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -18,16 +18,16 @@
 	// State
 	let {
 		routeChildren,
-		entityId,
+		selector,
 		href = resolve('/(social)/(lens)/lens/post/[postId]', {
-			postId: entityId.id,
+			postId: selector.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			routeChildren?: Snippet
-			entityId: EntityId<typeof schema, EntityType.LensPost>
+			selector: EntitySelector<typeof schema, EntityType.LensPost>
 			href?: string
 			open?: boolean
 		},
@@ -39,7 +39,7 @@
 	> = $props()
 
 	const lensPost = subscribe(EntityType.LensPost,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Lens_Graphql,
 			], fields: { text: true, timestamp: true, isEdited: true, isDeleted: true, commentCount: true, repostCount: true, quoteCount: true, bookmarkCount: true, collectCount: true, reactionCount: true, $$timestamps: ({ sources: [
@@ -64,7 +64,7 @@
 
 <EntityView
 	entityType={EntityType.LensPost}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -74,7 +74,7 @@
 			format={TruncatedValueFormat.Visual}
 			startLength={24}
 			endLength={12}
-			value={entityId.id}
+			value={selector.id}
 		/>
 	{/snippet}
 
@@ -92,7 +92,7 @@
 						lensPost.fields.text
 							? lensPost.fields.text
 						:
-							entityId.id
+							selector.id
 					)}
 				/>
 			{/snippet}
@@ -157,7 +157,7 @@
 							<dt>Author</dt>
 							<dd>
 								<LensAccountView
-									entityId={lensPost.fields.$author[EntityMetaKey.Id]}
+									selector={lensPost.fields.$author[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -170,7 +170,7 @@
 							<dt>Repost of</dt>
 							<dd>
 							<svelte:self
-									entityId={lensPost.fields.$repostOf[EntityMetaKey.Id]}
+								selector={lensPost.fields.$repostOf[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 								open={true}
 									showTypeAnnotation={false}
@@ -184,7 +184,7 @@
 							<dt>Quote of</dt>
 							<dd>
 							<svelte:self
-									entityId={lensPost.fields.$quoteOf[EntityMetaKey.Id]}
+								selector={lensPost.fields.$quoteOf[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 								open={false}
 									showTypeAnnotation={false}
@@ -198,7 +198,7 @@
 							<dt>Comment on</dt>
 							<dd>
 							<svelte:self
-									entityId={lensPost.fields.$commentOn[EntityMetaKey.Id]}
+								selector={lensPost.fields.$commentOn[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 								open={false}
 								/>
@@ -258,7 +258,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const postDetailKey = stringify(entityId)}
+		{@const postDetailKey = stringify(selector)}
 		<CollapsibleTabs
 			id={`${postDetailKey}:carousel-lens-post`}
 			sectionIdPrefix={postDetailKey}
@@ -315,7 +315,7 @@
 					href={resolve('/lens')}
 					entityFieldReference={{
 						entityType: EntityType.LensPost,
-						entityId,
+						selector,
 						fieldName: '$$comments',
 					}}
 					id={`${postDetailKey}:comments`}
@@ -331,7 +331,7 @@
 				<LensPost_TimestampsView
 					entityFieldReference={{
 						entityType: EntityType.LensPost,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					href={href}

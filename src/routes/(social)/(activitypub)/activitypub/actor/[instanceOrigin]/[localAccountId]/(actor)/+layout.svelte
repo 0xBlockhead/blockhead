@@ -32,7 +32,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<ActivityPubActorView
-			entityId={
+			selector={
 				decodeURIComponent(localAccountId).includes('@') ?
 					{
 						instanceOrigin: decodeURIComponent(instanceOrigin),

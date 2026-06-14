@@ -74,7 +74,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const global = subscribe(EntityType._Global,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ sources: [Source.Local_Internal], fields: { $$blockheadFarcasterAccountConnections: true } }),
 			)}
 			{@const connections = derive(
@@ -97,8 +97,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(row) => row.result[EntityMetaKey.Id].fid}
-				getSortValue={(row) => row.result[EntityMetaKey.Id].fid}
+				getKey={(row) => row.result[EntityMetaKey.Selector].fid}
+				getSortValue={(row) => row.result[EntityMetaKey.Selector].fid}
 				placeholderText="Loading connected Farcaster accounts…"
 				resource={connections}
 			>
@@ -109,9 +109,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const fid = item.result[EntityMetaKey.Id]}
+					{@const fid = item.result[EntityMetaKey.Selector]}
 					<BlockheadFarcasterAccountConnectionView
-						entityId={{ fid: fid.fid }}
+						selector={{ fid: fid.fid }}
 						layout={EntityLayout.Summary}
 						open={false}
 						title="Farcaster account"

@@ -70,7 +70,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 						Source.Chainlist_Rest,
 						Source.EthereumLists_Rest,
@@ -101,8 +101,8 @@
 				entityType={EntityType.EvmNetworkBridge}
 				{title}
 				open={true}
-				getKey={(envelope) => envelope.value[EntityMetaKey.Id].url}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].url}
+				getKey={(envelope) => envelope.value[EntityMetaKey.Selector].url}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].url}
 				resource={bridges}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -114,7 +114,7 @@
 
 				{#snippet Item({ item: envelope })}
 					<EvmNetworkBridgeView
-						entityId={envelope.value[EntityMetaKey.Id]}
+						selector={envelope.value[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

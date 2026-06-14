@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Solana_JsonRpc,
@@ -84,8 +84,8 @@
 				entityType={EntityType.SolanaAccount}
 				id={`${id}-items`}
 				{href}
-				getKey={(account) => stringify(account[EntityMetaKey.Id])}
-				getSortValue={(account) => account[EntityMetaKey.Id].pubkey}
+				getKey={(account) => stringify(account[EntityMetaKey.Selector])}
+				getSortValue={(account) => account[EntityMetaKey.Selector].pubkey}
 				open={true}
 				resource={accounts}
 				{title}
@@ -99,7 +99,7 @@
 
 				{#snippet Item(context)}
 					<SolanaAccountView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

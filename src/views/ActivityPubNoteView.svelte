@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { mastodonVisibilityByVisibility } from '$/constants/Social/MastodonVisibility.ts'
@@ -17,12 +17,12 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 		'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]',
 		{
-			instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
-			localStatusId: entityId.localStatusId,
+			instanceOrigin: encodeURIComponent(selector.instanceOrigin),
+			localStatusId: selector.localStatusId,
 		},
 	),
 		layout = EntityLayout.SummaryDetails,
@@ -30,7 +30,7 @@
 			...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ActivityPubNote>
+			selector: EntitySelector<typeof schema, EntityType.ActivityPubNote>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -44,7 +44,7 @@
 	import { htmlToPlainText } from '$/lib/html.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 	let contentWarningRevealed = $state(false)
 
@@ -54,7 +54,7 @@
 	})
 
 	const note = subscribe(EntityType.ActivityPubNote,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Mastodon_Rest,
 				Source.Fedi_Rest,
@@ -83,7 +83,7 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubNote}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -91,7 +91,7 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.localStatusId}
+			value={selector.localStatusId}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -126,7 +126,7 @@
 						endLength={16}
 						format={TruncatedValueFormat.Visual}
 						startLength={64}
-						value={entityId.localStatusId}
+						value={selector.localStatusId}
 					/>
 				{/if}
 			{/snippet}
@@ -200,7 +200,7 @@
 									<dt>{note.fields.$reblogOf ? 'Boosted by' : 'Author'}</dt>
 									<dd>
 										<ActivityPubActorView
-											entityId={note.fields.$author[EntityMetaKey.Id]}
+											selector={note.fields.$author[EntityMetaKey.Selector]}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -223,7 +223,7 @@
 								<dt>In reply to</dt>
 								<dd>
 									<svelte:self
-										entityId={note.fields.$inReplyTo[EntityMetaKey.Id]}
+										selector={note.fields.$inReplyTo[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -241,14 +241,14 @@
 				>
 					{#snippet children(note)}
 						{#if note.fields.$reblogOf && (
-							note.fields.$reblogOf[EntityMetaKey.Id].instanceOrigin !== entityId.instanceOrigin
-							|| note.fields.$reblogOf[EntityMetaKey.Id].localStatusId !== entityId.localStatusId
+							note.fields.$reblogOf[EntityMetaKey.Selector].instanceOrigin !== selector.instanceOrigin
+							|| note.fields.$reblogOf[EntityMetaKey.Selector].localStatusId !== selector.localStatusId
 						)}
 							<div>
 								<dt>Reblog of</dt>
 								<dd>
 									<svelte:self
-										entityId={note.fields.$reblogOf[EntityMetaKey.Id]}
+										selector={note.fields.$reblogOf[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -295,10 +295,10 @@
 									<dt>Media</dt>
 									<dd>
 										<div data-column="gap-3">
-											{#each note.fields.$$media.values as media (media[EntityMetaKey.Id].url)}
+											{#each note.fields.$$media.values as media (media[EntityMetaKey.Selector].url)}
 												<Media
 													alt=""
-													media={{ url: media[EntityMetaKey.Id].url }}
+													media={{ url: media[EntityMetaKey.Selector].url }}
 												/>
 											{/each}
 										</div>
@@ -489,7 +489,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.ActivityPubNote,
-						entityId,
+						selector,
 						fieldName: '$$thread',
 					}}
 					id={`${idKey}:note-thread-activityPubNotes`}
@@ -504,7 +504,7 @@
 				<ActivityPubNote_TimestampsView
 					entityFieldReference={{
 						entityType: EntityType.ActivityPubNote,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					href={href}

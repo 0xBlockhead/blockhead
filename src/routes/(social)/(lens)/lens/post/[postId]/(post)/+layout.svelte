@@ -27,7 +27,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<LensPostView
-			entityId={{ id: decodeURIComponent(postId) }}
+			selector={{ id: decodeURIComponent(postId) }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

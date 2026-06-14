@@ -10,7 +10,16 @@ const svelteVersion = (
 		arguments_[index - 1] === '--svelte-version'
 	)) ?? '5'
 )
-const isAsync = arguments_.includes('--async')
+
+const config = existsSync('svelte.config.js') ?
+	(await import(`${process.cwd()}/svelte.config.js`)).default
+:
+	undefined
+
+const isAsync = (
+	arguments_.includes('--async')
+	|| config?.compilerOptions?.experimental?.async === true
+)
 
 if (target == null) {
 	console.error('Usage: node scripts/svelte-autofix.mjs <file-or-code> [--svelte-version 5] [--async]')

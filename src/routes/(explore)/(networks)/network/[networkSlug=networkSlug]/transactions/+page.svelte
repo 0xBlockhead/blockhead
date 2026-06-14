@@ -35,7 +35,7 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{@const entityId = network.fields.caip2 == null ?
+			{@const entitySelector = network.fields.caip2 == null ?
 				{ networkSlug: network.fields.slug }
 			:
 				{ caip2: network.fields.caip2 }}
@@ -46,7 +46,7 @@
 				<UtxoTransactionsView
 					entityFieldReference={{
 						entityType: EntityType.UtxoNetwork,
-						entityId,
+						selector,
 						fieldName: '$$transactions',
 					}}
 					{href}
@@ -56,7 +56,7 @@
 				<SolanaTransactionsView
 					entityFieldReference={{
 						entityType: EntityType.SolanaNetwork,
-						entityId: {
+						selector: {
 							caip2: {
 								namespace: 'solana',
 								reference: network.fields.caip2.reference,
@@ -71,7 +71,7 @@
 				<HyperliquidTransactionsView
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
-						entityId,
+						selector,
 						fieldName: '$$transactions',
 					}}
 					{href}

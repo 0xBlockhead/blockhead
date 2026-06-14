@@ -12,6 +12,11 @@ import { UrlString } from '$/schema/UrlString.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum HyperliquidNetworkSelector {
+	Network = 'network',
+}
+
+
 const hyperliquidEndpointField = type({
 	url: UrlString,
 	transportType: type.valueOf(TransportType),
@@ -24,7 +29,14 @@ export default {
 	label: 'Hyperliquid network',
 	labelPlural: 'Hyperliquid networks',
 
-	id: Network.id,
+	selectors: [
+		{
+			name: HyperliquidNetworkSelector.Network,
+			fields: [
+				'$network',
+			],
+		},
+	],
 
 	fields: [
 		{

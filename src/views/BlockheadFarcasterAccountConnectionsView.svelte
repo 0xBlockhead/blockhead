@@ -74,7 +74,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const global = subscribe(EntityType._Global,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ sources: [Source.Local_Internal], fields: { $$blockheadFarcasterAccountConnections: true } }),
 			)}
 			{@const connections = derive(
@@ -87,8 +87,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BlockheadFarcasterAccountConnection}
-				getKey={(blockheadFarcasterAccountConnection) => String(blockheadFarcasterAccountConnection[EntityMetaKey.Id].fid)}
-				getSortValue={(blockheadFarcasterAccountConnection) => blockheadFarcasterAccountConnection[EntityMetaKey.Id].fid}
+				getKey={(blockheadFarcasterAccountConnection) => String(blockheadFarcasterAccountConnection[EntityMetaKey.Selector].fid)}
+				getSortValue={(blockheadFarcasterAccountConnection) => blockheadFarcasterAccountConnection[EntityMetaKey.Selector].fid}
 				{title}
 				open={true}
 				resource={connections}
@@ -102,7 +102,7 @@
 
 				{#snippet Item({ item: connection })}
 					<BlockheadFarcasterAccountConnectionView
-						entityId={{ fid: connection[EntityMetaKey.Id].fid }}
+						selector={{ fid: connection[EntityMetaKey.Selector].fid }}
 						layout={EntityLayout.Summary}
 						open={false}
 						title="Account"

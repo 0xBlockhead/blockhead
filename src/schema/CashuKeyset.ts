@@ -10,18 +10,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import CashuMint from '$/schema/CashuMint.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum CashuKeysetSelector {
+	CashuMintKeysetId = 'cashuMintKeysetId',
+}
+
 export default {
 	entityType: EntityType.CashuKeyset,
 
 	label: 'Cashu keyset',
 	labelPlural: 'Cashu keysets',
 
-	id: type({
-		$mint: CashuMint.id,
-		keysetId: 'string',
-	}),
+	selectors: [
+		{
+			name: CashuKeysetSelector.CashuMintKeysetId,
+			fields: [
+				'$mint',
+				'keysetId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$mint',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.CashuMint,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'keysetId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'unit',
 			type: EntityFieldType.Primitive,

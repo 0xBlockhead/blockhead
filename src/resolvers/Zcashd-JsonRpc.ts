@@ -6,13 +6,15 @@ import {
 	zcashdDefaultLocalRpcUrl,
 } from '$/constants/BitcoinNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 import { Source } from '$/sources/Source.ts'
+import { ZcashShieldedPoolSelector } from '$/schema/ZcashShieldedPool.ts'
+import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
+import { ZcashShieldedActionSelector } from '$/schema/ZcashShieldedAction.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -27,22 +29,22 @@ const assertZcashMainnet = (network: NetworkId) => {
 }
 
 const zcashShieldedActionRows = (
-	entityId: {
+	entitySelector: {
 		$network: NetworkId
 		txId: string
 	},
 	transaction: Awaited<ReturnType<typeof import('$/sources/Zcashd/JsonRpc/queries.ts')['getRawTransaction']>>,
 ) => [
 	...(transaction.vShieldedSpend ?? []).map((spend, actionIndex) => ({
-		[EntityMetaKey.Id]: {
-			$transaction: entityId,
+		[EntityMetaKey.Selector]: {
+			$transaction: entitySelector,
 			pool: ZcashShieldedPoolKind.Sapling,
 			actionKind: ZcashShieldedActionKind.Spend,
 			actionIndex,
 		},
 		$pool: {
-			[EntityMetaKey.Id]: {
-				$network: entityId.$network,
+			[EntityMetaKey.Selector]: {
+				$network: entitySelector.$network,
 				pool: ZcashShieldedPoolKind.Sapling,
 			},
 		},
@@ -51,15 +53,15 @@ const zcashShieldedActionRows = (
 		valueCommitment: spend.cv,
 	})),
 	...(transaction.vShieldedOutput ?? []).map((output, actionIndex) => ({
-		[EntityMetaKey.Id]: {
-			$transaction: entityId,
+		[EntityMetaKey.Selector]: {
+			$transaction: entitySelector,
 			pool: ZcashShieldedPoolKind.Sapling,
 			actionKind: ZcashShieldedActionKind.Output,
 			actionIndex,
 		},
 		$pool: {
-			[EntityMetaKey.Id]: {
-				$network: entityId.$network,
+			[EntityMetaKey.Selector]: {
+				$network: entitySelector.$network,
 				pool: ZcashShieldedPoolKind.Sapling,
 			},
 		},
@@ -68,15 +70,15 @@ const zcashShieldedActionRows = (
 		valueCommitment: output.cv,
 	})),
 	...(transaction.orchard?.actions ?? []).map((action, actionIndex) => ({
-		[EntityMetaKey.Id]: {
-			$transaction: entityId,
+		[EntityMetaKey.Selector]: {
+			$transaction: entitySelector,
 			pool: ZcashShieldedPoolKind.Orchard,
 			actionKind: ZcashShieldedActionKind.Action,
 			actionIndex,
 		},
 		$pool: {
-			[EntityMetaKey.Id]: {
-				$network: entityId.$network,
+			[EntityMetaKey.Selector]: {
+				$network: entitySelector.$network,
 				pool: ZcashShieldedPoolKind.Orchard,
 			},
 		},
@@ -87,15 +89,15 @@ const zcashShieldedActionRows = (
 	})),
 ]
 
-const getTransaction = async (entityId: {
+const getTransaction = async ({ $network, txId }: {
 	$network: NetworkId
 	txId: string
 }) => {
-	assertZcashMainnet(entityId.$network)
+	assertZcashMainnet($network)
 	const { getRawTransaction } = await import('$/sources/Zcashd/JsonRpc/queries.ts')
 	return getRawTransaction({
 		rpcUrl: zcashdDefaultLocalRpcUrl,
-		txId: entityId.txId,
+		txId: txId,
 	})
 }
 
@@ -106,10 +108,10 @@ export default {
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.ZcashShieldedPool,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZcashMainnet(entityId.$network)
+				[ZcashShieldedPoolSelector.NetworkPool]: async ({ $network, pool }) => {
+				assertZcashMainnet($network)
 				return (
-					entityId.pool === ZcashShieldedPoolKind.Sapling ?
+					pool === ZcashShieldedPoolKind.Sapling ?
 						{
 							activationNetworkUpgrade: 'Sapling',
 							noteProtocol: 'Sapling',
@@ -131,15 +133,15 @@ export default {
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const transaction = await getTransaction(entityId)
+				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => {
+				const transaction = await getTransaction(entitySelector)
 				return {
 					version: transaction.version,
 					lockTime: transaction.locktime,
 					sizeBytes: transaction.size,
 					weightUnits: transaction.weight,
 					$$zcashShieldedActions: zcashShieldedActionRows(
-						entityId,
+						entitySelector,
 						transaction,
 					),
 				}
@@ -158,16 +160,16 @@ export default {
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.ZcashShieldedAction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[ZcashShieldedActionSelector.UtxoTransactionPoolActionKindActionIndex]: async ({ $transaction }) => {
 				const shieldedAction = zcashShieldedActionRows(
-					entityId.$transaction,
-					await getTransaction(entityId.$transaction),
+					$transaction,
+					await getTransaction($transaction),
 				).find((action) => (
-					action[EntityMetaKey.Id].pool === entityId.pool
-					&& action[EntityMetaKey.Id].actionKind === entityId.actionKind
-					&& action[EntityMetaKey.Id].actionIndex === entityId.actionIndex
+					action[EntityMetaKey.Selector].pool === entitySelector.pool
+					&& action[EntityMetaKey.Selector].actionKind === entitySelector.actionKind
+					&& action[EntityMetaKey.Selector].actionIndex === entitySelector.actionIndex
 				))
-				if (shieldedAction == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${entityId.$transaction.txId}`)
+				if (shieldedAction == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${$transaction.txId}`)
 				return shieldedAction
 			}
 			}

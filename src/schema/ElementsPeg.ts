@@ -7,8 +7,12 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/ElementsNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum ElementsPegSelector {
+	ElementsNetworkPegTransactionIdDirection = 'elementsNetworkPegTransactionIdDirection',
+}
+
 
 export enum ElementsPegDirection {
 	PegIn = 'PegIn',
@@ -21,13 +25,36 @@ export default {
 	label: 'Elements peg',
 	labelPlural: 'Elements pegs',
 
-	id: type({
-		$network: Network.id,
-		pegTransactionId: 'string',
-		direction: type.valueOf(ElementsPegDirection),
-	}),
+	selectors: [
+		{
+			name: ElementsPegSelector.ElementsNetworkPegTransactionIdDirection,
+			fields: [
+				'$network',
+				'pegTransactionId',
+				'direction',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.ElementsNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'pegTransactionId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'direction',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(ElementsPegDirection),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$bitcoinTransaction',
 			type: EntityFieldType.EntityReference,

@@ -10,6 +10,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum StateChannelStateSelector {
+	Id = 'id',
+}
+
+
 const stateChannelAllocationRow = type({
 	destination: EvmAddress,
 	token: EvmAddress,
@@ -22,11 +27,22 @@ export default {
 	label: 'State Channel State',
 	labelPlural: 'State Channel States',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: StateChannelStateSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$channel',
 			type: EntityFieldType.EntityReference,

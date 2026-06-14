@@ -6,11 +6,14 @@ import {
 	zcashMainnetCaip2,
 } from '$/constants/BitcoinNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
+import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
+import { UtxoInputSelector } from '$/schema/UtxoInput.ts'
+import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
 
 const assertZcashMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
@@ -24,15 +27,15 @@ const assertZcashMainnet = (network: { caip2: { namespace: string; reference: st
 
 const valueSatsFromZec = (valueZec: number) => BigInt(Math.round(valueZec * 100_000_000))
 
-const getTransaction = async (entityId: {
+const getTransaction = async ({ $network, txId }: {
 	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 	txId: string
 }) => {
-	assertZcashMainnet(entityId.$network)
+	assertZcashMainnet($network)
 	const { getRawTransaction } = await import('$/sources/Zebra/JsonRpc/queries.ts')
 	return getRawTransaction({
 		rpcUrl: zebraDefaultLocalRpcUrl,
-		txId: entityId.txId,
+		txId: txId,
 	})
 }
 
@@ -43,25 +46,22 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZcashMainnet(entityId.$network)
+				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
+				assertZcashMainnet($network)
 				const {
 					getBlock,
 					getBlockHash,
 				} = await import('$/sources/Zebra/JsonRpc/queries.ts')
 				const block = await getBlock({
 					rpcUrl: zebraDefaultLocalRpcUrl,
-					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: zebraDefaultLocalRpcUrl,
-						height: entityId.height,
-					}),
+					blockHash: hash,
 				})
 				return {
 					hash: block.hash,
 					...(block.previousblockhash != null && {
 						$parent: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								height: BigInt(block.height - 1),
 								hash: block.previousblockhash,
 							},
@@ -81,15 +81,15 @@ export default {
 					$$transactions: block.tx.map((transaction) => (
 						typeof transaction === 'string' ?
 							{
-								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector.$network,
 									txId: transaction,
 								},
 							}
 						:
 							{
-								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector.$network,
 									txId: transaction.txid,
 								},
 								version: transaction.version,
@@ -121,8 +121,8 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const transaction = await getTransaction(entityId)
+				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => {
+				const transaction = await getTransaction(entitySelector)
 				return {
 					version: transaction.version,
 					lockTime: transaction.locktime,
@@ -132,15 +132,15 @@ export default {
 					isCoinbase: transaction.vin.some((input) => input.coinbase != null),
 					$$inputs: transaction.vin.map((input, inputIndex) => (
 						{
-							[EntityMetaKey.Id]: {
-								$transaction: entityId,
+							[EntityMetaKey.Selector]: {
+								$transaction: entitySelector,
 								inputIndex,
 							},
 							...(input.txid != null && input.vout != null && {
 								$spentOutput: {
-									[EntityMetaKey.Id]: {
+									[EntityMetaKey.Selector]: {
 										$transaction: {
-											$network: entityId.$network,
+											$network: entitySelector.$network,
 											txId: input.txid,
 										},
 										outputIndex: input.vout,
@@ -161,8 +161,8 @@ export default {
 					)),
 					$$outputs: transaction.vout.map((output, outputIndex) => (
 						{
-							[EntityMetaKey.Id]: {
-								$transaction: entityId,
+							[EntityMetaKey.Selector]: {
+								$transaction: entitySelector,
 								outputIndex,
 							},
 							valueSats: valueSatsFromZec(output.value),
@@ -171,8 +171,8 @@ export default {
 							scriptPubKeyType: output.scriptPubKey.type,
 							...(output.scriptPubKey.address != null && {
 								$address: {
-									[EntityMetaKey.Id]: {
-										$network: entityId.$network,
+									[EntityMetaKey.Selector]: {
+										$network: entitySelector.$network,
 										address: output.scriptPubKey.address,
 									},
 								},
@@ -198,18 +198,18 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const input = (await getTransaction(entityId.$transaction)).vin[entityId.inputIndex]
+				[UtxoInputSelector.UtxoTransactionInputIndex]: async ({ $transaction, inputIndex }) => {
+				const input = (await getTransaction($transaction)).vin[inputIndex]
 				return {
-					[EntityMetaKey.Id]: {
-						$transaction: entityId.$transaction,
-						inputIndex: entityId.inputIndex,
+					[EntityMetaKey.Selector]: {
+						$transaction: $transaction,
+						inputIndex: inputIndex,
 					},
 					...(input.txid != null && input.vout != null && {
 						$spentOutput: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$transaction: {
-									$network: entityId.$transaction.$network,
+									$network: $transaction.$network,
 									txId: input.txid,
 								},
 								outputIndex: input.vout,
@@ -242,12 +242,12 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const output = (await getTransaction(entityId.$transaction)).vout[entityId.outputIndex]
+				[UtxoOutputSelector.UtxoTransactionOutputIndex]: async ({ $transaction, outputIndex }) => {
+				const output = (await getTransaction($transaction)).vout[outputIndex]
 				return {
-					[EntityMetaKey.Id]: {
-						$transaction: entityId.$transaction,
-						outputIndex: entityId.outputIndex,
+					[EntityMetaKey.Selector]: {
+						$transaction: $transaction,
+						outputIndex: outputIndex,
 					},
 					valueSats: valueSatsFromZec(output.value),
 					scriptPubKeyAsm: output.scriptPubKey.asm,
@@ -255,8 +255,8 @@ export default {
 					scriptPubKeyType: output.scriptPubKey.type,
 					...(output.scriptPubKey.address != null && {
 						$address: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$transaction.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $transaction.$network,
 								address: output.scriptPubKey.address,
 							},
 						},

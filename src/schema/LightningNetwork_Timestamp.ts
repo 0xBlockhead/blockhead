@@ -10,18 +10,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import LightningNetwork from '$/schema/LightningNetwork.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum LightningNetwork_TimestampSelector {
+	LightningNetworkTimestampMs = 'lightningNetworkTimestampMs',
+}
+
 export default {
 	entityType: EntityType.LightningNetwork_Timestamp,
 
 	label: 'Lightning Network snapshot',
 	labelPlural: 'Lightning Network snapshots',
 
-	id: type({
-		$lightningNetwork: LightningNetwork.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: LightningNetwork_TimestampSelector.LightningNetworkTimestampMs,
+			fields: [
+				'$lightningNetwork',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$lightningNetwork',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.LightningNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'nodeCount',
 			type: EntityFieldType.Primitive,

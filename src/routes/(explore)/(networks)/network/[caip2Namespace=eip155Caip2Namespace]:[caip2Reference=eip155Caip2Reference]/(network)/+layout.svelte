@@ -28,7 +28,7 @@
 	>
 		{#snippet Summary({ open: _open })}
 			<EvmNetworkView
-				entityId={{
+				selector={{
 					caip2: {
 						namespace: 'eip155',
 						reference: params.caip2Reference,

@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum YouTubeNetworkSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.YouTubeNetwork,
 
 	label: 'YouTube network',
 	labelPlural: 'YouTube networks',
 
-	id: type({
-		scope: type.unit('YouTubeNetwork'),
-	}),
+	selectors: [
+		{
+			name: YouTubeNetworkSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('YouTubeNetwork'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

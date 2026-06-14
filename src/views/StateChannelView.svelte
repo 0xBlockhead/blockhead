@@ -4,7 +4,7 @@
 	import { stateChannelStatusByStatus } from '$/constants/StateChannel.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -17,17 +17,17 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/(assets)/(channels)/channel/[channelId]',
-			{ channelId: entityId.id },
+			{ channelId: selector.id },
 			),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.StateChannel>
+			selector: EntitySelector<typeof schema, EntityType.StateChannel>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -39,7 +39,7 @@
 	> = $props()
 
 	const stateChannel = subscribe(EntityType.StateChannel,
-		entityId,
+		selector,
 		({ sources: [Source.Local_Internal], fields: { status: true, createdAt: true, updatedAt: true, turnNum: true, totalDeposited: true, $network: true, $participant0: true, $participant1: true, ...(open ? ({ balance0: true, balance1: true, $asset: true, $room: true }) : ({  })) } }),
 	)
 
@@ -60,13 +60,13 @@
 <EntityView
 	entityType={EntityType.StateChannel}
 	bind:open
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -76,41 +76,41 @@
 			placeholderText="Loading state channel…"
 		>
 			{#snippet children(stateChannel)}
-				{#if stateChannel.fields.$participant0?.[EntityMetaKey.Id].address !== undefined || stateChannel.fields.$participant1?.[EntityMetaKey.Id].address !== undefined}
+				{#if stateChannel.fields.$participant0?.[EntityMetaKey.Selector].address !== undefined || stateChannel.fields.$participant1?.[EntityMetaKey.Selector].address !== undefined}
 					<span data-row="inline align-center gap-2 wrap">
-						{#if stateChannel.fields.$participant0?.[EntityMetaKey.Id].address !== undefined}
-							{#if stateChannel.fields.$network?.[EntityMetaKey.Id] !== undefined}
+						{#if stateChannel.fields.$participant0?.[EntityMetaKey.Selector].address !== undefined}
+							{#if stateChannel.fields.$network?.[EntityMetaKey.Selector] !== undefined}
 								<EvmNetworkAccountView
-									entityId={{
-										$network: stateChannel.fields.$network[EntityMetaKey.Id],
-										$actor: stateChannel.fields.$participant0[EntityMetaKey.Id],
+									selector={{
+										$network: stateChannel.fields.$network[EntityMetaKey.Selector],
+										$actor: stateChannel.fields.$participant0[EntityMetaKey.Selector],
 									}}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{:else}
 								<EvmAccountView
-									entityId={stateChannel.fields.$participant0[EntityMetaKey.Id]}
+									selector={stateChannel.fields.$participant0[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 								/>
 							{/if}
 						{/if}
-						{#if stateChannel.fields.$participant0?.[EntityMetaKey.Id].address !== undefined && stateChannel.fields.$participant1?.[EntityMetaKey.Id].address !== undefined}
+						{#if stateChannel.fields.$participant0?.[EntityMetaKey.Selector].address !== undefined && stateChannel.fields.$participant1?.[EntityMetaKey.Selector].address !== undefined}
 							<span aria-hidden="true">↔</span>
 						{/if}
-						{#if stateChannel.fields.$participant1?.[EntityMetaKey.Id].address !== undefined}
-							{#if stateChannel.fields.$network?.[EntityMetaKey.Id] !== undefined}
+						{#if stateChannel.fields.$participant1?.[EntityMetaKey.Selector].address !== undefined}
+							{#if stateChannel.fields.$network?.[EntityMetaKey.Selector] !== undefined}
 								<EvmNetworkAccountView
-									entityId={{
-										$network: stateChannel.fields.$network[EntityMetaKey.Id],
-										$actor: stateChannel.fields.$participant1[EntityMetaKey.Id],
+									selector={{
+										$network: stateChannel.fields.$network[EntityMetaKey.Selector],
+										$actor: stateChannel.fields.$participant1[EntityMetaKey.Selector],
 									}}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{:else}
 								<EvmAccountView
-									entityId={stateChannel.fields.$participant1[EntityMetaKey.Id]}
+									selector={stateChannel.fields.$participant1[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 								/>
 							{/if}
@@ -253,7 +253,7 @@
 							{#snippet children(stateChannel)}
 									{#if stateChannel.fields.$network !== undefined}
 										<EvmNetworkView
-											entityId={stateChannel.fields.$network[EntityMetaKey.Id]}
+											selector={stateChannel.fields.$network[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 											open={false}
 									/>
@@ -271,10 +271,10 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.$asset?.[EntityMetaKey.Id] !== undefined}
-									{@const assetId = stateChannel.fields.$asset[EntityMetaKey.Id]}
+								{#if stateChannel.fields.$asset?.[EntityMetaKey.Selector] !== undefined}
+									{@const assetId = stateChannel.fields.$asset[EntityMetaKey.Selector]}
 									<EvmCoinInstanceView
-										entityId={assetId}
+										selector={assetId}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -292,9 +292,9 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-								{#if stateChannel.fields.$room?.[EntityMetaKey.Id].id !== undefined}
+								{#if stateChannel.fields.$room?.[EntityMetaKey.Selector].id !== undefined}
 									<BlockheadRoomView
-										entityId={stateChannel.fields.$room[EntityMetaKey.Id]}
+										selector={stateChannel.fields.$room[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}

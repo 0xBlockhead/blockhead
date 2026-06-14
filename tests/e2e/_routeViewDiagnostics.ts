@@ -86,7 +86,7 @@ export const setupRouteViewSmokePage = (page: Page) => {
 	})
 
 	const step = async <T>(p: Promise<T>) => {
-		await Promise.race([p, gate])
+		return await Promise.race([p, gate])
 	}
 
 	const flushArtifacts = async (testInfo: TestInfo) => {

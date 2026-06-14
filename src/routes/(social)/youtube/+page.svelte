@@ -7,7 +7,7 @@
 
 <Page>
 	<YouTubeView
-		entityId={{
+		selector={{
 			scope: 'YouTubeNetwork',
 		}}
 	/>

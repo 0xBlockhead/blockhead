@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LightningInvoice>
+			selector: EntitySelector<typeof schema, EntityType.LightningInvoice>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const invoice = subscribe(EntityType.LightningInvoice,
-		entityId,
+		selector,
 		({ sources: [
 				Source.LightningLnd_Rest,
 			], fields: { memo: true, valueMsat: true, amountPaidMsat: true, state: true, paymentRequest: true } }),
@@ -44,14 +44,14 @@
 
 <EntityView
 	entityType={EntityType.LightningInvoice}
-	{entityId}
-	title={entityId.paymentHash}
+	entitySelector={selector}
+	title={selector.paymentHash}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.paymentHash}
+			value={selector.paymentHash}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

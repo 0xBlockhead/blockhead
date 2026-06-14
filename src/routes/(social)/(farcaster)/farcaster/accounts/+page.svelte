@@ -18,7 +18,7 @@
 		href={resolve('/farcaster/accounts')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: { scope: '$$blockheadFarcasterAccountConnections' },
+			selector: { scope: '$$blockheadFarcasterAccountConnections' },
 			fieldName: '$$blockheadFarcasterAccountConnections',
 		}}
 		id="accounts"

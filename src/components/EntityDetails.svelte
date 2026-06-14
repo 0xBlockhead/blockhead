@@ -7,11 +7,11 @@
 	// State
 	let {
 		entityType: _entityType,
-		entityId,
+		entitySelector,
 		children,
 	}: {
 		entityType: EntityType
-		entityId: object
+		entitySelector: object
 		children?: Snippet
 	} = $props()
 
@@ -23,7 +23,7 @@
 
 <div
 	class="entity-details"
-	style:view-transition-name={`EntityDetails-${stringify(entityId)}`}
+	style:view-transition-name={`EntityDetails-${stringify(entitySelector)}`}
 >
 	{#if children}
 		{@render children()}

@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum LogosZoneSelector {
+	NetworkZoneId = 'networkZoneId',
+}
 
 export default {
 	entityType: EntityType.LogosZone,
@@ -15,12 +18,29 @@ export default {
 	label: 'Logos Zone',
 	labelPlural: 'Logos Zones',
 
-	id: type({
-		$network: Network.id,
-		zoneId: 'string',
-	}),
+	selectors: [
+		{
+			name: LogosZoneSelector.NetworkZoneId,
+			fields: [
+				'$network',
+				'zoneId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'zoneId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'zoneKind',
 			type: EntityFieldType.Primitive,

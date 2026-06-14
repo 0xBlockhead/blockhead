@@ -12,8 +12,12 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import EvmAccount from '$/schema/EvmAccount.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EvmNetworkAccountSelector {
+	EvmNetworkEvmAccount = 'evmNetworkEvmAccount',
+}
+
 
 const contractPositionProtocol = type({
 	key: 'string',
@@ -27,7 +31,12 @@ const contractPositionPool = type({
 })
 
 const contractPositionChain = type({
-	$network: Network.id,
+	$network: type({
+		caip2: type({
+			namespace: 'string',
+			reference: 'string',
+		}),
+	}),
 	value: 'number',
 	valuePercentile: 'number',
 	'totalCostBasis?': 'number',
@@ -41,12 +50,29 @@ export default {
 	label: 'EVM network account',
 	labelPlural: 'EVM network accounts',
 
-	id: type({
-		$network: Network.id,
-		$actor: EvmAccount.id,
-	}),
+	selectors: [
+		{
+			name: EvmNetworkAccountSelector.EvmNetworkEvmAccount,
+			fields: [
+				'$network',
+				'$actor',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$actor',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'transactionCount',
 			type: EntityFieldType.Primitive,

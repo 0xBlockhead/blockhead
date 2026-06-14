@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ZeroGDaQuorum>
+			selector: EntitySelector<typeof schema, EntityType.ZeroGDaQuorum>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const daQuorum = subscribe(EntityType.ZeroGDaQuorum,
-		entityId,
+		selector,
 		({ fields: { selectionMethod: true } }),
 	)
 
@@ -40,14 +40,14 @@
 
 <EntityView
 	entityType={EntityType.ZeroGDaQuorum}
-	{entityId}
-	title={entityId.quorumId}
+	entitySelector={selector}
+	title={selector.quorumId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{entityId.quorumId}
+		{selector.quorumId}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

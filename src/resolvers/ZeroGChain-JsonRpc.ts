@@ -10,12 +10,14 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { RpcBlockHeader } from '$/sources/Evm/JsonRpc/types.ts'
+import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
+import { EvmBlockSelector } from '$/schema/EvmBlock.ts'
+import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
 
 const assertZeroGMainnetChain = (network: { caip2: { namespace: string; reference: string } }) => {
 	if (network.caip2.namespace !== 'eip155' || network.caip2.reference !== String(zeroGChainId)) {
@@ -95,37 +97,25 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.ZeroGChain_JsonRpc, {
-			entityType: EntityType.ZeroGNetwork,
-			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnet(entityId)
-				return {}
-			}
-			}
-		})({
-				fields: {},
-			}),
-
-		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnetChain(entityId.$network)
+				[EvmBlockSelector.EvmNetworkBlockNumber]: async ({ $network, blockNumber }) => {
+				assertZeroGMainnetChain($network)
 				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 				const block = await getBlockByNumber({
-					blockNumber: entityId.blockNumber,
+					blockNumber: blockNumber,
 					txObjects: false,
 				})
-				if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${entityId.blockNumber.toString()}`)
+				if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${blockNumber.toString()}`)
 				const minerAddress = hexLowerOfByteSize(block.miner ?? '', 20)
 				const parentHash = hexLowerOfByteSize(block.parentHash ?? '', 32)
 				return {
-					number: quantityToBigInt(block.number) ?? entityId.blockNumber,
+					number: quantityToBigInt(block.number) ?? blockNumber,
 					...(parentHash != null && {
 						$parent: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								blockNumber: entityId.blockNumber - 1n,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
+								blockNumber: blockNumber - 1n,
 								hash: parentHash,
 							},
 						},
@@ -135,7 +125,7 @@ export default {
 						))(quantityToNumber(block.timestamp)),
 					...(minerAddress != null && {
 						$miner: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								address: minerAddress,
 							},
 						},
@@ -167,15 +157,15 @@ export default {
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnetChain(entityId.$network)
+				[EvmTransactionSelector.EvmNetworkTxHash]: async ({ $network, txHash }) => {
+				assertZeroGMainnetChain($network)
 				const {
 					getTransactionByHash,
 					getTransactionReceipt,
 				} = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-				const transaction = await getTransactionByHash({ txHash: entityId.txHash })
-				if (transaction == null) throw new Error(`ZeroGChain_JsonRpc: transaction not found ${entityId.txHash}`)
-				const receipt = await getTransactionReceipt({ txHash: entityId.txHash })
+				const transaction = await getTransactionByHash({ txHash: txHash })
+				if (transaction == null) throw new Error(`ZeroGChain_JsonRpc: transaction not found ${txHash}`)
+				const receipt = await getTransactionReceipt({ txHash: txHash })
 				const value = quantityToBigInt(transaction.value) ?? 0n
 				const fromAddress = hexLowerOfByteSize(transaction.from ?? '', 20)
 				const toAddress = hexLowerOfByteSize(transaction.to ?? '', 20)
@@ -183,33 +173,33 @@ export default {
 				const blockNumber = quantityToBigInt(transaction.blockNumber)
 				const blockHash = hexLowerOfByteSize(transaction.blockHash ?? '', 32)
 				const envelopeType = transactionEnvelopeTypeFromRpcType(transaction.type)
-				if (fromAddress == null) throw new Error(`ZeroGChain_JsonRpc: transaction has invalid from address ${entityId.txHash}`)
+				if (fromAddress == null) throw new Error(`ZeroGChain_JsonRpc: transaction has invalid from address ${txHash}`)
 				return {
 					...(blockNumber != null && {
 						$block: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								blockNumber,
 								...(blockHash != null && { hash: blockHash }),
 							},
 						},
 					}),
 					$from: {
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							address: fromAddress,
 						},
 					},
 					...(toAddress != null && {
 						$to: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								address: toAddress,
 							},
 						},
 					}),
 					...(contractAddress != null && {
 						$contract: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								address: contractAddress,
 							},
 						},
@@ -277,8 +267,8 @@ export default {
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnet(entityId)
+				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				assertZeroGMainnet(entitySelector)
 				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 				const block = await getBlockByNumber({
 					blockNumber: 'latest',
@@ -292,8 +282,8 @@ export default {
 				const baseFeePerGas = quantityToBigInt(block.baseFeePerGas)
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							timestampMs: headTimestamp == null ? Date.now() : headTimestamp * 1000,
 						},
 						...(headBlockNumber != null && { headBlockNumber }),
@@ -316,8 +306,8 @@ export default {
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertZeroGMainnet(entityId)
+				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector, context) => {
+				assertZeroGMainnet(entitySelector)
 				const { getBlockNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 				const headBlockNumber = BigInt(await getBlockNumber())
 				return Array.from({
@@ -326,7 +316,7 @@ export default {
 						resolverContextRowLimit(context),
 					),
 				}, (_value, blockOffset) => ({
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						$network: zeroGEvmNetworkId,
 						blockNumber: headBlockNumber - BigInt(blockOffset),
 					},
@@ -342,14 +332,14 @@ export default {
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnetChain(entityId.$network)
+				[EvmBlockSelector.EvmNetworkBlockNumber]: async ({ $network, blockNumber }) => {
+				assertZeroGMainnetChain($network)
 				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 				const block = await getBlockByNumber({
-					blockNumber: entityId.blockNumber,
+					blockNumber: blockNumber,
 					txObjects: true,
 				})
-				if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${entityId.blockNumber.toString()}`)
+				if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${blockNumber.toString()}`)
 				return (block.transactions ?? []).flatMap((transaction) => {
 					if (typeof transaction === 'string') return []
 					const txHash = hexLowerOfByteSize(transaction.hash ?? '', 32)
@@ -357,8 +347,8 @@ export default {
 						[]
 					:
 						[{
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
 								txHash,
 							},
 						}]

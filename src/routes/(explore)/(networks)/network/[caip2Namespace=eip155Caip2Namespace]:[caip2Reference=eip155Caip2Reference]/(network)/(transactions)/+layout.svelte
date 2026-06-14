@@ -56,22 +56,22 @@
 		placeholderText="Loading transaction block…"
 	>
 		{#snippet children(transaction)}
-			{#if transaction.fields.$block?.[EntityMetaKey.Id]}
-				{@const blockEntityId = transaction.fields.$block[EntityMetaKey.Id]}
+			{#if transaction.fields.$block?.[EntityMetaKey.Selector]}
+				{@const blockEntitySelector = transaction.fields.$block[EntityMetaKey.Selector]}
 				<ParentPageCollapsible
 					href={resolve(
 						'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]',
 						{
 							caip2Namespace: params.caip2Namespace,
 							caip2Reference: params.caip2Reference,
-							blockNumber: String(blockEntityId.blockNumber),
+							blockNumber: String(blockEntitySelector.blockNumber),
 						},
 					)}
-					id={stringify(blockEntityId)}
+					id={stringify(blockEntitySelector)}
 				>
 					{#snippet Summary({ open: _open })}
 						<EvmBlockView
-							entityId={blockEntityId}
+							selector={blockEntitySelector}
 							layout={EntityLayout.SummaryInline}
 						/>
 					{/snippet}
@@ -79,10 +79,10 @@
 					<ParentPageCollapsible
 						title={'Transactions'}
 						href={resolve(
-							`/network//block/${String(blockEntityId.blockNumber)}/transactions`,
+							`/network//block/${String(blockEntitySelector.blockNumber)}/transactions`,
 						)}
 						id={stringify({
-							...blockEntityId,
+							...blockEntitySelector,
 							scope: 'transactions',
 						})}
 					>

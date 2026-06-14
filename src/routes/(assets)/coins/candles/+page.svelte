@@ -19,7 +19,7 @@
 		collapsible={false}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: { scope: '$$marketTimeIntervalTimestamps' },
+			selector: { scope: '$$marketTimeIntervalTimestamps' },
 			fieldName: '$$marketTimeIntervalTimestamps',
 		}}
 		id="coin-ohlc-candles-page"

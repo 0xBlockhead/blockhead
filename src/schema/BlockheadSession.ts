@@ -7,6 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadSessionSelector {
+	Id = 'id',
+}
+
+
 export enum BlockheadSessionStatus {
 	Draft = 'Draft',
 	Submitted = 'Submitted',
@@ -19,11 +24,22 @@ export default {
 	label: 'Session',
 	labelPlural: 'Sessions',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: BlockheadSessionSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

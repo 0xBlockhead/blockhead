@@ -4,7 +4,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import type { Entity } from '$/schema/$schema.ts'
@@ -12,6 +11,9 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import type { ProposerPayloadDelivered } from '$/sources/MevRelay/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
+import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { MevRelay_ProposerPayloadDeliveredSelector } from '$/schema/MevRelay_ProposerPayloadDelivered.ts'
+import { MevBuilderSelector } from '$/schema/MevBuilder.ts'
 
 const parsePayloadSlot = (payload: ProposerPayloadDelivered): number | undefined => {
 	const raw = payload.slot
@@ -48,17 +50,17 @@ export default {
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const wantHash = hexLowerOfByteSize(entityId.blockHash, 32)
-				if (wantHash == null) throw new Error('MevRelay_Rest: invalid block hash in entity id')
+				[MevRelay_ProposerPayloadDeliveredSelector.EvmNetworkRelayHostSlotBlockHash]: async (entitySelector) => {
+				const wantHash = hexLowerOfByteSize(entitySelector.blockHash, 32)
+				if (wantHash == null) throw new Error('MevRelay_Rest: invalid block hash in entity selector')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-				const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(entityId.relayHost, {
+				const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(entitySelector.relayHost, {
 					limit: 200,
 				})
 				const payload = deliveredPayloads.find((deliveredPayload) => {
 					const slot = parsePayloadSlot(deliveredPayload)
 					const bh = deliveredPayload.block_hash ?? deliveredPayload.blockHash
-					if (slot !== entityId.slot || bh == null) return false
+					if (slot !== entitySelector.slot || bh == null) return false
 					const normalized = hexLowerOfByteSize(bh, 32)
 					return normalized === wantHash
 				})
@@ -67,14 +69,14 @@ export default {
 				const blockNumber = parsePayloadBlockNumber(payload)
 				const valueWei = parsePayloadValueWei(payload)
 				return {
-					[EntityMetaKey.Id]: entityId,
+					[EntityMetaKey.Selector]: entitySelector,
 					...(builderPubkey != null && builderPubkey !== '' && { builderPubkey }),
 					...(valueWei != null && { value: valueWei }),
 					...(blockNumber != null && {
 						blockNumber,
 						$executionBlock: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
 								blockNumber,
 							},
 							number: blockNumber,
@@ -95,15 +97,15 @@ export default {
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.MevBuilder,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[MevBuilderSelector.EvmNetworkBuilderPubkey]: async ({ $network }) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-				const chainId = Number(entityId.$network.caip2.reference)
+				const chainId = Number($network.caip2.reference)
 				let deliveredPayloadCount = 0
 				for (const { host } of mevRelayHosts.filter((mevRelayHost) => mevRelayHost.chainId === chainId)) {
 					deliveredPayloadCount += (
 						(await getProposerPayloadDeliveredForRelayHost(host, { limit: 200 }))
-							.filter((payload) => (payload.builder_pubkey ?? payload.builderPubkey) === entityId.builderPubkey)
+							.filter((payload) => (payload.builder_pubkey ?? payload.builderPubkey) === entitySelector.builderPubkey)
 							.length
 					)
 				}
@@ -121,10 +123,10 @@ export default {
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[EvmNetworkSelector.Caip2]: async (entitySelector, context) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-				const chainId = Number(entityId.caip2.reference)
+				const chainId = Number(entitySelector.caip2.reference)
 				const hostsForChain = mevRelayHosts
 					.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
 					.map((mevRelayHost) => mevRelayHost.host)
@@ -136,8 +138,8 @@ export default {
 				const subsetRowLimit = resolverContextRowLimit(context)
 				const hosts = [...hostsForChain]
 				const out: {
-					[EntityMetaKey.Id]: {
-						$network: typeof entityId
+					[EntityMetaKey.Selector]: {
+						$network: typeof entitySelector
 						relayHost: string
 						slot: number
 						blockHash: `0x${string}`
@@ -154,8 +156,8 @@ export default {
 						const blockHash = hexLowerOfByteSize(bhRaw, 32)
 						if (blockHash == null) continue
 						out.push({
-							[EntityMetaKey.Id]: {
-								$network: entityId,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector,
 								relayHost,
 								slot,
 								blockHash,
@@ -181,10 +183,10 @@ export default {
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-				const chainId = Number(entityId.caip2.reference)
+				const chainId = Number(caip2.reference)
 				const hostsForChain = mevRelayHosts
 					.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
 					.map((mevRelayHost) => mevRelayHost.host)
@@ -208,8 +210,8 @@ export default {
 					if (seen.size >= subsetRowLimit) break
 				}
 				return [...seen].map((builderPubkey) => ({
-					[EntityMetaKey.Id]: {
-						$network: entityId,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector,
 						builderPubkey,
 					},
 				}))

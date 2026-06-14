@@ -7,11 +7,16 @@ import {
 	mempoolSpaceBitcoinMainnetRestBaseUrl,
 } from '$/constants/BitcoinNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { UtxoNetworkSelector } from '$/schema/UtxoNetwork.ts'
+import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
+import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
+import { UtxoInputSelector } from '$/schema/UtxoInput.ts'
+import { UtxoAddressSelector } from '$/schema/UtxoAddress.ts'
+import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
 
 const assertBitcoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
@@ -27,15 +32,15 @@ const bitcoinMainnet = {
 	caip2: bitcoinMainnetCaip2,
 } as const
 
-const getTransaction = async (entityId: {
+const getTransaction = async ({ $network, txId }: {
 	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 	txId: string
 }) => {
-	assertBitcoinMainnet(entityId.$network)
+	assertBitcoinMainnet($network)
 	const { getTransaction } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 	return getTransaction({
 		restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl,
-		txId: entityId.txId,
+		txId: txId,
 	})
 }
 
@@ -46,11 +51,11 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertBitcoinMainnet(entityId)
+				[UtxoNetworkSelector.Network]: async (entitySelector) => {
+				assertBitcoinMainnet(entitySelector)
 				return {
 					$network: {
-						[EntityMetaKey.Id]: entityId,
+						[EntityMetaKey.Selector]: entitySelector,
 					},
 				}
 			}
@@ -64,25 +69,22 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertBitcoinMainnet(entityId.$network)
+				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
+				assertBitcoinMainnet($network)
 				const {
 					getBlock,
 					getBlockHashByHeight,
 				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const block = await getBlock({
 					restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl,
-					blockHash: entityId.hash ?? await getBlockHashByHeight({
-						restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl,
-						height: entityId.height,
-					}),
+					blockHash: hash,
 				})
 				return {
 					hash: block.id,
 					...(block.previousblockhash != null && {
 						$parent: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								height: BigInt(block.height - 1),
 								hash: block.previousblockhash,
 							},
@@ -115,17 +117,17 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const transaction = await getTransaction(entityId)
+				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => {
+				const transaction = await getTransaction(entitySelector)
 				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector.$network,
 						txId: transaction.txid,
 					},
 					...(transaction.status.block_height != null && {
 						$block: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
 								height: BigInt(transaction.status.block_height),
 								...(transaction.status.block_hash != null && {
 									hash: transaction.status.block_hash,
@@ -161,18 +163,18 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const input = (await getTransaction(entityId.$transaction)).vin[entityId.inputIndex]
+				[UtxoInputSelector.UtxoTransactionInputIndex]: async ({ $transaction, inputIndex }) => {
+				const input = (await getTransaction($transaction)).vin[inputIndex]
 				return {
-					[EntityMetaKey.Id]: {
-						$transaction: entityId.$transaction,
-						inputIndex: entityId.inputIndex,
+					[EntityMetaKey.Selector]: {
+						$transaction: $transaction,
+						inputIndex: inputIndex,
 					},
 					...(input.txid != null && input.vout != null && {
 						$spentOutput: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$transaction: {
-									$network: entityId.$transaction.$network,
+									$network: $transaction.$network,
 									txId: input.txid,
 								},
 								outputIndex: input.vout,
@@ -205,12 +207,12 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertBitcoinMainnet(entityId.$network)
+				[UtxoAddressSelector.NetworkAddress]: async ({ $network, address: addressSelector }) => {
+				assertBitcoinMainnet($network)
 				const { getAddress } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const address = await getAddress({
 					restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl,
-					address: entityId.address,
+					addressSelector: addressSelector,
 				})
 				const chainStats = address.chain_stats
 				return {
@@ -235,12 +237,12 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const output = (await getTransaction(entityId.$transaction)).vout[entityId.outputIndex]
+				[UtxoOutputSelector.UtxoTransactionOutputIndex]: async ({ $transaction, outputIndex }) => {
+				const output = (await getTransaction($transaction)).vout[outputIndex]
 				return {
-					[EntityMetaKey.Id]: {
-						$transaction: entityId.$transaction,
-						outputIndex: entityId.outputIndex,
+					[EntityMetaKey.Selector]: {
+						$transaction: $transaction,
+						outputIndex: outputIndex,
 					},
 					valueSats: BigInt(output.value),
 					...(output.scriptpubkey_asm != null && {
@@ -250,8 +252,8 @@ export default {
 					scriptPubKeyType: output.scriptpubkey_type,
 					...(output.scriptpubkey_address != null && {
 						$address: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$transaction.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $transaction.$network,
 								address: output.scriptpubkey_address,
 							},
 						},
@@ -272,10 +274,10 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertBitcoinMainnet(entityId)
+				[UtxoNetworkSelector.Network]: async (entitySelector) => {
+				assertBitcoinMainnet(entitySelector)
 				return {
-					[EntityMetaKey.Id]: entityId,
+					[EntityMetaKey.Selector]: entitySelector,
 				}
 			}
 			}
@@ -288,8 +290,8 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertBitcoinMainnet(entityId)
+				[UtxoNetworkSelector.Network]: async (entitySelector) => {
+				assertBitcoinMainnet(entitySelector)
 				const {
 					getBlocks,
 					getMempoolStats,
@@ -304,8 +306,8 @@ export default {
 				if (block == null) throw new Error('MempoolSpace_Rest: no blocks returned')
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							timestampMs: Date.now(),
 						},
 						bestBlockHeight: BigInt(block.height),
@@ -326,13 +328,13 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertBitcoinMainnet(entityId)
+				[UtxoNetworkSelector.Network]: async (entitySelector, context) => {
+				assertBitcoinMainnet(entitySelector)
 				const { getBlocks } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const blocks = await getBlocks({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
 				return blocks.slice(0, resolverContextRowLimit(context)).map((block) => ({
-					[EntityMetaKey.Id]: {
-						$network: entityId,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector,
 						height: BigInt(block.height),
 						hash: block.id,
 					},
@@ -356,13 +358,13 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertBitcoinMainnet(entityId)
+				[UtxoNetworkSelector.Network]: async (entitySelector, context) => {
+				assertBitcoinMainnet(entitySelector)
 				const { getMempoolTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const txids = await getMempoolTxids({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
 				return txids.slice(0, resolverContextRowLimit(context)).map((txId) => ({
-					[EntityMetaKey.Id]: {
-						$network: entityId,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector,
 						txId,
 					},
 				}))
@@ -377,8 +379,8 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertBitcoinMainnet(entityId.$network)
+				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
+				assertBitcoinMainnet($network)
 				const {
 					getBlockHashByHeight,
 					getBlockTransactionIds,
@@ -386,14 +388,11 @@ export default {
 				return (
 					await getBlockTransactionIds({
 						restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl,
-						blockHash: entityId.hash ?? await getBlockHashByHeight({
-							restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl,
-							height: entityId.height,
-						}),
+						blockHash: hash,
 					})
 				).map((txId) => ({
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector.$network,
 						txId,
 					},
 				}))
@@ -408,18 +407,18 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => (
-				(await getTransaction(entityId)).vin.map((input, inputIndex) => (
+				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => (
+				(await getTransaction(entitySelector)).vin.map((input, inputIndex) => (
 					{
-						[EntityMetaKey.Id]: {
-							$transaction: entityId,
+						[EntityMetaKey.Selector]: {
+							$transaction: entitySelector,
 							inputIndex,
 						},
 						...(input.txid != null && input.vout != null && {
 							$spentOutput: {
-								[EntityMetaKey.Id]: {
+								[EntityMetaKey.Selector]: {
 									$transaction: {
-										$network: entityId.$network,
+										$network: entitySelector.$network,
 										txId: input.txid,
 									},
 									outputIndex: input.vout,
@@ -449,11 +448,11 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => (
-				(await getTransaction(entityId)).vout.map((output, outputIndex) => (
+				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => (
+				(await getTransaction(entitySelector)).vout.map((output, outputIndex) => (
 					{
-						[EntityMetaKey.Id]: {
-							$transaction: entityId,
+						[EntityMetaKey.Selector]: {
+							$transaction: entitySelector,
 							outputIndex,
 						},
 						valueSats: BigInt(output.value),
@@ -464,8 +463,8 @@ export default {
 						scriptPubKeyType: output.scriptpubkey_type,
 						...(output.scriptpubkey_address != null && {
 							$address: {
-								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector.$network,
 									address: output.scriptpubkey_address,
 								},
 							},

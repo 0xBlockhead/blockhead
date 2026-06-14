@@ -12,13 +12,12 @@ import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationP
 import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
 import { cashuProbeKeysetId, cashuProbeMintUrl } from '$/constants/Cashu.ts'
 import {
-	liquidNetworkId,
 	liquidProbeAssetId,
 } from '$/constants/ElementsNetwork.ts'
 import { ElementsPegDirection } from '$/schema/ElementsPeg.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
@@ -143,11 +142,24 @@ const bitcoin = {
 	},
 } as const
 
-const lightning = {
-	networkSlug: 'lightning',
+const bitcoinUtxo = {
+	$network: bitcoin,
 } as const
 
-const liquid = liquidNetworkId
+const lightningNetwork = {
+	slug: 'lightning',
+} as const
+
+const lightning = {
+	$network: lightningNetwork,
+} as const
+
+const liquid = {
+	$network: {
+		slug: 'liquid',
+	},
+} as const
+const liquidNetwork = liquid.$network
 
 const cashuProbeMint = {
 	mintUrl: cashuProbeMintUrl,
@@ -168,11 +180,19 @@ const zcash = {
 	},
 } as const
 
+const zcashUtxo = {
+	$network: zcash,
+} as const
+
 const filecoin = {
 	caip2: {
 		namespace: 'fil',
 		reference: 'f',
 	},
+} as const
+
+const filecoinNetwork = {
+	$network: filecoin,
 } as const
 
 const solana = {
@@ -189,6 +209,10 @@ const cosmos = {
 	},
 } as const
 
+const cosmosNetwork = {
+	$network: cosmos,
+} as const
+
 const polkadot = {
 	caip2: {
 		namespace: 'polkadot',
@@ -196,28 +220,52 @@ const polkadot = {
 	},
 } as const
 
+const polkadotNetwork = {
+	$network: polkadot,
+} as const
+
+const hyperliquidNetwork = {
+	slug: 'hyperliquid',
+} as const
+
 const hyperliquid = {
-	networkSlug: 'hyperliquid',
+	$network: hyperliquidNetwork,
+} as const
+
+const bittensorNetwork = {
+	slug: 'bittensor',
 } as const
 
 const bittensor = {
-	networkSlug: 'bittensor',
+	$network: bittensorNetwork,
 } as const
 
 const logos = {
-	networkSlug: 'logos-testnet',
+	slug: 'logos-testnet',
 } as const
 
 const quilibrium = {
 	networkSlug: 'quilibrium',
 } as const
 
+const quilibriumNetwork = {
+	slug: 'quilibrium',
+} as const
+
 const near = {
 	networkSlug: 'near',
 } as const
 
+const nearNetwork = {
+	slug: 'near',
+} as const
+
+const tronNetwork = {
+	slug: 'tron',
+} as const
+
 const tron = {
-	networkSlug: 'tron',
+	$network: tronNetwork,
 } as const
 
 const monero = {
@@ -227,6 +275,10 @@ const monero = {
 	},
 } as const
 
+const moneroNetwork = {
+	$network: monero,
+} as const
+
 const litecoin = {
 	caip2: {
 		namespace: 'bip122',
@@ -234,11 +286,19 @@ const litecoin = {
 	},
 } as const
 
+const litecoinUtxo = {
+	$network: litecoin,
+} as const
+
 const dogecoin = {
 	caip2: {
 		namespace: 'bip122',
 		reference: '1a91e3dace36e2be3bf030a65679fe82',
 	},
+} as const
+
+const dogecoinUtxo = {
+	$network: dogecoin,
 } as const
 
 const bitcoinCash = {
@@ -252,8 +312,12 @@ const zeroG = {
 	networkSlug: '0g',
 } as const
 
-type ProbeEntityIdByType = {
-	[_EntityType in EntityType]?: EntityId<typeof schema, _EntityType>
+const zeroGNetwork = {
+	slug: '0g',
+} as const
+
+type ProbeEntitySelectorByType = {
+	[_EntityType in EntityType]?: EntitySelector<typeof schema, _EntityType>
 }
 
 const actorMainnetVitalik = {
@@ -285,15 +349,16 @@ const bridgeRouteEthMainnetToOptimism = {
 	toChainId: 10,
 	fromToken: NATIVE_TOKEN,
 	toToken: NATIVE_TOKEN,
-	fromAmount: '1000000000000000',
+	fromAmount: 1_000_000_000_000_000n,
 	fromAddress: VITALIK_ADDRESS,
 	slippage: 0.005,
+	toAddress: VITALIK_ADDRESS,
 } as const
 
 /**
- * Probe entity ids for `resolverDefinitionProbes` smoke shapes; must match each type’s Arktype `id`.
+ * Probe entity selectors for `resolverDefinitionProbes` smoke shapes; must match each type’s Arktype `id`.
  */
-export const probeEntityIdByType: ProbeEntityIdByType = {
+export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType._Global]: { scope: 'global' },
 
 	[EntityType.BlockheadWallet]: { id: 'eip6963:e2e-probe-wallet' },
@@ -333,6 +398,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 		$spender: {
 			address: '0x0000000000000000000000000000000000000001',
 		},
+		interopAddress: `${VITALIK_ADDRESS}:USDC:0x0000000000000000000000000000000000000001`,
 	},
 
 	[EntityType.EvmNetworkAccount]: evmNetworkAccountMainnetUsdc,
@@ -387,27 +453,28 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 
 	[EntityType.BittensorNetwork]: bittensor,
 	[EntityType.BittensorNetwork_Timestamp]: {
-		$network: bittensor,
+		$network: bittensorNetwork,
 		timestampMs: 0,
 	},
 	[EntityType.BittensorBlock]: {
-		$network: bittensor,
+		$network: bittensorNetwork,
 		blockNumber: 1_000_000n,
+		hash: 'e2e-probe-bittensor-block-hash',
 	},
 	[EntityType.BittensorSubnet]: {
-		$network: bittensor,
+		$network: bittensorNetwork,
 		netuid: 1,
 	},
 	[EntityType.BittensorMetagraph_Timestamp]: {
 		$subnet: {
-			$network: bittensor,
+			$network: bittensorNetwork,
 			netuid: 1,
 		},
 		timestampMs: 0,
 	},
 	[EntityType.BittensorNeuron]: {
 		$subnet: {
-			$network: bittensor,
+			$network: bittensorNetwork,
 			netuid: 1,
 		},
 		uid: 0,
@@ -483,6 +550,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	[EntityType.EvmBlock]: {
 		$network: mainnet,
 		blockNumber: 18_000_000n,
+		hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
 	},
 	[EntityType.Erc4337SmartAccount]: {
 		$network: mainnet,
@@ -505,16 +573,22 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 		address: USDC_ADDRESS,
 	},
 	[EntityType.EvmContractVerification]: {
-		$network: mainnet,
-		address: USDC_ADDRESS,
+		$contract: {
+			$network: mainnet,
+			address: USDC_ADDRESS,
+		},
 	},
 	[EntityType.EvmContractCompilation]: {
-		$network: mainnet,
-		address: USDC_ADDRESS,
+		$contract: {
+			$network: mainnet,
+			address: USDC_ADDRESS,
+		},
 	},
 	[EntityType.EvmContractSourceBundle]: {
-		$network: mainnet,
-		address: USDC_ADDRESS,
+		$contract: {
+			$network: mainnet,
+			address: USDC_ADDRESS,
+		},
 	},
 	[EntityType.EvmCalldata]: { hex: TRANSFER_SELECTOR },
 	[EntityType.EvmError]: { hex: ERROR_SELECTOR },
@@ -594,9 +668,10 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	[EntityType.LiquidityPool_Timestamp]: {
 		$liquidityPool: {
 			$network: mainnet,
-		id: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+			id: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
 		},
 		timestampMs: 1_700_000_000_000,
+		feedKey: 'e2e-probe-liquidity-pool',
 	},
 
 	[EntityType.Url]: {
@@ -604,7 +679,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	},
 
 	[EntityType.EvmNft]: {
-	$contract: {
+		$contract: {
 			$network: { caip2: { namespace: 'eip155', reference: '56' } },
 			address: '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432',
 		},
@@ -619,11 +694,14 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	[EntityType.Market]: ethUsdCatalogMarket,
 	[EntityType.MarketPrice]: {
 		$market: ethUsdCatalogMarket,
+		feedKey: 'e2e-probe-market-price',
+		$network: mainnet,
 	},
 	[EntityType.Market_TimeInterval_Timestamp]: {
 		$market: ethUsdCatalogMarket,
 		timeInterval: { unit: MarketTimeIntervalUnit.Day, value: 7 },
 		timestampMs: 1_700_000_000_000,
+		feedKey: 'e2e-probe-market-ohlc',
 	},
 	[EntityType.MarketVenue]: { marketVenueId: MarketVenueId.Binance },
 	[EntityType.Currency]: { iso4217: Iso4217.USD },
@@ -634,6 +712,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	[EntityType.Market_Timestamp]: {
 		$market: ethUsdCatalogMarket,
 		timestampMs: 0,
+		feedKey: 'e2e-probe-market-quote',
 	},
 
 	[EntityType.EvmNetwork]: mainnet,
@@ -708,7 +787,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 		$network: bitcoin,
 		upgradeId: 'taproot',
 	},
-	[EntityType.UtxoNetwork]: bitcoin,
+	[EntityType.UtxoNetwork]: bitcoinUtxo,
 	[EntityType.UtxoNetwork_Timestamp]: {
 		$network: bitcoin,
 		timestampMs: 0,
@@ -720,6 +799,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	[EntityType.UtxoBlock]: {
 		$network: bitcoin,
 		height: 840_000n,
+		hash: '0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5',
 	},
 	[EntityType.UtxoTransaction]: {
 		$network: bitcoin,
@@ -752,7 +832,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 		actionKind: ZcashShieldedActionKind.Action,
 		actionIndex: 0,
 	},
-	[EntityType.FilecoinNetwork]: filecoin,
+	[EntityType.FilecoinNetwork]: filecoinNetwork,
 	[EntityType.FilecoinNetwork_Timestamp]: {
 		$network: filecoin,
 		timestampMs: 1_700_000_000_000,
@@ -804,6 +884,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 			signature: 'e2eProbeSolanaSignature1111111111111111111111111111111',
 		},
 		instructionIndex: 0,
+		innerInstructionIndex: 0,
 	},
 	[EntityType.SolanaAccount]: {
 		$network: solana,
@@ -823,39 +904,40 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	},
 	[EntityType.TronNetwork]: tron,
 	[EntityType.TronNetwork_Timestamp]: {
-		$network: tron,
+		$network: tronNetwork,
 		timestampMs: 1_700_000_000_000,
 	},
 	[EntityType.TronBlock]: {
-		$network: tron,
+		$network: tronNetwork,
 		height: 60_000_000n,
+		hash: 'e2e-probe-tron-block-hash',
 	},
 	[EntityType.TronTransaction]: {
-		$network: tron,
+		$network: tronNetwork,
 		transactionId: 'e2e-probe-tron-transaction',
 	},
 	[EntityType.TronAccount]: {
-		$network: tron,
+		$network: tronNetwork,
 		address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
 	},
 	[EntityType.TronWitness]: {
-		$network: tron,
+		$network: tronNetwork,
 		address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
 	},
 	[EntityType.TronContract]: {
-		$network: tron,
+		$network: tronNetwork,
 		address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
 	},
 	[EntityType.TronToken]: {
-		$network: tron,
+		$network: tronNetwork,
 		tokenId: 'e2e-probe-tron-token',
 	},
 	[EntityType.TronTokenTransfer]: {
-		$network: tron,
+		$network: tronNetwork,
 		transactionId: 'e2e-probe-tron-transaction',
 		transferIndex: 0,
 	},
-	[EntityType.CosmosNetwork]: cosmos,
+	[EntityType.CosmosNetwork]: cosmosNetwork,
 	[EntityType.CosmosNetwork_Timestamp]: {
 		$network: cosmos,
 		timestampMs: 1_700_000_000_000,
@@ -899,7 +981,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 		$network: cosmos,
 		proposalId: '1',
 	},
-	[EntityType.PolkadotNetwork]: polkadot,
+	[EntityType.PolkadotNetwork]: polkadotNetwork,
 	[EntityType.PolkadotNetwork_Timestamp]: {
 		$network: polkadot,
 		timestampMs: 1_700_000_000_000,
@@ -907,11 +989,13 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	[EntityType.PolkadotBlock]: {
 		$network: polkadot,
 		blockNumber: 20_000_000n,
+		hash: 'e2e-probe-polkadot-block-hash',
 	},
 	[EntityType.PolkadotExtrinsic]: {
 		$block: {
 			$network: polkadot,
 			blockNumber: 20_000_000n,
+			hash: 'e2e-probe-polkadot-block-hash',
 		},
 		extrinsicIndex: 0,
 	},
@@ -919,6 +1003,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 		$block: {
 			$network: polkadot,
 			blockNumber: 20_000_000n,
+			hash: 'e2e-probe-polkadot-block-hash',
 		},
 		eventIndex: 0,
 	},
@@ -940,27 +1025,27 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	},
 	[EntityType.HyperliquidNetwork]: hyperliquid,
 	[EntityType.HyperliquidBlock]: {
-		$network: hyperliquid,
+		$network: hyperliquidNetwork,
 		height: 1n,
 	},
 	[EntityType.HyperliquidTransaction]: {
-		$network: hyperliquid,
+		$network: hyperliquidNetwork,
 		txHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
 	},
 	[EntityType.HyperliquidAccount]: {
-		$network: hyperliquid,
+		$network: hyperliquidNetwork,
 		address: '0x0000000000000000000000000000000000000000',
 	},
 	[EntityType.HyperliquidValidator]: {
-		$network: hyperliquid,
+		$network: hyperliquidNetwork,
 		validator: 'e2e-probe-validator',
 	},
 	[EntityType.HyperliquidSpotAsset]: {
-		$network: hyperliquid,
+		$network: hyperliquidNetwork,
 		assetId: 0,
 	},
 	[EntityType.HyperliquidPerpMarket]: {
-		$network: hyperliquid,
+		$network: hyperliquidNetwork,
 		coin: 'BTC',
 	},
 	[EntityType.LogosZone]: {
@@ -977,47 +1062,48 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	},
 	[EntityType.QuilibriumNetwork]: quilibrium,
 	[EntityType.QuilibriumFrame]: {
-		$network: quilibrium,
+		$network: quilibriumNetwork,
 		frameNumber: 1n,
 		shardKey: 'e2e-probe-shard',
 	},
 	[EntityType.QuilibriumShard]: {
-		$network: quilibrium,
+		$network: quilibriumNetwork,
 		shardKey: 'e2e-probe-shard',
 	},
 	[EntityType.QuilibriumProver]: {
-		$network: quilibrium,
+		$network: quilibriumNetwork,
 		proverPeerId: 'e2e-probe-prover',
 	},
 	[EntityType.QuilibriumAccount]: {
-		$network: quilibrium,
+		$network: quilibriumNetwork,
 		accountAddress: 'e2e-probe-account',
 	},
 	[EntityType.QuilibriumPendingTransaction]: {
-		$network: quilibrium,
+		$network: quilibriumNetwork,
 		transactionHash: 'e2e-probe-quilibrium-transaction',
 	},
 	[EntityType.NearNetwork]: near,
 	[EntityType.NearBlock]: {
-		$network: near,
+		$network: nearNetwork,
 		height: 100_000_000n,
+		hash: 'e2e-probe-near-block-hash',
 	},
 	[EntityType.NearChunk]: {
-		$network: near,
+		$network: nearNetwork,
 		chunkHash: 'e2e-probe-near-chunk',
 	},
 	[EntityType.NearTransaction]: {
-		$network: near,
+		$network: nearNetwork,
 		hash: 'e2e-probe-near-transaction',
 		signerAccountId: 'near',
 	},
 	[EntityType.NearReceipt]: {
-		$network: near,
+		$network: nearNetwork,
 		receiptId: 'e2e-probe-near-receipt',
 	},
 	[EntityType.NearAction]: {
 		$transaction: {
-			$network: near,
+			$network: nearNetwork,
 			hash: 'e2e-probe-near-transaction',
 			signerAccountId: 'near',
 		},
@@ -1025,35 +1111,36 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	},
 	[EntityType.NearExecutionOutcome]: {
 		$transaction: {
-			$network: near,
+			$network: nearNetwork,
 			hash: 'e2e-probe-near-transaction',
 			signerAccountId: 'near',
 		},
 		outcomeId: 'e2e-probe-near-outcome',
 	},
 	[EntityType.NearAccount]: {
-		$network: near,
+		$network: nearNetwork,
 		accountId: 'near',
 	},
 	[EntityType.NearAccessKey]: {
 		$account: {
-			$network: near,
+			$network: nearNetwork,
 			accountId: 'near',
 		},
 		publicKey: 'ed25519:e2e-probe-near-access-key',
 	},
 	[EntityType.NearContract]: {
-		$network: near,
+		$network: nearNetwork,
 		accountId: 'near',
 	},
 	[EntityType.NearValidator]: {
-		$network: near,
+		$network: nearNetwork,
 		accountId: 'e2e-probe-near-validator',
 	},
-	[EntityType.MoneroNetwork]: monero,
+	[EntityType.MoneroNetwork]: moneroNetwork,
 	[EntityType.MoneroBlock]: {
 		$network: monero,
 		height: 3_000_000n,
+		hash: 'e2e-probe-monero-block-hash',
 	},
 	[EntityType.MoneroTransaction]: {
 		$network: monero,
@@ -1101,6 +1188,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 		$block: {
 			$network: litecoin,
 			height: 2_500_000n,
+			hash: 'e2e-probe-litecoin-block-hash',
 		},
 	},
 	[EntityType.LitecoinMwebTransaction]: {
@@ -1108,6 +1196,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 			$block: {
 				$network: litecoin,
 				height: 2_500_000n,
+				hash: 'e2e-probe-litecoin-block-hash',
 			},
 		},
 		transactionIndex: 0,
@@ -1118,6 +1207,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 				$block: {
 					$network: litecoin,
 					height: 2_500_000n,
+					hash: 'e2e-probe-litecoin-block-hash',
 				},
 			},
 			transactionIndex: 0,
@@ -1130,6 +1220,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 				$block: {
 					$network: litecoin,
 					height: 2_500_000n,
+					hash: 'e2e-probe-litecoin-block-hash',
 				},
 			},
 			transactionIndex: 0,
@@ -1142,40 +1233,39 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 				$block: {
 					$network: litecoin,
 					height: 2_500_000n,
+					hash: 'e2e-probe-litecoin-block-hash',
 				},
 			},
 			transactionIndex: 0,
 		},
 		outputIndex: 0,
 	},
-	[EntityType.LightningNetwork]: {
-		$network: lightning,
-	},
+	[EntityType.LightningNetwork]: lightning,
 	[EntityType.LightningNetwork_Timestamp]: {
 		$lightningNetwork: {
-			$network: lightning,
+			$network: lightningNetwork,
 		},
 		timestampMs: 1_759_536_000_000,
 	},
 	[EntityType.LightningNode]: {
-		$network: lightning,
+		$network: lightningNetwork,
 		publicKey: '03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f',
 	},
 	[EntityType.LightningChannel]: {
-		$network: lightning,
+		$network: lightningNetwork,
 		channelId: '852861482917888001',
 	},
 	[EntityType.LightningInvoice]: {
-		$network: lightning,
+		$network: lightningNetwork,
 		paymentHash: 'e2e-probe-lightning-invoice',
 	},
 	[EntityType.LightningPayment]: {
-		$network: lightning,
+		$network: lightningNetwork,
 		paymentHash: 'e2e-probe-lightning-payment',
 	},
 	[EntityType.LightningHtlc]: {
 		$channel: {
-			$network: lightning,
+			$network: lightningNetwork,
 			channelId: 'e2e-probe-lightning-channel',
 		},
 		htlcIndex: 0,
@@ -1184,6 +1274,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 		$block: {
 			$network: dogecoin,
 			height: 5_000_000n,
+			hash: 'e2e-probe-dogecoin-block-hash',
 		},
 	},
 	[EntityType.DogecoinAuxPowParentBlockHeader]: {
@@ -1191,6 +1282,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 			$block: {
 				$network: dogecoin,
 				height: 5_000_000n,
+				hash: 'e2e-probe-dogecoin-block-hash',
 			},
 		},
 	},
@@ -1199,6 +1291,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 			$block: {
 				$network: dogecoin,
 				height: 5_000_000n,
+				hash: 'e2e-probe-dogecoin-block-hash',
 			},
 		},
 		branchKind: 'coinbase',
@@ -1245,40 +1338,40 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 		timestampMs: 1_700_000_000_000,
 	},
 	[EntityType.ZeroGConsensusNetwork]: {
-		$network: zeroG,
+		$network: zeroGNetwork,
 		consensusNetworkId: '0g-chain',
 	},
 	[EntityType.ZeroGDaNode]: {
-		$network: zeroG,
+		$network: zeroGNetwork,
 		nodeId: 'e2e-probe-da-node',
 	},
 	[EntityType.ZeroGDaQuorum]: {
-		$network: zeroG,
+		$network: zeroGNetwork,
 		quorumId: 'e2e-probe-da-quorum',
 	},
 	[EntityType.ZeroGDataBlob]: {
-		$network: zeroG,
+		$network: zeroGNetwork,
 		dataRoot: 'e2e-probe-data-root',
 	},
 	[EntityType.ZeroGDataChunk]: {
 		$dataBlob: {
-			$network: zeroG,
+			$network: zeroGNetwork,
 			dataRoot: 'e2e-probe-data-root',
 		},
 		chunkIndex: 0,
 	},
 	[EntityType.ZeroGKvEntry]: {
-		$network: zeroG,
+		$network: zeroGNetwork,
 		namespace: 'e2e-probe-namespace',
 		key: 'e2e-probe-key',
 	},
 	[EntityType.ZeroGServiceProvider]: {
-		$network: zeroG,
+		$network: zeroGNetwork,
 		providerId: 'e2e-probe-provider',
 	},
 	[EntityType.ZeroGServiceRequest]: {
 		$serviceProvider: {
-			$network: zeroG,
+			$network: zeroGNetwork,
 			providerId: 'e2e-probe-provider',
 		},
 		requestId: 'e2e-probe-request',
@@ -1286,7 +1379,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	[EntityType.ZeroGSettlementTrace]: {
 		$serviceRequest: {
 			$serviceProvider: {
-				$network: zeroG,
+				$network: zeroGNetwork,
 				providerId: 'e2e-probe-provider',
 			},
 			requestId: 'e2e-probe-request',
@@ -1294,16 +1387,16 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 		traceId: 'e2e-probe-trace',
 	},
 	[EntityType.ZeroGStorageLogEntry]: {
-		$network: zeroG,
+		$network: zeroGNetwork,
 		logEntryId: 'e2e-probe-storage-log-entry',
 	},
 	[EntityType.ZeroGStorageNode]: {
-		$network: zeroG,
+		$network: zeroGNetwork,
 		nodeId: 'e2e-probe-storage-node',
 	},
 	[EntityType.ZeroGStorageProof]: {
 		$storageNode: {
-			$network: zeroG,
+			$network: zeroGNetwork,
 			nodeId: 'e2e-probe-storage-node',
 		},
 		proofId: 'e2e-probe-storage-proof',
@@ -1359,9 +1452,9 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	},
 
 	[EntityType.RssNetwork]: { scope: 'RssNetwork' },
-	[EntityType.RssFeed]: { feedUrl: 'https://blog.svelte.dev/feed.xml' },
+	[EntityType.RssFeed]: { feedUrl: 'https://hnrss.org/frontpage' },
 	[EntityType.RssItem]: {
-		feedUrl: 'https://blog.svelte.dev/feed.xml',
+		feedUrl: 'https://hnrss.org/frontpage',
 		guid: 'e2e-probe-rss-item',
 	},
 
@@ -1404,7 +1497,7 @@ export const probeEntityIdByType: ProbeEntityIdByType = {
 	},
 	[EntityType.ElementsIssuance]: {
 		$transaction: {
-			$network: liquid,
+			$network: liquidNetwork,
 			txId: 'bd0920db6b1aa557d9e4ebc510e5ccadb56ce4c23770f914ee7d677ce99ba883',
 		},
 		inputIndex: 0,
@@ -1572,19 +1665,19 @@ export const isExpectedAssertLoadedResolverProbeFailure = (
 )
 
 
-const probeEntityIdForType = (
+const probeEntitySelectorForType = (
 	entityType: EntityType,
-): EntityId<typeof schema, EntityType> => {
-	const entityId = probeEntityIdByType[entityType]
-	if (entityId === undefined) {
-		throw new Error(`Missing probeEntityIdByType[${entityType}]`)
+): EntitySelector<typeof schema, EntityType> => {
+	const entitySelector = probeEntitySelectorByType[entityType]
+	if (entitySelector === undefined) {
+		throw new Error(`Missing probeEntitySelectorByType[${entityType}]`)
 	}
-	return entityId
+	return entitySelector
 }
 
-export const resolveProbeEntityId = async (
+export const resolveProbeEntitySelector = async (
 	entityType: EntityType,
-): Promise<EntityId<typeof schema, EntityType>> => {
+): Promise<EntitySelector<typeof schema, EntityType>> => {
 	if (entityType === EntityType.Coin_Timestamp) {
 		const {
 			blockscoutExplorerOriginForChain,
@@ -1617,13 +1710,13 @@ export const resolveProbeEntityId = async (
 		}
 	}
 
-	return probeEntityIdForType(entityType)
+	return probeEntitySelectorForType(entityType)
 }
 
 
-export const parentEntityIdForResolverValuePart = (
+export const parentEntitySelectorForResolverValuePart = (
 	entityType: EntityType,
-): EntityId<typeof schema, EntityType> => (
+): EntitySelector<typeof schema, EntityType> => (
 	entityType === EntityType._Global ?
 		{ scope: 'global' }
 	: entityType === EntityType.Network ?
@@ -1642,13 +1735,13 @@ export const parentEntityIdForResolverValuePart = (
 	: entityType === EntityType.AtprotoActor ?
 		{ did: atprotoProbeDid }
 	: entityType === EntityType.AtprotoPost ?
-		probeEntityIdForType(EntityType.AtprotoPost)
+		probeEntitySelectorForType(EntityType.AtprotoPost)
 	: entityType === EntityType.ActivityPubNetwork ?
 		{ scope: 'ActivityPubNetwork' }
 	: entityType === EntityType.ActivityPubActor ?
-		probeEntityIdForType(EntityType.ActivityPubActor)
+		probeEntitySelectorForType(EntityType.ActivityPubActor)
 	: entityType === EntityType.ActivityPubNote ?
-		probeEntityIdForType(EntityType.ActivityPubNote)
+		probeEntitySelectorForType(EntityType.ActivityPubNote)
 	: entityType === EntityType.AtprotoNetwork ?
 		{ scope: 'AtprotoNetwork' }
 	: entityType === EntityType.LensNetwork ?
@@ -1658,15 +1751,15 @@ export const parentEntityIdForResolverValuePart = (
 	: entityType === EntityType.RssNetwork ?
 		{ scope: 'RssNetwork' }
 	: entityType === EntityType.RssFeed ?
-		probeEntityIdForType(EntityType.RssFeed)
+		probeEntitySelectorForType(EntityType.RssFeed)
 	: entityType === EntityType.RedditSubreddit ?
-		probeEntityIdForType(EntityType.RedditSubreddit)
+		probeEntitySelectorForType(EntityType.RedditSubreddit)
 	: entityType === EntityType.RedditLink ?
-		probeEntityIdForType(EntityType.RedditLink)
+		probeEntitySelectorForType(EntityType.RedditLink)
 	: entityType === EntityType.LensAccount ?
-		probeEntityIdForType(EntityType.LensAccount)
+		probeEntitySelectorForType(EntityType.LensAccount)
 	: entityType === EntityType.XUser ?
-		probeEntityIdForType(EntityType.XUser)
+		probeEntitySelectorForType(EntityType.XUser)
 	: entityType === EntityType.NostrNetwork ?
 		{ scope: 'NostrNetwork' }
 	: entityType === EntityType.YouTubeNetwork ?
@@ -1698,31 +1791,31 @@ export const parentEntityIdForResolverValuePart = (
 	: entityType === EntityType.FarcasterChannel ?
 		{ id: 'memes' }
 	: entityType === EntityType.LightningNetwork ?
-		{ $network: lightning }
+		lightning
 	: entityType === EntityType.LightningNode ?
-		probeEntityIdForType(EntityType.LightningNode)
+		probeEntitySelectorForType(EntityType.LightningNode)
 	: entityType === EntityType.LightningChannel ?
-		probeEntityIdForType(EntityType.LightningChannel)
+		probeEntitySelectorForType(EntityType.LightningChannel)
 	: entityType === EntityType.ElementsNetwork ?
 		liquid
 	:
-		probeEntityIdForType(entityType)
+		probeEntitySelectorForType(entityType)
 )
 
 
 export const entityFieldValueForAssert = <_Value>(
 	value: _Value,
 ): _Value | {
-	[EntityMetaKey.Id]: object
-	[EntityMetaKey.IdKey]: string
+	[EntityMetaKey.Selector]: object
+	[EntityMetaKey.SelectorKey]: string
 } => (
 	value != null
 		&& typeof value === 'object'
-		&& EntityMetaKey.Id in value ?
+		&& EntityMetaKey.Selector in value ?
 			({
-				// oxlint-disable-next-line typescript-eslint/consistent-type-assertions -- `in` narrows presence, but not the object-valued entity id shape this test fixture requires.
-				[EntityMetaKey.Id]: value[EntityMetaKey.Id] as object,
-				[EntityMetaKey.IdKey]: stringify(value[EntityMetaKey.Id]),
+				// oxlint-disable-next-line typescript-eslint/consistent-type-assertions -- `in` narrows presence, but not the object-valued entity selector shape this test fixture requires.
+				[EntityMetaKey.Selector]: value[EntityMetaKey.Selector] as object,
+				[EntityMetaKey.SelectorKey]: stringify(value[EntityMetaKey.Selector]),
 			})
 	:
 		value

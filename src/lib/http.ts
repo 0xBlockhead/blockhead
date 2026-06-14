@@ -17,7 +17,20 @@ const defaultRetry: Required<RetryOptions> = {
 	maxDelayMs: 30_000,
 }
 
+const fetchTimeoutMs = 30_000
+
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+
+const withTimeout = (init: RequestInit | undefined): RequestInit => ({
+	...init,
+	signal: init?.signal == null ?
+		AbortSignal.timeout(fetchTimeoutMs)
+	:
+		AbortSignal.any([
+			init.signal,
+			AbortSignal.timeout(fetchTimeoutMs),
+		]),
+})
 
 /** Full jitter: random delay in [0, cap]. */
 const jitterBackoff = (attempt: number, baseDelayMs: number, maxDelayMs: number): number => {
@@ -86,13 +99,13 @@ const doFetch = async (
 	options: CorsAwareFetchOptions,
 ): Promise<Response> => (
 	!url.startsWith('http://') && !url.startsWith('https://') ?
-		fetch(url, options.init)
+		fetch(url, withTimeout(options.init))
 	: typeof window === 'undefined' ?
-		fetch(url, options.init)
+		fetch(url, withTimeout(options.init))
 	: !resolveCorsEnabled(url, options) ?
-		proxyFetch(url, options.init)
+		proxyFetch(url, withTimeout(options.init))
 	:
-		fetch(url, options.init)
+		fetch(url, withTimeout(options.init))
 )
 
 export const corsFetch = async (

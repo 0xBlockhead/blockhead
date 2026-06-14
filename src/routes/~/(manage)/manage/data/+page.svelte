@@ -117,7 +117,7 @@
 								{#each entityCache.rows as row, index (
 									[
 										String(row[EntityMetaKey.Source] ?? ''),
-										String(row[EntityMetaKey.IdKey] ?? ''),
+										String(row[EntityMetaKey.SelectorKey] ?? ''),
 									].join('\0')
 								)}
 									<li>
@@ -172,7 +172,7 @@
 												String(entityDefinition.entityType),
 												String(field.name),
 												String(row[EntityMetaKey.Source] ?? ''),
-												String(row[EntityMetaKey.ParentIdKey] ?? ''),
+												String(row[EntityMetaKey.ParentSelectorKey] ?? ''),
 												String(index),
 											].join('\0')
 										)}

@@ -25,8 +25,8 @@ import {
 
 
 type Row = {
-	readonly [EntityMetaKey.IdKey]: string
-	readonly [EntityMetaKey.ParentIdKey]: string
+	readonly [EntityMetaKey.SelectorKey]: string
+	readonly [EntityMetaKey.ParentSelectorKey]: string
 	readonly [EntityMetaKey.Source]: string
 	readonly category: string
 	readonly rank: number
@@ -37,7 +37,7 @@ type Row = {
 
 const rows = createCollection<Row, string>({
 	id: 'ResolverSubset.spec.rows',
-	getKey: (row) => row[EntityMetaKey.IdKey],
+	getKey: (row) => row[EntityMetaKey.SelectorKey],
 	sync: {
 		sync: () => {},
 	},
@@ -65,11 +65,11 @@ describe('ResolverSubset parser', () => {
 			})
 			.where(({ row }) => and(
 				eq(row[EntityMetaKey.Source], 'SourceA'),
-				inArray(row[EntityMetaKey.IdKey], [
+				inArray(row[EntityMetaKey.SelectorKey], [
 					'entity-a',
 					'entity-b',
 				]),
-				eq(row[EntityMetaKey.ParentIdKey], 'parent-a'),
+				eq(row[EntityMetaKey.ParentSelectorKey], 'parent-a'),
 				eq(row.category, 'public'),
 				eq(row.nested.value, 7),
 			))
@@ -98,7 +98,7 @@ describe('ResolverSubset parser', () => {
 				},
 				{
 					fieldPath: [
-						EntityMetaKey.IdKey,
+						EntityMetaKey.SelectorKey,
 					],
 					operator: 'in',
 					value: [
@@ -108,7 +108,7 @@ describe('ResolverSubset parser', () => {
 				},
 				{
 					fieldPath: [
-						EntityMetaKey.ParentIdKey,
+						EntityMetaKey.ParentSelectorKey,
 					],
 					operator: 'eq',
 					value: 'parent-a',
@@ -145,11 +145,11 @@ describe('ResolverSubset parser', () => {
 			sources: [
 				'SourceA',
 			],
-			identityKeys: [
+			selectorKeys: [
 				'entity-a',
 				'entity-b',
 			],
-			parentIdentityKeys: [
+			parentSelectorKeys: [
 				'parent-a',
 			],
 		})
@@ -166,8 +166,8 @@ describe('ResolverSubset parser', () => {
 						'SourceA',
 						'SourceB',
 					]),
-					eq(row[EntityMetaKey.IdKey], 'entity-a'),
-					inArray(row[EntityMetaKey.ParentIdKey], [
+					eq(row[EntityMetaKey.SelectorKey], 'entity-a'),
+					inArray(row[EntityMetaKey.ParentSelectorKey], [
 						'parent-a',
 						'parent-b',
 					]),
@@ -189,10 +189,10 @@ describe('ResolverSubset parser', () => {
 				'SourceA',
 				'SourceB',
 			],
-			identityKeys: [
+			selectorKeys: [
 				'entity-a',
 			],
-			parentIdentityKeys: [
+			parentSelectorKeys: [
 				'parent-a',
 				'parent-b',
 			],
@@ -241,7 +241,7 @@ describe('ResolverSubset parser', () => {
 						row: rows,
 					})
 					.where(({ row }) => and(
-						eq(row[EntityMetaKey.ParentIdKey], (index & 1) === 0 ? 'parent-a' : 'parent-b'),
+						eq(row[EntityMetaKey.ParentSelectorKey], (index & 1) === 0 ? 'parent-a' : 'parent-b'),
 						eq(row[EntityMetaKey.Source], (index & 2) === 0 ? 'SourceA' : 'SourceB'),
 						eq(row.category, (index & 4) === 0 ? 'public' : 'private'),
 					))

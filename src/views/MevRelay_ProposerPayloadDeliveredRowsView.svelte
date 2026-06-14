@@ -69,7 +69,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 						Source.MevRelay_Rest,
 					], fields: { [entityFieldReference.fieldName]: {
@@ -104,9 +104,9 @@
 			>
 				{#snippet Item({ item })}
 					{@const row = item.value}
-					{@const rowId = row[EntityMetaKey.Id]}
+					{@const rowId = row[EntityMetaKey.Selector]}
 					<MevRelay_ProposerPayloadDeliveredView
-							entityId={rowId}
+						selector={rowId}
 							href={resolve('/(explore)/(networks)/network/[caip2Namespace=caip2Namespace]:[caip2Reference=caip2Reference]', {
 								caip2Namespace: rowId.$network.caip2.namespace,
 								caip2Reference: rowId.$network.caip2.reference,

@@ -3,7 +3,7 @@
 		import type { ComponentProps } from 'svelte'
 		import { EntityMetaKey } from '$/schema/$schema.ts'
 		import { EntityType } from '$/schema/EntityType.ts'
-		import type { EntityId } from '$/schema/$schema.ts'
+		import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,11 +16,11 @@
 
 	// State
 	let {
-			entityId,
+			selector,
 			href = resolve(
 				'/~/(multiplayer)/multiplayer/(contacts)/contact/[contactId]',
 				{
-					contactId: entityId.id,
+					contactId: selector.id,
 				},
 			),
 		title: titleProp,
@@ -29,7 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BlockheadRoomPeer>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadRoomPeer>
 			href?: string
 			title?: string
 			open?: boolean
@@ -43,7 +43,7 @@
 
 	
 	const peer = subscribe(EntityType.BlockheadRoomPeer,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Local_Internal,
 			], fields: { displayName: true, isConnected: true, ...(open ? ({ $room: true, peerId: true, joinedAt: true, lastSeenAt: true, connectedAt: true, disconnectedAt: true }) : ({  })) } }),
@@ -60,14 +60,14 @@
 
 <EntityView
 	entityType={EntityType.BlockheadRoomPeer}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -77,7 +77,7 @@
 			placeholderText="Loading peer…"
 		>
 			{#snippet children(peer)}
-				{titleProp ?? peer.fields.displayName ?? peer.fields.peerId ?? entityId.id}
+				{titleProp ?? peer.fields.displayName ?? peer.fields.peerId ?? selector.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -135,7 +135,7 @@
 								<dt>Room session</dt>
 								<dd>
 									<BlockheadRoomView
-										entityId={peer.fields.$room[EntityMetaKey.Id]}
+										selector={peer.fields.$room[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>

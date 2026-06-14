@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum NearContractSelector {
+	NetworkAccountId = 'networkAccountId',
+}
 
 export default {
 	entityType: EntityType.NearContract,
@@ -15,12 +18,29 @@ export default {
 	label: 'NEAR Contract',
 	labelPlural: 'NEAR Contracts',
 
-	id: type({
-		$network: Network.id,
-		accountId: 'string',
-	}),
+	selectors: [
+		{
+			name: NearContractSelector.NetworkAccountId,
+			fields: [
+				'$network',
+				'accountId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'accountId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'codeHash',
 			type: EntityFieldType.Primitive,

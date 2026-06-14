@@ -17,17 +17,9 @@ export enum BridgeRouteTag {
 	Recommended = 'RECOMMENDED',
 }
 
-/** Quote parameters keyed in {@link EntityType.BridgeRoute} ids (LI.FI `GET /v1/quote`). */
-export const bridgeRouteQuoteId = type({
-	fromChainId: 'number',
-	toChainId: 'number',
-	fromToken: 'string',
-	toToken: 'string',
-	fromAmount: 'string',
-	fromAddress: EvmAddress,
-	slippage: 'number',
-	'toAddress?': EvmAddress,
-})
+export enum BridgeRouteSelector {
+	Quote = 'quote',
+}
 
 export default {
 	entityType: EntityType.BridgeRoute,
@@ -35,9 +27,65 @@ export default {
 	label: 'Bridge route',
 	labelPlural: 'Bridge routes',
 
-	id: bridgeRouteQuoteId,
+	selectors: [
+		{
+			name: BridgeRouteSelector.Quote,
+			fields: [
+				'fromChainId',
+				'toChainId',
+				'fromToken',
+				'toToken',
+				'fromAmount',
+				'fromAddress',
+				'slippage',
+				'toAddress',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'fromChainId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'toChainId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'fromToken',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'toToken',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'fromAddress',
+			type: EntityFieldType.Primitive,
+			primitiveType: EvmAddress,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'slippage',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'toAddress',
+			type: EntityFieldType.Primitive,
+			primitiveType: EvmAddress,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: '$$steps',
 			type: EntityFieldType.EntitiesReference,

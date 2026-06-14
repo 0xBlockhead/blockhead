@@ -9,8 +9,8 @@ import type { PageLoad } from './$types.ts'
 
 export const load: PageLoad = ({ url }) => {
 	const noteEventId = url.searchParams.get('note')?.trim().toLowerCase()
-	if (!noteEventId) return { noteEntityId: null }
-	const noteEntityId = NostrNoteSchema.id({ eventId: noteEventId })
-	if (noteEntityId instanceof arktype.errors) error(404, 'Invalid Nostr event id')
-	return { noteEntityId }
+	if (!noteEventId) return { noteEntitySelector: null }
+	const noteEntitySelector = NostrNoteSchema.id({ eventId: noteEventId })
+	if (noteEntitySelector instanceof arktype.errors) error(404, 'Invalid Nostr event id')
+	return { noteEntitySelector }
 }

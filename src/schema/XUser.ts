@@ -4,15 +4,16 @@ import {
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-	type EntityIdentityValueNormalizer,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
-const lowercaseIdentityValue: EntityIdentityValueNormalizer = (value) => (
-	String(value).toLowerCase()
-)
+export enum XUserSelector {
+	Id = 'id',
+}
+
+
 
 const XId = type(
 	'/^\\d+$/' as type.cast<string>,
@@ -24,32 +25,9 @@ export default {
 	label: 'X user',
 	labelPlural: 'X users',
 
-	id: type.or(
-		type({
-			id: XId,
-			'+': 'reject',
-		}),
-		type({
-			username: 'string',
-			'+': 'reject',
-		}),
-	),
-
-	lookups: [
+	selectors: [
 		{
-			name: 'username',
-			fields: [
-				{
-					name: 'username',
-					normalize: lowercaseIdentityValue,
-				},
-			],
-		},
-	],
-
-	identities: [
-		{
-			name: 'id',
+			name: XUserSelector.Id,
 			fields: [
 				'id',
 			],

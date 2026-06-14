@@ -13,6 +13,6 @@
 
 <Page>
 	<BlockheadSessionView
-		entityId={{ id: params.sessionId }}
+		selector={{ id: params.sessionId }}
 	/>
 </Page>

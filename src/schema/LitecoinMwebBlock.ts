@@ -9,17 +9,32 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import UtxoBlock from '$/schema/UtxoBlock.ts'
 
+export enum LitecoinMwebBlockSelector {
+	UtxoBlock = 'utxoBlock',
+}
+
 export default {
 	entityType: EntityType.LitecoinMwebBlock,
 
 	label: 'Litecoin MWEB Block',
 	labelPlural: 'Litecoin MWEB Blocks',
 
-	id: type({
-		$block: UtxoBlock.id,
-	}),
+	selectors: [
+		{
+			name: LitecoinMwebBlockSelector.UtxoBlock,
+			fields: [
+				'$block',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$block',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.UtxoBlock,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'hogExTransactionId',
 			type: EntityFieldType.Primitive,

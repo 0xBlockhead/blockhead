@@ -27,7 +27,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<NostrNoteView
-			entityId={{ eventId }}
+			selector={{ eventId }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

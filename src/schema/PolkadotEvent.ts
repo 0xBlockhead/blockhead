@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Block from '$/schema/PolkadotBlock.ts'
+
+export enum PolkadotEventSelector {
+	PolkadotBlockEventIndex = 'polkadotBlockEventIndex',
+}
 
 export default {
 	entityType: EntityType.PolkadotEvent,
@@ -15,12 +18,29 @@ export default {
 	label: 'Polkadot Event',
 	labelPlural: 'Polkadot Events',
 
-	id: type({
-		$block: Block.id,
-		eventIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: PolkadotEventSelector.PolkadotBlockEventIndex,
+			fields: [
+				'$block',
+				'eventIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$block',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.PolkadotBlock,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'eventIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$extrinsic',
 			type: EntityFieldType.EntityReference,

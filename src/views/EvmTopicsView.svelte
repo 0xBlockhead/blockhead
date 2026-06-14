@@ -70,7 +70,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Local_Internal,
 					], fields: { [entityFieldReference.fieldName]: {
 						limit: 4096,
@@ -91,8 +91,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmTopic}
-				getKey={(topic) => topic[EntityMetaKey.Id].hex}
-				getSortValue={(topic) => topic[EntityMetaKey.Id].hex}
+				getKey={(topic) => topic[EntityMetaKey.Selector].hex}
+				getSortValue={(topic) => topic[EntityMetaKey.Selector].hex}
 				placeholderText="Loading indexed log topics…"
 				resource={topics}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -107,7 +107,7 @@
 
 				{#snippet Item({ item })}
 					<EvmTopicView
-						entityId={item[EntityMetaKey.Id]}
+						selector={item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 						collapsible={false}

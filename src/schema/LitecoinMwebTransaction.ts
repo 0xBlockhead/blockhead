@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import MwebBlock from '$/schema/LitecoinMwebBlock.ts'
+
+export enum LitecoinMwebTransactionSelector {
+	LitecoinMwebBlockTransactionIndex = 'litecoinMwebBlockTransactionIndex',
+}
 
 export default {
 	entityType: EntityType.LitecoinMwebTransaction,
@@ -15,12 +18,29 @@ export default {
 	label: 'Litecoin MWEB Transaction',
 	labelPlural: 'Litecoin MWEB Transactions',
 
-	id: type({
-		$mwebBlock: MwebBlock.id,
-		transactionIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: LitecoinMwebTransactionSelector.LitecoinMwebBlockTransactionIndex,
+			fields: [
+				'$mwebBlock',
+				'transactionIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$mwebBlock',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.LitecoinMwebBlock,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'transactionIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'kernelOffset',
 			type: EntityFieldType.Primitive,

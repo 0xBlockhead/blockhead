@@ -18,7 +18,7 @@
 		href={resolve('/x/users')}
 		entityFieldReference={{
 			entityType: EntityType.XNetwork,
-			entityId: { scope: 'XNetwork' },
+			selector: { scope: 'XNetwork' },
 			fieldName: '$$xUsers',
 		}}
 		id="x-users"

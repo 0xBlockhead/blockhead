@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,18 +12,18 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ZeroGServiceRequest>
+			selector: EntitySelector<typeof schema, EntityType.ZeroGServiceRequest>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const zeroGServiceRequest = subscribe(EntityType.ZeroGServiceRequest, entityId, ({ fields: { $requester: true, requestHash: true, responseHash: true, $settlementTrace: true } }))
+	const zeroGServiceRequest = subscribe(EntityType.ZeroGServiceRequest, selector, ({ fields: { $requester: true, requestHash: true, responseHash: true, $settlementTrace: true } }))
 
 
 	// Components
@@ -37,14 +37,14 @@
 
 <EntityView
 	entityType={EntityType.ZeroGServiceRequest}
-	{entityId}
-	title={entityId.requestId}
+	entitySelector={selector}
+	title={selector.requestId}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.requestId}
+			value={selector.requestId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -61,7 +61,7 @@
 							<dt>Requester</dt>
 							<dd>
 								<EvmAccountView
-									entityId={zeroGServiceRequest.fields.$requester[EntityMetaKey.Id]}
+									selector={zeroGServiceRequest.fields.$requester[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -98,7 +98,7 @@
 							<dt>Settlement</dt>
 							<dd>
 								<ZeroGSettlementTraceView
-									entityId={zeroGServiceRequest.fields.$settlementTrace[EntityMetaKey.Id]}
+									selector={zeroGServiceRequest.fields.$settlementTrace[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

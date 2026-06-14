@@ -10,6 +10,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { marketCatalogFieldSources } from '$/constants/Market.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum CurrencySelector {
+	Iso4217 = 'iso4217',
+}
+
+
 
 export default {
 	entityType: EntityType.Currency,
@@ -17,11 +22,22 @@ export default {
 	label: 'Currency',
 	labelPlural: 'Currencies',
 
-	id: type({
-		iso4217: type.valueOf(Iso4217),
-	}),
+	selectors: [
+		{
+			name: CurrencySelector.Iso4217,
+			fields: [
+				'iso4217',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'iso4217',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(Iso4217),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

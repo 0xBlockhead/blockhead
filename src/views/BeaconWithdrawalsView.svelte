@@ -60,7 +60,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Beacon_Rest,
@@ -82,7 +82,7 @@
 				entityType={EntityType.BeaconWithdrawal}
 				id={`${id}-items`}
 				href={href}
-				getKey={(withdrawal) => stringify(withdrawal[EntityMetaKey.Id])}
+				getKey={(withdrawal) => stringify(withdrawal[EntityMetaKey.Selector])}
 				open={true}
 				resource={withdrawals}
 				{title}
@@ -94,7 +94,7 @@
 
 				{#snippet Item({ item: withdrawal })}
 					<BeaconWithdrawalView
-						entityId={withdrawal[EntityMetaKey.Id]}
+						selector={withdrawal[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

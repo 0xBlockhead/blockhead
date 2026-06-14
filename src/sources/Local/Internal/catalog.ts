@@ -1,4 +1,4 @@
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import type { Action } from '$/constants/actions.ts'
 import { ActionType } from '$/constants/actions.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -264,7 +264,7 @@ export type NormalizedLocalInternal = {
 }
 
 
-/** Mirrors `probeEntityIdByType[EntityType.BridgeTransaction]` in assert-loaded-resolvers fixtures. */
+/** Mirrors `probeEntitySelectorByType[EntityType.BridgeTransaction]` in assert-loaded-resolvers fixtures. */
 const probeBridgeTransaction = {
 	accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 	chainId: 1,
@@ -627,20 +627,20 @@ export const readNormalizedLocalInternal = (): NormalizedLocalInternal => (
 
 export const findNormalizedBridgeTransactionRow = (
 	catalog: NormalizedLocalInternal,
-	entityId: EntityId<typeof schema, EntityType.BridgeTransaction>,
+	entitySelector: EntitySelector<typeof schema, EntityType.BridgeTransaction>,
 ): NormalizedBridgeTransaction | undefined => (
 	catalog.bridgeTransactions.find((row) => (
-		row.accountAddress === entityId.$account.address
-		&& String(row.chainId) === entityId.$sourceTx.$network.caip2.reference
-		&& row.txHash === entityId.$sourceTx.txHash
-		&& row.createdAt === entityId.createdAt
+		row.accountAddress === entitySelector.$account.address
+		&& String(row.chainId) === entitySelector.$sourceTx.$network.caip2.reference
+		&& row.txHash === entitySelector.$sourceTx.txHash
+		&& row.createdAt === entitySelector.createdAt
 	))
 )
 
 
 export const coinInstanceIdForNormalizedStateChannelRow = (
 	row: NormalizedStateChannel,
-): EntityId<typeof schema, EntityType.EvmCoinInstance> => (
+): EntitySelector<typeof schema, EntityType.EvmCoinInstance> => (
 	row.asset.kind === 'native' ?
 		{
 			$network: { caip2: { namespace: 'eip155', reference: String(row.chainId) } },

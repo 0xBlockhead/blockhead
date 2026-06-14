@@ -26,7 +26,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<FarcasterView
-			entityId={{
+			selector={{
 				scope: 'FarcasterNetwork',
 			}}
 			layout={EntityLayout.SummaryInline}

@@ -62,7 +62,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Beacon_Rest,
@@ -97,7 +97,7 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<EthereumBeaconFinality_TimestampView
-						entityId={row[EntityMetaKey.Id]}
+						selector={row[EntityMetaKey.Selector]}
 						layout={EntityLayout.SummaryDetails}
 						open={true}
 						showTypeAnnotation={false}

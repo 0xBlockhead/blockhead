@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum IpfsProtocolSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.IpfsProtocol,
 
 	label: 'IPFS protocol',
 	labelPlural: 'IPFS protocols',
 
-	id: type({
-		scope: type.unit('IpfsProtocol'),
-	}),
+	selectors: [
+		{
+			name: IpfsProtocolSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('IpfsProtocol'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

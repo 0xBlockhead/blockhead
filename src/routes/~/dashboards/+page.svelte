@@ -18,7 +18,7 @@
 		href={resolve('/~/manage/data')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: { scope: '$$blockheadPanelTrees' },
+			selector: { scope: '$$blockheadPanelTrees' },
 			fieldName: '$$blockheadPanelTrees',
 		}}
 		id="dashboards"

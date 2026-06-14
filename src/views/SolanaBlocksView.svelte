@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Solana_JsonRpc,
@@ -84,7 +84,7 @@
 				entityType={EntityType.SolanaBlock}
 				id={`${id}-items`}
 				href={href}
-				getKey={(block) => stringify(block[EntityMetaKey.Id])}
+				getKey={(block) => stringify(block[EntityMetaKey.Selector])}
 				open={true}
 				resource={blocks}
 				{title}
@@ -98,7 +98,7 @@
 
 				{#snippet Item({ item })}
 					<SolanaBlockView
-						entityId={item[EntityMetaKey.Id]}
+						selector={item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

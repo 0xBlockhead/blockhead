@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -15,16 +15,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(assets)/(coins)/coin/[coinId]', {
-				coinId: entityId.$coin.coinId,
+				coinId: selector.$coin.coinId,
 		}),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Coin_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.Coin_Timestamp>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -37,7 +37,7 @@
 	> = $props()
 
 	const coinTimestamp = subscribe(EntityType.Coin_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Blockscout_Rest,
 				Source.Local_Internal,
@@ -58,9 +58,9 @@
 <EntityView
 	entityType={EntityType.Coin_Timestamp}
 	bind:open
-	{entityId}
+	entitySelector={selector}
 	href={href}
-	title={`Coin snapshot ${entityId.$coin.coinId}`}
+	title={`Coin snapshot ${selector.$coin.coinId}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -81,7 +81,7 @@
 					/>%
 				{:else}
 					<span>
-						{entityId.$coin.coinId}
+						{selector.$coin.coinId}
 					</span>
 				{/if}
 			{/snippet}
@@ -106,7 +106,7 @@
 					/>%
 				{:else}
 					<span>
-						{entityId.$coin.coinId}
+						{selector.$coin.coinId}
 					</span>
 				{/if}
 	{/snippet}
@@ -117,7 +117,7 @@
 		<p>
 			<strong>Timestamped</strong>
 			catalog snapshot for the owning coin: fundamental fields frozen at wall-clock <strong>quote time</strong>
-			— the entity id keeps <strong>epoch milliseconds</strong>
+			— the entity selector keeps <strong>epoch milliseconds</strong>
 			for stable ordering; pair with spot or OHLC market coinTimestamps when auditing supply or market-cap moves, not with mempool calldata.
 		</p>
 	{/snippet}
@@ -155,7 +155,7 @@
 						<dt>Snapshot wall time</dt>
 						<dd>
 							<Timestamp
-								timestamp={entityId.timestampMs}
+								timestamp={selector.timestampMs}
 							/>
 						</dd>
 					</div>
@@ -163,7 +163,7 @@
 						<dt>Coin</dt>
 						<dd>
 							<CoinView
-								entityId={entityId.$coin}
+								selector={selector.$coin}
 								layout={EntityLayout.Title}
 								open={false}
 							/>

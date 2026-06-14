@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.MoneroBlock>
+			selector: EntitySelector<typeof schema, EntityType.MoneroBlock>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const block = subscribe(EntityType.MoneroBlock,
-		entityId,
+		selector,
 		({ sources: [
 				Source.MoneroDaemonRpc_JsonRpc,
 			], fields: { hash: true, timestampMs: true, $$transactions: true, ...(open && ({ difficulty: true, weightBytes: true })) } }),
@@ -46,16 +46,16 @@
 
 <EntityView
 	entityType={EntityType.MoneroBlock}
-	{entityId}
-	title={`Block #${entityId.height.toString()}`}
-	idDragPlainText={entityId.height.toString()}
+	entitySelector={selector}
+	title={`Block #${selector.height.toString()}`}
+	idDragPlainText={selector.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.height.toString()}
+			#{selector.height.toString()}
 		</span>
 	{/snippet}
 
@@ -81,12 +81,12 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if entityId.hash != null || block.fields.hash != null}
+					{#if selector.hash != null || block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={entityId.hash ?? block.fields.hash}
+									value={selector.hash ?? block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

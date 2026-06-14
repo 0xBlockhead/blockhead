@@ -51,7 +51,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.ZeroGStorageScan_Rest,
@@ -72,7 +72,7 @@
 				entityType={EntityType.ZeroGDataBlob}
 				id={`${id}-items`}
 				href={href}
-				getKey={(blob) => stringify(blob[EntityMetaKey.Id])}
+				getKey={(blob) => stringify(blob[EntityMetaKey.Selector])}
 				open={true}
 				resource={blobs}
 				{title}
@@ -84,7 +84,7 @@
 
 				{#snippet Item(context)}
 					<ZeroGDataBlobView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -18,7 +18,7 @@
 		href={resolve('/~/(accounts)/accounts/balances')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: { scope: '$$actorCoins' },
+			selector: { scope: '$$actorCoins' },
 			fieldName: '$$actorCoins',
 		}}
 		id="balances"

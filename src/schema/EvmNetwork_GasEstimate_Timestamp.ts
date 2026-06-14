@@ -6,8 +6,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EvmNetwork_GasEstimate_TimestampSelector {
+	EvmNetworkTimestampMs = 'evmNetworkTimestampMs',
+}
 
 export default {
 	entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
@@ -15,12 +18,29 @@ export default {
 	label: 'Gas oracle snapshot',
 	labelPlural: 'Gas oracle snapshots',
 
-	id: type({
-		$network: Network.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: EvmNetwork_GasEstimate_TimestampSelector.EvmNetworkTimestampMs,
+			fields: [
+				'$network',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'slowGwei',
 			type: EntityFieldType.Primitive,

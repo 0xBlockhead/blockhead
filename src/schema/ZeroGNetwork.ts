@@ -13,6 +13,11 @@ import { UrlString } from '$/schema/UrlString.ts'
 import { networkFields } from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum ZeroGNetworkSelector {
+	NetworkSlug = 'networkSlug',
+}
+
+
 const zeroGEndpointField = type({
 	url: UrlString,
 	transportType: type.valueOf(TransportType),
@@ -25,12 +30,22 @@ export default {
 	label: '0G network',
 	labelPlural: '0G networks',
 
-	id: type({
-		networkSlug: type.unit('0g'),
-	}),
+	selectors: [
+		{
+			name: ZeroGNetworkSelector.NetworkSlug,
+			fields: [
+				'networkSlug',
+			],
+		},
+	],
 
 	fields: [
-		networkFields[0],
+		{
+			name: 'networkSlug',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('0g'),
+			cardinality: EntityFieldCardinality.One,
+		},		networkFields[0],
 		networkFields[1],
 		networkFields[2],
 		networkFields[3],

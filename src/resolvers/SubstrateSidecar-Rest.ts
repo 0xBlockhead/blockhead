@@ -6,11 +6,17 @@ import {
 	substrateSidecarDefaultLocalRestUrl,
 } from '$/constants/PolkadotNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
+import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
+import { PolkadotEventSelector } from '$/schema/PolkadotEvent.ts'
+import { PolkadotAccountSelector } from '$/schema/PolkadotAccount.ts'
+import { PolkadotPalletSelector } from '$/schema/PolkadotPallet.ts'
+import { PolkadotValidatorSelector } from '$/schema/PolkadotValidator.ts'
+import { PolkadotNetworkSelector } from '$/schema/PolkadotNetwork.ts'
 
 type SidecarBlockEvent = {
 	method: string
@@ -36,19 +42,19 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$network)
+				[PolkadotBlockSelector.NetworkBlockNumberHash]: async ({ $network, hash }) => {
+				assertPolkadotMainnet($network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const block = await getBlock({
 					restBaseUrl: substrateSidecarDefaultLocalRestUrl,
-					blockId: entityId.hash ?? entityId.blockNumber,
+					blockId: hash,
 				})
 				return {
 					hash: block.hash,
 					...(BigInt(block.number) > 0n && {
 						$parent: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								blockNumber: BigInt(block.number) - 1n,
 								hash: block.parentHash,
 							},
@@ -57,9 +63,9 @@ export default {
 					stateRoot: block.stateRoot,
 					extrinsicsRoot: block.extrinsicsRoot,
 					$$extrinsics: block.extrinsics.map((extrinsic, extrinsicIndex) => ({
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							$block: {
-								$network: entityId.$network,
+								$network: entitySelector.$network,
 								blockNumber: BigInt(block.number),
 								hash: block.hash,
 							},
@@ -70,15 +76,15 @@ export default {
 						}),
 						...(extrinsic.signature?.signer != null && {
 							$signer: {
-								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector.$network,
 									accountId: extrinsic.signature.signer,
 								},
 							},
 						}),
 						$pallet: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
 								palletName: extrinsic.method.pallet,
 							},
 						},
@@ -103,9 +109,9 @@ export default {
 						] = event.method.split('.')
 
 						return {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$block: {
-									$network: entityId.$network,
+									$network: entitySelector.$network,
 									blockNumber: BigInt(block.number),
 									hash: block.hash,
 								},
@@ -113,9 +119,9 @@ export default {
 							},
 							...(event.extrinsicIndex != null && {
 								$extrinsic: {
-									[EntityMetaKey.Id]: {
+									[EntityMetaKey.Selector]: {
 										$block: {
-											$network: entityId.$network,
+											$network: entitySelector.$network,
 											blockNumber: BigInt(block.number),
 											hash: block.hash,
 										},
@@ -124,8 +130,8 @@ export default {
 								},
 							}),
 							$pallet: {
-								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector.$network,
 									palletName,
 								},
 							},
@@ -149,16 +155,16 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$block.$network)
+				[PolkadotExtrinsicSelector.PolkadotBlockExtrinsicIndex]: async ({ $block, extrinsicIndex }) => {
+				assertPolkadotMainnet($block.$network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const block = await getBlock({
 					restBaseUrl: substrateSidecarDefaultLocalRestUrl,
-					blockId: entityId.$block.hash ?? entityId.$block.blockNumber,
+					blockId: $block.hash,
 				})
-				const extrinsic = block.extrinsics.at(entityId.extrinsicIndex)
+				const extrinsic = block.extrinsics.at(extrinsicIndex)
 				if (extrinsic == null) {
-					throw new Error(`SubstrateSidecar_Rest: missing extrinsic ${entityId.extrinsicIndex}`)
+					throw new Error(`SubstrateSidecar_Rest: missing extrinsic ${extrinsicIndex}`)
 				}
 				return {
 					...(extrinsic.hash != null && {
@@ -166,15 +172,15 @@ export default {
 					}),
 					...(extrinsic.signature?.signer != null && {
 						$signer: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$block.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $block.$network,
 								accountId: extrinsic.signature.signer,
 							},
 						},
 					}),
 					$pallet: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$block.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $block.$network,
 							palletName: extrinsic.method.pallet,
 						},
 					},
@@ -198,12 +204,12 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotEvent,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$block.$network)
+				[PolkadotEventSelector.PolkadotBlockEventIndex]: async ({ $block, eventIndex }) => {
+				assertPolkadotMainnet($block.$network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const block = await getBlock({
 					restBaseUrl: substrateSidecarDefaultLocalRestUrl,
-					blockId: entityId.$block.hash ?? entityId.$block.blockNumber,
+					blockId: $block.hash,
 				})
 				const event: SidecarBlockEvent | undefined = [
 					...(block.onInitialize?.events ?? []),
@@ -214,9 +220,9 @@ export default {
 						}))
 					)),
 					...(block.onFinalize?.events ?? []),
-				].at(entityId.eventIndex)
+				].at(eventIndex)
 				if (event == null) {
-					throw new Error(`SubstrateSidecar_Rest: missing event ${entityId.eventIndex}`)
+					throw new Error(`SubstrateSidecar_Rest: missing event ${eventIndex}`)
 				}
 				const [
 					palletName,
@@ -225,9 +231,9 @@ export default {
 				return {
 					...(event.extrinsicIndex != null && {
 						$extrinsic: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$block: {
-									$network: entityId.$block.$network,
+									$network: $block.$network,
 									blockNumber: BigInt(block.number),
 									hash: block.hash,
 								},
@@ -236,8 +242,8 @@ export default {
 						},
 					}),
 					$pallet: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$block.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $block.$network,
 							palletName,
 						},
 					},
@@ -256,12 +262,12 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotAccount,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$network)
+				[PolkadotAccountSelector.NetworkAccountId]: async ({ $network, accountId }) => {
+				assertPolkadotMainnet($network)
 				const { getAccountBalanceInfo } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const account = await getAccountBalanceInfo({
 					restBaseUrl: substrateSidecarDefaultLocalRestUrl,
-					accountId: entityId.accountId,
+					accountId: accountId,
 				})
 				return {
 					...(account.nonce != null && {
@@ -283,12 +289,12 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotPallet,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$network)
+				[PolkadotPalletSelector.NetworkPalletName]: async ({ $network, palletName }) => {
+				assertPolkadotMainnet($network)
 				const { getRuntimeMetadata } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const pallet = (await getRuntimeMetadata({ restBaseUrl: substrateSidecarDefaultLocalRestUrl })).pallets
-					.find((runtimePallet) => runtimePallet.name === entityId.palletName)
-				if (pallet == null) throw new Error(`SubstrateSidecar_Rest: pallet not found for ${entityId.palletName}`)
+					.find((runtimePallet) => runtimePallet.name === entitySelector.palletName)
+				if (pallet == null) throw new Error(`SubstrateSidecar_Rest: pallet not found for ${palletName}`)
 				return {
 					index: pallet.index,
 				}
@@ -303,21 +309,21 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotValidator,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$network)
+				[PolkadotValidatorSelector.NetworkStashAccountId]: async ({ $network, stashAccountId }) => {
+				assertPolkadotMainnet($network)
 				const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const validator = (await getStakingValidators({ restBaseUrl: substrateSidecarDefaultLocalRestUrl })).validators
 					?.find((stakingValidator) => (
-						stakingValidator.accountId === entityId.stashAccountId
-						|| stakingValidator.address === entityId.stashAccountId
-						|| stakingValidator.stashId === entityId.stashAccountId
+						stakingValidator.accountId === entitySelector.stashAccountId
+						|| stakingValidator.address === entitySelector.stashAccountId
+						|| stakingValidator.stashId === entitySelector.stashAccountId
 					))
-				if (validator == null) throw new Error(`SubstrateSidecar_Rest: validator not found for ${entityId.stashAccountId}`)
+				if (validator == null) throw new Error(`SubstrateSidecar_Rest: validator not found for ${stashAccountId}`)
 				return {
 					...(validator.controllerId != null && {
 						$controller: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								accountId: validator.controllerId,
 							},
 						},
@@ -342,8 +348,8 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId)
+				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
+				assertPolkadotMainnet(entitySelector)
 				const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				return ((await getStakingValidators({ restBaseUrl: substrateSidecarDefaultLocalRestUrl })).validators ?? [])
 					.slice(0, 64)
@@ -354,14 +360,14 @@ export default {
 						:
 							[
 								{
-									[EntityMetaKey.Id]: {
-										$network: entityId,
+									[EntityMetaKey.Selector]: {
+										$network: entitySelector,
 										stashAccountId,
 									},
 									...(validator.controllerId != null && {
 										$controller: {
-											[EntityMetaKey.Id]: {
-												$network: entityId,
+											[EntityMetaKey.Selector]: {
+												$network: entitySelector,
 												accountId: validator.controllerId,
 											},
 										},
@@ -386,17 +392,17 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$network)
+				[PolkadotBlockSelector.NetworkBlockNumberHash]: async ({ $network, hash }) => {
+				assertPolkadotMainnet($network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const block = await getBlock({
 					restBaseUrl: substrateSidecarDefaultLocalRestUrl,
-					blockId: entityId.hash ?? entityId.blockNumber,
+					blockId: hash,
 				})
 				if (BigInt(block.number) === 0n) return undefined
 				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
+					[EntityMetaKey.Selector]: {
+						$network: $network,
 						blockNumber: BigInt(block.number) - 1n,
 						hash: block.parentHash,
 					},
@@ -412,17 +418,17 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$network)
+				[PolkadotBlockSelector.NetworkBlockNumberHash]: async ({ $network, hash }) => {
+				assertPolkadotMainnet($network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const block = await getBlock({
 					restBaseUrl: substrateSidecarDefaultLocalRestUrl,
-					blockId: entityId.hash ?? entityId.blockNumber,
+					blockId: hash,
 				})
 				return block.extrinsics.map((extrinsic, extrinsicIndex) => ({
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						$block: {
-							$network: entityId.$network,
+							$network: entitySelector.$network,
 							blockNumber: BigInt(block.number),
 							hash: block.hash,
 						},
@@ -433,15 +439,15 @@ export default {
 					}),
 					...(extrinsic.signature?.signer != null && {
 						$signer: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
 								accountId: extrinsic.signature.signer,
 							},
 						},
 					}),
 					$pallet: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector.$network,
 							palletName: extrinsic.method.pallet,
 						},
 					},
@@ -461,12 +467,12 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$network)
+				[PolkadotBlockSelector.NetworkBlockNumberHash]: async ({ $network, hash }) => {
+				assertPolkadotMainnet($network)
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const block = await getBlock({
 					restBaseUrl: substrateSidecarDefaultLocalRestUrl,
-					blockId: entityId.hash ?? entityId.blockNumber,
+					blockId: hash,
 				})
 				return ([
 					...(block.onInitialize?.events ?? []),
@@ -484,9 +490,9 @@ export default {
 					] = event.method.split('.')
 
 					return {
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							$block: {
-								$network: entityId.$network,
+								$network: entitySelector.$network,
 								blockNumber: BigInt(block.number),
 								hash: block.hash,
 							},
@@ -494,9 +500,9 @@ export default {
 						},
 						...(event.extrinsicIndex != null && {
 							$extrinsic: {
-								[EntityMetaKey.Id]: {
+								[EntityMetaKey.Selector]: {
 									$block: {
-										$network: entityId.$network,
+										$network: entitySelector.$network,
 										blockNumber: BigInt(block.number),
 										hash: block.hash,
 									},
@@ -505,8 +511,8 @@ export default {
 							},
 						}),
 						$pallet: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
 								palletName,
 							},
 						},

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,10 +15,10 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]', {
-			caip2Namespace: entityId.$network.caip2.namespace,
-			caip2Reference: entityId.$network.caip2.reference,
+			caip2Namespace: selector.$network.caip2.namespace,
+			caip2Reference: selector.$network.caip2.reference,
 		}),
 		layout = EntityLayout.Summary,
 		title: titleProp,
@@ -27,7 +27,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BeaconValidator>
+			selector: EntitySelector<typeof schema, EntityType.BeaconValidator>
 			href?: string
 			layout?: EntityLayout
 			title?: string
@@ -44,12 +44,12 @@
 	// Functions
 	const title = (
 		titleProp
-		?? `Validator #${entityId.validatorIndex.toLocaleString()}`
+		?? `Validator #${selector.validatorIndex.toLocaleString()}`
 	)
 
 
 	const validator = subscribe(EntityType.BeaconValidator,
-		entityId,
+		selector,
 		(
 			open ?
 				{
@@ -80,7 +80,7 @@
 
 <EntityView
 	entityType={EntityType.BeaconValidator}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 		{layout}
 	bind:open
@@ -90,7 +90,7 @@
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(entityId.validatorIndex)}
+			#{String(selector.validatorIndex)}
 		</span>
 	{/snippet}
 
@@ -98,7 +98,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Validator </span>
 		<span data-badge="small">
-			#{String(entityId.validatorIndex)}
+			#{String(selector.validatorIndex)}
 		</span>
 		</span>
 	{/snippet}

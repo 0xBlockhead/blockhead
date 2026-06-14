@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.NearReceipt>
+			selector: EntitySelector<typeof schema, EntityType.NearReceipt>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const nearReceipt = subscribe(EntityType.NearReceipt,
-		entityId,
+		selector,
 		({ fields: { $predecessor: true, $receiver: true } }),
 	)
 
@@ -43,15 +43,15 @@
 
 <EntityView
 	entityType={EntityType.NearReceipt}
-	{entityId}
-	title={entityId.receiptId}
+	entitySelector={selector}
+	title={selector.receiptId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.receiptId}
+			value={selector.receiptId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -68,7 +68,7 @@
 							<dt>Predecessor</dt>
 							<dd>
 								<NearAccountView
-									entityId={nearReceipt.fields.$predecessor[EntityMetaKey.Id]}
+									selector={nearReceipt.fields.$predecessor[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
@@ -82,7 +82,7 @@
 							<dt>Receiver</dt>
 							<dd>
 								<NearAccountView
-									entityId={nearReceipt.fields.$receiver[EntityMetaKey.Id]}
+									selector={nearReceipt.fields.$receiver[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}

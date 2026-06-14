@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,14 +17,14 @@
 
 	// State
 	let {
-		entityId,
-		href = resolve(`/bridge/route/${encodeURIComponent(stringify(entityId))}`),
+		selector,
+		href = resolve(`/bridge/route/${encodeURIComponent(stringify(selector))}`),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BridgeRoute>
+			selector: EntitySelector<typeof schema, EntityType.BridgeRoute>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -33,7 +33,7 @@
 	> = $props()
 
 	const bridgeRoute = subscribe(EntityType.BridgeRoute,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
@@ -58,7 +58,7 @@
 <EntityView
 	entityType={EntityType.BridgeRoute}
 	bind:open
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{...EntityViewProps}
 >
@@ -74,9 +74,9 @@
 			placeholderText="Loading…"
 		>
 			{#snippet children(bridgeRoute)}
-				{entityId.fromChainId}
+				{selector.fromChainId}
 				→
-				{entityId.toChainId}
+				{selector.toChainId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -98,9 +98,9 @@
 					>
 						{#snippet children(bridgeRoute)}
 							<EvmNetworkView
-								entityId={
-									bridgeRoute.fields.$fromNetwork?.[EntityMetaKey.Id]
-									?? { chainId: entityId.fromChainId }
+								selector={
+									bridgeRoute.fields.$fromNetwork?.[EntityMetaKey.Selector]
+									?? { chainId: selector.fromChainId }
 								}
 								layout={EntityLayout.Title}
 								open={false}
@@ -118,9 +118,9 @@
 					>
 						{#snippet children(bridgeRoute)}
 							<EvmNetworkView
-								entityId={
-									bridgeRoute.fields.$toNetwork?.[EntityMetaKey.Id]
-									?? { chainId: entityId.toChainId }
+								selector={
+									bridgeRoute.fields.$toNetwork?.[EntityMetaKey.Selector]
+									?? { chainId: selector.toChainId }
 								}
 								layout={EntityLayout.Title}
 								open={false}
@@ -134,7 +134,7 @@
 						<dt>From token</dt>
 					<dd>
 						<TruncatedValue
-							value={entityId.fromToken}
+							value={selector.fromToken}
 							format={TruncatedValueFormat.Visual}
 						/>
 						</dd>
@@ -146,7 +146,7 @@
 						<dt>To token</dt>
 					<dd>
 						<TruncatedValue
-							value={entityId.toToken}
+							value={selector.toToken}
 							format={TruncatedValueFormat.Visual}
 						/>
 						</dd>
@@ -158,14 +158,14 @@
 						<dt>From address</dt>
 					<dd>
 						<EvmNetworkAccountView
-							entityId={{
+							selector={{
 								$network: {
 									caip2: {
 										namespace: 'eip155',
-										reference: String(entityId.fromChainId),
+										reference: String(selector.fromChainId),
 									},
 								},
-								$actor: { address: entityId.fromAddress },
+								$actor: { address: selector.fromAddress },
 							}}
 							layout={EntityLayout.Value}
 							open={false}
@@ -177,7 +177,7 @@
 				{#if open}
 					<div>
 						<dt>Slippage</dt>
-						<dd>{String(entityId.slippage)}</dd>
+						<dd>{String(selector.slippage)}</dd>
 					</div>
 				{/if}
 
@@ -185,7 +185,7 @@
 					<div>
 						<dt>Request amount</dt>
 					<dd data-text="font-monospace">
-						{entityId.fromAmount}
+						{selector.fromAmount}
 						</dd>
 					</div>
 				{/if}
@@ -289,10 +289,10 @@
 				href={resolve('/bridge')}
 				entityFieldReference={{
 					entityType: EntityType.BridgeRoute,
-					entityId,
+					selector,
 					fieldName: '$$steps',
 				}}
-				id={`${stringify(entityId)}:steps`}
+				id={`${stringify(selector)}:steps`}
 			/>
 		{/if}
 	{/snippet}

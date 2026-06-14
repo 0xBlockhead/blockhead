@@ -9,18 +9,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import RedditComment from '$/schema/RedditComment.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum RedditComment_TimestampSelector {
+	RedditCommentTimestampMs = 'redditCommentTimestampMs',
+}
+
 export default {
 	entityType: EntityType.RedditComment_Timestamp,
 
 	label: 'Reddit comment snapshot',
 	labelPlural: 'Reddit comment snapshots',
 
-	id: type({
-		$comment: RedditComment.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: RedditComment_TimestampSelector.RedditCommentTimestampMs,
+			fields: [
+				'$comment',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$comment',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.RedditComment,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'score',
 			type: EntityFieldType.Primitive,

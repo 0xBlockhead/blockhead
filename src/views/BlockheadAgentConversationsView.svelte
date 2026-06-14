@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -43,7 +43,7 @@
 
 	// Functions
 	const globalId = (
-		{ scope: '$$blockheadAgentConversations' } satisfies EntityId<typeof schema, EntityType._Global>
+		{ scope: '$$blockheadAgentConversations' } satisfies EntitySelector<typeof schema, EntityType._Global>
 	)
 
 
@@ -83,7 +83,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const global = subscribe(EntityType._Global,
-				entityFieldReference?.entityId ?? globalId,
+				entityFieldReference?.selector ?? globalId,
 				({ sources: [
 						Source.Local_Internal,
 					], fields: { $$blockheadAgentConversations: true } }),
@@ -101,8 +101,8 @@
 				entityType={EntityType.BlockheadAgentConversation}
 				id={`${id}-items`}
 				open={true}
-				getKey={(conversation) => stringify(conversation[EntityMetaKey.Id])}
-				getSortValue={(conversation) => conversation[EntityMetaKey.Id].id}
+				getKey={(conversation) => stringify(conversation[EntityMetaKey.Selector])}
+				getSortValue={(conversation) => conversation[EntityMetaKey.Selector].id}
 				placeholderText="Loading conversations…"
 				resource={conversations}
 				{title}
@@ -116,8 +116,8 @@
 
 				{#snippet Item({ item: conversation })}
 					<BlockheadAgentConversationView
-						entityId={{
-							id: conversation[EntityMetaKey.Id].id,
+						selector={{
+							id: conversation[EntityMetaKey.Selector].id,
 						}}
 						layout={EntityLayout.Summary}
 						open={false}

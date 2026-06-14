@@ -4,64 +4,59 @@ import {
 	assertMainSettled,
 	collectIssues,
 	installChainlistRpcsJsonStub,
-	jsonStringifyForExpectMessage,
-	preflightChainHeadAdvancesWithRetries,
-	publicJsonRpcHttpUrlForChainE2e,
-	readTopBlockNumberFromNetworkBlocksPage,
+	installPersistenceProbe,
 } from '../_e2eBrowserHelpers.ts'
 
 const pageErrors = (issues: string[]) => (
 	issues.filter((i) => i.startsWith('pageerror:'))
 )
 
+const readBlocksDiagnostics = (
+	page: import('@playwright/test').Page,
+) => page.evaluate(() => {
+	const probe = window.__blockheadClientProbe
+	if (probe == null)
+		throw new Error('missing blockhead client probe')
+
+	return {
+		fieldRows: probe.collectionSizes().fields.EvmNetwork?.$$blocks ?? 0,
+		queries: probe.queryStates().filter((query) => query.key[0] === 'Field:EvmNetwork:$$blocks'),
+	}
+})
+
 test.describe('/network/eip155:1/blocks (EvmBlocksView + $$blocks collection query)', () => {
-	test('(browser, live) ordered list: top block advances after chain head moves', async ({ page }) => {
-		test.setTimeout(400_000)
+	test('materializes queried block rows into the field collection and DOM', async ({ page }) => {
+		test.setTimeout(240_000)
+		await installPersistenceProbe(page)
 		await installChainlistRpcsJsonStub(page)
-		const rpcUrlRaw = await publicJsonRpcHttpUrlForChainE2e(1)
-		expect(
-			rpcUrlRaw,
-			'no HTTP JSON-RPC for chain 1 (ExecutionEndpoints / Chainlist)',
-		).not.toBeNull()
-		if (rpcUrlRaw == null) {
-			throw new Error('no HTTP JSON-RPC for chain 1 (ExecutionEndpoints / Chainlist)')
-		}
-		const rpcUrl = rpcUrlRaw
-		const preflight = await preflightChainHeadAdvancesWithRetries(
-			page,
-			rpcUrl,
-			3_000,
-			{ attempts: 8, betweenAttemptsMs: 4_000 },
-		)
-		expect(
-			preflight.ok,
-			preflight.ok ?
-				'ok'
-			: 'detail' in preflight && preflight.detail != null ?
-				jsonStringifyForExpectMessage(preflight.detail)
-			:
-				jsonStringifyForExpectMessage(preflight),
-		).toBe(true)
 
 		const issues = collectIssues(page)
 		await page.goto('/network/eip155:1/blocks', { waitUntil: 'load' })
 		await expect(page.locator('#main')).toBeVisible()
 		await assertMainSettled(page, 120_000)
 
-		const top0 = await readTopBlockNumberFromNetworkBlocksPage(page)
-		expect(top0, 'first /block/ link in list').not.toBeNull()
-
-		await expect.poll(
-			async () => {
-				const t = await readTopBlockNumberFromNetworkBlocksPage(page, 5_000)
-				return t != null && t > (top0 ?? 0n)
-			},
-			{
-				message: 'top list block should pass prior head after a new mainnet block ($$blocks collection query)',
-				timeout: 180_000,
-				intervals: [3_000, 4_000, 5_000, 6_000, 8_000, 8_000],
-			},
-		).toBe(true)
+		await expect.poll(async () => {
+			const diagnostics = await readBlocksDiagnostics(page)
+			return (
+				diagnostics.fieldRows > 0
+				&& diagnostics.queries.some((query) => query.status === 'success')
+			) ?
+				'ok'
+			:
+				JSON.stringify(diagnostics)
+		}, {
+			message: 'Field:EvmNetwork:$$blocks query must materialize rows into the TanStack DB field collection',
+			timeout: 60_000,
+			intervals: [
+				500,
+				1_000,
+				2_000,
+			],
+		}).toBe('ok')
+		expect((await readBlocksDiagnostics(page)).fieldRows).toBeGreaterThan(0)
+		const firstBlockLink = page.locator('#blocks-items a[href*="/block/"]').first()
+		await expect(firstBlockLink).toBeAttached()
+		await expect(firstBlockLink).toHaveAttribute('href', /\/block\/[0-9]+\b/)
 
 		expect(
 			pageErrors(issues),

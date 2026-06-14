@@ -7,7 +7,7 @@
 
 <Page>
 	<LensView
-		entityId={{
+		selector={{
 			scope: 'LensNetwork',
 		}}
 	/>

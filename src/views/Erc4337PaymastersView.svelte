@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ fields: { $$erc4337Paymasters: ({ sources: [
 							Source.Blockscout_Rest,
 						], limit: 16 }) } }),
@@ -80,8 +80,8 @@
 				entityType={EntityType.Erc4337Paymaster}
 				id={`${id}-items`}
 				href={href}
-				getKey={(paymaster) => stringify(paymaster[EntityMetaKey.Id])}
-				getSortValue={(paymaster) => paymaster[EntityMetaKey.Id].address}
+				getKey={(paymaster) => stringify(paymaster[EntityMetaKey.Selector])}
+				getSortValue={(paymaster) => paymaster[EntityMetaKey.Selector].address}
 				placeholderText="Loading paymasters…"
 				resource={paymasters}
 				{title}
@@ -94,7 +94,7 @@
 
 				{#snippet Item({ item: paymaster })}
 					<Erc4337PaymasterView
-						entityId={paymaster[EntityMetaKey.Id]}
+						selector={paymaster[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

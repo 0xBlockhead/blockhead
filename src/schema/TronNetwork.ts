@@ -12,6 +12,11 @@ import { UrlString } from '$/schema/UrlString.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum TronNetworkSelector {
+	Network = 'network',
+}
+
+
 const tronRestEndpointField = type({
 	url: UrlString,
 	transportType: type.valueOf(TransportType),
@@ -24,7 +29,14 @@ export default {
 	label: 'TRON network',
 	labelPlural: 'TRON networks',
 
-	id: Network.id,
+	selectors: [
+		{
+			name: TronNetworkSelector.Network,
+			fields: [
+				'$network',
+			],
+		},
+	],
 
 	fields: [
 		{

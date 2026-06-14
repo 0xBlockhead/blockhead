@@ -8,9 +8,9 @@ import type { PageLoad } from './$types.ts'
 
 
 export const load: PageLoad = ({ params }) => {
-	const entityId = NostrProfileSchema.id({
+	const entitySelector = NostrProfileSchema.id({
 		pubkey: decodeURIComponent(params.pubkey).trim().toLowerCase(),
 	})
-	if (entityId instanceof arktype.errors) error(404, 'Invalid Nostr pubkey')
-	return { entityId }
+	if (entitySelector instanceof arktype.errors) error(404, 'Invalid Nostr pubkey')
+	return { entitySelector }
 }

@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum UtxoTransactionSelector {
+	NetworkTxId = 'networkTxId',
+}
 
 export default {
 	entityType: EntityType.UtxoTransaction,
@@ -15,12 +18,29 @@ export default {
 	label: 'UTXO Transaction',
 	labelPlural: 'UTXO Transactions',
 
-	id: type({
-		$network: Network.id,
-		txId: 'string',
-	}),
+	selectors: [
+		{
+			name: UtxoTransactionSelector.NetworkTxId,
+			fields: [
+				'$network',
+				'txId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'txId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$block',
 			type: EntityFieldType.EntityReference,

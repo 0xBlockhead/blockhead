@@ -12,7 +12,7 @@
 
 <Page>
 	<BlockheadFarcasterAccountConnectionView
-		entityId={{ fid: Number(params.accountId) }}
+		selector={{ fid: Number(params.accountId) }}
 		title={'Account'}
 	/>
 </Page>

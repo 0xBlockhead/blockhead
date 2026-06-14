@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 
 
 	// State
@@ -15,7 +15,7 @@
 
 <Page>
 	<FarcasterFeedView
-		entityId={{
+		selector={{
 			variant: 'byUser',
 			fid: Number(params.userId),
 		}}

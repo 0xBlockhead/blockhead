@@ -16,19 +16,19 @@ import { Source } from '$/sources/Source.ts'
 
 const sourceValues = new Set<string>(Object.values(Source))
 
-const allEntityIdArktypes = schema.map((definition) => definition.id) as readonly Type[]
+const allEntitySelectorArktypes = schema.map((definition) => definition.id) as readonly Type[]
 
 
 const idMatchesSomeEntity = (idValue: unknown): boolean => (
-	allEntityIdArktypes.some((idType) => (
+	allEntitySelectorArktypes.some((idType) => (
 		!(idType(idValue) instanceof arktype.errors)
 	))
 )
 
 
-const assertValidEntityIdUnion = (idValue: unknown, path: string): void => {
+const assertValidEntitySelectorUnion = (idValue: unknown, path: string): void => {
 	if (!idMatchesSomeEntity(idValue)) {
-		throw new Error(`${path}: not a valid entity id for any registered entity type`)
+		throw new Error(`${path}: not a valid entity selector for any registered entity type`)
 	}
 }
 
@@ -37,8 +37,8 @@ const isEntityCollectionRowShape = (value: object): boolean => {
 	const o = value as Record<string, unknown>
 
 	return (
-		EntityMetaKey.Id in o
-		&& EntityMetaKey.IdKey in o
+		EntityMetaKey.Selector in o
+		&& EntityMetaKey.SelectorKey in o
 		&& EntityMetaKey.Source in o
 		&& EntityMetaKey.Fields in o
 	)
@@ -49,19 +49,19 @@ const isEntityFieldCollectionRowShape = (value: object): boolean => {
 	const o = value as Record<string, unknown>
 
 	return (
-		EntityMetaKey.ParentId in o
-		&& EntityMetaKey.ParentIdKey in o
+		EntityMetaKey.ParentSelector in o
+		&& EntityMetaKey.ParentSelectorKey in o
 		&& EntityMetaKey.Source in o
 		&& EntityMetaKey.Value in o
 	)
 }
 
 
-/** Compact ref: `__id` + `__idKey` without collection-row markers (may carry extra denormalized keys). */
+/** Compact ref: `__selector` + `__selectorKey` without collection-row markers (may carry extra denormalized keys). */
 const isCompactEntityRefShape = (value: object): boolean => {
 	const o = value as Record<string, unknown>
 
-	if (!(EntityMetaKey.Id in o && EntityMetaKey.IdKey in o)) return false
+	if (!(EntityMetaKey.Selector in o && EntityMetaKey.SelectorKey in o)) return false
 
 	return (
 		!isEntityCollectionRowShape(value)
@@ -75,8 +75,8 @@ const assertEntityCollectionRowShellGeneric = (
 	path: string,
 	idValidator: (idValue: unknown, idPath: string) => void,
 ): void => {
-	if (typeof record[EntityMetaKey.IdKey] !== 'string') {
-		throw new Error(`${path}: ${EntityMetaKey.IdKey} must be a string`)
+	if (typeof record[EntityMetaKey.SelectorKey] !== 'string') {
+		throw new Error(`${path}: ${EntityMetaKey.SelectorKey} must be a string`)
 	}
 
 	const src = record[EntityMetaKey.Source]
@@ -89,7 +89,7 @@ const assertEntityCollectionRowShellGeneric = (
 		throw new Error(`${path}: ${EntityMetaKey.Fields} must be an object`)
 	}
 
-	idValidator(record[EntityMetaKey.Id], `${path}.${EntityMetaKey.Id}`)
+	idValidator(record[EntityMetaKey.Selector], `${path}.${EntityMetaKey.Selector}`)
 }
 
 
@@ -97,8 +97,8 @@ const assertEntityFieldCollectionRowShell = (
 	record: Record<string, unknown>,
 	path: string,
 ): void => {
-	if (typeof record[EntityMetaKey.ParentIdKey] !== 'string') {
-		throw new Error(`${path}: ${EntityMetaKey.ParentIdKey} must be a string`)
+	if (typeof record[EntityMetaKey.ParentSelectorKey] !== 'string') {
+		throw new Error(`${path}: ${EntityMetaKey.ParentSelectorKey} must be a string`)
 	}
 
 	const src = record[EntityMetaKey.Source]
@@ -113,8 +113,8 @@ const assertEntityFieldCollectionRowShell = (
 
 
 const ENTITY_ROW_ROOT_SKIP = new Set<string>([
-	EntityMetaKey.Id,
-	EntityMetaKey.IdKey,
+	EntityMetaKey.Selector,
+	EntityMetaKey.SelectorKey,
 	EntityMetaKey.Source,
 	EntityMetaKey.Fields,
 ])
@@ -146,7 +146,7 @@ const walkLoadedValue = (
 		assertEntityCollectionRowShellGeneric(
 			record,
 			path,
-			assertValidEntityIdUnion,
+			assertValidEntitySelectorUnion,
 		)
 		walkLoadedValue(record[EntityMetaKey.Fields], `${path}.${EntityMetaKey.Fields}`, seen)
 		for (const key of Object.keys(record)) {
@@ -163,12 +163,12 @@ const walkLoadedValue = (
 	}
 
 	if (isCompactEntityRefShape(value)) {
-		if (typeof record[EntityMetaKey.IdKey] !== 'string') {
-			throw new Error(`${path}: ${EntityMetaKey.IdKey} must be a string`)
+		if (typeof record[EntityMetaKey.SelectorKey] !== 'string') {
+			throw new Error(`${path}: ${EntityMetaKey.SelectorKey} must be a string`)
 		}
-		assertValidEntityIdUnion(record[EntityMetaKey.Id], `${path}.${EntityMetaKey.Id}`)
+		assertValidEntitySelectorUnion(record[EntityMetaKey.Selector], `${path}.${EntityMetaKey.Selector}`)
 		for (const key of Object.keys(record)) {
-			if (key === EntityMetaKey.Id || key === EntityMetaKey.IdKey) continue
+			if (key === EntityMetaKey.Selector || key === EntityMetaKey.SelectorKey) continue
 			walkLoadedValue(record[key], `${path}.${key}`, seen)
 		}
 		return
@@ -233,7 +233,7 @@ const assertFieldsObjectPrimitives = (
 
 
 /**
- * Recursively validate resolver-shaped data: nested compact refs (`__id` + `__idKey`),
+ * Recursively validate resolver-shaped data: nested compact refs (`__selector` + `__selectorKey`),
  * embedded entity/field collection rows, arrays, and plain objects (any entry point).
  */
 export const assertLoadedValue = (
@@ -257,12 +257,12 @@ export const assertResolverDefinitionResult = (
 	const path = `EntityCollection ${entityDefinition.entityType}`
 
 	if (!isEntityCollectionRowShape(row)) {
-		throw new Error(`${path}: expected a collection row (${EntityMetaKey.Id}, ${EntityMetaKey.Fields}, …)`)
+		throw new Error(`${path}: expected a collection row (${EntityMetaKey.Selector}, ${EntityMetaKey.Fields}, …)`)
 	}
 
-	const idOut = entityDefinition.id(record[EntityMetaKey.Id])
+	const idOut = entityDefinition.id(record[EntityMetaKey.Selector])
 	if (idOut instanceof arktype.errors) {
-		throw new Error(`${path}.${EntityMetaKey.Id}: ${idOut.summary}`)
+		throw new Error(`${path}.${EntityMetaKey.Selector}: ${idOut.summary}`)
 	}
 
 	assertEntityCollectionRowShellGeneric(
@@ -318,13 +318,13 @@ export const assertResolverValuePartResult = (
 	const record = row as Record<string, unknown>
 	const path = `EntityFieldCollection ${entityTypeLabel}.${fieldDefinition.name}`
 
-	if (record[EntityMetaKey.ParentId] === undefined) {
-		throw new Error(`${path}: missing ${EntityMetaKey.ParentId}`)
+	if (record[EntityMetaKey.ParentSelector] === undefined) {
+		throw new Error(`${path}: missing ${EntityMetaKey.ParentSelector}`)
 	}
 
 	if (!isEntityFieldCollectionRowShape(row)) {
 		throw new Error(
-			`${path}: expected a field collection row (${EntityMetaKey.ParentId}, ${EntityMetaKey.Value}, …)`,
+			`${path}: expected a field collection row (${EntityMetaKey.ParentSelector}, ${EntityMetaKey.Value}, …)`,
 		)
 	}
 

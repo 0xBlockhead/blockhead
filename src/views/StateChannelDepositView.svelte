@@ -3,7 +3,7 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,7 +16,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/channels'),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -26,7 +26,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.StateChannelDeposit>
+			selector: EntitySelector<typeof schema, EntityType.StateChannelDeposit>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -39,7 +39,7 @@
 	> = $props()
 
 	const deposit = subscribe(EntityType.StateChannelDeposit,
-		entityId,
+		selector,
 		({ sources: [Source.Local_Internal], fields: { availableBalance: true, lockedBalance: true, lastUpdated: true, $account: true, $network: true } }),
 	)
 
@@ -56,7 +56,7 @@
 
 <EntityView
 	entityType={EntityType.StateChannelDeposit}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -65,7 +65,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -77,11 +77,11 @@
 				placeholderText="…"
 			>
 				{#snippet children(deposit)}
-					{#if deposit.fields.$account?.[EntityMetaKey.Id].address !== undefined}
+					{#if deposit.fields.$account?.[EntityMetaKey.Selector].address !== undefined}
 						<EvmAccountView
-							entityId={deposit.fields.$account[EntityMetaKey.Id]}
+							selector={deposit.fields.$account[EntityMetaKey.Selector]}
 							href={resolve('/account/[address]', {
-								address: deposit.fields.$account[EntityMetaKey.Id].address,
+								address: deposit.fields.$account[EntityMetaKey.Selector].address,
 							})}
 							layout={EntityLayout.Value}
 							open={false}
@@ -109,24 +109,24 @@
 				placeholderText="Loading channel deposit…"
 			>
 				{#snippet children(deposit)}
-					{#if deposit.fields.$account?.[EntityMetaKey.Id].address !== undefined}
+					{#if deposit.fields.$account?.[EntityMetaKey.Selector].address !== undefined}
 						<div>
 							<dt>Account</dt>
 							<dd>
 									{#if deposit.fields.$network !== undefined}
 										<EvmNetworkAccountView
-											entityId={{
-												$network: deposit.fields.$network[EntityMetaKey.Id],
-											$actor: deposit.fields.$account[EntityMetaKey.Id],
+											selector={{
+												$network: deposit.fields.$network[EntityMetaKey.Selector],
+											$actor: deposit.fields.$account[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
 											open={false}
 									/>
 								{:else}
 									<EvmAccountView
-										entityId={deposit.fields.$account[EntityMetaKey.Id]}
+										selector={deposit.fields.$account[EntityMetaKey.Selector]}
 										href={resolve('/account/[address]', {
-											address: deposit.fields.$account[EntityMetaKey.Id].address,
+											address: deposit.fields.$account[EntityMetaKey.Selector].address,
 										})}
 										layout={EntityLayout.Title}
 										open={false}

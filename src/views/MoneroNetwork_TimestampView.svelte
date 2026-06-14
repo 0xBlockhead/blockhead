@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -10,17 +10,17 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.MoneroNetwork_Timestamp>
+		selector: EntitySelector<typeof schema, EntityType.MoneroNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const snapshot = subscribe(EntityType.MoneroNetwork_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.MoneroDaemonRpc_JsonRpc,
 			], fields: { height: true, targetHeight: true, topBlockHash: true, difficulty: true, wideDifficulty: true, cumulativeDifficulty: true, wideCumulativeDifficulty: true, blockSizeLimit: true, blockSizeMedian: true, blockWeightLimit: true, blockWeightMedian: true, databaseSize: true, freeSpace: true, greyPeerlistSize: true, whitePeerlistSize: true, incomingConnections: true, outgoingConnections: true, txCount: true, txPoolSize: true, altBlocksCount: true, targetSeconds: true, rpcConnections: true, mainnet: true, nettype: true, offline: true, synchronized: true, wasBootstrapEverUsed: true, version: true, status: true } }),
@@ -38,7 +38,7 @@
 
 <EntityView
 	entityType={EntityType.MoneroNetwork_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	bind:open
 	{layout}
 >
@@ -54,7 +54,7 @@
 					<NumberValue value={snapshot.fields.txPoolSize} />
 					in pool
 				{:else}
-					<Timestamp timestamp={entityId.timestampMs} />
+					<Timestamp timestamp={selector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

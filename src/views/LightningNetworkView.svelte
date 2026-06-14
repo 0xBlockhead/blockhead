@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -14,13 +14,13 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LightningNetwork>
+			selector: EntitySelector<typeof schema, EntityType.LightningNetwork>
 			href?: string
 			open?: boolean
 		},
@@ -32,7 +32,7 @@
 	> = $props()
 
 	const lightningNetwork = subscribe(EntityType.LightningNetwork,
-		entityId,
+		selector,
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
@@ -40,7 +40,7 @@
 	)
 
 	const settlementNetwork = subscribe(EntityType.Network,
-		entityId.$network,
+		selector.$network,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { $$nativeAssets: true, $$blockExplorerUrls: true, $$faucetUrls: true } }),
@@ -65,7 +65,7 @@
 
 <EntityView
 	entityType={EntityType.LightningNetwork}
-	{entityId}
+	entitySelector={selector}
 	{href}
 	title="Lightning Network"
 	bind:open
@@ -101,7 +101,7 @@
 								<dt>Settlement network</dt>
 							<dd>
 								<NetworkView
-									entityId={row.fields.$settlementNetwork[EntityMetaKey.Id]}
+									selector={row.fields.$settlementNetwork[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -113,7 +113,7 @@
 								<dt>Latest snapshot</dt>
 								<dd>
 									<LightningNetwork_TimestampView
-										entityId={timestamp[EntityMetaKey.Id]}
+										selector={timestamp[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -128,8 +128,8 @@
 	{#snippet Details()}
 
 		<CollapsibleTabs
-			id={`${stringify(entityId)}:carousel-lightning`}
-			sectionIdPrefix={stringify(entityId)}
+			id={`${stringify(selector)}:carousel-lightning`}
+			sectionIdPrefix={stringify(selector)}
 			sections={[
 				{ id: 'lightning-graph-nodes', label: 'Nodes' },
 				{ id: 'lightning-graph-channels', label: 'Channels' },
@@ -151,11 +151,11 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.LightningNetwork,
-						entityId,
+						selector,
 						fieldName: '$$nodes',
 					}}
 					href={href == null ? '' : `${href}/nodes`}
-					id={`${stringify(entityId)}:lightning-nodes-lightningNetworks`}
+					id={`${stringify(selector)}:lightning-nodes-lightningNetworks`}
 				/>
 			{/snippet}
 
@@ -164,11 +164,11 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.LightningNetwork,
-						entityId,
+						selector,
 						fieldName: '$$channels',
 					}}
 					href={href == null ? '' : `${href}/channels`}
-					id={`${stringify(entityId)}:lightning-channels-lightningNetworks`}
+					id={`${stringify(selector)}:lightning-channels-lightningNetworks`}
 				/>
 			{/snippet}
 
@@ -178,30 +178,30 @@
 						CollapsibleProps={{ canToggle: false }}
 						entityFieldReference={{
 							entityType: EntityType.LightningNetwork,
-							entityId,
+							selector,
 							fieldName: '$$invoices',
 						}}
 						href={href == null ? '' : `${href}/invoices`}
-						id={`${stringify(entityId)}:lightning-invoices-lightningNetworks`}
+						id={`${stringify(selector)}:lightning-invoices-lightningNetworks`}
 					/>
 
 					<LightningPaymentsView
 						CollapsibleProps={{ canToggle: false }}
 						entityFieldReference={{
 							entityType: EntityType.LightningNetwork,
-							entityId,
+							selector,
 							fieldName: '$$payments',
 						}}
 						href={href == null ? '' : `${href}/payments`}
-						id={`${stringify(entityId)}:lightning-payments-lightningNetworks`}
+						id={`${stringify(selector)}:lightning-payments-lightningNetworks`}
 					/>
 				</div>
 			{/snippet}
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${stringify(entityId)}:carousel-lightning-assets`}
-			sectionIdPrefix={stringify(entityId)}
+			id={`${stringify(selector)}:carousel-lightning-assets`}
+			sectionIdPrefix={stringify(selector)}
 			sections={[
 				{ id: 'lightning-assets-settlement', label: 'Settlement asset' },
 			]}
@@ -223,7 +223,7 @@
 					emptyText="No settlement asset mapped for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId: entityId.$network,
+						selector: selector.$network,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -233,8 +233,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${stringify(entityId)}:carousel-lightning-resources`}
-			sectionIdPrefix={stringify(entityId)}
+			id={`${stringify(selector)}:carousel-lightning-resources`}
+			sectionIdPrefix={stringify(selector)}
 			sections={[
 				{ id: 'lightning-resources-faucets', label: 'Faucets' },
 				{ id: 'lightning-resources-block-explorers', label: 'Block explorers' },
@@ -257,7 +257,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId: entityId.$network,
+						selector: selector.$network,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -275,7 +275,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId: entityId.$network,
+						selector: selector.$network,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

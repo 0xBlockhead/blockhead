@@ -13,7 +13,7 @@
 
 	<Page>
 		<AtprotoActorView
-			entityId={
+			selector={
 				decodeURIComponent(params.did).startsWith('did:') ?
 					{ did: decodeURIComponent(params.did) }
 				:

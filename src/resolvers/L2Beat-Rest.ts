@@ -3,11 +3,13 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { EvmRollupSelector } from '$/schema/EvmRollup.ts'
 
 export default {
 	source: Source.L2Beat_Rest,
@@ -16,13 +18,13 @@ export default {
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmRollup,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmRollupSelector.EvmNetworkProjectId]: async ({ projectId }) => {
 				const {
 					l2beatHostChainToParentChainId,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
 				const summary = await singleFlight(fetchScalingSummary)()
-				const project = summary.projects[entityId.projectId]
+				const project = summary.projects[projectId]
 				if (project == null) throw new Error('L2Beat_Rest: rollup project not found')
 				const settlementChainId = l2beatHostChainToParentChainId[project.hostChain]
 				return {
@@ -35,7 +37,7 @@ export default {
 					...(project.isUpcoming != null && { isUpcoming: project.isUpcoming }),
 					...(project.isUnderReview != null && { isUnderReview: project.isUnderReview }),
 					$settlementNetwork: {
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							caip2: {
 								namespace: 'eip155' as const,
 								reference: String(settlementChainId),
@@ -62,7 +64,7 @@ export default {
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async () => {
+				[_GlobalSelector.Scope]: async () => {
 				const {
 					chainIdByL2BeatProjectId,
 					ethereumChainId,
@@ -72,7 +74,7 @@ export default {
 				const summary = await singleFlight(fetchScalingSummary)()
 				return [
 					{
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							...{ caip2: { namespace: 'eip155' as const, reference: String(ethereumChainId) } },
 						},
 					},
@@ -85,7 +87,7 @@ export default {
 								:
 									[
 										{
-											[EntityMetaKey.Id]: {
+											[EntityMetaKey.Selector]: {
 												...{ caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 											},
 										},
@@ -104,21 +106,21 @@ export default {
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 				const {
 					l2beatHostChainToParentChainId,
 					l2BeatProjectIdByChainId,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				const projectId = l2BeatProjectIdByChainId[entityId.caip2.reference]
+				const projectId = l2BeatProjectIdByChainId[caip2.reference]
 				if (projectId == null) return undefined
 				const summary = await singleFlight(fetchScalingSummary)()
 				const project = summary.projects[projectId]
 				if (project == null || project.isArchived === true) return undefined
 				const parentChainId = l2beatHostChainToParentChainId[project.hostChain]
-				if (parentChainId === Number(entityId.caip2.reference)) return undefined
+				if (parentChainId === Number(caip2.reference)) return undefined
 				return {
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						...{ caip2: { namespace: 'eip155' as const, reference: String(parentChainId) } },
 					},
 				}
@@ -133,19 +135,19 @@ export default {
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
 				const {
 					l2BeatProjectIdByChainId,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				const projectId = l2BeatProjectIdByChainId[entityId.caip2.reference]
+				const projectId = l2BeatProjectIdByChainId[entitySelector.caip2.reference]
 				if (projectId == null) return undefined
 				const summary = await singleFlight(fetchScalingSummary)()
 				const project = summary.projects[projectId]
 				if (project == null || project.isArchived === true) return undefined
 				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector,
 						projectId,
 					},
 				}
@@ -160,14 +162,14 @@ export default {
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 				const {
 					chainIdByL2BeatProjectId,
 					l2beatHostChainToParentChainId,
 					l2BeatProjectChainIds,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				const parentChainId = Number(entityId.caip2.reference)
+				const parentChainId = Number(caip2.reference)
 				const hostLabels = (
 					Object.entries(l2beatHostChainToParentChainId)
 						.flatMap(([label, chainId]) => (
@@ -191,7 +193,7 @@ export default {
 						) return []
 						return [
 							{
-								[EntityMetaKey.Id]: {
+								[EntityMetaKey.Selector]: {
 									$network: {
 										...{ caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 									},
@@ -212,14 +214,14 @@ export default {
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 				const {
 					chainIdByL2BeatProjectId,
 					l2beatHostChainToParentChainId,
 					l2BeatProjectChainIds,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				const parentChainId = Number(entityId.caip2.reference)
+				const parentChainId = Number(caip2.reference)
 				const hostLabels = (
 					Object.entries(l2beatHostChainToParentChainId)
 						.flatMap(([label, chainId]) => (
@@ -241,7 +243,7 @@ export default {
 					})
 				)
 				return chainIds.map((chainId) => ({
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						...{ caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 					},
 				}))

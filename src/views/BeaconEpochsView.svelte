@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					blockHeight: { sources: [Source.Voltaire_JsonRpc] },
 					[entityFieldReference.fieldName]: { sources: [Source.Beacon_Rest] },
 				} }),
@@ -80,8 +80,8 @@
 				entityType={EntityType.BeaconEpoch}
 				id={`${id}-items`}
 				href={href}
-				getKey={(epoch) => stringify(epoch[EntityMetaKey.Id])}
-				getSortValue={(epoch) => -Number(epoch[EntityMetaKey.Id].epoch)}
+				getKey={(epoch) => stringify(epoch[EntityMetaKey.Selector])}
+				getSortValue={(epoch) => -Number(epoch[EntityMetaKey.Selector].epoch)}
 				resource={epochs}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -95,7 +95,7 @@
 
 				{#snippet Item({ item: epoch })}
 					<BeaconEpochView
-						entityId={epoch[EntityMetaKey.Id]}
+						selector={epoch[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

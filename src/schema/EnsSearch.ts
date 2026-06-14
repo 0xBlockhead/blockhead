@@ -8,17 +8,32 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum EnsSearchSelector {
+	Query = 'query',
+}
+
 export default {
 	entityType: EntityType.EnsSearch,
 
 	label: 'ENS search',
 	labelPlural: 'ENS searches',
 
-	id: type({
-		query: 'string',
-	}),
+	selectors: [
+		{
+			name: EnsSearchSelector.Query,
+			fields: [
+				'query',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'query',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$$ensNames',
 			type: EntityFieldType.EntitiesReference,

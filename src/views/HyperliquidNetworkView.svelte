@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,26 +13,26 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.Network>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const network = subscribe(EntityType.Network,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, environment: true, $networkStack: true, $$nativeAssets: true, $$executionEnvironments: true, $$consensusMechanisms: true } }),
 	)
 
 	const hyperliquidNetwork = subscribe(EntityType.HyperliquidNetwork,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Hyperliquid_JsonRpc,
 				Source.Hyperliquid_Rest,
@@ -41,8 +41,8 @@
 
 
 	// (Derived)
-	const networkIdKey = $derived(
-		stringify(entityId),
+	const networkSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -67,7 +67,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	{entityId}
+	entitySelector={selector}
 	{href}
 	bind:open
 	{layout}
@@ -112,7 +112,7 @@
 								<dt>Head block</dt>
 								<dd id="network-summary-head-block">
 									<HyperliquidBlockView
-										entityId={block[EntityMetaKey.Id]}
+										selector={block[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -135,7 +135,7 @@
 							<dt>Stack</dt>
 							<dd>
 								<NetworkStackView
-									entityId={network.fields.$networkStack[EntityMetaKey.Id]}
+									selector={network.fields.$networkStack[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -148,8 +148,8 @@
 
 	{#snippet Details()}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-hyperliquid`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-hyperliquid`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'hyperliquid-blocks', label: 'Blocks' },
 				{ id: 'hyperliquid-transactions', label: 'Transactions' },
@@ -173,7 +173,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
-						entityId,
+						selector,
 						fieldName: '$$blocks',
 					}}
 					href={href == null ? '' : `${href}/blocks`}
@@ -187,7 +187,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
-						entityId,
+						selector,
 						fieldName: '$$transactions',
 					}}
 					href={href == null ? '' : `${href}/transactions`}
@@ -201,7 +201,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					id={`${id}-list`}
@@ -214,7 +214,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
-						entityId,
+						selector,
 						fieldName: '$$validators',
 					}}
 					id={`${id}-list`}
@@ -235,7 +235,7 @@
 					]}
 					id={`${id}-list`}
 					listEntityType={EntityType.HyperliquidNetwork}
-					parentEntityId={entityId}
+					parentEntitySelector={selector}
 					parentEntityType={EntityType.HyperliquidNetwork}
 					title={label}
 				/>
@@ -243,8 +243,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-hyperliquid-assets`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-hyperliquid-assets`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'hyperliquid-assets-native', label: 'Native coin' },
 				{ id: 'hyperliquid-assets-perps', label: 'Perp markets' },
@@ -267,7 +267,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -280,7 +280,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
-						entityId,
+						selector,
 						fieldName: '$$perpMarkets',
 					}}
 					id={`${id}-list`}
@@ -293,7 +293,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
-						entityId,
+						selector,
 						fieldName: '$$spotAssets',
 					}}
 					id={`${id}-list`}
@@ -303,8 +303,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-hyperliquid-resources`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-hyperliquid-resources`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'hyperliquid-resources-faucets', label: 'Faucets' },
 				{ id: 'hyperliquid-resources-block-explorers', label: 'Block explorers' },
@@ -327,7 +327,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -345,7 +345,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

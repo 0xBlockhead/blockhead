@@ -9,6 +9,11 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/Network.ts'
 
+export enum ZcashShieldedPoolSelector {
+	NetworkPool = 'networkPool',
+}
+
+
 export enum ZcashShieldedPoolKind {
 	Sapling = 'sapling',
 	Orchard = 'orchard',
@@ -20,12 +25,29 @@ export default {
 	label: 'Zcash Sapling/Orchard Pool',
 	labelPlural: 'Zcash Sapling/Orchard Pools',
 
-	id: type({
-		$network: Network.id,
-		pool: type.valueOf(ZcashShieldedPoolKind),
-	}),
+	selectors: [
+		{
+			name: ZcashShieldedPoolSelector.NetworkPool,
+			fields: [
+				'$network',
+				'pool',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'pool',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(ZcashShieldedPoolKind),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'activationNetworkUpgrade',
 			type: EntityFieldType.Primitive,

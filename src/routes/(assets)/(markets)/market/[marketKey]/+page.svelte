@@ -8,7 +8,7 @@
 		params,
 	} = $props()
 
-	import { isMarketEntityId } from '$/lib/isMarketEntityId.ts'
+	import { isMarketEntitySelector } from '$/lib/isMarketEntityId.ts'
 
 	const route = $derived.by(() => {
 		const raw = params.marketKey ?? ''
@@ -19,8 +19,14 @@
 			}
 		}
 		try {
-			const id = parse(tryDecodeMarketKeyParam(raw))
-			if (isMarketEntityId(id)) {
+			const id = parse((() => {
+				try {
+					return decodeURIComponent(raw)
+				} catch {
+					return raw
+				}
+			})())
+			if (isMarketEntitySelector(id)) {
 				return { marketId: id, error: null }
 			}
 		} catch {
@@ -37,15 +43,6 @@
 	import Page from '$/components/Page.svelte'
 	import MarketView from '$/views/MarketView.svelte'
 
-
-	// Functions
-	const tryDecodeMarketKeyParam = (raw: string): string => {
-		try {
-			return decodeURIComponent(raw)
-		} catch {
-			return raw
-		}
-	}
 </script>
 
 
@@ -66,7 +63,7 @@
 		</p>
 	{:else}
 		<MarketView
-			entityId={route.marketId}
+			selector={route.marketId}
 		/>
 	{/if}
 </Page>

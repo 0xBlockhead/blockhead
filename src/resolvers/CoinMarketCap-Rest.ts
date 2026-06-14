@@ -25,14 +25,20 @@ import { stringify } from 'devalue'
 import { caip19Erc20 } from '$/lib/caip19.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { CoinSelector } from '$/schema/Coin.ts'
+import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
+import { Market_TimeInterval_TimestampSelector } from '$/schema/Market_TimeInterval_Timestamp.ts'
+import { CurrencySelector } from '$/schema/Currency.ts'
+import { MarketSelector } from '$/schema/Market.ts'
+import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
 
 export default {
 	source: Source.CoinMarketCap_Rest,
@@ -41,11 +47,11 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[CoinSelector.CoinId]: async ({ coinId }, context) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				const { getInfo } = await import('$/sources/CoinMarketCap/Rest/queries.ts')
-				const coinMarketCapId = idByCoinId[entityId.coinId]
+				const coinMarketCapId = idByCoinId[coinId]
 				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: coin not mapped')
 
 				const infoResponse = await getInfo({
@@ -69,7 +75,7 @@ export default {
 					...(infoName !== '' && { name: infoName }),
 					...(infoSymbol !== '' && { symbol: infoSymbol.toUpperCase() }),
 					...(infoSymbol === '' && {
-						symbol: coinById[entityId.coinId].symbol,
+						symbol: coinById[coinId].symbol,
 					}),
 					...(logoMedia != null && { $logo: logoMedia }),
 				}
@@ -86,18 +92,18 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				if (entityId.$market.marketKind !== MarketKind.Spot) {
+				[Market_TimestampSelector.MarketTimestampMsFeedKey]: async ({ $market, timestampMs: timestampMsSelector }, context) => {
+				if ($market.marketKind !== MarketKind.Spot) {
 					throw new Error('CoinMarketCap_Rest: Market_Timestamp is spot-only')
 				}
-				if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
+				if ($market.$base.kind !== MarketAssetKind.Coin) {
 					throw new Error('Market source: market base must be catalog coin')
 				}
-				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
+				if (stringify(catalogCoinUsdMarketIdByCoinId[$market.$base.$coin.coinId]) !== stringify($market)) {
 					throw new Error('CoinMarketCap_Rest: Market_Timestamp is catalog coin USD market only')
 				}
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
-				const coinId = entityId.$market.$base.$coin.coinId
+				const coinId = $market.$base.$coin.coinId
 				const coinMarketCapId = idByCoinId[coinId]
 				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: coin price not mapped')
 
@@ -125,7 +131,7 @@ export default {
 					throw new Error('CoinMarketCap_Rest: quote invalid')
 				}
 				const timestampMs = Math.floor(updatedAt)
-				if (entityId.timestampMs !== timestampMs) {
+				if (timestampMs !== timestampMsSelector) {
 					throw new Error('CoinMarketCap_Rest: Market_Timestamp id does not match quote clock')
 				}
 				const p = (
@@ -163,38 +169,38 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				if (entityId.$market.marketKind !== MarketKind.Spot) {
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey]: async ({ $market, timeInterval }, context) => {
+				if ($market.marketKind !== MarketKind.Spot) {
 					throw new Error('CoinMarketCap_Rest: OHLC is spot-only')
 				}
-				if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
+				if ($market.$base.kind !== MarketAssetKind.Coin) {
 					throw new Error('Market source: market base must be catalog coin')
 				}
-				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
+				if (stringify(catalogCoinUsdMarketIdByCoinId[$market.$base.$coin.coinId]) !== stringify($market)) {
 					throw new Error('CoinMarketCap_Rest: OHLC is catalog coin USD market only')
 				}
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				const { getOhlcvHistoricalRows } = await import(
 					'$/sources/CoinMarketCap/Rest/queries.ts',
 				)
-				assertCoingeckoDayOhlcTimeInterval(entityId.timeInterval, 'CoinMarketCap_Rest')
-				const coinId = entityId.$market.$base.$coin.coinId
+				assertCoingeckoDayOhlcTimeInterval(timeInterval, 'CoinMarketCap_Rest')
+				const coinId = $market.$base.$coin.coinId
 				const coinMarketCapId = idByCoinId[coinId]
 				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: OHLC coin not mapped')
 
 				const ohlcCandles = await getOhlcvHistoricalRows({
 					publicEnv: context.publicEnv,
 					id: coinMarketCapId,
-					days: entityId.timeInterval.value,
+					days: timeInterval.value,
 				})
 				const ohlcCandle = ohlcCandles.find(([timestampMs]) => (
-					Math.floor(timestampMs) === entityId.timestampMs
+					Math.floor(timestampMs) === entitySelector.timestampMs
 				))
 				if (ohlcCandle == null) throw new Error('CoinMarketCap_Rest: OHLC candle not found for timestamp')
 				return (
 					candleFromOhlc(
-						entityId.$market,
-						entityId.timeInterval,
+						$market,
+						timeInterval,
 					ohlcCandle,
 					)
 				)
@@ -216,7 +222,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				return (
@@ -224,7 +230,7 @@ export default {
 						.filter(([coinId]) => coinId in coinById)
 						.map(([coinId]) => (
 							{
-								[EntityMetaKey.Id]: {
+								[EntityMetaKey.Selector]: {
 									coinId: coinId as CoinId,
 								},
 							}
@@ -241,7 +247,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				return (
@@ -249,7 +255,7 @@ export default {
 						.filter(([coinId]) => coinId in coinById)
 						.map(([coinId]) => (
 							{
-								[EntityMetaKey.Id]: catalogCoinUsdMarketIdByCoinId[coinId],
+								[EntityMetaKey.Selector]: catalogCoinUsdMarketIdByCoinId[coinId],
 							}
 						))
 				)
@@ -264,7 +270,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async () => {
+				[_GlobalSelector.Scope]: async () => {
 				throw new Error('CoinMarketCap_Rest: $$marketTimeIntervalTimestamps is not implemented')
 			}
 			},
@@ -277,7 +283,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				return (
@@ -285,7 +291,7 @@ export default {
 						.filter(([coinId]) => coinId in coinById)
 						.map(([coinId]) => (
 							{
-								[EntityMetaKey.Id]: {
+								[EntityMetaKey.Selector]: {
 									$market: catalogCoinUsdMarketIdByCoinId[coinId],
 								},
 							}
@@ -302,15 +308,15 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
-				if (idByCoinId[entityId.coinId] == null) {
-					throw new Error(`CoinMarketCap_Rest: $$marketsWithCoinAsBase unsupported for coin ${entityId.coinId}`)
+				if (idByCoinId[coinId] == null) {
+					throw new Error(`CoinMarketCap_Rest: $$marketsWithCoinAsBase unsupported for coin ${coinId}`)
 				}
 				return (
 					[
 						{
-							[EntityMetaKey.Id]: catalogCoinUsdMarketIdByCoinId[entityId.coinId],
+							[EntityMetaKey.Selector]: catalogCoinUsdMarketIdByCoinId[coinId],
 						},
 					]
 				)
@@ -325,21 +331,21 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
-				if (idByCoinId[entityId.coinId] == null) {
+				if (idByCoinId[coinId] == null) {
 					return []
 				}
 				return (
 					catalogSpotMarketsWithCoinAsQuote
-						.filter((catalogMarket) => catalogMarket.quoteCoinId === entityId.coinId)
+						.filter((catalogMarket) => catalogMarket.quoteCoinId === entitySelector.coinId)
 						.map((catalogMarket) => catalogMarket.marketId)
 						.filter((marketId) => (
 							idByCoinId[marketId.$base.$coin.coinId] != null
 						))
 						.map((marketId) => (
 							{
-								[EntityMetaKey.Id]: marketId,
+								[EntityMetaKey.Selector]: marketId,
 							}
 						))
 				)
@@ -354,18 +360,18 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Currency,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				return (
 					(
-						entityId.iso4217 === Iso4217.USD ?
+						iso4217 === Iso4217.USD ?
 							catalogMarketsWithCurrencyAsQuoteUsd.filter((marketId) => (
 								idByCoinId[marketId.$base.$coin.coinId] != null
 							))
 						:
 							[]
 					).map((marketId) => ({
-						[EntityMetaKey.Id]: marketId,
+						[EntityMetaKey.Selector]: marketId,
 					}))
 				)
 			}
@@ -379,14 +385,14 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Currency,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
 				const markets = catalogSpotMarketsWithCurrencyAsBase
-						.filter((catalogMarket) => catalogMarket.iso4217 === entityId.iso4217)
+						.filter((catalogMarket) => catalogMarket.iso4217 === entitySelector.iso4217)
 						.map((catalogMarket) => ({
-							[EntityMetaKey.Id]: catalogMarket.marketId,
+							[EntityMetaKey.Selector]: catalogMarket.marketId,
 						}))
 				if (markets.length === 0) {
-					throw new Error(`CoinMarketCap_Rest: no catalog markets with ${entityId.iso4217} as base`)
+					throw new Error(`CoinMarketCap_Rest: no catalog markets with ${iso4217} as base`)
 				}
 				return markets
 			}
@@ -400,21 +406,21 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
-				if (entityId.marketKind !== MarketKind.Spot) {
+				[MarketSelector.BaseQuoteMarketVenueKind]: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>, context) => {
+				if (entitySelector.marketKind !== MarketKind.Spot) {
 					return []
 				}
-				if (entityId.$base.kind !== MarketAssetKind.Coin) {
+				if (entitySelector.$base.kind !== MarketAssetKind.Coin) {
 					return []
 				}
-				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$base.$coin.coinId]) !== stringify(entityId)) {
+				if (stringify(catalogCoinUsdMarketIdByCoinId[entitySelector.$base.$coin.coinId]) !== stringify(entitySelector)) {
 					return []
 				}
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				const { getOhlcvHistoricalRows } = await import(
 					'$/sources/CoinMarketCap/Rest/queries.ts',
 				)
-				const coinId = entityId.$base.$coin.coinId
+				const coinId = entitySelector.$base.$coin.coinId
 				if (idByCoinId[coinId] == null) throw new Error('CoinMarketCap_Rest: OHLC coin not mapped')
 				const coinMarketCapId = idByCoinId[coinId]
 				const lim = resolverContextRowLimit(context)
@@ -433,7 +439,7 @@ export default {
 					})
 					candles.push(
 						...candlesFromOhlc(
-							entityId,
+							entitySelector,
 							timeInterval,
 							ohlcCandles,
 						),
@@ -453,18 +459,18 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				if (entityId.$market.marketKind !== MarketKind.Spot) {
+				[MarketPriceSelector.Market]: async ({ $market }, context) => {
+				if ($market.marketKind !== MarketKind.Spot) {
 					return []
 				}
-				if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
+				if ($market.$base.kind !== MarketAssetKind.Coin) {
 					return []
 				}
-				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
+				if (stringify(catalogCoinUsdMarketIdByCoinId[$market.$base.$coin.coinId]) !== stringify($market)) {
 					return []
 				}
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
-				const coinId = entityId.$market.$base.$coin.coinId
+				const coinId = $market.$base.$coin.coinId
 				const coinMarketCapId = idByCoinId[coinId]
 				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: coin price not mapped')
 				const { getQuotesLatest } = await import(
@@ -487,8 +493,8 @@ export default {
 				}
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$market: entityId.$market,
+						[EntityMetaKey.Selector]: {
+							$market: $market,
 							timestampMs: Math.floor(updatedAt),
 						},
 					},
@@ -504,9 +510,9 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
+				[MarketPriceSelector.Market]: async ({ $market }: EntitySelector<typeof schema, EntityType.MarketPrice>) => (
 				{
-					[EntityMetaKey.Id]: entityId.$market,
+					[EntityMetaKey.Selector]: $market,
 				}
 			)
 			},
@@ -519,9 +525,9 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey]: async ({ $market }: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
-					[EntityMetaKey.Id]: entityId.$market,
+					[EntityMetaKey.Selector]: $market,
 				}
 			)
 			},

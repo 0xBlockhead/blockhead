@@ -12,6 +12,6 @@
 
 <Page>
 	<StateChannelView
-		entityId={{ id: params.channelId }}
+		selector={{ id: params.channelId }}
 	/>
 </Page>

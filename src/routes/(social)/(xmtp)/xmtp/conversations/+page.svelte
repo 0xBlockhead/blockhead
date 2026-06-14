@@ -18,7 +18,7 @@
 		href={resolve('/xmtp')}
 		entityFieldReference={{
 			entityType: EntityType.XmtpNetwork,
-			entityId: { scope: 'XmtpNetwork' },
+			selector: { scope: 'XmtpNetwork' },
 			fieldName: '$$xmtpConversations',
 		}}
 		id="conversations"

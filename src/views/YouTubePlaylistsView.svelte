@@ -76,7 +76,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				(
 					entityFieldReference.entityType === EntityType.YouTubeNetwork ?
 							{
@@ -116,8 +116,8 @@
 					)
 					return (
 						youTubePlaylists.map((playlist) => ({
-							entityId: playlist[EntityMetaKey.Id],
-							sortKey: stringify(playlist[EntityMetaKey.Id]),
+							selector: playlist[EntityMetaKey.Selector],
+							sortKey: stringify(playlist[EntityMetaKey.Selector]),
 						}))
 					)
 				},
@@ -130,7 +130,7 @@
 				{title}
 				resource={playlists}
 				placeholderText="Loading playlists…"
-				getKey={(playlist) => stringify(playlist.entityId)}
+				getKey={(playlist) => stringify(playlist.selector)}
 				getSortValue={(playlist) => playlist.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
@@ -144,7 +144,7 @@
 					item: playlist,
 				})}
 					<YouTubePlaylistView
-						entityId={playlist.entityId}
+						selector={playlist.selector}
 						layout={EntityLayout.SummaryDetails}
 						open={false}
 					/>

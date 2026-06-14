@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Account from '$/schema/NearAccount.ts'
+
+export enum NearAccessKeySelector {
+	NearAccountPublicKey = 'nearAccountPublicKey',
+}
 
 export default {
 	entityType: EntityType.NearAccessKey,
@@ -15,12 +18,29 @@ export default {
 	label: 'NEAR Access Key',
 	labelPlural: 'NEAR Access Keys',
 
-	id: type({
-		$account: Account.id,
-		publicKey: 'string',
-	}),
+	selectors: [
+		{
+			name: NearAccessKeySelector.NearAccountPublicKey,
+			fields: [
+				'$account',
+				'publicKey',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$account',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.NearAccount,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'publicKey',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'nonce',
 			type: EntityFieldType.Primitive,

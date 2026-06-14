@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,10 +16,10 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/(social)/(nostr)/nostr/relay/[relayKey]',
-			{ relayKey: encodeURIComponent(entityId.relayUrl) },
+			{ relayKey: encodeURIComponent(selector.relayUrl) },
 		),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.NostrRelay>
+			selector: EntitySelector<typeof schema, EntityType.NostrRelay>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -40,7 +40,7 @@
 	> = $props()
 
 	const relay = subscribe(EntityType.NostrRelay,
-		entityId,
+		selector,
 		({ sources: [
 				Source.NostrBand_Rest,
 			], fields: { name: true, description: true, software: true, version: true, supportedNipCount: true, isPaid: true } }),
@@ -62,14 +62,14 @@
 
 <EntityView
 	entityType={EntityType.NostrRelay}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.relayUrl}
+			value={selector.relayUrl}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}

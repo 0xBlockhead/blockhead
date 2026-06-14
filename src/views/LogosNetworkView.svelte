@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,19 +12,19 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.Network>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const network = subscribe(EntityType.Network,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true } }),
@@ -32,8 +32,8 @@
 
 
 	// (Derived)
-	const networkIdKey = $derived(
-		stringify(entityId),
+	const networkSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -49,7 +49,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	{entityId}
+	entitySelector={selector}
 	{href}
 	bind:open
 	{layout}
@@ -84,8 +84,8 @@
 
 	{#snippet Content()}
 		<LogosZoneView
-			entityId={{
-				$network: entityId,
+			selector={{
+				$network: selector,
 				zoneId: 'logos-stack',
 			}}
 			layout={EntityLayout.Value}
@@ -94,8 +94,8 @@
 
 	{#snippet Details()}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-logos`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-logos`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'logos-zones', label: 'Zones' },
 				{ id: 'logos-execution', label: 'Execution' },
@@ -114,8 +114,8 @@
 
 			{#snippet SectionLogosZones()}
 				<LogosZoneView
-					entityId={{
-						$network: entityId,
+					selector={{
+						$network: selector,
 						zoneId: 'logos-stack',
 					}}
 					layout={EntityLayout.SummaryDetails}
@@ -148,8 +148,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-logos-resources`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-logos-resources`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'logos-resources-faucets', label: 'Faucets' },
 				{ id: 'logos-resources-block-explorers', label: 'Block explorers' },
@@ -172,7 +172,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -190,7 +190,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

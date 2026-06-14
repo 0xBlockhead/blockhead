@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum QuilibriumPendingTransactionSelector {
+	NetworkTransactionHash = 'networkTransactionHash',
+}
 
 export default {
 	entityType: EntityType.QuilibriumPendingTransaction,
@@ -15,12 +18,29 @@ export default {
 	label: 'Quilibrium Pending Transaction',
 	labelPlural: 'Quilibrium Pending Transactions',
 
-	id: type({
-		$network: Network.id,
-		transactionHash: 'string',
-	}),
+	selectors: [
+		{
+			name: QuilibriumPendingTransactionSelector.NetworkTransactionHash,
+			fields: [
+				'$network',
+				'transactionHash',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'transactionHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$account',
 			type: EntityFieldType.EntityReference,

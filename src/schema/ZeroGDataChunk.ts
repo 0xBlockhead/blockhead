@@ -9,18 +9,39 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import ZeroGDataBlob from '$/schema/ZeroGDataBlob.ts'
 
+export enum ZeroGDataChunkSelector {
+	ZeroGDataBlobChunkIndex = 'zeroGDataBlobChunkIndex',
+}
+
 export default {
 	entityType: EntityType.ZeroGDataChunk,
 
 	label: '0G data chunk',
 	labelPlural: '0G data chunks',
 
-	id: type({
-		$dataBlob: ZeroGDataBlob.id,
-		chunkIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: ZeroGDataChunkSelector.ZeroGDataBlobChunkIndex,
+			fields: [
+				'$dataBlob',
+				'chunkIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$dataBlob',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.ZeroGDataBlob,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'chunkIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$storageNode',
 			type: EntityFieldType.EntityReference,

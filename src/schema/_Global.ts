@@ -8,17 +8,30 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
+export enum _GlobalSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType._Global,
 
 	label: 'Global',
 	labelPlural: 'Globals',
 
-	id: type({
-		scope: 'string',
-	}),
+	selectors: [
+		{
+			name: _GlobalSelector.Scope,
+			fields: ['scope'],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$$networks',
 			type: EntityFieldType.EntitiesReference,

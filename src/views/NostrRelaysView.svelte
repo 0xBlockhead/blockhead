@@ -78,7 +78,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 					], fields: { [entityFieldReference.fieldName]: {
 						sources: [
@@ -95,7 +95,7 @@
 					)
 					return (
 						nostrRelays.map((relay) => ({
-							entityId: relay[EntityMetaKey.Id],
+							selector: relay[EntityMetaKey.Selector],
 						}))
 					)
 				},
@@ -108,8 +108,8 @@
 				{title}
 				resource={relays}
 				placeholderText="Loading relays…"
-				getKey={(relay) => stringify(relay.entityId)}
-				getSortValue={(relay) => relay.entityId.relayUrl}
+				getKey={(relay) => stringify(relay.selector)}
+				getSortValue={(relay) => relay.selector.relayUrl}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}
@@ -122,7 +122,7 @@
 					item: relay,
 				})}
 					<NostrRelayView
-						entityId={relay.entityId}
+						selector={relay.selector}
 						layout={EntityLayout.SummaryDetails}
 						open={false}
 					/>

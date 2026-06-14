@@ -69,7 +69,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Openchain_Rest,
@@ -98,8 +98,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
-					getSortValue={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
+					getKey={(envelope) => envelope.evmEntity[EntityMetaKey.Selector].hex}
+					getSortValue={(envelope) => envelope.evmEntity[EntityMetaKey.Selector].hex}
 					placeholderText="Loading revert data…"
 					resource={errors}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -112,7 +112,7 @@
 
 					{#snippet Item({ item })}
 						<EvmErrorView
-							entityId={item.evmEntity[EntityMetaKey.Id]}
+							selector={item.evmEntity[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 							collapsible={false}

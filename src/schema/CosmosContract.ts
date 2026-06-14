@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum CosmosContractSelector {
+	NetworkAddress = 'networkAddress',
+}
 
 export default {
 	entityType: EntityType.CosmosContract,
@@ -15,12 +18,29 @@ export default {
 	label: 'CosmWasm Contract',
 	labelPlural: 'CosmWasm Contracts',
 
-	id: type({
-		$network: Network.id,
-		address: 'string',
-	}),
+	selectors: [
+		{
+			name: CosmosContractSelector.NetworkAddress,
+			fields: [
+				'$network',
+				'address',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'address',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'codeId',
 			type: EntityFieldType.Primitive,

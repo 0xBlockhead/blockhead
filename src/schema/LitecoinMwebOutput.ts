@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Transaction from '$/schema/LitecoinMwebTransaction.ts'
+
+export enum LitecoinMwebOutputSelector {
+	LitecoinMwebTransactionOutputIndex = 'litecoinMwebTransactionOutputIndex',
+}
 
 export default {
 	entityType: EntityType.LitecoinMwebOutput,
@@ -15,12 +18,29 @@ export default {
 	label: 'Litecoin MWEB Output',
 	labelPlural: 'Litecoin MWEB Outputs',
 
-	id: type({
-		$transaction: Transaction.id,
-		outputIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: LitecoinMwebOutputSelector.LitecoinMwebTransactionOutputIndex,
+			fields: [
+				'$transaction',
+				'outputIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.LitecoinMwebTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'outputIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'commitment',
 			type: EntityFieldType.Primitive,

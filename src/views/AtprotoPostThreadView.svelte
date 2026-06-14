@@ -10,7 +10,7 @@
 
 	type AtprotoPostOrderFieldRow = {
 		createdAt?: number
-		[EntityMetaKey.IdKey]: string
+		[EntityMetaKey.SelectorKey]: string
 	}
 
 
@@ -55,7 +55,7 @@
 			'asc',
 		],
 		[
-			({ fieldRow }) => fieldRow[EntityMetaKey.IdKey],
+			({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
 			'asc',
 		],
 	] as const satisfies DeclarativeOrderBy<AtprotoPostOrderFieldRow>
@@ -90,7 +90,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				{
 					sources: [
 						Source.Atproto_Xrpc,
@@ -124,7 +124,7 @@
 						entityType={EntityType.AtprotoPost}
 						id={`${id}-items`}
 						href={href}
-						getKey={(atprotoPost) => atprotoPost[EntityMetaKey.Id].uri}
+						getKey={(atprotoPost) => atprotoPost[EntityMetaKey.Selector].uri}
 						placeholderText={`Loading ${title.toLowerCase()}…`}
 						items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
 						{title}
@@ -138,7 +138,7 @@
 
 						{#snippet Item({ item })}
 							<AtprotoPostView
-								entityId={{ uri: item[EntityMetaKey.Id].uri }}
+								selector={{ uri: item[EntityMetaKey.Selector].uri }}
 								layout={EntityLayout.Summary}
 								open={false}
 							/>

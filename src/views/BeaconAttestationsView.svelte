@@ -60,7 +60,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Beacon_Rest,
@@ -82,7 +82,7 @@
 				entityType={EntityType.BeaconAttestation}
 				id={`${id}-items`}
 				href={href}
-				getKey={(attestation) => stringify(attestation[EntityMetaKey.Id])}
+				getKey={(attestation) => stringify(attestation[EntityMetaKey.Selector])}
 				open={true}
 				resource={attestations}
 				{title}
@@ -94,7 +94,7 @@
 
 				{#snippet Item({ item: attestation })}
 					<BeaconAttestationView
-						entityId={attestation[EntityMetaKey.Id]}
+						selector={attestation[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

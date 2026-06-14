@@ -75,7 +75,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const global = subscribe(EntityType._Global,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ sources: [Source.Local_Internal], fields: { $$blockheadRooms: true } }),
 			)}
 
@@ -86,8 +86,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(room) => stringify(room[EntityMetaKey.Id])}
-				getSortValue={(room) => stringify(room[EntityMetaKey.Id])}
+				getKey={(room) => stringify(room[EntityMetaKey.Selector])}
+				getSortValue={(room) => stringify(room[EntityMetaKey.Selector])}
 				resource={
 					derive(
 						global,
@@ -106,7 +106,7 @@
 
 				{#snippet Item({ item: room })}
 					<BlockheadRoomView
-						entityId={room[EntityMetaKey.Id]}
+						selector={room[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -301,7 +301,7 @@
 							<li>
 									<EntityView
 										entityType={EntityType.EvmSelector}
-										entityId={{ hex: normalizedSelector }}
+										entitySelector={{ hex: normalizedSelector }}
 										href={getEvmSelectorPath(normalizedSelector)}
 									>
 									{#snippet Icon()}
@@ -366,7 +366,7 @@
 																			<span>{index}</span>
 																			{#if param.type === 'address' && typeof param.value === 'string'}
 																				<EvmAccountView
-																					entityId={{ address: EvmAddress.assert(param.value) }}
+																					selector={{ address: EvmAddress.assert(param.value) }}
 																					layout={EntityLayout.Value}
 																				/>
 																			{:else}
@@ -400,7 +400,7 @@
 							<li>
 									<EntityView
 										entityType={EntityType.EvmTopic}
-										entityId={{ hex: normalizedTopic }}
+										entitySelector={{ hex: normalizedTopic }}
 										href={getEvmTopicPath(normalizedTopic)}
 									>
 									{#snippet Icon()}
@@ -465,7 +465,7 @@
 																			<span>{index}</span>
 																			{#if param.type === 'address' && typeof param.value === 'string'}
 																				<EvmAccountView
-																					entityId={{ address: EvmAddress.assert(param.value) }}
+																					selector={{ address: EvmAddress.assert(param.value) }}
 																					layout={EntityLayout.Value}
 																				/>
 																			{:else}

@@ -74,7 +74,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentNetwork = subscribe(EntityType.FarcasterNetwork,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ fields: { $$channels: ({ sources: [Source.Farcaster_Rest] }) } }),
 			)}
 			{@const channels = derive(
@@ -93,8 +93,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(channel) => stringify(channel.result[EntityMetaKey.Id])}
-				getSortValue={(channel) => channel.result[EntityMetaKey.Id].id}
+				getKey={(channel) => stringify(channel.result[EntityMetaKey.Selector])}
+				getSortValue={(channel) => channel.result[EntityMetaKey.Selector].id}
 				placeholderText="Loading Farcaster channels (channel id / slug)…"
 				resource={channels}
 			>
@@ -105,9 +105,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const channelId = item.result[EntityMetaKey.Id]}
+					{@const channelId = item.result[EntityMetaKey.Selector]}
 					<FarcasterChannelView
-						entityId={{ id: channelId.id }}
+						selector={{ id: channelId.id }}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

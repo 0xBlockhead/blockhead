@@ -8,6 +8,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum NostrRepostSelector {
+	CanonicalEventId = 'canonicalEventId',
+}
+
+
 const NostrEventId = type(
 	'/^[0-9a-f]{64}$/' as type.cast<string>,
 )
@@ -22,18 +27,11 @@ export default {
 	label: 'Nostr repost',
 	labelPlural: 'Nostr reposts',
 
-	id: type({
-		eventId: NostrEventId,
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'canonicalEventId',
+			name: NostrRepostSelector.CanonicalEventId,
 			fields: [
-				{
-					name: 'eventId',
-					normalize: lowercaseHexIdentityValue,
-				},
+				'eventId',
 			],
 		},
 	],

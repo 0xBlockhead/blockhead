@@ -2,8 +2,10 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EntityIdProjection } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
+import { LogosZoneSelector } from '$/schema/LogosZone.ts'
+import { LogosAccountSelector } from '$/schema/LogosAccount.ts'
+import { LogosTransactionSelector } from '$/schema/LogosTransaction.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -20,17 +22,17 @@ export default {
 		defineResolver(Source.LogosDocs_Rest, {
 			entityType: EntityType.LogosZone,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLogosStack(entityId.$network)
+				[LogosZoneSelector.NetworkZoneId]: async ({ $network, zoneId }) => {
+				assertLogosStack($network)
 				const { getNetworkSummary } = await import('$/sources/LogosDocs/Rest/queries.ts')
 				return {
-					...(getNetworkSummary.primaryComponents.some((component) => component === entityId.zoneId) && {
+					...(getNetworkSummary.primaryComponents.some((component) => component === entitySelector.zoneId) && {
 						zoneKind: (
-							entityId.zoneId === 'Logos Chain' ?
+							zoneId === 'Logos Chain' ?
 								'blockchain'
-							: entityId.zoneId === 'DVCI' ?
+							: zoneId === 'DVCI' ?
 								'distributed-virtual-computing-infrastructure'
-							: entityId.zoneId === 'Network Gatekeeper' ?
+							: zoneId === 'Network Gatekeeper' ?
 								'access-control'
 							:
 								'computation-distribution-regulator'
@@ -48,8 +50,8 @@ export default {
 		defineResolver(Source.LogosDocs_Rest, {
 			entityType: EntityType.LogosAccount,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLogosStack(entityId.$network)
+				[LogosAccountSelector.NetworkAccountAddress]: async ({ $network }) => {
+				assertLogosStack($network)
 				return {}
 			}
 			}
@@ -61,8 +63,8 @@ export default {
 		defineResolver(Source.LogosDocs_Rest, {
 			entityType: EntityType.LogosTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLogosStack(entityId.$network)
+				[LogosTransactionSelector.NetworkTransactionHash]: async ({ $network }) => {
+				assertLogosStack($network)
 				return {}
 			}
 			}

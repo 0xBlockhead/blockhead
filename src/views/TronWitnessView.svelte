@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.TronWitness>
+			selector: EntitySelector<typeof schema, EntityType.TronWitness>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const witness = subscribe(EntityType.TronWitness,
-		entityId,
+		selector,
 		({ sources: [
 				Source.TronGrid_Rest,
 			], fields: { url: true, voteCount: true, totalProduced: true, totalMissed: true, latestBlockHeight: true, active: true } }),
@@ -45,14 +45,14 @@
 
 <EntityView
 	entityType={EntityType.TronWitness}
-	{entityId}
-	title={entityId.address}
+	entitySelector={selector}
+	title={selector.address}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.address}
+			value={selector.address}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.QuilibriumShard>
+			selector: EntitySelector<typeof schema, EntityType.QuilibriumShard>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const quilibriumShard = subscribe(EntityType.QuilibriumShard,
-		entityId,
+		selector,
 		({ fields: { shardKind: true } }),
 	)
 
@@ -41,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.QuilibriumShard}
-	{entityId}
-	title={entityId.shardKey}
-	idDragPlainText={entityId.shardKey}
+	entitySelector={selector}
+	title={selector.shardKey}
+	idDragPlainText={selector.shardKey}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.shardKey}
+			value={selector.shardKey}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

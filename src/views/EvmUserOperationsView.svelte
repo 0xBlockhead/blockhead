@@ -65,7 +65,7 @@
 		{#if open}
 			{@const parentEntityType = entityFieldReference.entityType}
 			{@const parent = subscribe(parentEntityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Blockscout_Rest,
@@ -87,7 +87,7 @@
 				entityType={EntityType.EvmUserOperation}
 				id={`${id}-items`}
 				href={href}
-				getKey={(userOperation) => stringify(userOperation[EntityMetaKey.Id])}
+				getKey={(userOperation) => stringify(userOperation[EntityMetaKey.Selector])}
 				placeholderText="Loading user operations…"
 				resource={userOperations}
 				{title}
@@ -100,14 +100,14 @@
 
 				{#snippet Item({ item: userOperation })}
 					<EvmUserOperationView
-						entityId={userOperation[EntityMetaKey.Id]}
+						selector={userOperation[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					>
 						{#snippet HeadingSnippet()}
 							<TruncatedValue
 								format={TruncatedValueFormat.Visual}
-								value={userOperation[EntityMetaKey.Id].hash}
+								value={userOperation[EntityMetaKey.Selector].hash}
 							/>
 						{/snippet}
 					</EvmUserOperationView>

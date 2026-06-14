@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,16 +17,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(reddit)/reddit/comment/[fullname]', {
-			fullname: entityId.fullname,
+			fullname: selector.fullname,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.RedditComment>
+			selector: EntitySelector<typeof schema, EntityType.RedditComment>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const comment = subscribe(EntityType.RedditComment,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Reddit_Rest,
 				Source.Reddit_PublicJson,
@@ -48,7 +48,7 @@
 				], limit: 1 }), createdAt: true, depth: true, $link: true, $parentComment: true } }),
 	)
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 
 	// Components
@@ -68,7 +68,7 @@
 
 <EntityView
 	entityType={EntityType.RedditComment}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -76,7 +76,7 @@
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.fullname}
+			{selector.fullname}
 		</span>
 	{/snippet}
 
@@ -91,7 +91,7 @@
 						comment.fields.body ?
 							comment.fields.body.replaceAll('\n', ' ')
 						:
-							entityId.fullname
+							selector.fullname
 					)}
 					startLength={64}
 					endLength={16}
@@ -184,7 +184,7 @@
 							<dt>Reply to</dt>
 							<dd>
 								<svelte:self
-									entityId={comment.fields.$parentComment[EntityMetaKey.Id]}
+									selector={comment.fields.$parentComment[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -197,7 +197,7 @@
 							<dt>Submission</dt>
 							<dd>
 								<RedditLinkView
-									entityId={comment.fields.$link[EntityMetaKey.Id]}
+									selector={comment.fields.$link[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -243,7 +243,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.RedditComment,
-						entityId,
+						selector,
 						fieldName: '$$replies',
 					}}
 					id={`${idKey}:reddit-replies`}
@@ -256,7 +256,7 @@
 				<RedditComment_TimestampsView
 					entityFieldReference={{
 						entityType: EntityType.RedditComment,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					href={href}

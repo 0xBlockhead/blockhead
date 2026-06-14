@@ -23,7 +23,7 @@
 		href={resolve('/market-venues')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: { scope: '$$marketVenues' },
+			selector: { scope: '$$marketVenues' },
 			fieldName: '$$marketVenues',
 		}}
 		id="market-venues-page"

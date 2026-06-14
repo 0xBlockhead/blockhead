@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,18 +12,18 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.HyperliquidAccount>
+			selector: EntitySelector<typeof schema, EntityType.HyperliquidAccount>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const hyperliquidAccount = subscribe(EntityType.HyperliquidAccount, entityId, ({ fields: { accountRole: true, $masterAccount: true, $agentAccount: true } }))
+	const hyperliquidAccount = subscribe(EntityType.HyperliquidAccount, selector, ({ fields: { accountRole: true, $masterAccount: true, $agentAccount: true } }))
 
 
 	// Components
@@ -36,14 +36,14 @@
 
 <EntityView
 	entityType={EntityType.HyperliquidAccount}
-	{entityId}
-	title={entityId.address}
+	entitySelector={selector}
+	title={selector.address}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.address}
+			value={selector.address}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -67,7 +67,7 @@
 							<dt>Master account</dt>
 							<dd>
 								<Self
-									entityId={hyperliquidAccount.fields.$masterAccount[EntityMetaKey.Id]}
+									selector={hyperliquidAccount.fields.$masterAccount[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -80,7 +80,7 @@
 							<dt>Agent account</dt>
 							<dd>
 								<Self
-									entityId={hyperliquidAccount.fields.$agentAccount[EntityMetaKey.Id]}
+									selector={hyperliquidAccount.fields.$agentAccount[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

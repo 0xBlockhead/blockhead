@@ -7,13 +7,18 @@ import {
 	EntityFieldType,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-	type EntityIdentityValueNormalizer,
+	type EntityFieldValueNormalizer,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
-const canonicalIpfsIdentityValue: EntityIdentityValueNormalizer = (value) => (
+export enum IpfsResourceSelector {
+	ResourceAddress = 'resourceAddress',
+}
+
+
+const canonicalIpfsIdentityValue: EntityFieldValueNormalizer = (value) => (
 	canonicalIpfsCidString(String(value)) ?? value
 )
 
@@ -23,21 +28,12 @@ export default {
 	label: 'IPFS Resource',
 	labelPlural: 'IPFS Resources',
 
-	id: type({
-		namespace: '"ipfs" | "ipns"',
-		target: 'string',
-		contentPath: 'string',
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'resourceAddress',
+			name: IpfsResourceSelector.ResourceAddress,
 			fields: [
 				'namespace',
-				{
-					name: 'target',
-					normalize: canonicalIpfsIdentityValue,
-				},
+				'target',
 				'contentPath',
 			],
 		},

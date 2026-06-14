@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum QuilibriumShardSelector {
+	NetworkShardKey = 'networkShardKey',
+}
 
 export default {
 	entityType: EntityType.QuilibriumShard,
@@ -15,12 +18,29 @@ export default {
 	label: 'Quilibrium Shard',
 	labelPlural: 'Quilibrium Shards',
 
-	id: type({
-		$network: Network.id,
-		shardKey: 'string',
-	}),
+	selectors: [
+		{
+			name: QuilibriumShardSelector.NetworkShardKey,
+			fields: [
+				'$network',
+				'shardKey',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'shardKey',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'shardKind',
 			type: EntityFieldType.Primitive,

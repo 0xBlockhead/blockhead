@@ -12,7 +12,7 @@
 		params,
 	} = $props()
 
-	const entityId = $derived(
+	const entitySelector = $derived(
 		{ videoId: decodeURIComponent(params.videoId) },
 	)
 
@@ -27,11 +27,11 @@
 	<YouTubeCommentsView
 		href={resolve(
 			'/(social)/(youtube)/youtube/video/[videoId]/(video)/comments',
-			{ videoId: encodeURIComponent(entityId.videoId) },
+			{ videoId: encodeURIComponent(selector.videoId) },
 		)}
 		entityFieldReference={{
 			entityType: EntityType.YouTubeVideo,
-			entityId,
+			selector,
 			fieldName: '$$comments',
 		}}
 		id="youtube-video-comments"

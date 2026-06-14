@@ -13,6 +13,10 @@ import { networkFields } from '$/schema/Network.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum EvmNetworkSelector {
+	Caip2 = 'caip2',
+}
+
 const executionEndpointField = type({
 	url: UrlString,
 	serviceProvider: type.valueOf(ExecutionRpcProvider),
@@ -30,12 +34,12 @@ export default {
 	label: 'EVM network',
 	labelPlural: 'EVM networks',
 
-	id: type({
-		caip2: {
-			namespace: type.unit('eip155'),
-			reference: 'string',
+	selectors: [
+		{
+			name: EvmNetworkSelector.Caip2,
+			fields: ['caip2'],
 		},
-	}),
+	],
 
 	fields: [
 		networkFields[0],

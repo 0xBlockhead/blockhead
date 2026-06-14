@@ -3,8 +3,10 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EntityIdProjection } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
+import { EvmSelectorSelector } from '$/schema/EvmSelector.ts'
+import { EvmTopicSelector } from '$/schema/EvmTopic.ts'
+import { EvmErrorSelector } from '$/schema/EvmError.ts'
 
 export default {
 	source: Source.Openchain_Rest,
@@ -13,10 +15,10 @@ export default {
 		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmSelector,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmSelectorSelector.Hex]: async ({ hex }) => {
 				const { getFunctionEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
-					signatures: (await singleFlight(getFunctionEntries)({ hex: entityId.hex })).map(
+					signatures: (await singleFlight(getFunctionEntries)({ hex: hex })).map(
 						(signatureEntry) => signatureEntry.name,
 					),
 				}
@@ -31,10 +33,10 @@ export default {
 		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmTopic,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmTopicSelector.Hex]: async ({ hex }) => {
 				const { getEventEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
-					signatures: (await singleFlight(getEventEntries)({ hex: entityId.hex })).map(
+					signatures: (await singleFlight(getEventEntries)({ hex: hex })).map(
 						(signatureEntry) => signatureEntry.name,
 					),
 				}
@@ -49,10 +51,10 @@ export default {
 		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmError,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmErrorSelector.Hex]: async ({ hex }) => {
 				const { getErrorEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
-					signatures: (await singleFlight(getErrorEntries)({ hex: entityId.hex })).map(
+					signatures: (await singleFlight(getErrorEntries)({ hex: hex })).map(
 						(signatureEntry) => signatureEntry.name,
 					),
 				}

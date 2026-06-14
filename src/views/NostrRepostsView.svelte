@@ -76,7 +76,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				(
 					entityFieldReference.entityType === EntityType.NostrNetwork ?
 						(
@@ -139,16 +139,16 @@
 					return nostrReposts
 				},
 			)}
-			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}
+			{#key `${stringify(entityFieldReference.selector)}-${limit}-${fieldOpen}`}
 				<EntitiesList
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.NostrRepost}
 					id={`${id}-items`}
 					{title}
-					getKey={(row) => row[EntityMetaKey.Id].eventId}
+					getKey={(row) => row[EntityMetaKey.Selector].eventId}
 					getSortValue={(row) => (
-						`${String(-(row.createdAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].eventId}`
+						`${String(-(row.createdAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Selector].eventId}`
 					)}
 					placeholderText={`Loading ${title.toLowerCase()}…`}
 					resource={reposts}
@@ -161,7 +161,7 @@
 
 					{#snippet Item({ item })}
 						<NostrRepostView
-							entityId={{ eventId: item[EntityMetaKey.Id].eventId }}
+							selector={{ eventId: item[EntityMetaKey.Selector].eventId }}
 							layout={EntityLayout.SummaryDetails}
 							open={false}
 						/>

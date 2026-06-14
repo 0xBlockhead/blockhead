@@ -64,7 +64,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ fields: {
+		entityFieldReference.selector,({ fields: {
 			[entityFieldReference.fieldName]: {
 				sources: [
 					Source.Constants_Internal,
@@ -92,8 +92,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].id}
 				placeholderText="Loading liquidity pools…"
 				resource={pools}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -107,7 +107,7 @@
 
 				{#snippet Item({ item })}
 						<LiquidityPoolView
-							entityId={item.value[EntityMetaKey.Id]}
+							selector={item.value[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

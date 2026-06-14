@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.TronAccount>
+			selector: EntitySelector<typeof schema, EntityType.TronAccount>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const account = subscribe(EntityType.TronAccount,
-		entityId,
+		selector,
 		({ fields: { name: true, balanceSun: true, totalTransactionCount: true, isContract: true, ...(open && ({ createdTimestampMs: true, latestOperationTimestampMs: true, bandwidthRemaining: true, energyRemaining: true })) } }),
 	)
 
@@ -43,15 +43,15 @@
 
 <EntityView
 	entityType={EntityType.TronAccount}
-	{entityId}
-	title={entityId.address}
+	entitySelector={selector}
+	title={selector.address}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.address}
+			value={selector.address}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

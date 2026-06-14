@@ -75,7 +75,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Blockscout_Rest,
@@ -97,8 +97,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmInternalTransfer}
-				getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
-				getSortValue={(line) => line.value[EntityMetaKey.Id].internalIndex}
+				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
+				getSortValue={(line) => line.value[EntityMetaKey.Selector].internalIndex}
 				placeholderText="Loading internal transfers…"
 				resource={transfers}
 				{title}
@@ -114,9 +114,9 @@
 
 				{#snippet Item({ item })}
 					{@const line = item.value}
-					{@const transferId = line[EntityMetaKey.Id]}
+					{@const transferId = line[EntityMetaKey.Selector]}
 					<EvmInternalTransferView
-						entityId={transferId}
+						selector={transferId}
 						layout={EntityLayout.SummaryDetails}
 						open={false}
 						showParentTransaction={false}

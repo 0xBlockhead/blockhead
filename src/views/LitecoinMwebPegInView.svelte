@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LitecoinMwebPegIn>
+			selector: EntitySelector<typeof schema, EntityType.LitecoinMwebPegIn>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const litecoinMwebPegIn = subscribe(EntityType.LitecoinMwebPegIn,
-		entityId,
+		selector,
 		({ fields: { amountLitoshis: true } }),
 	)
 
@@ -41,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.LitecoinMwebPegIn}
-	{entityId}
-	title={`MWEB Peg-in #${entityId.pegInIndex.toString()}`}
-	idDragPlainText={entityId.pegInIndex.toString()}
+	entitySelector={selector}
+	title={`MWEB Peg-in #${selector.pegInIndex.toString()}`}
+	idDragPlainText={selector.pegInIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.pegInIndex.toString()}
+			#{selector.pegInIndex.toString()}
 		</span>
 	{/snippet}
 

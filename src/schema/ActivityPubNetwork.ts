@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum ActivityPubNetworkSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.ActivityPubNetwork,
 
 	label: 'ActivityPub network',
 	labelPlural: 'ActivityPub networks',
 
-	id: type({
-		scope: type.unit('ActivityPubNetwork'),
-	}),
+	selectors: [
+		{
+			name: ActivityPubNetworkSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('ActivityPubNetwork'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

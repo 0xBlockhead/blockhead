@@ -83,7 +83,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentPost = subscribe(EntityType.LensPost,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Lens_Graphql,
 					], fields: { [entityFieldReference.fieldName]: {
 						sources: [
@@ -115,7 +115,7 @@
 				entityType={EntityType.LensPost}
 				id={`${id}-items`}
 				{title}
-				getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+				getKey={(row) => stringify(row.result[EntityMetaKey.Selector])}
 				getSortValue={(row) => (
 					String(row.feedIndex).padStart(6, '0')
 				)}
@@ -129,9 +129,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const commentId = item.result[EntityMetaKey.Id]}
+					{@const commentId = item.result[EntityMetaKey.Selector]}
 					<LensPostView
-						entityId={{ id: commentId.id }}
+						selector={{ id: commentId.id }}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

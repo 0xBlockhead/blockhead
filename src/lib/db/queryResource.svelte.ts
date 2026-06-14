@@ -1,285 +1,192 @@
+import type { RemoteResource } from '@sveltejs/kit'
+import type { UseLiveQueryReturn } from '@tanstack/svelte-db'
+
 import { tick, untrack } from 'svelte'
 import { createSubscriber } from 'svelte/reactivity'
-
-import { normalizeBoundaryError } from '$/lib/errors.ts'
 
 
 export type QueryResourceError = object | string
 
-export type QueryLike<Data> = {
-	data: Data
-	isLoading: boolean
-	isError: boolean
+export type TanStackLiveQuerySnapshot<Data> = Pick<
+	UseLiveQueryReturn<object, Data>,
+	| 'data'
+	| 'isLoading'
+	| 'isReady'
+	| 'isError'
+	| 'status'
+> & {
 	readonly [Symbol.toStringTag]?: undefined
-	/** When set, treat as pending while `!isReady` even if `isLoading` is false (TanStack live query hydration). */
-	isReady?: boolean
 	error?: QueryResourceError
-	/** `useLiveQuery` exposes `status` but not `error`; use for fallback messaging */
-	status?: string
 }
 
-export type RemoteResourceLike<Data> = Promise<Data> & {
-	readonly [Symbol.toStringTag]?: string
-	readonly current: Data | undefined
-	readonly error: QueryResourceError | undefined
-	readonly ready: boolean
-	readonly loading: boolean
-	readonly subscribe?: (listener: () => void) => () => void
+export type SvelteKitResource<Data> = Omit<
+	RemoteResource<Data>,
+	'error'
+> & {
+	error: QueryResourceError | undefined
 }
 
-
-// Functions
-const withResolvers = () => {
-	let resolve!: (value: void | PromiseLike<void>) => void
-	let reject!: (reason?: QueryResourceError) => void
-	const promise = new Promise<void>((res, rej) => {
-		resolve = res
-		reject = rej
-	})
-	void promise.catch(() => {})
-	return { promise, resolve, reject }
-}
-
-
-/**
- * Thenable reactive resource driven by an external sync (e.g. TanStack `useLiveQuery`).
- *
- * Mirrors {@link https://github.com/sveltejs/kit/blob/main/packages/kit/src/runtime/client/remote-functions/query.svelte.js SvelteKit `Query`}: `then` chains `p.then(tick).then(() => #current)` and settles the inner promise with `undefined` while data lives in `#raw` / `#current`.
- * Feed snapshots via {@link QueryResource.applySync} instead of an async `#fn`.
- */
-export class QueryResource<Data> {
-	#raw = $state.raw<Data | undefined>(undefined)
-	#error = $state.raw<QueryResourceError | undefined>(undefined)
-	#ready = $state(false)
+export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> {
+	#query: () => TanStackLiveQuerySnapshot<Data>
+	#subscribe: () => void
 	#loading = $state(true)
-	#promise = $state.raw<Promise<void> | null>(null)
-	#pending: { resolve: () => void, reject: (reason?: QueryResourceError) => void } | null = null
-	#current = $derived(
-		this.#raw
-	)
+	#ready = $state(false)
+	#current = $state.raw<Data | undefined>()
+	#error = $state.raw<QueryResourceError | undefined>()
+	#promise = $state.raw<Promise<Data> | null>(null)
+	#resolve: ((value: Data) => void) | undefined
+	#reject: ((error: QueryResourceError) => void) | undefined
 
-	#get_promise(): Promise<void> {
-		void untrack(() => {
-			if (this.#promise != null)
-				return
-			if (this.#ready) {
-				this.#promise = Promise.resolve()
-				return
-			}
-			const { promise, resolve, reject } = withResolvers()
-			this.#pending = { resolve, reject }
-			this.#promise = promise
-		})
-		return this.#promise!
+	#then(): Promise<Data>['then'] {
+		const activePromise = this.#getPromise()
+
+		return (onFulfilled, onRejected) => {
+			const result = activePromise.then(async (value) => {
+				await tick()
+				return this.#current ?? value
+			})
+
+			return result.then(onFulfilled, onRejected)
+		}
 	}
 
-	#then = $derived.by(() => {
-		const p = this.#get_promise()
-
-		return <_Fulfilled = Data, _Rejected = void>(
-			onFulfilled?: (value: Data) => _Fulfilled | PromiseLike<_Fulfilled>,
-			onRejected?: (reason: QueryResourceError) => _Rejected | PromiseLike<_Rejected>,
-		) => {
-			const result = (
-				p
-					.then(tick)
-					.then(() => {
-						if (this.#current === undefined)
-							throw new Error('QueryResource settled without current data')
-
-						return this.#current
-					})
-			)
-
-			if (onFulfilled != null || onRejected != null) {
-				return result.then(onFulfilled, onRejected)
-			}
-
-			return result
-		}
-	})
-
-	/**
-	 * Apply an external snapshot.
-	 * - `pending: true` opens a new promise if none is pending (starts loading).
-	 * - `error !== undefined` settles with rejection.
-	 * - Otherwise settles with `undefined` after writing `data` (SvelteKit-style).
-	 */
-	applySync({
-		data,
-		error,
-		pending,
-	}: {
-		data: Data | undefined
-		error: QueryResourceError | undefined
-		pending: boolean
-	}) {
-		if (pending) {
-			this.#loading = true
-			if (this.#ready || this.#promise == null) {
-				untrack(() => {
-					this.#ready = false
-					const { promise, resolve, reject } = withResolvers()
-					this.#pending = { resolve, reject }
-					this.#promise = promise
-				})
-			}
-			return
-		}
-
-		const p = this.#pending
-		this.#pending = null
-
-		if (error !== undefined) {
+	constructor(
+		query: () => TanStackLiveQuerySnapshot<Data>,
+		subscribeToSource: (update: () => void) => () => void = () => () => {},
+	) {
+		this.#query = query
+		this.#subscribe = createSubscriber(() => subscribeToSource(() => {
 			untrack(() => {
-				this.#error = error
-				this.#loading = false
+				this.#apply(this.#query())
 			})
-			p?.reject(error)
+		}))
+		untrack(() => {
+			this.#apply(this.#query())
+		})
+	}
+
+	#startPending() {
+		this.#promise = new Promise<Data>((resolve, reject) => {
+			this.#resolve = resolve
+			this.#reject = reject
+		})
+		this.#promise.catch(() => {})
+		return this.#promise
+	}
+
+	#apply(
+		snapshot: TanStackLiveQuerySnapshot<Data>,
+	) {
+		if (snapshot.isError) {
+			this.fail(snapshot.error ?? String(snapshot.status))
 			return
 		}
 
-		untrack(() => {
-			this.#raw = data
+		if (snapshot.isLoading || snapshot.isReady === false) {
+			this.#loading = true
 			this.#error = undefined
-			this.#ready = true
-			this.#loading = false
+
+			if (!this.#promise || this.#ready)
+				this.#startPending()
+
+			return
+		}
+
+		this.set(snapshot.data)
+	}
+
+	#getPromise() {
+		return untrack(() => {
+			this.#apply(this.#query())
+			return this.#promise ?? this.#startPending()
 		})
-		p?.resolve()
+	}
+
+	#start() {
+		void tick().then(() => this.#getPromise())
+	}
+
+	get then(): Promise<Data>['then'] {
+		this.#subscribe()
+		this.#start()
+		return this.#then()
+	}
+
+	get catch(): Promise<Data>['catch'] {
+		this.#subscribe()
+		this.#start()
+		return (
+			onRejected,
+		) => this.#then()(undefined, onRejected)
+	}
+
+	get finally(): Promise<Data>['finally'] {
+		this.#subscribe()
+		this.#start()
+		return (
+			onFinally?: (() => void) | null,
+		) => this.#then()(
+			(value) => {
+				onFinally?.()
+				return value
+			},
+			(error) => {
+				onFinally?.()
+				throw error
+			},
+		)
 	}
 
 	get current() {
+		this.#subscribe()
+		this.#start()
 		return this.#current
 	}
 
 	get error() {
+		this.#subscribe()
+		this.#start()
 		return this.#error
 	}
 
 	get loading() {
+		this.#subscribe()
+		this.#start()
 		return this.#loading
 	}
 
 	get ready() {
+		this.#subscribe()
+		this.#start()
 		return this.#ready
 	}
 
-	get then() {
-		return this.#then
+	set(
+		value: Data,
+	) {
+		this.#current = value
+		this.#error = undefined
+		this.#loading = false
+		this.#ready = true
+		this.#resolve?.(value)
+		this.#resolve = undefined
+		this.#reject = undefined
+		this.#promise = Promise.resolve(value)
 	}
 
-	get catch() {
-		this.#then
-
-		return <R = void>(onRejected?: (reason: QueryResourceError) => R | PromiseLike<R>) => (
-			this.#then(undefined, onRejected)
-		)
-	}
-
-	get finally() {
-		this.#then
-
-		return (fn?: () => void) => (
-			this.#then(
-				(value) => {
-					fn?.()
-					return value
-				},
-				(err) => {
-					fn?.()
-					throw err
-				},
-			)
-		)
+	fail(
+		error: QueryResourceError,
+	) {
+		this.#error = error
+		this.#loading = false
+		this.#reject?.(error)
+		this.#resolve = undefined
+		this.#reject = undefined
+		this.#promise = Promise.reject(error)
+		this.#promise.catch(() => {})
 	}
 
 	get [Symbol.toStringTag]() {
-		return 'QueryResource'
+		return 'Query'
 	}
-}
-
-
-export const toQueryResource = <Data>(
-	getQuery: () => QueryLike<Data>,
-) => {
-	const resource = new QueryResource<Data>()
-	{
-		const query = getQuery()
-
-		resource.applySync({
-			data: query.data,
-			error: (
-				query.isError ?
-					normalizeBoundaryError(query.error ?? new Error(String(query.status ?? 'Query failed')))
-				:
-					undefined
-			),
-			pending: (
-				!query.isError && (
-					query.isLoading
-					|| query.isReady === false
-				)
-			),
-		})
-	}
-
-	$effect(() => {
-		const query = getQuery()
-
-		resource.applySync({
-			data: query.data,
-			error: (
-				query.isError ?
-					normalizeBoundaryError(query.error ?? new Error(String(query.status ?? 'Query failed')))
-				:
-					undefined
-			),
-			pending: (
-				!query.isError && (
-					query.isLoading
-					|| query.isReady === false
-				)
-			),
-		})
-	})
-
-	return resource
-}
-
-
-export const toQueryResourceFromRemote = <Data>(
-	getRemote: () => RemoteResourceLike<Data>,
-) => {
-	const resource = new QueryResource<Data>()
-	const subscribe = createSubscriber((update) => getRemote().subscribe?.(update))
-	{
-		const remote = getRemote()
-
-		resource.applySync({
-			data: remote.current,
-			error: remote.error == null ? undefined : normalizeBoundaryError(remote.error),
-			pending: (
-				remote.error === undefined
-				&& remote.current === undefined
-				&& !remote.ready
-			),
-		})
-	}
-
-	$effect(() => {
-		subscribe()
-		const remote = getRemote()
-
-		resource.applySync({
-			data: remote.current,
-			error: remote.error == null ? undefined : normalizeBoundaryError(remote.error),
-			pending: (
-				remote.error === undefined
-				&& remote.current === undefined
-				&& !remote.ready
-			),
-		})
-	})
-
-	return resource
 }

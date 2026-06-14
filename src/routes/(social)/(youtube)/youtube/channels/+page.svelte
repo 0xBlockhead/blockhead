@@ -18,7 +18,7 @@
 		href={resolve('/youtube/channels')}
 		entityFieldReference={{
 			entityType: EntityType.YouTubeNetwork,
-			entityId: { scope: 'YouTubeNetwork' },
+			selector: { scope: 'YouTubeNetwork' },
 			fieldName: '$$youtubeChannels',
 		}}
 		id="youtube-channels"

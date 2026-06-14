@@ -17,7 +17,7 @@
 
 <Page>
 	<Eip8004RegistrationView
-		entityId={{
+		selector={{
 			$contract: {
 				$network: { caip2: { namespace: 'eip155' as const, reference: String(Number(params.chainId)) } },
 				address: EvmAddress.assert(decodeURIComponent(params.contractAddress)),

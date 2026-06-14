@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,12 +13,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.PolkadotBlock>
+			selector: EntitySelector<typeof schema, EntityType.PolkadotBlock>
 			open?: boolean
 		},
 		Pick<
@@ -29,7 +29,7 @@
 	> = $props()
 
 	const block = subscribe(EntityType.PolkadotBlock,
-		entityId,
+		selector,
 		({ sources: [
 				Source.SubstrateSidecar_Rest,
 			], fields: { hash: true, $$extrinsics: true, $$events: true, ...(open && ({ $parent: true, stateRoot: true, extrinsicsRoot: true })) } }),
@@ -46,22 +46,22 @@
 
 <EntityView
 	entityType={EntityType.PolkadotBlock}
-	{entityId}
+	entitySelector={selector}
 	href={
-		'networkSlug' in entityId.$network ?
-			`/network/${entityId.$network.networkSlug}/blocks/${entityId.blockNumber.toString()}`
+		'networkSlug' in selector.$network ?
+			`/network/${selector.$network.networkSlug}/blocks/${selector.blockNumber.toString()}`
 		:
-			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/blocks/${entityId.blockNumber.toString()}`
+			`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/blocks/${selector.blockNumber.toString()}`
 	}
-	title={`Block #${entityId.blockNumber.toString()}`}
-	idDragPlainText={entityId.blockNumber.toString()}
+	title={`Block #${selector.blockNumber.toString()}`}
+	idDragPlainText={selector.blockNumber.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.blockNumber.toString()}
+			#{selector.blockNumber.toString()}
 		</span>
 	{/snippet}
 
@@ -87,12 +87,12 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if entityId.hash != null || block.fields.hash != null}
+					{#if selector.hash != null || block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={entityId.hash ?? block.fields.hash}
+									value={selector.hash ?? block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
@@ -117,7 +117,7 @@
 						<div>
 							<dt>Parent</dt>
 							<dd>
-								Block #{block.fields.$parent[EntityMetaKey.Id].blockNumber.toString()}
+								Block #{block.fields.$parent[EntityMetaKey.Selector].blockNumber.toString()}
 							</dd>
 						</div>
 					{/if}

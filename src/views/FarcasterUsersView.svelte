@@ -70,7 +70,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentNetwork = subscribe(EntityType.FarcasterNetwork,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ sources: [Source.Farcaster_Rest], fields: { protocolName: true, $$users: ({ sources: [Source.Snapchain_Rest] }) } }),
 			)}
 			{@const users = derive(
@@ -89,8 +89,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(farcasterUser) => stringify(farcasterUser.value[EntityMetaKey.Id])}
-				getSortValue={(farcasterUser) => farcasterUser.value[EntityMetaKey.Id].fid}
+				getKey={(farcasterUser) => stringify(farcasterUser.value[EntityMetaKey.Selector])}
+				getSortValue={(farcasterUser) => farcasterUser.value[EntityMetaKey.Selector].fid}
 				placeholderText="Loading Farcaster users…"
 				resource={users}
 			>
@@ -101,9 +101,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const userId = item.value[EntityMetaKey.Id]}
+					{@const userId = item.value[EntityMetaKey.Selector]}
 					<FarcasterUserView
-						entityId={{ fid: userId.fid }}
+						selector={{ fid: userId.fid }}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

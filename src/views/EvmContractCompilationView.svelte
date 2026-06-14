@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,10 +15,10 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
-				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-			address: entityId.address,
+				...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+			address: selector.address,
 			}),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
@@ -31,7 +31,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmContractCompilation>
+			selector: EntitySelector<typeof schema, EntityType.EvmContractCompilation>
 			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
@@ -42,7 +42,7 @@
 	> = $props()
 
 	const compilation = subscribe(EntityType.EvmContractCompilation,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Sourcify_Rest,
 			], fields: { ...(open && ({ language: true, compiler: true, compilerVersion: true, name: true, fullyQualifiedName: true, compilerSettingsJson: true, storageLayoutJson: true })) } }),
@@ -58,7 +58,7 @@
 
 <EntityView
 	entityType={EntityType.EvmContractCompilation}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open

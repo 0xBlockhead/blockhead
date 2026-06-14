@@ -53,7 +53,7 @@
 	bind:open
 	{collapsible}
 	data-entity-field-name={entityFieldReference.fieldName}
-	data-entity-field-parent={stringify(entityFieldReference.entityId)}
+	data-entity-field-parent={stringify(entityFieldReference.selector)}
 	data-entity-field-type={entityFieldReference.entityType}
 	entityType={EntityType.StateChannel}
 	{id}
@@ -93,7 +93,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [Source.Local_Internal],
 					},
@@ -116,11 +116,11 @@
 				collapsible={false}
 				showSummary={false}
 				data-entity-field-name={entityFieldReference.fieldName}
-				data-entity-field-parent={stringify(entityFieldReference.entityId)}
+				data-entity-field-parent={stringify(entityFieldReference.selector)}
 				data-entity-field-type={entityFieldReference.entityType}
 				entityType={EntityType.StateChannel}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].id}
 				open={true}
 				resource={stateChannels}
 				{title}
@@ -150,7 +150,7 @@
 
 				{#snippet Item({ item })}
 					<StateChannelView
-						entityId={item.value[EntityMetaKey.Id]}
+						selector={item.value[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -3,11 +3,12 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { CashuMintSelector } from '$/schema/CashuMint.ts'
+import { CashuKeysetSelector } from '$/schema/CashuKeyset.ts'
 
 export default {
 	source: Source.CashuMint_Rest,
@@ -16,9 +17,9 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[CashuMintSelector.MintUrl]: async ({ mintUrl }) => {
 				const { getMintInfo } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
-				const info = await getMintInfo({ mintUrl: entityId.mintUrl })
+				const info = await getMintInfo({ mintUrl: mintUrl })
 				return {
 					...(info.name != null && { name: info.name }),
 					...(info.pubkey != null && { pubkey: info.pubkey }),
@@ -47,22 +48,22 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuKeyset,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[CashuKeysetSelector.CashuMintKeysetId]: async ({ $mint, keysetId }) => {
 				const {
 					getMintKeysets,
 					getMintKeysForKeyset,
 				} = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 				const keyset = (await getMintKeysets({
-					mintUrl: entityId.$mint.mintUrl,
-				})).keysets.find((row) => row.id === entityId.keysetId)
+					mintUrl: $mint.mintUrl,
+				})).keysets.find((row) => row.id === entitySelector.keysetId)
 				if (keyset == null)
-					throw new Error(`CashuMint_Rest: keyset not found for ${entityId.keysetId}`)
+					throw new Error(`CashuMint_Rest: keyset not found for ${keysetId}`)
 
 				const keys = await getMintKeysForKeyset({
-					mintUrl: entityId.$mint.mintUrl,
-					keysetId: entityId.keysetId,
+					mintUrl: $mint.mintUrl,
+					keysetId: keysetId,
 				})
-				const keysByAmount = keys.keysets.find((row) => row.id === entityId.keysetId)?.keys
+				const keysByAmount = keys.keysets.find((row) => row.id === entitySelector.keysetId)?.keys
 
 				return {
 					unit: keyset.unit,
@@ -86,15 +87,15 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[CashuMintSelector.MintUrl]: async ({ mintUrl }, context) => {
 				const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 				return (await getMintKeysets({
-					mintUrl: entityId.mintUrl,
+					mintUrl: mintUrl,
 				})).keysets
 					.slice(0, resolverContextRowLimit(context))
 					.map((keyset) => ({
-						[EntityMetaKey.Id]: {
-							$mint: entityId,
+						[EntityMetaKey.Selector]: {
+							$mint: entitySelector,
 							keysetId: keyset.id,
 						},
 						unit: keyset.unit,

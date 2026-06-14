@@ -62,7 +62,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Beacon_Rest,
@@ -84,7 +84,7 @@
 				entityType={EntityType.BeaconSlashing}
 				id={`${id}-items`}
 				href={href}
-				getKey={(slashing) => `${String(slashing[EntityMetaKey.Id].slot)}:${slashing[EntityMetaKey.Id].kind}:${String(slashing[EntityMetaKey.Id].index)}`}
+				getKey={(slashing) => `${String(slashing[EntityMetaKey.Selector].slot)}:${slashing[EntityMetaKey.Selector].kind}:${String(slashing[EntityMetaKey.Selector].index)}`}
 				resource={slashings}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -96,7 +96,7 @@
 
 				{#snippet Item({ item: slashing })}
 					<BeaconSlashingView
-						entityId={slashing[EntityMetaKey.Id]}
+						selector={slashing[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

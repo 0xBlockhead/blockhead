@@ -51,7 +51,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.TronGrid_Rest,
@@ -73,8 +73,8 @@
 				entityType={EntityType.TronBlock}
 				id={`${id}-items`}
 				href={href}
-				getKey={(block) => stringify(block[EntityMetaKey.Id])}
-				getSortValue={(block) => -Number(block[EntityMetaKey.Id].height)}
+				getKey={(block) => stringify(block[EntityMetaKey.Selector])}
+				getSortValue={(block) => -Number(block[EntityMetaKey.Selector].height)}
 				open={true}
 				resource={blocks}
 				{title}
@@ -82,7 +82,7 @@
 			>
 				{#snippet Empty()}<p data-text="muted">No recent blocks yet.</p>{/snippet}
 				{#snippet Item(context)}
-					<TronBlockView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+					<TronBlockView selector={context!.item[EntityMetaKey.Selector]} layout={EntityLayout.Summary} open={false} />
 				{/snippet}
 			</EntitiesList>
 		{/if}

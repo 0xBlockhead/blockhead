@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum LensNetworkSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.LensNetwork,
 
 	label: 'Lens network',
 	labelPlural: 'Lens networks',
 
-	id: type({
-		scope: type.unit('LensNetwork'),
-	}),
+	selectors: [
+		{
+			name: LensNetworkSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('LensNetwork'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

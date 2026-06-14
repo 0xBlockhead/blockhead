@@ -13,6 +13,6 @@
 
 <Page>
 	<NostrRepostView
-		entityId={data.entityId}
+		selector={data.selector}
 	/>
 </Page>

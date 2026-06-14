@@ -60,7 +60,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Lotus_JsonRpc,
@@ -82,8 +82,8 @@
 				entityType={EntityType.FilecoinTipset}
 				id={`${id}-items`}
 				href={href}
-				getKey={(tipset) => stringify(tipset[EntityMetaKey.Id])}
-				getSortValue={(tipset) => -Number(tipset[EntityMetaKey.Id].height)}
+				getKey={(tipset) => stringify(tipset[EntityMetaKey.Selector])}
+				getSortValue={(tipset) => -Number(tipset[EntityMetaKey.Selector].height)}
 				open={true}
 				resource={tipsets}
 				{title}
@@ -97,7 +97,7 @@
 
 				{#snippet Item(context)}
 					<FilecoinTipsetView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

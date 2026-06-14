@@ -1,6 +1,4 @@
 import { type } from 'arktype'
-import { lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
-
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -8,7 +6,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum BittensorBlockSelector {
+	NetworkBlockNumberHash = 'networkBlockNumberHash',
+}
 import { Source } from '$/sources/Source.ts'
 
 export default {
@@ -17,31 +18,30 @@ export default {
 	label: 'Bittensor block',
 	labelPlural: 'Bittensor blocks',
 
-	id: type({
-		$network: Network.id,
-		blockNumber: 'bigint',
-		'hash?': 'string',
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'numberHash',
+			name: BittensorBlockSelector.NetworkBlockNumberHash,
 			fields: [
-				{
-					name: '$network',
-				},
-				{
-					name: 'blockNumber',
-				},
-				{
-					name: 'hash',
-					normalize: lowercaseHexIdentityValue,
-				},
+				'$network',
+				'blockNumber',
+				'hash',
 			],
 		},
 	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'blockNumber',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'hash',
 			type: EntityFieldType.Primitive,

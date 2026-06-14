@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -10,17 +10,17 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.TronNetwork_Timestamp>
+		selector: EntitySelector<typeof schema, EntityType.TronNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const snapshot = subscribe(EntityType.TronNetwork_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.TronGrid_Rest,
 			], fields: { latestBlockHeight: true, latestBlockHash: true, latestBlockTimeMs: true, latestBlockTransactionCount: true, witnessCount: true, activeWitnessCount: true, nodeBlockHeight: true, solidityBlockHeight: true, currentPeerCount: true, maintenanceIntervalMs: true, transactionFeeSun: true, createAccountFeeSun: true } }),
@@ -38,7 +38,7 @@
 
 <EntityView
 	entityType={EntityType.TronNetwork_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	bind:open
 	{layout}
 >
@@ -54,7 +54,7 @@
 					<NumberValue value={snapshot.fields.activeWitnessCount} />
 					witnesses
 				{:else}
-					<Timestamp timestamp={entityId.timestampMs} />
+					<Timestamp timestamp={selector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

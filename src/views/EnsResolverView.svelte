@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { ensEthereumChainId } from '$/constants/Ens.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -14,13 +14,13 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 	}: {
-		entityId: EntityId<typeof schema, EntityType.EnsName>
+		selector: EntitySelector<typeof schema, EntityType.EnsName>
 	} = $props()
 
 	const ens = subscribe(EntityType.EnsName,
-		entityId,
+		selector,
 		({ sources: [Source.Voltaire_JsonRpc], fields: { $resolverContract: true } }),
 	)
 
@@ -38,24 +38,24 @@
 	resource={ens}
 >
 	{#snippet children(ens)}
-		{@const contractId = ens.fields.$resolverContract?.[EntityMetaKey.Id]}
+		{@const contractId = ens.fields.$resolverContract?.[EntityMetaKey.Selector]}
 		{#if contractId}
 			<section>
 				<EvmNetworkView
-					entityId={{ chainId: ensEthereumChainId }}
+					selector={{ chainId: ensEthereumChainId }}
 					layout={EntityLayout.Summary}
 					open={false}
 				/>
 			</section>
 
 			<EvmContractView
-				entityId={contractId}
+				selector={contractId}
 				title="Resolver contract"
 			/>
 		{:else}
 			<p data-text="muted">
 				No resolver contract on the Voltaire ENS row for
-				<span data-text="font-monospace">{entityId.name}</span>
+				<span data-text="font-monospace">{selector.name}</span>
 				yet.
 			</p>
 		{/if}

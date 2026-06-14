@@ -73,7 +73,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ fields: { blockHeight: ({ sources: [
 							Source.Voltaire_JsonRpc,
 						] }), [entityFieldReference.fieldName]: ({ sources: [
@@ -95,8 +95,8 @@
 					href={EntitiesListProps.href}
 					{title}
 					open={true}
-					getKey={(row) => stringify(row[EntityMetaKey.Id])}
-					getSortValue={(row) => row[EntityMetaKey.Id].address}
+					getKey={(row) => stringify(row[EntityMetaKey.Selector])}
+					getSortValue={(row) => row[EntityMetaKey.Selector].address}
 					placeholderText="Loading verified contracts…"
 					resource={contracts}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -109,7 +109,7 @@
 
 					{#snippet Item({ item })}
 						<EvmContractView
-							entityId={item[EntityMetaKey.Id]}
+							selector={item[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

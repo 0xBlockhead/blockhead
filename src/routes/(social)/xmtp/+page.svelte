@@ -7,7 +7,7 @@
 
 <Page>
 	<XmtpView
-		entityId={{
+		selector={{
 			scope: 'XmtpNetwork',
 		}}
 	/>

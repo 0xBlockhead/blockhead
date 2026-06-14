@@ -8,17 +8,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum ConsensusMechanismSelector {
+	ConsensusMechanismId = 'consensusMechanismId',
+}
+
 export default {
 	entityType: EntityType.ConsensusMechanism,
 
 	label: 'Consensus mechanism',
 	labelPlural: 'Consensus mechanisms',
 
-	id: type({
-		consensusMechanismId: type.valueOf(ConsensusMechanismId),
-	}),
+	selectors: [
+		{
+			name: ConsensusMechanismSelector.ConsensusMechanismId,
+			fields: [
+				'consensusMechanismId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'consensusMechanismId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(ConsensusMechanismId),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'label',
 			type: EntityFieldType.Primitive,

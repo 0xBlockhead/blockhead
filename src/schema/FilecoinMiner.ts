@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum FilecoinMinerSelector {
+	NetworkMinerAddress = 'networkMinerAddress',
+}
 
 export default {
 	entityType: EntityType.FilecoinMiner,
@@ -15,12 +18,29 @@ export default {
 	label: 'Filecoin Miner',
 	labelPlural: 'Filecoin Miners',
 
-	id: type({
-		$network: Network.id,
-		minerAddress: 'string',
-	}),
+	selectors: [
+		{
+			name: FilecoinMinerSelector.NetworkMinerAddress,
+			fields: [
+				'$network',
+				'minerAddress',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'minerAddress',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$owner',
 			type: EntityFieldType.EntityReference,

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -10,17 +10,17 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.NetworkStack>
+		selector: EntitySelector<typeof schema, EntityType.NetworkStack>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const networkStack = subscribe(EntityType.NetworkStack,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true } }),
@@ -35,7 +35,7 @@
 
 <EntityView
 	entityType={EntityType.NetworkStack}
-	{entityId}
+	entitySelector={selector}
 	bind:open
 	{layout}
 >

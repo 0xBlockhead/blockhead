@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,7 +17,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/activitypub'),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -26,7 +26,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ActivityPubNetwork>
+			selector: EntitySelector<typeof schema, EntityType.ActivityPubNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -35,7 +35,7 @@
 	> = $props()
 
 	const activityPubNetwork = subscribe(EntityType.ActivityPubNetwork,
-		entityId,
+		selector,
 		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, instanceTitle: ({ sources: [Source.Mastodon_Rest] }), instanceVersion: ({ sources: [Source.Mastodon_Rest] }), fediInstanceTitle: ({ sources: [Source.Fedi_Rest] }), fediInstanceVersion: ({ sources: [Source.Fedi_Rest] }), $$activityPubActors: ({ sources: [
 							Source.Constants_Internal,
 							Source.Mastodon_Rest,
@@ -48,8 +48,8 @@
 
 
 	// (Derived)
-	const networkIdKey = $derived(
-		stringify(entityId),
+	const networkSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -65,7 +65,7 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubNetwork}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	layout={EntityLayout.SummaryDetails}
 	bind:open
@@ -187,8 +187,8 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-public`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-public`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'public-actors', label: 'Actors' },
 				{ id: 'public-notes', label: 'Public timeline' },
@@ -212,10 +212,10 @@
 					href={resolve('/activitypub/actors')}
 					entityFieldReference={{
 						entityType: EntityType.ActivityPubNetwork,
-						entityId,
+						selector,
 						fieldName: '$$activityPubActors',
 					}}
-					id={`${networkIdKey}:actors`}
+					id={`${networkSelectorKey}:actors`}
 					open={_open}
 				/>
 			{/snippet}
@@ -226,11 +226,11 @@
 					href={resolve('/activitypub/notes')}
 					entityFieldReference={{
 						entityType: EntityType.ActivityPubNetwork,
-						entityId,
+						selector,
 						fieldName: '$$activityPubNotes',
 					}}
 					fieldOpen={_open}
-					id={`${networkIdKey}:notes`}
+					id={`${networkSelectorKey}:notes`}
 					orderByCreatedAt="desc"
 					placeholderText="Loading federation statuses…"
 					title="Public timeline"

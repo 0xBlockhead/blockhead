@@ -41,7 +41,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const market = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ sources: [
+		entityFieldReference.selector,({ sources: [
 				Source.Constants_Internal,
 				...marketOhlcCandleSources,
 			], fields: { [entityFieldReference.fieldName]: {
@@ -61,14 +61,14 @@
 				dedupeCandleEntitiesById(marketTimeIntervalTimestamps)
 					.filter((marketTimeIntervalTimestamp) => (
 						marketTimeIntervalsEqual(
-							marketTimeIntervalTimestamp[EntityMetaKey.Id].timeInterval,
+							marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval,
 							timeInterval,
 						)
 					))
 					.toSorted((left, right) => (
-						left[EntityMetaKey.Id].timestampMs < right[EntityMetaKey.Id].timestampMs ?
+						left[EntityMetaKey.Selector].timestampMs < right[EntityMetaKey.Selector].timestampMs ?
 							-1
-						: left[EntityMetaKey.Id].timestampMs > right[EntityMetaKey.Id].timestampMs ?
+						: left[EntityMetaKey.Selector].timestampMs > right[EntityMetaKey.Selector].timestampMs ?
 							1
 						:
 							0

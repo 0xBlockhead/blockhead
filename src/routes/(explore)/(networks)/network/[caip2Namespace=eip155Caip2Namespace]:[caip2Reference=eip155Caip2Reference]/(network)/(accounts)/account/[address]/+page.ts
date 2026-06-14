@@ -26,11 +26,11 @@ export const load: PageLoad = ({ params }) => {
 	const $actor = EvmAccountSchema.id({ address })
 	if ($actor instanceof arktype.errors) error(404, 'Invalid account address')
 
-	const entityId = EvmNetworkAccountSchema.id({
+	const entitySelector = EvmNetworkAccountSchema.id({
 		$network,
 		$actor,
 	})
-	if (entityId instanceof arktype.errors) error(404, 'Invalid wallet on network')
+	if (entitySelector instanceof arktype.errors) error(404, 'Invalid wallet on network')
 
-	return { entityId }
+	return { entitySelector }
 }

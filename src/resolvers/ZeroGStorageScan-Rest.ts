@@ -3,11 +3,15 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
+import { ZeroGNetwork_TimestampSelector } from '$/schema/ZeroGNetwork_Timestamp.ts'
+import { ZeroGStorageNodeSelector } from '$/schema/ZeroGStorageNode.ts'
+import { ZeroGDataBlobSelector } from '$/schema/ZeroGDataBlob.ts'
+import { ZeroGStorageLogEntrySelector } from '$/schema/ZeroGStorageLogEntry.ts'
 
 const assertZeroGMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (!('networkSlug' in network) || network.networkSlug !== '0g') {
@@ -64,8 +68,8 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnet(entityId)
+				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				assertZeroGMainnet(entitySelector)
 				const {
 					listStorageMiners,
 					listStorageTransactions,
@@ -86,20 +90,20 @@ export default {
 				return {
 					$$timestamps: [
 						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector,
 								timestampMs: Date.now(),
 							},
 							...timestampFields,
 						},
 					],
 					$$storageNodes: miners.list.map((miner) => ({
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							nodeId: miner.miner,
 						},
 						$operator: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								address: miner.miner,
 							},
 						},
@@ -108,14 +112,14 @@ export default {
 						miningAttempts: miner.miningAttempts,
 					})),
 					$$dataBlobs: transactions.list.map((transaction) => ({
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							dataRoot: transaction.rootHash,
 						},
 						sizeBytes: BigInt(transaction.dataSize),
 						$storageLogEntry: {
-							[EntityMetaKey.Id]: {
-								$network: entityId,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector,
 								logEntryId: transaction.txSeq.toString(),
 							},
 						},
@@ -134,8 +138,8 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnet(entityId.$network)
+				[ZeroGNetwork_TimestampSelector.ZeroGNetworkTimestampMs]: async ({ $network }) => {
+				assertZeroGMainnet($network)
 				return zeroGStorageTimestampFields()
 			}
 			}
@@ -160,16 +164,16 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnet(entityId.$network)
+				[ZeroGStorageNodeSelector.NetworkNodeId]: async ({ $network, nodeId }) => {
+				assertZeroGMainnet($network)
 				const { getStorageMiner } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 				const miner = await getStorageMiner({
-					address: entityId.nodeId,
+					address: nodeId,
 				})
 				return {
 					$operator: {
-						[EntityMetaKey.Id]: {
-							address: entityId.nodeId,
+						[EntityMetaKey.Selector]: {
+							address: nodeId,
 						},
 					},
 					balance: miner.balance,
@@ -188,38 +192,38 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGDataBlob,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnet(entityId.$network)
+				[ZeroGDataBlobSelector.NetworkDataRoot]: async ({ $network, dataRoot }) => {
+				assertZeroGMainnet($network)
 				const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 				const transactions = await listStorageTransactions({
 					limit: 1,
-					rootHash: entityId.dataRoot,
+					rootHash: dataRoot,
 				})
 				const transaction = transactions.list.at(0)
-				if (transaction == null) throw new Error(`ZeroGStorageScan_Rest: data root not found ${entityId.dataRoot}`)
+				if (transaction == null) throw new Error(`ZeroGStorageScan_Rest: data root not found ${dataRoot}`)
 				return {
 					$consensusNetwork: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
-							consensusNetworkId: 'networkSlug' in entityId.$network ? entityId.$network.networkSlug : entityId.$network.caip2.reference,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
+							consensusNetworkId: 'networkSlug' in $network ? $network.networkSlug : $network.caip2.reference,
 						},
 					},
 					sizeBytes: BigInt(transaction.dataSize),
 					$storageLogEntry: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
 							logEntryId: transaction.txSeq.toString(),
 						},
 						$dataBlob: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								dataRoot: transaction.rootHash,
 							},
 						},
 						$consensusNetwork: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								consensusNetworkId: 'networkSlug' in entityId.$network ? entityId.$network.networkSlug : entityId.$network.caip2.reference,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
+								consensusNetworkId: 'networkSlug' in $network ? $network.networkSlug : $network.caip2.reference,
 							},
 						},
 						sequenceNumber: BigInt(transaction.txSeq),
@@ -239,27 +243,27 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageLogEntry,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnet(entityId.$network)
+				[ZeroGStorageLogEntrySelector.NetworkLogEntryId]: async ({ $network, logEntryId }) => {
+				assertZeroGMainnet($network)
 				const { getStorageTransaction } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 				const transaction = await getStorageTransaction({
-					txSeq: entityId.logEntryId,
+					txSeq: logEntryId,
 				})
 				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
+					[EntityMetaKey.Selector]: {
+						$network: $network,
 						logEntryId: transaction.txSeq.toString(),
 					},
 					$dataBlob: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
 							dataRoot: transaction.rootHash,
 						},
 					},
 					$consensusNetwork: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
-							consensusNetworkId: 'networkSlug' in entityId.$network ? entityId.$network.networkSlug : entityId.$network.caip2.reference,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
+							consensusNetworkId: 'networkSlug' in $network ? $network.networkSlug : $network.caip2.reference,
 						},
 					},
 					sequenceNumber: BigInt(transaction.txSeq),
@@ -279,12 +283,12 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnet(entityId)
+				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				assertZeroGMainnet(entitySelector)
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							timestampMs: Date.now(),
 						},
 						...(await zeroGStorageTimestampFields()),
@@ -301,18 +305,18 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertZeroGMainnet(entityId)
+				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector, context) => {
+				assertZeroGMainnet(entitySelector)
 				const { listStorageMiners } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 				return (await listStorageMiners({
 					limit: resolverContextRowLimit(context),
 				})).list.map((miner) => ({
-					[EntityMetaKey.Id]: {
-						$network: entityId,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector,
 						nodeId: miner.miner,
 					},
 					$operator: {
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							address: miner.miner,
 						},
 					},
@@ -331,20 +335,20 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertZeroGMainnet(entityId)
+				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector, context) => {
+				assertZeroGMainnet(entitySelector)
 				const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 				return (await listStorageTransactions({
 					limit: resolverContextRowLimit(context),
 				})).list.map((transaction) => ({
-					[EntityMetaKey.Id]: {
-						$network: entityId,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector,
 						dataRoot: transaction.rootHash,
 					},
 					sizeBytes: BigInt(transaction.dataSize),
 					$storageLogEntry: {
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							logEntryId: transaction.txSeq.toString(),
 						},
 					},

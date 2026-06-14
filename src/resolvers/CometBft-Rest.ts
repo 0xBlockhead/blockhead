@@ -3,13 +3,14 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { cosmosHubCaip2, cosmosHubRpcUrl } from '$/constants/CosmosNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { CosmosBlockSelector } from '$/schema/CosmosBlock.ts'
+import { CosmosTransactionSelector } from '$/schema/CosmosTransaction.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const assertCosmosHub = (network: NetworkId) => {
 	if (
@@ -28,15 +29,13 @@ export default {
 		defineResolver(Source.CometBft_Rest, {
 			entityType: EntityType.CosmosBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$network)
-				if (!('height' in entityId))
-					throw new Error('CometBft_Rest: CosmosBlock hash lookup is unsupported')
+				[CosmosBlockSelector.Height]: async ({ $network, height }) => {
+				assertCosmosHub($network)
 
 				const { getBlock } = await import('$/sources/CometBft/Rest/queries.ts')
 				const wireBlock = await getBlock({
 					restBaseUrl: cosmosHubRpcUrl,
-					height: entityId.height,
+					height,
 				})
 				return {
 					hash: wireBlock.result.block_id.hash,
@@ -56,17 +55,17 @@ export default {
 		defineResolver(Source.CometBft_Rest, {
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$network)
+				[CosmosTransactionSelector.NetworkTxHash]: async ({ $network, txHash }) => {
+				assertCosmosHub($network)
 				const { getTx } = await import('$/sources/CometBft/Rest/queries.ts')
 				const wireTransaction = await getTx({
 					restBaseUrl: cosmosHubRpcUrl,
-					txHash: entityId.txHash,
+					txHash: txHash,
 				})
 				return {
 					$block: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
 							height: BigInt(wireTransaction.result.height),
 						},
 					},

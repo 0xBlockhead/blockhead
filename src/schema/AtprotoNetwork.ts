@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum AtprotoNetworkSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.AtprotoNetwork,
 
 	label: 'AT Protocol network',
 	labelPlural: 'AT Protocol networks',
 
-	id: type({
-		scope: type.unit('AtprotoNetwork'),
-	}),
+	selectors: [
+		{
+			name: AtprotoNetworkSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('AtprotoNetwork'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

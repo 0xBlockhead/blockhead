@@ -7,7 +7,7 @@
 
 <Page>
 	<SwarmProtocolView
-		entityId={{
+		selector={{
 			scope: 'SwarmProtocol',
 		}}
 	/>

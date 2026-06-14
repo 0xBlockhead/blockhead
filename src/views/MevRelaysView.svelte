@@ -56,7 +56,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Constants_Internal,
@@ -78,7 +78,7 @@
 				entityType={EntityType.MevRelay}
 				id={`${id}-items`}
 				href={href}
-				getKey={(relay) => relay[EntityMetaKey.Id].host}
+				getKey={(relay) => relay[EntityMetaKey.Selector].host}
 				placeholderText="Loading relays…"
 				resource={relays}
 				{title}
@@ -91,7 +91,7 @@
 
 				{#snippet Item({ item: relay })}
 					<MevRelayView
-						entityId={relay[EntityMetaKey.Id]}
+						selector={relay[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

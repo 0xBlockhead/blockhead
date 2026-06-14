@@ -71,7 +71,7 @@
 	const effectiveFilterRealm = $derived(
 		filterRealm ?? (
 			entityFieldReference.entityType === EntityType.SpecificationProposalKind ?
-				entityFieldReference.entityId.realm
+				entityFieldReference.selector.realm
 			:
 				undefined
 		),
@@ -80,7 +80,7 @@
 	const effectiveFilterCategory = $derived(
 		filterCategory ?? (
 			entityFieldReference.entityType === EntityType.SpecificationProposalKind ?
-				entityFieldReference.entityId.category
+				entityFieldReference.selector.category
 			:
 				undefined
 		),
@@ -156,7 +156,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ sources: [
+		entityFieldReference.selector,({ sources: [
 				Source.Constants_Internal,
 				...selectedSpecificationProposalSources,
 			], fields: { [entityFieldReference.fieldName]: {
@@ -172,8 +172,8 @@
 			return (
 				specificationProposals
 					.filter((proposal) => (
-						(effectiveFilterRealm == null || proposal[EntityMetaKey.Id].realm === effectiveFilterRealm)
-						&& (effectiveFilterCategory == null || proposal[EntityMetaKey.Id].category === effectiveFilterCategory)
+						(effectiveFilterRealm == null || proposal[EntityMetaKey.Selector].realm === effectiveFilterRealm)
+						&& (effectiveFilterCategory == null || proposal[EntityMetaKey.Selector].category === effectiveFilterCategory)
 					))
 					.map((proposal) => ({
 						result: proposal,
@@ -188,8 +188,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
-				getSortValue={(row) => row.result[EntityMetaKey.Id].number}
+				getKey={(row) => stringify(row.result[EntityMetaKey.Selector])}
+				getSortValue={(row) => row.result[EntityMetaKey.Selector].number}
 				placeholderKeys={new SvelteSet<string | number>()}
 				resource={proposals}
 				open={true}
@@ -201,9 +201,9 @@
 					{/snippet}
 
 				{#snippet Item({ item })}
-						{@const proposalEntityId = item.result[EntityMetaKey.Id]}
+						{@const proposalEntitySelector = item.result[EntityMetaKey.Selector]}
 						<ProposalView
-							entityId={proposalEntityId}
+							selector={proposalEntitySelector}
 							layout={EntityLayout.SummaryInline}
 							open={false}
 						/>

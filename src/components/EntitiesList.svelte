@@ -3,7 +3,7 @@
 	generics="
 		_EntityType extends RegisteredEntityType,
 		_Item = (
-			& EntityId<typeof schema, _EntityType>
+			& EntitySelector<typeof schema, _EntityType>
 			& Entity<typeof schema, _EntityType>
 			& {
 				value: Entity<typeof schema, _EntityType>
@@ -13,7 +13,7 @@
 	"
 >
 	// Types/constants
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import type { RegisteredEntityType, schema } from '$/schema/index.ts'
 	import { entityDefinitionByType } from '$/schema/index.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
@@ -22,7 +22,10 @@
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
+	import type {
+		SvelteKitResource,
+		TanStackLiveQuerySnapshot,
+	} from '$/lib/db/queryResource.svelte.ts'
 	import type { Match } from '$/lib/string.ts'
 
 	type ListItemProps = {
@@ -125,14 +128,8 @@
 			open?: boolean
 			placeholderText?: string
 			resource?:
-				| QueryLike<ItemsInput | undefined>
-				| Promise<ItemsInput | undefined> & {
-					readonly [Symbol.toStringTag]: string
-					readonly current: ItemsInput | undefined
-					readonly error: object | string | undefined
-					readonly ready: boolean
-					readonly loading: boolean
-				}
+				| TanStackLiveQuerySnapshot<ItemsInput | undefined>
+				| SvelteKitResource<ItemsInput | undefined>
 			placeholderKeys?: Set<_Key>
 			title?: string
 			UnorderedListProps?: UnorderedListForwardProps

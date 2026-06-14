@@ -10,7 +10,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -22,6 +21,9 @@ import type {
 	EthereumListsExplorerLike,
 	EthereumListsChainPairing,
 } from '$/sources/EthereumLists/Rest/types.ts'
+import { EvmNetworkBridgeSelector } from '$/schema/EvmNetworkBridge.ts'
+import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
 
 const testnetKeywordPattern = /\b(testnet|sepolia|holesky|hoodi|goerli|rinkeby|ropsten|kovan)\b/i
 
@@ -262,7 +264,7 @@ const urlEntitiesFromBlockExplorerCatalog = (
 			if (!(iconParsed instanceof type.errors)) catalogIconAsUrlString = iconParsed
 		}
 			return [{
-				[EntityMetaKey.Id]: { url: hrefAsUrlString },
+				[EntityMetaKey.Selector]: { url: hrefAsUrlString },
 				...(explorer.name != null && explorer.name !== '' && { catalogName: explorer.name }),
 				...(explorer.standard != null && explorer.standard !== '' && { catalogStandard: explorer.standard }),
 				...(catalogIconAsUrlString != null && { catalogIcon: catalogIconAsUrlString }),
@@ -278,7 +280,7 @@ const urlEntitiesFromFaucetUrlStrings = (
 		const url = canonicalPublicHttpUrlFromCatalogString(trimmed)
 		const hrefAsUrlString = UrlString(url)
 		if (hrefAsUrlString instanceof type.errors) return []
-			return [{ [EntityMetaKey.Id]: { url: hrefAsUrlString } }]
+			return [{ [EntityMetaKey.Selector]: { url: hrefAsUrlString } }]
 		})
 
 export default {
@@ -288,27 +290,27 @@ export default {
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetworkBridge,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkBridgeSelector.FromToUrl]: async (entitySelector) => {
 				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 				const chain = (await singleFlight(fetchChainsJson)()).find((listedChain) => (
-					listedChain.chainId === Number(entityId.$toNetwork.caip2.reference)
+					listedChain.chainId === Number(entitySelector.$toNetwork.caip2.reference)
 				))
 				if (chain == null) throw new Error('EthereumLists_Rest: network bridge target chain not in chains.json')
 				const parentMatch = chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
 				if (
 					parentMatch == null
-					|| Number(parentMatch[1]) !== Number(entityId.$fromNetwork.caip2.reference)
-					|| !(chain.parent?.bridges ?? []).some((bridge) => bridge.url === entityId.url)
+					|| Number(parentMatch[1]) !== Number(entitySelector.$fromNetwork.caip2.reference)
+					|| !(chain.parent?.bridges ?? []).some((bridge) => bridge.url === entitySelector.url)
 				) throw new Error('EthereumLists_Rest: network bridge not in chains.json')
 				return {
-					[EntityMetaKey.Id]: entityId,
+					[EntityMetaKey.Selector]: entitySelector,
 					$fromNetwork: {
-						[EntityMetaKey.Id]: entityId.$fromNetwork,
+						[EntityMetaKey.Selector]: entitySelector.$fromNetwork,
 					},
 					$toNetwork: {
-						[EntityMetaKey.Id]: entityId.$toNetwork,
+						[EntityMetaKey.Selector]: entitySelector.$toNetwork,
 					},
-					url: entityId.url,
+					url: entitySelector.url,
 					relationshipType: String(chain.parent?.type ?? 'unknown'),
 				}
 			}
@@ -325,10 +327,10 @@ export default {
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
 				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 				const chains = await singleFlight(fetchChainsJson)()
-				const chain = chains.find((listedChain) => listedChain.chainId === Number(entityId.caip2.reference))
+				const chain = chains.find((listedChain) => listedChain.chainId === Number(entitySelector.caip2.reference))
 				if (chain == null) throw new Error('EthereumLists_Rest: chain id not in chains.json')
 				const nativeSymbol = chain.nativeCurrency.symbol.trim()
 				const displayName = `${chain.title ?? chain.name }`.trim()
@@ -345,7 +347,7 @@ export default {
 						type: CoinInstanceType.NativeCurrency,
 					} as const
 				return {
-					[EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } },
+					[EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } },
 					...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(icon, MediaType.Image)),
 					...(chain.status != null && chain.status !== '' && { registryStatus: String(chain.status) }),
 					executionEndpoints: rpcUrls.map((url) => ({
@@ -361,12 +363,12 @@ export default {
 					$$rpcUrls: urlEntitiesFromFaucetUrlStrings(rpcUrls),
 					name: displayName,
 						$nativeCoin: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								coinId: nativeCoin.id,
 							},
 						},
 					$nativeCoinInstance: {
-						[EntityMetaKey.Id]: nativeCoinInstanceId,
+						[EntityMetaKey.Selector]: nativeCoinInstanceId,
 					},
 					peeringId: chain.networkId,
 					...(chain.shortName !== '' && { shortName: chain.shortName }),
@@ -378,7 +380,7 @@ export default {
 								undefined
 							:
 								{
-										[EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(Number(parentMatch[1])) } },
+										[EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(Number(parentMatch[1])) } },
 								}
 						))(chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim()))
 					),
@@ -423,10 +425,10 @@ export default {
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_entityId) => {
+				[_GlobalSelector.Scope]: async (_entitySelector) => {
 				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 				return (await singleFlight(fetchChainsJson)())
-					.map((chain) => ({ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } } }))
+					.map((chain) => ({ [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } } }))
 			}
 			}
 		})({
@@ -438,24 +440,24 @@ export default {
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
 				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
-				const chain = (await singleFlight(fetchChainsJson)()).find((listedChain) => listedChain.chainId === Number(entityId.caip2.reference))
+				const chain = (await singleFlight(fetchChainsJson)()).find((listedChain) => listedChain.chainId === Number(entitySelector.caip2.reference))
 				const parentMatch = chain?.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
 				if (chain == null) throw new Error('EthereumLists_Rest: network not in chains.json for bridge list')
 				if (parentMatch == null) return []
 				return (chain.parent?.bridges ?? [])
 					.map((bridge) => ({
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							$fromNetwork: { caip2: { namespace: 'eip155', reference: String(Number(parentMatch[1])) } },
 							$toNetwork: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } },
 							url: bridge.url,
 						},
 						$fromNetwork: {
-							[EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(Number(parentMatch[1])) } },
+							[EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: String(Number(parentMatch[1])) } },
 						},
 						$toNetwork: {
-							[EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } },
+							[EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } },
 						},
 						url: bridge.url,
 						relationshipType: String(chain.parent?.type ?? 'unknown'),
@@ -471,19 +473,19 @@ export default {
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 				const chains = await singleFlight(fetchChainsJson)()
-				const chainId = Number(entityId.caip2.reference)
+				const chainId = Number(caip2.reference)
 				if (chains.find((c) => c.chainId === chainId) == null) {
 					throw new Error('EthereumLists_Rest: network not in chains.json for child list')
 				}
 				return chains.flatMap((chain) => {
 					const parentMatch = chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
-					return parentMatch == null || Number(parentMatch[1]) !== Number(entityId.caip2.reference) || chain.chainId === Number(entityId.caip2.reference) ?
+					return parentMatch == null || Number(parentMatch[1]) !== chainId || chain.chainId === chainId ?
 						[]
 					:
-						[{ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } } }]
+						[{ [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } } }]
 				})
 			}
 			}
@@ -496,10 +498,10 @@ export default {
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
 				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 				const chains = await singleFlight(fetchChainsJson)()
-				const chain = chains.find((listedChain) => listedChain.chainId === Number(entityId.caip2.reference))
+				const chain = chains.find((listedChain) => listedChain.chainId === Number(entitySelector.caip2.reference))
 				if (chain == null) {
 					throw new Error('EthereumLists_Rest: network not in chains.json for testnet list')
 				}
@@ -510,7 +512,7 @@ export default {
 				}
 				const sourceIsEthereumExecutionRoot = catalogChainIsEthereumExecutionRoot(chain)
 				return chains.flatMap((candidate) => (
-					candidate.chainId === Number(entityId.caip2.reference)
+					candidate.chainId === Number(entitySelector.caip2.reference)
 						|| !ethereumListsRowImpliesTestnet(candidate)
 						|| pairingFamilyKey(candidate) !== sourceFamilyKey
 						|| (
@@ -520,7 +522,7 @@ export default {
 						|| !catalogEthereumExecutionRootAcceptsTestnetCandidate(chain, candidate) ?
 						[]
 					:
-						[{ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(candidate.chainId) } } }]
+						[{ [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: String(candidate.chainId) } } }]
 				))
 			}
 			}
@@ -533,10 +535,10 @@ export default {
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
 				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 				const chains = await singleFlight(fetchChainsJson)()
-				const chain = chains.find((listedChain) => listedChain.chainId === Number(entityId.caip2.reference))
+				const chain = chains.find((listedChain) => listedChain.chainId === Number(entitySelector.caip2.reference))
 				if (chain == null) {
 					throw new Error('EthereumLists_Rest: network not in chains.json for mainnet')
 				}
@@ -550,7 +552,7 @@ export default {
 					testnetChainId: chain.chainId,
 					testnetShortName: chain.shortName,
 					mainnetCandidates: chains.filter((candidate) => (
-						candidate.chainId !== Number(entityId.caip2.reference)
+						candidate.chainId !== Number(entitySelector.caip2.reference)
 						&& !ethereumListsRowImpliesTestnet(candidate)
 						&& pairingFamilyKey(candidate) === sourceFamilyKey
 						&& (
@@ -564,7 +566,7 @@ export default {
 						undefined
 					:
 						{
-							[EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(mainnet.chainId) } },
+							[EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: String(mainnet.chainId) } },
 						}
 				)
 			}
@@ -578,10 +580,10 @@ export default {
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
 				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 				const chains = await singleFlight(fetchChainsJson)()
-				const chain = chains.find((listedChain) => listedChain.chainId === Number(entityId.caip2.reference))
+				const chain = chains.find((listedChain) => listedChain.chainId === Number(entitySelector.caip2.reference))
 				if (chain == null) {
 					throw new Error('EthereumLists_Rest: network not in chains.json for sibling shard list')
 				}
@@ -599,7 +601,7 @@ export default {
 									|| String(candidate.parent.type).toLowerCase() !== 'shard' ?
 								[]
 							:
-								[{ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(candidate.chainId) } } }]
+								[{ [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: String(candidate.chainId) } } }]
 						))
 				)
 						})()
@@ -615,9 +617,9 @@ export default {
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
 				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
-				const chain = (await singleFlight(fetchChainsJson)()).find((listedChain) => listedChain.chainId === Number(entityId.caip2.reference))
+				const chain = (await singleFlight(fetchChainsJson)()).find((listedChain) => listedChain.chainId === Number(entitySelector.caip2.reference))
 				if (chain == null) throw new Error('EthereumLists_Rest: network not in chains.json for block explorer URLs')
 				return urlEntitiesFromBlockExplorerCatalog(
 					blockExplorerLikeFromExplorersAndInfoUrl({
@@ -636,9 +638,9 @@ export default {
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
 				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
-				const chain = (await singleFlight(fetchChainsJson)()).find((listedChain) => listedChain.chainId === Number(entityId.caip2.reference))
+				const chain = (await singleFlight(fetchChainsJson)()).find((listedChain) => listedChain.chainId === Number(entitySelector.caip2.reference))
 				if (chain == null) throw new Error('EthereumLists_Rest: network not in chains.json for faucet URLs')
 				return urlEntitiesFromFaucetUrlStrings(
 					(chain.faucets ?? []).filter((url) => url.length > 0),

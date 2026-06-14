@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ZeroGDataBlob>
+			selector: EntitySelector<typeof schema, EntityType.ZeroGDataBlob>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const dataBlob = subscribe(EntityType.ZeroGDataBlob,
-		entityId,
+		selector,
 		({ fields: { sizeBytes: true, erasureCodingScheme: true, aggregatedSignature: true } }),
 	)
 
@@ -41,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.ZeroGDataBlob}
-	{entityId}
-	title={entityId.dataRoot}
-	idDragPlainText={entityId.dataRoot}
+	entitySelector={selector}
+	title={selector.dataRoot}
+	idDragPlainText={selector.dataRoot}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.dataRoot}
+			value={selector.dataRoot}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

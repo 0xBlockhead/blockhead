@@ -13,6 +13,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadWalletConnectionSelector {
+	BlockheadWallet = 'blockheadWallet',
+}
+
+
 export enum BlockheadConnectionStatus {
 	Disconnected = 'disconnected',
 	Connecting = 'connecting',
@@ -26,11 +31,22 @@ export default {
 	label: 'Wallet Connection',
 	labelPlural: 'Wallet Connections',
 
-	id: type({
-		$wallet: BlockheadWallet.id,
-	}),
+	selectors: [
+		{
+			name: BlockheadWalletConnectionSelector.BlockheadWallet,
+			fields: [
+				'$wallet',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$wallet',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.BlockheadWallet,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'status',
 			type: EntityFieldType.Primitive,

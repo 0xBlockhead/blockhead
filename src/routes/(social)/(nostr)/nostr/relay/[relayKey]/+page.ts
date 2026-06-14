@@ -10,7 +10,7 @@ import type { PageLoad } from './$types.ts'
 export const load: PageLoad = ({ params }) => {
 	const relayUrl = decodeURIComponent(params.relayKey).trim()
 	if (!relayUrl.toLowerCase().startsWith('wss://')) error(404, 'Invalid Nostr relay URL')
-	const entityId = NostrRelaySchema.id({ relayUrl })
-	if (entityId instanceof arktype.errors) error(404, 'Invalid Nostr relay URL')
-	return { entityId }
+	const entitySelector = NostrRelaySchema.id({ relayUrl })
+	if (entitySelector instanceof arktype.errors) error(404, 'Invalid Nostr relay URL')
+	return { entitySelector }
 }

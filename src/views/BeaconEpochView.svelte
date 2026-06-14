@@ -15,11 +15,11 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(beacon-epochs)/epoch/[epochNumber]', {
-				caip2Namespace: entityId.$network.caip2.namespace,
-				caip2Reference: entityId.$network.caip2.reference,
-				epochNumber: String(entityId.epoch),
+				caip2Namespace: selector.$network.caip2.namespace,
+				caip2Reference: selector.$network.caip2.reference,
+				epochNumber: String(selector.epoch),
 			}),
 		layout = EntityLayout.Summary,
 		title: titleProp,
@@ -27,7 +27,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: typeof BeaconEpochSchema.id.infer
+			selector: typeof BeaconEpochSchema.id.infer
 			href?: string
 			layout?: EntityLayout
 			title?: string
@@ -40,7 +40,7 @@
 	> = $props()
 
 	const epoch = subscribe(EntityType.BeaconEpoch,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Beacon_Rest,
 				Source.BeaconchaIn_Rest,
@@ -50,11 +50,11 @@
 
 	// (Derived)
 	const title = $derived(
-		titleProp ?? `Epoch #${entityId.epoch.toLocaleString()}`,
+		titleProp ?? `Epoch #${selector.epoch.toLocaleString()}`,
 	)
 
-	const epochIdKey = $derived(
-		stringify(entityId),
+	const epochSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -70,17 +70,17 @@
 
 <EntityView
 	entityType={EntityType.BeaconEpoch}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{title}
 	{layout}
 	bind:open
-	idDragPlainText={String(entityId.epoch)}
+	idDragPlainText={String(selector.epoch)}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(entityId.epoch)}
+			#{String(selector.epoch)}
 		</span>
 	{/snippet}
 
@@ -88,7 +88,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Epoch </span>
 		<span data-badge="small">
-			#{String(entityId.epoch)}
+			#{String(selector.epoch)}
 		</span>
 		</span>
 	{/snippet}
@@ -201,8 +201,8 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			id={`${epochIdKey}:carousel-slots`}
-			sectionIdPrefix={epochIdKey}
+			id={`${epochSelectorKey}:carousel-slots`}
+			sectionIdPrefix={epochSelectorKey}
 			sections={[
 				{ id: 'beacon-slots', label: 'Slots' },
 			]}
@@ -219,10 +219,10 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BeaconEpoch,
-						entityId,
+						selector,
 						fieldName: '$$beaconSlots',
 					}}
-					id={`${epochIdKey}:beacon-slots`}
+					id={`${epochSelectorKey}:beacon-slots`}
 					title="Slots"
 				/>
 			{/snippet}

@@ -8,19 +8,46 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationProposal.ts'
 
+export enum SpecificationProposalSelector {
+	RealmCategoryNumber = 'realmCategoryNumber',
+}
+
 export default {
 	entityType: EntityType.SpecificationProposal,
 
 	label: 'Proposal',
 	labelPlural: 'Proposals',
 
-	id: type({
-		realm: type.valueOf(SpecificationRealm),
-		category: type.valueOf(ProposalCategory),
-		number: 'number',
-	}),
+	selectors: [
+		{
+			name: SpecificationProposalSelector.RealmCategoryNumber,
+			fields: [
+				'realm',
+				'category',
+				'number',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'realm',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(SpecificationRealm),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'category',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(ProposalCategory),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'number',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'documentCategory',
 			type: EntityFieldType.Primitive,

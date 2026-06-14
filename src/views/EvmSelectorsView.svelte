@@ -69,7 +69,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Local_Internal,
@@ -92,8 +92,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(evmSelector) => evmSelector[EntityMetaKey.Id].hex}
-					getSortValue={(evmSelector) => evmSelector[EntityMetaKey.Id].hex}
+					getKey={(evmSelector) => evmSelector[EntityMetaKey.Selector].hex}
+					getSortValue={(evmSelector) => evmSelector[EntityMetaKey.Selector].hex}
 					placeholderText="Loading 4-byte selectors…"
 					resource={selectors}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -106,7 +106,7 @@
 
 					{#snippet Item({ item })}
 						<EvmSelectorView
-							entityId={item[EntityMetaKey.Id]}
+							selector={item[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 							collapsible={false}

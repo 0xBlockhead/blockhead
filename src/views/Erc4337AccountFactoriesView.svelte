@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ fields: { $$erc4337AccountFactories: ({ sources: [
 							Source.Blockscout_Rest,
 						], limit: 16 }) } }),
@@ -80,8 +80,8 @@
 				entityType={EntityType.Erc4337AccountFactory}
 				id={`${id}-items`}
 				href={href}
-				getKey={(accountFactory) => stringify(accountFactory[EntityMetaKey.Id])}
-				getSortValue={(accountFactory) => accountFactory[EntityMetaKey.Id].address}
+				getKey={(accountFactory) => stringify(accountFactory[EntityMetaKey.Selector])}
+				getSortValue={(accountFactory) => accountFactory[EntityMetaKey.Selector].address}
 				placeholderText="Loading account factories…"
 				resource={accountFactories}
 				{title}
@@ -94,7 +94,7 @@
 
 				{#snippet Item({ item: accountFactory })}
 					<Erc4337AccountFactoryView
-						entityId={accountFactory[EntityMetaKey.Id]}
+						selector={accountFactory[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

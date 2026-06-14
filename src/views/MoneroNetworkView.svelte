@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,26 +13,26 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.Network>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const network = subscribe(EntityType.Network,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { slug: true, name: true, environment: true, $$nativeAssets: true } }),
 	)
 
 	const moneroNetwork = subscribe(EntityType.MoneroNetwork,
-		entityId,
+		selector,
 		({ sources: [
 				Source.MoneroDaemonRpc_JsonRpc,
 			], fields: { rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1 }) } }),
@@ -40,8 +40,8 @@
 
 
 	// (Derived)
-	const networkIdKey = $derived(
-		stringify(entityId),
+	const networkSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -61,7 +61,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	{entityId}
+	entitySelector={selector}
 	{href}
 	bind:open
 	{layout}
@@ -106,7 +106,7 @@
 										<dt>Head block</dt>
 										<dd id="network-summary-head-block">
 											<MoneroBlockView
-												entityId={block[EntityMetaKey.Id]}
+												selector={block[EntityMetaKey.Selector]}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -133,8 +133,8 @@
 
 	{#snippet Details()}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-monero`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-monero`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'monero-blocks', label: 'Blocks' },
 				{ id: 'monero-snapshots', label: 'Network snapshots' },
@@ -156,7 +156,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.MoneroNetwork,
-						entityId,
+						selector,
 						fieldName: '$$blocks',
 					}}
 					href={href == null ? '' : `${href}/blocks`}
@@ -170,7 +170,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.MoneroNetwork,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					id={`${id}-list`}
@@ -188,7 +188,7 @@
 					]}
 					id={`${id}-list`}
 					listEntityType={EntityType.MoneroNetwork}
-					parentEntityId={entityId}
+					parentEntitySelector={selector}
 					parentEntityType={EntityType.MoneroNetwork}
 					title={label}
 				/>
@@ -196,8 +196,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-monero-assets`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-monero-assets`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'monero-assets-native', label: 'Native coin' },
 			]}
@@ -216,7 +216,7 @@
 			CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -226,8 +226,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-monero-resources`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-monero-resources`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'monero-resources-faucets', label: 'Faucets' },
 				{ id: 'monero-resources-block-explorers', label: 'Block explorers' },
@@ -250,7 +250,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -268,7 +268,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

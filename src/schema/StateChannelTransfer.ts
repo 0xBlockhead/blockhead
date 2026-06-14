@@ -9,17 +9,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum StateChannelTransferSelector {
+	Id = 'id',
+}
+
 export default {
 	entityType: EntityType.StateChannelTransfer,
 
 	label: 'State Channel Transfer',
 	labelPlural: 'State Channel Transfers',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: StateChannelTransferSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$channel',
 			type: EntityFieldType.EntityReference,

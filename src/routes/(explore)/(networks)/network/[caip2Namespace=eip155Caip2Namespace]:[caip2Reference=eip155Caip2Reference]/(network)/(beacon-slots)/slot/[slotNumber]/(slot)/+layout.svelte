@@ -13,7 +13,7 @@
 		params,
 	} = $props()
 
-	const slotEntityId = $derived(
+	const slotEntitySelector = $derived(
 		{
 			$network: { caip2: { namespace: 'eip155', reference: params.caip2Reference } },
 			slot: Number(params.slotNumber),
@@ -36,11 +36,11 @@
 		'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(beacon-slots)/slot/[slotNumber]',
 		params,
 	)}
-	id={stringify(slotEntityId)}
+	id={stringify(slotEntitySelector)}
 >
 	{#snippet Summary({ open: _open })}
 		<BeaconSlotView
-			entityId={slotEntityId}
+			selector={slotEntitySelector}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

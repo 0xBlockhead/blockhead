@@ -6,11 +6,13 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { RssFeedSelector } from '$/schema/RssFeed.ts'
+import { RssItemSelector } from '$/schema/RssItem.ts'
+import { RssNetworkSelector } from '$/schema/RssNetwork.ts'
 
 
 export default {
@@ -20,10 +22,10 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssFeed,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RssFeedSelector.FeedUrl]: async ({ feedUrl: feedUrlSelector }, context) => {
 				const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
 				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
-				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
+				const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
 				const response = await singleFlight(getFeed)(
 					feedUrl,
 					1,
@@ -58,18 +60,18 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssItem,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RssItemSelector.FeedUrlGuid]: async ({ feedUrl: feedUrlSelector }, context) => {
 				const {
 					normalizeRssFeedUrl,
 					rssItemGuidFromParts,
 					rssPublishedAtMs,
 				} = await import('$/sources/Rss/Rest/constants.ts')
 				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
-				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
+				const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
 				const feedItem = (
 					(await singleFlight(getFeed)(feedUrl, 50, context.publicEnv)).items ?? []
 				).find((candidate) => (
-					rssItemGuidFromParts(candidate.guid, candidate.link, candidate.title) === entityId.guid
+					rssItemGuidFromParts(candidate.guid, candidate.link, candidate.title) === entitySelector.guid
 				))
 				if (feedItem == null) throw new Error('Rss2Json_Rest: feed item not found')
 				const title = optionalNonemptyString(feedItem.title)
@@ -91,7 +93,7 @@ export default {
 					}),
 					...(enclosureUrl != null && { enclosureUrl }),
 					$feed: {
-						[EntityMetaKey.Id]: { feedUrl },
+						[EntityMetaKey.Selector]: { feedUrl },
 					},
 				}
 			}
@@ -113,7 +115,7 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_entityId, context) => {
+				[RssNetworkSelector.Scope]: async (_entitySelector, context) => {
 				const {
 					normalizeRssFeedUrl,
 					rssItemGuidFromParts,
@@ -121,7 +123,7 @@ export default {
 				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				const perFeedLimit = Math.max(1, Math.ceil(limit / rssNetworkSeedFeeds.length))
-				const refs: { [EntityMetaKey.Id]: { feedUrl: string, guid: string } }[] = []
+				const refs: { [EntityMetaKey.Selector]: { feedUrl: string, guid: string } }[] = []
 				for (const seedFeed of rssNetworkSeedFeeds) {
 					const feedUrl = normalizeRssFeedUrl(seedFeed.feedUrl)
 					for (const feedItem of (await singleFlight(getFeed)(
@@ -131,7 +133,7 @@ export default {
 					)).items ?? []) {
 						const guid = rssItemGuidFromParts(feedItem.guid, feedItem.link, feedItem.title)
 						refs.push({
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								feedUrl,
 								guid,
 							},
@@ -152,18 +154,18 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssFeed,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RssFeedSelector.FeedUrl]: async ({ feedUrl: feedUrlSelector }, context) => {
 				const {
 					normalizeRssFeedUrl,
 					rssItemGuidFromParts,
 				} = await import('$/sources/Rss/Rest/constants.ts')
 				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
-				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
+				const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
 				const limit = resolverContextRowLimit(context)
 				return (
 					((await singleFlight(getFeed)(feedUrl, limit, context.publicEnv)).items ?? [])
 						.map((feedItem) => ({
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								feedUrl,
 								guid: rssItemGuidFromParts(feedItem.guid, feedItem.link, feedItem.title),
 							},

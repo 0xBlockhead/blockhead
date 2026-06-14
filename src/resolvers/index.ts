@@ -1,9 +1,3 @@
-import { Source } from '$/sources/Source.ts'
-import type {
-	SourceResolverModule,
-} from '$/resolvers/$resolvers.ts'
-import { schema } from '$/schema/index.ts'
-
 import AlliumRestResolvers from '$/resolvers/Allium-Rest.ts'
 import AmbossGraphqlResolvers from '$/resolvers/Amboss-Graphql.ts'
 import AtprotoBskySocialXrpcResolvers from '$/resolvers/Atproto-BskySocial-Xrpc.ts'
@@ -227,5 +221,5 @@ export const resolvers = (
 		ZeroGDocsRestResolvers,
 		ZeroGStorageNodeJsonRpcResolvers,
 		ZeroGStorageScanRestResolvers,
-	] satisfies readonly SourceResolverModule<typeof schema, Source>[]
+	]
 )

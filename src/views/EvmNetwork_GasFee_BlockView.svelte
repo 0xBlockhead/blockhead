@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,18 +15,18 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]', {
-			caip2Namespace: entityId.$network.caip2.namespace,
-			caip2Reference: entityId.$network.caip2.reference,
-			blockNumber: String(entityId.blockNumber),
+			caip2Namespace: selector.$network.caip2.namespace,
+			caip2Reference: selector.$network.caip2.reference,
+			blockNumber: String(selector.blockNumber),
 		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmNetwork_GasFee_Block>
+			selector: EntitySelector<typeof schema, EntityType.EvmNetwork_GasFee_Block>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const networkGasFeeBlock = subscribe(EntityType.EvmNetwork_GasFee_Block,
-		entityId,
+		selector,
 		({ sources: [Source.Voltaire_JsonRpc], fields: { baseFeePerGas: true, legacyGasPrice: true, maxPriorityFeePerGas: true, gasUsedRatio: true, priorityFeeRewardAt50thPercentile: true } }),
 	)
 
@@ -52,7 +52,7 @@
 
 <EntityView
 	entityType={EntityType.EvmNetwork_GasFee_Block}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	{open}
@@ -73,7 +73,7 @@
 					wei
 				{:else}
 					<span>
-						block {String(entityId.blockNumber)}
+						block {String(selector.blockNumber)}
 					</span>
 				{/if}
 			{/snippet}
@@ -94,7 +94,7 @@
 					wei
 				{:else}
 					<span>
-						block {String(entityId.blockNumber)}
+						block {String(selector.blockNumber)}
 					</span>
 				{/if}
 	{/snippet}

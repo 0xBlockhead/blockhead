@@ -64,7 +64,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$evmNetworks',
 				}}
 				id="networks:evm"
@@ -77,7 +77,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:bitcoin"
@@ -92,7 +92,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:lightning"
@@ -107,7 +107,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:zcash"
@@ -122,7 +122,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:filecoin"
@@ -137,7 +137,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:solana"
@@ -152,7 +152,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:cosmos-sdk-comet-bft"
@@ -167,7 +167,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:polkadot-sdk"
@@ -182,7 +182,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:hyperliquid"
@@ -197,7 +197,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:logos"
@@ -212,7 +212,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:quilibrium"
@@ -227,7 +227,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:near"
@@ -242,7 +242,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:monero"
@@ -257,7 +257,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:litecoin"
@@ -272,7 +272,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:dogecoin"
@@ -287,7 +287,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:bitcoin-cash"
@@ -302,7 +302,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:tron"
@@ -317,7 +317,7 @@
 				href={resolve('/networks')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$networks' },
+					selector: { scope: '$$networks' },
 					fieldName: '$$networks',
 				}}
 				id="networks:zero-g"

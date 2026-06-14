@@ -15,6 +15,11 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum NetworkSelector {
+	Caip2 = 'caip2',
+	Slug = 'slug',
+}
+
 const networkBaseFields = [
 	{
 		name: 'slug',
@@ -83,6 +88,7 @@ export const networkFields = [
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		when: evmNetworkCondition,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.Chainlist_Rest,
 			Source.EthereumLists_Rest,
 			Source.Superchain_Github,
@@ -96,6 +102,7 @@ export const networkFields = [
 		cardinality: EntityFieldCardinality.One,
 		when: evmNetworkCondition,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.Chainlist_Rest,
 			Source.EthereumLists_Rest,
 		],
@@ -107,6 +114,7 @@ export const networkFields = [
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		when: evmNetworkCondition,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.Chainlist_Rest,
 			Source.Superchain_Github,
 		],
@@ -118,6 +126,7 @@ export const networkFields = [
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 		when: evmNetworkCondition,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.Chainlist_Rest,
 			Source.Superchain_Github,
 		],
@@ -129,6 +138,7 @@ export const networkFields = [
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 		when: evmNetworkCondition,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.Chainlist_Rest,
 			Source.EthereumLists_Rest,
 			Source.Superchain_Github,
@@ -218,35 +228,14 @@ export default {
 	label: 'Network',
 	labelPlural: 'Networks',
 
-	id: type.or(
-		type({
-			caip2: {
-				namespace: 'string',
-				reference: 'string',
-			},
-		}),
-		type({
-			networkSlug: 'string',
-		}),
-	),
-
-	identities: [
+	selectors: [
 		{
-			name: 'caip2',
-			fields: [
-				{
-					name: 'caip2',
-				},
-			],
+			name: NetworkSelector.Caip2,
+			fields: ['caip2'],
 		},
 		{
-			name: 'networkSlug',
-			fields: [
-				{
-					name: 'slug',
-					as: 'networkSlug',
-				},
-			],
+			name: NetworkSelector.Slug,
+			fields: ['slug'],
 		},
 	],
 

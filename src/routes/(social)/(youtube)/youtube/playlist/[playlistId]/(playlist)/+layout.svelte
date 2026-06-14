@@ -27,7 +27,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<YouTubePlaylistView
-			entityId={{ playlistId: decodeURIComponent(playlistId) }}
+			selector={{ playlistId: decodeURIComponent(playlistId) }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

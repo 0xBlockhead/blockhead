@@ -6,7 +6,7 @@
 
 	import { ipfsResourceAddressFromRouteParams } from '$/lib/ipfs.ts'
 
-	const entityId = $derived(
+	const entitySelector = $derived(
 		ipfsResourceAddressFromRouteParams({
 			namespace: params.namespace,
 			target: params.target,
@@ -20,10 +20,10 @@
 </script>
 
 
-{#if entityId !== null}
+{#if entitySelector !== null}
 	<Page>
 		<IpfsResourceView
-			{entityId}
+			selector={selector}
 			open
 		/>
 	</Page>

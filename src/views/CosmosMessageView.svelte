@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.CosmosMessage>
+			selector: EntitySelector<typeof schema, EntityType.CosmosMessage>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const cosmosMessage = subscribe(EntityType.CosmosMessage,
-		entityId,
+		selector,
 		({ fields: { typeUrl: true } }),
 	)
 
@@ -40,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.CosmosMessage}
-	{entityId}
-	title={`Message #${entityId.messageIndex.toString()}`}
-	idDragPlainText={entityId.messageIndex.toString()}
+	entitySelector={selector}
+	title={`Message #${selector.messageIndex.toString()}`}
+	idDragPlainText={selector.messageIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.messageIndex.toString()}
+			#{selector.messageIndex.toString()}
 		</span>
 	{/snippet}
 

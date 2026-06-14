@@ -7,23 +7,12 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
-const id = type.or(
-	type({
-		variant: type.unit('trending'),
-	}),
-	type({
-		variant: type.unit('byUser'),
-		fid: 'number',
-	}),
-	type({
-		variant: type.unit('byChannel'),
-		channelId: 'string',
-	}),
-	type({
-		variant: type.unit('following'),
-		viewerFid: 'number',
-	}),
-)
+export enum FarcasterFeedSelector {
+	Trending = 'trending',
+	ByUser = 'byUser',
+	ByChannel = 'byChannel',
+	Following = 'following',
+}
 
 export default {
 	entityType: EntityType.FarcasterFeed,
@@ -31,9 +20,59 @@ export default {
 	label: 'Farcaster Feed',
 	labelPlural: 'Farcaster Feeds',
 
-	id,
+	selectors: [
+		{
+			name: FarcasterFeedSelector.Trending,
+			fields: ['variant'],
+		},
+		{
+			name: FarcasterFeedSelector.ByUser,
+			fields: [
+				'variant',
+				'fid',
+			],
+		},
+		{
+			name: FarcasterFeedSelector.ByChannel,
+			fields: [
+				'variant',
+				'channelId',
+			],
+		},
+		{
+			name: FarcasterFeedSelector.Following,
+			fields: [
+				'variant',
+				'viewerFid',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'variant',
+			type: EntityFieldType.Primitive,
+			primitiveType: type("'trending' | 'byUser' | 'byChannel' | 'following'"),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'fid',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'channelId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'viewerFid',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: 'label',
 			type: EntityFieldType.Primitive,

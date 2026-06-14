@@ -7,7 +7,7 @@
 
 <Page>
 	<EnsProtocolView
-		entityId={{
+		selector={{
 			scope: 'EnsProtocol',
 		}}
 	/>

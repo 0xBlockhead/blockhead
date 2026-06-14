@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EvmNftFormat } from '$/constants/Evm.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,20 +16,20 @@
 
 	// State
 	let {
-			entityId,
+			selector,
 			href = resolve(
 				'/(explore)/(services)/services/agent/[chainId]/[contractAddress]/[tokenId]',
 				{
-					chainId: String(evmChainIdFromCaip2(`${entityId.$contract.$network.caip2.namespace}:${entityId.$contract.$network.caip2.reference}`)),
-					contractAddress: entityId.$contract.address,
-					tokenId: entityId.tokenId,
+					chainId: String(evmChainIdFromCaip2(`${selector.$contract.$network.caip2.namespace}:${selector.$contract.$network.caip2.reference}`)),
+					contractAddress: selector.$contract.address,
+					tokenId: selector.tokenId,
 				},
 			),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmNft>
+			selector: EntitySelector<typeof schema, EntityType.EvmNft>
 			href?: string
 			open?: boolean
 		},
@@ -43,7 +43,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const registration = subscribe(EntityType.EvmNft,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Eip8004Scan_Rest,
 			], fields: { format: true, name: true, description: true, image: true, fetchedAt: true, $agentWallet: true } }),
@@ -64,7 +64,7 @@
 
 <EntityView
 	entityType={EntityType.EvmNft}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -75,7 +75,7 @@
 				{#if registration.fields.image}
 					<IconComponent
 						src={registration.fields.image}
-						alt={registration.fields.name ?? entityId.tokenId}
+						alt={registration.fields.name ?? selector.tokenId}
 					/>
 				{/if}
 			{/snippet}
@@ -84,7 +84,7 @@
 
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.tokenId}
+			{selector.tokenId}
 		</span>
 	{/snippet}
 
@@ -94,7 +94,7 @@
 			placeholderText="Loading ERC-8004 registration…"
 		>
 			{#snippet children(registration)}
-				{registration.fields.name ?? entityId.tokenId}
+				{registration.fields.name ?? selector.tokenId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -125,7 +125,7 @@
 						<dt>Network</dt>
 						<dd>
 							<EvmNetworkView
-								entityId={entityId.$contract.$network}
+								selector={selector.$contract.$network}
 								layout={EntityLayout.Value}
 								open={false}
 							/>
@@ -136,7 +136,7 @@
 						<dt>Registry</dt>
 						<dd>
 							<EvmContractView
-								entityId={entityId.$contract}
+								selector={selector.$contract}
 								layout={EntityLayout.Value}
 								open={true}
 								showTypeAnnotation={false}
@@ -162,7 +162,7 @@
 							<dt>Agent wallet</dt>
 							<dd>
 								<EvmAccountView
-									entityId={registration.fields.$agentWallet[EntityMetaKey.Id]}
+									selector={registration.fields.$agentWallet[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

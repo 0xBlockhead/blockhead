@@ -82,7 +82,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 						Source.Rss_Rest,
 						Source.Rss2Json_Rest,
@@ -104,7 +104,7 @@
 					return (
 						rssItems
 							.map((value, index) => ({
-								entityId: value[EntityMetaKey.Id],
+								selector: value[EntityMetaKey.Selector],
 								sortKey: index,
 							}))
 					)
@@ -118,7 +118,7 @@
 				{title}
 				resource={rssItems}
 				placeholderText="Loading items…"
-				getKey={(rssItem) => stringify(rssItem.entityId)}
+				getKey={(rssItem) => stringify(rssItem.selector)}
 				getSortValue={(rssItem) => rssItem.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
@@ -132,7 +132,7 @@
 					item: rssItem,
 				})}
 					<RssItemView
-						entityId={rssItem.entityId}
+						selector={rssItem.selector}
 						layout={EntityLayout.Title}
 						open={false}
 					/>

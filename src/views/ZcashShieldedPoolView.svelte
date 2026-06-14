@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ZcashShieldedPool>
+			selector: EntitySelector<typeof schema, EntityType.ZcashShieldedPool>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const zcashShieldedPool = subscribe(EntityType.ZcashShieldedPool,
-		entityId,
+		selector,
 		({ fields: { activationNetworkUpgrade: true, noteProtocol: true } }),
 	)
 
@@ -40,14 +40,14 @@
 
 <EntityView
 	entityType={EntityType.ZcashShieldedPool}
-	{entityId}
-	title={entityId.pool}
+	entitySelector={selector}
+	title={selector.pool}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{entityId.pool.toString()}
+		{selector.pool.toString()}
 	{/snippet}
 
 	{#snippet Content()}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BitcoinCashBcmrMetadata>
+			selector: EntitySelector<typeof schema, EntityType.BitcoinCashBcmrMetadata>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const bitcoinCashBcmrMetadata = subscribe(EntityType.BitcoinCashBcmrMetadata,
-		entityId,
+		selector,
 		({ fields: { name: true, description: true, symbol: true, decimals: true } }),
 	)
 
@@ -42,14 +42,14 @@
 
 <EntityView
 	entityType={EntityType.BitcoinCashBcmrMetadata}
-	{entityId}
-	title={entityId.registryUrl}
+	entitySelector={selector}
+	title={selector.registryUrl}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{entityId.registryUrl.toString()}
+		{selector.registryUrl.toString()}
 	{/snippet}
 
 	{#snippet Content()}

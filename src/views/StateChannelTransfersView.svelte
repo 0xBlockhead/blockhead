@@ -75,7 +75,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [Source.Local_Internal],
 					},
@@ -94,9 +94,9 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.StateChannelTransfer}
-				getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
+				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
 				getSortValue={(line) => (
-					stringify(line.value[EntityMetaKey.Id])
+					stringify(line.value[EntityMetaKey.Selector])
 				)}
 				placeholderText="Loading channel transfers…"
 				resource={transfers}
@@ -113,9 +113,9 @@
 
 				{#snippet Item({ item })}
 					{@const line = item.value}
-					{@const transferId = line[EntityMetaKey.Id]}
+					{@const transferId = line[EntityMetaKey.Selector]}
 					<StateChannelTransferView
-						entityId={transferId}
+						selector={transferId}
 						layout={EntityLayout.Summary}
 						open={false}
 						collapsible={false}

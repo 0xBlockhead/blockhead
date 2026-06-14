@@ -1,6 +1,4 @@
 import { type } from 'arktype'
-import Actor from '$/schema/EvmAccount.ts'
-import CoinInstance from '$/schema/EvmCoinInstance.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -9,18 +7,39 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum EvmNetworkActorCoinBalanceSelector {
+	EvmAccountEvmCoinInstance = 'evmAccountEvmCoinInstance',
+}
+
 export default {
 	entityType: EntityType.EvmNetworkActorCoinBalance,
 
 	label: 'Balance',
 	labelPlural: 'Balances',
 
-	id: type({
-		$actor: Actor.id,
-		$coinInstance: CoinInstance.id,
-	}),
+	selectors: [
+		{
+			name: EvmNetworkActorCoinBalanceSelector.EvmAccountEvmCoinInstance,
+			fields: [
+				'$actor',
+				'$coinInstance',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$actor',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$coinInstance',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmCoinInstance,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'symbol',
 			type: EntityFieldType.Primitive,

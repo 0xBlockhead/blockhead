@@ -10,17 +10,32 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum EvmTopicSelector {
+	Hex = 'hex',
+}
+
 export default {
 	entityType: EntityType.EvmTopic,
 
 	label: 'Log topic word',
 	labelPlural: 'Log topic words',
 
-	id: type({
-		hex: ZeroExHex,
-	}),
+	selectors: [
+		{
+			name: EvmTopicSelector.Hex,
+			fields: [
+				'hex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'hex',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'signatures',
 			type: EntityFieldType.Primitive,

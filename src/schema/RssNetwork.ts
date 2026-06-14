@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum RssNetworkSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.RssNetwork,
 
 	label: 'RSS network',
 	labelPlural: 'RSS networks',
 
-	id: type({
-		scope: type.unit('RssNetwork'),
-	}),
+	selectors: [
+		{
+			name: RssNetworkSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('RssNetwork'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

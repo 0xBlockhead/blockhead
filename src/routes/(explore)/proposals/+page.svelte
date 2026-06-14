@@ -13,7 +13,7 @@
 	<SpecificationRealmsView
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: { scope: '$$specificationRealms' },
+			selector: { scope: '$$specificationRealms' },
 			fieldName: '$$specificationRealms',
 		}}
 		id="proposal-realms"

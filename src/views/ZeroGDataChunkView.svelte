@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ZeroGDataChunk>
+			selector: EntitySelector<typeof schema, EntityType.ZeroGDataChunk>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const zeroGDataChunk = subscribe(EntityType.ZeroGDataChunk,
-		entityId,
+		selector,
 		({ fields: { chunkRoot: true, sizeBytes: true } }),
 	)
 
@@ -42,16 +42,16 @@
 
 <EntityView
 	entityType={EntityType.ZeroGDataChunk}
-	{entityId}
-	title={`Data chunk #${entityId.chunkIndex.toString()}`}
-	idDragPlainText={entityId.chunkIndex.toString()}
+	entitySelector={selector}
+	title={`Data chunk #${selector.chunkIndex.toString()}`}
+	idDragPlainText={selector.chunkIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.chunkIndex.toString()}
+			#{selector.chunkIndex.toString()}
 		</span>
 	{/snippet}
 

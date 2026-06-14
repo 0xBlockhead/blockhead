@@ -9,18 +9,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import FarcasterUser from '$/schema/FarcasterUser.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum FarcasterUser_TimestampSelector {
+	FarcasterUserTimestampMs = 'farcasterUserTimestampMs',
+}
+
 export default {
 	entityType: EntityType.FarcasterUser_Timestamp,
 
 	label: 'Farcaster user snapshot',
 	labelPlural: 'Farcaster user snapshots',
 
-	id: type({
-		$user: FarcasterUser.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: FarcasterUser_TimestampSelector.FarcasterUserTimestampMs,
+			fields: [
+				'$user',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$user',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.FarcasterUser,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'followerCount',
 			type: EntityFieldType.Primitive,

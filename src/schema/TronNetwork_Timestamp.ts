@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum TronNetwork_TimestampSelector {
+	NetworkTimestampMs = 'networkTimestampMs',
+}
 import { Source } from '$/sources/Source.ts'
 
 export default {
@@ -16,12 +19,29 @@ export default {
 	label: 'TRON network snapshot',
 	labelPlural: 'TRON network snapshots',
 
-	id: type({
-		$network: Network.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: TronNetwork_TimestampSelector.NetworkTimestampMs,
+			fields: [
+				'$network',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'latestBlockHeight',
 			type: EntityFieldType.Primitive,

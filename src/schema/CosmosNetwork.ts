@@ -12,6 +12,11 @@ import { UrlString } from '$/schema/UrlString.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum CosmosNetworkSelector {
+	Network = 'network',
+}
+
+
 const cosmosRestEndpointField = type({
 	url: UrlString,
 	transportType: type.valueOf(TransportType),
@@ -24,7 +29,14 @@ export default {
 	label: 'Cosmos network',
 	labelPlural: 'Cosmos networks',
 
-	id: Network.id,
+	selectors: [
+		{
+			name: CosmosNetworkSelector.Network,
+			fields: [
+				'$network',
+			],
+		},
+	],
 
 	fields: [
 		{

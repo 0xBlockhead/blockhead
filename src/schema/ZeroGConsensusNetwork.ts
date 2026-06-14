@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum ZeroGConsensusNetworkSelector {
+	NetworkConsensusNetworkId = 'networkConsensusNetworkId',
+}
 
 export default {
 	entityType: EntityType.ZeroGConsensusNetwork,
@@ -15,12 +18,29 @@ export default {
 	label: '0G consensus network',
 	labelPlural: '0G consensus networks',
 
-	id: type({
-		$network: Network.id,
-		consensusNetworkId: 'string',
-	}),
+	selectors: [
+		{
+			name: ZeroGConsensusNetworkSelector.NetworkConsensusNetworkId,
+			fields: [
+				'$network',
+				'consensusNetworkId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'consensusNetworkId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'sharedStakingStatusSource',
 			type: EntityFieldType.Primitive,

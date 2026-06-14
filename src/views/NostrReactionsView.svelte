@@ -80,7 +80,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.NostrBand_Rest,
 						Source.Primal_Rest,
 					], fields: { [entityFieldReference.fieldName]: {
@@ -100,9 +100,9 @@
 					return (
 						nostrReactions
 							.map((reaction) => ({
-								entityId: reaction[EntityMetaKey.Id],
+								selector: reaction[EntityMetaKey.Selector],
 								sortKey: (
-									`${String(-(reaction.createdAt ?? 0)).padStart(20, '0')}\0${reaction[EntityMetaKey.Id].eventId}`
+									`${String(-(reaction.createdAt ?? 0)).padStart(20, '0')}\0${reaction[EntityMetaKey.Selector].eventId}`
 								),
 							}))
 					)
@@ -116,7 +116,7 @@
 				{title}
 				resource={reactions}
 				placeholderText="Loading reactions…"
-				getKey={(row) => row.entityId.eventId}
+				getKey={(row) => row.selector.eventId}
 				getSortValue={(row) => row.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
@@ -130,7 +130,7 @@
 					item: reaction,
 				})}
 					<NostrReactionView
-						entityId={reaction.entityId}
+						selector={reaction.selector}
 						layout={EntityLayout.SummaryDetails}
 						open={false}
 					/>

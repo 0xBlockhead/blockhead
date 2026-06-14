@@ -70,7 +70,7 @@
 		{#if open}
 			{@const parentEntityType = entityFieldReference.entityType}
 			{@const parent = subscribe(parentEntityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					...(parentEntityType === EntityType.EvmNetwork && {
 						blockHeight: {
 							sources: [
@@ -105,8 +105,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-						getKey={(row) => stringify(row[EntityMetaKey.Id])}
-						getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
+						getKey={(row) => stringify(row[EntityMetaKey.Selector])}
+						getSortValue={(row) => stringify(row[EntityMetaKey.Selector])}
 					placeholderText="Loading blobs…"
 					resource={blobs}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -119,7 +119,7 @@
 
 					{#snippet Item({ item })}
 						<EvmBlobView
-							entityId={item[EntityMetaKey.Id]}
+							selector={item[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

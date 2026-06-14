@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum NearBlockSelector {
+	NetworkHeightHash = 'networkHeightHash',
+}
 
 export default {
 	entityType: EntityType.NearBlock,
@@ -15,30 +18,30 @@ export default {
 	label: 'NEAR Block',
 	labelPlural: 'NEAR Blocks',
 
-	id: type({
-		$network: Network.id,
-		height: 'bigint',
-		'hash?': 'string',
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'heightHash',
+			name: NearBlockSelector.NetworkHeightHash,
 			fields: [
-				{
-					name: '$network',
-				},
-				{
-					name: 'height',
-				},
-				{
-					name: 'hash',
-				},
+				'$network',
+				'height',
+				'hash',
 			],
 		},
 	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'height',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'hash',
 			type: EntityFieldType.Primitive,

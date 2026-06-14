@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum SwarmProtocolSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.SwarmProtocol,
 
 	label: 'Swarm protocol',
 	labelPlural: 'Swarm protocols',
 
-	id: type({
-		scope: type.unit('SwarmProtocol'),
-	}),
+	selectors: [
+		{
+			name: SwarmProtocolSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('SwarmProtocol'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

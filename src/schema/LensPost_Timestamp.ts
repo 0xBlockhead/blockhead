@@ -9,18 +9,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import LensPost from '$/schema/LensPost.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum LensPost_TimestampSelector {
+	LensPostTimestampMs = 'lensPostTimestampMs',
+}
+
 export default {
 	entityType: EntityType.LensPost_Timestamp,
 
 	label: 'Lens post snapshot',
 	labelPlural: 'Lens post snapshots',
 
-	id: type({
-		$post: LensPost.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: LensPost_TimestampSelector.LensPostTimestampMs,
+			fields: [
+				'$post',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$post',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.LensPost,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'commentCount',
 			type: EntityFieldType.Primitive,

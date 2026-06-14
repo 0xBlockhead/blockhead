@@ -4,7 +4,6 @@ import {
 import { networkBySlug } from '$/constants/Network.ts'
 import { tronFullNodeDefaultLocalRestUrl } from '$/constants/TronNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -15,6 +14,9 @@ import type {
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
 } from '$/sources/TronGrid/Rest/types.ts'
+import { TronBlockSelector } from '$/schema/TronBlock.ts'
+import { TronTransactionSelector } from '$/schema/TronTransaction.ts'
+import { TronAccountSelector } from '$/schema/TronAccount.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -46,7 +48,7 @@ const transactionFields = (
 	return {
 		...(info?.blockNumber != null && {
 			$block: {
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					$network: network,
 					height: BigInt(info.blockNumber),
 				},
@@ -60,7 +62,7 @@ const transactionFields = (
 		feeSun: bigintFromNumberOrString(info?.fee ?? transaction.ret?.[0]?.fee),
 		...(value?.owner_address != null && {
 			$owner: {
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					$network: network,
 					address: value.owner_address,
 				},
@@ -68,7 +70,7 @@ const transactionFields = (
 		}),
 		...(value?.to_address != null && {
 			$to: {
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					$network: network,
 					address: value.to_address,
 				},
@@ -76,7 +78,7 @@ const transactionFields = (
 		}),
 		...(value?.contract_address != null && {
 			$contract: {
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					$network: network,
 					address: value.contract_address,
 				},
@@ -105,7 +107,7 @@ const blockFields = (
 		hash: block.blockID,
 		...(rawBlock.number > 0 && rawBlock.parentHash != null && {
 			$parent: {
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					$network: network,
 					height: BigInt(rawBlock.number - 1),
 					hash: rawBlock.parentHash,
@@ -116,7 +118,7 @@ const blockFields = (
 		timestampMs: rawBlock.timestamp,
 		...(rawBlock.witness_address != null && {
 			$witness: {
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					$network: network,
 					address: rawBlock.witness_address,
 				},
@@ -130,7 +132,7 @@ const blockFields = (
 				[]
 			:
 				[{
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						$network: network,
 						transactionId: transaction.txID,
 					},
@@ -154,14 +156,14 @@ export default {
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertTronMainnet(entityId.$network)
+				[TronBlockSelector.NetworkHeightHash]: async ({ $network, height }) => {
+				assertTronMainnet($network)
 				const { getBlockByNumber } = await import('$/sources/TronFullNode/Rest/queries.ts')
 				return blockFields(
-					entityId.$network,
+					$network,
 					await getBlockByNumber({
 						restBaseUrl: tronFullNodeDefaultLocalRestUrl,
-						height: entityId.height,
+						height: height,
 					}),
 				)
 			}
@@ -183,23 +185,23 @@ export default {
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertTronMainnet(entityId.$network)
+				[TronTransactionSelector.NetworkTransactionId]: async ({ $network, transactionId }) => {
+				assertTronMainnet($network)
 				const {
 					getTransactionById,
 					getTransactionInfoById,
 				} = await import('$/sources/TronFullNode/Rest/queries.ts')
 				const transaction = await getTransactionById({
 					restBaseUrl: tronFullNodeDefaultLocalRestUrl,
-					transactionId: entityId.transactionId,
+					transactionId: transactionId,
 				})
-				if (transaction.txID == null) throw new Error(`TronFullNode_Rest: transaction not found for ${entityId.transactionId}`)
+				if (transaction.txID == null) throw new Error(`TronFullNode_Rest: transaction not found for ${transactionId}`)
 				return transactionFields(
-					entityId.$network,
+					$network,
 					transaction,
 					await getTransactionInfoById({
 						restBaseUrl: tronFullNodeDefaultLocalRestUrl,
-						transactionId: entityId.transactionId,
+						transactionId: transactionId,
 					}),
 				)
 			}
@@ -226,12 +228,12 @@ export default {
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertTronMainnet(entityId.$network)
+				[TronAccountSelector.NetworkAddress]: async ({ $network, address }) => {
+				assertTronMainnet($network)
 				const { getAccount } = await import('$/sources/TronFullNode/Rest/queries.ts')
 				const account = await getAccount({
 					restBaseUrl: tronFullNodeDefaultLocalRestUrl,
-					address: entityId.address,
+					address: address,
 				})
 				return {
 					name: account.account_name,

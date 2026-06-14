@@ -333,27 +333,27 @@ const LensLatestPostsDocument = graphql(`
 
 export const queryAccount = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
-	entityId: (
+	entitySelector: (
 		| { address: `0x${string}` }
 		| { localName: string }
 		| { legacyProfileId: string }
 	),
 ) => {
 	const accountResponse = await (
-		'address' in entityId ?
+		'address' in entitySelector ?
 			queryLens(
 				publicEnv,
 				LensAccountByAddressDocument,
 				{
-					address: entityId.address,
+					address: entitySelector.address,
 				},
 			)
-		: 'localName' in entityId ?
+		: 'localName' in entitySelector ?
 			queryLens(
 				publicEnv,
 				LensAccountByLocalNameDocument,
 				{
-					localName: entityId.localName,
+					localName: entitySelector.localName,
 				},
 			)
 		:
@@ -361,7 +361,7 @@ export const queryAccount = async (
 				publicEnv,
 				LensAccountByLegacyProfileIdDocument,
 				{
-					legacyProfileId: entityId.legacyProfileId,
+					legacyProfileId: entitySelector.legacyProfileId,
 				},
 			)
 	)

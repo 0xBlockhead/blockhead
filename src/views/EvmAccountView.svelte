@@ -5,7 +5,7 @@
 	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -25,15 +25,15 @@
 
 	// State
 	let {
-		entityId,
-		href = resolve('/account/[address]', { address: entityId.address }),
+		selector,
+		href = resolve('/account/[address]', { address: selector.address }),
 		title = 'Account',
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmAccount>
+			selector: EntitySelector<typeof schema, EntityType.EvmAccount>
 			title?: string
 			href?: string
 			open?: boolean
@@ -88,7 +88,7 @@
 			subscribe(EntityType.EvmNetworkAccount,
 				{
 					$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
-					$actor: entityId,
+					$actor: selector,
 				},
 				{
 					...(open && activityChainIds.some((activityChainId) => activityChainId === chainId) && {
@@ -121,11 +121,11 @@
 		)),
 	)
 
-	const idKey = $derived(stringify(entityId))
+	const idKey = $derived(stringify(selector))
 
 	const actor = $derived(
 		subscribe(EntityType.EvmAccount,
-			entityId,
+			selector,
 			({ sources: [
 					Source.Voltaire_JsonRpc,
 					...(open ?
@@ -194,7 +194,7 @@
 
 <EntityView
 	entityType={EntityType.EvmAccount}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{title}
 	bind:open
@@ -209,16 +209,16 @@
 				<IconComponent
 					alt=""
 					shape={IconShape.Square}
-					src={blo(entityId.address)}
+					src={blo(selector.address)}
 				/>
 			{/snippet}
 
 			{#snippet children(actor)}
-				{@const avatarUrl = actor.fields.$icon?.[EntityMetaKey.Id].url}
+				{@const avatarUrl = actor.fields.$icon?.[EntityMetaKey.Selector].url}
 				<IconComponent
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
-					src={avatarUrl ?? blo(entityId.address)}
+					src={avatarUrl ?? blo(selector.address)}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -231,17 +231,17 @@
 			{#snippet Pending()}
 				<TruncatedValue
 					format={TruncatedValueFormat.Visual}
-					value={entityId.address}
+					value={selector.address}
 				/>
 			{/snippet}
 
 			{#snippet children(actor)}
-				{#if actor.fields.$primaryName?.[EntityMetaKey.Id].name}
-					{actor.fields.$primaryName?.[EntityMetaKey.Id].name}
+				{#if actor.fields.$primaryName?.[EntityMetaKey.Selector].name}
+					{actor.fields.$primaryName?.[EntityMetaKey.Selector].name}
 				{:else}
 					<TruncatedValue
 						format={TruncatedValueFormat.Visual}
-						value={entityId.address}
+						value={selector.address}
 					/>
 				{/if}
 			{/snippet}
@@ -265,13 +265,13 @@
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
-				&& entityId.interopAddress
+				&& selector.interopAddress
 			)}
 				<div>
 					<dt>Interop address</dt>
 					<dd>
 						<TruncatedValue
-							value={entityId.interopAddress}
+							value={selector.interopAddress}
 							format={TruncatedValueFormat.Visual}
 						/>
 					</dd>
@@ -296,9 +296,9 @@
 					<dt>Contract</dt>
 					<dd>
 						<EvmContractView
-							entityId={{
+							selector={{
 								$network: { caip2: { namespace: 'eip155' as const, reference: String(firstContractChainId) } },
-								address: entityId.address,
+								address: selector.address,
 							}}
 							layout={EntityLayout.Value}
 							open={true}
@@ -339,14 +339,14 @@
 					{#snippet children(actorResult)}
 						{#if (actorResult.fields.$$ensNamesOwned?.values ?? []).length}
 							<ul data-evmAccounts="unstyled">
-								{#each actorResult.fields.$$ensNamesOwned?.values ?? [] as nameRef (`${nameRef[EntityMetaKey.Id].name}`)}
+								{#each actorResult.fields.$$ensNamesOwned?.values ?? [] as nameRef (`${nameRef[EntityMetaKey.Selector].name}`)}
 									<li>
 										<a
 											data-link
 											href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-												ensName: nameRef[EntityMetaKey.Id].name,
+												ensName: nameRef[EntityMetaKey.Selector].name,
 											})}
-										>{nameRef[EntityMetaKey.Id].name}</a>
+										>{nameRef[EntityMetaKey.Selector].name}</a>
 									</li>
 								{/each}
 							</ul>
@@ -393,8 +393,8 @@
 							entityType={EntityType.EvmNetworkActorCoinBalance}
 							title="By deployment (all indexed networks)"
 							id={`${idKey}:balances-flat-evmAccounts`}
-							getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
-							getSortValue={(line) => stringify(line.value[EntityMetaKey.Id])}
+							getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
+							getSortValue={(line) => stringify(line.value[EntityMetaKey.Selector])}
 							items={flattenedCoinItems}
 							UnorderedListProps={{
 								orientation: ListOrientation.Column,
@@ -408,7 +408,7 @@
 								{#snippet Item(props)}
 									{#if props.item}
 										<EvmNetworkActorCoinBalanceView
-											entityId={props.item.value[EntityMetaKey.Id]}
+											selector={props.item.value[EntityMetaKey.Selector]}
 											layout={EntityLayout.Summary}
 										/>
 									{/if}
@@ -424,7 +424,7 @@
 									row.symbol != null && row.symbol !== '' ?
 										row.symbol
 								:
-										stringify(row[EntityMetaKey.Id])
+										stringify(row[EntityMetaKey.Selector])
 							)
 							const bucket = groups.get(assetKey)
 							if (bucket != null) bucket.push(line)
@@ -445,8 +445,8 @@
 									entityType={EntityType.EvmNetworkActorCoinBalance}
 									title={`${assetKey} · by network`}
 									id={`${idKey}:balances-coin-evmAccounts-${String(coinGroupIndex)}`}
-									getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
-									getSortValue={(line) => stringify(line.value[EntityMetaKey.Id])}
+									getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
+									getSortValue={(line) => stringify(line.value[EntityMetaKey.Selector])}
 									items={assetLines}
 									UnorderedListProps={{
 										orientation: ListOrientation.Column,
@@ -460,7 +460,7 @@
 									{#snippet Item(props)}
 										{#if props.item}
 											<EvmNetworkActorCoinBalanceView
-												entityId={props.item.value[EntityMetaKey.Id]}
+												selector={props.item.value[EntityMetaKey.Selector]}
 												layout={EntityLayout.Summary}
 											/>
 										{/if}
@@ -479,14 +479,14 @@
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(accounts)/account/[address]', {
 										...{ caip2Namespace: 'eip155' as const, caip2Reference: `${balancesChainId}` },
-										address: entityId.address,
+										address: selector.address,
 									})}
 								collapsible={false}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetworkAccount,
-									entityId: {
+									selector: {
 										$network: { caip2: { namespace: 'eip155' as const, reference: String(balancesChainId) } },
-										$actor: entityId,
+										$actor: selector,
 									},
 									fieldName: '$$ownedCoins',
 								}}
@@ -520,9 +520,9 @@
 						id={`${idKey}:activity-net-${facetChainId}`}
 					>
 						<EvmNetworkAccountView
-							entityId={{
+							selector={{
 								$network: { caip2: { namespace: 'eip155' as const, reference: String(facetChainId) } },
-								$actor: entityId,
+								$actor: selector,
 							}}
 							layout={EntityLayout.Title}
 							open={false}
@@ -531,14 +531,14 @@
 							CollapsibleProps={{ canToggle: false }}
 							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(accounts)/account/[address]', {
 									...{ caip2Namespace: 'eip155' as const, caip2Reference: `${facetChainId}` },
-									address: entityId.address,
+									address: selector.address,
 								})}
 							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.EvmNetworkAccount,
-								entityId: {
+								selector: {
 									$network: { caip2: { namespace: 'eip155' as const, reference: String(facetChainId) } },
-									$actor: entityId,
+									$actor: selector,
 								},
 								fieldName: '$$transactions',
 							}}
@@ -553,14 +553,14 @@
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(accounts)/account/[address]', {
 									...{ caip2Namespace: 'eip155' as const, caip2Reference: `${facetChainId}` },
-									address: entityId.address,
+									address: selector.address,
 								})}
 								collapsible={false}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetworkAccount,
-									entityId: {
+									selector: {
 										$network: { caip2: { namespace: 'eip155' as const, reference: String(facetChainId) } },
-										$actor: entityId,
+										$actor: selector,
 									},
 									fieldName: '$$tokenTransfers',
 								}}
@@ -577,14 +577,14 @@
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(accounts)/account/[address]', {
 									...{ caip2Namespace: 'eip155' as const, caip2Reference: `${facetChainId}` },
-									address: entityId.address,
+									address: selector.address,
 								})}
 								collapsible={false}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetworkAccount,
-									entityId: {
+									selector: {
 										$network: { caip2: { namespace: 'eip155' as const, reference: String(facetChainId) } },
-										$actor: entityId,
+										$actor: selector,
 									},
 									fieldName: '$$internalTransfers',
 								}}

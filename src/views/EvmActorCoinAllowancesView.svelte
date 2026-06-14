@@ -73,7 +73,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {},
 				} }),
 			)}
@@ -98,9 +98,9 @@
 				open={true}
 				data-entity-field-name={entityFieldReference.fieldName}
 				data-entity-field-type={entityFieldReference.entityType}
-				data-entity-field-parent={stringify(entityFieldReference.entityId)}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				data-entity-field-parent={stringify(entityFieldReference.selector)}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
 				placeholderKeys={new SvelteSet<string>()}
 				placeholderText={`Loading ${title.toLowerCase()}…`}
 				resource={allowances}
@@ -113,9 +113,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const id = item.value[EntityMetaKey.Id]}
+					{@const id = item.value[EntityMetaKey.Selector]}
 					<EvmActorCoinAllowanceView
-						entityId={id}
+						selector={id}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -67,7 +67,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 					], fields: { [entityFieldReference.fieldName]: {
 						sources: [
@@ -95,7 +95,7 @@
 				entityType={EntityType.EthereumNetworkUpgrade}
 				id={`${id}-items`}
 				href={href}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
 				resource={upgrades}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -109,7 +109,7 @@
 
 				{#snippet Item({ item: envelope })}
 					<NetworkUpgradeView
-						entityId={envelope.value[EntityMetaKey.Id]}
+						selector={envelope.value[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

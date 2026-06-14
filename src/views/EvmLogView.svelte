@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -18,12 +18,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]', {
-			caip2Namespace: entityId.$network.caip2.namespace,
-			caip2Reference: entityId.$network.caip2.reference,
-			transactionId: entityId.txHash,
-			logIndex: String(entityId.logIndex),
+			caip2Namespace: selector.$network.caip2.namespace,
+			caip2Reference: selector.$network.caip2.reference,
+			transactionId: selector.txHash,
+			logIndex: String(selector.logIndex),
 		}),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
@@ -37,7 +37,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmLog>
+			selector: EntitySelector<typeof schema, EntityType.EvmLog>
 			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
@@ -52,7 +52,7 @@
 	> = $props()
 
 	const log = subscribe(EntityType.EvmLog,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
@@ -73,7 +73,7 @@
 
 <EntityView
 	entityType={EntityType.EvmLog}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -82,7 +82,7 @@
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.logIndex}
+			#{selector.logIndex}
 		</span>
 	{/snippet}
 
@@ -96,13 +96,13 @@
 					<span data-row="inline align-center gap-2 wrap">
 						<span>Receipt log </span>
 						<span data-badge="small">
-							#{entityId.logIndex}
+							#{selector.logIndex}
 						</span>
 					</span>
 					{#if log.fields.topics?.[0]?.startsWith('0x')}
 						{@const topic0Hex = normalizeEvmTopicHex(log.fields.topics[0])}
 						<EvmTopicView
-							entityId={{ hex: topic0Hex }}
+							selector={{ hex: topic0Hex }}
 							layout={EntityLayout.Title}
 							open={false}
 						/>
@@ -135,13 +135,13 @@
 							<a
 								data-text="font-monospace"
 								href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
-									caip2Namespace: entityId.$network.caip2.namespace,
-									caip2Reference: entityId.$network.caip2.reference,
-									transactionId: entityId.txHash,
+									caip2Namespace: selector.$network.caip2.namespace,
+									caip2Reference: selector.$network.caip2.reference,
+									transactionId: selector.txHash,
 								})}
 							>
 								<TruncatedValue
-									value={entityId.txHash}
+									value={selector.txHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</a>
@@ -159,7 +159,7 @@
 								<dt>Emitter contract</dt>
 								<dd>
 									<EvmContractView
-										entityId={log.fields.$emitter[EntityMetaKey.Id]}
+										selector={log.fields.$emitter[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 									/>
@@ -219,7 +219,7 @@
 									<EvmTokenTransfersView
 										entityFieldReference={{
 											entityType: EntityType.EvmLog,
-											entityId,
+											selector,
 											fieldName: '$$tokenTransfers',
 										}}
 										open={true}
@@ -235,7 +235,7 @@
 									<EvmLogDecode
 										topics={log.fields.topics}
 										data={log.fields.data}
-										emitterContractId={log.fields.$emitter?.[EntityMetaKey.Id]}
+										emitterContractId={log.fields.$emitter?.[EntityMetaKey.Selector]}
 										open={contentOpen}
 									/>
 								</dd>

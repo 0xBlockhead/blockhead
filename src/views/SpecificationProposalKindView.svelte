@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,7 +16,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href: hrefProp,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -24,7 +24,7 @@
 	}: WithRest<
 		{
 
-			entityId: EntityId<typeof schema, EntityType.SpecificationProposalKind>
+			selector: EntitySelector<typeof schema, EntityType.SpecificationProposalKind>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -32,37 +32,21 @@
 		never
 	> = $props()
 
-	const kind = subscribe(EntityType.SpecificationProposalKind,
-		entityId,
+	const kind = $derived(subscribe(EntityType.SpecificationProposalKind,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
-			], fields: { $$proposals: ({ sources: [
-					Source.BitcoinBips_Github,
-					Source.BitcoinCashChips_Gitlab,
-					Source.Caips_Github,
-					Source.CosmosAdrs_Github,
-					Source.DogecoinDips_Github,
-					Source.Ensips_Github,
-					Source.EthereumEips_Github,
-					Source.FilecoinFips_Github,
-					Source.HyperliquidDocs_Rest,
-					Source.LitecoinLips_Github,
-					Source.NearNeps_Github,
-					Source.PolkadotRfcs_Github,
-					Source.QuilibriumDocs_Rest,
-					Source.SolanaSimds_Github,
-					Source.ZcashZips_Github,
-				], limit: 2048 }), label: true, labelPlural: true, slug: true } }),
-	)
+			], fields: { label: true, labelPlural: true, slug: true } }),
+	))
 
-	const specificationRealm = subscribe(EntityType.SpecificationRealm,
+	const specificationRealm = $derived(subscribe(EntityType.SpecificationRealm,
 		{
-			realm: entityId.realm,
+			realm: selector.realm,
 		},
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { slug: true } }),
-	)
+	))
 
 
 	// (Derived)
@@ -113,9 +97,9 @@
 
 <EntityView
 	entityType={EntityType.SpecificationProposalKind}
-	{entityId}
+	entitySelector={selector}
 	{href}
-	title={kindRow?.fields.labelPlural ?? kindRow?.fields.label ?? `${entityId.category}`}
+	title={kindRow?.fields.labelPlural ?? kindRow?.fields.label ?? `${selector.category}`}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -127,7 +111,7 @@
 		>
 			{#snippet children(kind)}
 				<span>
-					{kind.fields.label ?? entityId.category}
+					{kind.fields.label ?? selector.category}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -140,7 +124,7 @@
 		>
 			{#snippet children(kind)}
 				<span>
-					{kind.fields.labelPlural ?? kind.fields.label ?? entityId.category}
+					{kind.fields.labelPlural ?? kind.fields.label ?? selector.category}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -179,12 +163,12 @@
 					href={resolve('/proposals')}
 					entityFieldReference={{
 						entityType: EntityType.SpecificationProposalKind,
-						entityId,
+						selector,
 						fieldName: '$$proposals',
 					}}
-					filterCategory={entityId.category}
-					filterRealm={entityId.realm}
-					id={`${stringify(entityId)}:proposals`}
+					filterCategory={selector.category}
+					filterRealm={selector.realm}
+					id={`${stringify(selector)}:proposals`}
 					open
 					title={
 						kind.fields.labelPlural

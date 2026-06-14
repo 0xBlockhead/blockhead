@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -20,17 +20,17 @@
 
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const entityId: EntityId<typeof schema, EntityType.XNetwork> = {
+	const selector: EntitySelector<typeof schema, EntityType.XNetwork> = {
 		scope: 'XNetwork',
 	}
 
 	const exampleUserId = '783214'
 	const examplePostId = '1955274825074221427'
 
-	const networkIdKey = stringify(entityId)
+	const networkSelectorKey = stringify(selector)
 
 	const network = subscribe(EntityType.XNetwork,
-		entityId,
+		selector,
 		({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xUsers: ({ sources: [
 					Source.X_Rest,
 					Source.X_FxEmbed_Rest,
@@ -54,7 +54,7 @@
 
 <EntityView
 	entityType={EntityType.XNetwork}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	title="X"
@@ -140,13 +140,13 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			sectionIdPrefix={networkIdKey}
+			sectionIdPrefix={networkSelectorKey}
 			sections={collapsibleTabsSections([
 				{ id: 'profiles', label: 'Profiles' },
 				{ id: 'recent-posts', label: 'Recent posts' },
 				{ id: 'examples-xNetworks', label: 'Examples' },
 			])}
-			id={`${networkIdKey}:carousel-registry`}
+			id={`${networkSelectorKey}:carousel-registry`}
 			data-card
 		>
 			{#snippet Summary({ open: _summaryOpen })}
@@ -180,10 +180,10 @@
 					href={resolve('/x/users')}
 					entityFieldReference={{
 						entityType: EntityType.XNetwork,
-						entityId,
+						selector,
 						fieldName: '$$xUsers',
 					}}
-					id={`${networkIdKey}:users`}
+					id={`${networkSelectorKey}:users`}
 					open={_open}
 					title="Profiles"
 				/>
@@ -195,10 +195,10 @@
 					href={resolve('/x/posts')}
 					entityFieldReference={{
 						entityType: EntityType.XNetwork,
-						entityId,
+						selector,
 						fieldName: '$$xPosts',
 					}}
-					id={`${networkIdKey}:posts`}
+					id={`${networkSelectorKey}:posts`}
 					open={_open}
 					title="Recent posts"
 				/>

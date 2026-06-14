@@ -7,6 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadAgentConversationTurnSelector {
+	Id = 'id',
+}
+
+
 export enum BlockheadAgentConversationTurnStatus {
 	Pending = 'pending',
 	Generating = 'generating',
@@ -21,11 +26,22 @@ export default {
 	label: 'Agent Conversation Turn',
 	labelPlural: 'Agent Conversation Turns',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: BlockheadAgentConversationTurnSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$conversation',
 			type: EntityFieldType.EntityReference,

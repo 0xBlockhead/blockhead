@@ -71,7 +71,7 @@
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				{@const parent = subscribe(entityFieldReference.entityType,
-					entityFieldReference.entityId,({ fields: {
+					entityFieldReference.selector,({ fields: {
 						[entityFieldReference.fieldName]: {
 							sources: [
 								Source.Local_Internal,
@@ -100,8 +100,8 @@
 					{title}
 					open={true}
 					placeholderText="Loading resolver sources…"
-					getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-					getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+					getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+					getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
 					resource={sources}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
 				>
@@ -109,7 +109,7 @@
 						<BlockheadSourceView
 							layout={EntityLayout.Summary}
 							open={false}
-							sourceId={envelope.value[EntityMetaKey.Id].id}
+							sourceId={envelope.value[EntityMetaKey.Selector].id}
 							title="Resolver source"
 						/>
 					{/snippet}

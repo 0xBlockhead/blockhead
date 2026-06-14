@@ -48,7 +48,7 @@
 		</p>
 	{:else}
 		<MarketVenueView
-			entityId={{ marketVenueId: route.marketVenueId }}
+			selector={{ marketVenueId: route.marketVenueId }}
 		/>
 	{/if}
 </Page>

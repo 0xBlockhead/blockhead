@@ -1,7 +1,7 @@
 // Types
 import { fediDefaultInstanceOrigin } from '$/constants/Fedi.ts'
 import { mastodonDefaultInstanceOrigin } from '$/constants/Mastodon.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 
@@ -15,7 +15,7 @@ export const activityPubNetworkFieldValues = {
 	topology: 'Constants seeds + live REST (multi-instance) -> network -> actors -> notes -> thread',
 } as const
 
-export const activityPubNetworkSeedActors: readonly EntityId<typeof schema, EntityType.ActivityPubActor>[] = [
+export const activityPubNetworkSeedActors: readonly EntitySelector<typeof schema, EntityType.ActivityPubActor>[] = [
 	{
 		instanceOrigin: mastodonDefaultInstanceOrigin,
 		localAccountId: 'Gargron@mastodon.social',

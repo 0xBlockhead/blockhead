@@ -102,7 +102,7 @@
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				{@const parent = subscribe(entityFieldReference.entityType,
-					entityFieldReference.entityId,({ sources: [
+					entityFieldReference.selector,({ sources: [
 							Source.Constants_Internal,
 							Source.Youtube_Rest,
 							Source.Piped_Rest,
@@ -123,8 +123,8 @@
 						)
 						return (
 							youTubeVideos.map((video) => ({
-								...video[EntityMetaKey.Id],
-								sortKey: stringify(video[EntityMetaKey.Id]),
+								...video[EntityMetaKey.Selector],
+								sortKey: stringify(video[EntityMetaKey.Selector]),
 							}))
 						)
 					},
@@ -167,7 +167,7 @@
 						item: video,
 					})}
 						<YouTubeVideoView
-							entityId={{ videoId: video.videoId }}
+							selector={{ videoId: video.videoId }}
 							layout={EntityLayout.SummaryDetails}
 							open={false}
 						/>

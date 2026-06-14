@@ -1,6 +1,4 @@
 import { type } from 'arktype'
-import { lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
-
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -8,7 +6,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum MoneroBlockSelector {
+	NetworkHeightHash = 'networkHeightHash',
+}
 
 export default {
 	entityType: EntityType.MoneroBlock,
@@ -16,31 +17,30 @@ export default {
 	label: 'Monero Block',
 	labelPlural: 'Monero Blocks',
 
-	id: type({
-		$network: Network.id,
-		height: 'bigint',
-		'hash?': 'string',
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'heightHash',
+			name: MoneroBlockSelector.NetworkHeightHash,
 			fields: [
-				{
-					name: '$network',
-				},
-				{
-					name: 'height',
-				},
-				{
-					name: 'hash',
-					normalize: lowercaseHexIdentityValue,
-				},
+				'$network',
+				'height',
+				'hash',
 			],
 		},
 	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'height',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'hash',
 			type: EntityFieldType.Primitive,

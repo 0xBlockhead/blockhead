@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -22,11 +22,11 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
-			caip2Namespace: entityId.$network.caip2.namespace,
-			caip2Reference: entityId.$network.caip2.reference,
-			transactionId: entityId.txHash,
+			caip2Namespace: selector.$network.caip2.namespace,
+			caip2Reference: selector.$network.caip2.reference,
+			transactionId: selector.txHash,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -37,7 +37,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmInternalTransfer>
+			selector: EntitySelector<typeof schema, EntityType.EvmInternalTransfer>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -51,7 +51,7 @@
 	> = $props()
 
 	const transfer = subscribe(EntityType.EvmInternalTransfer,
-		entityId,
+		selector,
 		({ sources: [Source.Blockscout_Rest], fields: { value: true, $from: true, $to: true, ...(open && ({ callType: true, success: true, $createdContract: true })) } }),
 	)
 
@@ -66,7 +66,7 @@
 
 <EntityView
 	entityType={EntityType.EvmInternalTransfer}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -75,7 +75,7 @@
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.internalIndex}
+			#{selector.internalIndex}
 		</span>
 	{/snippet}
 
@@ -83,7 +83,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Internal transfer </span>
 			<span data-badge="small">
-				#{entityId.internalIndex}
+				#{selector.internalIndex}
 			</span>
 		</span>
 	{/snippet}
@@ -108,13 +108,13 @@
 							<dd>
 									<a
 										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
-											caip2Namespace: entityId.$network.caip2.namespace,
-											caip2Reference: entityId.$network.caip2.reference,
-											transactionId: entityId.txHash,
+											caip2Namespace: selector.$network.caip2.namespace,
+											caip2Reference: selector.$network.caip2.reference,
+											transactionId: selector.txHash,
 										})}
 									>
 									<TruncatedValue
-										value={entityId.txHash}
+										value={selector.txHash}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								</a>
@@ -124,7 +124,7 @@
 
 					<div>
 						<dt>Internal index</dt>
-						<dd>{String(entityId.internalIndex)}</dd>
+						<dd>{String(selector.internalIndex)}</dd>
 					</div>
 
 					{#if transfer.fields.callType}
@@ -152,7 +152,7 @@
 							<dt>Created contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={transfer.fields.$createdContract[EntityMetaKey.Id]}
+									selector={transfer.fields.$createdContract[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={true}
 									showTypeAnnotation={false}

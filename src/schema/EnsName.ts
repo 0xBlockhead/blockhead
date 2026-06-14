@@ -5,18 +5,13 @@ import {
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-	type EntityIdentityValueNormalizer,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAbi } from '$/schema/EvmAbi.ts'
 import { Source } from '$/sources/Source.ts'
 
-const normalizedEnsIdentityValue: EntityIdentityValueNormalizer = (value) => {
-	try {
-		return ensToString(ensNormalizeNode(String(value)))
-	} catch {
-		return String(value).toLowerCase()
-	}
+export enum EnsNameSelector {
+	NormalizedName = 'normalizedName',
 }
 
 export default {
@@ -25,18 +20,11 @@ export default {
 	label: 'ENS Name',
 	labelPlural: 'ENS Names',
 
-	id: type({
-		name: 'string',
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'normalizedName',
+			name: EnsNameSelector.NormalizedName,
 			fields: [
-				{
-					name: 'name',
-					normalize: normalizedEnsIdentityValue,
-				},
+				'name',
 			],
 		},
 	],

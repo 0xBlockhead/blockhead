@@ -9,6 +9,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum SwapQuoteSelector {
+	Id = 'id',
+}
+
+
 const swapRouteRow = type({
 	poolId: 'string',
 	tokenIn: EvmAddress,
@@ -22,11 +27,22 @@ export default {
 	label: 'Swap Quote',
 	labelPlural: 'Swap Quotes',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: SwapQuoteSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$network',
 			type: EntityFieldType.EntityReference,

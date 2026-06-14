@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,19 +13,19 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.Network>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const network = subscribe(EntityType.Network,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } }),
@@ -43,8 +43,8 @@
 
 
 	// (Derived)
-	const networkIdKey = $derived(
-		stringify(entityId),
+	const networkSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -61,7 +61,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	{entityId}
+	entitySelector={selector}
 	{href}
 	bind:open
 	{layout}
@@ -110,7 +110,7 @@
 									<dt>Master shard</dt>
 									<dd>
 										<QuilibriumShardView
-											entityId={quilibriumNetwork.fields.$masterShard[EntityMetaKey.Id]}
+											selector={quilibriumNetwork.fields.$masterShard[EntityMetaKey.Selector]}
 											layout={EntityLayout.Value}
 										/>
 									</dd>
@@ -125,8 +125,8 @@
 
 	{#snippet Details()}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-quilibrium`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-quilibrium`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'quilibrium-protocol', label: 'Protocol' },
 				{ id: 'quilibrium-services', label: 'Services' },
@@ -150,8 +150,8 @@
 						{#if quilibriumNetwork.fields.$protocolDocument != null}
 							<p>
 								<strong>Protocol document:</strong>
-								{quilibriumNetwork.fields.$protocolDocument[EntityMetaKey.Id].category}
-								{quilibriumNetwork.fields.$protocolDocument[EntityMetaKey.Id].number}
+								{quilibriumNetwork.fields.$protocolDocument[EntityMetaKey.Selector].category}
+								{quilibriumNetwork.fields.$protocolDocument[EntityMetaKey.Selector].number}
 							</p>
 						{/if}
 
@@ -200,8 +200,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-quilibrium-assets`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-quilibrium-assets`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'quilibrium-assets-native', label: 'Native coin' },
 			]}
@@ -220,7 +220,7 @@
 			CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -230,8 +230,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-quilibrium-resources`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-quilibrium-resources`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'quilibrium-resources-faucets', label: 'Faucets' },
 				{ id: 'quilibrium-resources-block-explorers', label: 'Block explorers' },
@@ -254,7 +254,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -272,7 +272,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

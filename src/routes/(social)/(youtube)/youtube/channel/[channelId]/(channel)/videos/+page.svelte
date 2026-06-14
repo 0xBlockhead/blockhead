@@ -24,7 +24,7 @@
 		href={resolve('/youtube/videos')}
 		entityFieldReference={{
 			entityType: EntityType.YouTubeChannel,
-			entityId: {
+			selector: {
 				channelId: decodeURIComponent(params.channelId),
 			},
 			fieldName: '$$videos',

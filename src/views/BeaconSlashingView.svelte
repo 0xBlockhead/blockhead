@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -9,14 +9,14 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BeaconSlashing>
+			selector: EntitySelector<typeof schema, EntityType.BeaconSlashing>
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
@@ -29,7 +29,7 @@
 
 	const title = $derived(
 		titleProp
-		?? `${entityId.kind} slashing · slot ${entityId.slot.toLocaleString()}`
+		?? `${selector.kind} slashing · slot ${selector.slot.toLocaleString()}`
 	)
 
 
@@ -41,7 +41,7 @@
 
 <EntityView
 	entityType={EntityType.BeaconSlashing}
-	{entityId}
+	entitySelector={selector}
 	{title}
 	{layout}
 	bind:open
@@ -49,7 +49,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{entityId.kind}
+			{selector.kind}
 		</span>
 	{/snippet}
 
@@ -62,7 +62,7 @@
 			<dl data-column-item="center">
 				<div>
 					<dt>Index</dt>
-					<dd><NumberValue value={entityId.index} /></dd>
+					<dd><NumberValue value={selector.index} /></dd>
 				</div>
 			</dl>
 		{/if}

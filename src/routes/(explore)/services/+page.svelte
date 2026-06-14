@@ -12,7 +12,7 @@
 
 <Page>
 	<GlobalView
-		entityId={{ scope: 'Services' }}
+		selector={{ scope: 'Services' }}
 		title={'Services'}
 		href={resolve('/services')}
 	>

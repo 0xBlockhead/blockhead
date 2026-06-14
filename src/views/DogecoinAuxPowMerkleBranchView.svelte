@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.DogecoinAuxPowMerkleBranch>
+			selector: EntitySelector<typeof schema, EntityType.DogecoinAuxPowMerkleBranch>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const dogecoinAuxPowMerkleBranch = subscribe(EntityType.DogecoinAuxPowMerkleBranch,
-		entityId,
+		selector,
 		({ fields: { branchHashes: true, index: true } }),
 	)
 
@@ -42,14 +42,14 @@
 
 <EntityView
 	entityType={EntityType.DogecoinAuxPowMerkleBranch}
-	{entityId}
-	title={entityId.branchKind}
+	entitySelector={selector}
+	title={selector.branchKind}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{entityId.branchKind.toString()}
+		{selector.branchKind.toString()}
 	{/snippet}
 
 	{#snippet Content()}

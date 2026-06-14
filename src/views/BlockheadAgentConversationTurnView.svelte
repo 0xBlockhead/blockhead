@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -17,13 +17,13 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BlockheadAgentConversationTurn>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadAgentConversationTurn>
 			href?: string
 			open?: boolean
 		},
@@ -35,7 +35,7 @@
 	> = $props()
 
 	const turn = subscribe(EntityType.BlockheadAgentConversationTurn,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Local_Internal,
 			], fields: { userPrompt: true, assistantText: true, status: true, createdAt: true, ...(open ? ({ providerId: true, promptVersion: true, parentId: true, error: true }) : ({  })) } }),
@@ -52,14 +52,14 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAgentConversationTurn}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.id}
+			value={selector.id}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -225,7 +225,7 @@
 							{#snippet TurnParentRow(turn: ResourceFields)}
 								{#if turn.fields.parentId != null && turn.fields.parentId !== ''}
 									<svelte:self
-										entityId={{ id: turn.fields.parentId }}
+										selector={{ id: turn.fields.parentId }}
 										layout={EntityLayout.Title}
 										open={false}
 									/>

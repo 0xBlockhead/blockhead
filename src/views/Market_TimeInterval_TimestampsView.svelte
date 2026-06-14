@@ -84,7 +84,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const market = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [...marketOhlcCandleSources],
 						limit: limit,
@@ -104,7 +104,7 @@
 							:
 								dedupeCandleEntitiesById(marketTimeIntervalTimestamps).filter((marketTimeIntervalTimestamp) => (
 								marketTimeIntervalsEqual(
-									marketTimeIntervalTimestamp[EntityMetaKey.Id].timeInterval,
+									marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval,
 									timeInterval,
 								)
 							))
@@ -119,8 +119,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.Market_TimeInterval_Timestamp}
-				getKey={(marketTimeIntervalTimestamp) => stringify(marketTimeIntervalTimestamp.value[EntityMetaKey.Id])}
-				getSortValue={(marketTimeIntervalTimestamp) => -marketTimeIntervalTimestamp.value[EntityMetaKey.Id].timestampMs}
+				getKey={(marketTimeIntervalTimestamp) => stringify(marketTimeIntervalTimestamp.value[EntityMetaKey.Selector])}
+				getSortValue={(marketTimeIntervalTimestamp) => -marketTimeIntervalTimestamp.value[EntityMetaKey.Selector].timestampMs}
 				placeholderKeys={new SvelteSet<string>()}
 				open={true}
 				resource={points}
@@ -136,8 +136,8 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<Market_TimeInterval_TimestampView
-						entityId={row[EntityMetaKey.Id]}
-						id={stringify(row[EntityMetaKey.Id])}
+						selector={row[EntityMetaKey.Selector]}
+						id={stringify(row[EntityMetaKey.Selector])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

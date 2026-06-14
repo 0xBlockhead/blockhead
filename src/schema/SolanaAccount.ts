@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum SolanaAccountSelector {
+	NetworkPubkey = 'networkPubkey',
+}
 
 export default {
 	entityType: EntityType.SolanaAccount,
@@ -15,12 +18,29 @@ export default {
 	label: 'Solana Account',
 	labelPlural: 'Solana Accounts',
 
-	id: type({
-		$network: Network.id,
-		pubkey: 'string',
-	}),
+	selectors: [
+		{
+			name: SolanaAccountSelector.NetworkPubkey,
+			fields: [
+				'$network',
+				'pubkey',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'pubkey',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$ownerProgram',
 			type: EntityFieldType.EntityReference,

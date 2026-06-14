@@ -12,7 +12,7 @@
 	<NostrRepostsView
 		entityFieldReference={{
 			entityType: EntityType.NostrNetwork,
-			entityId: { scope: 'NostrNetwork' },
+			selector: { scope: 'NostrNetwork' },
 			fieldName: '$$nostrReposts',
 		}}
 		id="nostr-reposts"

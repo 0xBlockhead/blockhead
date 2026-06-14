@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,26 +13,26 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.Network>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const network = subscribe(EntityType.Network,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { slug: true, name: true, environment: true, $$nativeAssets: true } }),
 	)
 
 	const filecoinNetwork = subscribe(EntityType.FilecoinNetwork,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Lotus_JsonRpc,
 				Source.Filfox_Rest,
@@ -41,8 +41,8 @@
 
 
 	// (Derived)
-	const networkIdKey = $derived(
-		stringify(entityId),
+	const networkSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -63,7 +63,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	{entityId}
+	entitySelector={selector}
 	{href}
 	bind:open
 	{layout}
@@ -107,7 +107,7 @@
 									<dt>Head tipset</dt>
 									<dd id="network-summary-head-block">
 										<FilecoinTipsetView
-											entityId={filecoinNetwork.fields.$headTipset[EntityMetaKey.Id]}
+											selector={filecoinNetwork.fields.$headTipset[EntityMetaKey.Selector]}
 											layout={EntityLayout.Value}
 										/>
 									</dd>
@@ -135,8 +135,8 @@
 	{#snippet Details()}
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-filecoin-chain`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-filecoin-chain`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'filecoin-tipsets', label: 'Tipsets' },
 				{ id: 'filecoin-network-snapshots', label: 'Network snapshots' },
@@ -159,7 +159,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.FilecoinNetwork,
-						entityId,
+						selector,
 						fieldName: '$$tipsets',
 					}}
 					href={href == null ? '' : `${href}/blocks`}
@@ -173,7 +173,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.FilecoinNetwork,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					id={`${id}-list`}
@@ -191,7 +191,7 @@
 					]}
 					id={`${id}-list`}
 					listEntityType={EntityType.FilecoinNetwork}
-					parentEntityId={entityId}
+					parentEntitySelector={selector}
 					parentEntityType={EntityType.FilecoinNetwork}
 					title={label}
 				/>
@@ -199,8 +199,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-consensus`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-consensus`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'filecoin-miners', label: 'Miners' },
 			]}
@@ -221,7 +221,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.FilecoinNetwork,
-						entityId,
+						selector,
 						fieldName: '$$headMiners',
 					}}
 					id={`${id}-list`}
@@ -231,8 +231,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-assets`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-assets`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'filecoin-assets-native', label: 'Native coin' },
 			]}
@@ -250,7 +250,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -260,8 +260,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-resources`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-resources`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'filecoin-resources-faucets', label: 'Faucets' },
 				{ id: 'filecoin-resources-block-explorers', label: 'Block explorers' },
@@ -281,7 +281,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -299,7 +299,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

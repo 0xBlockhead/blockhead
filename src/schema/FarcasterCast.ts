@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 
-import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -10,6 +10,14 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 
+export enum FarcasterCastSelector {
+	Hash = 'hash',
+	FidHash = 'fidHash',
+	UsernameHashPrefix = 'usernameHashPrefix',
+	ClientUrl = 'clientUrl',
+}
+
+
 export type CastHash = `0x${string}`
 
 export default {
@@ -18,66 +26,31 @@ export default {
 	label: 'Farcaster Cast',
 	labelPlural: 'Farcaster Casts',
 
-	id: type.or(
-		type({
-			fid: 'number',
-			hash: ZeroExHex,
-			'+': 'reject',
-		}),
-		type({
-			hash: ZeroExHex,
-			'+': 'reject',
-		}),
-		type({
-			username: 'string',
-			hashPrefix: ZeroExHex,
-			'+': 'reject',
-		}),
-		type({
-			clientUrl: UrlString,
-			'+': 'reject',
-		}),
-	),
-
-	lookups: [
+	selectors: [
 		{
-			name: 'usernameHashPrefix',
+			name: FarcasterCastSelector.Hash,
+			fields: [
+				'hash',
+			],
+		},
+		{
+			name: FarcasterCastSelector.FidHash,
+			fields: [
+				'fid',
+				'hash',
+			],
+		},
+		{
+			name: FarcasterCastSelector.UsernameHashPrefix,
 			fields: [
 				'username',
-				{
-					name: 'hashPrefix',
-					normalize: lowercaseHexIdentityValue,
-				},
+				'hashPrefix',
 			],
 		},
 		{
-			name: 'clientUrl',
+			name: FarcasterCastSelector.ClientUrl,
 			fields: [
 				'clientUrl',
-			],
-		},
-	],
-
-	identities: [
-		{
-			name: 'hash',
-			fields: [
-				{
-					name: 'hash',
-					normalize: lowercaseHexIdentityValue,
-				},
-			],
-		},
-		{
-			name: 'fidHash',
-			fields: [
-				{
-					name: 'fid',
-				},
-				{
-					name: 'hash',
-					normalize: lowercaseHexIdentityValue,
-				},
 			],
 		},
 	],

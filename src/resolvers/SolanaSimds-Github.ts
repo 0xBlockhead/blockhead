@@ -5,11 +5,14 @@ import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts
 import { regex } from 'arkregex'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
+import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
+import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const solanaSimdProposalRows = async (
 	entries: {
@@ -29,7 +32,7 @@ const solanaSimdProposalRows = async (
 			[]
 		:
 			[{
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					realm: SpecificationRealm.Solana,
 					category: ProposalCategory.Simd,
 					number: proposalNumber,
@@ -45,13 +48,13 @@ export default {
 		defineResolver(Source.SolanaSimds_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Solana || entityId.category !== ProposalCategory.Simd) {
+				if (realm !== SpecificationRealm.Solana || category !== ProposalCategory.Simd) {
 					throw new Error('SolanaSimds_Github: unsupported proposal id')
 				}
 				const { getProposalMarkdownText } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				const text = await singleFlight(getProposalMarkdownText)({ number: entityId.number })
+				const text = await singleFlight(getProposalMarkdownText)({ number: number })
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
 				return {
@@ -77,7 +80,7 @@ export default {
 		defineResolver(Source.SolanaSimds_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async () => {
+				[_GlobalSelector.Scope]: async () => {
 				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
 				return solanaSimdProposalRows(await singleFlight(getProposalContents)())
 			}
@@ -91,9 +94,9 @@ export default {
 		defineResolver(Source.SolanaSimds_Github, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Solana) {
+				if (realm !== SpecificationRealm.Solana) {
 					throw new Error('SolanaSimds_Github: $$proposals only supports SpecificationRealm.Solana')
 				}
 				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
@@ -109,9 +112,9 @@ export default {
 		defineResolver(Source.SolanaSimds_Github, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Solana || entityId.category !== ProposalCategory.Simd) {
+				if (realm !== SpecificationRealm.Solana || category !== ProposalCategory.Simd) {
 					throw new Error('SolanaSimds_Github: $$proposals only supports Solana SIMD proposal kind')
 				}
 				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')

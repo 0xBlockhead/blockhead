@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,12 +13,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BittensorBlock>
+			selector: EntitySelector<typeof schema, EntityType.BittensorBlock>
 			open?: boolean
 		},
 		Pick<
@@ -29,7 +29,7 @@
 	> = $props()
 
 	const block = subscribe(EntityType.BittensorBlock,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Bittensor_JsonRpc,
 			], fields: { hash: true, extrinsicCount: true, ...(open && ({ $parent: true, stateRoot: true, extrinsicsRoot: true })) } }),
@@ -46,15 +46,15 @@
 
 <EntityView
 	entityType={EntityType.BittensorBlock}
-	{entityId}
-	title={`Block #${entityId.blockNumber.toString()}`}
-	idDragPlainText={entityId.blockNumber.toString()}
+	entitySelector={selector}
+	title={`Block #${selector.blockNumber.toString()}`}
+	idDragPlainText={selector.blockNumber.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.blockNumber.toString()}
+			#{selector.blockNumber.toString()}
 		</span>
 	{/snippet}
 
@@ -78,12 +78,12 @@
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if entityId.hash != null || block.fields.hash != null}
+					{#if selector.hash != null || block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={entityId.hash ?? block.fields.hash}
+									value={selector.hash ?? block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
@@ -100,7 +100,7 @@
 					{#if open && block.fields.$parent != null}
 						<div>
 							<dt>Parent</dt>
-							<dd>Block #{block.fields.$parent[EntityMetaKey.Id].blockNumber.toString()}</dd>
+							<dd>Block #{block.fields.$parent[EntityMetaKey.Selector].blockNumber.toString()}</dd>
 						</div>
 					{/if}
 

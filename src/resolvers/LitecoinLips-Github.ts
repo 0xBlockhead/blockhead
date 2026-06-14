@@ -4,11 +4,14 @@ import {
 import { regex } from 'arkregex'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
+import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
+import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const metadataValue = (text: string, key: string) => (
 	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
@@ -22,7 +25,7 @@ const litecoinLipRows = async (entries: { type: string, name: string }[]) => {
 			[]
 		:
 			[{
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					realm: SpecificationRealm.Litecoin,
 					category: ProposalCategory.Lip,
 					number: parseInt(proposalNumberRaw, 10),
@@ -38,13 +41,13 @@ export default {
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Litecoin || entityId.category !== ProposalCategory.Lip) {
+				if (realm !== SpecificationRealm.Litecoin || category !== ProposalCategory.Lip) {
 					throw new Error('LitecoinLips_Github: proposal resolver only supports Litecoin LIPs')
 				}
 				const { getMediaWikiText } = await import('$/sources/LitecoinLips/Github/queries.ts')
-				const text = await singleFlight(getMediaWikiText)({ number: entityId.number })
+				const text = await singleFlight(getMediaWikiText)({ number: number })
 				return {
 					documentCategory: metadataValue(text, 'Type') ?? 'LIP',
 					documentTitle: metadataValue(text, 'Title'),
@@ -65,7 +68,7 @@ export default {
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async () => {
+				[_GlobalSelector.Scope]: async () => {
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
 			}
@@ -79,9 +82,9 @@ export default {
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Litecoin) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin')
+				if (realm !== SpecificationRealm.Litecoin) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin')
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
 			}
@@ -95,9 +98,9 @@ export default {
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Litecoin || entityId.category !== ProposalCategory.Lip) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin LIPs')
+				if (realm !== SpecificationRealm.Litecoin || category !== ProposalCategory.Lip) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin LIPs')
 				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 				return litecoinLipRows(await getContents())
 			}

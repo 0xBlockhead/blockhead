@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 
 	import {
 		ensTextRecordLabelByKey,
@@ -20,20 +20,20 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/(explore)/(ens)/ens/name/[ensName]',
-			{ ensName: entityId.name },
+			{ ensName: selector.name },
 		),
 		recordId,
 	}: {
-		entityId: EntityId<typeof schema, EntityType.EnsName>
+		selector: EntitySelector<typeof schema, EntityType.EnsName>
 		href?: string
 		recordId: string
 	} = $props()
 
 	const ens = subscribe(EntityType.EnsName,
-		entityId,
+		selector,
 		({ sources: [Source.Voltaire_JsonRpc], fields: { textRecords: true } }),
 	)
 
@@ -53,7 +53,7 @@
 
 <EntityView
 	entityType={EntityType.EnsName}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	title={recordLabel}
 >
@@ -101,7 +101,7 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>ENS name</dt>
-						<dd data-text="font-monospace">{entityId.name}</dd>
+						<dd data-text="font-monospace">{selector.name}</dd>
 					</div>
 					<div>
 						<dt>Value</dt>

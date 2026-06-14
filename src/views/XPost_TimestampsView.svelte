@@ -50,7 +50,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ fields: { [entityFieldReference.fieldName]: {
+		entityFieldReference.selector,({ fields: { [entityFieldReference.fieldName]: {
 				limit: 64,
 			},
 		} }),
@@ -78,7 +78,7 @@
 			>
 				{#snippet Item({ item })}
 						<XPost_TimestampView
-							entityId={item.value[EntityMetaKey.Id]}
+							selector={item.value[EntityMetaKey.Selector]}
 							{href}
 							layout={EntityLayout.Summary}
 							open={false}

@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum CosmosDenomSelector {
+	NetworkDenom = 'networkDenom',
+}
 
 export default {
 	entityType: EntityType.CosmosDenom,
@@ -15,12 +18,29 @@ export default {
 	label: 'Cosmos Denom',
 	labelPlural: 'Cosmos Denoms',
 
-	id: type({
-		$network: Network.id,
-		denom: 'string',
-	}),
+	selectors: [
+		{
+			name: CosmosDenomSelector.NetworkDenom,
+			fields: [
+				'$network',
+				'denom',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'denom',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'display',
 			type: EntityFieldType.Primitive,

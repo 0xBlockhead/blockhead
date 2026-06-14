@@ -6,8 +6,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EvmRollupSelector {
+	EvmNetworkProjectId = 'evmNetworkProjectId',
+}
 
 export default {
 	entityType: EntityType.EvmRollup,
@@ -15,12 +18,29 @@ export default {
 	label: 'EVM rollup',
 	labelPlural: 'EVM rollups',
 
-	id: type({
-		$network: Network.id,
-		projectId: 'string',
-	}),
+	selectors: [
+		{
+			name: EvmRollupSelector.EvmNetworkProjectId,
+			fields: [
+				'$network',
+				'projectId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'projectId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$settlementNetwork',
 			type: EntityFieldType.EntityReference,

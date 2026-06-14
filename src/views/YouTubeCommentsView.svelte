@@ -80,7 +80,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Youtube_Rest,
 						Source.Piped_Rest,
 					], fields: { [entityFieldReference.fieldName]: {
@@ -96,7 +96,7 @@
 				parent,
 				(parent) => {
 					const youTubeComments: readonly Entity<typeof schema, EntityType.YouTubeComment>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
-					return youTubeComments.map((comment) => comment[EntityMetaKey.Id])
+					return youTubeComments.map((comment) => comment[EntityMetaKey.Selector])
 				},
 			)}
 			<EntitiesList
@@ -121,7 +121,7 @@
 					item: comment,
 				})}
 					<YouTubeCommentView
-						entityId={{
+						selector={{
 							videoId: comment.videoId,
 							commentId: comment.commentId,
 						}}

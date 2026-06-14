@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LightningNode>
+			selector: EntitySelector<typeof schema, EntityType.LightningNode>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const node = subscribe(EntityType.LightningNode,
-		entityId,
+		selector,
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
@@ -46,14 +46,14 @@
 
 <EntityView
 	entityType={EntityType.LightningNode}
-	{entityId}
+	entitySelector={selector}
 	href={
-		'networkSlug' in entityId.$network ?
-			`/network/${entityId.$network.networkSlug}/nodes/${entityId.publicKey}`
+		'networkSlug' in selector.$network ?
+			`/network/${selector.$network.networkSlug}/nodes/${selector.publicKey}`
 		:
-			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/nodes/${entityId.publicKey}`
+			`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/nodes/${selector.publicKey}`
 	}
-	title={entityId.publicKey}
+	title={selector.publicKey}
 	bind:open
 	{...EntityViewProps}
 >
@@ -63,7 +63,7 @@
 			resource={node}
 		>
 			{#snippet children(lightningNode)}
-				{lightningNode.fields.alias ?? entityId.publicKey}
+				{lightningNode.fields.alias ?? selector.publicKey}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -79,7 +79,7 @@
 						<dt>Public key</dt>
 						<dd>
 							<TruncatedValue
-								value={entityId.publicKey}
+								value={selector.publicKey}
 								format={TruncatedValueFormat.Abbr}
 							/>
 						</dd>

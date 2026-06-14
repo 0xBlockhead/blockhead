@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,18 +17,18 @@
 	// State
 	let {
 		routeChildren,
-		entityId,
+		selector,
 			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blobs)/blob/[transactionId]/[blobIndex]', {
-			...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-			transactionId: entityId.txHash,
-				blobIndex: entityId.blobIndex.toString(),
+			...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+			transactionId: selector.txHash,
+				blobIndex: selector.blobIndex.toString(),
 			}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			routeChildren?: Snippet
-			entityId: EntityId<typeof schema, EntityType.EvmBlob>
+			selector: EntitySelector<typeof schema, EntityType.EvmBlob>
 			href?: string
 			open?: boolean
 		},
@@ -38,21 +38,19 @@
 		>
 	> = $props()
 
-	const blob = subscribe(EntityType.EvmBlob,
-		entityId,
-		({ sources: [
-				Source.Voltaire_JsonRpc,
-			], fields: { kzgCommitment: ({ sources: [
-					Source.Blobscan_Rest,
-				] }), blobDataStorageReferences: ({ sources: [
-					Source.Blobscan_Rest,
-				] }), versionedHash: true } }),
-	)
+	const blob = $derived(subscribe(EntityType.EvmBlob,
+		selector,
+		({ fields: { kzgCommitment: ({ sources: [
+						Source.Blobscan_Rest,
+					] }), blobDataStorageReferences: ({ sources: [
+						Source.Blobscan_Rest,
+					] }) } }),
+	))
 
 
 	// (Derived)
-	const blobIdKey = $derived(
-		stringify(entityId),
+	const blobSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -69,10 +67,10 @@
 
 <EntityView
 	entityType={EntityType.EvmBlob}
-	{entityId}
+	entitySelector={selector}
 	href={href}
-	title={`Blob sidecar #${String(entityId.blobIndex)} (EIP-4844)`}
-	idDragPlainText={stringify(entityId)}
+	title={`Blob sidecar #${String(selector.blobIndex)} (EIP-4844)`}
+	idDragPlainText={stringify(selector)}
 	bind:open
 	{...EntityViewProps}
 >
@@ -80,14 +78,14 @@
 		<span
 			data-badge="small"
 		>
-			#{String(entityId.blobIndex)}
+			#{String(selector.blobIndex)}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 				<span data-badge="small">
-			#{String(entityId.blobIndex)}
+			#{String(selector.blobIndex)}
 		</span>
 
 			<ResourceBoundary
@@ -95,12 +93,14 @@
 				placeholderText="Loading blob…"
 			>
 				{#snippet children(blob)}
-					<small>
-						<TruncatedValue
-							value={blob.fields.versionedHash}
-							format={TruncatedValueFormat.Abbr}
-						/>
-					</small>
+					{#if blob.fields.kzgCommitment !== undefined}
+						<small>
+							<TruncatedValue
+								value={blob.fields.kzgCommitment}
+								format={TruncatedValueFormat.Abbr}
+							/>
+						</small>
+					{/if}
 				{/snippet}
 			</ResourceBoundary>
 		</span>
@@ -124,25 +124,7 @@
 			<div>
 				<dt>Blob index</dt>
 				<dd>
-					<NumberValue value={entityId.blobIndex} />
-				</dd>
-			</div>
-			<div>
-				<dt>Versioned hash</dt>
-				<dd>
-					<ResourceBoundary
-						resource={blob}
-						placeholderText="Loading blob…"
-					>
-						{#snippet children(blob)}
-							{#if blob.fields.versionedHash !== undefined}
-								<TruncatedValue
-									value={blob.fields.versionedHash}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue value={selector.blobIndex} />
 				</dd>
 			</div>
 			<div>
@@ -213,11 +195,11 @@
 					<dt>Transaction</dt>
 					<dd>
 							<a href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
-								...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-								transactionId: entityId.txHash,
+								...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+								transactionId: selector.txHash,
 							})}>
 							<TruncatedValue
-								value={entityId.txHash}
+								value={selector.txHash}
 								format={TruncatedValueFormat.Abbr}
 							/>
 						</a>
@@ -231,12 +213,12 @@
 		open,
 	})}
 		<CollapsibleTabs
-			sectionIdPrefix={blobIdKey}
+			sectionIdPrefix={blobSelectorKey}
 			sections={[
 				{ id: 'blob-semantics', label: 'Blob primer' },
 					{ id: 'page-content', label: 'Route' },
 			]}
-			id={`${blobIdKey}:carousel-blob`}
+			id={`${blobSelectorKey}:carousel-blob`}
 			data-card
 		>
 			{#snippet Summary({ open: _isOpen })}

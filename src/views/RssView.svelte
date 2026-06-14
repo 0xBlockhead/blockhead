@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,7 +17,7 @@
 
 	// State
 	let {
-		entityId = {
+		selector = {
 			scope: 'RssNetwork',
 		},
 		href = resolve('/rss'),
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId?: EntityId<typeof schema, EntityType.RssNetwork>
+			selector?: EntitySelector<typeof schema, EntityType.RssNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -36,10 +36,10 @@
 		never
 	> = $props()
 
-	const networkIdKey = stringify(entityId)
+	const networkSelectorKey = stringify(selector)
 
 	const rssNetwork = subscribe(EntityType.RssNetwork,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$rssFeeds: ({ sources: [
@@ -67,7 +67,7 @@
 
 <EntityView
 	entityType={EntityType.RssNetwork}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -75,7 +75,7 @@
 	title="RSS / Atom"
 >
 	{#snippet Value()}
-		{entityId.scope}
+		{selector.scope}
 
 	{/snippet}
 
@@ -161,8 +161,8 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-registry`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-registry`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={collapsibleTabsSections([
 				{ id: 'feeds', label: 'Feeds' },
 				{ id: 'items', label: 'Recent items' },
@@ -187,10 +187,10 @@
 					href={resolve('/rss/feeds')}
 					entityFieldReference={{
 						entityType: EntityType.RssNetwork,
-						entityId,
+						selector,
 						fieldName: '$$rssFeeds',
 					}}
-					id={`${networkIdKey}:feeds`}
+					id={`${networkSelectorKey}:feeds`}
 					open={_open}
 				/>
 			{/snippet}
@@ -201,10 +201,10 @@
 					href={resolve('/rss/items')}
 					entityFieldReference={{
 						entityType: EntityType.RssNetwork,
-						entityId,
+						selector,
 						fieldName: '$$rssItems',
 					}}
-					id={`${networkIdKey}:items`}
+					id={`${networkSelectorKey}:items`}
 					limit={25}
 					open={_open}
 					title="Recent items"

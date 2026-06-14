@@ -10,7 +10,7 @@
 	const address = $derived(
 		page.params.address ?? '',
 	)
-	const entityId = $derived.by(() => {
+	const entitySelector = $derived.by(() => {
 		const raw = decodeURIComponent(address).trim()
 		if (raw.startsWith('legacy:'))
 			return { legacyProfileId: raw.slice('legacy:'.length) }
@@ -51,7 +51,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<LensAccountView
-			{entityId}
+			selector={selector}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

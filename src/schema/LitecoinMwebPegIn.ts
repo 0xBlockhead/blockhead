@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Transaction from '$/schema/LitecoinMwebTransaction.ts'
+
+export enum LitecoinMwebPegInSelector {
+	LitecoinMwebTransactionPegInIndex = 'litecoinMwebTransactionPegInIndex',
+}
 
 export default {
 	entityType: EntityType.LitecoinMwebPegIn,
@@ -15,12 +18,29 @@ export default {
 	label: 'Litecoin MWEB Peg-in',
 	labelPlural: 'Litecoin MWEB Peg-ins',
 
-	id: type({
-		$transaction: Transaction.id,
-		pegInIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: LitecoinMwebPegInSelector.LitecoinMwebTransactionPegInIndex,
+			fields: [
+				'$transaction',
+				'pegInIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.LitecoinMwebTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'pegInIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$transparentOutput',
 			type: EntityFieldType.EntityReference,

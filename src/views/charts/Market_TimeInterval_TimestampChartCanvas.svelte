@@ -40,8 +40,8 @@
 	const chartRangeSummary = $derived.by(() => {
 		if (points.length === 0)
 			return null
-		const firstMs = points[0][EntityMetaKey.Id].timestampMs
-		const lastMs = points[points.length - 1][EntityMetaKey.Id].timestampMs
+		const firstMs = points[0][EntityMetaKey.Selector].timestampMs
+		const lastMs = points[points.length - 1][EntityMetaKey.Selector].timestampMs
 		return (
 			{
 				count: points.length,
@@ -106,12 +106,12 @@
 			data-scroll-item="inline-attached overflow-end"
 			data-marketTimeIntervalTimestamps="unstyled"
 		>
-			{#each points as point (stringify(point[EntityMetaKey.Id]))}
+			{#each points as point (stringify(point[EntityMetaKey.Selector]))}
 				{@const open = Number(point.open ?? 0n) / (10 ** priceDecimals)}
 				{@const high = Number(point.high ?? 0n) / (10 ** priceDecimals)}
 				{@const low = Number(point.low ?? 0n) / (10 ** priceDecimals)}
 				{@const close = Number(point.close ?? 0n) / (10 ** priceDecimals)}
-				{@const candleTimestampMs = point[EntityMetaKey.Id].timestampMs}
+				{@const candleTimestampMs = point[EntityMetaKey.Selector].timestampMs}
 
 				<li
 					aria-label={`${new Date(candleTimestampMs).toLocaleString()}: open ${formatChartPrice(open)}, high ${formatChartPrice(high)}, low ${formatChartPrice(low)}, close ${formatChartPrice(close)}`}

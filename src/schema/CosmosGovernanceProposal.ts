@@ -6,7 +6,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum CosmosGovernanceProposalSelector {
+	NetworkProposalId = 'networkProposalId',
+}
 
 export default {
 	entityType: EntityType.CosmosGovernanceProposal,
@@ -14,12 +17,29 @@ export default {
 	label: 'Cosmos governance proposal',
 	labelPlural: 'Cosmos governance proposals',
 
-	id: type({
-		$network: Network.id,
-		proposalId: 'string',
-	}),
+	selectors: [
+		{
+			name: CosmosGovernanceProposalSelector.NetworkProposalId,
+			fields: [
+				'$network',
+				'proposalId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'proposalId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'title',
 			type: EntityFieldType.Primitive,

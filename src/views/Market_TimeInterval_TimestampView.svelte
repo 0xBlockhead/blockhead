@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Iso4217 } from '$/constants/Currency.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -25,11 +25,11 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/(assets)/(markets)/market/[marketKey]',
 			{
-				marketKey: encodeURIComponent(stringify(entityId.$market)),
+				marketKey: encodeURIComponent(stringify(selector.$market)),
 			},
 		),
 		layout,
@@ -38,7 +38,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -52,7 +52,7 @@
 	> = $props()
 
 	const marketTimeIntervalTimestamp = subscribe(EntityType.Market_TimeInterval_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 				...marketOhlcCandleSources,
@@ -63,8 +63,8 @@
 	// (Derived)
 
 	const quoteCurrency = $derived(
-		entityId.$market.$quote.kind === MarketAssetKind.Currency ?
-			entityId.$market.$quote.$currency.iso4217
+		selector.$market.$quote.kind === MarketAssetKind.Currency ?
+			selector.$market.$quote.$currency.iso4217
 		:
 			Iso4217.USD
 	)
@@ -82,21 +82,21 @@
 
 <EntityView
 	entityType={EntityType.Market_TimeInterval_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
 	{collapsible}
-	title={`${(entityId.timeInterval.unit === MarketTimeIntervalUnit.Day ?
-			`${String(entityId.timeInterval.value)}d`
-		: entityId.timeInterval.unit === MarketTimeIntervalUnit.Hour ?
-			`${String(entityId.timeInterval.value)}h`
-		: entityId.timeInterval.unit === MarketTimeIntervalUnit.Minute ?
-			`${String(entityId.timeInterval.value)}m`
-		: entityId.timeInterval.unit === MarketTimeIntervalUnit.Second ?
-			`${String(entityId.timeInterval.value)}s`
+	title={`${(selector.timeInterval.unit === MarketTimeIntervalUnit.Day ?
+			`${String(selector.timeInterval.value)}d`
+		: selector.timeInterval.unit === MarketTimeIntervalUnit.Hour ?
+			`${String(selector.timeInterval.value)}h`
+		: selector.timeInterval.unit === MarketTimeIntervalUnit.Minute ?
+			`${String(selector.timeInterval.value)}m`
+		: selector.timeInterval.unit === MarketTimeIntervalUnit.Second ?
+			`${String(selector.timeInterval.value)}s`
 		:
-			`${String(entityId.timeInterval.value)}`)} OHLC candle`}
+			`${String(selector.timeInterval.value)}`)} OHLC candle`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -113,7 +113,7 @@
 					/>
 				{:else}
 					<Timestamp
-						timestamp={entityId.timestampMs}
+						timestamp={selector.timestampMs}
 					/>
 				{/if}
 			{/snippet}
@@ -134,7 +134,7 @@
 					/>
 				{:else}
 					<Timestamp
-						timestamp={entityId.timestampMs}
+						timestamp={selector.timestampMs}
 					/>
 				{/if}
 			{/snippet}
@@ -165,7 +165,7 @@
 						<dt>Interval start</dt>
 						<dd>
 							<Timestamp
-								timestamp={entityId.timestampMs}
+								timestamp={selector.timestampMs}
 							/>
 						</dd>
 					</div>
@@ -174,7 +174,7 @@
 						<dt>Market</dt>
 						<dd>
 							<MarketView
-								entityId={marketTimeIntervalTimestamp.fields.$parentMarket?.[EntityMetaKey.Id] ?? entityId.$market}
+								selector={marketTimeIntervalTimestamp.fields.$parentMarket?.[EntityMetaKey.Selector] ?? selector.$market}
 								layout={EntityLayout.Title}
 								open={false}
 							/>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,9 +17,9 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(youtube)/youtube/playlist/[playlistId]', {
-			playlistId: entityId.playlistId,
+			playlistId: selector.playlistId,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.YouTubePlaylist>
+			selector: EntitySelector<typeof schema, EntityType.YouTubePlaylist>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -37,7 +37,7 @@
 	> = $props()
 
 	const playlist = subscribe(EntityType.YouTubePlaylist,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
@@ -50,7 +50,7 @@
 						] }) }) : ({  })) } }),
 	)
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 
 	// Components
@@ -69,7 +69,7 @@
 
 <EntityView
 	entityType={EntityType.YouTubePlaylist}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -77,7 +77,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{entityId.playlistId}
+			{selector.playlistId}
 		</span>
 	{/snippet}
 
@@ -87,7 +87,7 @@
 			placeholderText="Loading playlist…"
 		>
 			{#snippet children(playlist)}
-				{playlist.fields.title ?? entityId.playlistId}
+				{playlist.fields.title ?? selector.playlistId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -153,7 +153,7 @@
 								<dt>Channel</dt>
 								<dd>
 									<YouTubeChannelView
-										entityId={playlist.fields.$channel[EntityMetaKey.Id]}
+										selector={playlist.fields.$channel[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -196,7 +196,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.YouTubePlaylist,
-						entityId,
+						selector,
 						fieldName: '$$videos',
 					}}
 					id={`${idKey}:youtube-videos`}
@@ -208,7 +208,7 @@
 				<YouTubePlaylist_TimestampsView
 					entityFieldReference={{
 						entityType: EntityType.YouTubePlaylist,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					href={href}

@@ -7,7 +7,7 @@
 
 <Page>
 	<AtprotoView
-		entityId={{
+		selector={{
 			scope: 'AtprotoNetwork',
 		}}
 	/>

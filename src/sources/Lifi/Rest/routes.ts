@@ -5,7 +5,7 @@
 
 import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { throwIfHttpNotOk } from '$/lib/http.ts'
@@ -16,14 +16,14 @@ import type {
 	LifiQuoteStep,
 	LifiQuoteStepLike,
 } from '$/sources/Lifi/Rest/types.ts'
-type BridgeRouteQuoteId = EntityId<typeof schema, EntityType.BridgeRoute>
+type BridgeRouteQuoteId = EntitySelector<typeof schema, EntityType.BridgeRoute>
 
 type BridgeRouteStepFields = ReturnType<typeof bridgeRouteStepEntityFieldsFromLifiQuoteStep>
 
 export type BridgeRouteResolverBundle = {
 	routeFields: {
-		$fromNetwork: { [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: string } } }
-		$toNetwork: { [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: string } } }
+		$fromNetwork: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: string } } }
+		$toNetwork: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: string } } }
 		fromAmount: bigint
 		toAmount: bigint
 		toAmountMin: bigint
@@ -44,7 +44,7 @@ const bridgeRouteQuoteIdToRequest = (
 	fromAmount: quoteId.fromAmount,
 	fromAddress: quoteId.fromAddress,
 	slippage: quoteId.slippage,
-	...(quoteId.toAddress != null && { toAddress: quoteId.toAddress }),
+	toAddress: quoteId.toAddress,
 })
 
 export const fetchLifiQuoteStep = async (
@@ -127,10 +127,10 @@ const bridgeRouteBundleFromQuoteStep = (
 	return {
 		routeFields: {
 				$fromNetwork: {
-					[EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(step.action.fromChainId) } },
+					[EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(step.action.fromChainId) } },
 				},
 				$toNetwork: {
-					[EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(step.action.toChainId) } },
+					[EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(step.action.toChainId) } },
 				},
 			fromAmount,
 			toAmount,
@@ -158,14 +158,14 @@ export const resolveBridgeRouteBundleForQuoteId = (
 	fetchBridgeRouteBundleForQuoteId(quoteId)
 )
 
-export const resolveBridgeRouteStepFieldsForEntityId = async (
-	entityId: EntityId<typeof schema, EntityType.BridgeRouteStep>,
+export const resolveBridgeRouteStepFieldsForEntitySelector = async (
+	entitySelector: EntitySelector<typeof schema, EntityType.BridgeRouteStep>,
 ) => {
-	const bundle = await resolveBridgeRouteBundleForQuoteId(entityId.$route)
-	const step = bundle.steps[entityId.index]
+	const bundle = await resolveBridgeRouteBundleForQuoteId(entitySelector.$route)
+	const step = bundle.steps[entitySelector.index]
 	if (step == null) {
 		throw new Error(
-			`Lifi_Rest: BridgeRouteStep index ${entityId.index} missing on quote route`,
+			`Lifi_Rest: BridgeRouteStep index ${entitySelector.index} missing on quote route`,
 		)
 	}
 	return step

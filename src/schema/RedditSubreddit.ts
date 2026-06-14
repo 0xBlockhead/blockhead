@@ -7,17 +7,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum RedditSubredditSelector {
+	Name = 'name',
+}
+
 export default {
 	entityType: EntityType.RedditSubreddit,
 
 	label: 'Subreddit',
 	labelPlural: 'Subreddits',
 
-	id: type({
-		name: 'string',
-	}),
+	selectors: [
+		{
+			name: RedditSubredditSelector.Name,
+			fields: [
+				'name',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'name',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'title',
 			type: EntityFieldType.Primitive,

@@ -9,33 +9,27 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/Network.ts'
 
+export enum SolanaBlockSelector {
+	Slot = 'slot',
+	BlockHash = 'blockHash',
+}
+
 export default {
 	entityType: EntityType.SolanaBlock,
 
 	label: 'Solana Block',
 	labelPlural: 'Solana Blocks',
 
-	id: type.or(
-		type({
-			$network: Network.id,
-			slot: 'bigint',
-		}),
-		type({
-			$network: Network.id,
-			blockHash: 'string',
-		}),
-	),
-
-	identities: [
+	selectors: [
 		{
-			name: 'slot',
+			name: SolanaBlockSelector.Slot,
 			fields: [
 				'$network',
 				'slot',
 			],
 		},
 		{
-			name: 'blockHash',
+			name: SolanaBlockSelector.BlockHash,
 			fields: [
 				'$network',
 				'blockHash',
@@ -44,6 +38,18 @@ export default {
 	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'slot',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'blockHeight',
 			type: EntityFieldType.Primitive,

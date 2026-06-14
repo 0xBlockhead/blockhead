@@ -10,18 +10,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import ZeroGNetwork from '$/schema/ZeroGNetwork.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum ZeroGNetwork_TimestampSelector {
+	ZeroGNetworkTimestampMs = 'zeroGNetworkTimestampMs',
+}
+
 export default {
 	entityType: EntityType.ZeroGNetwork_Timestamp,
 
 	label: '0G network snapshot',
 	labelPlural: '0G network snapshots',
 
-	id: type({
-		$network: ZeroGNetwork.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: ZeroGNetwork_TimestampSelector.ZeroGNetworkTimestampMs,
+			fields: [
+				'$network',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.ZeroGNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'headBlockNumber',
 			type: EntityFieldType.Primitive,

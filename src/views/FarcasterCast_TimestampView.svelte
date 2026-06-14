@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -14,14 +14,14 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.FarcasterCast_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.FarcasterCast_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -33,7 +33,7 @@
 	> = $props()
 
 	const farcasterCastTimestamp = subscribe(EntityType.FarcasterCast_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Snapchain_Rest,
 			], fields: { likeCount: true, recastCount: true, replyCount: true } }),
@@ -50,7 +50,7 @@
 
 <EntityView
 	entityType={EntityType.FarcasterCast_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -58,11 +58,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

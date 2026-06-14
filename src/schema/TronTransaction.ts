@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum TronTransactionSelector {
+	NetworkTransactionId = 'networkTransactionId',
+}
 import { Source } from '$/sources/Source.ts'
 
 const tronPublicTransactionSources = [
@@ -21,12 +24,29 @@ export default {
 	label: 'TRON Transaction',
 	labelPlural: 'TRON Transactions',
 
-	id: type({
-		$network: Network.id,
-		transactionId: 'string',
-	}),
+	selectors: [
+		{
+			name: TronTransactionSelector.NetworkTransactionId,
+			fields: [
+				'$network',
+				'transactionId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'transactionId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$block',
 			type: EntityFieldType.EntityReference,

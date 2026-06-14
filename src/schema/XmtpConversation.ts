@@ -7,6 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum XmtpConversationSelector {
+	Id = 'id',
+}
+
+
 export enum XmtpConversationConsentState {
 	Unknown = 'unknown',
 	Allowed = 'allowed',
@@ -19,11 +24,22 @@ export default {
 	label: 'XMTP Conversation',
 	labelPlural: 'XMTP Conversations',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: XmtpConversationSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'peerInboxId',
 			type: EntityFieldType.Primitive,

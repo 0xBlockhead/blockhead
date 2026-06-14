@@ -1,8 +1,16 @@
 import { type } from 'arktype'
-import Actor from '$/schema/EvmAccount.ts'
-import type { EntityDefinition, EntityFieldDefinition } from '$/schema/$schema.ts'
+import {
+	EntityFieldType,
+	EntityFieldCardinality,
+	type EntityDefinition,
+	type EntityFieldDefinition,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import EvmTransaction from '$/schema/EvmTransaction.ts'
+
+export enum BridgeTransactionSelector {
+	EvmAccountEvmTransactionCreatedAt = 'evmAccountEvmTransactionCreatedAt',
+}
 
 export default {
 	entityType: EntityType.BridgeTransaction,
@@ -10,11 +18,35 @@ export default {
 	label: 'Bridge Transaction',
 	labelPlural: 'Bridge Transactions',
 
-	id: type({
-		$account: Actor.id,
-		$sourceTx: EvmTransaction.id,
-		createdAt: 'number',
-	}),
+	selectors: [
+		{
+			name: BridgeTransactionSelector.EvmAccountEvmTransactionCreatedAt,
+			fields: [
+				'$account',
+				'$sourceTx',
+				'createdAt',
+			],
+		},
+	],
 
-	fields: [] as const satisfies readonly EntityFieldDefinition[],
+	fields: [
+		{
+			name: '$account',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$sourceTx',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'createdAt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

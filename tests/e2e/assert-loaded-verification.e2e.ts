@@ -30,29 +30,29 @@ import { Source } from '$/sources/Source.ts'
 test.describe('assertLoaded verification', () => {
 	test('assertLoadedValue rejects invalid entity-row __source', () => {
 		expect(() => assertLoadedValue({
-			[EntityMetaKey.Id]: { chainId: 1 },
-			[EntityMetaKey.IdKey]: '{"chainId":1}',
+			[EntityMetaKey.Selector]: { chainId: 1 },
+			[EntityMetaKey.SelectorKey]: '{"chainId":1}',
 			[EntityMetaKey.Source]: 'NotARealSource',
 			[EntityMetaKey.Fields]: {},
 		})).toThrow()
 	})
 
-	test('assertLoadedValue rejects invalid nested compact ref __id', () => {
+	test('assertLoadedValue rejects invalid nested compact ref __selector', () => {
 		expect(() => assertLoadedValue({
 			x: {
-				[EntityMetaKey.Id]: null,
-				[EntityMetaKey.IdKey]: 'k',
+				[EntityMetaKey.Selector]: null,
+				[EntityMetaKey.SelectorKey]: 'k',
 			},
 		})).toThrow()
 	})
 
-	test('assertResolverDefinitionResult accepts minimal Global row then rejects invalid __id', () => {
+	test('assertResolverDefinitionResult accepts minimal Global row then rejects invalid __selector', () => {
 		const definition = entityDefinitionByType[EntityType._Global]
 		expect(definition).toBeDefined()
 
 		const good = {
-			[EntityMetaKey.Id]: { scope: 'e2e' },
-			[EntityMetaKey.IdKey]: stringify({ scope: 'e2e' }),
+			[EntityMetaKey.Selector]: { scope: 'e2e' },
+			[EntityMetaKey.SelectorKey]: stringify({ scope: 'e2e' }),
 			[EntityMetaKey.Source]: Source.Constants_Internal,
 			[EntityMetaKey.Fields]: {},
 		}
@@ -61,7 +61,7 @@ test.describe('assertLoaded verification', () => {
 
 		expect(() => assertResolverDefinitionResult(definition, {
 			...good,
-			[EntityMetaKey.Id]: null,
+			[EntityMetaKey.Selector]: null,
 		})).toThrow()
 	})
 

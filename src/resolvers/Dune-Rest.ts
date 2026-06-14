@@ -2,8 +2,8 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EntityIdProjection } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
 
 export default {
 	source: Source.Dune_Rest,
@@ -12,7 +12,7 @@ export default {
 		defineResolver(Source.Dune_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_entityId, context) => {
+				[_GlobalSelector.Scope]: async (_entitySelector, context) => {
 				const { getUsage } = await import('$/sources/Dune/Rest/queries.ts')
 
 				const billingPeriod = ((usage) => (

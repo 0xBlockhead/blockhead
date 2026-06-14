@@ -3,7 +3,7 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,7 +16,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/channels'),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -27,7 +27,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.StateChannelState>
+			selector: EntitySelector<typeof schema, EntityType.StateChannelState>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -41,7 +41,7 @@
 	> = $props()
 
 	const state = subscribe(EntityType.StateChannelState,
-		entityId,
+		selector,
 		({ sources: [Source.Local_Internal], fields: { intent: true, version: true, isFinal: true, timestamp: true, stateData: true, $channel: true, ...(open && ({ allocations: true, signatures: true })) } }),
 	)
 
@@ -56,7 +56,7 @@
 
 <EntityView
 	entityType={EntityType.StateChannelState}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -65,7 +65,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -102,16 +102,16 @@
 				placeholderText="Loading channel state…"
 			>
 				{#snippet children(state)}
-					{#if showParentChannel && state.fields.$channel?.[EntityMetaKey.Id].id !== undefined}
+					{#if showParentChannel && state.fields.$channel?.[EntityMetaKey.Selector].id !== undefined}
 						<div>
 							<dt>Channel</dt>
 							<dd>
 								<a
 									href={resolve('/(assets)/(channels)/channel/[channelId]', {
-										channelId: state.fields.$channel[EntityMetaKey.Id].id,
+										channelId: state.fields.$channel[EntityMetaKey.Selector].id,
 									})}
 								>
-									{state.fields.$channel[EntityMetaKey.Id].id}
+									{state.fields.$channel[EntityMetaKey.Selector].id}
 								</a>
 							</dd>
 						</div>

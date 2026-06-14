@@ -9,6 +9,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadSessionActionSelector {
+	SessionIdActionId = 'sessionIdActionId',
+}
+
+
 const action = type({
 	type: type.valueOf(ActionType),
 	params: 'object',
@@ -20,12 +25,29 @@ export default {
 	label: 'Session action',
 	labelPlural: 'Session actions',
 
-	id: type({
-		sessionId: 'string',
-		actionId: 'string',
-	}),
+	selectors: [
+		{
+			name: BlockheadSessionActionSelector.SessionIdActionId,
+			fields: [
+				'sessionId',
+				'actionId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'sessionId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'actionId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$session',
 			type: EntityFieldType.EntityReference,

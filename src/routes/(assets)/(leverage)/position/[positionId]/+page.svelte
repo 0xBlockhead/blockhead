@@ -13,7 +13,7 @@
 
 <Page>
 	<LeverageView
-		entityId={{
+		selector={{
 			$network: { caip2: { namespace: 'eip155' as const, reference: String(1) } },
 			id: params.positionId,
 		}}

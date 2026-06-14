@@ -17,7 +17,7 @@
 	import { BLOCKHEAD_WA_SQLITE_DATABASE_NAME } from '$/constants/Persistence.ts'
 	import { resolvers } from '$/resolvers/index.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { EntityId, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntitySelector, EntityType as EntityTypeName } from '$/schema/$schema.ts'
 	import { sourceProviders } from '$/sources/index.ts'
 
 	const appClient = client({
@@ -27,7 +27,13 @@
 		resolvers,
 		env,
 	})({
-		queryClient: new QueryClient(),
+		queryClient: new QueryClient({
+			defaultOptions: {
+				queries: {
+					gcTime: 0,
+				},
+			},
+		}),
 		persistence: createBrowserWASQLitePersistence({
 			database: await openBrowserWASQLiteOPFSDatabase({
 				databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
@@ -40,6 +46,7 @@
 			value: {
 				events: appClient.events,
 				collectionSizes: () => ({
+					loadedSubsets: appClient.loadedSubsets.size,
 					entities: Object.fromEntries(Object.entries(appClient.entityCollections).map(([entityType, collection]) => [
 						entityType,
 						collection.size,
@@ -59,17 +66,23 @@
 						])),
 					])),
 				}),
+				queryStates: () => appClient.queryClient.getQueryCache().getAll().map((query) => ({
+					key: query.queryKey.map((segment) => String(segment)),
+					status: query.state.status,
+					fetchStatus: query.state.fetchStatus,
+					error: query.state.error == null ? undefined : String(query.state.error),
+				})),
 				read: <
 					const _EntityType extends EntityTypeName<typeof schema>,
 					const _Selection extends SubscribeSelection<typeof schema, _EntityType>,
 				>(
 					entityType: _EntityType,
-					entityId: EntityId<typeof schema, _EntityType>,
+					entitySelector: EntitySelector<typeof schema, _EntityType>,
 					selection: _Selection,
 				) => subscribeEntity<typeof schema, _EntityType, _Selection>(
 					appClient,
 					entityType,
-					entityId,
+					entitySelector,
 					selection,
 				),
 			},

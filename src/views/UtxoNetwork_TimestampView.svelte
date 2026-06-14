@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -10,17 +10,17 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.UtxoNetwork_Timestamp>
+		selector: EntitySelector<typeof schema, EntityType.UtxoNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const snapshot = subscribe(EntityType.UtxoNetwork_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Blockchair_Rest,
 			], fields: { bestBlockHeight: true, bestBlockHash: true, bestBlockTimeMs: true, blockCount: true, transactionCount: true, blocks24h: true, transactions24h: true, mempoolTransactionCount: true, mempoolSizeBytes: true, mempoolTps: true, averageTransactionFee24hSats: true, medianTransactionFee24hSats: true, suggestedTransactionFeePerByteSats: true, blockchainSizeBytes: true } }),
@@ -38,7 +38,7 @@
 
 <EntityView
 	entityType={EntityType.UtxoNetwork_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	bind:open
 	{layout}
 >
@@ -54,7 +54,7 @@
 					<NumberValue value={snapshot.fields.mempoolTransactionCount} />
 					in mempool
 				{:else}
-					<Timestamp timestamp={entityId.timestampMs} />
+					<Timestamp timestamp={selector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

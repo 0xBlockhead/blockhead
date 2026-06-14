@@ -10,15 +10,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import EvmContract from '$/schema/EvmContract.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum EvmContractSourceBundleSelector {
+	EvmContract = 'evmContract',
+}
+
 export default {
 	entityType: EntityType.EvmContractSourceBundle,
 
 	label: 'EVM contract source bundle',
 	labelPlural: 'EVM contract source bundles',
 
-	id: EvmContract.id,
+	selectors: [
+		{
+			name: EvmContractSourceBundleSelector.EvmContract,
+			fields: [
+				'$contract',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$contract',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'files',
 			type: EntityFieldType.Primitive,

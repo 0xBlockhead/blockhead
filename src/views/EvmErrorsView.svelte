@@ -69,7 +69,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Local_Internal,
@@ -92,8 +92,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(error) => error[EntityMetaKey.Id].hex}
-					getSortValue={(error) => error[EntityMetaKey.Id].hex}
+					getKey={(error) => error[EntityMetaKey.Selector].hex}
+					getSortValue={(error) => error[EntityMetaKey.Selector].hex}
 					placeholderText="Loading revert/error selectors…"
 					resource={errors}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -106,7 +106,7 @@
 
 					{#snippet Item({ item })}
 						<EvmErrorView
-							entityId={item[EntityMetaKey.Id]}
+							selector={item[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 							collapsible={false}

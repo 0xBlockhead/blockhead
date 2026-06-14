@@ -79,7 +79,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentFeed = subscribe(EntityType.FarcasterFeed,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ sources: [
 						import.meta.env.PUBLIC_NEYNAR_API_KEY?.trim() ?
 							Source.Neynar_Rest
@@ -104,8 +104,8 @@
 				href={EntitiesListProps.href}
 				{title}
 				open={true}
-				getKey={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Id])}
-				getSortValue={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Id])}
+				getKey={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Selector])}
+				getSortValue={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Selector])}
 				placeholderText="Loading feed casts (Farcaster FID + cast hash)…"
 				resource={casts}
 			>
@@ -116,9 +116,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const castId = item.result[EntityMetaKey.Id]}
+					{@const castId = item.result[EntityMetaKey.Selector]}
 					<FarcasterCastView
-						entityId={castId}
+						selector={castId}
 						layout={EntityLayout.Summary}
 						open={false}
 						variant="feed"

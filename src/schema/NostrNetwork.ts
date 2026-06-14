@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum NostrNetworkSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.NostrNetwork,
 
 	label: 'Nostr network',
 	labelPlural: 'Nostr networks',
 
-	id: type({
-		scope: type.unit('NostrNetwork'),
-	}),
+	selectors: [
+		{
+			name: NostrNetworkSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('NostrNetwork'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

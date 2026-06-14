@@ -3,15 +3,36 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { BridgeTransactionSelector } from '$/schema/BridgeTransaction.ts'
+import { XmtpConversationSelector } from '$/schema/XmtpConversation.ts'
+import { BlockheadSourceSelector } from '$/schema/BlockheadSource.ts'
+import { BlockheadWalletSelector } from '$/schema/BlockheadWallet.ts'
+import { BlockheadWalletAccountSelector } from '$/schema/BlockheadWalletAccount.ts'
+import { BlockheadWalletConnectionSelector } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadPanelTreeSelector } from '$/schema/BlockheadPanelTree.ts'
+import { BlockheadRoomSelector } from '$/schema/BlockheadRoom.ts'
+import { BlockheadSessionSelector } from '$/schema/BlockheadSession.ts'
+import { BlockheadSessionActionSelector } from '$/schema/BlockheadSessionAction.ts'
+import { BlockheadRoomPeerSelector } from '$/schema/BlockheadRoomPeer.ts'
+import { BlockheadSharedAddressSelector } from '$/schema/BlockheadSharedAddress.ts'
+import { StateChannelSelector } from '$/schema/StateChannel.ts'
+import { StateChannelDepositSelector } from '$/schema/StateChannelDeposit.ts'
+import { StateChannelTransferSelector } from '$/schema/StateChannelTransfer.ts'
+import { StateChannelStateSelector } from '$/schema/StateChannelState.ts'
+import { BlockheadAgentConversationSelector } from '$/schema/BlockheadAgentConversation.ts'
+import { BlockheadAgentConversationTurnSelector } from '$/schema/BlockheadAgentConversationTurn.ts'
+import { EvmContractSelector } from '$/schema/EvmContract.ts'
+import { XmtpNetworkSelector } from '$/schema/XmtpNetwork.ts'
+import { EvmProtocolSelector } from '$/schema/EvmProtocol.ts'
 
 const sliceNormalizedRowsForSubset = <_Row>(
 	normalizedCatalogRows: readonly _Row[],
@@ -48,34 +69,10 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType._Global,
-			resolve: {
-				[EntityIdProjection.Identity]: async () => ({})
-			},
-		})({
-				fields: {},
-			}),
-
-		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.BridgeTransaction,
-			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const catalog = await readNormalizedLocalInternal()
-				if (await findNormalizedBridgeTransactionRow(catalog, entityId) == null) {
-					throw new Error('Local_Internal: BridgeTransaction not present in local catalog')
-				}
-				return {}
-			}
-			},
-		})({
-				fields: {},
-			}),
-
-		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.XmtpConversation,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const conversationId = entityId.id
+				[XmtpConversationSelector.Id]: async ({ id }) => {
+				const conversationId = id
 				if (conversationId === '') throw new Error('Local_Internal: XMTP conversation id is empty')
 				const catalog = await readNormalizedLocalInternal()
 				const xmtpConversation = catalog.xmtpConversations.find((candidate) => candidate.id === conversationId)
@@ -100,26 +97,11 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.BlockheadSource,
-			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const catalog = await readNormalizedLocalInternal()
-				if (!catalog.blockheadSources.some((blockheadSource) => blockheadSource.id === entityId.id)) {
-					throw new Error('Local_Internal: BlockheadSource not present in local catalog')
-				}
-				return {}
-			}
-			},
-		})({
-				fields: {},
-			}),
-
-		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWallet,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[BlockheadWalletSelector.Id]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadWallet = catalog.blockheadWallets.find((candidate) => candidate.id === entityId.id)
+				const blockheadWallet = catalog.blockheadWallets.find((candidate) => candidate.id === entitySelector.id)
 				if (blockheadWallet == null) throw new Error('Local_Internal: BlockheadWallet not present in local catalog')
 				return {
 					name: blockheadWallet.name,
@@ -149,17 +131,17 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWalletAccount,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[BlockheadWalletAccountSelector.Caip10]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadWalletAccount = catalog.blockheadWalletAccounts.find((candidate) => (
-					candidate.namespace === entityId.caip10.namespace
-					&& candidate.reference === entityId.caip10.reference
-					&& candidate.accountAddress === entityId.caip10.accountAddress
+					candidate.namespace === entitySelector.caip10.namespace
+					&& candidate.reference === entitySelector.caip10.reference
+					&& candidate.accountAddress === entitySelector.caip10.accountAddress
 				))
 				if (blockheadWalletAccount == null) throw new Error('Local_Internal: BlockheadWalletAccount not present in local catalog')
 				return {
 					$network: {
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							caip2: {
 								namespace: blockheadWalletAccount.namespace,
 								reference: blockheadWalletAccount.reference,
@@ -184,9 +166,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWalletConnection,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[BlockheadWalletConnectionSelector.BlockheadWallet]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadWalletConnection = catalog.blockheadWalletConnections.find((candidate) => candidate.walletId === entityId.$wallet.id)
+				const blockheadWalletConnection = catalog.blockheadWalletConnections.find((candidate) => candidate.walletId === entitySelector.$wallet.id)
 				if (blockheadWalletConnection == null) throw new Error('Local_Internal: BlockheadWalletConnection not present in local catalog')
 				return {
 					status: blockheadConnectionStatusByLocalStatus[blockheadWalletConnection.status],
@@ -199,13 +181,13 @@ export default {
 						events: [...scope.events],
 					})),
 					$$connectedAccounts: blockheadWalletConnection.accountIds.map((accountId) => ({
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							caip10: accountId,
 						},
 					})),
 					...(blockheadWalletConnection.activeAccountId != null && {
 						$activeAccount: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								caip10: blockheadWalletConnection.activeAccountId,
 							},
 						},
@@ -237,26 +219,11 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.BlockheadPanelTree,
-			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const catalog = await readNormalizedLocalInternal()
-				if (!catalog.blockheadPanelTrees.some((blockheadPanelTree) => blockheadPanelTree.id === entityId.id)) {
-					throw new Error('Local_Internal: BlockheadPanelTree not present in local catalog')
-				}
-				return {}
-			}
-			},
-		})({
-				fields: {},
-			}),
-
-		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoom,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[BlockheadRoomSelector.Id]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadRoom = catalog.blockheadRooms.find((candidate) => candidate.id === entityId.id)
+				const blockheadRoom = catalog.blockheadRooms.find((candidate) => candidate.id === entitySelector.id)
 				if (blockheadRoom == null) throw new Error('Local_Internal: BlockheadRoom not present in local catalog')
 				return {
 					createdAt: blockheadRoom.createdAt,
@@ -276,9 +243,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSession,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[BlockheadSessionSelector.Id]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadSession = catalog.blockheadSessions.find((candidate) => candidate.id === entityId.id)
+				const blockheadSession = catalog.blockheadSessions.find((candidate) => candidate.id === entitySelector.id)
 				if (blockheadSession == null) throw new Error('Local_Internal: BlockheadSession not present in local catalog')
 				return {
 					...(blockheadSession.name != null && { name: blockheadSession.name }),
@@ -304,16 +271,16 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSessionAction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[BlockheadSessionActionSelector.SessionIdActionId]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadSessionAction = catalog.blockheadSessionActions.find((candidate) => (
-					candidate.sessionId === entityId.sessionId
-					&& candidate.actionId === entityId.actionId
+					candidate.sessionId === entitySelector.sessionId
+					&& candidate.actionId === entitySelector.actionId
 				))
 				if (blockheadSessionAction == null) throw new Error('Local_Internal: BlockheadSessionAction not present in local catalog')
 				return {
 					$session: {
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							id: blockheadSessionAction.sessionId,
 						},
 					},
@@ -337,12 +304,12 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoomPeer,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[BlockheadRoomPeerSelector.Id]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadRoomPeer = catalog.blockheadRoomPeers.find((candidate) => candidate.id === entityId.id)
+				const blockheadRoomPeer = catalog.blockheadRoomPeers.find((candidate) => candidate.id === entitySelector.id)
 				if (blockheadRoomPeer == null) throw new Error('Local_Internal: BlockheadRoomPeer not present in local catalog')
 				return {
-					$room: { [EntityMetaKey.Id]: { id: blockheadRoomPeer.roomId } },
+					$room: { [EntityMetaKey.Selector]: { id: blockheadRoomPeer.roomId } },
 					peerId: blockheadRoomPeer.peerId,
 					...(blockheadRoomPeer.displayName != null && { displayName: blockheadRoomPeer.displayName }),
 					joinedAt: blockheadRoomPeer.joinedAt,
@@ -369,17 +336,17 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSharedAddress,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[BlockheadSharedAddressSelector.Id]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadSharedAddress = catalog.blockheadSharedAddresses.find((candidate) => candidate.id === entityId.id)
+				const blockheadSharedAddress = catalog.blockheadSharedAddresses.find((candidate) => candidate.id === entitySelector.id)
 				if (blockheadSharedAddress == null) {
 					throw new Error('Local_Internal: BlockheadSharedAddress not present in local catalog')
 					}
 					return {
-						$network: { [EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(blockheadSharedAddress.chainId) } } },
-						$room: { [EntityMetaKey.Id]: { id: blockheadSharedAddress.roomId } },
+						$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(blockheadSharedAddress.chainId) } } },
+						$room: { [EntityMetaKey.Selector]: { id: blockheadSharedAddress.roomId } },
 						peerId: blockheadSharedAddress.peerId,
-						$account: { [EntityMetaKey.Id]: { address: EvmAddress.assert(blockheadSharedAddress.accountAddress) } },
+						$account: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(blockheadSharedAddress.accountAddress) } },
 						targetPeerIds: blockheadSharedAddress.targetPeerIds,
 						sharedAt: blockheadSharedAddress.sharedAt,
 					}
@@ -399,22 +366,22 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[StateChannelSelector.Id]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === entityId.id)
+				const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === entitySelector.id)
 					if (stateChannel == null) throw new Error('Local_Internal: StateChannel not present in local catalog')
 					const assetId = await coinInstanceIdForNormalizedStateChannelRow(stateChannel)
 					return {
-							$network: { [EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannel.chainId) } } },
-						$participant0: { [EntityMetaKey.Id]: { address: EvmAddress.assert(stateChannel.participant0) } },
-						$participant1: { [EntityMetaKey.Id]: { address: EvmAddress.assert(stateChannel.participant1) } },
-						$asset: { [EntityMetaKey.Id]: assetId },
+							$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannel.chainId) } } },
+						$participant0: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannel.participant0) } },
+						$participant1: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannel.participant1) } },
+						$asset: { [EntityMetaKey.Selector]: assetId },
 						totalDeposited: stateChannel.totalDeposited,
 						balance0: stateChannel.balance0,
 					balance1: stateChannel.balance1,
 					turnNum: stateChannel.turnNum,
 					status: stateChannel.status,
-					...(stateChannel.roomId != null && { $room: { [EntityMetaKey.Id]: { id: stateChannel.roomId } } }),
+					...(stateChannel.roomId != null && { $room: { [EntityMetaKey.Selector]: { id: stateChannel.roomId } } }),
 					createdAt: stateChannel.createdAt,
 					updatedAt: stateChannel.updatedAt,
 				}
@@ -440,16 +407,16 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelDeposit,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[StateChannelDepositSelector.Id]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => candidate.id === entityId.id)
+				const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => candidate.id === entitySelector.id)
 				if (stateChannelDeposit == null) {
 					throw new Error('Local_Internal: StateChannelDeposit not present in local catalog')
 					}
 					return {
-						$channel: { [EntityMetaKey.Id]: { id: stateChannelDeposit.channelId } },
-							$network: { [EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannelDeposit.chainId) } } },
-						$account: { [EntityMetaKey.Id]: { address: EvmAddress.assert(stateChannelDeposit.accountAddress) } },
+						$channel: { [EntityMetaKey.Selector]: { id: stateChannelDeposit.channelId } },
+							$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannelDeposit.chainId) } } },
+						$account: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannelDeposit.accountAddress) } },
 						availableBalance: stateChannelDeposit.availableBalance,
 						lockedBalance: stateChannelDeposit.lockedBalance,
 						lastUpdated: stateChannelDeposit.lastUpdated,
@@ -470,16 +437,16 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelTransfer,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[StateChannelTransferSelector.Id]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const stateChannelTransfer = catalog.stateChannelTransfers.find((candidate) => candidate.id === entityId.id)
+				const stateChannelTransfer = catalog.stateChannelTransfers.find((candidate) => candidate.id === entitySelector.id)
 				if (stateChannelTransfer == null) {
 					throw new Error('Local_Internal: StateChannelTransfer not present in local catalog')
 					}
 					return {
-						$channel: { [EntityMetaKey.Id]: { id: stateChannelTransfer.channelId } },
-						$from: { [EntityMetaKey.Id]: { address: EvmAddress.assert(stateChannelTransfer.from) } },
-						$to: { [EntityMetaKey.Id]: { address: EvmAddress.assert(stateChannelTransfer.to) } },
+						$channel: { [EntityMetaKey.Selector]: { id: stateChannelTransfer.channelId } },
+						$from: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannelTransfer.from) } },
+						$to: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannelTransfer.to) } },
 						amount: stateChannelTransfer.amount,
 						turnNum: stateChannelTransfer.turnNum,
 						timestamp: stateChannelTransfer.timestamp,
@@ -502,14 +469,14 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannelState,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[StateChannelStateSelector.Id]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const stateChannelState = catalog.stateChannelStates.find((candidate) => candidate.id === entityId.id)
+				const stateChannelState = catalog.stateChannelStates.find((candidate) => candidate.id === entitySelector.id)
 				if (stateChannelState == null) {
 					throw new Error('Local_Internal: StateChannelState not present in local catalog')
 				}
 				return {
-					$channel: { [EntityMetaKey.Id]: { id: stateChannelState.channelId } },
+					$channel: { [EntityMetaKey.Selector]: { id: stateChannelState.channelId } },
 					intent: stateChannelState.intent,
 					version: stateChannelState.version,
 						stateData: stateChannelState.stateData,
@@ -540,9 +507,9 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversation,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[BlockheadAgentConversationSelector.Id]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadAgentConversation = catalog.blockheadAgentConversations.find((candidate) => candidate.id === entityId.id)
+				const blockheadAgentConversation = catalog.blockheadAgentConversations.find((candidate) => candidate.id === entitySelector.id)
 				if (blockheadAgentConversation == null) {
 					throw new Error('Local_Internal: BlockheadAgentConversation not present in local catalog')
 				}
@@ -572,15 +539,15 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversationTurn,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[BlockheadAgentConversationTurnSelector.Id]: async (entitySelector) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadAgentConversationTurn = catalog.blockheadAgentConversationTurns.find((candidate) => candidate.id === entityId.id)
+				const blockheadAgentConversationTurn = catalog.blockheadAgentConversationTurns.find((candidate) => candidate.id === entitySelector.id)
 				if (blockheadAgentConversationTurn == null) {
 					throw new Error('Local_Internal: BlockheadAgentConversationTurn not present in local catalog')
 				}
 				return {
 					$conversation: {
-						[EntityMetaKey.Id]: { id: blockheadAgentConversationTurn.conversationId },
+						[EntityMetaKey.Selector]: { id: blockheadAgentConversationTurn.conversationId },
 					},
 					parentId: blockheadAgentConversationTurn.parentId,
 					userPrompt: blockheadAgentConversationTurn.userPrompt,
@@ -608,20 +575,12 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
-			entityType: EntityType.EvmContract,
-			resolve: {
-				[EntityIdProjection.Identity]: async () => ({})
-			},
-		})({
-				fields: {},
-			}),
-		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 					sliceNormalizedRowsForSubset((await readNormalizedLocalInternal()).actors, context)
 						.map((actor) => ({
-							[EntityMetaKey.Id]: { address: EvmAddress.assert(actor.address) },
+							[EntityMetaKey.Selector]: { address: EvmAddress.assert(actor.address) },
 						}))
 				)
 			},
@@ -634,13 +593,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).xmtpConversations,
 					context,
 				)
 					.map((xmtpConversation) => ({
-						[EntityMetaKey.Id]: { id: xmtpConversation.id },
+						[EntityMetaKey.Selector]: { id: xmtpConversation.id },
 					}))
 			)
 			},
@@ -653,13 +612,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.XmtpNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType.XmtpNetwork>, context) => (
+				[XmtpNetworkSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType.XmtpNetwork>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).xmtpConversations,
 					context,
 				)
 					.map((xmtpConversation) => ({
-						[EntityMetaKey.Id]: { id: xmtpConversation.id },
+						[EntityMetaKey.Selector]: { id: xmtpConversation.id },
 					}))
 			)
 			},
@@ -672,13 +631,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadSources,
 					context,
 				)
 					.map((blockheadSource) => ({
-						[EntityMetaKey.Id]: { id: blockheadSource.id },
+						[EntityMetaKey.Selector]: { id: blockheadSource.id },
 					}))
 			)
 			},
@@ -691,13 +650,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadWallets,
 					context,
 				)
 					.map((blockheadWallet) => ({
-						[EntityMetaKey.Id]: { id: blockheadWallet.id },
+						[EntityMetaKey.Selector]: { id: blockheadWallet.id },
 					}))
 			)
 			},
@@ -710,13 +669,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadWalletConnections,
 					context,
 				)
 					.map((blockheadWalletConnection) => ({
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							$wallet: {
 								id: blockheadWalletConnection.walletId,
 							},
@@ -733,13 +692,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadWalletAccounts,
 					context,
 				)
 					.map((blockheadWalletAccount) => ({
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							caip10: {
 								namespace: blockheadWalletAccount.namespace,
 								reference: blockheadWalletAccount.reference,
@@ -758,13 +717,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadSessions,
 					context,
 				)
 					.map((blockheadSession) => ({
-						[EntityMetaKey.Id]: { id: blockheadSession.id },
+						[EntityMetaKey.Selector]: { id: blockheadSession.id },
 					}))
 			)
 			},
@@ -777,18 +736,18 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadSession,
 			resolve: {
-				[EntityIdProjection.Identity]: async (
-				scopedEntityId: EntityId<typeof schema, EntityType.BlockheadSession>,
+				[BlockheadSessionSelector.Id]: async (
+				scopedEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 				context,
 			) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadSessionActions
-						.filter((sessionAction) => sessionAction.sessionId === scopedEntityId.id)
+						.filter((sessionAction) => sessionAction.sessionId === scopedEntitySelector.id)
 						.toSorted((left, right) => left.indexInSequence - right.indexInSequence),
 					context,
 				)
 					.map((sessionAction) => ({
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							sessionId: sessionAction.sessionId,
 							actionId: sessionAction.actionId,
 						},
@@ -804,13 +763,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadPanelTrees,
 					context,
 				)
 					.map((blockheadPanelTree) => ({
-						[EntityMetaKey.Id]: { id: blockheadPanelTree.id },
+						[EntityMetaKey.Selector]: { id: blockheadPanelTree.id },
 					}))
 			)
 			},
@@ -823,13 +782,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadFarcasterAccountConnections,
 					context,
 				)
 					.map((blockheadFarcasterAccountConnection) => ({
-						[EntityMetaKey.Id]: { fid: blockheadFarcasterAccountConnection.fid },
+						[EntityMetaKey.Selector]: { fid: blockheadFarcasterAccountConnection.fid },
 					}))
 			)
 			},
@@ -842,13 +801,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadAgentConversations,
 					context,
 				)
 					.map((blockheadAgentConversation) => ({
-						[EntityMetaKey.Id]: { id: blockheadAgentConversation.id },
+						[EntityMetaKey.Selector]: { id: blockheadAgentConversation.id },
 					}))
 			)
 			},
@@ -861,17 +820,17 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversation,
 			resolve: {
-				[EntityIdProjection.Identity]: async (
-				scopedEntityId: EntityId<typeof schema, EntityType.BlockheadAgentConversation>,
+				[BlockheadAgentConversationSelector.Id]: async (
+				scopedEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadAgentConversation>,
 				context,
 			) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadAgentConversationTurns
-						.filter((conversationTurn) => conversationTurn.conversationId === scopedEntityId.id),
+						.filter((conversationTurn) => conversationTurn.conversationId === scopedEntitySelector.id),
 					context,
 				)
 					.map((conversationTurn) => ({
-						[EntityMetaKey.Id]: { id: conversationTurn.id },
+						[EntityMetaKey.Selector]: { id: conversationTurn.id },
 					}))
 			)
 			},
@@ -884,13 +843,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).bridgeTransactions,
 					context,
 				)
 						.map((bridgeTransaction) => ({
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$account: { address: EvmAddress.assert(bridgeTransaction.accountAddress) },
 								$sourceTx: {
 									$network: { caip2: { namespace: 'eip155' as const, reference: String(bridgeTransaction.chainId) } },
@@ -910,15 +869,15 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoom,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => (
+				[BlockheadRoomSelector.Id]: async (entitySelector, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadRoomPeers.filter((roomPeer) => (
-						roomPeer.roomId === entityId.id
+						roomPeer.roomId === entitySelector.id
 					)),
 					context,
 				)
 					.map((roomPeer) => ({
-						[EntityMetaKey.Id]: { id: roomPeer.id },
+						[EntityMetaKey.Selector]: { id: roomPeer.id },
 					}))
 			)
 			},
@@ -931,13 +890,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadRoomPeers,
 					context,
 				)
 					.map((blockheadRoomPeer) => ({
-						[EntityMetaKey.Id]: { id: blockheadRoomPeer.id },
+						[EntityMetaKey.Selector]: { id: blockheadRoomPeer.id },
 					}))
 			)
 			},
@@ -950,13 +909,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadRooms,
 					context,
 				)
 					.map((blockheadRoom) => ({
-						[EntityMetaKey.Id]: { id: blockheadRoom.id },
+						[EntityMetaKey.Selector]: { id: blockheadRoom.id },
 					}))
 			)
 			},
@@ -969,13 +928,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).stateChannels,
 					context,
 				)
 					.map((stateChannel) => ({
-						[EntityMetaKey.Id]: { id: stateChannel.id },
+						[EntityMetaKey.Selector]: { id: stateChannel.id },
 					}))
 			)
 			},
@@ -988,17 +947,17 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
 			resolve: {
-				[EntityIdProjection.Identity]: async (
-				scopedEntityId: EntityId<typeof schema, EntityType.StateChannel>,
+				[StateChannelSelector.Id]: async (
+				scopedEntitySelector: EntitySelector<typeof schema, EntityType.StateChannel>,
 				context,
 			) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).stateChannelTransfers
-						.filter((stateChannelTransfer) => stateChannelTransfer.channelId === scopedEntityId.id),
+						.filter((stateChannelTransfer) => stateChannelTransfer.channelId === scopedEntitySelector.id),
 					context,
 				)
 					.map((stateChannelTransfer) => ({
-						[EntityMetaKey.Id]: { id: stateChannelTransfer.id },
+						[EntityMetaKey.Selector]: { id: stateChannelTransfer.id },
 					}))
 			)
 			},
@@ -1011,17 +970,17 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
 			resolve: {
-				[EntityIdProjection.Identity]: async (
-				scopedEntityId: EntityId<typeof schema, EntityType.StateChannel>,
+				[StateChannelSelector.Id]: async (
+				scopedEntitySelector: EntitySelector<typeof schema, EntityType.StateChannel>,
 				context,
 			) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).stateChannelStates
-						.filter((stateChannelState) => stateChannelState.channelId === scopedEntityId.id),
+						.filter((stateChannelState) => stateChannelState.channelId === scopedEntitySelector.id),
 					context,
 				)
 					.map((stateChannelState) => ({
-						[EntityMetaKey.Id]: { id: stateChannelState.id },
+						[EntityMetaKey.Selector]: { id: stateChannelState.id },
 					}))
 			)
 			},
@@ -1034,17 +993,17 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.StateChannel,
 			resolve: {
-				[EntityIdProjection.Identity]: async (
-				scopedEntityId: EntityId<typeof schema, EntityType.StateChannel>,
+				[StateChannelSelector.Id]: async (
+				scopedEntitySelector: EntitySelector<typeof schema, EntityType.StateChannel>,
 				context,
 			) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).stateChannelDeposits
-						.filter((stateChannelDeposit) => stateChannelDeposit.channelId === scopedEntityId.id),
+						.filter((stateChannelDeposit) => stateChannelDeposit.channelId === scopedEntitySelector.id),
 					context,
 				)
 					.map((stateChannelDeposit) => ({
-						[EntityMetaKey.Id]: { id: stateChannelDeposit.id },
+						[EntityMetaKey.Selector]: { id: stateChannelDeposit.id },
 					}))
 			)
 			},
@@ -1057,13 +1016,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadSharedAddresses,
 					context,
 				)
 					.map((blockheadSharedAddress) => ({
-						[EntityMetaKey.Id]: { id: blockheadSharedAddress.id },
+						[EntityMetaKey.Selector]: { id: blockheadSharedAddress.id },
 					}))
 			)
 			},
@@ -1076,13 +1035,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.EvmProtocol,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (
+				[EvmProtocolSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmSelectors,
 					context,
 				)
 					.map((evmSelector) => ({
-						[EntityMetaKey.Id]: { hex: evmSelector.hex },
+						[EntityMetaKey.Selector]: { hex: evmSelector.hex },
 					}))
 			)
 			},
@@ -1095,13 +1054,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.EvmProtocol,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (
+				[EvmProtocolSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmTopics,
 					context,
 				)
 					.map((evmTopic) => ({
-						[EntityMetaKey.Id]: { hex: evmTopic.hex },
+						[EntityMetaKey.Selector]: { hex: evmTopic.hex },
 					}))
 			)
 			},
@@ -1114,13 +1073,13 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.EvmProtocol,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_scopedEntityId: EntityId<typeof schema, EntityType.EvmProtocol>, context) => (
+				[EvmProtocolSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmErrors,
 					context,
 				)
 					.map((evmError) => ({
-						[EntityMetaKey.Id]: { hex: evmError.hex },
+						[EntityMetaKey.Selector]: { hex: evmError.hex },
 					}))
 			)
 			},

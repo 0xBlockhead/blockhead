@@ -13,7 +13,7 @@
 
 <Page>
 	<LightningChannelView
-		entityId={{
+		selector={{
 			$network: { networkSlug: params.networkSlug },
 			channelId: params.channelId,
 		}}

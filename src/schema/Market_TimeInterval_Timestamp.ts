@@ -13,23 +13,56 @@ import { EntityType } from '$/schema/EntityType.ts'
 import Market from '$/schema/Market.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum Market_TimeInterval_TimestampSelector {
+	MarketTimeIntervalTimestampMsFeedKey = 'marketTimeIntervalTimestampMsFeedKey',
+}
+
 export default {
 	entityType: EntityType.Market_TimeInterval_Timestamp,
 
 	label: 'OHLC interval',
 	labelPlural: 'OHLC intervals',
 
-	id: type({
-		$market: Market.id,
-		timeInterval: type({
+	selectors: [
+		{
+			name: Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey,
+			fields: [
+				'$market',
+				'timeInterval',
+				'timestampMs',
+				'feedKey',
+			],
+		},
+	],
+
+	fields: [
+		{
+			name: '$market',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Market,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timeInterval',
+			type: EntityFieldType.Primitive,
+			primitiveType: type({
 			unit: type.valueOf(MarketTimeIntervalUnit),
 			value: 'number',
 		}),
-		timestampMs: 'number',
-		'feedKey?': 'string',
-	}),
-
-	fields: [
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'feedKey',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: '$parentMarket',
 			type: EntityFieldType.EntityReference,

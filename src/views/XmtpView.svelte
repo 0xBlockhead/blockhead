@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,14 +16,14 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/xmtp'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.XmtpNetwork>
+			selector: EntitySelector<typeof schema, EntityType.XmtpNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -34,10 +34,10 @@
 		>
 	> = $props()
 
-	const networkIdKey = stringify(entityId)
+	const networkSelectorKey = stringify(selector)
 
 	const network = subscribe(EntityType.XmtpNetwork,
-		entityId,
+		selector,
 		({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xmtpConversations: ({ sources: [Source.Local_Internal] }) } }),
 		)
 
@@ -54,7 +54,7 @@
 
 <EntityView
 	entityType={EntityType.XmtpNetwork}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -135,8 +135,8 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			id={`${networkIdKey}:registry`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:registry`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'demo-accounts', label: 'Demo accounts' },
 				{ id: 'conversations', label: 'Conversations' },
@@ -160,7 +160,7 @@
 					href={resolve('/~/accounts')}
 					entityFieldReference={{
 						entityType: EntityType._Global,
-						entityId: { scope: '$$actors' },
+						selector: { scope: '$$actors' },
 						fieldName: '$$actors',
 					}}
 					id="accounts"
@@ -175,7 +175,7 @@
 					href={resolve('/xmtp')}
 					entityFieldReference={{
 						entityType: EntityType.XmtpNetwork,
-						entityId,
+						selector,
 						fieldName: '$$xmtpConversations',
 					}}
 					id="conversations"

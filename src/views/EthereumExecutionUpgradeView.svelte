@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -17,18 +17,18 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
 			caip2Namespace: 'eip155',
-			caip2Reference: entityId.$network.caip2.reference,
-				upgradeSlug: entityId.upgradeId,
+			caip2Reference: selector.$network.caip2.reference,
+				upgradeSlug: selector.upgradeId,
 			}),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EthereumExecutionUpgrade>
+			selector: EntitySelector<typeof schema, EntityType.EthereumExecutionUpgrade>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -41,7 +41,7 @@
 	> = $props()
 
 	const networkExecutionUpgrade = subscribe(EntityType.EthereumExecutionUpgrade,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, slug: true, ...(open && ({ protocol: true, activationBlock: true, activationEpoch: true, activationTimestampMs: true })) } }),
@@ -60,15 +60,15 @@
 
 <EntityView
 	entityType={EntityType.EthereumExecutionUpgrade}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
-	title={`Execution upgrade ${String(entityId.upgradeId)}`}
+	title={`Execution upgrade ${String(selector.upgradeId)}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{entityId.upgradeId}
+			{selector.upgradeId}
 		</span>
 	{/snippet}
 
@@ -78,7 +78,7 @@
 			placeholderText="Loading execution upgrade…"
 		>
 			{#snippet children(networkExecutionUpgrade)}
-				{networkExecutionUpgrade.fields.name ?? entityId.upgradeId}
+				{networkExecutionUpgrade.fields.name ?? selector.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -110,8 +110,8 @@
 					<dt>Activation block</dt>
 					<dd>
 									<EvmBlockView
-										entityId={{
-											$network: entityId.$network,
+										selector={{
+											$network: selector.$network,
 											blockNumber: BigInt(networkExecutionUpgrade.fields.activationBlock),
 										}}
 										layout={EntityLayout.Value}
@@ -148,10 +148,10 @@
 			href={resolve('/proposals')}
 			entityFieldReference={{
 				entityType: EntityType.EthereumExecutionUpgrade,
-				entityId,
+				selector,
 				fieldName: '$$proposals',
 			}}
-			id={`${stringify(entityId)}:proposals`}
+			id={`${stringify(selector)}:proposals`}
 			open={false}
 			title="Specification proposals"
 		/>

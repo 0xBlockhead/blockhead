@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Transaction from '$/schema/CosmosTransaction.ts'
+
+export enum CosmosMessageSelector {
+	CosmosTransactionMessageIndex = 'cosmosTransactionMessageIndex',
+}
 
 export default {
 	entityType: EntityType.CosmosMessage,
@@ -15,12 +18,29 @@ export default {
 	label: 'Cosmos Message',
 	labelPlural: 'Cosmos Messages',
 
-	id: type({
-		$transaction: Transaction.id,
-		messageIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: CosmosMessageSelector.CosmosTransactionMessageIndex,
+			fields: [
+				'$transaction',
+				'messageIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.CosmosTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'messageIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'typeUrl',
 			type: EntityFieldType.Primitive,

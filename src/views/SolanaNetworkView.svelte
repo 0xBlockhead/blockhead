@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,26 +13,26 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.SolanaNetwork>
+		selector: EntitySelector<typeof schema, EntityType.SolanaNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const network = subscribe(EntityType.SolanaNetwork,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { slug: true, name: true, environment: true, rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$accounts: ({ limit: 16 }), $$timestamps: ({ limit: 1 }) } }),
 	)
 
 	const baseNetwork = subscribe(EntityType.Network,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { $$nativeAssets: true } }),
@@ -40,8 +40,8 @@
 
 
 	// (Derived)
-	const networkIdKey = $derived(
-		stringify(entityId),
+	const networkSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -64,13 +64,13 @@
 
 <EntityView
 	entityType={EntityType.SolanaNetwork}
-	{entityId}
+	entitySelector={selector}
 	{href}
 	bind:open
 	{layout}
 >
 	{#snippet Value()}
-		<span>{entityId.caip2.namespace}:{entityId.caip2.reference}</span>
+		<span>{selector.caip2.namespace}:{selector.caip2.reference}</span>
 	{/snippet}
 
 	{#snippet Title()}
@@ -101,7 +101,7 @@
 								{@const block = network.fields.$$blocks?.values.at(0)}
 								{#if block != null}
 									<SolanaBlockView
-										entityId={block[EntityMetaKey.Id]}
+										selector={block[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 									/>
 								{:else}
@@ -152,8 +152,8 @@
 	{#snippet Details()}
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-solana`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-solana`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'solana-blocks', label: 'Blocks' },
 				{ id: 'solana-transactions', label: 'Transactions' },
@@ -178,7 +178,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.SolanaNetwork,
-						entityId,
+						selector,
 						fieldName: '$$blocks',
 					}}
 					href={href == null ? '' : `${href}/blocks`}
@@ -192,7 +192,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.SolanaNetwork,
-						entityId,
+						selector,
 						fieldName: '$$transactions',
 					}}
 					href={href == null ? '' : `${href}/transactions`}
@@ -206,7 +206,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.SolanaNetwork,
-						entityId,
+						selector,
 						fieldName: '$$accounts',
 					}}
 					id={`${id}-list`}
@@ -219,7 +219,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.SolanaNetwork,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					id={`${id}-list`}
@@ -237,7 +237,7 @@
 					]}
 					id={`${id}-list`}
 					listEntityType={EntityType.SolanaNetwork}
-					parentEntityId={entityId}
+					parentEntitySelector={selector}
 					parentEntityType={EntityType.SolanaNetwork}
 					title={label}
 				/>
@@ -245,8 +245,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-consensus`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-consensus`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'solana-validators', label: 'Validators' },
 			]}
@@ -267,7 +267,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.SolanaNetwork,
-						entityId,
+						selector,
 						fieldName: '$$validators',
 					}}
 					id={`${id}-list`}
@@ -277,8 +277,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-assets`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-assets`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'solana-assets-native', label: 'Native coin' },
 			]}
@@ -299,7 +299,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -309,8 +309,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-resources`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-resources`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'solana-resources-faucets', label: 'Faucets' },
 				{ id: 'solana-resources-block-explorers', label: 'Block explorers' },
@@ -333,7 +333,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -351,7 +351,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

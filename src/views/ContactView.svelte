@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,7 +16,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/~/multiplayer/contacts'),
 		title,
 		open = $bindable(true),
@@ -24,7 +24,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BlockheadSharedAddress>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadSharedAddress>
 			href?: string
 			title?: string
 			open?: boolean
@@ -40,7 +40,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const sharedAddress = subscribe(EntityType.BlockheadSharedAddress,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Local_Internal,
 			], fields: { peerId: true, sharedAt: true, ...(open ? ({ $account: true, $room: true, $network: true, targetPeerIds: true }) : ({  })) } }),
@@ -49,7 +49,7 @@
 
 	// (Derived)
 	const contactKey = $derived(
-		stringify(entityId),
+		stringify(selector),
 	)
 
 
@@ -67,12 +67,12 @@
 <EntityView
 	entityType={EntityType.BlockheadSharedAddress}
 	bind:open
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>{entityId.id}</span>
+		<span>{selector.id}</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -95,7 +95,7 @@
 						<div>
 							<dt>Shown as</dt>
 							<dd data-text="mono">
-								{entityId.id}
+								{selector.id}
 							</dd>
 						</div>
 
@@ -129,9 +129,9 @@
 								<dt>Account</dt>
 								<dd>
 									<EvmNetworkAccountView
-										entityId={{
-											$network: sharedAddress.fields.$network[EntityMetaKey.Id],
-											$actor: sharedAddress.fields.$account[EntityMetaKey.Id],
+										selector={{
+											$network: sharedAddress.fields.$network[EntityMetaKey.Selector],
+											$actor: sharedAddress.fields.$account[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
 										open={false}
@@ -145,7 +145,7 @@
 							)}
 								<div>
 									<dt>Room</dt>
-									<dd>{sharedAddress.fields.$room[EntityMetaKey.Id].id}</dd>
+									<dd>{sharedAddress.fields.$room[EntityMetaKey.Selector].id}</dd>
 								</div>
 							{/if}
 						{#if (
@@ -154,7 +154,7 @@
 							)}
 								<div>
 									<dt>Execution chain ID</dt>
-									<dd>{String(evmChainIdFromCaip2(`${sharedAddress.fields.$network[EntityMetaKey.Id].caip2.namespace}:${sharedAddress.fields.$network[EntityMetaKey.Id].caip2.reference}`))}</dd>
+									<dd>{String(evmChainIdFromCaip2(`${sharedAddress.fields.$network[EntityMetaKey.Selector].caip2.namespace}:${sharedAddress.fields.$network[EntityMetaKey.Selector].caip2.reference}`))}</dd>
 								</div>
 							{/if}
 						{#if (

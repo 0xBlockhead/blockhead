@@ -1,6 +1,6 @@
 // Types
 
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { YouTubeLiveBroadcastContent } from '$/schema/YouTubeVideo.ts'
 import { schema } from '$/schema/index.ts'
@@ -23,7 +23,7 @@ export const youtubeNetworkSeedChannels = [
 	{
 		channelId: 'UCBR8-60-B28hp2BmDPdntcQ',
 	},
-] as const satisfies readonly EntityId<typeof schema, EntityType.YouTubeChannel>[]
+] as const satisfies readonly EntitySelector<typeof schema, EntityType.YouTubeChannel>[]
 
 /** Playlist `playlistId` is YouTube’s opaque PL… or channel uploads UU… id. */
 export const youtubeNetworkSeedPlaylists = [
@@ -33,7 +33,7 @@ export const youtubeNetworkSeedPlaylists = [
 	{
 		playlistId: 'UUUCBR8-60-B28hp2BmDPdntcQ',
 	},
-] as const satisfies readonly EntityId<typeof schema, EntityType.YouTubePlaylist>[]
+] as const satisfies readonly EntitySelector<typeof schema, EntityType.YouTubePlaylist>[]
 
 /** Video `videoId` is YouTube’s 11-character id. */
 export const youtubeNetworkSeedVideos = [
@@ -43,7 +43,7 @@ export const youtubeNetworkSeedVideos = [
 	{
 		videoId: 'M7lc1UVf-VE',
 	},
-] as const satisfies readonly EntityId<typeof schema, EntityType.YouTubeVideo>[]
+] as const satisfies readonly EntitySelector<typeof schema, EntityType.YouTubeVideo>[]
 
 const youTubeVideoLiveBroadcastPhases = [
 	{

@@ -10,13 +10,24 @@ import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum ElementsNetworkSelector {
+	Network = 'network',
+}
+
 export default {
 	entityType: EntityType.ElementsNetwork,
 
 	label: 'Elements network',
 	labelPlural: 'Elements networks',
 
-	id: Network.id,
+	selectors: [
+		{
+			name: ElementsNetworkSelector.Network,
+			fields: [
+				'$network',
+			],
+		},
+	],
 
 	fields: [
 		{

@@ -74,7 +74,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 						Source.Youtube_Rest,
 						Source.Piped_Rest,
@@ -94,7 +94,7 @@
 					)
 					return (
 						youTubeChannels.map((value) => ({
-							entityId: value[EntityMetaKey.Id],
+							selector: value[EntityMetaKey.Selector],
 						}))
 					)
 				},
@@ -107,8 +107,8 @@
 				{title}
 				resource={channels}
 				placeholderText="Loading channels…"
-				getKey={(channel) => stringify(channel.entityId)}
-				getSortValue={(channel) => channel.entityId.channelId}
+				getKey={(channel) => stringify(channel.selector)}
+				getSortValue={(channel) => channel.selector.channelId}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}
@@ -121,7 +121,7 @@
 					item: channel,
 				})}
 					<YouTubeChannelView
-						entityId={channel.entityId}
+						selector={channel.selector}
 						layout={EntityLayout.SummaryDetails}
 						open={false}
 					/>

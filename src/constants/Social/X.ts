@@ -1,5 +1,5 @@
 // Types
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 
@@ -14,6 +14,6 @@ export const xNetworkFieldValues = {
 } as const
 
 /** User `id` is X’s string user id (REST `id` / `id_str`), not @handle. */
-export const xNetworkSeedUsers: readonly EntityId<typeof schema, EntityType.XUser>[] = [
+export const xNetworkSeedUsers: readonly EntitySelector<typeof schema, EntityType.XUser>[] = [
 	{ id: '783214' },
 ]

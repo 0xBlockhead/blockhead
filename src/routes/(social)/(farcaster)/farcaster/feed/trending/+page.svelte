@@ -1,12 +1,12 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Functions
-	const entityId: EntityId<typeof schema, EntityType.FarcasterFeed> = {
+	const entitySelector: EntitySelector<typeof schema, EntityType.FarcasterFeed> = {
 		variant: 'trending',
 	}
 
@@ -19,7 +19,7 @@
 
 <Page>
 	<FarcasterFeedView
-		{entityId}
+		selector={selector}
 		limit={50}
 	/>
 </Page>

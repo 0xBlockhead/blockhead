@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.PolkadotPallet>
+			selector: EntitySelector<typeof schema, EntityType.PolkadotPallet>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const polkadotPallet = subscribe(EntityType.PolkadotPallet,
-		entityId,
+		selector,
 		({ fields: { index: true } }),
 	)
 
@@ -41,14 +41,14 @@
 
 <EntityView
 	entityType={EntityType.PolkadotPallet}
-	{entityId}
-	title={entityId.palletName}
+	entitySelector={selector}
+	title={selector.palletName}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{entityId.palletName.toString()}
+		{selector.palletName.toString()}
 	{/snippet}
 
 	{#snippet Content()}

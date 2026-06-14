@@ -8,17 +8,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum ExecutionEnvironmentSelector {
+	ExecutionEnvironmentId = 'executionEnvironmentId',
+}
+
 export default {
 	entityType: EntityType.ExecutionEnvironment,
 
 	label: 'Execution environment',
 	labelPlural: 'Execution environments',
 
-	id: type({
-		executionEnvironmentId: type.valueOf(ExecutionEnvironmentId),
-	}),
+	selectors: [
+		{
+			name: ExecutionEnvironmentSelector.ExecutionEnvironmentId,
+			fields: [
+				'executionEnvironmentId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'executionEnvironmentId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(ExecutionEnvironmentId),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'label',
 			type: EntityFieldType.Primitive,

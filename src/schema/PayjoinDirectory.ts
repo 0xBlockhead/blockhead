@@ -10,17 +10,32 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum PayjoinDirectorySelector {
+	DirectoryUrl = 'directoryUrl',
+}
+
 export default {
 	entityType: EntityType.PayjoinDirectory,
 
 	label: 'Payjoin directory',
 	labelPlural: 'Payjoin directories',
 
-	id: type({
-		directoryUrl: UrlString,
-	}),
+	selectors: [
+		{
+			name: PayjoinDirectorySelector.DirectoryUrl,
+			fields: [
+				'directoryUrl',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'directoryUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'ohttpGatewayUrl',
 			type: EntityFieldType.Primitive,

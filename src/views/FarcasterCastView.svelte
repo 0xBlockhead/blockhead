@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,14 +17,14 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		variant = 'hub',
 		open = $bindable(true),
 			...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.FarcasterCast>
+			selector: EntitySelector<typeof schema, EntityType.FarcasterCast>
 			href?: string
 			variant?: 'feed' | 'hub'
 			open?: boolean
@@ -36,7 +36,7 @@
 	> = $props()
 
 	const cast = subscribe(EntityType.FarcasterCast,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
@@ -64,19 +64,19 @@
 
 <EntityView
 	entityType={EntityType.FarcasterCast}
-	{entityId}
+	entitySelector={selector}
 	href={href ?? (
-		'fid' in entityId && 'hash' in entityId ?
+		'fid' in selector && 'hash' in selector ?
 			resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-				fid: String(entityId.fid),
-				hash: entityId.hash,
+				fid: String(selector.fid),
+				hash: selector.hash,
 			})
-		: 'username' in entityId && 'hashPrefix' in entityId ?
+		: 'username' in selector && 'hashPrefix' in selector ?
 			resolve('/(social)/(farcaster)/farcaster/(feed)/c/[fname]/[hash]', {
-				fname: entityId.username,
-				hash: entityId.hashPrefix,
+				fname: selector.username,
+				hash: selector.hashPrefix,
 			})
-		: 'clientUrl' in entityId ?
+		: 'clientUrl' in selector ?
 			resolve('/(social)/(farcaster)/farcaster/open-cast')
 		:
 			undefined
@@ -94,7 +94,7 @@
 					{#if cast.fields.$author?.$icon}
 						<IconComponent
 							shape={IconShape.Circle}
-							src={cast.fields.$author.$icon[EntityMetaKey.Id].url}
+							src={cast.fields.$author.$icon[EntityMetaKey.Selector].url}
 							alt=""
 						/>
 					{/if}
@@ -113,12 +113,12 @@
 					value={(
 						cast.fields.fid != null && cast.fields.hash != null ?
 							`FID ${String(cast.fields.fid)} / ${cast.fields.hash}`
-						: 'username' in entityId && 'hashPrefix' in entityId ?
-							`@${entityId.username} / ${entityId.hashPrefix}`
-						: 'clientUrl' in entityId ?
-							entityId.clientUrl
+						: 'username' in selector && 'hashPrefix' in selector ?
+							`@${selector.username} / ${selector.hashPrefix}`
+						: 'clientUrl' in selector ?
+							selector.clientUrl
 						:
-							stringify(entityId)
+							stringify(selector)
 					)}
 					startLength={18}
 					endLength={10}
@@ -253,7 +253,7 @@
 								cast.fields.$channel === undefined ?
 									undefined
 								:
-									cast.fields.$channel[EntityMetaKey.Id].id
+									cast.fields.$channel[EntityMetaKey.Selector].id
 							)}
 							{@const channelPageHref = (
 								channelId === undefined ?
@@ -289,7 +289,7 @@
 									cast.fields.$parentCast === undefined ?
 										undefined
 									:
-										cast.fields.$parentCast[EntityMetaKey.Id]
+										cast.fields.$parentCast[EntityMetaKey.Selector]
 								)}
 								{@const parentCastHrefOpen = (
 									parentCastIdOpen === undefined || !('fid' in parentCastIdOpen) || !('hash' in parentCastIdOpen) ?
@@ -410,7 +410,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const castDetailKey = stringify(entityId)}
+		{@const castDetailKey = stringify(selector)}
 		<CollapsibleTabs
 			id={`${castDetailKey}:carousel-cast`}
 			sectionIdPrefix={castDetailKey}
@@ -467,20 +467,20 @@
 						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
 							{#snippet children(cast)}
-								{@const authorId = cast.fields.$author?.[EntityMetaKey.Id]}
+								{@const authorId = cast.fields.$author?.[EntityMetaKey.Selector]}
 								{@const authorUsername = cast.fields.$author?.username}
 								{@const authorDisplayName = cast.fields.$author?.displayName}
 								{@const authorAvatarUrl = (
 									cast.fields.$author?.$icon === undefined ?
 										undefined
 									:
-										cast.fields.$author.$icon[EntityMetaKey.Id].url
+										cast.fields.$author.$icon[EntityMetaKey.Selector].url
 								)}
 								{@const postedViaAppId = (
 									cast.fields.$postedViaApp === undefined ?
 										undefined
 									:
-										cast.fields.$postedViaApp[EntityMetaKey.Id]
+										cast.fields.$postedViaApp[EntityMetaKey.Selector]
 								)}
 								{@const postedViaUsername = (
 									cast.fields.$postedViaApp === undefined ?
@@ -498,7 +498,7 @@
 									cast.fields.$channel === undefined ?
 										undefined
 									:
-										cast.fields.$channel[EntityMetaKey.Id].id
+										cast.fields.$channel[EntityMetaKey.Selector].id
 								)}
 								{@const channelPageHref = (
 									channelId === undefined ?
@@ -628,13 +628,13 @@
 												embed.$icon === undefined ?
 													undefined
 												:
-													embed.$icon[EntityMetaKey.Id].url
+													embed.$icon[EntityMetaKey.Selector].url
 											)}
 											{@const embeddedCastId = (
 												embed.$embeddedCast === undefined ?
 													undefined
 												:
-													embed.$embeddedCast[EntityMetaKey.Id]
+													embed.$embeddedCast[EntityMetaKey.Selector]
 											)}
 											<li data-column>
 												{#if og !== undefined}
@@ -735,7 +735,7 @@
 				<FarcasterCast_TimestampsView
 					entityFieldReference={{
 						entityType: EntityType.FarcasterCast,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					href={href ?? '#'}

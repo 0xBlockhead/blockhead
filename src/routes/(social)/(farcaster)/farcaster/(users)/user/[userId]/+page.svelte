@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
@@ -21,7 +21,7 @@
 
 <Page>
 	<FarcasterUserView
-		entityId={{ fid: Number(params.userId) }}
+		selector={{ fid: Number(params.userId) }}
 	/>
 
 	<section>
@@ -29,7 +29,7 @@
 			href={resolve(`/farcaster/feed/user/${params.userId}`)}
 			entityFieldReference={{
 				entityType: EntityType.FarcasterFeed,
-				entityId: {
+				selector: {
 					variant: 'byUser',
 					fid: Number(params.userId),
 				},

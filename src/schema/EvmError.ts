@@ -10,17 +10,32 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum EvmErrorSelector {
+	Hex = 'hex',
+}
+
 export default {
 	entityType: EntityType.EvmError,
 
 	label: 'EVM Error',
 	labelPlural: 'EVM Errors',
 
-	id: type({
-		hex: ZeroExHex,
-	}),
+	selectors: [
+		{
+			name: EvmErrorSelector.Hex,
+			fields: [
+				'hex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'hex',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'signatures',
 			type: EntityFieldType.Primitive,

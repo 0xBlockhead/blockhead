@@ -76,7 +76,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				entityFieldReference.entityType === EntityType.EvmBlock ?
 					({
 						fields: {
@@ -119,12 +119,12 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmTransaction}
-				getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
+				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
 				getSortValue={(line) => (
 					line.value.transactionIndex !== undefined ?
 						-line.value.transactionIndex
 					:
-						stringify(line.value[EntityMetaKey.Id])
+						stringify(line.value[EntityMetaKey.Selector])
 				)}
 				placeholderText="Loading transactions…"
 				resource={transactions}
@@ -140,15 +140,15 @@
 
 				{#snippet Item({ item })}
 					{@const line = item.value}
-					{@const t = line[EntityMetaKey.Id]}
+					{@const t = line[EntityMetaKey.Selector]}
 					{#if entityFieldReference.entityType === EntityType.EvmBlock}
 						<!-- href override: tx detail under block route, not network /transactions/tx -->
 						<EvmTransactionView
-							entityId={t}
+							selector={t}
 							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]', {
-									caip2Namespace: entityFieldReference.entityId.$network.caip2.namespace,
-									caip2Reference: entityFieldReference.entityId.$network.caip2.reference,
-									blockNumber: String(entityFieldReference.entityId.blockNumber),
+									caip2Namespace: entityFieldReference.selector.$network.caip2.namespace,
+									caip2Reference: entityFieldReference.selector.$network.caip2.reference,
+									blockNumber: String(entityFieldReference.selector.blockNumber),
 										transactionId: t.txHash,
 								})}
 							layout={EntityLayout.Summary}
@@ -158,7 +158,7 @@
 						/>
 						{:else if entityFieldReference.entityType === EntityType.EvmNetwork || entityFieldReference.entityType === EntityType.EvmNetworkAccount}
 						<EvmTransactionView
-							entityId={t}
+							selector={t}
 							layout={EntityLayout.Summary}
 							open={false}
 							collapsible={false}

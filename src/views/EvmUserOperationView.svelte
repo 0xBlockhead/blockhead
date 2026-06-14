@@ -3,7 +3,7 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,10 +16,10 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/user-operation/[userOperationHash=userOperationHash]', {
-				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-				userOperationHash: entityId.hash,
+				...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+				userOperationHash: selector.hash,
 		}),
 
 		layout = EntityLayout.SummaryDetails,
@@ -40,7 +40,7 @@
 		...entityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmUserOperation>
+			selector: EntitySelector<typeof schema, EntityType.EvmUserOperation>
 			href?: string
 			layout?: EntityLayout
 
@@ -60,7 +60,7 @@
 	> = $props()
 
 	const operation = subscribe(EntityType.EvmUserOperation,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Blockscout_Rest,
 			], fields: { $bundledTransaction: true, $sender: true, $block: true, timestampMs: true, successful: true, fee: true, nonce: true, entryPointVersion: true, $entryPoint: true, initCode: true, callData: true, sponsorType: true, $paymaster: true, $bundler: true, paymasterAndData: true, signature: true, callGasLimit: true, verificationGasLimit: true, preVerificationGas: true, maxFeePerGas: true, maxPriorityFeePerGas: true, gas: true, gasUsed: true, gasPrice: true } }),
@@ -83,7 +83,7 @@
 
 <EntityView
 	entityType={EntityType.EvmUserOperation}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Abbr}
-			value={entityId.hash}
+			value={selector.hash}
 		/>
 	{/snippet}
 
@@ -104,7 +104,7 @@
 		{:else}
 			<TruncatedValue
 				format={TruncatedValueFormat.Visual}
-				value={entityId.hash}
+				value={selector.hash}
 			/>
 		{/if}
 	{/snippet}
@@ -127,7 +127,7 @@
 					<dd>
 						<TruncatedValue
 							format={TruncatedValueFormat.Visual}
-							value={entityId.hash}
+							value={selector.hash}
 						/>
 					</dd>
 				</div>
@@ -159,7 +159,7 @@
 						{#snippet children(operation)}
 							{#if operation.fields.$block !== undefined}
 								<EvmBlockView
-									entityId={operation.fields.$block[EntityMetaKey.Id]}
+									selector={operation.fields.$block[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -228,7 +228,7 @@
 							{#snippet children(operation)}
 								{#if operation.fields.$entryPoint != null}
 									<EvmContractView
-										entityId={operation.fields.$entryPoint[EntityMetaKey.Id]}
+										selector={operation.fields.$entryPoint[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}
@@ -264,10 +264,10 @@
 				<div class="entity-details" data-column="gap-2">
 					{#if operation.fields.$bundledTransaction != null}
 						<EvmTransactionView
-							entityId={operation.fields.$bundledTransaction[EntityMetaKey.Id]}
+							selector={operation.fields.$bundledTransaction[EntityMetaKey.Selector]}
 							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
-								...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-								transactionId: operation.fields.$bundledTransaction[EntityMetaKey.Id].txHash,
+								...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+								transactionId: operation.fields.$bundledTransaction[EntityMetaKey.Selector].txHash,
 							})}
 							layout={EntityLayout.Summary}
 							open={false}
@@ -278,7 +278,7 @@
 
 					{#if operation.fields.$sender != null}
 						<Erc4337SmartAccountView
-							entityId={operation.fields.$sender[EntityMetaKey.Id]}
+							selector={operation.fields.$sender[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 							collapsible={false}
@@ -289,7 +289,7 @@
 
 					{#if operation.fields.$paymaster != null}
 						<Erc4337PaymasterView
-							entityId={operation.fields.$paymaster[EntityMetaKey.Id]}
+							selector={operation.fields.$paymaster[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 							collapsible={false}
@@ -300,7 +300,7 @@
 
 					{#if operation.fields.$bundler != null}
 						<Erc4337BundlerView
-							entityId={operation.fields.$bundler[EntityMetaKey.Id]}
+							selector={operation.fields.$bundler[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 							collapsible={false}

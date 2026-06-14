@@ -22,16 +22,16 @@
 		<dl data-column-item="center">
 			<div>
 				<dt>Network</dt>
-				<dd>{`${data.entityId.$network.caip2.namespace}:${data.entityId.$network.caip2.reference}`}</dd>
+				<dd>{`${data.entitySelector.$network.caip2.namespace}:${data.entitySelector.$network.caip2.reference}`}</dd>
 			</div>
 
 			<div>
 				<dt>Address</dt>
 				<dd>
 					<EvmNetworkAccountView
-						entityId={{
-							$network: data.entityId.$network,
-							$actor: { address: data.entityId.address },
+						selector={{
+							$network: data.selector.$network,
+							$actor: { address: data.selector.address },
 						}}
 						layout={EntityLayout.Value}
 						open={false}

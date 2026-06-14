@@ -9,17 +9,32 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import UtxoOutput from '$/schema/UtxoOutput.ts'
 
+export enum BitcoinCashCashTokenFungibleAmountSelector {
+	UtxoOutput = 'utxoOutput',
+}
+
 export default {
 	entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
 
 	label: 'Bitcoin Cash CashToken Fungible Amount',
 	labelPlural: 'Bitcoin Cash CashToken Fungible Amounts',
 
-	id: type({
-		$output: UtxoOutput.id,
-	}),
+	selectors: [
+		{
+			name: BitcoinCashCashTokenFungibleAmountSelector.UtxoOutput,
+			fields: [
+				'$output',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$output',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.UtxoOutput,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$category',
 			type: EntityFieldType.EntityReference,

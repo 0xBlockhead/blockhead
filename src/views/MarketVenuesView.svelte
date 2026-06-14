@@ -69,7 +69,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 					], fields: { [entityFieldReference.fieldName]: {
 						fields: {
@@ -89,9 +89,9 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.MarketVenue}
-				getKey={(marketVenue) => marketVenue[EntityMetaKey.Id].marketVenueId}
+				getKey={(marketVenue) => marketVenue[EntityMetaKey.Selector].marketVenueId}
 				getSortValue={(marketVenue) => (
-					marketVenue.label ?? marketVenue[EntityMetaKey.Id].marketVenueId
+					marketVenue.label ?? marketVenue[EntityMetaKey.Selector].marketVenueId
 				)}
 				resource={marketVenues}
 				{title}
@@ -105,7 +105,7 @@
 
 				{#snippet Item({ item })}
 					<MarketVenueView
-						entityId={item[EntityMetaKey.Id]}
+						selector={item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

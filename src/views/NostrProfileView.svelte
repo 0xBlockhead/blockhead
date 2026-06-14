@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -18,9 +18,9 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(nostr)/nostr/profile/[pubkey]', {
-			pubkey: entityId.pubkey,
+			pubkey: selector.pubkey,
 		}),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -29,7 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.NostrProfile>
+			selector: EntitySelector<typeof schema, EntityType.NostrProfile>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -42,7 +42,7 @@
 	> = $props()
 
 	const profile = subscribe(EntityType.NostrProfile,
-		entityId,
+		selector,
 		({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
@@ -81,7 +81,7 @@
 
 <EntityView
 	entityType={EntityType.NostrProfile}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -94,11 +94,11 @@
 			{#snippet children(profile)}
 				{#if (
 					profile.fields.$icon
-					&& profile.fields.$icon[EntityMetaKey.Id].url
+					&& profile.fields.$icon[EntityMetaKey.Selector].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={profile.fields.$icon[EntityMetaKey.Id].url}
+						src={profile.fields.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{/if}
@@ -108,7 +108,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.pubkey}
+			value={selector.pubkey}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -197,7 +197,7 @@
 
 			{#if (
 				open
-				&& profileRow?.$banner?.[EntityMetaKey.Id].url
+				&& profileRow?.$banner?.[EntityMetaKey.Selector].url
 			)}
 				<div>
 					<dt>Banner</dt>
@@ -209,7 +209,7 @@
 								{#snippet children(profile)}
 									{#if profile.fields.$banner !== undefined}
 										<img
-											src={profile.fields.$banner[EntityMetaKey.Id].url}
+											src={profile.fields.$banner[EntityMetaKey.Selector].url}
 											alt=""
 										/>
 									{/if}
@@ -303,7 +303,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const idKey = stringify(entityId)}
+		{@const idKey = stringify(selector)}
 		<CollapsibleTabs
 			id={`${idKey}:carousel-profile-feed`}
 			sectionIdPrefix={idKey}
@@ -330,11 +330,11 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve(
 						'/(social)/(nostr)/nostr/profile/[pubkey]/(profile)/notes',
-						{ pubkey: entityId.pubkey },
+						{ pubkey: selector.pubkey },
 					)}
 					entityFieldReference={{
 						entityType: EntityType.NostrProfile,
-						entityId,
+						selector,
 						fieldName: '$$notes',
 					}}
 					id={`${idKey}:notes`}
@@ -348,7 +348,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.NostrProfile,
-						entityId,
+						selector,
 						fieldName: '$$articles',
 					}}
 					id={`${idKey}:articles`}
@@ -362,7 +362,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.NostrProfile,
-						entityId,
+						selector,
 						fieldName: '$$reposts',
 					}}
 					id={`${idKey}:reposts`}

@@ -8,6 +8,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum FarcasterVerifiedAddressSelector {
+	FidProtocolAddress = 'fidProtocolAddress',
+}
+
+
 const farcasterVerifiedAddressProtocol = type("'ethereum' | 'solana'")
 
 export default {
@@ -16,13 +21,36 @@ export default {
 	label: 'Farcaster Verified Address',
 	labelPlural: 'Farcaster Verified Addresses',
 
-	id: type({
-		fid: 'number',
-		protocol: farcasterVerifiedAddressProtocol,
-		address: 'string',
-	}),
+	selectors: [
+		{
+			name: FarcasterVerifiedAddressSelector.FidProtocolAddress,
+			fields: [
+				'fid',
+				'protocol',
+				'address',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'fid',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'protocol',
+			type: EntityFieldType.Primitive,
+			primitiveType: farcasterVerifiedAddressProtocol,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'address',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$user',
 			type: EntityFieldType.EntityReference,

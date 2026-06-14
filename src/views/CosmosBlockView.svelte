@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.CosmosBlock>
+			selector: EntitySelector<typeof schema, EntityType.CosmosBlock>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const block = subscribe(EntityType.CosmosBlock,
-		entityId,
+		selector,
 		({ sources: [
 				Source.CometBft_Rest,
 				Source.CosmosSdk_Rest,
@@ -46,27 +46,27 @@
 
 <EntityView
 	entityType={EntityType.CosmosBlock}
-	{entityId}
+	entitySelector={selector}
 	href={
-		'height' in entityId ?
+		'height' in selector ?
 			(
-				'networkSlug' in entityId.$network ?
-					`/network/${entityId.$network.networkSlug}/blocks/${entityId.height.toString()}`
+				'networkSlug' in selector.$network ?
+					`/network/${selector.$network.networkSlug}/blocks/${selector.height.toString()}`
 				:
-					`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/blocks/${entityId.height.toString()}`
+					`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/blocks/${selector.height.toString()}`
 			)
 		:
 			undefined
 	}
-	title={'height' in entityId ? `Block #${entityId.height.toString()}` : `Block ${entityId.hash}`}
-	idDragPlainText={'height' in entityId ? entityId.height.toString() : entityId.hash}
+	title={'height' in selector ? `Block #${selector.height.toString()}` : `Block ${selector.hash}`}
+	idDragPlainText={'height' in selector ? selector.height.toString() : selector.hash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			{'height' in entityId ? `#${entityId.height.toString()}` : entityId.hash}
+			{'height' in selector ? `#${selector.height.toString()}` : selector.hash}
 		</span>
 	{/snippet}
 

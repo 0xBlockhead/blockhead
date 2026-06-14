@@ -9,18 +9,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import Coin from '$/schema/Coin.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum Coin_TimestampSelector {
+	CoinTimestampMs = 'coinTimestampMs',
+}
+
 export default {
 	entityType: EntityType.Coin_Timestamp,
 
 	label: 'Coin Timestamp',
 	labelPlural: 'Coin Timestamps',
 
-	id: type({
-		$coin: Coin.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: Coin_TimestampSelector.CoinTimestampMs,
+			fields: [
+				'$coin',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$coin',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Coin,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'marketCap',
 			type: EntityFieldType.Primitive,

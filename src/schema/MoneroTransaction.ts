@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum MoneroTransactionSelector {
+	NetworkTxHash = 'networkTxHash',
+}
 
 export default {
 	entityType: EntityType.MoneroTransaction,
@@ -15,12 +18,29 @@ export default {
 	label: 'Monero Transaction',
 	labelPlural: 'Monero Transactions',
 
-	id: type({
-		$network: Network.id,
-		txHash: 'string',
-	}),
+	selectors: [
+		{
+			name: MoneroTransactionSelector.NetworkTxHash,
+			fields: [
+				'$network',
+				'txHash',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'txHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$block',
 			type: EntityFieldType.EntityReference,

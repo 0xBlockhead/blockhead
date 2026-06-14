@@ -12,6 +12,11 @@ import { UrlString } from '$/schema/UrlString.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum FilecoinNetworkSelector {
+	Network = 'network',
+}
+
+
 const filecoinRpcEndpointField = type({
 	url: UrlString,
 	transportType: type.valueOf(TransportType),
@@ -24,7 +29,14 @@ export default {
 	label: 'Filecoin network',
 	labelPlural: 'Filecoin networks',
 
-	id: Network.id,
+	selectors: [
+		{
+			name: FilecoinNetworkSelector.Network,
+			fields: [
+				'$network',
+			],
+		},
+	],
 
 	fields: [
 		{

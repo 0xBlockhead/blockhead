@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,7 +16,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href: hrefProp,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -24,7 +24,7 @@
 	}: WithRest<
 		{
 
-			entityId: EntityId<typeof schema, EntityType.SpecificationRealm>
+			selector: EntitySelector<typeof schema, EntityType.SpecificationRealm>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -33,7 +33,7 @@
 	> = $props()
 
 	const realm = subscribe(EntityType.SpecificationRealm,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true, slug: true } }),
@@ -72,9 +72,9 @@
 
 <EntityView
 	entityType={EntityType.SpecificationRealm}
-	{entityId}
+	entitySelector={selector}
 	{href}
-	title={realmRow?.fields.label ?? String(entityId.realm)}
+	title={realmRow?.fields.label ?? String(selector.realm)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -86,7 +86,7 @@
 		>
 			{#snippet children(realm)}
 				<span>
-					{realm.fields.slug ?? String(entityId.realm)}
+					{realm.fields.slug ?? String(selector.realm)}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -98,7 +98,7 @@
 			placeholderText="Loading specification realm…"
 		>
 			{#snippet children(realm)}
-				{realm.fields.label ?? String(entityId.realm)}
+				{realm.fields.label ?? String(selector.realm)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -114,10 +114,10 @@
 			{href}
 			entityFieldReference={{
 				entityType: EntityType.SpecificationRealm,
-				entityId,
+				selector,
 				fieldName: '$$proposalKinds',
 			}}
-			id={`${stringify(entityId)}:proposalKinds`}
+			id={`${stringify(selector)}:proposalKinds`}
 			open={false}
 			title="Proposal kinds"
 		/>

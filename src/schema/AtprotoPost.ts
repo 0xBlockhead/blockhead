@@ -7,6 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum AtprotoPostSelector {
+	Uri = 'uri',
+}
+
+
 const AtUri = type(
 	'/^at:\\/\\/[^\\/]+\\/app\\.bsky\\.feed\\.post\\/[^\\/]+$/' as type.cast<string>,
 )
@@ -17,11 +22,22 @@ export default {
 	label: 'AT Protocol post',
 	labelPlural: 'AT Protocol posts',
 
-	id: type({
-		uri: AtUri,
-	}),
+	selectors: [
+		{
+			name: AtprotoPostSelector.Uri,
+			fields: [
+				'uri',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'uri',
+			type: EntityFieldType.Primitive,
+			primitiveType: AtUri,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$author',
 			type: EntityFieldType.EntityReference,

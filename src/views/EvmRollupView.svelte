@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,19 +11,19 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		layout = EntityLayout.Summary,
 		title = 'Rollup',
 	}: {
-		entityId: EntityId<typeof schema, EntityType.EvmRollup>
+		selector: EntitySelector<typeof schema, EntityType.EvmRollup>
 		open?: boolean
 		layout?: EntityLayout
 		title?: string
 	} = $props()
 
 	const rollup = subscribe(EntityType.EvmRollup,
-		entityId,
+		selector,
 		(
 			open ?
 				{
@@ -57,7 +57,7 @@
 
 <EntityView
 	entityType={EntityType.EvmRollup}
-	{entityId}
+	entitySelector={selector}
 	{layout}
 	bind:open
 	{title}
@@ -106,7 +106,7 @@
 							<dt>Settlement network</dt>
 							<dd>
 								<EvmNetworkView
-									entityId={rollup.fields.$settlementNetwork[EntityMetaKey.Id]}
+									selector={rollup.fields.$settlementNetwork[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

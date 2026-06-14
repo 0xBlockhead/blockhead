@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -10,8 +10,8 @@
 
 	// State
 	let {
-		entityId,
-		href = getEvmTopicPath(entityId.hex),
+		selector,
+		href = getEvmTopicPath(selector.hex),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -23,7 +23,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmTopic>
+			selector: EntitySelector<typeof schema, EntityType.EvmTopic>
 			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
@@ -40,7 +40,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const topic = subscribe(EntityType.EvmTopic,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Openchain_Rest,
 			], fields: { ...(open && ({ signatures: true })) } }),
@@ -56,7 +56,7 @@
 
 <EntityView
 	entityType={EntityType.EvmTopic}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -65,7 +65,7 @@
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.hex}
+			{selector.hex}
 		</span>
 	{/snippet}
 
@@ -75,7 +75,7 @@
 			placeholderText="Loading log topic…"
 		>
 			{#snippet children(topic)}
-				{topic.fields.signatures?.[0] ?? entityId.hex}
+				{topic.fields.signatures?.[0] ?? selector.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,7 +101,7 @@
 							<dt>Topic</dt>
 						<dd>
 							<TruncatedValue
-								value={entityId.hex}
+								value={selector.hex}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</dd>

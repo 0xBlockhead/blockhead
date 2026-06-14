@@ -72,7 +72,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Local_Internal,
@@ -97,7 +97,7 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BlockheadSharedAddress}
-				getKey={(envelope) => envelope.value[EntityMetaKey.Id].id}
+				getKey={(envelope) => envelope.value[EntityMetaKey.Selector].id}
 				getSortValue={(envelope) => -(envelope.value.sharedAt ?? 0)}
 				id={`${id}-items`}
 				resource={contacts}
@@ -113,7 +113,7 @@
 
 				{#snippet Item({ item })}
 					<ContactView
-						entityId={item.value[EntityMetaKey.Id]}
+						selector={item.value[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -22,7 +22,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		id = 'ens-text-records',
 		open = $bindable(true),
 		collapsible = true,
@@ -32,7 +32,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EnsName>
+			selector: EntitySelector<typeof schema, EntityType.EnsName>
 			id?: string
 			open?: boolean
 			excludeRecordKeys?: readonly string[]
@@ -59,7 +59,7 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	const ens = subscribe(EntityType.EnsName,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Voltaire_JsonRpc,
 				Source.TheGraph_Graphql,
@@ -149,7 +149,7 @@
 			<a
 				data-link
 				href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/(records)/record/[recordId]', {
-					ensName: entityId.name,
+					ensName: selector.name,
 					recordId: item,
 				})}
 			>

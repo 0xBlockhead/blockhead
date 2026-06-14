@@ -4,7 +4,7 @@
 			params,
 		} = $props()
 
-		const entityId = $derived(
+		const entitySelector = $derived(
 			decodeURIComponent(params.did).startsWith('did:') ?
 				{ did: decodeURIComponent(params.did) }
 			:
@@ -20,6 +20,6 @@
 
 	<Page>
 		<AtprotoActorView
-			{entityId}
+			selector={selector}
 		/>
 	</Page>

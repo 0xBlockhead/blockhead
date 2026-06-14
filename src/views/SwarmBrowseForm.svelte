@@ -1,15 +1,15 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
 	let {
-		entityId,
+		selector,
 	}: {
-		entityId?: EntityId<typeof schema, EntityType.SwarmResource>
+		selector?: EntitySelector<typeof schema, EntityType.SwarmResource>
 	} = $props()
 
 
@@ -49,14 +49,14 @@
 	const resourceHref = ({
 		reference,
 		contentPath,
-	}: EntityId<typeof schema, EntityType.SwarmResource>) => (
+	}: EntitySelector<typeof schema, EntityType.SwarmResource>) => (
 		`/swarm/${encodeURIComponent(reference)}${contentPath === '' ? '' : `/path/${contentPath.split('/').map(encodeURIComponent).join('/')}`}`
 	)
 
 	const resourceCanonicalUri = ({
 		reference,
 		contentPath,
-	}: EntityId<typeof schema, EntityType.SwarmResource>) => (
+	}: EntitySelector<typeof schema, EntityType.SwarmResource>) => (
 		`bzz://${reference}${contentPath === '' ? '' : `/${contentPath}`}`
 	)
 
@@ -157,7 +157,7 @@
 			name="target"
 			type="text"
 			placeholder="bzz://..."
-			value={entityId === undefined ? '' : `bzz://${entityId.reference}`}
+			value={selector === undefined ? '' : `bzz://${selector.reference}`}
 		/>
 	</div>
 
@@ -173,7 +173,7 @@
 			name="path"
 			type="text"
 			placeholder="metadata.json"
-			value={entityId?.contentPath ?? ''}
+			value={selector?.contentPath ?? ''}
 		/>
 	</div>
 

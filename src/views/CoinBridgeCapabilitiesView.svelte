@@ -77,7 +77,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: (
+				entityFieldReference.selector,({ sources: (
 						entityFieldReference.entityType === EntityType.Coin ?
 							[
 								Source.Constants_Internal,
@@ -117,8 +117,8 @@
 				entityType={EntityType.CoinBridgeCapability}
 				{title}
 				open={true}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
 				resource={capabilities}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -130,7 +130,7 @@
 
 				{#snippet Item({ item: envelope })}
 					<CoinBridgeCapabilityView
-						entityId={envelope.value[EntityMetaKey.Id]}
+						selector={envelope.value[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

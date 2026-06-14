@@ -2,11 +2,12 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
+import { ZeroGConsensusNetworkSelector } from '$/schema/ZeroGConsensusNetwork.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -23,12 +24,12 @@ export default {
 		defineResolver(Source.ZeroGChainScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnet(entityId)
+				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				assertZeroGMainnet(entitySelector)
 				return {
 					$consensusNetwork: {
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							consensusNetworkId: '0g-chain',
 						},
 					},
@@ -44,10 +45,10 @@ export default {
 		defineResolver(Source.ZeroGChainScan_Rest, {
 			entityType: EntityType.ZeroGConsensusNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnet(entityId.$network)
-				if (entityId.consensusNetworkId !== '0g-chain' && entityId.consensusNetworkId !== ('networkSlug' in entityId.$network ? entityId.$network.networkSlug : entityId.$network.caip2.reference)) {
-					throw new Error(`ZeroGChainScan_Rest: unsupported consensus network ${entityId.consensusNetworkId}`)
+				[ZeroGConsensusNetworkSelector.NetworkConsensusNetworkId]: async ({ $network, consensusNetworkId }) => {
+				assertZeroGMainnet($network)
+				if (consensusNetworkId !== '0g-chain' && consensusNetworkId !== ('networkSlug' in $network ? $network.networkSlug : $network.caip2.reference)) {
+					throw new Error(`ZeroGChainScan_Rest: unsupported consensus network ${consensusNetworkId}`)
 				}
 				const { getInfo } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
 				return {

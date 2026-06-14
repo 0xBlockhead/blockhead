@@ -73,7 +73,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 						Source.Openchain_Rest,
 					], fields: { [entityFieldReference.fieldName]: {
@@ -97,8 +97,8 @@
 				open={true}
 				resource={topics}
 				placeholderText="Loading topics…"
-				getKey={(topic) => topic[EntityMetaKey.Id].hex}
-				getSortValue={(topic) => topic[EntityMetaKey.Id].hex}
+				getKey={(topic) => topic[EntityMetaKey.Selector].hex}
+				getSortValue={(topic) => topic[EntityMetaKey.Selector].hex}
 				placeholderKeys={new SvelteSet<string>()}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -109,9 +109,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const topicId = item[EntityMetaKey.Id]}
+					{@const topicId = item[EntityMetaKey.Selector]}
 					<EvmTopicView
-						entityId={topicId}
+						selector={topicId}
 						layout={EntityLayout.Summary}
 						open={false}
 						collapsible={false}

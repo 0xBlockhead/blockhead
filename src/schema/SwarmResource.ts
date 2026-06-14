@@ -1,5 +1,4 @@
 import { type } from 'arktype'
-import { lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
@@ -10,6 +9,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum SwarmResourceSelector {
+	ResourceAddress = 'resourceAddress',
+}
+
+
 // Gateway-backed Swarm object (BZZ root hash + optional manifest path). `reference` is the 32-byte content address (64 hex chars); encrypted refs can be longer.
 
 export default {
@@ -18,19 +22,11 @@ export default {
 	label: 'Swarm Resource',
 	labelPlural: 'Swarm Resources',
 
-	id: type({
-		reference: 'string',
-		contentPath: 'string',
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'resourceAddress',
+			name: SwarmResourceSelector.ResourceAddress,
 			fields: [
-				{
-					name: 'reference',
-					normalize: lowercaseHexIdentityValue,
-				},
+				'reference',
 				'contentPath',
 			],
 		},

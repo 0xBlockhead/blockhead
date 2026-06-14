@@ -3,8 +3,8 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EntityIdProjection } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
+import { EvmBlobSelector } from '$/schema/EvmBlob.ts'
 
 
 const blobscanChainId = async (network: { caip2: { reference: string } }) => {
@@ -20,7 +20,7 @@ const blobscanChainId = async (network: { caip2: { reference: string } }) => {
 	return chainId
 }
 
-const blobscanBlobDetail = async (entityId: {
+const blobscanBlobDetail = async ({ $network, blobIndex, txHash }: {
 	$network: { caip2: { reference: string } }
 	txHash: string
 	blobIndex: number
@@ -29,9 +29,9 @@ const blobscanBlobDetail = async (entityId: {
 		'$/sources/Blobscan/Rest/queries.ts'
 	)
 	return singleFlight(getBlobDetail)({
-		blobIndex: entityId.blobIndex,
-		chainId: await blobscanChainId(entityId.$network),
-		txHash: entityId.txHash,
+		blobIndex: blobIndex,
+		chainId: await blobscanChainId($network),
+		txHash: txHash,
 	})
 }
 
@@ -42,8 +42,8 @@ export default {
 		defineResolver(Source.Blobscan_Rest, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, _context) => {
-				return (await blobscanBlobDetail(entityId))?.blob?.commitment
+				[EvmBlobSelector.EvmNetworkTxHashBlobIndex]: async (entitySelector, _context) => {
+				return (await blobscanBlobDetail(entitySelector))?.blob?.commitment
 			}
 			}
 		})({
@@ -55,8 +55,8 @@ export default {
 		defineResolver(Source.Blobscan_Rest, {
 			entityType: EntityType.EvmBlob,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, _context) => {
-				return (await blobscanBlobDetail(entityId))?.blobDataStorage
+				[EvmBlobSelector.EvmNetworkTxHashBlobIndex]: async (entitySelector, _context) => {
+				return (await blobscanBlobDetail(entitySelector))?.blobDataStorage
 					?.flatMap((reference) => (
 						reference.storage != null && reference.reference != null ?
 							[{

@@ -25,12 +25,12 @@
 <EntitiesList entityType={EntityType.LightningPayment} {title} bind:open {id} href={href} {...EntitiesListProps}>
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType, entityFieldReference.entityId, ({ fields: { [entityFieldReference.fieldName]: { sources: [Source.LightningLnd_Rest], limit: 32 } } }))}
+			{@const parent = subscribe(entityFieldReference.entityType, entityFieldReference.selector, ({ fields: { [entityFieldReference.fieldName]: { sources: [Source.LightningLnd_Rest], limit: 32 } } }))}
 			{@const payments = derive(parent, (parent): readonly Entity<typeof schema, EntityType.LightningPayment>[] => (parent.fields[entityFieldReference.fieldName]?.values ?? []))}
-			<EntitiesList collapsible={false} showSummary={false} entityType={EntityType.LightningPayment} id={`${id}-lightning-payments`} href={href} getKey={(payment) => stringify(payment[EntityMetaKey.Id])} getSortValue={(payment) => stringify(payment[EntityMetaKey.Id])} open={true} resource={payments} {title} UnorderedListProps={{ orientation: ListOrientation.Column }}>
+			<EntitiesList collapsible={false} showSummary={false} entityType={EntityType.LightningPayment} id={`${id}-lightning-payments`} href={href} getKey={(payment) => stringify(payment[EntityMetaKey.Selector])} getSortValue={(payment) => stringify(payment[EntityMetaKey.Selector])} open={true} resource={payments} {title} UnorderedListProps={{ orientation: ListOrientation.Column }}>
 				{#snippet Empty()}<p data-text="muted">No payments listed yet.</p>{/snippet}
 				{#snippet Item(context)}
-					<LightningPaymentView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+					<LightningPaymentView selector={context!.item[EntityMetaKey.Selector]} layout={EntityLayout.Summary} open={false} />
 				{/snippet}
 			</EntitiesList>
 		{/if}

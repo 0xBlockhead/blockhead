@@ -65,7 +65,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ fields: {
+		entityFieldReference.selector,({ fields: {
 			[entityFieldReference.fieldName]: {
 				sources: [
 					Source.Snapchain_Rest,
@@ -93,8 +93,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(envelope) => envelope.value[EntityMetaKey.Id].fid}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].fid}
+				getKey={(envelope) => envelope.value[EntityMetaKey.Selector].fid}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].fid}
 				placeholderKeys={new SvelteSet<number>()}
 				placeholderText="Loading profiles…"
 				resource={users}
@@ -108,9 +108,9 @@
 					{/snippet}
 
 				{#snippet Item({ item })}
-						{@const userId = item.value[EntityMetaKey.Id]}
+						{@const userId = item.value[EntityMetaKey.Selector]}
 						<FarcasterUserView
-							entityId={{ fid: userId.fid }}
+							selector={{ fid: userId.fid }}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

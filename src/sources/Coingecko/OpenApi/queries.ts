@@ -10,7 +10,7 @@ import { throwHttpError } from '$/lib/http.ts'
 import type { CoinId } from '$/constants/Coin.ts'
 import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { MarketAssetKind, coingeckoOhlcDayWindowLengths } from '$/constants/Market.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import type { MarketVenueId } from '$/constants/MarketVenue.ts'
@@ -18,8 +18,8 @@ import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import {
 	catalogCoinIdByCoingeckoId,
-	marketEntityIdFromCoingeckoDerivativesExchangeTicker,
-	marketEntityIdFromCoingeckoSpotTicker,
+	marketEntitySelectorFromCoingeckoDerivativesExchangeTicker,
+	marketEntitySelectorFromCoingeckoSpotTicker,
 } from '$/sources/Coingecko/marketKind.ts'
 import { coingeckoOpenApiFetch } from '$/sources/Coingecko/OpenApi/client.ts'
 import {
@@ -182,7 +182,7 @@ export const getCoinTickers = async ({
 
 
 /** Spot venue markets for one catalog coin from exchange tickers. */
-export const collectSpotMarketEntityIdsForCoin = async ({
+export const collectSpotMarketEntitySelectorsForCoin = async ({
 	publicEnv,
 	catalogCoinId,
 	coingeckoId,
@@ -190,7 +190,7 @@ export const collectSpotMarketEntityIdsForCoin = async ({
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
 	catalogCoinId: CoinId
 	coingeckoId: string
-}): Promise<EntityId<typeof schema, EntityType.Market>[]> => {
+}): Promise<EntitySelector<typeof schema, EntityType.Market>[]> => {
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const catalogCoinIdByCoingeckoIdMap = catalogCoinIdByCoingeckoId(idByCoinId)
 	const tickers = await getCoinTickers({
@@ -200,7 +200,7 @@ export const collectSpotMarketEntityIdsForCoin = async ({
 	const seen = new Set<string>()
 	return (
 		tickers.flatMap((ticker) => {
-			const marketId = marketEntityIdFromCoingeckoSpotTicker(
+			const marketId = marketEntitySelectorFromCoingeckoSpotTicker(
 				ticker,
 				catalogCoinId,
 				catalogCoinIdByCoingeckoIdMap,
@@ -263,7 +263,7 @@ export const getDerivativesExchangeById = async ({
 
 
 /** @see https://docs.coingecko.com/reference/derivatives-exchanges-id */
-export const collectDerivativeMarketEntityIds = async ({
+export const collectDerivativeMarketEntitySelectors = async ({
 	publicEnv,
 	catalogCoinId,
 	marketVenueId,
@@ -271,7 +271,7 @@ export const collectDerivativeMarketEntityIds = async ({
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
 	catalogCoinId?: CoinId
 	marketVenueId?: MarketVenueId
-}): Promise<EntityId<typeof schema, EntityType.Market>[]> => {
+}): Promise<EntitySelector<typeof schema, EntityType.Market>[]> => {
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const catalogCoinIdByCoingeckoIdMap = catalogCoinIdByCoingeckoId(idByCoinId)
 	const seen = new Set<string>()
@@ -297,7 +297,7 @@ export const collectDerivativeMarketEntityIds = async ({
 							})
 							return (
 								(exchange?.tickers ?? []).flatMap((ticker) => {
-									const marketId = marketEntityIdFromCoingeckoDerivativesExchangeTicker(
+									const marketId = marketEntitySelectorFromCoingeckoDerivativesExchangeTicker(
 										ticker,
 										venueId,
 										catalogCoinIdByCoingeckoIdMap,

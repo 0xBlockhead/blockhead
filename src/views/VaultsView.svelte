@@ -54,7 +54,7 @@
 	bind:open
 	{collapsible}
 	data-entity-field-name={entityFieldReference.fieldName}
-	data-entity-field-parent={stringify(entityFieldReference.entityId)}
+	data-entity-field-parent={stringify(entityFieldReference.selector)}
 	data-entity-field-type={entityFieldReference.entityType}
 	entityType={EntityType.Vault}
 	{id}
@@ -88,7 +88,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 							limit: limit,
 					},
@@ -111,11 +111,11 @@
 				collapsible={false}
 				showSummary={false}
 				data-entity-field-name={entityFieldReference.fieldName}
-				data-entity-field-parent={stringify(entityFieldReference.entityId)}
+				data-entity-field-parent={stringify(entityFieldReference.selector)}
 				data-entity-field-type={entityFieldReference.entityType}
 				entityType={EntityType.Vault}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].id}
 				open={true}
 				resource={vaults}
 				{title}
@@ -129,7 +129,7 @@
 
 				{#snippet Item({ item })}
 					<VaultView
-						entityId={item.value[EntityMetaKey.Id]}
+						selector={item.value[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

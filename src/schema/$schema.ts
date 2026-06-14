@@ -1,11 +1,11 @@
-import { type as arktype } from 'arktype'
+import { type as arktype, type Type } from 'arktype'
 import { stringify } from 'devalue'
 
 export enum EntityMetaKey {
-	ParentId = '__parentId',
-	ParentIdKey = '__parentIdKey',
-	Id = '__id',
-	IdKey = '__idKey',
+	ParentSelector = '__parentSelector',
+	ParentSelectorKey = '__parentSelectorKey',
+	Selector = '__selector',
+	SelectorKey = '__selectorKey',
 	Source = '__source',
 	Fields = '__fields',
 	Value = '__value',
@@ -17,76 +17,26 @@ export enum EntityFieldType {
 	EntitiesReference = 'EntitiesReference',
 }
 
-export enum EntityFieldEntryKind {
-	Group = 'Group',
-}
-
-type SchemaType<_Value = unknown> = {
-	readonly infer: _Value
-	(data: unknown): _Value | InstanceType<typeof arktype.errors>
-}
+type SchemaType<_Value = unknown> = Type<_Value>
 
 export type EntityDefinition<
 	_EntityType extends string = string,
 	_Source extends string = string,
-	_EntityId extends object = object,
 > = {
 	readonly entityType: _EntityType
 	readonly label: string
 	readonly labelPlural: string
-	readonly id: SchemaType<_EntityId>
-	readonly lookups?: readonly EntityLookupDefinition[]
-	readonly identities?: readonly EntityIdentityDefinition[]
-	readonly fields: readonly EntityFieldEntry<_Source>[]
+	readonly selectors: readonly EntitySelectorDefinition[]
+	readonly fields: readonly EntityFieldDefinition<_Source>[]
 }
 
-export type EntityLookupDefinition = {
+export type EntitySelectorDefinition = {
 	readonly name: string
-	readonly fields: readonly EntityIdentityFieldDefinition[]
+	readonly fields: readonly string[]
 }
 
-export type EntityIdentityDefinition = {
-	readonly name: string
-	readonly fields: readonly EntityIdentityFieldDefinition[]
-}
-
-export type EntityIdentityFieldDefinition = (
-	| string
-	| {
-		readonly name: string
-		readonly as?: string
-		readonly normalize?: EntityIdentityValueNormalizer
-	}
-)
-
-export type EntityIdentityValueNormalizer = (
+export type EntityFieldValueNormalizer = (
 	(value: unknown) => unknown
-)
-
-export type EntityIdProjectionName = string
-
-export const EntityIdProjection = {
-	Identity: 'Identity',
-} as const
-
-const entityIdentityFieldName = (
-	field: EntityIdentityFieldDefinition,
-) => (
-	// oxlint-disable-next-line no-runtime-shape-guards/guards -- Schema identity config intentionally supports string shorthand field definitions.
-	typeof field === 'string' ?
-		field
-	:
-		field.name
-)
-
-const entityIdentityFieldKey = (
-	field: EntityIdentityFieldDefinition,
-) => (
-	// oxlint-disable-next-line no-runtime-shape-guards/guards -- Schema identity config intentionally supports string shorthand field definitions.
-	typeof field === 'string' ?
-		field
-	:
-		field.as ?? field.name
 )
 
 export enum EntityFieldCardinality {
@@ -140,8 +90,9 @@ export const entityFieldPrimitiveValueIsValid = (
 
 export type EntityFieldDefinition<_Source extends string = string> = (
 	& {
-		defaultSources?: _Source[]
+		defaultSources?: readonly _Source[]
 		when?: EntityFieldCondition
+		normalize?: EntityFieldValueNormalizer
 	}
 	& (
 		| {
@@ -154,61 +105,20 @@ export type EntityFieldDefinition<_Source extends string = string> = (
 			name: `$${string}`
 			type: EntityFieldType.EntityReference
 			entityType: string
-			entityId?: SchemaType
 			cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne
 		}
 		| {
 			name: `$$${string}`
 			type: EntityFieldType.EntitiesReference
 			entityType: string
-			entityId?: SchemaType
 			cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
 		}
 	)
 )
 
-export type EntityFieldGroupDefinition<_Source extends string = string> = {
-	readonly kind: EntityFieldEntryKind.Group
-	readonly when: EntityFieldCondition
-	readonly fields: readonly EntityFieldDefinition<_Source>[]
-}
-
-export type EntityFieldEntry<_Source extends string = string> = (
-	| EntityFieldDefinition<_Source>
-	| EntityFieldGroupDefinition<_Source>
-)
-
-export type EntityFieldDefinitionFromEntry<_Entry> = (
-	_Entry extends EntityFieldGroupDefinition ?
-		_Entry['fields'][number] & {
-			readonly when: _Entry['when']
-		}
-	:
-		_Entry
-)
-
 export type EntityFieldDefinitions<_EntityDefinition extends EntityDefinition> = (
-	EntityFieldDefinitionFromEntry<_EntityDefinition['fields'][number]>
+	_EntityDefinition['fields'][number]
 )
-
-export function entityFieldDefinitionsFromEntries<
-	const _Fields extends readonly EntityFieldEntry[],
->(
-	fields: _Fields,
-): readonly EntityFieldDefinitionFromEntry<_Fields[number]>[]
-export function entityFieldDefinitionsFromEntries(
-	fields: readonly EntityFieldEntry[],
-): readonly EntityFieldDefinition[] {
-	return fields.flatMap((entry) => {
-		if ('name' in entry)
-			return [entry]
-
-		return entry.fields.map((field) => ({
-			...field,
-			when: entry.when,
-		}))
-	})
-}
 
 export function entityFieldDefinitions<
 	const _EntityDefinition extends EntityDefinition,
@@ -218,17 +128,83 @@ export function entityFieldDefinitions<
 export function entityFieldDefinitions(
 	entityDefinition: EntityDefinition,
 ): readonly EntityFieldDefinition[] {
-	return entityFieldDefinitionsFromEntries(entityDefinition.fields)
+	return entityDefinition.fields
 }
-export type EntityIdFromDefinition<_EntityDefinition extends EntityDefinition> = (
-	_EntityDefinition['id']['infer']
+type EntitySelectorFieldValue<
+	_Schema extends Schema,
+	_EntityDefinition extends EntityDefinition,
+	_FieldName extends string,
+> = EntityFieldDefinitions<_EntityDefinition> extends infer _FieldDefinition ?
+	_FieldDefinition extends {
+		name: _FieldName
+		type: EntityFieldType.Primitive
+		primitiveType: infer _PrimitiveType
+	} ?
+		_PrimitiveType extends Type<infer _Value> ?
+			_Value
+		:
+			never
+	: _FieldDefinition extends {
+		name: _FieldName
+		type: EntityFieldType.EntityReference
+		entityType: infer _RefEntityType extends EntityType<_Schema>
+	} ?
+		EntitySelector<_Schema, _RefEntityType>
+	:
+		never
+:
+	never
+
+type EntitySelectorFromDefinition<
+	_Schema extends Schema,
+	_EntityDefinition,
+> = (
+	_EntityDefinition extends EntityDefinition & {
+		readonly selectors: infer _Selectors extends readonly EntitySelectorDefinition[]
+	} ?
+		_Selectors[number] extends infer _Selector ?
+			_Selector extends {
+				readonly fields: infer _Fields extends readonly string[]
+			} ?
+				{
+					readonly [
+						_FieldName in _Fields[number]
+					]: EntitySelectorFieldValue<_Schema, _EntityDefinition, _FieldName>
+				}
+			:
+				never
+		:
+			never
+	:
+		never
 )
 
-const entityIdentityObjectRecord = (
+export type EntitySelectorForSelectorName<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_SelectorName extends string,
+> = Extract<
+	EntityDefinitionForEntityType<_Schema, _EntityType>['selectors'][number],
+	{ readonly name: _SelectorName }
+> extends infer _Selector ?
+	_Selector extends {
+		readonly fields: infer _Fields extends readonly string[]
+	} ?
+		{
+			readonly [
+				_FieldName in _Fields[number]
+			]: EntitySelectorFieldValue<_Schema, EntityDefinitionForEntityType<_Schema, _EntityType>, _FieldName>
+		}
+	:
+		never
+:
+	never
+
+const entitySelectorObjectRecord = (
 	value: object,
 ): Record<string, unknown> => Object.fromEntries(Object.entries(value))
 
-const entityIdentityValue = (
+const entitySelectorValue = (
 	fieldName: string,
 	value: unknown,
 ) => (
@@ -236,161 +212,215 @@ const entityIdentityValue = (
 	&& value != null
 	&& typeof value === 'object'
 	&& !Array.isArray(value)
-	&& EntityMetaKey.Id in value ?
-		value[EntityMetaKey.Id]
+	&& EntityMetaKey.Selector in value ?
+		value[EntityMetaKey.Selector]
 	:
 		value
 )
 
-export const entityIdProjectionNames = (
-	entityDefinition: EntityDefinition,
-): readonly EntityIdProjectionName[] => [
-	EntityIdProjection.Identity,
-	...(entityDefinition.identities ?? []).map((identity) => identity.name),
-	...(entityDefinition.lookups ?? []).map((lookup) => lookup.name),
-]
-
-const entityIdHasOnlyKeys = (
-	entityId: Record<string, unknown>,
-	keys: readonly string[],
+const entitySelectorHasOnlyFields = (
+	entitySelector: Record<string, unknown>,
+	fields: readonly string[],
 ) => (
-	Object.keys(entityId).length === keys.length
-	&& keys.every((key) => key in entityId)
+	Object.keys(entitySelector).every((key) => fields.includes(key))
+	&& fields.every((field) => field in entitySelector)
 )
 
-export const entityIdProjectionNameForId = (
+const entitySelectorFieldDefinition = (
 	entityDefinition: EntityDefinition,
-	entityId: object,
-): EntityIdProjectionName | undefined => {
-	if (entityDefinition.id(entityId) instanceof arktype.errors)
-		return undefined
+	selectorField: string,
+) => {
+	const fieldDefinition = entityFieldDefinitions(entityDefinition)
+		.find((candidate) => candidate.name === selectorField)
+	if (fieldDefinition == null)
+		throw new Error(`${entityDefinition.entityType}: selector references unknown field ${selectorField}`)
 
-	const entityIdObject = entityIdentityObjectRecord(entityId)
-	const lookup = (entityDefinition.lookups ?? []).find((candidate) => (
-		entityIdHasOnlyKeys(
-			entityIdObject,
-			candidate.fields.map(entityIdentityFieldKey),
-		)
-	))
-	if (lookup != null)
-		return lookup.name
-
-	const identity = (entityDefinition.identities ?? []).find((candidate) => (
-		entityIdHasOnlyKeys(
-			entityIdObject,
-			candidate.fields.map(entityIdentityFieldKey),
-		)
-	))
-	if (identity != null)
-		return identity.name
-
-	return (
-		(entityDefinition.lookups ?? []).length === 0
-		&& (entityDefinition.identities ?? []).length === 0 ?
-			EntityIdProjection.Identity
-	:
-			undefined
-	)
+	return fieldDefinition
 }
 
-export const validateEntityId = (
-	entityDefinition: EntityDefinition,
-	entityId: object,
+const parseEntitySelectorFieldValue = (
+	schema: Schema,
+	fieldDefinition: EntityFieldDefinition,
+	value: unknown,
 ) => {
-	const entityIdProjectionName = entityIdProjectionNameForId(
-		entityDefinition,
-		entityId,
-	)
-	if (entityIdProjectionName == null)
-		throw new Error(`${entityDefinition.entityType}: invalid id ${stringify(entityId)}`)
+	if (fieldDefinition.type === EntityFieldType.Primitive)
+		return fieldDefinition.primitiveType(value)
+
+	if (fieldDefinition.type === EntityFieldType.EntityReference) {
+		const entityDefinition = schema.find((candidate) => candidate.entityType === fieldDefinition.entityType)
+		if (entityDefinition == null)
+			throw new Error(`Unknown referenced entity type ${fieldDefinition.entityType}`)
+
+		return parseEntitySelector(schema, entityDefinition, value)
+	}
+
+	return arktype('never')(value)
+}
+
+const parseNamedEntitySelector = <
+	const _Schema extends Schema,
+	const _EntityDefinition extends EntityDefinition,
+>(
+	schema: _Schema,
+	entityDefinition: _EntityDefinition,
+	selector: EntitySelectorDefinition,
+	entitySelector: object,
+): EntitySelectorFromDefinition<_Schema, _EntityDefinition> | InstanceType<typeof arktype.errors> => {
+	const entitySelectorObject = entitySelectorObjectRecord(entitySelector)
+	if (!entitySelectorHasOnlyFields(entitySelectorObject, selector.fields))
+		return arktype('never')(entitySelector)
+
+	const parsedEntries = selector.fields.flatMap((field) => {
+		if (!(field in entitySelectorObject))
+			return []
+
+		const fieldDefinition = entitySelectorFieldDefinition(entityDefinition, field)
+		const parsed = parseEntitySelectorFieldValue(
+			schema,
+			fieldDefinition,
+			entitySelectorValue(
+				field,
+				entitySelectorObject[field],
+			),
+		)
+		return parsed instanceof arktype.errors ?
+			[]
+		:
+			[[
+				field,
+				fieldDefinition.normalize == null ?
+					parsed
+				:
+					fieldDefinition.normalize(parsed),
+			] as const]
+	})
+
+	if (parsedEntries.length !== selector.fields.length)
+		return arktype('never')(entitySelector)
+
+	return Object.fromEntries(parsedEntries) as EntitySelectorFromDefinition<_Schema, _EntityDefinition>
+}
+
+export function parseEntitySelector<
+	const _Schema extends Schema,
+	const _EntityDefinition extends EntityDefinition,
+>(
+	schema: _Schema,
+	entityDefinition: _EntityDefinition,
+	value: unknown,
+): EntitySelectorFromDefinition<_Schema, _EntityDefinition> | InstanceType<typeof arktype.errors>
+export function parseEntitySelector(
+	schema: Schema,
+	entityDefinition: EntityDefinition,
+	value: unknown,
+): EntitySelectorFromDefinition<Schema, EntityDefinition> | InstanceType<typeof arktype.errors> {
+	if (value == null || typeof value !== 'object')
+		return arktype('never')(value)
+
+	for (const selector of entityDefinition.selectors) {
+		const parsed = parseNamedEntitySelector(schema, entityDefinition, selector, value)
+		if (!(parsed instanceof arktype.errors))
+			return parsed
+	}
+
+	return arktype('never')(value)
+}
+
+export const validateEntitySelector = (
+	schema: Schema,
+	entityDefinition: EntityDefinition,
+	entitySelector: object,
+) => {
+	const entitySelectorObject = entitySelectorObjectRecord(entitySelector)
+	const selector = entityDefinition.selectors.find((candidate) => (
+		entitySelectorHasOnlyFields(entitySelectorObject, candidate.fields)
+		&& !(parseNamedEntitySelector(schema, entityDefinition, candidate, entitySelector) instanceof arktype.errors)
+	))
+	if (selector == null)
+		throw new Error(`${entityDefinition.entityType}: invalid selector ${stringify(entitySelector)}`)
 
 	return {
-		name: entityIdProjectionName,
-		fields: (
-			entityIdProjectionName === EntityIdProjection.Identity ?
-				Object.keys(entityIdentityObjectRecord(entityId))
-			:
-				(
-					entityDefinition.identities ?? []
-				)
-					.find((identity) => identity.name === entityIdProjectionName)
-					?.fields
-					.map(entityIdentityFieldKey)
-				?? (
-					entityDefinition.lookups ?? []
-				)
-					.find((lookup) => lookup.name === entityIdProjectionName)
-					?.fields
-					.map(entityIdentityFieldKey)
-				?? []
-		),
+		name: selector.name,
+		fields: selector.fields,
 	}
 }
 
-export const entityIdKey = (
+export const entitySelectorKey = (
+	schema: Schema,
 	entityDefinition: EntityDefinition,
-	entityId: object,
-) => stringify(validateEntityId(entityDefinition, entityId).fields.reduce<{
+	entitySelector: object,
+) => stringify(validateEntitySelector(schema, entityDefinition, entitySelector).fields.reduce<{
 	readonly [_FieldName in string]: unknown
 }>(
-	(id, fieldName) => ({
-		...id,
-		[fieldName]: entityIdentityObjectRecord(entityId)[fieldName],
+	(selectorValue, fieldName) => ({
+		...selectorValue,
+		[fieldName]: entitySelectorObjectRecord(entitySelector)[fieldName],
 	}),
 	{},
 ))
 
-export const entityIdentityIdsFromFields = <const _EntityId extends object>(
-	entityDefinition: EntityDefinition<string, string, _EntityId>,
-	entityId: _EntityId,
+export const entitySelectorsFromFields = <
+	const _Schema extends Schema,
+	const _EntityDefinition extends EntityDefinition,
+>(
+	schema: _Schema,
+	entityDefinition: _EntityDefinition,
+	entitySelector: object,
 	fields: Partial<Record<string, unknown>>,
-): _EntityId[] => {
+): EntitySelectorFromDefinition<_Schema, _EntityDefinition>[] => {
 	const fieldValueByName = {
-		...entityIdentityObjectRecord(entityId),
+		...entitySelectorObjectRecord(entitySelector),
 		...fields,
 	}
-	const identityIds = [
-		entityId,
-		...(entityDefinition.identities ?? []).flatMap((identity) => {
-			const idValue = Object.fromEntries(
-				identity.fields.flatMap((field) => {
-					const fieldName = entityIdentityFieldName(field)
-					const fieldValue = entityIdentityValue(
-						fieldName,
-						fieldValueByName[fieldName],
+	const selectors = [
+		parseNamedEntitySelector(
+			schema,
+			entityDefinition,
+			validateEntitySelector(schema, entityDefinition, entitySelector),
+			entitySelector,
+		),
+		...entityDefinition.selectors.flatMap((selector) => {
+			const selectorValue = Object.fromEntries(
+				selector.fields.flatMap((field) => {
+					const fieldValue = entitySelectorValue(
+						field,
+						fieldValueByName[field],
 					)
-					return fieldValue === undefined ?
-						[]
-					:
-						[[
-							entityIdentityFieldKey(field),
-							// oxlint-disable-next-line no-runtime-shape-guards/guards -- Schema identity config intentionally supports string shorthand field definitions.
-							typeof field === 'string' || field.normalize == null ?
-								fieldValue
-							:
-								field.normalize(fieldValue),
-						]]
+					if (fieldValue === undefined)
+						return []
+
+					const fieldDefinition = entitySelectorFieldDefinition(entityDefinition, field)
+					return [[
+						field,
+						fieldDefinition.normalize == null ?
+							fieldValue
+						:
+							fieldDefinition.normalize(fieldValue),
+					]]
 				}),
 			)
 
-			if (Object.keys(idValue).length !== identity.fields.length)
+			if (Object.keys(selectorValue).length !== selector.fields.length)
 				return []
 
-			const identityId = entityDefinition.id(idValue)
-			return identityId instanceof arktype.errors ?
+			const parsed = parseNamedEntitySelector(schema, entityDefinition, selector, selectorValue)
+			return parsed instanceof arktype.errors ?
 				[]
 			:
-				[identityId]
+				[parsed]
 		}),
 	]
-	const idKeys = new Set<string>()
-	return identityIds.flatMap((identityId) => {
-		const idKey = stringify(identityId)
-		if (idKeys.has(idKey))
+	const selectorKeys = new Set<string>()
+	return selectors.flatMap((selector) => {
+		if (selector instanceof arktype.errors)
 			return []
 
-		idKeys.add(idKey)
-		return [identityId]
+		const selectorKey = stringify(selector)
+		if (selectorKeys.has(selectorKey))
+			return []
+
+		selectorKeys.add(selectorKey)
+		return [selector]
 	})
 }
 
@@ -403,9 +433,7 @@ type NonConditionalScalarPrimitiveFieldName<
 	_Field extends {
 		name: infer _FieldName extends string
 		type: EntityFieldType.Primitive
-		primitiveType: {
-			infer: string | number
-		}
+		primitiveType: Type<string | number>
 	} ?
 		_FieldName
 	:
@@ -413,7 +441,7 @@ type NonConditionalScalarPrimitiveFieldName<
 :
 	never
 
-type NonConditionalArrayPrimitiveFieldName<
+type NonConditionalIndexedPrimitiveFieldName<
 	_Fields extends readonly EntityFieldDefinition[],
 > = Exclude<
 	_Fields[number],
@@ -422,11 +450,15 @@ type NonConditionalArrayPrimitiveFieldName<
 	_Field extends {
 		name: infer _FieldName extends string
 		type: EntityFieldType.Primitive
-		primitiveType: {
-			infer: readonly (string | number)[]
-		}
+		primitiveType: Type<string | number | readonly (string | number)[]>
+		cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne
 	} ?
-		_FieldName
+		_Field['cardinality'] extends EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany ?
+			_FieldName
+		: _Field['primitiveType'] extends Type<readonly (string | number)[]> ?
+			_FieldName
+		:
+			never
 	:
 		never
 :
@@ -439,9 +471,7 @@ type ScalarPrimitiveFieldValue<
 	_Field extends {
 		name: _FieldName
 		type: EntityFieldType.Primitive
-		primitiveType: {
-			infer: infer _Value extends string | number
-		}
+		primitiveType: Type<infer _Value extends string | number>
 	} ?
 		_Value
 	:
@@ -449,18 +479,25 @@ type ScalarPrimitiveFieldValue<
 :
 	never
 
-type ArrayPrimitiveFieldItemValue<
+type IndexedPrimitiveFieldItemValue<
 	_Fields extends readonly EntityFieldDefinition[],
 	_FieldName extends string,
 > = _Fields[number] extends infer _Field ?
 	_Field extends {
 		name: _FieldName
 		type: EntityFieldType.Primitive
-		primitiveType: {
-			infer: readonly (infer _Value extends string | number)[]
-		}
+		primitiveType: Type<infer _Value>
+		cardinality: EntityFieldCardinality
 	} ?
-		_Value
+		_Field['cardinality'] extends EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany ?
+			_Value extends string | number ?
+				_Value
+			:
+				never
+		: _Value extends readonly (infer _Item extends string | number)[] ?
+			_Item
+		:
+			never
 	:
 		never
 :
@@ -480,8 +517,8 @@ export function conditionalOn<
 }
 export function conditionalOn<
 	const _Fields extends readonly EntityFieldDefinition[],
-	const _FieldName extends NonConditionalArrayPrimitiveFieldName<_Fields>,
-	const _Values extends readonly ArrayPrimitiveFieldItemValue<_Fields, _FieldName>[],
+	const _FieldName extends NonConditionalIndexedPrimitiveFieldName<_Fields>,
+	const _Values extends readonly IndexedPrimitiveFieldItemValue<_Fields, _FieldName>[],
 	const _ItemIndex extends number,
 >(
 	_fields: _Fields,
@@ -512,85 +549,6 @@ export function conditionalOn(
 	}
 }
 
-export function conditionalFieldGroup<
-	const _Fields extends readonly EntityFieldDefinition[],
-	const _FieldName extends NonConditionalScalarPrimitiveFieldName<_Fields>,
-	const _Values extends readonly ScalarPrimitiveFieldValue<_Fields, _FieldName>[],
-	const _ConditionalFields extends readonly EntityFieldDefinition[],
->(
-	fields: _Fields,
-	fieldName: _FieldName,
-	values: _Values,
-	conditionalFields: _ConditionalFields,
-): {
-	readonly kind: EntityFieldEntryKind.Group
-	readonly when: {
-		readonly fieldName: _FieldName
-		readonly values: _Values
-	}
-	readonly fields: _ConditionalFields
-}
-export function conditionalFieldGroup<
-	const _Fields extends readonly EntityFieldDefinition[],
-	const _FieldName extends NonConditionalArrayPrimitiveFieldName<_Fields>,
-	const _Values extends readonly ArrayPrimitiveFieldItemValue<_Fields, _FieldName>[],
-	const _ItemIndex extends number,
-	const _ConditionalFields extends readonly EntityFieldDefinition[],
->(
-	fields: _Fields,
-	fieldName: _FieldName,
-	values: _Values,
-	options: {
-		itemIndex: _ItemIndex
-	},
-	conditionalFields: _ConditionalFields,
-): {
-	readonly kind: EntityFieldEntryKind.Group
-	readonly when: {
-		readonly fieldName: _FieldName
-		readonly itemIndex: _ItemIndex
-		readonly values: _Values
-	}
-	readonly fields: _ConditionalFields
-}
-export function conditionalFieldGroup(
-	_fields: readonly EntityFieldDefinition[],
-	fieldName: string,
-	values: readonly (string | number)[],
-	optionsOrConditionalFields: {
-		itemIndex: number
-	} | readonly EntityFieldDefinition[],
-	conditionalFields?: readonly EntityFieldDefinition[],
-) {
-	if (conditionalFields == null) {
-		if ('itemIndex' in optionsOrConditionalFields)
-			throw new Error('conditionalFieldGroup: missing conditional fields')
-
-		return {
-			kind: EntityFieldEntryKind.Group,
-			when: {
-				fieldName,
-				values,
-			},
-			fields: optionsOrConditionalFields,
-		}
-	}
-
-	if (!('itemIndex' in optionsOrConditionalFields))
-		throw new Error('conditionalFieldGroup: missing item index')
-
-	return {
-		kind: EntityFieldEntryKind.Group,
-		when: {
-			fieldName,
-			itemIndex: optionsOrConditionalFields.itemIndex,
-			values,
-		},
-		fields: conditionalFields,
-	}
-}
-
-
 export type Schema = readonly EntityDefinition[]
 
 export type EntityType<_Schema extends Schema> = _Schema[number]['entityType']
@@ -600,10 +558,19 @@ export type EntityDefinitionForEntityType<
 	_EntityType extends EntityType<_Schema>,
 > = Extract<_Schema[number], { entityType: _EntityType }>
 
-export type EntityId<
+export type EntityDefinitionByType<_Schema extends Schema> = {
+	readonly [_EntityType in EntityType<_Schema>]: EntityDefinitionForEntityType<_Schema, _EntityType>
+}
+
+export type EntitySelector<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = EntityDefinitionForEntityType<_Schema, _EntityType>['id']['infer']
+> = EntitySelectorFromDefinition<_Schema, EntityDefinitionByType<_Schema>[_EntityType]>
+
+export type EntitySelectorName<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = EntityDefinitionForEntityType<_Schema, _EntityType>['selectors'][number]['name']
 
 export type EntityFieldName<
 	_Schema extends Schema,
@@ -697,7 +664,7 @@ export type EntityFieldDefinitionByName<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_FieldName extends EntityFieldName<_Schema, _EntityType>,
-> = Extract<EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>, { name: _FieldName }>
+> = Extract<EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>, { readonly name: _FieldName }>
 
 export type EntityFieldValue<
 	_Schema extends Schema,
@@ -714,8 +681,8 @@ export type EntityReferenceValue<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = {
-	readonly [EntityMetaKey.Id]: EntityId<_Schema, _EntityType>
-	readonly [EntityMetaKey.IdKey]: string
+	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
+	readonly [EntityMetaKey.SelectorKey]: string
 }
 
 export type EntityFieldSingleResolvedValue<
@@ -779,14 +746,14 @@ export type EntityFieldValueFromDefinition<
 		}[_EntityFieldDefinition['cardinality']]
 
 	:
-		_EntityFieldDefinition extends {
+	_EntityFieldDefinition extends {
 		type: EntityFieldType.EntityReference
 		entityType: infer _RefEntityType extends EntityType<_Schema>
 	} ?
 		{
 			[EntityFieldCardinality.Zero]: undefined
-			[EntityFieldCardinality.ZeroOrOne]: Entity<_Schema, _RefEntityType> | undefined
-			[EntityFieldCardinality.One]: Entity<_Schema, _RefEntityType>
+			[EntityFieldCardinality.ZeroOrOne]: EntityReferenceValue<_Schema, _RefEntityType> | undefined
+			[EntityFieldCardinality.One]: EntityReferenceValue<_Schema, _RefEntityType>
 		}[_EntityFieldDefinition['cardinality']]
 
 	:
@@ -796,8 +763,8 @@ export type EntityFieldValueFromDefinition<
 	} ?
 		{
 			[EntityFieldCardinality.Zero]: undefined
-			[EntityFieldCardinality.Many]: Entity<_Schema, _RefEntityType>[]
-			[EntityFieldCardinality.ZeroOrMany]: Entity<_Schema, _RefEntityType>[] | undefined
+			[EntityFieldCardinality.Many]: EntityReferenceValue<_Schema, _RefEntityType>[]
+			[EntityFieldCardinality.ZeroOrMany]: EntityReferenceValue<_Schema, _RefEntityType>[] | undefined
 		}[_EntityFieldDefinition['cardinality']]
 
 	:
@@ -833,10 +800,26 @@ export type EntityFieldValues<
 export type Entity<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = {
-	[EntityMetaKey.Id]: EntityId<_Schema, _EntityType>
-	[EntityMetaKey.Fields]?: Partial<EntityFieldValues<_Schema, _EntityType>>
-} & Partial<EntityFieldValues<_Schema, _EntityType>>
+> = (
+	& {
+		[EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
+		[EntityMetaKey.Fields]?: Partial<EntityFieldValues<_Schema, _EntityType>>
+	}
+	& Partial<EntityFieldValues<_Schema, _EntityType>>
+)
+
+export type EntityFieldDefinitionByEntityTypeAndName<_Schema extends Schema> = {
+	readonly [_EntityType in EntityType<_Schema>]: (
+		& {
+			readonly [fieldName: string]: EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>> | undefined
+		}
+		& {
+			readonly [
+				_FieldName in EntityFieldName<_Schema, _EntityType>
+			]: EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName>
+		}
+	)
+}
 
 export const indexSchema = <const _Schema extends Schema>(
 	schema: _Schema,
@@ -844,12 +827,12 @@ export const indexSchema = <const _Schema extends Schema>(
 	entityDefinitionByType: Object.fromEntries(schema.map((entityDefinition) => [
 		entityDefinition.entityType,
 		entityDefinition,
-	])),
+	])) as EntityDefinitionByType<_Schema>,
 	entityFieldDefinitionByEntityTypeAndName: Object.fromEntries(schema.map((entityDefinition) => [
 		entityDefinition.entityType,
 		Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
 			fieldDefinition.name,
 			fieldDefinition,
 		])),
-	])),
+	])) as EntityFieldDefinitionByEntityTypeAndName<_Schema>,
 })

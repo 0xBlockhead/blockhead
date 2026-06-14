@@ -15,7 +15,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
@@ -44,14 +43,11 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
-
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MarketPriceView from '$/views/MarketPriceView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -80,7 +76,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const market = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						...marketCatalogFieldSources,
 					], fields: { [entityFieldReference.fieldName]: {
 						sources: marketSpotPriceSources,
@@ -88,17 +84,31 @@
 					},
 				} }),
 			)}
-			{@const prices = derive(
-				market,
-				(market) => {
-					const marketPrices: readonly Entity<typeof schema, EntityType.MarketPrice>[] = (
+			<ResourceBoundary
+				resource={market}
+			>
+				{#snippet children(market)}
+					{@const marketPrices: readonly Entity<typeof schema, EntityType.MarketPrice>[] = (
 						market.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						Object.values(
+					)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.MarketPrice}
+						getKey={(row) => stringify(
+							row.value[EntityMetaKey.Selector],
+						)}
+						getSortValue={(row) => (
+							row.value[EntityMetaKey.Selector].$market.$base.kind === MarketAssetKind.Coin ?
+								row.value[EntityMetaKey.Selector].$market.$base.$coin.coinId
+							:
+								''
+						)}
+						open={true}
+						items={Object.values(
 							Object.groupBy(
 								marketPrices,
-								(price) => stringify(price[EntityMetaKey.Id]),
+								(price) => stringify(price[EntityMetaKey.Selector]),
 							),
 						)
 							.flatMap((group) => (
@@ -109,44 +119,27 @@
 							))
 							.map((value) => ({
 								value,
-							}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.MarketPrice}
-				getKey={(row) => stringify(
-					row.value[EntityMetaKey.Id],
-				)}
-				getSortValue={(row) => (
-					row.value[EntityMetaKey.Id].$market.$base.kind === MarketAssetKind.Coin ?
-						row.value[EntityMetaKey.Id].$market.$base.$coin.coinId
-					:
-						''
-				)}
-				placeholderKeys={new SvelteSet<string | number>()}
-				open={true}
-				resource={prices}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No spot or index quotes in this context yet.
-					</p>
-				{/snippet}
+							}))}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No spot or index quotes in this context yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					<MarketPriceView
-						entityId={item.value[EntityMetaKey.Id]}
-						id={stringify(item.value[EntityMetaKey.Id])}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<MarketPriceView
+								selector={item.value[EntityMetaKey.Selector]}
+								id={stringify(item.value[EntityMetaKey.Selector])}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

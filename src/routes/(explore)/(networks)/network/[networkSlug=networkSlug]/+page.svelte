@@ -13,7 +13,7 @@
 
 <Page>
 	<NetworkView
-		entityId={{
+		selector={{
 			networkSlug: params.networkSlug,
 		}}
 	/>

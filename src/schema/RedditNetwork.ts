@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum RedditNetworkSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.RedditNetwork,
 
 	label: 'Reddit network',
 	labelPlural: 'Reddit networks',
 
-	id: type({
-		scope: type.unit('RedditNetwork'),
-	}),
+	selectors: [
+		{
+			name: RedditNetworkSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('RedditNetwork'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

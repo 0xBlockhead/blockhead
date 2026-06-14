@@ -3,8 +3,8 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EntityIdProjection } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
+import { BeaconEpochSelector } from '$/schema/BeaconEpoch.ts'
 
 export default {
 	source: Source.BeaconchaIn_Rest,
@@ -13,7 +13,7 @@ export default {
 		defineResolver(Source.BeaconchaIn_Rest, {
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[BeaconEpochSelector.EvmNetworkEpoch]: async ({ $network, epoch: epochSelector }, context) => {
 				const {
 					beaconchaInApiBaseByExecutionChainId,
 				} = await import('$/sources/BeaconchaIn/Rest/constants.ts')
@@ -23,12 +23,12 @@ export default {
 				const epoch = await singleFlight(getEpoch)(
 					context.publicEnv,
 					{
-						apiBase: beaconchaInApiBaseByExecutionChainId[Number(entityId.$network.caip2.reference)],
-						epoch: entityId.epoch,
+						apiBase: beaconchaInApiBaseByExecutionChainId[Number($network.caip2.reference)],
+						epochSelector: epochSelector,
 					},
 				)
 				if (epoch == null) {
-					throw new Error(`BeaconchaIn_Rest: epoch ${String(entityId.epoch)} not found`)
+					throw new Error(`BeaconchaIn_Rest: epoch ${String(epoch)} not found`)
 				}
 				return {
 					...(epoch.finalized != null && { finalized: epoch.finalized }),

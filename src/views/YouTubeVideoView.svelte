@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -18,9 +18,9 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(youtube)/youtube/video/[videoId]', {
-			videoId: entityId.videoId,
+			videoId: selector.videoId,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -29,7 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.YouTubeVideo>
+			selector: EntitySelector<typeof schema, EntityType.YouTubeVideo>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -41,7 +41,7 @@
 	> = $props()
 
 	const video = subscribe(EntityType.YouTubeVideo,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
@@ -54,7 +54,7 @@
 						] }) }) : ({  })) } }),
 	)
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 
 	// Components
@@ -75,7 +75,7 @@
 
 <EntityView
 	entityType={EntityType.YouTubeVideo}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -87,7 +87,7 @@
 				{#if video.fields.thumbnailUrl}
 					<IconComponent
 						src={video.fields.thumbnailUrl}
-						alt={video.fields.title ?? entityId.videoId}
+						alt={video.fields.title ?? selector.videoId}
 					/>
 				{/if}
 			{/snippet}
@@ -96,7 +96,7 @@
 
 	{#snippet Value()}
 		<span>
-			{entityId.videoId}
+			{selector.videoId}
 		</span>
 	{/snippet}
 
@@ -106,7 +106,7 @@
 			placeholderText="Loading video…"
 		>
 			{#snippet children(video)}
-				{video.fields.title ?? entityId.videoId}
+				{video.fields.title ?? selector.videoId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -267,7 +267,7 @@
 							{#snippet children(video)}
 								{#if video.fields.$author}
 									<YouTubeChannelView
-										entityId={video.fields.$author[EntityMetaKey.Id]}
+										selector={video.fields.$author[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -342,11 +342,11 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve(
 						'/(social)/(youtube)/youtube/video/[videoId]/(video)/comments',
-						{ videoId: encodeURIComponent(entityId.videoId) },
+						{ videoId: encodeURIComponent(selector.videoId) },
 					)}
 					entityFieldReference={{
 						entityType: EntityType.YouTubeVideo,
-						entityId,
+						selector,
 						fieldName: '$$comments',
 					}}
 					id={`${idKey}:youtube-comments`}
@@ -358,7 +358,7 @@
 				<YouTubeVideo_TimestampsView
 					entityFieldReference={{
 						entityType: EntityType.YouTubeVideo,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					href={href}

@@ -4,11 +4,12 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
+import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
 
 /**
  * Transport-only lane for DeFiLlama **Pro** REST (`getProCurrentPrices` in `$/sources/Defillama/Rest/queries.ts`).
@@ -21,21 +22,17 @@ export default {
 		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				if (entityId.$market.marketKind !== MarketKind.Spot) {
+				[Market_TimestampSelector.MarketTimestampMsFeedKey]: async ({ $market, feedKey, timestampMs: timestampMsSelector }, context) => {
+				if ($market.marketKind !== MarketKind.Spot) {
 					throw new Error('Defillama_Rest: Market_Timestamp is spot-only')
 				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 					const { getProCurrentPrices } = await import('$/sources/Defillama/Rest/queries.ts')
 					const apiKey = context.publicEnv.PUBLIC_DEFILLAMA_PRO_API_KEY
-					if (entityId.$market.$base.kind !== MarketAssetKind.Coin)
+					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Defillama_Rest: Market_Timestamp base asset is not a coin')
 
-					const llamaId = (
-						entityId.feedKey?.trim()
-						?? defillamaCurrentPriceIdByCoinId[entityId.$market.$base.$coin.coinId]
-				)
-				if (llamaId == null) throw new Error('Defillama_Rest: no price id')
+					const llamaId = feedKey.trim()
 				const priceRow = (
 					await getProCurrentPrices({
 						apiKey,
@@ -43,7 +40,7 @@ export default {
 					})
 				).coins[llamaId]
 				const timestampMs = priceRow.timestamp * 1000
-				if (entityId.timestampMs !== timestampMs) {
+				if (timestampMs !== timestampMsSelector) {
 					throw new Error('Defillama_Rest: Market_Timestamp id does not match price clock')
 				}
 				return {
@@ -64,32 +61,21 @@ export default {
 		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				if (entityId.$market.marketKind !== MarketKind.Spot) {
+				[MarketPriceSelector.Market]: async ({ $market }, context) => {
+				if ($market.marketKind !== MarketKind.Spot) {
 					throw new Error('Defillama_Rest: MarketPrice $$quotes is spot-only')
 				}
 					const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 					const { getProCurrentPrices } = await import('$/sources/Defillama/Rest/queries.ts')
 					const apiKey = context.publicEnv.PUBLIC_DEFILLAMA_PRO_API_KEY
-					if (entityId.$market.$base.kind !== MarketAssetKind.Coin)
+					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Defillama_Rest: MarketPrice base asset is not a coin')
 
-					const coinId = entityId.$market.$base.$coin.coinId
-				const llamaId = (
-					entityId.feedKey?.trim()
-					?? (
-						entityId.$network != null ?
-							(
-								coinId === CoinId.ETH && entityId.$network.caip2.reference === '1' ?
-									defillamaCurrentPriceIdByCoinId[CoinId.ETH]
-								:
-									undefined
-							)
-					:
-						defillamaCurrentPriceIdByCoinId[coinId]
-					)
-				)
-				if (llamaId == null) throw new Error('Defillama_Rest: no price id')
+					const coinId = $market.$base.$coin.coinId
+				const llamaId = defillamaCurrentPriceIdByCoinId[coinId]
+				if (llamaId == null)
+					return []
+
 				const priceRow = (
 					await getProCurrentPrices({
 						apiKey,
@@ -98,8 +84,8 @@ export default {
 				).coins[llamaId]
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$market: entityId.$market,
+						[EntityMetaKey.Selector]: {
+							$market: $market,
 							timestampMs: priceRow.timestamp * 1000,
 							...(llamaId !== '' && { feedKey: llamaId }),
 						},
@@ -116,8 +102,8 @@ export default {
 		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => ({
-				[EntityMetaKey.Id]: entityId.$market,
+				[MarketPriceSelector.Market]: async ({ $market }) => ({
+				[EntityMetaKey.Selector]: $market,
 			})
 			}
 		})({

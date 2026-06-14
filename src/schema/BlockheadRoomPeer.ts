@@ -7,17 +7,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadRoomPeerSelector {
+	Id = 'id',
+}
+
 export default {
 	entityType: EntityType.BlockheadRoomPeer,
 
 	label: 'Room Peer',
 	labelPlural: 'Room Peers',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: BlockheadRoomPeerSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$room',
 			type: EntityFieldType.EntityReference,

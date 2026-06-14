@@ -8,8 +8,8 @@ import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	entityFieldDefinitions,
-	entityIdProjectionNameForId,
 	EntityMetaKey,
+	validateEntitySelector,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
@@ -17,34 +17,49 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { entityDefinitionByType } from '$/schema/index.ts'
 import { schema } from '$/schema/index.ts'
 import {
-	resolverDefinitions,
-	resolverCountPartsByEntityTypeAndFieldName,
-	resolverDiscriminatorPartsByEntityTypeAndConditionKey,
-	resolverLivePartsByEntityTypeAndFieldName,
-	resolverRootLivePartsByEntityType,
-	resolverValuePartsByEntityTypeAndFieldName,
-} from '$/resolvers/index.ts'
-import type { ResolverContext } from '$/resolvers/$resolvers.ts'
+	indexResolvers,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
+import { resolvers } from '$/resolvers/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
-	EntityId,
+	EntitySelector,
 	EntityType as SchemaEntityType,
 } from '$/schema/$schema.ts'
-import { resolverPublicEnvBySource } from '$/sources/index.ts'
+import { env as publicEnv } from '$env/dynamic/public'
+import { indexSourceProviders } from '$/sources/$sources.ts'
+import { sourceProviders } from '$/sources/index.ts'
 
 import {
 	assertLoadedResolverProbeCategories,
 	classifyAssertLoadedResolverProbeCase,
 	entityFieldValueForAssert,
 	isExpectedAssertLoadedResolverProbeFailure,
-	parentEntityIdForResolverValuePart,
-	probeEntityIdByType,
-	resolveProbeEntityId,
+	parentEntitySelectorForResolverValuePart,
+	probeEntitySelectorByType,
+	resolveProbeEntitySelector,
 	type AssertLoadedResolverProbeCategory,
 	type AssertLoadedResolverProbeCategoryBucket,
 	type AssertLoadedResolverProbeCategorySummary,
 } from './_fixtures.ts'
 
+const {
+	enabledSources,
+	resolverPublicEnvBySource,
+} = indexSourceProviders(sourceProviders, publicEnv)
+
+const {
+	resolverDefinitions,
+	resolverCountPartsByEntityTypeAndFieldName,
+	resolverDiscriminatorPartsByEntityTypeAndConditionKey,
+	resolverLivePartsByEntityTypeAndFieldName,
+	resolverRootLivePartsByEntityType,
+	resolverValuePartsByEntityTypeAndFieldName,
+} = indexResolvers(
+	schema,
+	resolvers,
+	enabledSources,
+)
 
 const resolverContext = {
 	filters: [],
@@ -52,8 +67,8 @@ const resolverContext = {
 	pagination: {
 		limit: 20,
 	},
-	identityKeys: [],
-	parentIdentityKeys: [],
+	selectorKeys: [],
+	parentSelectorKeys: [],
 	sources: [],
 	publicEnv: {},
 } satisfies ResolverContext
@@ -62,7 +77,7 @@ const probeTimeoutMs = 30_000
 
 const withProbeTimeout = async <_Value>(
 	key: string,
-	resolve: () => Promise<_Value>,
+	resolve: () => _Value | Promise<_Value>,
 ) => {
 	let timeoutId: ReturnType<typeof setTimeout> | undefined
 
@@ -82,27 +97,6 @@ const withProbeTimeout = async <_Value>(
 	}
 }
 
-type ProbeResolverDefinition<_EntityType extends SchemaEntityType<typeof schema>> = {
-	index: number
-	entityType: _EntityType
-	source: Source
-	resolve: Partial<Record<string, (
-		entityId: EntityId<typeof schema, _EntityType>,
-		context: ResolverContext,
-	) => Promise<unknown>>>
-}
-
-type ProbeResolverValuePart<_EntityType extends SchemaEntityType<typeof schema>> = {
-	index: number
-	entityType: _EntityType
-	fieldName: string
-	source: Source
-	resolve(
-		scopedEntityId: EntityId<typeof schema, _EntityType>,
-		context: ResolverContext,
-	): Promise<unknown>
-}
-
 const resolverDefinitionProbes = resolverDefinitions.map((resolver, index) => ({
 	...resolver,
 	index,
@@ -120,29 +114,29 @@ const resolverValuePartProbes = Object.values(resolverValuePartsByEntityTypeAndF
 					fieldName: part.fieldName,
 					source: part.source,
 					resolve: async (
-						entityId: EntityId<typeof schema, SchemaEntityType<typeof schema>>,
+						entitySelector: EntitySelector<typeof schema, SchemaEntityType<typeof schema>>,
 						context: ResolverContext,
-				) => {
-					const projectionName = entityIdProjectionNameForId(
+					) => {
+					const selectorName = validateEntitySelector(
+						schema,
 						entityDefinitionByType[part.entityType],
-						entityId,
-					)
+						entitySelector,
+					).name
 					if (
-						projectionName == null
-						|| !(
+						!(
 							part.parentSelectors
 							?? Object.keys(part.resolver.resolve)
-						).includes(projectionName)
-						|| part.resolver.resolve[projectionName] == null
+						).includes(selectorName)
+						|| part.resolver.resolve[selectorName] == null
 					)
-						throw new Error(`resolver probe skipped unsupported parent ${stringify(entityId)}`)
+						throw new Error(`resolver probe skipped unsupported parent ${stringify(entitySelector)}`)
 
 					return part.select!(
-						await part.resolver.resolve[projectionName](
-							entityId,
+						await part.resolver.resolve[selectorName](
+							entitySelector,
 							context,
 						),
-						entityId,
+						entitySelector,
 						context,
 					)
 				},
@@ -267,22 +261,20 @@ const fieldResolvePayloadEmptyForProbe = (
 export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResolverProbeResult> => {
 	for (const resolver of resolverDefinitionProbes) {
 		if (
-			probeEntityIdByType[resolver.entityType] === undefined
+			probeEntitySelectorByType[resolver.entityType] === undefined
 			&& resolver.entityType !== EntityType.Coin_Timestamp
 		) {
 			throw new Error(
-				`Missing probeEntityIdByType[${resolver.entityType}] (${resolver.source})`,
+				`Missing probeEntitySelectorByType[${resolver.entityType}] (${resolver.source})`,
 			)
 		}
 	}
 
 	const entityCases = await Promise.all(
-		resolverDefinitionProbes.map(async (resolver: ProbeResolverDefinition<
-			SchemaEntityType<typeof schema>
-		>) => {
-			let entityId: Awaited<ReturnType<typeof resolveProbeEntityId>>
+		resolverDefinitionProbes.map(async (resolver) => {
+			let entitySelector: Awaited<ReturnType<typeof resolveProbeEntitySelector>>
 			try {
-				entityId = await resolveProbeEntityId(resolver.entityType)
+				entitySelector = await resolveProbeEntitySelector(resolver.entityType)
 			} catch (error) {
 				return finalizeProbeCase({
 					kind: 'entity',
@@ -302,20 +294,20 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 
 			let fields: unknown
 			try {
-				const projectionName = entityIdProjectionNameForId(
+				const selectorName = validateEntitySelector(
+					schema,
 					entityDef,
-					entityId,
-				)
+					entitySelector,
+				).name
 				if (
-					projectionName == null
-					|| resolver.resolve[projectionName] == null
+					resolver.resolve[selectorName] == null
 				)
-					throw new Error(`resolver probe skipped unsupported entity ${stringify(entityId)}`)
+					throw new Error(`resolver probe skipped unsupported entity ${stringify(entitySelector)}`)
 
 				fields = await withProbeTimeout(
 					key,
-					() => resolver.resolve[projectionName]!(
-						entityId,
+					() => resolver.resolve[selectorName]!(
+						entitySelector,
 						{
 							...resolverContext,
 							publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
@@ -354,8 +346,8 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 					:
 						{}
 				),
-				[EntityMetaKey.Id]: entityId,
-				[EntityMetaKey.IdKey]: stringify(entityId),
+				[EntityMetaKey.Selector]: entitySelector,
+				[EntityMetaKey.SelectorKey]: stringify(entitySelector),
 				[EntityMetaKey.Source]: resolver.source,
 				[EntityMetaKey.Fields]: fields,
 			}
@@ -382,10 +374,8 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 	)
 
 	const fieldCases = await Promise.all(
-		resolverValuePartProbes.map(async (fieldResolver: ProbeResolverValuePart<
-			SchemaEntityType<typeof schema>
-		>) => {
-			const parentEntityId = parentEntityIdForResolverValuePart(fieldResolver.entityType)
+		resolverValuePartProbes.map(async (fieldResolver) => {
+			const parentEntitySelector = parentEntitySelectorForResolverValuePart(fieldResolver.entityType)
 			const entityDef = entityDefinitionByType[fieldResolver.entityType]
 			if (entityDef == null) {
 				throw new Error(`No entityDefinitionByType[${fieldResolver.entityType}]`)
@@ -409,7 +399,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 				raw = await withProbeTimeout(
 					key,
 					() => fieldResolver.resolve(
-						parentEntityId,
+						parentEntitySelector,
 						{
 							...resolverContext,
 							publicEnv: resolverPublicEnvBySource.get(fieldResolver.source) ?? {},
@@ -459,8 +449,8 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			for (const inner of innerValues) {
 				const value = entityFieldValueForAssert(inner)
 				const row = {
-					[EntityMetaKey.ParentId]: parentEntityId,
-					[EntityMetaKey.ParentIdKey]: stringify(parentEntityId),
+					[EntityMetaKey.ParentSelector]: parentEntitySelector,
+					[EntityMetaKey.ParentSelectorKey]: stringify(parentEntitySelector),
 					[EntityMetaKey.Source]: fieldResolver.source,
 					[EntityMetaKey.Value]: value,
 				}
@@ -513,23 +503,23 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 		}
 	}
 
-	return {
-		cases,
-		resolverDefinitionCount: resolverDefinitionProbes.length,
-		resolverValuePartCount: resolverValuePartProbes.length,
-		conditionalScalarDiscriminatorCount: Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey)
-			.flatMap((partsByConditionKey) => Object.entries(partsByConditionKey ?? {}))
-			.filter(([conditionKey, parts]) => (
-				!conditionKey.includes('[')
-				&& parts.length > 0
-			))
-			.length,
-		conditionalItemDiscriminatorCount: Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey)
-			.flatMap((partsByConditionKey) => Object.entries(partsByConditionKey ?? {}))
-			.filter(([conditionKey, parts]) => (
-				conditionKey.includes('[')
-				&& parts.length > 0
-			))
+		return {
+			cases,
+			resolverDefinitionCount: resolverDefinitionProbes.length,
+			resolverValuePartCount: resolverValuePartProbes.length,
+			conditionalScalarDiscriminatorCount: Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey)
+				.flatMap((partsByConditionKey) => Object.entries(partsByConditionKey))
+				.filter(([conditionKey, parts]) => (
+					!conditionKey.includes('[')
+					&& parts.length > 0
+				))
+				.length,
+			conditionalItemDiscriminatorCount: Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey)
+				.flatMap((partsByConditionKey) => Object.entries(partsByConditionKey))
+				.filter(([conditionKey, parts]) => (
+					conditionKey.includes('[')
+					&& parts.length > 0
+				))
 			.length,
 		countResolverPartCount: Object.values(resolverCountPartsByEntityTypeAndFieldName)
 			.flatMap((parts) => parts)

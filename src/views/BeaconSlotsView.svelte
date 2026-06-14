@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				(
 					entityFieldReference.entityType === EntityType.EvmNetwork ?
 						{
@@ -92,8 +92,8 @@
 				entityType={EntityType.BeaconSlot}
 				id={`${id}-items`}
 				href={href}
-				getKey={(slot) => stringify(slot[EntityMetaKey.Id])}
-				getSortValue={(slot) => -slot[EntityMetaKey.Id].slot}
+				getKey={(slot) => stringify(slot[EntityMetaKey.Selector])}
+				getSortValue={(slot) => -slot[EntityMetaKey.Selector].slot}
 				resource={slots}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -107,7 +107,7 @@
 
 				{#snippet Item({ item: slot })}
 					<BeaconSlotView
-						entityId={slot[EntityMetaKey.Id]}
+						selector={slot[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -8,12 +8,15 @@ import {
 } from '$/constants/PolkadotNetwork.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { PolkadotRpcBlock } from '$/sources/Polkadot/JsonRpc/types.ts'
+import { PolkadotNetworkSelector } from '$/schema/PolkadotNetwork.ts'
+import { PolkadotNetwork_TimestampSelector } from '$/schema/PolkadotNetwork_Timestamp.ts'
+import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
+import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -34,7 +37,7 @@ const polkadotExtrinsicRows = (
 	block: PolkadotRpcBlock,
 ) => (
 	block.block.extrinsics.map((_extrinsic, extrinsicIndex) => ({
-		[EntityMetaKey.Id]: {
+		[EntityMetaKey.Selector]: {
 			$block: {
 				$network: network,
 				blockNumber: blockNumberFromHeader(block.block.header),
@@ -51,11 +54,11 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId)
+				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
+				assertPolkadotMainnet(entitySelector)
 				return {
 					$network: {
-						[EntityMetaKey.Id]: entityId,
+						[EntityMetaKey.Selector]: entitySelector,
 					},
 					rpcEndpoints: [
 						{
@@ -77,8 +80,8 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$network)
+				[PolkadotNetwork_TimestampSelector.NetworkTimestampMs]: async ({ $network }) => {
+				assertPolkadotMainnet($network)
 				const {
 					getBlock,
 					getFinalizedHead,
@@ -136,26 +139,23 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$network)
+				[PolkadotBlockSelector.NetworkBlockNumberHash]: async ({ $network, blockNumber, hash: hashSelector }) => {
+				assertPolkadotMainnet($network)
 				const {
 					getBlock,
 					getBlockHash,
 				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-				const hash = entityId.hash ?? await getBlockHash({
-					rpcUrl: polkadotMainnetRpcUrl,
-					blockNumber: entityId.blockNumber,
-				})
+				const hash = hashSelector
 				const block = await getBlock({
 					rpcUrl: polkadotMainnetRpcUrl,
 					blockHash: hash,
 				})
 				return {
 					hash,
-					...(entityId.blockNumber > 0n && {
+					...(blockNumber > 0n && {
 						$parent: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								blockNumber: blockNumberFromHeader(block.block.header) - 1n,
 								hash: block.block.header.parentHash,
 							},
@@ -164,7 +164,7 @@ export default {
 					stateRoot: block.block.header.stateRoot,
 					extrinsicsRoot: block.block.header.extrinsicsRoot,
 					$$extrinsics: polkadotExtrinsicRows(
-						entityId.$network,
+						$network,
 						block,
 					),
 				}
@@ -181,36 +181,10 @@ export default {
 			}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
-			entityType: EntityType.PolkadotExtrinsic,
-			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$block.$network)
-				const {
-					getBlock,
-					getBlockHash,
-				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-				const block = await getBlock({
-					rpcUrl: polkadotMainnetRpcUrl,
-					blockHash: entityId.$block.hash ?? await getBlockHash({
-						rpcUrl: polkadotMainnetRpcUrl,
-						blockNumber: entityId.$block.blockNumber,
-					}),
-				})
-				if (block.block.extrinsics.at(entityId.extrinsicIndex) == null) {
-					throw new Error(`Polkadot_JsonRpc: extrinsic not found for ${entityId.$block.blockNumber.toString()}:${entityId.extrinsicIndex}`)
-				}
-				return {}
-			}
-			}
-		})({
-				fields: {},
-			}),
-
-		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId)
+				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
+				assertPolkadotMainnet(entitySelector)
 				return [
 					{
 						url: polkadotMainnetRpcUrl,
@@ -229,12 +203,12 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId)
+				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
+				assertPolkadotMainnet(entitySelector)
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							timestampMs: Date.now(),
 						},
 					},
@@ -250,8 +224,8 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertPolkadotMainnet(entityId)
+				[PolkadotNetworkSelector.Network]: async (entitySelector, context) => {
+				assertPolkadotMainnet(entitySelector)
 				const {
 					getFinalizedHead,
 					getHeader,
@@ -267,8 +241,8 @@ export default {
 						resolverContextRowLimit(context),
 					),
 				}, (_value, blockOffset) => ({
-					[EntityMetaKey.Id]: {
-						$network: entityId,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector,
 						blockNumber: finalizedBlockNumber - BigInt(blockOffset),
 						...(blockOffset === 0 && {
 							hash: finalizedBlockHash,
@@ -286,23 +260,20 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$network)
-				if (entityId.blockNumber === 0n) throw new Error('Polkadot_JsonRpc: genesis block has no parent')
+				[PolkadotBlockSelector.NetworkBlockNumberHash]: async ({ $network, blockNumber, hash }) => {
+				assertPolkadotMainnet($network)
+				if (blockNumber === 0n) throw new Error('Polkadot_JsonRpc: genesis block has no parent')
 				const {
 					getBlock,
 					getBlockHash,
 				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
 				const block = await getBlock({
 					rpcUrl: polkadotMainnetRpcUrl,
-					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: polkadotMainnetRpcUrl,
-						blockNumber: entityId.blockNumber,
-					}),
+					blockHash: hash,
 				})
 				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
+					[EntityMetaKey.Selector]: {
+						$network: $network,
 						blockNumber: blockNumberFromHeader(block.block.header) - 1n,
 						hash: block.block.header.parentHash,
 					},
@@ -318,20 +289,17 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertPolkadotMainnet(entityId.$network)
+				[PolkadotBlockSelector.NetworkBlockNumberHash]: async ({ $network, hash }) => {
+				assertPolkadotMainnet($network)
 				const {
 					getBlock,
 					getBlockHash,
 				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
 				return polkadotExtrinsicRows(
-					entityId.$network,
+					$network,
 					await getBlock({
 						rpcUrl: polkadotMainnetRpcUrl,
-						blockHash: entityId.hash ?? await getBlockHash({
-							rpcUrl: polkadotMainnetRpcUrl,
-							blockNumber: entityId.blockNumber,
-						}),
+						blockHash: hash,
 					}),
 				)
 			}

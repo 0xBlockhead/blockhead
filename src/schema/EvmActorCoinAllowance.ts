@@ -1,5 +1,4 @@
 import { type } from 'arktype'
-import Actor from '$/schema/EvmAccount.ts'
 import EvmNetworkActorCoinBalance from '$/schema/EvmNetworkActorCoinBalance.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import {
@@ -8,10 +7,15 @@ import {
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
-import type { EntityId } from '$/schema/$schema.ts'
-import { schema } from '$/schema/index.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
+import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EvmActorCoinAllowanceSelector {
+	EvmNetworkActorCoinBalanceEvmAccountInteropAddress = 'evmNetworkActorCoinBalanceEvmAccountInteropAddress',
+}
+
 
 // On-chain ERC-20 allowance (owner × token contract × spender). Voltaire reads allowance via eth_call when the composite id is known; discovery/list fields are not indexed yet.
 
@@ -21,13 +25,36 @@ export default {
 	label: 'Coin Allowance',
 	labelPlural: 'Coin Allowances',
 
-	id: type({
-		$actorCoin: EvmNetworkActorCoinBalance.id,
-		$spender: Actor.id,
-		'interopAddress?': 'string',
-	}),
+	selectors: [
+		{
+			name: EvmActorCoinAllowanceSelector.EvmNetworkActorCoinBalanceEvmAccountInteropAddress,
+			fields: [
+				'$actorCoin',
+				'$spender',
+				'interopAddress',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$actorCoin',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetworkActorCoinBalance,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$spender',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'interopAddress',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: 'allowance',
 			type: EntityFieldType.Primitive,
@@ -55,19 +82,39 @@ export default {
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition
 
-export const toEvmActorCoinAllowanceEntityId = (
+export const toEvmActorCoinAllowanceEntitySelector = (
 	chainId: number,
 	address: `0x${string}`,
 	tokenContract: `0x${string}`,
 	spenderAddress: `0x${string}`,
-): EntityId<typeof schema, EntityType.EvmActorCoinAllowance> => ({
+): EntitySelector<typeof schema, EntityType.EvmActorCoinAllowance> => ({
 	$actorCoin: {
-			$actor: { address },
-			$coinInstance: {
-				$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
-				type: CoinInstanceType.Erc20Token,
-				$contract: { $network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } }, address: tokenContract },
+		$actor: {
+			address,
+			interopAddress: address,
+		},
+		$coinInstance: {
+			$network: {
+				caip2: {
+					namespace: 'eip155' as const,
+					reference: String(chainId),
+				},
+			},
+			type: CoinInstanceType.Erc20Token,
+			$contract: {
+				$network: {
+					caip2: {
+						namespace: 'eip155' as const,
+						reference: String(chainId),
+					},
+				},
+				address: tokenContract,
 			},
 		},
-	$spender: { address: spenderAddress },
+	},
+	$spender: {
+		address: spenderAddress,
+		interopAddress: spenderAddress,
+	},
+	interopAddress: spenderAddress,
 })

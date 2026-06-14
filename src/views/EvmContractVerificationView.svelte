@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,10 +17,10 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
-				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-			address: entityId.address,
+				...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+			address: selector.address,
 			}),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
@@ -33,7 +33,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmContractVerification>
+			selector: EntitySelector<typeof schema, EntityType.EvmContractVerification>
 			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
@@ -44,7 +44,7 @@
 	> = $props()
 
 	const verification = subscribe(EntityType.EvmContractVerification,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Sourcify_Rest,
 			], fields: { ...(open && ({ match: true, creationMatch: true, runtimeMatch: true, verifiedAtMs: true, matchId: true, $compilation: true, $sourceBundle: true })) } }),
@@ -56,8 +56,8 @@
 		verification.ready ? verification.current : undefined,
 	)
 
-	const verificationIdKey = $derived(
-		stringify(entityId),
+	const verificationSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -72,7 +72,7 @@
 
 <EntityView
 	entityType={EntityType.EvmContractVerification}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -187,9 +187,9 @@
 		<ResourceBoundary resource={verification}>
 			{#snippet children(verification)}
 				{#if verification.fields.$compilation}
-					<section id={`${verificationIdKey}:compilation`}>
+					<section id={`${verificationSelectorKey}:compilation`}>
 						<EvmContractCompilationView
-							entityId={verification.fields.$compilation[EntityMetaKey.Id]}
+							selector={verification.fields.$compilation[EntityMetaKey.Selector]}
 							layout={EntityLayout.SummaryDetails}
 							open={true}
 						/>
@@ -197,9 +197,9 @@
 				{/if}
 
 				{#if verification.fields.$sourceBundle}
-					<section id={`${verificationIdKey}:source-bundle`}>
+					<section id={`${verificationSelectorKey}:source-bundle`}>
 						<EvmContractSourceBundleView
-							entityId={verification.fields.$sourceBundle[EntityMetaKey.Id]}
+							selector={verification.fields.$sourceBundle[EntityMetaKey.Selector]}
 							layout={EntityLayout.SummaryDetails}
 							open={true}
 						/>

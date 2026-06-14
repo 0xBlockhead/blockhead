@@ -10,19 +10,13 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import MarketAsset from '$/schema/MarketAsset.ts'
-import MarketVenue from '$/schema/MarketVenue.ts'
+import { marketAsset } from '$/schema/MarketAsset.ts'
+import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { Source } from '$/sources/Source.ts'
 
-
-const id = type({
-	$base: MarketAsset.id,
-	$quote: MarketAsset.id,
-	$marketVenue: MarketVenue.id,
-	marketKind: type.valueOf(MarketKind),
-})
-
-export { id }
+export enum MarketSelector {
+	BaseQuoteMarketVenueKind = 'baseQuoteMarketVenueKind',
+}
 
 export default {
 	entityType: EntityType.Market,
@@ -30,9 +24,45 @@ export default {
 	label: 'Market',
 	labelPlural: 'Markets',
 
-	id,
+	selectors: [
+		{
+			name: MarketSelector.BaseQuoteMarketVenueKind,
+			fields: [
+				'$base',
+				'$quote',
+				'$marketVenue',
+				'marketKind',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$base',
+			type: EntityFieldType.Primitive,
+			primitiveType: marketAsset,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$quote',
+			type: EntityFieldType.Primitive,
+			primitiveType: marketAsset,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$marketVenue',
+			type: EntityFieldType.Primitive,
+			primitiveType: type({
+				marketVenueId: type.valueOf(MarketVenueId),
+			}),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'marketKind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(MarketKind),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$baseCoin',
 			type: EntityFieldType.EntityReference,

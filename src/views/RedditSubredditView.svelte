@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,16 +17,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(reddit)/reddit/r/[name]', {
-			name: entityId.name,
+			name: selector.name,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.RedditSubreddit>
+			selector: EntitySelector<typeof schema, EntityType.RedditSubreddit>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const subreddit = subscribe(EntityType.RedditSubreddit,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Reddit_Rest,
 				Source.Reddit_PublicJson,
@@ -48,7 +48,7 @@
 				], limit: 1 }), createdAt: true, over18: true, $icon: true } }),
 	)
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 
 	// Components
@@ -67,7 +67,7 @@
 
 <EntityView
 	entityType={EntityType.RedditSubreddit}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -81,9 +81,9 @@
 			{#snippet children(subreddit)}
 				{#if subreddit.fields.$icon !== undefined}
 					<IconComponent
-						alt={subreddit.fields.title ?? entityId.name}
+						alt={subreddit.fields.title ?? selector.name}
 						shape={IconShape.Circle}
-						src={subreddit.fields.$icon[EntityMetaKey.Id].url}
+						src={subreddit.fields.$icon[EntityMetaKey.Selector].url}
 					/>
 				{/if}
 			{/snippet}
@@ -92,7 +92,7 @@
 
 	{#snippet Value()}
 		<span>
-			{entityId.name}
+			{selector.name}
 		</span>
 	{/snippet}
 
@@ -102,7 +102,7 @@
 			placeholderText="Loading subreddit…"
 		>
 			{#snippet children(subreddit)}
-				{subreddit.fields.title ?? `r/${entityId.name}`}
+				{subreddit.fields.title ?? `r/${selector.name}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -197,7 +197,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.RedditSubreddit,
-						entityId,
+						selector,
 						fieldName: '$$links',
 					}}
 					id={`${idKey}:reddit-links`}
@@ -208,7 +208,7 @@
 				<RedditSubreddit_TimestampsView
 					entityFieldReference={{
 						entityType: EntityType.RedditSubreddit,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					href={href}

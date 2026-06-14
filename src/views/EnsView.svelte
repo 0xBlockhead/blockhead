@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 
 	import {
 		ensCoinTypeLabelByKey,
@@ -26,16 +26,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(ens)/ens/name/[ensName]', {
-			ensName: entityId.name,
+			ensName: selector.name,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EnsName>
+			selector: EntitySelector<typeof schema, EntityType.EnsName>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -59,7 +59,7 @@
 	} as const
 
 	const ens = subscribe(EntityType.EnsName,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Voltaire_JsonRpc,
 				Source.TheGraph_Graphql,
@@ -68,8 +68,8 @@
 
 
 	// (Derived)
-	const ensNameIdKey = $derived(
-		stringify(entityId),
+	const ensNameSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -94,11 +94,11 @@
 
 <EntityView
 	entityType={EntityType.EnsName}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
-	title={entityId.name}
+	title={selector.name}
 	{...EntityViewProps}
 >
 	{#snippet Icon()}
@@ -115,7 +115,7 @@
 				)}
 				{#if avatarUrl}
 					<Icon
-						alt={entityId.name}
+						alt={selector.name}
 						src={avatarUrl}
 					/>
 				{/if}
@@ -125,13 +125,13 @@
 
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.name}
+			{selector.name}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<span data-text="font-monospace">
-			{entityId.name}
+			{selector.name}
 		</span>
 	{/snippet}
 
@@ -156,9 +156,9 @@
 						{#snippet children(ens)}
 							{#if ens.fields.$resolvedActor !== undefined}
 								<EvmAccountView
-									entityId={ens.fields.$resolvedActor[EntityMetaKey.Id]}
+									selector={ens.fields.$resolvedActor[EntityMetaKey.Selector]}
 									href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
-										ensName: entityId.name,
+										ensName: selector.name,
 									})}
 									layout={EntityLayout.Value}
 									showTypeAnnotation={false}
@@ -310,9 +310,9 @@
 							{#snippet children(ens)}
 								{#if ens.fields.$ownerActor !== undefined}
 									<EvmNetworkAccountView
-										entityId={{
+										selector={{
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
-											$actor: ens.fields.$ownerActor[EntityMetaKey.Id],
+											$actor: ens.fields.$ownerActor[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
@@ -353,8 +353,8 @@
 		<ResourceBoundary resource={ens}>
 			{#snippet children(ens)}
 				<CollapsibleTabs
-					id={`${ensNameIdKey}:carousel-profile`}
-					sectionIdPrefix={ensNameIdKey}
+					id={`${ensNameSelectorKey}:carousel-profile`}
+					sectionIdPrefix={ensNameSelectorKey}
 					sections={[
 						...(
 							ens.fields.textRecords?.header?.trim() != null
@@ -396,7 +396,7 @@
 					{#snippet SectionProfileRecords({ id, label })}
 						<EnsNameTextRecordsView
 							CollapsibleProps={{ canToggle: false }}
-							entityId={entityId}
+							selector={selector}
 							id={`${id}-list`}
 							recordKeys={[...ensProfileTextRecordKeys]}
 							title="ENSIP-18 profile records"
@@ -405,8 +405,8 @@
 				</CollapsibleTabs>
 
 			<CollapsibleTabs
-				id={`${ensNameIdKey}:carousel-registration`}
-				sectionIdPrefix={ensNameIdKey}
+				id={`${ensNameSelectorKey}:carousel-registration`}
+				sectionIdPrefix={ensNameSelectorKey}
 				sections={[
 					...((ens.fields.$$subdomains?.values ?? []).length ? [{ id: 'registration-subdomains', label: 'Subdomains' }] : []),
 					...(ens.fields.$parent !== undefined ? [{ id: 'registration-parent', label: 'Parent' }] : []),
@@ -431,10 +431,10 @@
 							getKey={(sub) => sub.name}
 							getSortValue={(sub) => sub.name}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-								ensName: entityId.name,
+								ensName: selector.name,
 							})}
 							id={`${id}-list`}
-								items={(ens.fields.$$subdomains?.values ?? []).map((subdomain: Entity<typeof schema, EntityType.EnsName>) => subdomain[EntityMetaKey.Id])}
+								items={(ens.fields.$$subdomains?.values ?? []).map((subdomain: Entity<typeof schema, EntityType.EnsName>) => subdomain[EntityMetaKey.Selector])}
 								title="Subdomains"
 							>
 							{#snippet Item({ item })}
@@ -451,12 +451,12 @@
 
 				{#snippet SectionRegistrationParent({ id, label })}
 					{#if ens.fields.$parent !== undefined}
-						{@const parentId = ens.fields.$parent[EntityMetaKey.Id]}
+						{@const parentId = ens.fields.$parent[EntityMetaKey.Selector]}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-							ensName: entityId.name,
+							ensName: selector.name,
 						})}
 							id={`${id}-list`}
 							title="Parent name"
@@ -480,9 +480,9 @@
 								<dt>Registry owner</dt>
 								<dd>
 									<EvmNetworkAccountView
-										entityId={{
+										selector={{
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
-											$actor: ens.fields.$ownerActor[EntityMetaKey.Id],
+											$actor: ens.fields.$ownerActor[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
@@ -496,9 +496,9 @@
 								<dt>Subgraph owner</dt>
 								<dd>
 									<EvmNetworkAccountView
-										entityId={{
+										selector={{
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
-											$actor: ens.fields.$subgraphOwnerActor[EntityMetaKey.Id],
+											$actor: ens.fields.$subgraphOwnerActor[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
@@ -512,9 +512,9 @@
 								<dt>Registrant</dt>
 								<dd>
 									<EvmNetworkAccountView
-										entityId={{
+										selector={{
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
-											$actor: ens.fields.$registrantActor[EntityMetaKey.Id],
+											$actor: ens.fields.$registrantActor[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
@@ -528,9 +528,9 @@
 								<dt>Name wrapper owner</dt>
 								<dd>
 									<EvmNetworkAccountView
-										entityId={{
+										selector={{
 											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
-											$actor: ens.fields.$wrappedOwnerActor[EntityMetaKey.Id],
+											$actor: ens.fields.$wrappedOwnerActor[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
@@ -555,7 +555,7 @@
 							</div>
 						{/if}
 
-						{#if ens.fields.name != null && ens.fields.name !== entityId.name}
+						{#if ens.fields.name != null && ens.fields.name !== selector.name}
 							<div>
 								<dt>Normalized name</dt>
 								<dd>
@@ -566,7 +566,7 @@
 							</div>
 						{/if}
 
-						{#if ens.fields.labelName != null && ens.fields.labelName !== '' && ens.fields.labelName !== entityId.name}
+						{#if ens.fields.labelName != null && ens.fields.labelName !== '' && ens.fields.labelName !== selector.name}
 							<div>
 								<dt>Label</dt>
 								<dd>{ens.fields.labelName}</dd>
@@ -668,8 +668,8 @@
 			</CollapsibleTabs>
 
 			<CollapsibleTabs
-				id={`${ensNameIdKey}:carousel-records`}
-				sectionIdPrefix={ensNameIdKey}
+				id={`${ensNameSelectorKey}:carousel-records`}
+				sectionIdPrefix={ensNameSelectorKey}
 				sections={[
 					{ id: 'records-text', label: 'Text records' },
 					...(ens.fields.contentHash != null && ens.fields.contentHash !== '' ? [{ id: 'records-content-hash', label: 'Content hash' }] : []),
@@ -690,7 +690,7 @@
 				{#snippet SectionRecordsText({ id, label })}
 					<EnsNameTextRecordsView
 						CollapsibleProps={{ canToggle: false }}
-						entityId={entityId}
+						selector={selector}
 						excludeRecordKeys={[...ensProfileTextRecordKeys]}
 						id={`${id}-list`}
 						title="General and social text records"
@@ -705,7 +705,7 @@
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-								ensName: entityId.name,
+								ensName: selector.name,
 							})}
 							id={`${id}-list`}
 							title="Content hash"
@@ -750,7 +750,7 @@
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-								ensName: entityId.name,
+								ensName: selector.name,
 							})}
 							id={`${id}-list`}
 							title="Resolver ABI"
@@ -774,7 +774,7 @@
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-								ensName: entityId.name,
+								ensName: selector.name,
 							})}
 							id={`${id}-list`}
 							title="Coin addresses"
@@ -812,7 +812,7 @@
 							collapsible={false}
 							entityType={EntityType.EnsName}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-								ensName: entityId.name,
+								ensName: selector.name,
 							})}
 							id={`${id}-list`}
 							title="Subgraph resolver index"
@@ -846,8 +846,8 @@
 			</CollapsibleTabs>
 
 			<CollapsibleTabs
-				id={`${ensNameIdKey}:carousel-resolution`}
-				sectionIdPrefix={ensNameIdKey}
+				id={`${ensNameSelectorKey}:carousel-resolution`}
+				sectionIdPrefix={ensNameSelectorKey}
 				sections={[
 					...(ens.fields.$resolvedActor !== undefined ? [{ id: 'resolution-addr', label: 'Addr record' }] : []),
 					...(ens.fields.$subgraphResolvedActor !== undefined ? [{ id: 'resolution-subgraph-addr', label: 'Subgraph addr' }] : []),
@@ -866,9 +866,9 @@
 				{#snippet SectionResolutionAddr({ id, label })}
 					{#if ens.fields.$resolvedActor !== undefined}
 						<EvmAccountView
-							entityId={ens.fields.$resolvedActor[EntityMetaKey.Id]}
+							selector={ens.fields.$resolvedActor[EntityMetaKey.Selector]}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
-								ensName: entityId.name,
+								ensName: selector.name,
 							})}
 							title="Addr record (RPC)"
 						/>
@@ -878,9 +878,9 @@
 				{#snippet SectionResolutionSubgraphAddr({ id, label })}
 					{#if ens.fields.$subgraphResolvedActor !== undefined}
 						<EvmAccountView
-							entityId={ens.fields.$subgraphResolvedActor[EntityMetaKey.Id]}
+							selector={ens.fields.$subgraphResolvedActor[EntityMetaKey.Selector]}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
-								ensName: entityId.name,
+								ensName: selector.name,
 							})}
 							title="Resolved address (subgraph)"
 						/>
@@ -890,7 +890,7 @@
 				{#snippet SectionResolutionResolver({ id, label })}
 					{#if ens.fields.$resolverContract !== undefined}
 						<EvmContractView
-							entityId={ens.fields.$resolverContract[EntityMetaKey.Id]}
+							selector={ens.fields.$resolverContract[EntityMetaKey.Selector]}
 							title="Resolver contract"
 						/>
 					{/if}

@@ -7,17 +7,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadRoomSelector {
+	Id = 'id',
+}
+
 export default {
 	entityType: EntityType.BlockheadRoom,
 
 	label: 'Room',
 	labelPlural: 'Rooms',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: BlockheadRoomSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'createdAt',
 			type: EntityFieldType.Primitive,

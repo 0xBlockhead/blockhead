@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,19 +13,19 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.Network>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const network = subscribe(EntityType.Network,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } }),
@@ -45,8 +45,8 @@
 
 
 	// (Derived)
-	const networkIdKey = $derived(
-		stringify(entityId),
+	const networkSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -69,7 +69,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	{entityId}
+	entitySelector={selector}
 	{href}
 	bind:open
 	{layout}
@@ -114,7 +114,7 @@
 										<dt>Head block</dt>
 										<dd id="network-summary-head-block">
 											<EvmBlockView
-												entityId={block[EntityMetaKey.Id]}
+												selector={block[EntityMetaKey.Selector]}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -141,8 +141,8 @@
 
 	{#snippet Details()}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-0g`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-0g`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: '0g-blocks', label: 'Blocks' },
 				{ id: '0g-snapshots', label: 'Network snapshots' },
@@ -165,7 +165,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.ZeroGNetwork,
-						entityId: {
+						selector: {
 							networkSlug: '0g',
 						},
 						fieldName: '$$blocks',
@@ -181,7 +181,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.ZeroGNetwork,
-						entityId: {
+						selector: {
 							networkSlug: '0g',
 						},
 						fieldName: '$$timestamps',
@@ -196,7 +196,7 @@
 					{#snippet children(zeroGNetwork)}
 						{#if zeroGNetwork.fields.$consensusNetwork != null}
 							<ZeroGConsensusNetworkView
-								entityId={zeroGNetwork.fields.$consensusNetwork[EntityMetaKey.Id]}
+								selector={zeroGNetwork.fields.$consensusNetwork[EntityMetaKey.Selector]}
 								layout={EntityLayout.SummaryDetails}
 							/>
 						{:else}
@@ -218,7 +218,7 @@
 					]}
 					id={`${id}-list`}
 					listEntityType={EntityType.ZeroGNetwork}
-					parentEntityId={{
+					parentEntitySelector={{
 						networkSlug: '0g',
 					}}
 					parentEntityType={EntityType.ZeroGNetwork}
@@ -228,8 +228,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-0g-data`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-0g-data`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: '0g-data-blobs', label: 'Data blobs' },
 				{ id: '0g-storage-nodes', label: 'Storage nodes' },
@@ -250,7 +250,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.ZeroGNetwork,
-						entityId: {
+						selector: {
 							networkSlug: '0g',
 						},
 						fieldName: '$$dataBlobs',
@@ -265,7 +265,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.ZeroGNetwork,
-						entityId: {
+						selector: {
 							networkSlug: '0g',
 						},
 						fieldName: '$$storageNodes',
@@ -277,8 +277,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-0g-assets`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-0g-assets`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: '0g-assets-native', label: 'Native coin' },
 			]}
@@ -297,7 +297,7 @@
 			CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -307,8 +307,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-0g-resources`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-0g-resources`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: '0g-resources-faucets', label: 'Faucets' },
 				{ id: '0g-resources-block-explorers', label: 'Block explorers' },
@@ -331,7 +331,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -349,7 +349,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

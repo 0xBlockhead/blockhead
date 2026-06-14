@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum QuilibriumProverSelector {
+	NetworkProverPeerId = 'networkProverPeerId',
+}
 
 export default {
 	entityType: EntityType.QuilibriumProver,
@@ -15,12 +18,29 @@ export default {
 	label: 'Quilibrium Prover',
 	labelPlural: 'Quilibrium Provers',
 
-	id: type({
-		$network: Network.id,
-		proverPeerId: 'string',
-	}),
+	selectors: [
+		{
+			name: QuilibriumProverSelector.NetworkProverPeerId,
+			fields: [
+				'$network',
+				'proverPeerId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'proverPeerId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'publicKey',
 			type: EntityFieldType.Primitive,

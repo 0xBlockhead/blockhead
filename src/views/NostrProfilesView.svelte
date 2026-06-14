@@ -78,7 +78,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 					], fields: { [entityFieldReference.fieldName]: {
 						sources: [
@@ -97,7 +97,7 @@
 					)
 					return (
 						nostrProfiles.map((value) => ({
-							entityId: value[EntityMetaKey.Id],
+							selector: value[EntityMetaKey.Selector],
 						}))
 					)
 				},
@@ -110,8 +110,8 @@
 				{title}
 				resource={profiles}
 				placeholderText="Loading profiles…"
-				getKey={(row) => stringify(row.entityId)}
-				getSortValue={(row) => row.entityId.pubkey}
+				getKey={(row) => stringify(row.selector)}
+				getSortValue={(row) => row.selector.pubkey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}
@@ -124,7 +124,7 @@
 					item: profile,
 				})}
 					<NostrProfileView
-						entityId={profile.entityId}
+						selector={profile.selector}
 						layout={EntityLayout.SummaryDetails}
 						open={false}
 					/>

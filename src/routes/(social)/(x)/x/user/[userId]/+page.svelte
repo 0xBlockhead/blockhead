@@ -13,7 +13,7 @@
 
 <Page>
 	<XUserView
-		entityId={
+		selector={
 			/^\d+$/.test(decodeURIComponent(params.userId)) ?
 				{
 					id: decodeURIComponent(params.userId),

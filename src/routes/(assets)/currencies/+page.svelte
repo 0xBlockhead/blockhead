@@ -23,7 +23,7 @@
 		href={resolve('/currencies')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: { scope: '$$currencies' },
+			selector: { scope: '$$currencies' },
 			fieldName: '$$currencies',
 		}}
 		open

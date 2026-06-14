@@ -25,12 +25,12 @@
 <EntitiesList entityType={EntityType.LightningInvoice} {title} bind:open {id} href={href} {...EntitiesListProps}>
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType, entityFieldReference.entityId, ({ fields: { [entityFieldReference.fieldName]: { sources: [Source.LightningLnd_Rest], limit: 32 } } }))}
+			{@const parent = subscribe(entityFieldReference.entityType, entityFieldReference.selector, ({ fields: { [entityFieldReference.fieldName]: { sources: [Source.LightningLnd_Rest], limit: 32 } } }))}
 			{@const invoices = derive(parent, (parent): readonly Entity<typeof schema, EntityType.LightningInvoice>[] => (parent.fields[entityFieldReference.fieldName]?.values ?? []))}
-			<EntitiesList collapsible={false} showSummary={false} entityType={EntityType.LightningInvoice} id={`${id}-lightning-invoices`} href={href} getKey={(invoice) => stringify(invoice[EntityMetaKey.Id])} getSortValue={(invoice) => stringify(invoice[EntityMetaKey.Id])} open={true} resource={invoices} {title} UnorderedListProps={{ orientation: ListOrientation.Column }}>
+			<EntitiesList collapsible={false} showSummary={false} entityType={EntityType.LightningInvoice} id={`${id}-lightning-invoices`} href={href} getKey={(invoice) => stringify(invoice[EntityMetaKey.Selector])} getSortValue={(invoice) => stringify(invoice[EntityMetaKey.Selector])} open={true} resource={invoices} {title} UnorderedListProps={{ orientation: ListOrientation.Column }}>
 				{#snippet Empty()}<p data-text="muted">No invoices listed yet.</p>{/snippet}
 				{#snippet Item(context)}
-					<LightningInvoiceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+					<LightningInvoiceView selector={context!.item[EntityMetaKey.Selector]} layout={EntityLayout.Summary} open={false} />
 				{/snippet}
 			</EntitiesList>
 		{/if}

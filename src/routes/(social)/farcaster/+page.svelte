@@ -7,7 +7,7 @@
 
 <Page>
 	<FarcasterView
-		entityId={{
+		selector={{
 			scope: 'FarcasterNetwork',
 		}}
 	/>

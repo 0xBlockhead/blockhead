@@ -14,6 +14,6 @@
 
 <Page>
 	<Erc4337SmartAccountView
-		entityId={data.entityId}
+		selector={data.entitySelector}
 	/>
 </Page>

@@ -51,7 +51,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.TronGrid_Rest,
@@ -72,7 +72,7 @@
 				entityType={EntityType.TronWitness}
 				id={`${id}-items`}
 				href={href}
-				getKey={(witness) => stringify(witness[EntityMetaKey.Id])}
+				getKey={(witness) => stringify(witness[EntityMetaKey.Selector])}
 				open={true}
 				resource={witnesses}
 				{title}
@@ -80,7 +80,7 @@
 			>
 				{#snippet Empty()}<p data-text="muted">No witnesses yet.</p>{/snippet}
 				{#snippet Item(context)}
-					<TronWitnessView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+					<TronWitnessView selector={context!.item[EntityMetaKey.Selector]} layout={EntityLayout.Summary} open={false} />
 				{/snippet}
 			</EntitiesList>
 		{/if}

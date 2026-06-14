@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.SolanaProgram>
+			selector: EntitySelector<typeof schema, EntityType.SolanaProgram>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const solanaProgram = subscribe(EntityType.SolanaProgram,
-		entityId,
+		selector,
 		({ fields: { name: true, $programAccount: true, $upgradeAuthority: true } }),
 	)
 
@@ -43,15 +43,15 @@
 
 <EntityView
 	entityType={EntityType.SolanaProgram}
-	{entityId}
-	title={entityId.programId}
+	entitySelector={selector}
+	title={selector.programId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.programId}
+			value={selector.programId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -75,7 +75,7 @@
 							<dt>Program account</dt>
 							<dd>
 								<SolanaAccountView
-									entityId={solanaProgram.fields.$programAccount[EntityMetaKey.Id]}
+									selector={solanaProgram.fields.$programAccount[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -88,7 +88,7 @@
 							<dt>Upgrade authority</dt>
 							<dd>
 								<SolanaAccountView
-									entityId={solanaProgram.fields.$upgradeAuthority[EntityMetaKey.Id]}
+									selector={solanaProgram.fields.$upgradeAuthority[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

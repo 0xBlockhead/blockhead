@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,7 +17,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/nostr'),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -26,7 +26,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.NostrNetwork>
+			selector: EntitySelector<typeof schema, EntityType.NostrNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -35,7 +35,7 @@
 	> = $props()
 
 	const network = subscribe(EntityType.NostrNetwork,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$nostrProfiles: ({ sources: [
@@ -65,7 +65,7 @@
 
 <EntityView
 	entityType={EntityType.NostrNetwork}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -175,10 +175,10 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const networkIdKey = stringify(entityId)}
+		{@const networkSelectorKey = stringify(selector)}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-feed`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-feed`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={collapsibleTabsSections([
 				{ id: 'notes', label: 'Recent notes' },
 				{ id: 'reposts', label: 'Reposts' },
@@ -203,11 +203,11 @@
 					href={resolve('/nostr/notes')}
 					entityFieldReference={{
 						entityType: EntityType.NostrNetwork,
-						entityId,
+						selector,
 						fieldName: '$$nostrNotes',
 					}}
 					fieldOpen={_open}
-					id={`${networkIdKey}:notes`}
+					id={`${networkSelectorKey}:notes`}
 					limit={25}
 					open={_open}
 					title="Recent notes"
@@ -219,11 +219,11 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.NostrNetwork,
-						entityId,
+						selector,
 						fieldName: '$$nostrReposts',
 					}}
 					fieldOpen={_open}
-					id={`${networkIdKey}:reposts`}
+					id={`${networkSelectorKey}:reposts`}
 					limit={25}
 					open={_open}
 					title="Recent reposts"
@@ -235,11 +235,11 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.NostrNetwork,
-						entityId,
+						selector,
 						fieldName: '$$nostrArticles',
 					}}
 					fieldOpen={_open}
-					id={`${networkIdKey}:articles`}
+					id={`${networkSelectorKey}:articles`}
 					limit={25}
 					open={_open}
 					title="Recent articles"
@@ -248,8 +248,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-directory`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-directory`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={collapsibleTabsSections([
 				{ id: 'profiles', label: 'Profiles' },
 				{ id: 'relays', label: 'Relays' },
@@ -274,10 +274,10 @@
 					href={resolve('/nostr/profiles')}
 					entityFieldReference={{
 						entityType: EntityType.NostrNetwork,
-						entityId,
+						selector,
 						fieldName: '$$nostrProfiles',
 					}}
-					id={`${networkIdKey}:profiles`}
+					id={`${networkSelectorKey}:profiles`}
 					open={true}
 				/>
 			{/snippet}
@@ -288,10 +288,10 @@
 					href={resolve('/nostr/relays')}
 					entityFieldReference={{
 						entityType: EntityType.NostrNetwork,
-						entityId,
+						selector,
 						fieldName: '$$nostrRelays',
 					}}
-					id={`${networkIdKey}:relays`}
+					id={`${networkSelectorKey}:relays`}
 					open={true}
 				/>
 			{/snippet}

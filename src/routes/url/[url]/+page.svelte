@@ -15,5 +15,5 @@
 
 
 <Page>
-	<UrlView entityId={data.entityId} />
+	<UrlView selector={data.selector} />
 </Page>

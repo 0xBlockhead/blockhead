@@ -18,7 +18,7 @@
 		href={resolve('/~/sessions')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: { scope: '$$blockheadSessions' },
+			selector: { scope: '$$blockheadSessions' },
 			fieldName: '$$blockheadSessions',
 		}}
 		id="sessions"

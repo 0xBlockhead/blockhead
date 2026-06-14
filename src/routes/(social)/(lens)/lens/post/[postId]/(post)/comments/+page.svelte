@@ -21,7 +21,7 @@
 		href={resolve('/lens')}
 		entityFieldReference={{
 			entityType: EntityType.LensPost,
-			entityId: {
+			selector: {
 				id: decodeURIComponent(params.postId),
 			},
 			fieldName: '$$comments',

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 
 	import {
 		coingeckoOhlcDayWindowLengths,
@@ -32,7 +32,7 @@
 		candlesListTitle = 'OHLC candles',
 	}: {
 		id: string
-		market: EntityId<typeof schema, EntityType.Market>
+		market: EntitySelector<typeof schema, EntityType.Market>
 		timeInterval?: {
 			unit: MarketTimeIntervalUnit
 			value: number
@@ -59,7 +59,7 @@
 	const entityFieldReference = $derived(
 		({
 			entityType: EntityType.Market,
-			entityId: market,
+			selector: market,
 			fieldName: '$$marketTimeIntervalTimestamps',
 		}) satisfies EntityFieldReference<
 			typeof schema,

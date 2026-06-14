@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.PolkadotReferendum>
+			selector: EntitySelector<typeof schema, EntityType.PolkadotReferendum>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const polkadotReferendum = subscribe(EntityType.PolkadotReferendum,
-		entityId,
+		selector,
 		({ fields: { track: true, status: true } }),
 	)
 
@@ -41,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.PolkadotReferendum}
-	{entityId}
-	title={entityId.referendumId}
-	idDragPlainText={entityId.referendumId}
+	entitySelector={selector}
+	title={selector.referendumId}
+	idDragPlainText={selector.referendumId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.referendumId}
+			value={selector.referendumId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

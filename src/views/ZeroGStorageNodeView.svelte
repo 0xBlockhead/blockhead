@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,18 +12,18 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ZeroGStorageNode>
+			selector: EntitySelector<typeof schema, EntityType.ZeroGStorageNode>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const storageNode = subscribe(EntityType.ZeroGStorageNode, entityId, ({ fields: { $operator: true, endpoint: true, balance: true, totalReward: true, winCount: true, miningAttempts: true } }))
+	const storageNode = subscribe(EntityType.ZeroGStorageNode, selector, ({ fields: { $operator: true, endpoint: true, balance: true, totalReward: true, winCount: true, miningAttempts: true } }))
 
 
 	// Components
@@ -37,14 +37,14 @@
 
 <EntityView
 	entityType={EntityType.ZeroGStorageNode}
-	{entityId}
-	title={entityId.nodeId}
+	entitySelector={selector}
+	title={selector.nodeId}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.nodeId}
+			value={selector.nodeId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -65,7 +65,7 @@
 							<dt>Operator</dt>
 							<dd>
 								<EvmAccountView
-									entityId={storageNode.fields.$operator[EntityMetaKey.Id]}
+									selector={storageNode.fields.$operator[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

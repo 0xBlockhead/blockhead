@@ -9,18 +9,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import AtprotoPost from '$/schema/AtprotoPost.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum AtprotoPost_TimestampSelector {
+	AtprotoPostTimestampMs = 'atprotoPostTimestampMs',
+}
+
 export default {
 	entityType: EntityType.AtprotoPost_Timestamp,
 
 	label: 'AT Protocol post snapshot',
 	labelPlural: 'AT Protocol post snapshots',
 
-	id: type({
-		$post: AtprotoPost.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: AtprotoPost_TimestampSelector.AtprotoPostTimestampMs,
+			fields: [
+				'$post',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$post',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.AtprotoPost,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'likeCount',
 			type: EntityFieldType.Primitive,

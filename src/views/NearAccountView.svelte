@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.NearAccount>
+			selector: EntitySelector<typeof schema, EntityType.NearAccount>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const nearAccount = subscribe(EntityType.NearAccount,
-		entityId,
+		selector,
 		({ fields: { amountYoctoNear: true, storageUsageBytes: true } }),
 	)
 
@@ -42,15 +42,15 @@
 
 <EntityView
 	entityType={EntityType.NearAccount}
-	{entityId}
-	title={entityId.accountId}
+	entitySelector={selector}
+	title={selector.accountId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.accountId}
+			value={selector.accountId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

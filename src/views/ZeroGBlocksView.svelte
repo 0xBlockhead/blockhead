@@ -57,7 +57,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.ZeroGChain_JsonRpc,
@@ -78,8 +78,8 @@
 				entityType={EntityType.EvmBlock}
 				id={`${id}-items`}
 				href={href}
-				getKey={(block) => block[EntityMetaKey.Id].blockNumber.toString()}
-				getSortValue={(block) => -Number(block[EntityMetaKey.Id].blockNumber)}
+				getKey={(block) => block[EntityMetaKey.Selector].blockNumber.toString()}
+				getSortValue={(block) => -Number(block[EntityMetaKey.Selector].blockNumber)}
 				open={true}
 				resource={blocks}
 				{title}
@@ -91,7 +91,7 @@
 
 				{#snippet Item(context)}
 					<EvmBlockView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

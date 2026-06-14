@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Transaction from '$/schema/NearTransaction.ts'
+
+export enum NearActionSelector {
+	NearTransactionActionIndex = 'nearTransactionActionIndex',
+}
 
 export default {
 	entityType: EntityType.NearAction,
@@ -15,12 +18,29 @@ export default {
 	label: 'NEAR Action',
 	labelPlural: 'NEAR Actions',
 
-	id: type({
-		$transaction: Transaction.id,
-		actionIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: NearActionSelector.NearTransactionActionIndex,
+			fields: [
+				'$transaction',
+				'actionIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.NearTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'actionIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'actionKind',
 			type: EntityFieldType.Primitive,

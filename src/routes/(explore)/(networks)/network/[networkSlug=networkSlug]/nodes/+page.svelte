@@ -37,7 +37,7 @@
 				<LightningNodesView
 					entityFieldReference={{
 						entityType: EntityType.LightningNetwork,
-						entityId: {
+						selector: {
 							$network: {
 								networkSlug: network.fields.slug,
 							},

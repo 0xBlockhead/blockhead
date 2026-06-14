@@ -12,7 +12,7 @@ import { MarketAssetKind, MarketKind, coingeckoOhlcDayWindowLengths } from '$/co
 import type { MarketVenueId } from '$/constants/MarketVenue.ts'
 import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { optionalPublicEnvString } from '$/lib/sources.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -63,13 +63,13 @@ export const getMarketVenueIdFromMarketUrl = (
 }
 
 
-export const getMarketEntityIdFromMarket = (
+export const getMarketEntitySelectorFromMarket = (
 	market: CoinpaprikaMarket,
 	scope?: {
 		baseCoinId?: CoinId
 		marketVenueId?: MarketVenueId
 	},
-): EntityId<typeof schema, EntityType.Market> | null => {
+): EntitySelector<typeof schema, EntityType.Market> | null => {
 	const baseWireId = market.base_currency_id
 	const quoteWireId = market.quote_currency_id
 	if (baseWireId == null || quoteWireId == null) {
@@ -130,7 +130,7 @@ export const getMarketEntityIdFromMarket = (
 }
 
 
-export const collectMarketEntityIdsForCoin = async ({
+export const collectMarketEntitySelectorsForCoin = async ({
 	publicEnv,
 	catalogCoinId,
 	coinpaprikaId,
@@ -138,7 +138,7 @@ export const collectMarketEntityIdsForCoin = async ({
 	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
 	catalogCoinId: CoinId
 	coinpaprikaId: string
-}): Promise<EntityId<typeof schema, EntityType.Market>[]> => {
+}): Promise<EntitySelector<typeof schema, EntityType.Market>[]> => {
 	const markets = await getCoinMarkets({
 		publicEnv,
 		coinpaprikaId,
@@ -146,7 +146,7 @@ export const collectMarketEntityIdsForCoin = async ({
 	const seen = new Set<string>()
 	return (
 		markets.flatMap((market) => {
-			const marketId = getMarketEntityIdFromMarket(market, {
+			const marketId = getMarketEntitySelectorFromMarket(market, {
 				baseCoinId: catalogCoinId,
 			})
 			if (marketId == null) {
@@ -163,13 +163,13 @@ export const collectMarketEntityIdsForCoin = async ({
 }
 
 
-export const collectMarketEntityIdsForExchange = async ({
+export const collectMarketEntitySelectorsForExchange = async ({
 	publicEnv,
 	marketVenueId,
 }: {
 	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
 	marketVenueId: MarketVenueId
-}): Promise<EntityId<typeof schema, EntityType.Market>[]> => {
+}): Promise<EntitySelector<typeof schema, EntityType.Market>[]> => {
 	const { coinpaprikaExchangeIdByMarketVenueId } = await import(
 		'$/sources/Coinpaprika/OpenApi/constants.ts'
 	)
@@ -184,7 +184,7 @@ export const collectMarketEntityIdsForExchange = async ({
 	const seen = new Set<string>()
 	return (
 		markets.flatMap((market) => {
-			const marketId = getMarketEntityIdFromMarket(market, {
+			const marketId = getMarketEntitySelectorFromMarket(market, {
 				marketVenueId,
 			})
 			if (marketId == null) {

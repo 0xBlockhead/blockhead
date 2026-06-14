@@ -12,6 +12,6 @@
 
 <Page>
 	<BlockheadPanelTreeView
-		entityId={{ id: params.dashboardId }}
+		selector={{ id: params.dashboardId }}
 	/>
 </Page>

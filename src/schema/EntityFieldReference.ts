@@ -6,7 +6,7 @@ import type {
 	EntityFieldDefinition,
 	EntityFieldDefinitionByName,
 	EntityFieldName,
-	EntityId,
+	EntitySelector,
 	EntityType,
 	Schema,
 } from '$/schema/$schema.ts'
@@ -27,7 +27,7 @@ export type EntityFieldReference<
 				entityType: _ListedEntity
 			} ? {
 				entityType: _Parent
-				entityId: EntityId<_Schema, _Parent>
+				selector: EntitySelector<_Schema, _Parent>
 				fieldName: _Field
 			}
 			:

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,14 +16,14 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/reddit'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.RedditNetwork>
+			selector: EntitySelector<typeof schema, EntityType.RedditNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -31,10 +31,10 @@
 		never
 	> = $props()
 
-	const networkIdKey = stringify(entityId)
+	const networkSelectorKey = stringify(selector)
 
 	const redditNetwork = subscribe(EntityType.RedditNetwork,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$redditLinks: ({ sources: [
@@ -59,7 +59,7 @@
 
 <EntityView
 	entityType={EntityType.RedditNetwork}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	layout={EntityLayout.SummaryDetails}
 	bind:open
@@ -154,12 +154,12 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			sectionIdPrefix={networkIdKey}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'subreddits', label: 'Subreddits' },
 				{ id: 'links', label: 'Popular submissions' },
 			]}
-			id={`${networkIdKey}:registry`}
+			id={`${networkSelectorKey}:registry`}
 			data-card
 		>
 			{#snippet Summary({
@@ -181,10 +181,10 @@
 					href={resolve('/reddit/subreddits')}
 					entityFieldReference={{
 						entityType: EntityType.RedditNetwork,
-						entityId,
+						selector,
 						fieldName: '$$redditSubreddits',
 					}}
-					id={`${networkIdKey}:subreddits-redditNetworks`}
+					id={`${networkSelectorKey}:subreddits-redditNetworks`}
 					open={_open}
 				/>
 			{/snippet}
@@ -195,10 +195,10 @@
 					href={resolve('/reddit/links')}
 					entityFieldReference={{
 						entityType: EntityType.RedditNetwork,
-						entityId,
+						selector,
 						fieldName: '$$redditLinks',
 					}}
-					id={`${networkIdKey}:links-redditNetworks`}
+					id={`${networkSelectorKey}:links-redditNetworks`}
 					open={_open}
 					title="Popular submissions"
 				/>

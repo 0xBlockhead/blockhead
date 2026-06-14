@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,15 +15,15 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(x)/x/post/[postId]', {
-			postId: entityId.id,
+			postId: selector.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.XPost>
+			selector: EntitySelector<typeof schema, EntityType.XPost>
 			href?: string
 			open?: boolean
 		},
@@ -35,7 +35,7 @@
 	> = $props()
 
 	const post = subscribe(EntityType.XPost,
-		entityId,
+		selector,
 		({ fields: { text: true, createdAt: true, $author: ({ fields: { username: true, name: true } }), ...(open ? ({ likeCount: true, retweetCount: true, replyCount: true, quoteCount: true, $$timestamps: ({ limit: 1 }), conversationId: true, $replyToPost: true, $quotedPost: true, postUrl: true, $$media: true }) : ({  })) } }),
 	)
 
@@ -56,14 +56,14 @@
 
 <EntityView
 	entityType={EntityType.XPost}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.id}
+			value={selector.id}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -83,7 +83,7 @@
 					/>
 					{:else}
 						<TruncatedValue
-							value={entityId.id}
+							value={selector.id}
 							format={TruncatedValueFormat.Visual}
 						/>
 					{/if}
@@ -146,7 +146,7 @@
 							<dt>Author</dt>
 							<dd>
 								<XUserView
-									entityId={post.fields.$author[EntityMetaKey.Id]}
+									selector={post.fields.$author[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -195,7 +195,7 @@
 								<dt>Reply to</dt>
 								<dd>
 									<svelte:self
-										entityId={post.fields.$replyToPost[EntityMetaKey.Id]}
+										selector={post.fields.$replyToPost[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -215,7 +215,7 @@
 								<dt>Quoted post</dt>
 								<dd>
 									<svelte:self
-										entityId={post.fields.$quotedPost[EntityMetaKey.Id]}
+										selector={post.fields.$quotedPost[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -257,14 +257,14 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			sectionIdPrefix={`x-post:${entityId.id}`}
+			sectionIdPrefix={`x-post:${selector.id}`}
 				sections={collapsibleTabsSections([
 					{ id: 'author', label: 'Author' },
 					{ id: 'thread', label: 'Thread' },
 					{ id: 'media', label: 'Media' },
 					{ id: 'metric-snapshots', label: 'Metrics' },
 				])}
-			id={`x-post:${entityId.id}:carousel`}
+			id={`x-post:${selector.id}:carousel`}
 			data-card
 		>
 			{#snippet Summary({
@@ -288,7 +288,7 @@
 					{#snippet children(post)}
 						{#if post.fields.$author}
 							<XUserView
-								entityId={post.fields.$author[EntityMetaKey.Id]}
+								selector={post.fields.$author[EntityMetaKey.Selector]}
 								layout={EntityLayout.Summary}
 							/>
 						{/if}
@@ -308,7 +308,7 @@
 									<div>
 										<strong>Reply to:</strong>
 										<svelte:self
-											entityId={post.fields.$replyToPost[EntityMetaKey.Id]}
+											selector={post.fields.$replyToPost[EntityMetaKey.Selector]}
 											layout={EntityLayout.Value}
 											open={false}
 										/>
@@ -319,7 +319,7 @@
 									<div>
 										<strong>Quoted post:</strong>
 										<svelte:self
-											entityId={post.fields.$quotedPost[EntityMetaKey.Id]}
+											selector={post.fields.$quotedPost[EntityMetaKey.Selector]}
 											layout={EntityLayout.Value}
 											open={false}
 										/>
@@ -349,10 +349,10 @@
 					{#snippet children(post)}
 						{#if (post.fields.$$media?.values.length ?? 0) > 0}
 							<div data-column="gap-3">
-								{#each post.fields.$$media.values as media (media[EntityMetaKey.Id].url)}
+								{#each post.fields.$$media.values as media (media[EntityMetaKey.Selector].url)}
 									<Media
 										alt=""
-										media={{ url: media[EntityMetaKey.Id].url }}
+										media={{ url: media[EntityMetaKey.Selector].url }}
 									/>
 								{/each}
 							</div>
@@ -370,11 +370,11 @@
 				<XPost_TimestampsView
 					entityFieldReference={{
 						entityType: EntityType.XPost,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					href={href}
-					id={`x-post:${entityId.id}:metric-snapshots`}
+					id={`x-post:${selector.id}:metric-snapshots`}
 					title="Metric snapshots"
 				/>
 			{/snippet}

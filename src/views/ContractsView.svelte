@@ -67,7 +67,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ fields: { blockHeight: ({ sources: [Source.Voltaire_JsonRpc] }), $$contracts: ({ sources: [Source.Blockscout_Rest] }) } }),
 			)}
 			{@const contracts = derive(
@@ -76,15 +76,15 @@
 					(network.fields.$$contracts?.values ?? [])
 				),
 			)}
-			{#key stringify(entityFieldReference.entityId)}
+			{#key stringify(entityFieldReference.selector)}
 				<EntitiesList
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.EvmContract}
 					id={`${id}-items`}
 					href={href}
-					getKey={(contract) => stringify(contract[EntityMetaKey.Id])}
-					getSortValue={(contract) => contract[EntityMetaKey.Id].address}
+					getKey={(contract) => stringify(contract[EntityMetaKey.Selector])}
+					getSortValue={(contract) => contract[EntityMetaKey.Selector].address}
 					placeholderText="Loading contracts…"
 					resource={contracts}
 					{title}
@@ -99,7 +99,7 @@
 
 					{#snippet Item({ item: contract })}
 						<EvmContractView
-							entityId={contract[EntityMetaKey.Id]}
+							selector={contract[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

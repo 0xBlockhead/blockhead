@@ -14,11 +14,11 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(beacon-slots)/slot/[slotNumber]', {
-				caip2Namespace: entityId.$network.caip2.namespace,
-				caip2Reference: entityId.$network.caip2.reference,
-				slotNumber: String(entityId.slot),
+				caip2Namespace: selector.$network.caip2.namespace,
+				caip2Reference: selector.$network.caip2.reference,
+				slotNumber: String(selector.slot),
 			}),
 		layout = EntityLayout.Summary,
 		title: titleProp,
@@ -26,7 +26,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: typeof BeaconSlotSchema.id.infer
+			selector: typeof BeaconSlotSchema.id.infer
 			href?: string
 			layout?: EntityLayout
 			title?: string
@@ -39,7 +39,7 @@
 	> = $props()
 
 	const slot = subscribe(EntityType.BeaconSlot,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Beacon_Rest,
 			], fields: { proposerIndex: true, ...(open && ({ epoch: true, root: true, parentRoot: true, stateRoot: true, bodyRoot: true, canonical: true, signature: true })) } }),
@@ -48,7 +48,7 @@
 
 	// (Derived)
 	const title = $derived(
-		titleProp ?? `Slot #${entityId.slot.toLocaleString()}`,
+		titleProp ?? `Slot #${selector.slot.toLocaleString()}`,
 	)
 
 
@@ -68,17 +68,17 @@
 
 <EntityView
 	entityType={EntityType.BeaconSlot}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{title}
 	{layout}
 	bind:open
-	idDragPlainText={String(entityId.slot)}
+	idDragPlainText={String(selector.slot)}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(entityId.slot)}
+			#{String(selector.slot)}
 		</span>
 	{/snippet}
 
@@ -86,7 +86,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Slot </span>
 		<span data-badge="small">
-			#{String(entityId.slot)}
+			#{String(selector.slot)}
 		</span>
 		</span>
 	{/snippet}
@@ -125,8 +125,8 @@
 							{#snippet children(slot)}
 								{#if slot.fields.epoch !== undefined}
 									<BeaconEpochView
-										entityId={{
-											$network: entityId.$network,
+										selector={{
+											$network: selector.$network,
 											epoch: slot.fields.epoch,
 										}}
 										layout={EntityLayout.Value}
@@ -256,8 +256,8 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			id={`beacon-slot:${String(entityId.slot)}:contents`}
-			sectionIdPrefix={`beacon-slot:${String(entityId.slot)}`}
+			id={`beacon-slot:${String(selector.slot)}:contents`}
+			sectionIdPrefix={`beacon-slot:${String(selector.slot)}`}
 			sections={[
 				{ id: 'slot-committees', label: 'Committees' },
 				{ id: 'slot-attestations', label: 'Attestations' },
@@ -277,7 +277,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BeaconSlot,
-						entityId,
+						selector,
 						fieldName: '$$beaconCommittees',
 					}}
 					id={`${id}-list`}
@@ -290,7 +290,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BeaconSlot,
-						entityId,
+						selector,
 						fieldName: '$$beaconAttestations',
 					}}
 					id={`${id}-list`}
@@ -303,7 +303,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BeaconSlot,
-						entityId,
+						selector,
 						fieldName: '$$beaconWithdrawals',
 					}}
 					id={`${id}-list`}
@@ -316,7 +316,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BeaconSlot,
-						entityId,
+						selector,
 						fieldName: '$$beaconSlashings',
 					}}
 					id={`${id}-list`}

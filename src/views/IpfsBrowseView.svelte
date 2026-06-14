@@ -1,15 +1,15 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
 	let {
-		entityId,
+		selector,
 	}: {
-		entityId?: EntityId<typeof schema, EntityType.IpfsResource>
+		selector?: EntitySelector<typeof schema, EntityType.IpfsResource>
 	} = $props()
 
 
@@ -125,7 +125,7 @@
 				name="target"
 				type="text"
 				placeholder="bafybeigdyrzt..."
-				value={entityId === undefined ? '' : `${entityId.namespace}://${entityId.target}`}
+				value={selector === undefined ? '' : `${selector.namespace}://${selector.target}`}
 			/>
 		</div>
 
@@ -141,7 +141,7 @@
 				name="path"
 				type="text"
 				placeholder="metadata.json"
-				value={entityId?.contentPath ?? ''}
+				value={selector?.contentPath ?? ''}
 			/>
 		</div>
 
@@ -185,9 +185,9 @@
 {/snippet}
 
 
-{#if entityId !== undefined}
+{#if selector !== undefined}
 	<IpfsBrowseEntityChrome
-		{entityId}
+		{selector}
 		Form={Form}
 	/>
 {:else}

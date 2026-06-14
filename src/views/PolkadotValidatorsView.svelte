@@ -58,7 +58,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.SubstrateSidecar_Rest,
@@ -79,7 +79,7 @@
 				entityType={EntityType.PolkadotValidator}
 				id={`${id}-items`}
 				href={href}
-				getKey={(validator) => stringify(validator[EntityMetaKey.Id])}
+				getKey={(validator) => stringify(validator[EntityMetaKey.Selector])}
 				open={true}
 				resource={validators}
 				{title}
@@ -91,7 +91,7 @@
 
 				{#snippet Item(context)}
 					<PolkadotValidatorView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

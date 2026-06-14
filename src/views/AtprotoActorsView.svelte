@@ -71,7 +71,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const atprotoNetwork = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				{
 					sources: [Source.Constants_Internal],
 					fields: {
@@ -99,7 +99,7 @@
 						)
 					},
 			)}
-			{#key stringify(entityFieldReference.entityId)}
+			{#key stringify(entityFieldReference.selector)}
 				<EntitiesList
 					collapsible={false}
 					showSummary={false}
@@ -108,7 +108,7 @@
 					{title}
 					open={true}
 					getSortValue={(row) => {
-						const actorId = row.value[EntityMetaKey.Id]
+						const actorId = row.value[EntityMetaKey.Selector]
 						return 'did' in actorId ? actorId.did : actorId.handle
 					}}
 					placeholderText="Loading DID directory…"
@@ -121,9 +121,9 @@
 					{/snippet}
 
 					{#snippet Item({ item })}
-						{@const actorId = item.value[EntityMetaKey.Id]}
+						{@const actorId = item.value[EntityMetaKey.Selector]}
 						<AtprotoActorView
-							entityId={actorId}
+							selector={actorId}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

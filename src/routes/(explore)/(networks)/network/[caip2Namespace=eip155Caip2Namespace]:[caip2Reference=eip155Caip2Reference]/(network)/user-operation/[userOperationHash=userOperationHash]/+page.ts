@@ -11,10 +11,10 @@ import type { PageLoad } from './$types.ts'
 export const load: PageLoad = ({ params }) => {
 	const $network = NetworkSchema.id({ caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } })
 	if ($network instanceof arktype.errors) error(404, 'Invalid network')
-	const entityId = EvmUserOperationSchema.id({
+	const entitySelector = EvmUserOperationSchema.id({
 		$network,
 		hash: params.userOperationHash.toLowerCase(),
 	})
-	if (entityId instanceof arktype.errors) error(404, 'Invalid user operation')
-	return { entityId }
+	if (entitySelector instanceof arktype.errors) error(404, 'Invalid user operation')
+	return { entitySelector }
 }

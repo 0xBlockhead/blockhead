@@ -58,7 +58,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Hyperliquid_JsonRpc,
@@ -79,7 +79,7 @@
 				entityType={EntityType.HyperliquidBlock}
 				id={`${id}-items`}
 				href={href}
-				getKey={(block) => stringify(block[EntityMetaKey.Id])}
+				getKey={(block) => stringify(block[EntityMetaKey.Selector])}
 				open={true}
 				resource={blocks}
 				{title}
@@ -91,7 +91,7 @@
 
 				{#snippet Item({ item })}
 					<HyperliquidBlockView
-						entityId={item[EntityMetaKey.Id]}
+						selector={item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

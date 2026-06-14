@@ -18,7 +18,7 @@
 		href={resolve('/leverage')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: { scope: '$$liquidityPositions' },
+			selector: { scope: '$$liquidityPositions' },
 			fieldName: '$$liquidityPositions',
 		}}
 		id="positions"

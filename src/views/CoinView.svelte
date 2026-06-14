@@ -13,7 +13,7 @@
 
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
@@ -26,9 +26,9 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(assets)/(coins)/coin/[coinId]', {
-			coinId: entityId.coinId,
+			coinId: selector.coinId,
 			}),
 		layout,
 		open = $bindable(true),
@@ -36,7 +36,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Coin>
+			selector: EntitySelector<typeof schema, EntityType.Coin>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -56,7 +56,7 @@
 			name?: string
 			symbol?: string
 		},
-		coinId: EntityId<typeof schema, EntityType.Coin>['coinId'],
+		coinId: EntitySelector<typeof schema, EntityType.Coin>['coinId'],
 	) => (
 		coin.name != null
 		&& coin.symbol != null
@@ -69,7 +69,7 @@
 
 	const coin = $derived(
 		subscribe(EntityType.Coin,
-			entityId,
+			selector,
 			({ sources: [...catalogCoinIdentitySources], fields: { $logo: true, decimals: true, name: true, symbol: true, marketCapRank: true, marketCapUsd: ({ sources: catalogCoinIdentitySources }), ...(open && ({ $$timestamps: ({ sources: [
 							Source.Blockscout_Rest,
 						], limit: 8 }) })), ...(open && ({ $$coinInstances: ({ sources: [
@@ -102,7 +102,7 @@
 <EntityView
 	entityType={EntityType.Coin}
 	bind:open
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	{collapsible}
@@ -113,10 +113,10 @@
 			resource={coin}
 		>
 			{#snippet children(coin)}
-				{#if coin.fields.$logo?.[EntityMetaKey.Id].url !== undefined}
+				{#if coin.fields.$logo?.[EntityMetaKey.Selector].url !== undefined}
 					<IconComponent
-						src={coin.fields.$logo[EntityMetaKey.Id].url}
-						alt={coin.fields.symbol ?? coin.fields.name ?? entityId.coinId}
+						src={coin.fields.$logo[EntityMetaKey.Selector].url}
+						alt={coin.fields.symbol ?? coin.fields.name ?? selector.coinId}
 					/>
 				{/if}
 			{/snippet}
@@ -125,7 +125,7 @@
 
 	{#snippet Value()}
 		<span>
-			{entityId.coinId}
+			{selector.coinId}
 		</span>
 	{/snippet}
 
@@ -135,7 +135,7 @@
 			placeholderText="Loading…"
 		>
 			{#snippet children(coin)}
-				{formatCoinHeadingLabel(coin.fields, entityId.coinId)}
+				{formatCoinHeadingLabel(coin.fields, selector.coinId)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -201,16 +201,16 @@
 											leftRow: Entity<typeof schema, EntityType.Coin_Timestamp>,
 											rightRow: Entity<typeof schema, EntityType.Coin_Timestamp>,
 									) => (
-										rightRow[EntityMetaKey.Id].timestampMs
-											- leftRow[EntityMetaKey.Id].timestampMs
+										rightRow[EntityMetaKey.Selector].timestampMs
+											- leftRow[EntityMetaKey.Selector].timestampMs
 									))[0]
-									?.[EntityMetaKey.Id]
+									?.[EntityMetaKey.Selector]
 							)}
 							{#if headTimestampId}
 								<Coin_TimestampView
-									entityId={headTimestampId}
+									selector={headTimestampId}
 									href={resolve('/(assets)/(coins)/coin/[coinId]', {
-											coinId: entityId.coinId,
+											coinId: selector.coinId,
 										})}
 									layout={EntityLayout.Title}
 									open={false}
@@ -242,10 +242,10 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const idPrefix = stringify(entityId)}
+		{@const idPrefix = stringify(selector)}
 		{@const catalogUsdMarketId = (
-			catalogCoinUsdMarketIdByCoinId[entityId.coinId]
-		) satisfies EntityId<typeof schema, EntityType.Market>}
+			catalogCoinUsdMarketIdByCoinId[selector.coinId]
+		) satisfies EntitySelector<typeof schema, EntityType.Market>}
 		{@const catalogUsdMarketLabel = (
 			catalogUsdMarketId.marketKind === MarketKind.Spot ?
 				`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217}`
@@ -288,7 +288,7 @@
 								href={resolve('/coins')}
 								entityFieldReference={{
 									entityType: EntityType.Coin,
-									entityId,
+									selector,
 									fieldName: '$$coinInstances',
 								}}
 								{id}
@@ -305,7 +305,7 @@
 									href={resolve('/coins')}
 									entityFieldReference={{
 										entityType: EntityType.Coin,
-										entityId,
+										selector,
 										fieldName: '$$coinInstances',
 									}}
 									{id}
@@ -322,7 +322,7 @@
 									href={resolve('/bridge')}
 									entityFieldReference={{
 										entityType: EntityType.Coin,
-										entityId,
+										selector,
 										fieldName: '$$bridgeCapabilities',
 									}}
 									{id}
@@ -384,7 +384,7 @@
 								href={resolve('/markets')}
 								entityFieldReference={{
 									entityType: EntityType.Coin,
-									entityId,
+									selector,
 									fieldName: '$$marketsWithCoinAsBase',
 								}}
 								{id}
@@ -398,7 +398,7 @@
 								href={resolve('/markets')}
 								entityFieldReference={{
 									entityType: EntityType.Coin,
-									entityId,
+									selector,
 									fieldName: '$$marketsWithCoinAsQuote',
 								}}
 								{id}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.UtxoTransaction>
+			selector: EntitySelector<typeof schema, EntityType.UtxoTransaction>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const transaction = subscribe(EntityType.UtxoTransaction,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Esplora_Rest,
 				Source.Blockchair_Rest,
@@ -51,21 +51,21 @@
 
 <EntityView
 	entityType={EntityType.UtxoTransaction}
-	{entityId}
+	entitySelector={selector}
 	href={
-		'networkSlug' in entityId.$network ?
-			`/network/${entityId.$network.networkSlug}/transactions/${entityId.txId}`
+		'networkSlug' in selector.$network ?
+			`/network/${selector.$network.networkSlug}/transactions/${selector.txId}`
 		:
-			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/transactions/${entityId.txId}`
+			`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/transactions/${selector.txId}`
 	}
-	title={entityId.txId}
+	title={selector.txId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.txId}
+			value={selector.txId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

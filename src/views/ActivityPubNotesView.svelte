@@ -10,7 +10,7 @@
 
 	type ActivityPubNoteOrderFieldRow = {
 		localStatusId?: string
-		[EntityMetaKey.IdKey]: string
+		[EntityMetaKey.SelectorKey]: string
 	}
 
 
@@ -78,12 +78,12 @@
 					orderByCreatedAt,
 				],
 				[
-					({ fieldRow }) => fieldRow[EntityMetaKey.IdKey],
+					({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
 					'asc',
 				],
 			] as const satisfies DeclarativeOrderBy<ActivityPubNoteOrderFieldRow>}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				(
 					fieldOpen ?
 						{
@@ -102,7 +102,7 @@
 						{ fields: {} }
 				),
 			)}
-			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}-${orderByCreatedAt}`}
+			{#key `${stringify(entityFieldReference.selector)}-${limit}-${fieldOpen}-${orderByCreatedAt}`}
 				<ResourceBoundary
 					resource={parent}
 					placeholderText={(
@@ -120,7 +120,7 @@
 							id={`${id}-items`}
 							{title}
 							open={true}
-							getKey={(activityPubNote) => stringify(activityPubNote[EntityMetaKey.Id])}
+							getKey={(activityPubNote) => stringify(activityPubNote[EntityMetaKey.Selector])}
 							placeholderText={(
 								fieldOpen ?
 									placeholderText
@@ -136,9 +136,9 @@
 							{/snippet}
 
 							{#snippet Item({ item })}
-								{@const noteId = item[EntityMetaKey.Id]}
+								{@const noteId = item[EntityMetaKey.Selector]}
 								<ActivityPubNoteView
-									entityId={{
+									selector={{
 										instanceOrigin: noteId.instanceOrigin,
 										localStatusId: noteId.localStatusId,
 									}}

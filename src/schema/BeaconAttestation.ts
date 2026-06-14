@@ -6,8 +6,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum BeaconAttestationSelector {
+	EvmNetworkSlotIndex = 'evmNetworkSlotIndex',
+}
 
 export default {
 	entityType: EntityType.BeaconAttestation,
@@ -15,13 +18,36 @@ export default {
 	label: 'Beacon attestation',
 	labelPlural: 'Beacon attestations',
 
-	id: type({
-		$network: Network.id,
-		slot: 'number',
-		index: 'number',
-	}),
+	selectors: [
+		{
+			name: BeaconAttestationSelector.EvmNetworkSlotIndex,
+			fields: [
+				'$network',
+				'slot',
+				'index',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'slot',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'index',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'committeeIndex',
 			type: EntityFieldType.Primitive,

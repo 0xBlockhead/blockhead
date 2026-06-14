@@ -7,7 +7,7 @@
 
 <Page>
 	<NostrView
-		entityId={{
+		selector={{
 			scope: 'NostrNetwork',
 		}}
 	/>

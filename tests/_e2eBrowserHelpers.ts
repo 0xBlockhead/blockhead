@@ -26,6 +26,7 @@ declare global {
 		__e2eViewTransitionStarts?: number
 		__e2eViewTransitionFinishes?: number
 		__e2eViewTransitionUpdates?: number
+		__blockheadClientProbe?: BlockheadClientProbe
 		__blockheadPersistenceProbe?: BlockheadPersistenceProbeEvent[]
 		__blockheadBoundaryProbe?: BoundaryUpdateEvent[]
 	}
@@ -66,6 +67,18 @@ export type RouteBoundaryReport = {
 	updates: BoundaryUpdateEvent[]
 	snapshot: BoundaryMainSnapshot
 	issues: string[]
+}
+
+export type BlockheadClientProbe = {
+	collectionSizes: () => {
+		fields: Partial<Record<string, Partial<Record<string, number>>>>
+	}
+	queryStates: () => {
+		key: string[]
+		status: string
+		fetchStatus: string
+		error?: string
+	}[]
 }
 
 export type BlockheadPersistenceProbeDecision = (
@@ -326,7 +339,7 @@ export const installBoundaryProbe = (page: Page) => (
 				if (tryAttach())
 					bootObserver.disconnect()
 			})
-			bootObserver.observe(document.documentElement, {
+			bootObserver.observe(document, {
 				childList: true,
 				subtree: true,
 			})
@@ -1081,7 +1094,17 @@ export const assertMainSettled = async (
 	page: Page,
 	timeoutMs = 180_000,
 ) => {
-	await expect(page.locator('#main [role="alert"]')).toHaveCount(0, { timeout: timeoutMs })
+	await expect(page.locator('#main')).toBeAttached({ timeout: timeoutMs })
+	const snapshot = await waitForBoundarySettle(page, { timeoutMs })
+	expect(
+		snapshot.failed.map((row) => `${row.key ?? 'unknown'}: ${row.message}`),
+	).toEqual([])
+	expect(
+		snapshot.loading.map((row) => `${row.key ?? 'unknown'}: ${row.message}`),
+	).toEqual([])
+	expect(
+		snapshot.empty ? `${snapshot.emptyReason ?? 'unknown'} (${snapshot.textLength} chars)` : '',
+	).toBe('')
 }
 
 /**

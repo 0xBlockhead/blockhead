@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum QuilibriumFrameSelector {
+	NetworkFrameNumberShardKey = 'networkFrameNumberShardKey',
+}
 
 export default {
 	entityType: EntityType.QuilibriumFrame,
@@ -15,13 +18,36 @@ export default {
 	label: 'Quilibrium Frame',
 	labelPlural: 'Quilibrium Frames',
 
-	id: type({
-		$network: Network.id,
-		frameNumber: 'bigint',
-		shardKey: 'string',
-	}),
+	selectors: [
+		{
+			name: QuilibriumFrameSelector.NetworkFrameNumberShardKey,
+			fields: [
+				'$network',
+				'frameNumber',
+				'shardKey',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'frameNumber',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'shardKey',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'frameHash',
 			type: EntityFieldType.Primitive,

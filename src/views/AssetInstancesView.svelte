@@ -61,7 +61,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 					], fields: { [entityFieldReference.fieldName]: {},
 				} }),
@@ -79,7 +79,7 @@
 				entityType={EntityType.AssetInstance}
 				id={`${id}-items`}
 				href={href}
-				getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
+				getKey={(asset) => `${asset[EntityMetaKey.Selector].kind}:${asset[EntityMetaKey.Selector].assetKey}`}
 				open={true}
 				resource={assets}
 				{title}
@@ -91,7 +91,7 @@
 
 				{#snippet Item({ item: asset })}
 					<AssetInstanceView
-						entityId={asset[EntityMetaKey.Id]}
+						selector={asset[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

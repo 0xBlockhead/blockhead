@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum EvmProtocolSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.EvmProtocol,
 
 	label: 'EVM protocol',
 	labelPlural: 'EVM protocols',
 
-	id: type({
-		scope: type.unit('EvmProtocol'),
-	}),
+	selectors: [
+		{
+			name: EvmProtocolSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('EvmProtocol'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

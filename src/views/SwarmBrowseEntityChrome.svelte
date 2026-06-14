@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { Snippet } from 'svelte'
 	import type { SubscribeResult } from '$/client/$client.svelte.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -18,18 +18,18 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		Form,
 		open = $bindable(true),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.SwarmResource>
+		selector: EntitySelector<typeof schema, EntityType.SwarmResource>
 		Form: Snippet
 		open?: boolean
 	} = $props()
 
 	const swarm = $derived(
 		subscribe(EntityType.SwarmResource,
-			entityId,
+			selector,
 			({ sources: [Source.Swarm_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, ...(open && ({ $media: true })) } }),
 		),
 	)
@@ -37,7 +37,7 @@
 
 	// (Derived)
 	const swarmChromeKey = $derived(
-		stringify(entityId),
+		stringify(selector),
 	)
 
 
@@ -56,8 +56,8 @@
 <EntityView
 	layout={EntityLayout.SummaryDetails}
 	entityType={EntityType.SwarmResource}
-	{entityId}
-	title={`bzz://${entityId.reference}${entityId.contentPath === '' ? '' : `/${entityId.contentPath}`}`}
+	entitySelector={selector}
+	title={`bzz://${selector.reference}${selector.contentPath === '' ? '' : `/${selector.contentPath}`}`}
 	bind:open
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -148,7 +148,7 @@
 					<p>
 						<code>
 							<TruncatedValue
-								value={`bzz://${entityId.reference}${entityId.contentPath === '' ? '' : `/${entityId.contentPath}`}`}
+								value={`bzz://${selector.reference}${selector.contentPath === '' ? '' : `/${selector.contentPath}`}`}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</code>
@@ -287,9 +287,9 @@
 					{#snippet SwarmChromeTextBody(swarm: SwarmResource)}
 						{#if swarm.fields.text !== undefined}
 							<pre>{swarm.fields.text}</pre>
-						{:else if swarm.fields.$media?.[EntityMetaKey.Id].url !== undefined}
+						{:else if swarm.fields.$media?.[EntityMetaKey.Selector].url !== undefined}
 							<Media
-								media={{ url: swarm.fields.$media[EntityMetaKey.Id].url }}
+								media={{ url: swarm.fields.$media[EntityMetaKey.Selector].url }}
 								alt={swarm.fields.fileName ?? ''}
 							/>
 						{:else}

@@ -60,7 +60,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.CosmosSdk_Rest,
@@ -81,8 +81,8 @@
 				entityType={EntityType.CosmosGovernanceProposal}
 				id={`${id}-items`}
 				href={href}
-				getKey={(proposal) => stringify(proposal[EntityMetaKey.Id])}
-				getSortValue={(proposal) => -Number(proposal[EntityMetaKey.Id].proposalId)}
+				getKey={(proposal) => stringify(proposal[EntityMetaKey.Selector])}
+				getSortValue={(proposal) => -Number(proposal[EntityMetaKey.Selector].proposalId)}
 				open={true}
 				resource={proposals}
 				{title}
@@ -93,7 +93,7 @@
 				{/snippet}
 
 				{#snippet Item(context)}
-					<CosmosGovernanceProposalView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+					<CosmosGovernanceProposalView selector={context!.item[EntityMetaKey.Selector]} layout={EntityLayout.Summary} open={false} />
 				{/snippet}
 			</EntitiesList>
 		{/if}

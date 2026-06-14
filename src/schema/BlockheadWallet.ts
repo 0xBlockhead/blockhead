@@ -13,17 +13,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadWalletSelector {
+	Id = 'id',
+}
+
 export default {
 	entityType: EntityType.BlockheadWallet,
 
 	label: 'Wallet',
 	labelPlural: 'Wallets',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: BlockheadWalletSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

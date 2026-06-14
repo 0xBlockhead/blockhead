@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -9,12 +9,12 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LogosAccount>
+			selector: EntitySelector<typeof schema, EntityType.LogosAccount>
 			open?: boolean
 		},
 		Pick<
@@ -33,15 +33,15 @@
 
 <EntityView
 	entityType={EntityType.LogosAccount}
-	{entityId}
-	title={entityId.accountAddress}
+	entitySelector={selector}
+	title={selector.accountAddress}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.accountAddress}
+			value={selector.accountAddress}
 			format={TruncatedValueFormat.Abbr}
 		/>
 

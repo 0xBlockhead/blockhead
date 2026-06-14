@@ -9,17 +9,32 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import UtxoBlock from '$/schema/UtxoBlock.ts'
 
+export enum DogecoinBlockAuxPowSelector {
+	UtxoBlock = 'utxoBlock',
+}
+
 export default {
 	entityType: EntityType.DogecoinBlockAuxPow,
 
 	label: 'Dogecoin AuxPoW',
 	labelPlural: 'Dogecoin AuxPoW Records',
 
-	id: type({
-		$block: UtxoBlock.id,
-	}),
+	selectors: [
+		{
+			name: DogecoinBlockAuxPowSelector.UtxoBlock,
+			fields: [
+				'$block',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$block',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.UtxoBlock,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$parentBlockHeader',
 			type: EntityFieldType.EntityReference,

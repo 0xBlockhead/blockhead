@@ -6,8 +6,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum MevRelaySelector {
+	EvmNetworkHost = 'evmNetworkHost',
+}
 
 export default {
 	entityType: EntityType.MevRelay,
@@ -15,12 +18,29 @@ export default {
 	label: 'MEV relay',
 	labelPlural: 'MEV relays',
 
-	id: type({
-		$network: Network.id,
-		host: 'string',
-	}),
+	selectors: [
+		{
+			name: MevRelaySelector.EvmNetworkHost,
+			fields: [
+				'$network',
+				'host',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'host',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'url',
 			type: EntityFieldType.Primitive,

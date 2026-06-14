@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,14 +12,14 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.MevBuilder>
+			selector: EntitySelector<typeof schema, EntityType.MevBuilder>
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
@@ -31,7 +31,7 @@
 	> = $props()
 
 	const builder = subscribe(EntityType.MevBuilder,
-		entityId,
+		selector,
 		(
 			open ?
 				{
@@ -51,7 +51,7 @@
 	// (Derived)
 	const title = $derived(
 		titleProp
-		?? `MEV builder ${entityId.builderPubkey}`
+		?? `MEV builder ${selector.builderPubkey}`
 	)
 
 
@@ -65,7 +65,7 @@
 
 <EntityView
 	entityType={EntityType.MevBuilder}
-	{entityId}
+	entitySelector={selector}
 	{title}
 	{layout}
 	bind:open
@@ -73,7 +73,7 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.builderPubkey}
+			value={selector.builderPubkey}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}

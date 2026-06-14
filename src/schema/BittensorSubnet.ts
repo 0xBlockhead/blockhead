@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum BittensorSubnetSelector {
+	NetworkNetuid = 'networkNetuid',
+}
 import { Source } from '$/sources/Source.ts'
 
 export default {
@@ -16,12 +19,23 @@ export default {
 	label: 'Bittensor subnet',
 	labelPlural: 'Bittensor subnets',
 
-	id: type({
-		$network: Network.id,
-		netuid: 'number',
-	}),
+	selectors: [
+		{
+			name: BittensorSubnetSelector.NetworkNetuid,
+			fields: [
+				'$network',
+				'netuid',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'netuid',
 			type: EntityFieldType.Primitive,

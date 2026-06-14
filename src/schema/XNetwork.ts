@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum XNetworkSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.XNetwork,
 
 	label: 'X network',
 	labelPlural: 'X networks',
 
-	id: type({
-		scope: type.unit('XNetwork'),
-	}),
+	selectors: [
+		{
+			name: XNetworkSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('XNetwork'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

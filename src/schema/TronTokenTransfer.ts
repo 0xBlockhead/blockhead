@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum TronTokenTransferSelector {
+	NetworkTransactionIdTransferIndex = 'networkTransactionIdTransferIndex',
+}
 import { TronTokenStandard } from '$/schema/TronToken.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -21,13 +24,36 @@ export default {
 	label: 'TRON Token Transfer',
 	labelPlural: 'TRON Token Transfers',
 
-	id: type({
-		$network: Network.id,
-		transactionId: 'string',
-		transferIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: TronTokenTransferSelector.NetworkTransactionIdTransferIndex,
+			fields: [
+				'$network',
+				'transactionId',
+				'transferIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'transactionId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'transferIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$transaction',
 			type: EntityFieldType.EntityReference,

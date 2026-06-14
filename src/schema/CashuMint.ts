@@ -10,17 +10,32 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum CashuMintSelector {
+	MintUrl = 'mintUrl',
+}
+
 export default {
 	entityType: EntityType.CashuMint,
 
 	label: 'Cashu mint',
 	labelPlural: 'Cashu mints',
 
-	id: type({
-		mintUrl: UrlString,
-	}),
+	selectors: [
+		{
+			name: CashuMintSelector.MintUrl,
+			fields: [
+				'mintUrl',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'mintUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

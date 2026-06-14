@@ -1,454 +1,276 @@
+import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { type as arktype } from 'arktype'
 
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	EntityMetaKey,
-	entityIdentityIdsFromFields,
-	entityIdProjectionNameForId,
-	validateEntityId,
+	entitySelectorsFromFields,
+	validateEntitySelector,
 	type EntityDefinition,
+	type Schema,
 } from '$/schema/$schema.ts'
-import { type as arktype } from 'arktype'
-import ActivityPubActor from '$/schema/ActivityPubActor.ts'
-import AtprotoActor from '$/schema/AtprotoActor.ts'
-import CosmosBlock from '$/schema/CosmosBlock.ts'
-import EvmBlock from '$/schema/EvmBlock.ts'
-import FarcasterCast from '$/schema/FarcasterCast.ts'
-import HyperliquidBlock from '$/schema/HyperliquidBlock.ts'
-import IpfsResource from '$/schema/IpfsResource.ts'
-import LensAccount from '$/schema/LensAccount.ts'
-import Network from '$/schema/Network.ts'
-import SolanaBlock from '$/schema/SolanaBlock.ts'
-import SwarmResource from '$/schema/SwarmResource.ts'
-import XUser from '$/schema/XUser.ts'
 
-const ProjectionFixture = {
-	entityType: 'ProjectionFixture',
-	label: 'Projection fixture',
-	labelPlural: 'Projection fixtures',
-	id: arktype({
-		durableId: 'string?',
-		slug: 'string?',
-		source: 'string?',
-		code: 'string?',
-	}),
-	lookups: [
+enum ParentSelector {
+	Slug = 'slug',
+	Caip2 = 'caip2',
+}
+
+enum ChildSelector {
+	ParentSlot = 'parentSlot',
+	ParentHash = 'parentHash',
+}
+
+const Parent = {
+	entityType: 'Parent',
+	label: 'Parent',
+	labelPlural: 'Parents',
+	selectors: [
 		{
-			name: 'slug',
+			name: ParentSelector.Slug,
 			fields: ['slug'],
 		},
 		{
-			name: 'sourceCode',
-			fields: [
-				'source',
-				'code',
-			],
-		},
-	],
-	identities: [
-		{
-			name: 'durableId',
-			fields: ['durableId'],
+			name: ParentSelector.Caip2,
+			fields: ['caip2'],
 		},
 	],
 	fields: [
 		{
-			name: 'name',
+			name: 'slug',
 			type: EntityFieldType.Primitive,
-			primitiveType: arktype('string'),
+			primitiveType: arktype('string.lower'),
+			cardinality: EntityFieldCardinality.One,
+			normalize: (value) => arktype('string.lower')(value),
+		},
+		{
+			name: 'caip2',
+			type: EntityFieldType.Primitive,
+			primitiveType: arktype({
+				namespace: 'string',
+				reference: 'string',
+			}),
 			cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition
 
-describe('entity identity projections', () => {
-	it('matches schema projections by exact configured shape', () => {
-		expect(entityIdProjectionNameForId(ProjectionFixture, {
-			durableId: 'entity-1',
-		})).toBe('durableId')
-		expect(entityIdProjectionNameForId(ProjectionFixture, {
-			slug: 'alice',
-		})).toBe('slug')
-		expect(entityIdProjectionNameForId(ProjectionFixture, {
-			source: 'remote',
-			code: '42',
-		})).toBe('sourceCode')
-		expect(entityIdProjectionNameForId(ProjectionFixture, {
-			durableId: 'entity-1',
-			slug: 'alice',
-		})).toBeUndefined()
-		expect(entityIdProjectionNameForId(ProjectionFixture, {
-			slug: 'alice',
-			source: 'remote',
-			code: '42',
-		})).toBeUndefined()
-		expect(entityIdProjectionNameForId(ProjectionFixture, {
-			slug: 'alice',
-			unused: 'extra',
-		})).toBeUndefined()
-		expect(entityIdProjectionNameForId(ProjectionFixture, {
-			source: 'remote',
-		})).toBeUndefined()
-		expect(() => validateEntityId(ProjectionFixture, {
-			durableId: 'entity-1',
-			slug: 'alice',
-		})).toThrow(/invalid id/)
-		expect(validateEntityId(ProjectionFixture, {
-			durableId: 'entity-1',
-		}).fields).toEqual(['durableId'])
-	})
+const Child = {
+	entityType: 'Child',
+	label: 'Child',
+	labelPlural: 'Children',
+	selectors: [
+		{
+			name: ChildSelector.ParentSlot,
+			fields: [
+				'$parent',
+				'slot',
+			],
+		},
+		{
+			name: ChildSelector.ParentHash,
+			fields: [
+				'$parent',
+				'hash',
+			],
+		},
+	],
+	fields: [
+		{
+			name: '$parent',
+			type: EntityFieldType.EntityReference,
+			entityType: Parent.entityType,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'slot',
+			type: EntityFieldType.Primitive,
+			primitiveType: arktype('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: arktype('string.lower'),
+			cardinality: EntityFieldCardinality.One,
+			normalize: (value) => arktype('string.lower')(value),
+		},
+	],
+} as const satisfies EntityDefinition
 
-	it('keeps Farcaster lookup-only ids separate from durable cast identities', () => {
-		expect(FarcasterCast.lookups.map((lookup) => lookup.name)).toEqual([
-			'usernameHashPrefix',
-			'clientUrl',
-		])
-		expect(FarcasterCast.identities.map((identity) => identity.name)).toEqual([
-			'hash',
-			'fidHash',
-		])
-		expect(entityIdentityIdsFromFields(
-			FarcasterCast,
-			{
-				username: 'dwr.eth',
-				hashPrefix: '0xAB',
-			},
-			{
-				username: 'dwr.eth',
-				hashPrefix: '0xAB',
-				fid: 1,
-				hash: '0xABC',
-			},
-		)).toEqual([
-			{
-				username: 'dwr.eth',
-				hashPrefix: '0xAB',
-			},
-			{
-				hash: '0xabc',
-			},
-			{
-				fid: 1,
-				hash: '0xabc',
-			},
-		])
-	})
+const fixtureSchema = [
+	Parent,
+	Child,
+] as const satisfies Schema
 
-	it('projects Network slug and CAIP-2 ids from returned fields', () => {
-		expect(entityIdentityIdsFromFields(
-			Network,
+describe('entity selectors', () => {
+	it('matches exact named selector field sets', () => {
+		expect(validateEntitySelector(
+			fixtureSchema,
+			Parent,
 			{
-				networkSlug: 'ethereum',
-			},
-			{
-				caip2: {
-					namespace: 'eip155',
-					reference: '1',
-				},
 				slug: 'ethereum',
 			},
-		)).toEqual([
-			{
-				networkSlug: 'ethereum',
-			},
+		)).toEqual({
+			name: ParentSelector.Slug,
+			fields: ['slug'],
+		})
+		expect(validateEntitySelector(
+			fixtureSchema,
+			Parent,
 			{
 				caip2: {
 					namespace: 'eip155',
 					reference: '1',
 				},
 			},
-		])
+		)).toEqual({
+			name: ParentSelector.Caip2,
+			fields: ['caip2'],
+		})
+		expect(() => validateEntitySelector(
+			fixtureSchema,
+			Parent,
+			{},
+		)).toThrow(/invalid selector/)
+		expect(() => validateEntitySelector(
+			fixtureSchema,
+			Parent,
+			{
+				slug: 'ethereum',
+				caip2: {
+					namespace: 'eip155',
+					reference: '1',
+				},
+			},
+		)).toThrow(/invalid selector/)
+		expect(() => validateEntitySelector(
+			fixtureSchema,
+			Parent,
+			{
+				slug: 'ethereum',
+				extra: 'value',
+			},
+		)).toThrow(/invalid selector/)
 	})
 
-	it('keeps AT Protocol handle lookups separate from durable DID identity', () => {
-		expect(AtprotoActor.lookups.map((lookup) => lookup.name)).toEqual([
-			'handle',
-		])
-		expect(AtprotoActor.identities.map((identity) => identity.name)).toEqual([
-			'did',
-		])
-		expect(entityIdentityIdsFromFields(
-			AtprotoActor,
+	it('accepts referenced entity selectors recursively', () => {
+		expect(validateEntitySelector(
+			fixtureSchema,
+			Child,
 			{
-				handle: 'Alice.Bsky.Social',
+				$parent: {
+					slug: 'ethereum',
+				},
+				slot: 1n,
 			},
+		)).toEqual({
+			name: ChildSelector.ParentSlot,
+			fields: [
+				'$parent',
+				'slot',
+			],
+		})
+		expect(validateEntitySelector(
+			fixtureSchema,
+			Child,
 			{
-				did: 'did:plc:abc234',
-				handle: 'alice.bsky.social',
+				$parent: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				hash: '0xabc',
 			},
-		)).toEqual([
+		)).toEqual({
+			name: ChildSelector.ParentHash,
+			fields: [
+				'$parent',
+				'hash',
+			],
+		})
+		expect(() => validateEntitySelector(
+			fixtureSchema,
+			Child,
 			{
-				handle: 'Alice.Bsky.Social',
+				$parent: {
+					unknown: 'ethereum',
+				},
+				slot: 1n,
 			},
-			{
-				did: 'did:plc:abc234',
-			},
-		])
+		)).toThrow(/invalid selector/)
 	})
 
-	it('keeps ActivityPub acct lookups separate from durable local account ids', () => {
-		expect(ActivityPubActor.lookups.map((lookup) => lookup.name)).toEqual([
-			'acct',
-		])
-		expect(ActivityPubActor.identities.map((identity) => identity.name)).toEqual([
-			'localAccountId',
-		])
-		expect(entityIdentityIdsFromFields(
-			ActivityPubActor,
+	it('derives aliases from resolved fields without durability tiers', () => {
+		expect(entitySelectorsFromFields(
+			fixtureSchema,
+			Child,
 			{
-				instanceOrigin: 'https://mastodon.social',
-				acct: 'Alice@Mastodon.Social',
-			},
-			{
-				instanceOrigin: 'https://mastodon.social',
-				localAccountId: '123',
-				acct: 'alice@mastodon.social',
-			},
-		)).toEqual([
-			{
-				instanceOrigin: 'https://mastodon.social',
-				acct: 'Alice@Mastodon.Social',
-			},
-			{
-				instanceOrigin: 'https://mastodon.social',
-				localAccountId: '123',
-			},
-		])
-	})
-
-	it('keeps Lens username and legacy profile lookups separate from durable addresses', () => {
-		expect(LensAccount.lookups.map((lookup) => lookup.name)).toEqual([
-			'localName',
-			'legacyProfileId',
-		])
-		expect(LensAccount.identities.map((identity) => identity.name)).toEqual([
-			'address',
-		])
-		expect(entityIdentityIdsFromFields(
-			LensAccount,
-			{
-				localName: 'Stani',
-			},
-			{
-				address: '0x1234567890ABCDEF1234567890ABCDEF12345678',
-				localName: 'stani',
-			},
-		)).toEqual([
-			{
-				localName: 'Stani',
-			},
-			{
-				address: '0x1234567890abcdef1234567890abcdef12345678',
-			},
-		])
-		expect(entityIdentityIdsFromFields(
-			LensAccount,
-			{
-				legacyProfileId: '0x01',
-			},
-			{
-				address: '0x1234567890ABCDEF1234567890ABCDEF12345678',
-			},
-		)).toEqual([
-			{
-				legacyProfileId: '0x01',
-			},
-			{
-				address: '0x1234567890abcdef1234567890abcdef12345678',
-			},
-		])
-	})
-
-	it('keeps X username lookups separate from durable numeric user ids', () => {
-		expect(XUser.lookups.map((lookup) => lookup.name)).toEqual([
-			'username',
-		])
-		expect(XUser.identities.map((identity) => identity.name)).toEqual([
-			'id',
-		])
-		expect(entityIdentityIdsFromFields(
-			XUser,
-			{
-				username: 'Jack',
-			},
-			{
-				id: '12',
-				username: 'jack',
-			},
-		)).toEqual([
-			{
-				username: 'Jack',
-			},
-			{
-				id: '12',
-			},
-		])
-	})
-
-	it('projects block hash identities from height and slot lookups', () => {
-		expect(entityIdentityIdsFromFields(
-			CosmosBlock,
-			{
-				$network: {
-					networkSlug: 'cosmoshub',
-				},
-				height: 1n,
-			},
-			{
-				hash: 'ABCDEF',
-			},
-		)).toEqual([
-			{
-				$network: {
-					networkSlug: 'cosmoshub',
-				},
-				height: 1n,
-			},
-			{
-				$network: {
-					networkSlug: 'cosmoshub',
-				},
-				hash: 'abcdef',
-			},
-		])
-		expect(entityIdentityIdsFromFields(
-			HyperliquidBlock,
-			{
-				$network: {
-					networkSlug: 'hyperliquid',
-				},
-				height: 1n,
-			},
-			{
-				hash: '0xABCDEF',
-			},
-		)).toEqual([
-			{
-				$network: {
-					networkSlug: 'hyperliquid',
-				},
-				height: 1n,
-			},
-			{
-				$network: {
-					networkSlug: 'hyperliquid',
-				},
-				hash: '0xabcdef',
-			},
-		])
-		expect(entityIdentityIdsFromFields(
-			SolanaBlock,
-			{
-				$network: {
-					networkSlug: 'solana',
+				$parent: {
+					slug: 'ethereum',
 				},
 				slot: 1n,
 			},
 			{
-				blockHash: 'blockhash',
-			},
-		)).toEqual([
-			{
-				$network: {
-					networkSlug: 'solana',
-				},
-				slot: 1n,
-			},
-			{
-				$network: {
-					networkSlug: 'solana',
-				},
-				blockHash: 'blockhash',
-			},
-		])
-	})
-
-	it('projects bigint block ids through entity reference fields', () => {
-		expect(entityIdentityIdsFromFields(
-			EvmBlock,
-			{
-				$network: {
-					networkSlug: 'ethereum',
-				},
-				blockNumber: 1n,
-			},
-			{
-				$network: {
-					[EntityMetaKey.Id]: {
+				$parent: {
+					[EntityMetaKey.Selector]: {
 						caip2: {
 							namespace: 'eip155',
 							reference: '1',
 						},
 					},
 				},
-				number: 1n,
 				hash: '0xABC',
 			},
 		)).toEqual([
 			{
-				$network: {
-					networkSlug: 'ethereum',
+				$parent: {
+					slug: 'ethereum',
 				},
-				blockNumber: 1n,
+				slot: 1n,
 			},
 			{
-				$network: {
+				$parent: {
 					caip2: {
 						namespace: 'eip155',
 						reference: '1',
 					},
 				},
-				blockNumber: 1n,
+				slot: 1n,
+			},
+			{
+				$parent: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
 				hash: '0xabc',
 			},
 		])
 	})
 
-	it('projects equivalent content and hex encodings through schema identities', () => {
-		expect(entityIdentityIdsFromFields(
-			IpfsResource,
-			{
-				namespace: 'ipfs',
-				target: 'QmYwAPJzv5CZsnAzt8auVTLW5FfYJcJQ5g7i6n4f5x9g9d',
-				contentPath: 'readme',
-			},
-			{
-				namespace: 'ipfs',
-				target: 'QmYwAPJzv5CZsnAzt8auVTLW5FfYJcJQ5g7i6n4f5x9g9d',
-				contentPath: 'readme',
-			},
-		)).toEqual([
-			{
-				namespace: 'ipfs',
-				target: 'QmYwAPJzv5CZsnAzt8auVTLW5FfYJcJQ5g7i6n4f5x9g9d',
-				contentPath: 'readme',
-			},
-			{
-				namespace: 'ipfs',
-				target: 'bafybeie5nqv6kd3qnfjuprw2scvubkrvqjwnrhhnxowqzcyio3mdp2myua',
-				contentPath: 'readme',
-			},
-		])
-		expect(entityIdentityIdsFromFields(
-			SwarmResource,
-			{
-				reference: '0xABCDEF',
-				contentPath: 'a',
-			},
-			{
-				reference: 'ABCDEF',
-				contentPath: 'a',
-			},
-		)).toEqual([
-			{
-				reference: '0xABCDEF',
-				contentPath: 'a',
-			},
-			{
-				reference: 'abcdef',
-				contentPath: 'a',
-			},
-		])
+	it('keeps concrete schema rows free of legacy selector surfaces', () => {
+		expect(
+			readdirSync(new URL('.', import.meta.url))
+				.filter((fileName) => (
+					fileName.endsWith('.ts')
+					&& !fileName.endsWith('.spec.ts')
+					&& !fileName.startsWith('$')
+					&& fileName !== 'index.ts'
+				))
+				.flatMap((fileName) => {
+					const source = readFileSync(new URL(fileName, import.meta.url), 'utf8')
+					return [
+						...(/\n\tid:/u.test(source) ? [`${fileName}: top-level id`] : []),
+						...(/\n\tidentities:/u.test(source) ? [`${fileName}: identities`] : []),
+						...(/\n\tlookups:/u.test(source) ? [`${fileName}: lookups`] : []),
+						...(/\n\t\tentityId:/u.test(source) ? [`${fileName}: entityId`] : []),
+						...(/\n\t\tdurable:/u.test(source) ? [`${fileName}: durable`] : []),
+					]
+				}),
+		).toEqual([])
 	})
 })

@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum FilecoinActorSelector {
+	NetworkAddress = 'networkAddress',
+}
 
 export default {
 	entityType: EntityType.FilecoinActor,
@@ -15,12 +18,29 @@ export default {
 	label: 'Filecoin Actor',
 	labelPlural: 'Filecoin Actors',
 
-	id: type({
-		$network: Network.id,
-		address: 'string',
-	}),
+	selectors: [
+		{
+			name: FilecoinActorSelector.NetworkAddress,
+			fields: [
+				'$network',
+				'address',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'address',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'actorCodeCid',
 			type: EntityFieldType.Primitive,

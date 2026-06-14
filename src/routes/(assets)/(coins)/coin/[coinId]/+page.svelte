@@ -51,7 +51,7 @@
 	{:else}
 		<div id="coin-detail-page">
 			<CoinView
-				entityId={{
+				selector={{
 					coinId: route.coinId,
 				}}
 			/>

@@ -1,6 +1,4 @@
 import { type } from 'arktype'
-import { lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
-
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -10,44 +8,47 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/Network.ts'
 
+export enum HyperliquidBlockSelector {
+	Height = 'height',
+	Hash = 'hash',
+}
+
 export default {
 	entityType: EntityType.HyperliquidBlock,
 
 	label: 'Hyperliquid Block',
 	labelPlural: 'Hyperliquid Blocks',
 
-	id: type.or(
-		type({
-			$network: Network.id,
-			height: 'bigint',
-		}),
-		type({
-			$network: Network.id,
-			hash: 'string',
-		}),
-	),
-
-	identities: [
+	selectors: [
 		{
-			name: 'height',
+			name: HyperliquidBlockSelector.Height,
 			fields: [
 				'$network',
 				'height',
 			],
 		},
 		{
-			name: 'hash',
+			name: HyperliquidBlockSelector.Hash,
 			fields: [
 				'$network',
-				{
-					name: 'hash',
-					normalize: lowercaseHexIdentityValue,
-				},
+				'hash',
 			],
 		},
 	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'height',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'hash',
 			type: EntityFieldType.Primitive,

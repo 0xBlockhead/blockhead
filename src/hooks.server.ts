@@ -5,6 +5,7 @@ import { sourceProviders } from '$/sources/index.ts'
 installPolyfills()
 
 const PROXY_PATH = '/api-proxy/'
+const PROXY_UPSTREAM_TIMEOUT_MS = 30_000
 
 const allowlistedProxyOrigins = new Set(
 	sourceProviders.flatMap((provider) => (
@@ -34,6 +35,7 @@ export const handle: Handle = async ({
 			method: event.request.method,
 			headers,
 			body: event.request.body,
+			signal: AbortSignal.timeout(PROXY_UPSTREAM_TIMEOUT_MS),
 			...(event.request.body != null && {
 				duplex: 'half',
 			}),

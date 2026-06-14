@@ -9,18 +9,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum EvmNetwork_GasFee_BlockSelector {
+	EvmNetworkBlockNumber = 'evmNetworkBlockNumber',
+}
+
 export default {
 	entityType: EntityType.EvmNetwork_GasFee_Block,
 
 	label: 'Network gas fee block snapshot',
 	labelPlural: 'Network gas fee block snapshots',
 
-	id: type({
-		$network: Network.id,
-		blockNumber: 'bigint',
-	}),
+	selectors: [
+		{
+			name: EvmNetwork_GasFee_BlockSelector.EvmNetworkBlockNumber,
+			fields: [
+				'$network',
+				'blockNumber',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'blockNumber',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'baseFeePerGas',
 			type: EntityFieldType.Primitive,

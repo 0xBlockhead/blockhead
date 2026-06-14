@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,18 +12,18 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.TronBlock>
+			selector: EntitySelector<typeof schema, EntityType.TronBlock>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const block = subscribe(EntityType.TronBlock, entityId, ({ fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } }))
+	const block = subscribe(EntityType.TronBlock, selector, ({ fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } }))
 
 
 	// Components
@@ -38,15 +38,15 @@
 
 <EntityView
 	entityType={EntityType.TronBlock}
-	{entityId}
-	title={`Block #${entityId.height.toString()}`}
-	idDragPlainText={entityId.height.toString()}
+	entitySelector={selector}
+	title={`Block #${selector.height.toString()}`}
+	idDragPlainText={selector.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.height.toString()}
+			#{selector.height.toString()}
 		</span>
 	{/snippet}
 
@@ -113,7 +113,7 @@
 							<dt>Witness</dt>
 							<dd>
 								<TronWitnessView
-									entityId={block.fields.$witness[EntityMetaKey.Id]}
+									selector={block.fields.$witness[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

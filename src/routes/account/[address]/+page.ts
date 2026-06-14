@@ -18,8 +18,8 @@ export const load: PageLoad = ({ params }) => {
 	const address = EvmAddress(raw)
 	if (address instanceof arktype.errors) error(404, 'Invalid account address')
 
-	const entityId = EvmAccountSchema.id({ address })
-	if (entityId instanceof arktype.errors) error(404, 'Invalid account')
+	const entitySelector = EvmAccountSchema.id({ address })
+	if (entitySelector instanceof arktype.errors) error(404, 'Invalid account')
 
-	return { entityId }
+	return { entitySelector }
 }

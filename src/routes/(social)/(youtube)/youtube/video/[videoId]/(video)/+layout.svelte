@@ -27,7 +27,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<YouTubeVideoView
-			entityId={{ videoId: decodeURIComponent(videoId) }}
+			selector={{ videoId: decodeURIComponent(videoId) }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

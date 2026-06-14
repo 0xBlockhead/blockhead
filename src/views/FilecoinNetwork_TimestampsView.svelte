@@ -60,7 +60,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Lotus_JsonRpc,
@@ -82,8 +82,8 @@
 				entityType={EntityType.FilecoinNetwork_Timestamp}
 				id={`${id}-items`}
 				href={href}
-				getKey={(timestamp) => stringify(timestamp[EntityMetaKey.Id])}
-				getSortValue={(timestamp) => -timestamp[EntityMetaKey.Id].timestampMs}
+				getKey={(timestamp) => stringify(timestamp[EntityMetaKey.Selector])}
+				getSortValue={(timestamp) => -timestamp[EntityMetaKey.Selector].timestampMs}
 				open={true}
 				resource={timestamps}
 				{title}
@@ -97,7 +97,7 @@
 
 				{#snippet Item(context)}
 					<FilecoinNetwork_TimestampView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

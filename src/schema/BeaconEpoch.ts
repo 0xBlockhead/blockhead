@@ -6,8 +6,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum BeaconEpochSelector {
+	EvmNetworkEpoch = 'evmNetworkEpoch',
+}
 
 export default {
 	entityType: EntityType.BeaconEpoch,
@@ -15,12 +18,29 @@ export default {
 	label: 'Beacon epoch',
 	labelPlural: 'Beacon epochs',
 
-	id: type({
-		$network: Network.id,
-		epoch: 'number',
-	}),
+	selectors: [
+		{
+			name: BeaconEpochSelector.EvmNetworkEpoch,
+			fields: [
+				'$network',
+				'epoch',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'epoch',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'startSlot',
 			type: EntityFieldType.Primitive,

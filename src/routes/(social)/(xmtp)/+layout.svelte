@@ -26,7 +26,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<XmtpView
-			entityId={{
+			selector={{
 				scope: 'XmtpNetwork',
 			}}
 			layout={EntityLayout.SummaryInline}

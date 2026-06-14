@@ -9,18 +9,18 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 test.describe('assertLoaded resolver probes', () => {
 	test('rejects invalid entity-row __source', () => {
 		expect(() => assertLoadedValue({
-			[EntityMetaKey.Id]: { chainId: 1 },
-			[EntityMetaKey.IdKey]: '{"chainId":1}',
+			[EntityMetaKey.Selector]: { chainId: 1 },
+			[EntityMetaKey.SelectorKey]: '{"chainId":1}',
 			[EntityMetaKey.Source]: 'NotARealSource',
 			[EntityMetaKey.Fields]: {},
 		})).toThrow()
 	})
 
-	test('rejects invalid nested compact ref __id', () => {
+	test('rejects invalid nested compact ref __selector', () => {
 		expect(() => assertLoadedValue({
 			x: {
-				[EntityMetaKey.Id]: null,
-				[EntityMetaKey.IdKey]: 'k',
+				[EntityMetaKey.Selector]: null,
+				[EntityMetaKey.SelectorKey]: 'k',
 			},
 		})).toThrow()
 	})

@@ -16,7 +16,7 @@
 	<AtprotoPostThreadView
 		entityFieldReference={{
 			entityType: EntityType.AtprotoPost,
-			entityId: {
+			selector: {
 				uri: decodeURIComponent(params.uri),
 			},
 			fieldName: '$$thread',

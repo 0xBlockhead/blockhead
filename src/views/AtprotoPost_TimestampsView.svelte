@@ -51,7 +51,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Atproto_Xrpc,
 						Source.Atproto_BskySocial_Xrpc,
 					], fields: { [entityFieldReference.fieldName]: {
@@ -85,7 +85,7 @@
 			>
 				{#snippet Item({ item })}
 					<AtprotoPost_TimestampView
-						entityId={item.value[EntityMetaKey.Id]}
+						selector={item.value[EntityMetaKey.Selector]}
 						{href}
 						layout={EntityLayout.Summary}
 						open={false}

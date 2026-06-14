@@ -7,7 +7,7 @@ import {
 } from '$/constants/Market.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { Entity } from '$/schema/$schema.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
@@ -50,7 +50,7 @@ export const marketTimeIntervalsEqual = (
 
 
 export const candleFromOhlc = (
-	$market: EntityId<typeof schema, EntityType.Market>,
+	$market: EntitySelector<typeof schema, EntityType.Market>,
 	timeInterval: MarketTimeInterval,
 	[timestampMs, open, high, low, close, quoteVolume]: OhlcCandle,
 ) => {
@@ -60,11 +60,11 @@ export const candleFromOhlc = (
 			timeInterval,
 			timestampMs: Math.floor(timestampMs),
 		}
-	) satisfies EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>
+	) satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>
 
 	return (
 		{
-			[EntityMetaKey.Id]: id,
+			[EntityMetaKey.Selector]: id,
 			open: BigInt(Math.round(open * 1e8)),
 			high: BigInt(Math.round(high * 1e8)),
 			low: BigInt(Math.round(low * 1e8)),
@@ -78,7 +78,7 @@ export const candleFromOhlc = (
 
 
 export const candlesFromOhlc = (
-	$market: EntityId<typeof schema, EntityType.Market>,
+	$market: EntitySelector<typeof schema, EntityType.Market>,
 	timeInterval: MarketTimeInterval,
 	rows: OhlcCandle[],
 ) => (
@@ -95,22 +95,22 @@ export const candlesFromOhlc = (
 export const dedupeCandleEntitiesById = (
 	rows: readonly (
 		Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>
-		& { [EntityMetaKey.IdKey]?: string }
+		& { [EntityMetaKey.SelectorKey]?: string }
 	)[],
 ) => {
-	const seenIdKeys = new Set<string>()
+	const seenSelectorKeys = new Set<string>()
 
 	return (
 		rows.filter((row) => {
 			const idKey = (
-				row[EntityMetaKey.IdKey]
-				?? stringify(row[EntityMetaKey.Id])
+				row[EntityMetaKey.SelectorKey]
+				?? stringify(row[EntityMetaKey.Selector])
 			)
 
-			if (seenIdKeys.has(idKey))
+			if (seenSelectorKeys.has(idKey))
 				return false
 
-			seenIdKeys.add(idKey)
+			seenSelectorKeys.add(idKey)
 			return true
 		})
 	)

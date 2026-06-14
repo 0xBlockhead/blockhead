@@ -4,14 +4,15 @@ import {
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-	type EntityIdentityValueNormalizer,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const lowercaseIdentityValue: EntityIdentityValueNormalizer = (value) => (
-	String(value).toLowerCase()
-)
+export enum AtprotoActorSelector {
+	Did = 'did',
+}
+
+
 
 const Did = type(
 	'/^did:(plc:[a-z2-7]+|web:[A-Za-z0-9._:%-]+)$/' as type.cast<string>,
@@ -23,37 +24,11 @@ export default {
 	label: 'AT Protocol actor',
 	labelPlural: 'AT Protocol actors',
 
-	id: type.or(
-		type({
-			did: Did,
-			'+': 'reject',
-		}),
-		type({
-			handle: 'string',
-			'+': 'reject',
-		}),
-	),
-
-	lookups: [
+	selectors: [
 		{
-			name: 'handle',
+			name: AtprotoActorSelector.Did,
 			fields: [
-				{
-					name: 'handle',
-					normalize: lowercaseIdentityValue,
-				},
-			],
-		},
-	],
-
-	identities: [
-		{
-			name: 'did',
-			fields: [
-				{
-					name: 'did',
-					normalize: lowercaseIdentityValue,
-				},
+				'did',
 			],
 		},
 	],

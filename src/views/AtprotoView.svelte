@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
 	import { schema } from '$/schema/index.ts'
@@ -18,7 +18,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/atproto'),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.AtprotoNetwork>
+			selector: EntitySelector<typeof schema, EntityType.AtprotoNetwork>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const atprotoNetwork = subscribe(EntityType.AtprotoNetwork,
-		entityId,
+		selector,
 		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$atprotoActors: ({ sources: [
 							Source.Constants_Internal,
 							Source.Atproto_Xrpc,
@@ -48,8 +48,8 @@
 
 
 	// (Derived)
-	const networkIdKey = $derived(
-		stringify(entityId),
+	const networkSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -65,7 +65,7 @@
 
 <EntityView
 	entityType={EntityType.AtprotoNetwork}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -162,8 +162,8 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-registry`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-registry`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'registry-actors', label: 'Accounts' },
 				{ id: 'registry-posts', label: 'Recent posts' },
@@ -188,10 +188,10 @@
 					href={resolve('/atproto/actors')}
 					entityFieldReference={{
 						entityType: EntityType.AtprotoNetwork,
-						entityId,
+						selector,
 						fieldName: '$$atprotoActors',
 					}}
-					id={`${networkIdKey}:actors`}
+					id={`${networkSelectorKey}:actors`}
 					open={_open}
 				/>
 			{/snippet}
@@ -202,11 +202,11 @@
 					href={resolve('/atproto/posts')}
 					entityFieldReference={{
 						entityType: EntityType.AtprotoNetwork,
-						entityId,
+						selector,
 						fieldName: '$$atprotoPosts',
 					}}
 					fieldOpen={_open}
-					id={`${networkIdKey}:posts`}
+					id={`${networkSelectorKey}:posts`}
 					open={_open}
 					title="Recent posts"
 				/>

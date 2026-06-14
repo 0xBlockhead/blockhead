@@ -4,7 +4,7 @@
 	import { stateChannelTransferStatusByStatus } from '$/constants/StateChannel.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -17,7 +17,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/channels'),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.StateChannelTransfer>
+			selector: EntitySelector<typeof schema, EntityType.StateChannelTransfer>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -42,7 +42,7 @@
 	> = $props()
 
 	const transfer = subscribe(EntityType.StateChannelTransfer,
-		entityId,
+		selector,
 		({ sources: [Source.Local_Internal], fields: { amount: true, turnNum: true, status: true, timestamp: true, $from: true, $to: true, $channel: ({ fields: { $network: true } }) } }),
 	)
 
@@ -59,7 +59,7 @@
 
 <EntityView
 	entityType={EntityType.StateChannelTransfer}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -68,7 +68,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -105,16 +105,16 @@
 				placeholderText="Loading channel transfer…"
 			>
 				{#snippet children(transfer)}
-					{#if showParentChannel && transfer.fields.$channel?.[EntityMetaKey.Id].id !== undefined}
+					{#if showParentChannel && transfer.fields.$channel?.[EntityMetaKey.Selector].id !== undefined}
 						<div>
 							<dt>Channel</dt>
 							<dd>
 								<a
 									href={resolve('/(assets)/(channels)/channel/[channelId]', {
-										channelId: transfer.fields.$channel[EntityMetaKey.Id].id,
+										channelId: transfer.fields.$channel[EntityMetaKey.Selector].id,
 									})}
 								>
-									{transfer.fields.$channel[EntityMetaKey.Id].id}
+									{transfer.fields.$channel[EntityMetaKey.Selector].id}
 								</a>
 							</dd>
 						</div>
@@ -154,24 +154,24 @@
 						</div>
 					{/if}
 
-					{#if transfer.fields.$from?.[EntityMetaKey.Id].address !== undefined}
+					{#if transfer.fields.$from?.[EntityMetaKey.Selector].address !== undefined}
 						<div>
 							<dt>From</dt>
 							<dd>
-									{#if transfer.fields.$channel?.[EntityMetaKey.Id].id !== undefined && transfer.fields.$channel.$network !== undefined}
+									{#if transfer.fields.$channel?.[EntityMetaKey.Selector].id !== undefined && transfer.fields.$channel.$network !== undefined}
 										<EvmNetworkAccountView
-											entityId={{
-												$network: transfer.fields.$channel.$network[EntityMetaKey.Id],
-											$actor: transfer.fields.$from[EntityMetaKey.Id],
+											selector={{
+												$network: transfer.fields.$channel.$network[EntityMetaKey.Selector],
+											$actor: transfer.fields.$from[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
 											open={false}
 									/>
 								{:else}
 									<EvmAccountView
-										entityId={transfer.fields.$from[EntityMetaKey.Id]}
+										selector={transfer.fields.$from[EntityMetaKey.Selector]}
 										href={resolve('/account/[address]', {
-											address: transfer.fields.$from[EntityMetaKey.Id].address,
+											address: transfer.fields.$from[EntityMetaKey.Selector].address,
 										})}
 										layout={EntityLayout.Title}
 										open={false}
@@ -181,24 +181,24 @@
 						</div>
 					{/if}
 
-					{#if transfer.fields.$to?.[EntityMetaKey.Id].address !== undefined}
+					{#if transfer.fields.$to?.[EntityMetaKey.Selector].address !== undefined}
 						<div>
 							<dt>To</dt>
 							<dd>
-									{#if transfer.fields.$channel?.[EntityMetaKey.Id].id !== undefined && transfer.fields.$channel.$network !== undefined}
+									{#if transfer.fields.$channel?.[EntityMetaKey.Selector].id !== undefined && transfer.fields.$channel.$network !== undefined}
 										<EvmNetworkAccountView
-											entityId={{
-												$network: transfer.fields.$channel.$network[EntityMetaKey.Id],
-											$actor: transfer.fields.$to[EntityMetaKey.Id],
+											selector={{
+												$network: transfer.fields.$channel.$network[EntityMetaKey.Selector],
+											$actor: transfer.fields.$to[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
 											open={false}
 									/>
 								{:else}
 									<EvmAccountView
-										entityId={transfer.fields.$to[EntityMetaKey.Id]}
+										selector={transfer.fields.$to[EntityMetaKey.Selector]}
 										href={resolve('/account/[address]', {
-											address: transfer.fields.$to[EntityMetaKey.Id].address,
+											address: transfer.fields.$to[EntityMetaKey.Selector].address,
 										})}
 										layout={EntityLayout.Title}
 										open={false}

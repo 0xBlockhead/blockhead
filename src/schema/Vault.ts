@@ -1,11 +1,16 @@
 import { type } from 'arktype'
 
 import {
+	EntityFieldType,
+	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
+
+export enum VaultSelector {
+	EvmNetworkId = 'evmNetworkId',
+}
 
 export default {
 	entityType: EntityType.Vault,
@@ -13,10 +18,28 @@ export default {
 	label: 'Vault',
 	labelPlural: 'Vaults',
 
-	id: type({
-		$network: Network.id,
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: VaultSelector.EvmNetworkId,
+			fields: [
+				'$network',
+				'id',
+			],
+		},
+	],
 
-	fields: [] as const satisfies readonly EntityFieldDefinition[],
+	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

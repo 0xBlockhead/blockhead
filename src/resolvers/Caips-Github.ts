@@ -5,11 +5,14 @@ import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts
 import { regex } from 'arkregex'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
+import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
+import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const githubCaipProposalIndexRows = async (
 	data: {
@@ -30,7 +33,7 @@ const githubCaipProposalIndexRows = async (
 			[]
 		:
 			[{
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					realm: SpecificationRealm.ChainAgnostic,
 					category: ProposalCategory.Caip,
 					number: caipNumber,
@@ -46,17 +49,17 @@ export default {
 		defineResolver(Source.Caips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				const {
 					getMarkdownTextForNumber,
 				} = await import('$/sources/Caips/Github/queries.ts')
 
 				if (
-					entityId.category !== ProposalCategory.Caip
-					|| entityId.realm !== SpecificationRealm.ChainAgnostic
+					category !== ProposalCategory.Caip
+					|| realm !== SpecificationRealm.ChainAgnostic
 				) throw new Error('Caips_Github: unsupported proposal id')
-				const text = await singleFlight(getMarkdownTextForNumber)({ number: entityId.number })
+				const text = await singleFlight(getMarkdownTextForNumber)({ number: number })
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
 				return {
@@ -79,7 +82,7 @@ export default {
 		defineResolver(Source.Caips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async () => {
+				[_GlobalSelector.Scope]: async () => {
 				const { getContents } = await import('$/sources/Caips/Github/queries.ts')
 				return githubCaipProposalIndexRows(await singleFlight(getContents)())
 			}
@@ -93,9 +96,9 @@ export default {
 		defineResolver(Source.Caips_Github, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.ChainAgnostic) {
+				if (realm !== SpecificationRealm.ChainAgnostic) {
 					throw new Error('Caips_Github: $$proposals only supports SpecificationRealm.ChainAgnostic')
 				}
 				const { getContents } = await import('$/sources/Caips/Github/queries.ts')
@@ -111,9 +114,9 @@ export default {
 		defineResolver(Source.Caips_Github, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.ChainAgnostic || entityId.category !== ProposalCategory.Caip) {
+				if (realm !== SpecificationRealm.ChainAgnostic || category !== ProposalCategory.Caip) {
 					throw new Error('Caips_Github: $$proposals only supports CAIP proposal kind')
 				}
 				const { getContents } = await import('$/sources/Caips/Github/queries.ts')

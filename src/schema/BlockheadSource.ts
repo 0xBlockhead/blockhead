@@ -1,9 +1,15 @@
 import { type } from 'arktype'
 import {
+	EntityFieldType,
+	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+
+export enum BlockheadSourceSelector {
+	Id = 'id',
+}
 
 export default {
 	entityType: EntityType.BlockheadSource,
@@ -11,9 +17,21 @@ export default {
 	label: 'Source',
 	labelPlural: 'Sources',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: BlockheadSourceSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
-	fields: [] as const satisfies readonly EntityFieldDefinition[],
+	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

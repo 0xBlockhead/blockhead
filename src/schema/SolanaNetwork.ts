@@ -13,6 +13,11 @@ import { UrlString } from '$/schema/UrlString.ts'
 import { networkFields } from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum SolanaNetworkSelector {
+	Caip2 = 'caip2',
+}
+
+
 const solanaRpcEndpointField = type({
 	url: UrlString,
 	transportType: type.valueOf(TransportType),
@@ -25,14 +30,25 @@ export default {
 	label: 'Solana network',
 	labelPlural: 'Solana networks',
 
-	id: type({
-		caip2: {
-			namespace: type.unit('solana'),
-			reference: 'string',
+	selectors: [
+		{
+			name: SolanaNetworkSelector.Caip2,
+			fields: [
+				'caip2',
+			],
 		},
-	}),
+	],
 
 	fields: [
+		{
+			name: 'caip2',
+			type: EntityFieldType.Primitive,
+			primitiveType: type({
+				namespace: type.unit('solana'),
+				reference: 'string',
+			}),
+			cardinality: EntityFieldCardinality.One,
+		},
 		networkFields[0],
 		networkFields[1],
 		networkFields[2],

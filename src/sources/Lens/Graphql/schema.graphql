@@ -2003,7 +2003,7 @@ union EnablePostActionResult = EnablePostActionResponse | SponsoredTransactionRe
 
 union EnableSignlessResult = SponsoredTransactionRequest | SelfFundedTransactionRequest | TransactionWillFail
 
-input EntityId @oneOf {
+input EntitySelector @oneOf {
   account: EvmAddress
   graph: EvmAddress
   feed: EvmAddress
@@ -6049,7 +6049,7 @@ input ReferralCut {
 
 input RefreshMetadataRequest {
   """The entity to refresh metadata for."""
-  entity: EntityId!
+  entity: EntitySelector!
 
   """Used only when trying to refresh app-specific account metadata"""
   app: EvmAddress

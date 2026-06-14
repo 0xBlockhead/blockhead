@@ -12,6 +12,6 @@
 
 <Page>
 	<BlockheadRoomPeerView
-		entityId={{ id: params.contactId }}
+		selector={{ id: params.contactId }}
 	/>
 </Page>

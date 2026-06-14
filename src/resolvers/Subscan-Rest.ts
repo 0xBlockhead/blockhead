@@ -6,11 +6,12 @@ import {
 	subscanPolkadotRestBaseUrl,
 } from '$/constants/PolkadotNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
+import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -31,21 +32,21 @@ export default {
 		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertPolkadotMainnet(entityId.$network)
+				[PolkadotBlockSelector.NetworkBlockNumberHash]: async ({ $network, blockNumber }, context) => {
+				assertPolkadotMainnet($network)
 				const { getBlock } = await import('$/sources/Subscan/Rest/queries.ts')
 				const block = (await getBlock({
 					restBaseUrl: subscanPolkadotRestBaseUrl,
-					height: entityId.blockNumber,
+					height: blockNumber,
 					publicEnv: context.publicEnv,
 				})).data
 				return {
 					hash: block.block_hash,
-					...(entityId.blockNumber > 0n && {
+					...(blockNumber > 0n && {
 						$parent: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								blockNumber: entityId.blockNumber - 1n,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
+								blockNumber: blockNumber - 1n,
 								hash: block.parent_hash,
 							},
 						},
@@ -67,12 +68,12 @@ export default {
 		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertPolkadotMainnet(entityId.$block.$network)
+				[PolkadotExtrinsicSelector.PolkadotBlockExtrinsicIndex]: async ({ $block, extrinsicIndex }, context) => {
+				assertPolkadotMainnet($block.$network)
 				const { getExtrinsic } = await import('$/sources/Subscan/Rest/queries.ts')
 				const extrinsic = (await getExtrinsic({
 					restBaseUrl: subscanPolkadotRestBaseUrl,
-					extrinsicIndex: `${entityId.$block.blockNumber.toString()}-${entityId.extrinsicIndex}`,
+					extrinsicIndex: `${$block.blockNumber.toString()}-${extrinsicIndex}`,
 					publicEnv: context.publicEnv,
 				})).data
 				return {
@@ -81,15 +82,15 @@ export default {
 					}),
 					...(extrinsic.account_id != null && {
 						$signer: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$block.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $block.$network,
 								accountId: extrinsic.account_id,
 							},
 						},
 					}),
 					$pallet: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$block.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $block.$network,
 							palletName: extrinsic.call_module,
 						},
 					},

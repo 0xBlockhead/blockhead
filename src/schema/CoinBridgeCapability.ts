@@ -5,7 +5,6 @@ import {
 	BridgeSettlementModel,
 	BridgeVerificationModel,
 } from '$/constants/Bridge.ts'
-import CoinInstance from '$/schema/EvmCoinInstance.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -15,17 +14,26 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum CoinBridgeCapabilitySelector {
+	EvmCoinInstanceEvmCoinInstanceToolKey = 'evmCoinInstanceEvmCoinInstanceToolKey',
+}
+
 export default {
 	entityType: EntityType.CoinBridgeCapability,
 
 	label: 'Coin bridge capability',
 	labelPlural: 'Coin bridge capabilities',
 
-	id: type({
-		$fromInstance: CoinInstance.id,
-		$toInstance: CoinInstance.id,
-		toolKey: 'string',
-	}),
+	selectors: [
+		{
+			name: CoinBridgeCapabilitySelector.EvmCoinInstanceEvmCoinInstanceToolKey,
+			fields: [
+				'$fromInstance',
+				'$toInstance',
+				'toolKey',
+			],
+		},
+	],
 
 	fields: [
 		{

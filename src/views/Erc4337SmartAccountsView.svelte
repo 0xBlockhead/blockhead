@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ fields: { $$erc4337SmartAccounts: ({ sources: [
 							Source.Blockscout_Rest,
 						], limit: 16 }) } }),
@@ -80,8 +80,8 @@
 				entityType={EntityType.Erc4337SmartAccount}
 				id={`${id}-items`}
 				href={href}
-				getKey={(smartAccount) => stringify(smartAccount[EntityMetaKey.Id])}
-				getSortValue={(smartAccount) => smartAccount[EntityMetaKey.Id].address}
+				getKey={(smartAccount) => stringify(smartAccount[EntityMetaKey.Selector])}
+				getSortValue={(smartAccount) => smartAccount[EntityMetaKey.Selector].address}
 				placeholderText="Loading smart accounts…"
 				resource={smartAccounts}
 				{title}
@@ -94,7 +94,7 @@
 
 				{#snippet Item({ item: smartAccount })}
 					<Erc4337SmartAccountView
-						entityId={smartAccount[EntityMetaKey.Id]}
+						selector={smartAccount[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -20,20 +20,15 @@
 	import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	type EvmNetworkViewEntityId =
-		| EntityId<typeof schema, EntityType.EvmNetwork>
+	type EvmNetworkViewSelector =
+		| EntitySelector<typeof schema, EntityType.EvmNetwork>
 		| { chainId: number }
-	type EvmBlock = Entity<typeof schema, EntityType.EvmBlock>
-	type EthereumNetworkUpgrade = Entity<typeof schema, EntityType.EthereumNetworkUpgrade>
-	type BeaconEpoch = Entity<typeof schema, EntityType.BeaconEpoch>
-	type BeaconSlot = Entity<typeof schema, EntityType.BeaconSlot>
-	type EvmNetworkGasEstimateTimestamp = Entity<typeof schema, EntityType.EvmNetwork_GasEstimate_Timestamp>
 
 
 	// Context
@@ -43,92 +38,141 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EvmNetworkViewEntityId
+		selector: EvmNetworkViewSelector
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const _entityId: EntityId<typeof schema, EntityType.EvmNetwork> = $derived(
-		'chainId' in entityId ?
+	const networkSelector: EntitySelector<typeof schema, EntityType.EvmNetwork> = $derived(
+		'chainId' in selector ?
 			{
 				caip2: {
 					namespace: 'eip155',
-					reference: String(entityId.chainId),
+					reference: String(selector.chainId),
 				},
 			}
 		:
-		entityId
+		selector
 	)
 
 	const chainId = $derived(
-		Number(_entityId.caip2.reference),
+		Number(networkSelector.caip2.reference),
 	)
 
 	const separateConsensusProtocol = $derived(
 		beaconRestBaseByExecutionChainId[chainId]?.consensusProtocol,
 	)
 
-	const networkSummaryHead = subscribe(
-		EntityType.EvmNetwork,
-		_entityId,
-		{
-			fields: {
-				blockHeight: {
-					sources: [
-						Source.Voltaire_JsonRpc,
-					],
-				},
-				$$blocks: {
-					sources: [
-						Source.Voltaire_JsonRpc,
-					],
-					limit: 16,
-				},
-				$$gasEstimateTimestamps: {
-					sources: [
-						Source.Etherscan_Rest,
-					],
-					limit: 1,
-				},
-				$$upgrades: true,
-				...(separateConsensusProtocol != null && {
-					$$beaconEpochs: {
+	const networkCurrentUpgrade = $derived(
+		subscribe(
+			EntityType.EvmNetwork,
+			networkSelector,
+			{
+				fields: {
+					blockHeight: {
 						sources: [
-							Source.Beacon_Rest,
+							Source.Voltaire_JsonRpc,
 						],
-						limit: 1,
 					},
-					$$beaconSlots: {
-						sources: [
-							Source.Beacon_Rest,
-						],
-						limit: 1,
-					},
-				}),
+					$$upgrades: true,
+				},
 			},
-		},
-	)
-
-	const networkIdentity = $derived(
-		subscribe(EntityType.EvmNetwork,
-			_entityId,
-			({ sources: [
-					Source.Constants_Internal,
-				], fields: { name: true, $icon: true } }),
 		)
 	)
 
-	const network = subscribe(EntityType.EvmNetwork,
-		_entityId,
-		({ sources: [
+	const networkHeadBlock = $derived(
+		subscribe(
+			EntityType.EvmNetwork,
+			networkSelector,
+			{
+				fields: {
+					$$blocks: {
+						sources: [
+							Source.Voltaire_JsonRpc,
+						],
+						limit: 16,
+					},
+				},
+			},
+		)
+	)
+
+	const networkHeadSlot = $derived(
+		subscribe(
+			EntityType.EvmNetwork,
+			networkSelector,
+			{
+				fields: {
+					...(layout === EntityLayout.SummaryDetails && separateConsensusProtocol != null && {
+						$$beaconSlots: {
+							sources: [
+								Source.Beacon_Rest,
+							],
+							limit: 1,
+						},
+					}),
+				},
+			},
+		)
+	)
+
+	const networkGasEstimate = $derived(
+		subscribe(
+			EntityType.EvmNetwork,
+			networkSelector,
+			{
+				fields: {
+					$$gasEstimateTimestamps: {
+						sources: [
+							Source.Etherscan_Rest,
+						],
+						limit: 1,
+					},
+				},
+			},
+		)
+	)
+
+	const networkName = $derived(
+		subscribe(EntityType.EvmNetwork,
+			networkSelector,
+			{
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					name: true,
+				},
+			},
+		)
+	)
+
+	const networkIcon = $derived(
+		subscribe(EntityType.EvmNetwork,
+			networkSelector,
+			{
+				sources: [
+					Source.Chainlist_Rest,
+					Source.EthereumLists_Rest,
+				],
+				fields: {
+					name: true,
+					$icon: true,
+				},
+			},
+		)
+	)
+
+	const network = $derived(
+		subscribe(EntityType.EvmNetwork,
+			networkSelector,
+			({ sources: [
 				Source.Constants_Internal,
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
@@ -182,16 +226,17 @@
 					], limit: 16 }), $$nftTokenTransfers: ({ sources: [
 						Source.Blockscout_Rest,
 					], limit: 16 }) })) } }),
+		)
 	)
 
 
 	// (Derived)
 	const resolvedHref = $derived(
-		href ?? `/network/${_entityId.caip2.namespace}:${_entityId.caip2.reference}`,
+		href ?? `/network/${networkSelector.caip2.namespace}:${networkSelector.caip2.reference}`,
 	)
 
-	const networkIdKey = $derived(
-		stringify(_entityId),
+	const networkSelectorKey = $derived(
+		stringify(networkSelector),
 	)
 
 
@@ -255,23 +300,23 @@
 
 <EntityView
 	entityType={EntityType.EvmNetwork}
-	entityId={_entityId}
+	entitySelector={networkSelector}
 	{layout}
 	href={resolvedHref}
 	bind:open
 >
 	{#snippet Icon()}
 		<ResourceBoundary
-			resource={networkIdentity}
+			resource={networkIcon}
 		>
 			{#snippet Pending()}
 				<IconComponent />
 			{/snippet}
 
 			{#snippet children(network)}
-				{#if network.fields.$icon?.[EntityMetaKey.Id].url}
+				{#if network.fields.$icon?.[EntityMetaKey.Selector].url}
 					<IconComponent
-						src={network.fields.$icon[EntityMetaKey.Id].url}
+						src={network.fields.$icon[EntityMetaKey.Selector].url}
 						alt={network.fields.name ?? ''}
 					/>
 				{/if}
@@ -287,7 +332,7 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={networkIdentity}
+			resource={networkName}
 			placeholderText="Resolving name…"
 		>
 			{#snippet Pending()}
@@ -325,40 +370,42 @@
 				<dt>Upgrade</dt>
 				<dd>
 					<ResourceBoundary
-						resource={derive(
-							networkSummaryHead,
-							(network) => (
+						resource={networkCurrentUpgrade}
+						placeholderText="Loading current upgrade…"
+					>
+						{#snippet Pending()}
+							<span data-text="muted">—</span>
+						{/snippet}
+
+						{#snippet children(network)}
+							{@const upgradeSelector = (
 								network.fields.$$upgrades?.values
-									.filter((upgrade: EthereumNetworkUpgrade) => (
+									.filter((upgrade) => (
 										upgrade.activationBlock !== undefined
 										&& (
 											network.fields.blockHeight === undefined
 											|| upgrade.activationBlock <= network.fields.blockHeight
 										)
 									))
-									.toSorted((leftUpgrade: EthereumNetworkUpgrade, rightUpgrade: EthereumNetworkUpgrade) => (
+									.toSorted((leftUpgrade, rightUpgrade) => (
 										(rightUpgrade.activationBlock ?? 0)
 											- (leftUpgrade.activationBlock ?? 0)
 									))[0]
-									?.[EntityMetaKey.Id]
+									?.[EntityMetaKey.Selector]
 								?? network.fields.$$upgrades?.values
-									.filter((upgrade: EthereumNetworkUpgrade) => (
+									.filter((upgrade) => (
 										upgrade.activationTimestampMs !== undefined
 										&& upgrade.activationTimestampMs <= Date.now()
 									))
-									.toSorted((leftUpgrade: EthereumNetworkUpgrade, rightUpgrade: EthereumNetworkUpgrade) => (
+									.toSorted((leftUpgrade, rightUpgrade) => (
 										(rightUpgrade.activationTimestampMs ?? 0)
 											- (leftUpgrade.activationTimestampMs ?? 0)
 									))[0]
-									?.[EntityMetaKey.Id]
-							),
-						)}
-						placeholderText="Loading current upgrade…"
-					>
-						{#snippet children(upgradeId)}
-							{#if upgradeId !== undefined}
+									?.[EntityMetaKey.Selector]
+							)}
+							{#if upgradeSelector !== undefined}
 								<EthereumNetworkUpgradeView
-									entityId={upgradeId}
+									selector={upgradeSelector}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -377,28 +424,27 @@
 					id="network-summary-head-block"
 				>
 					<ResourceBoundary
-							resource={derive(
-								networkSummaryHead,
-								(network) => (
-									network.fields.$$blocks?.values
-									.toSorted((leftBlock: EvmBlock, rightBlock: EvmBlock) => (
-										rightBlock[EntityMetaKey.Id].blockNumber
-										=== leftBlock[EntityMetaKey.Id].blockNumber ?
-											0
-										: rightBlock[EntityMetaKey.Id].blockNumber
-											> leftBlock[EntityMetaKey.Id].blockNumber ?
-											1
-										:
-											-1
-									))[0]
-							),
-						)}
+						resource={networkHeadBlock}
 						placeholderText="Loading head block…"
 					>
-						{#snippet children(block)}
-							{#if block !== undefined}
+						{#snippet Pending()}
+							<span data-text="muted">—</span>
+						{/snippet}
+
+						{#snippet children(network)}
+							{#if network.fields.$$blocks?.values[0] !== undefined}
 								<EvmBlockView
-									entityId={block[EntityMetaKey.Id]}
+									selector={network.fields.$$blocks.values
+										.toSorted((leftBlock, rightBlock) => (
+											rightBlock[EntityMetaKey.Selector].blockNumber
+											=== leftBlock[EntityMetaKey.Selector].blockNumber ?
+												0
+											: rightBlock[EntityMetaKey.Selector].blockNumber
+												> leftBlock[EntityMetaKey.Selector].blockNumber ?
+												1
+											:
+												-1
+										))[0][EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -415,40 +461,26 @@
 					<dt>Epoch</dt>
 					<dd>
 						<ResourceBoundary
-							resource={derive(
-								networkSummaryHead,
-								(network) => {
-									if (network.fields.$$beaconEpochs?.values.length) {
-										return network.fields.$$beaconEpochs.values
-											.toSorted((leftEpoch: BeaconEpoch, rightEpoch: BeaconEpoch) => (
-												rightEpoch[EntityMetaKey.Id].epoch - leftEpoch[EntityMetaKey.Id].epoch
-											))[0]
-											?.[EntityMetaKey.Id].epoch
-									}
-									if (!(network.fields.$$beaconSlots?.values.length)) {
-										return undefined
-									}
-									const headSlot = network.fields.$$beaconSlots.values
-										.toSorted((leftSlot: BeaconSlot, rightSlot: BeaconSlot) => (
-											rightSlot[EntityMetaKey.Id].slot - leftSlot[EntityMetaKey.Id].slot
-										))[0]
-										?.[EntityMetaKey.Id].slot
-									return (
-										headSlot != null ?
-											Math.floor(headSlot / slotsPerEpoch)
-										:
-											undefined
-									)
-								},
-							)}
+							resource={networkHeadSlot}
 							placeholderText="Loading head epoch…"
 						>
-							{#snippet children(beaconHeadEpochValue)}
-								{#if beaconHeadEpochValue !== undefined}
+							{#snippet Pending()}
+								<span data-text="muted">—</span>
+							{/snippet}
+
+							{#snippet children(network)}
+								{@const headSlot = (
+									network.fields.$$beaconSlots?.values
+										.toSorted((leftSlot, rightSlot) => (
+											rightSlot[EntityMetaKey.Selector].slot - leftSlot[EntityMetaKey.Selector].slot
+										))[0]
+										?.[EntityMetaKey.Selector].slot
+								)}
+								{#if headSlot !== undefined}
 									<BeaconEpochView
-										entityId={{
-											$network: _entityId,
-											epoch: beaconHeadEpochValue,
+										selector={{
+											$network: networkSelector,
+											epoch: Math.floor(headSlot / slotsPerEpoch),
 										}}
 										layout={EntityLayout.Value}
 										open={false}
@@ -467,24 +499,26 @@
 					<dt>Slot</dt>
 					<dd>
 						<ResourceBoundary
-							resource={derive(
-								networkSummaryHead,
-								(network) => {
-									return network.fields.$$beaconSlots?.values
-										.toSorted((leftSlot: BeaconSlot, rightSlot: BeaconSlot) => (
-											rightSlot[EntityMetaKey.Id].slot - leftSlot[EntityMetaKey.Id].slot
-										))[0]
-										?.[EntityMetaKey.Id].slot
-								},
-							)}
+							resource={networkHeadSlot}
 							placeholderText="Loading head slot…"
 						>
-							{#snippet children(beaconHeadSlotValue)}
-								{#if beaconHeadSlotValue !== undefined}
+							{#snippet Pending()}
+								<span data-text="muted">—</span>
+							{/snippet}
+
+							{#snippet children(network)}
+								{@const headSlot = (
+									network.fields.$$beaconSlots?.values
+										.toSorted((leftSlot, rightSlot) => (
+											rightSlot[EntityMetaKey.Selector].slot - leftSlot[EntityMetaKey.Selector].slot
+										))[0]
+										?.[EntityMetaKey.Selector].slot
+								)}
+								{#if headSlot !== undefined}
 									<BeaconSlotView
-										entityId={{
-											$network: _entityId,
-											slot: beaconHeadSlotValue,
+										selector={{
+											$network: networkSelector,
+											slot: headSlot,
 										}}
 										layout={EntityLayout.Value}
 										open={false}
@@ -502,23 +536,25 @@
 				<dt>Gas fee estimate</dt>
 				<dd>
 					<ResourceBoundary
-							resource={derive(
-								networkSummaryHead,
-								(network) => (
-									network.fields.$$gasEstimateTimestamps?.values
-									.toSorted((leftTimestamp: EvmNetworkGasEstimateTimestamp, rightTimestamp: EvmNetworkGasEstimateTimestamp) => (
-										rightTimestamp[EntityMetaKey.Id].timestampMs
-											- leftTimestamp[EntityMetaKey.Id].timestampMs
-									))[0]
-									?.[EntityMetaKey.Id]
-							),
-						)}
+						resource={networkGasEstimate}
 						placeholderText="Loading gas estimate…"
 					>
-						{#snippet children(gasEstimateId)}
-							{#if gasEstimateId !== undefined}
+						{#snippet Pending()}
+							<span data-text="muted">—</span>
+						{/snippet}
+
+						{#snippet children(network)}
+							{@const gasEstimateSelector = (
+								network.fields.$$gasEstimateTimestamps?.values
+									.toSorted((leftTimestamp, rightTimestamp) => (
+										rightTimestamp[EntityMetaKey.Selector].timestampMs
+											- leftTimestamp[EntityMetaKey.Selector].timestampMs
+									))[0]
+									?.[EntityMetaKey.Selector]
+							)}
+							{#if gasEstimateSelector !== undefined}
 								<EvmNetwork_GasEstimate_TimestampView
-									entityId={gasEstimateId}
+									selector={gasEstimateSelector}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
@@ -541,11 +577,11 @@
 						{#snippet children(network)}
 							{#if (
 								network.fields.$nativeCoin
-								&& catalogCoinUsdMarketIdByCoinId[network.fields.$nativeCoin[EntityMetaKey.Id].coinId as keyof typeof catalogCoinUsdMarketIdByCoinId] !== undefined
+								&& catalogCoinUsdMarketIdByCoinId[network.fields.$nativeCoin[EntityMetaKey.Selector].coinId as keyof typeof catalogCoinUsdMarketIdByCoinId] !== undefined
 							)}
 								<MarketPriceView
-									entityId={{
-										$market: catalogCoinUsdMarketIdByCoinId[network.fields.$nativeCoin[EntityMetaKey.Id].coinId as keyof typeof catalogCoinUsdMarketIdByCoinId],
+									selector={{
+										$market: catalogCoinUsdMarketIdByCoinId[network.fields.$nativeCoin[EntityMetaKey.Selector].coinId as keyof typeof catalogCoinUsdMarketIdByCoinId],
 									}}
 									layout={EntityLayout.Value}
 									open={false}
@@ -598,7 +634,7 @@
 
 			{#if (
 				open
-				&& network.current?.fields.$nativeCoinInstance?.[EntityMetaKey.Id] !== undefined
+				&& network.current?.fields.$nativeCoinInstance?.[EntityMetaKey.Selector] !== undefined
 			)}
 				<div>
 					<dt>Native currency</dt>
@@ -615,7 +651,7 @@
 											},
 										)}
 									>
-										{network.fields.$nativeCoin?.[EntityMetaKey.Id].coinId ?? `${network.fields.name ?? `Chain ${chainId}`} native`}
+										{network.fields.$nativeCoin?.[EntityMetaKey.Selector].coinId ?? `${network.fields.name ?? `Chain ${chainId}`} native`}
 									</a>
 								{/if}
 							{/snippet}
@@ -626,7 +662,7 @@
 
 			{#if (
 				open
-				&& network.current?.fields.$parent?.[EntityMetaKey.Id] !== undefined
+				&& network.current?.fields.$parent?.[EntityMetaKey.Selector] !== undefined
 			)}
 				<div>
 					<dt>Parent</dt>
@@ -636,9 +672,9 @@
 							placeholderText="Loading network…"
 						>
 								{#snippet children(network)}
-									{#if network.fields.$parent?.[EntityMetaKey.Id] !== undefined}
+									{#if network.fields.$parent?.[EntityMetaKey.Selector] !== undefined}
 										<NetworkView
-											entityId={network.fields.$parent[EntityMetaKey.Id]}
+											selector={network.fields.$parent[EntityMetaKey.Selector]}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -652,7 +688,7 @@
 			{#if (
 				open
 				&& network.current?.fields.environment === NetworkEnvironment.Testnet
-				&& network.current.fields.$mainnet?.[EntityMetaKey.Id] !== undefined
+				&& network.current.fields.$mainnet?.[EntityMetaKey.Selector] !== undefined
 			)}
 				<div>
 					<dt>Mainnet</dt>
@@ -662,9 +698,9 @@
 							placeholderText="Loading network…"
 						>
 								{#snippet children(network)}
-									{#if network.fields.$mainnet?.[EntityMetaKey.Id] !== undefined}
+									{#if network.fields.$mainnet?.[EntityMetaKey.Selector] !== undefined}
 										<NetworkView
-											entityId={network.fields.$mainnet[EntityMetaKey.Id]}
+											selector={network.fields.$mainnet[EntityMetaKey.Selector]}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -753,27 +789,25 @@
 	{/snippet}
 
 	{#snippet Details({})}
-		<ResourceBoundary resource={network}>
-			{#snippet children(network)}
-				<CollapsibleTabs
-					id={`${networkIdKey}:carousel-execution`}
-					sectionIdPrefix={networkIdKey}
-					sections={[
-						{ id: 'execution-upgrades', label: 'Upgrades' },
-						{ id: 'execution-blocks', label: 'Blocks' },
-						{ id: 'execution-transactions', label: 'Transactions' },
-						{ id: 'execution-mempool', label: 'Mempool' },
-						{ id: 'execution-gas-blocks', label: 'Fee market' },
-						{ id: 'execution-gas-estimates', label: 'Gas oracles' },
-						{ id: 'execution-endpoints', label: 'Endpoints' },
-					]}
-						data-card
-						class="network-view-collapsible-execution"
-						scrollContainerProps={{
-							class: 'network-carousel-execution',
-							'data-row': 'start align-start',
-						}}
-					>
+		<CollapsibleTabs
+			id={`${networkSelectorKey}:carousel-execution`}
+			sectionIdPrefix={networkSelectorKey}
+			sections={[
+				{ id: 'execution-upgrades', label: 'Upgrades' },
+				{ id: 'execution-blocks', label: 'Blocks' },
+				{ id: 'execution-transactions', label: 'Transactions' },
+				{ id: 'execution-mempool', label: 'Mempool' },
+				{ id: 'execution-gas-blocks', label: 'Fee market' },
+				{ id: 'execution-gas-estimates', label: 'Gas oracles' },
+				{ id: 'execution-endpoints', label: 'Endpoints' },
+			]}
+			data-card
+			class="network-view-collapsible-execution"
+			scrollContainerProps={{
+				class: 'network-carousel-execution',
+				'data-row': 'start align-start',
+			}}
+		>
 						{#snippet Summary({})}
 							<header data-row-item="flexible" data-row="wrap gap-4">
 								<HeadingComponent>Execution</HeadingComponent>
@@ -785,7 +819,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$executionUpgrades',
 								}}
 								id={`${id}-list`}
@@ -797,12 +831,12 @@
 							<EvmBlocksView
 								CollapsibleProps={{ canToggle: false }}
 									href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/blocks', {
-										caip2Namespace: _entityId.caip2.namespace,
-										caip2Reference: _entityId.caip2.reference,
+										caip2Namespace: networkSelector.caip2.namespace,
+										caip2Reference: networkSelector.caip2.reference,
 									})}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$blocks',
 								}}
 								id={`${id}-list`}
@@ -813,12 +847,12 @@
 							<EvmTransactionsView
 								CollapsibleProps={{ canToggle: false }}
 									href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/transactions', {
-										caip2Namespace: _entityId.caip2.namespace,
-										caip2Reference: _entityId.caip2.reference,
+										caip2Namespace: networkSelector.caip2.namespace,
+										caip2Reference: networkSelector.caip2.reference,
 									})}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$transactions',
 								}}
 								id={`${id}-list`}
@@ -830,7 +864,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$txpoolTimestamps',
 								}}
 								id={`${id}-list`}
@@ -843,7 +877,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$gasFeeBlocks',
 								}}
 								id={`${id}-list`}
@@ -856,7 +890,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$gasEstimateTimestamps',
 								}}
 								id={`${id}-list`}
@@ -871,7 +905,7 @@
 								emptyText="No execution endpoints listed for this network yet."
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$rpcUrls',
 								}}
 								fieldSources={[
@@ -884,35 +918,31 @@
 								title={label}
 							/>
 						{/snippet}
-					</CollapsibleTabs>
-				{/snippet}
-			</ResourceBoundary>
+		</CollapsibleTabs>
 
 			{#if separateConsensusProtocol === ConsensusProtocol.EthereumBeacon}
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						<CollapsibleTabs
-							id={`${networkIdKey}:carousel-consensus`}
-							sectionIdPrefix={networkIdKey}
-							sections={[
-								{ id: 'consensus-upgrades', label: 'Upgrades' },
-								{ id: 'consensus-finality', label: 'Finality' },
-								{ id: 'consensus-committees', label: 'Committees' },
-								{ id: 'consensus-sync-committees', label: 'Sync committees' },
-								{ id: 'consensus-attestations', label: 'Attestations' },
-								{ id: 'consensus-withdrawals', label: 'Withdrawals' },
-								{ id: 'consensus-slashings', label: 'Slashings' },
-								{ id: 'consensus-validators', label: 'Validators' },
-								{ id: 'consensus-epochs', label: 'Epochs' },
-								{ id: 'consensus-slots', label: 'Slots' },
-								{ id: 'consensus-mev-relays', label: 'Relays' },
-								{ id: 'consensus-mev-builders', label: 'Builders' },
-								{ id: 'consensus-mev-boost', label: 'MEV-Boost' },
-								{ id: 'consensus-endpoints', label: 'Endpoints' },
-							]}
-							data-card
-							class="network-view-collapsible-consensus"
-						>
+				<CollapsibleTabs
+					id={`${networkSelectorKey}:carousel-consensus`}
+					sectionIdPrefix={networkSelectorKey}
+					sections={[
+						{ id: 'consensus-upgrades', label: 'Upgrades' },
+						{ id: 'consensus-finality', label: 'Finality' },
+						{ id: 'consensus-committees', label: 'Committees' },
+						{ id: 'consensus-sync-committees', label: 'Sync committees' },
+						{ id: 'consensus-attestations', label: 'Attestations' },
+						{ id: 'consensus-withdrawals', label: 'Withdrawals' },
+						{ id: 'consensus-slashings', label: 'Slashings' },
+						{ id: 'consensus-validators', label: 'Validators' },
+						{ id: 'consensus-epochs', label: 'Epochs' },
+						{ id: 'consensus-slots', label: 'Slots' },
+						{ id: 'consensus-mev-relays', label: 'Relays' },
+						{ id: 'consensus-mev-builders', label: 'Builders' },
+						{ id: 'consensus-mev-boost', label: 'MEV-Boost' },
+						{ id: 'consensus-endpoints', label: 'Endpoints' },
+					]}
+					data-card
+					class="network-view-collapsible-consensus"
+				>
 							{#snippet Summary({})}
 								<header data-row-item="flexible" data-row="wrap gap-4">
 									<HeadingComponent>Consensus &amp; Block Production</HeadingComponent>
@@ -924,7 +954,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$consensusUpgrades',
 									}}
 									id={`${id}-list`}
@@ -937,7 +967,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$beaconFinalityTimestamps',
 									}}
 									id={`${id}-list`}
@@ -950,7 +980,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$beaconCommittees',
 									}}
 									id={`${id}-list`}
@@ -963,7 +993,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$beaconSyncCommittees',
 									}}
 									id={`${id}-list`}
@@ -976,7 +1006,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$beaconAttestations',
 									}}
 									id={`${id}-list`}
@@ -989,7 +1019,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$beaconWithdrawals',
 									}}
 									id={`${id}-list`}
@@ -1002,7 +1032,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$beaconSlashings',
 									}}
 									id={`${id}-list`}
@@ -1015,7 +1045,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$beaconValidators',
 									}}
 									id={`${id}-validators`}
@@ -1028,7 +1058,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$beaconEpochs',
 									}}
 									id={`${id}-list`}
@@ -1040,7 +1070,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$beaconSlots',
 									}}
 									id={`${id}-list`}
@@ -1052,7 +1082,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$mevRelays',
 									}}
 									id={`${id}-list`}
@@ -1065,7 +1095,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$mevBuilders',
 									}}
 									id={`${id}-list`}
@@ -1078,7 +1108,7 @@
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmNetwork,
-										entityId: _entityId,
+										selector: networkSelector,
 										fieldName: '$$mevProposerPayloadDelivered',
 									}}
 									id={`${id}-deliveries`}
@@ -1089,19 +1119,17 @@
 							{#snippet SectionConsensusEndpoints({ id, label })}
 								<EvmNetworkConsensusEndpointsView
 									CollapsibleProps={{ canToggle: false }}
-									entityId={_entityId}
+									selector={networkSelector}
 									id={`${id}-list`}
 									title={label}
 								/>
 							{/snippet}
-						</CollapsibleTabs>
-					{/snippet}
-				</ResourceBoundary>
+				</CollapsibleTabs>
 			{/if}
 
 			<CollapsibleTabs
-				id={`${networkIdKey}:carousel-data-availability`}
-				sectionIdPrefix={networkIdKey}
+				id={`${networkSelectorKey}:carousel-data-availability`}
+				sectionIdPrefix={networkSelectorKey}
 				sections={[
 					{ id: 'data-availability-blobs', label: 'Blobs' },
 				]}
@@ -1119,12 +1147,12 @@
 						CollapsibleProps={{ canToggle: false }}
 						entityFieldReference={{
 							entityType: EntityType.EvmNetwork,
-							entityId: _entityId,
+							selector: networkSelector,
 							fieldName: '$$blobs',
 						}}
 							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/blobs', {
-								caip2Namespace: _entityId.caip2.namespace,
-								caip2Reference: _entityId.caip2.reference,
+								caip2Namespace: networkSelector.caip2.namespace,
+								caip2Reference: networkSelector.caip2.reference,
 							})}
 						id={`${id}-list`}
 						title={label}
@@ -1132,23 +1160,21 @@
 				{/snippet}
 			</CollapsibleTabs>
 
-			<ResourceBoundary resource={network}>
-				{#snippet children(network)}
-					<CollapsibleTabs
-						id={`${networkIdKey}:carousel-contracts-accounts`}
-						sectionIdPrefix={networkIdKey}
-						sections={[
-							{ id: 'contracts-accounts-precompiles', label: 'Precompiles' },
-							{ id: 'contracts-accounts-contracts', label: 'Verified' },
-							{ id: 'contracts-accounts-smart-accounts', label: 'Smart accounts' },
-							{ id: 'contracts-accounts-bundlers', label: 'Bundlers' },
-							{ id: 'contracts-accounts-paymasters', label: 'Paymasters' },
-							{ id: 'contracts-accounts-user-operations', label: 'User operations' },
-							{ id: 'contracts-accounts-factories', label: 'Factories' },
-						]}
-						data-card
-						class="network-view-collapsible-contracts-accounts"
-					>
+			<CollapsibleTabs
+				id={`${networkSelectorKey}:carousel-contracts-accounts`}
+				sectionIdPrefix={networkSelectorKey}
+				sections={[
+					{ id: 'contracts-accounts-precompiles', label: 'Precompiles' },
+					{ id: 'contracts-accounts-contracts', label: 'Verified' },
+					{ id: 'contracts-accounts-smart-accounts', label: 'Smart accounts' },
+					{ id: 'contracts-accounts-bundlers', label: 'Bundlers' },
+					{ id: 'contracts-accounts-paymasters', label: 'Paymasters' },
+					{ id: 'contracts-accounts-user-operations', label: 'User operations' },
+					{ id: 'contracts-accounts-factories', label: 'Factories' },
+				]}
+				data-card
+				class="network-view-collapsible-contracts-accounts"
+			>
 						{#snippet Summary({})}
 							<header data-row-item="flexible" data-row="wrap gap-4">
 								<HeadingComponent>Contracts &amp; Accounts</HeadingComponent>
@@ -1160,7 +1186,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$precompiles',
 								}}
 								id={`${id}-list`}
@@ -1171,12 +1197,12 @@
 							<EvmContractsView
 								CollapsibleProps={{ canToggle: false }}
 									href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/contracts', {
-										caip2Namespace: _entityId.caip2.namespace,
-										caip2Reference: _entityId.caip2.reference,
+										caip2Namespace: networkSelector.caip2.namespace,
+										caip2Reference: networkSelector.caip2.reference,
 									})}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$contracts',
 								}}
 								id={`${id}-list`}
@@ -1188,7 +1214,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$erc4337SmartAccounts',
 								}}
 								id={`${id}-list`}
@@ -1201,7 +1227,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$erc4337Bundlers',
 								}}
 								id={`${id}-list`}
@@ -1214,7 +1240,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$erc4337Paymasters',
 								}}
 								id={`${id}-list`}
@@ -1227,7 +1253,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$userOperations',
 								}}
 								id={`${id}-list`}
@@ -1239,22 +1265,20 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$erc4337AccountFactories',
 								}}
 								id={`${id}-list`}
 								title="Account factories"
 							/>
 						{/snippet}
-					</CollapsibleTabs>
-				{/snippet}
-			</ResourceBoundary>
+			</CollapsibleTabs>
 
 			<ResourceBoundary resource={network}>
 				{#snippet children(network)}
 					<CollapsibleTabs
-						id={`${networkIdKey}:carousel-assets`}
-						sectionIdPrefix={networkIdKey}
+						id={`${networkSelectorKey}:carousel-assets`}
+						sectionIdPrefix={networkSelectorKey}
 							sections={[
 								{ id: 'assets-native-coin', label: 'Native coin' },
 								...(
@@ -1335,7 +1359,7 @@
 										{#if item.type === 'native-coin-instance'}
 											{#if network.fields.$nativeCoinInstance !== undefined}
 												<EvmCoinInstanceView
-													entityId={network.fields.$nativeCoinInstance[EntityMetaKey.Id]}
+													selector={network.fields.$nativeCoinInstance[EntityMetaKey.Selector]}
 													layout={EntityLayout.Summary}
 													title="Native coin"
 												/>
@@ -1343,7 +1367,7 @@
 										{:else if item.type === 'native-coin'}
 											{#if network.fields.$nativeCoin !== undefined}
 												<CoinView
-													entityId={network.fields.$nativeCoin[EntityMetaKey.Id]}
+													selector={network.fields.$nativeCoin[EntityMetaKey.Selector]}
 													layout={EntityLayout.Summary}
 												/>
 											{/if}
@@ -1378,7 +1402,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$bridges',
 								}}
 								id={`${id}-list`}
@@ -1391,7 +1415,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$erc20TokenTransfers',
 								}}
 								id={`${id}-list`}
@@ -1404,7 +1428,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$nftTokenTransfers',
 								}}
 								id={`${id}-list`}
@@ -1415,18 +1439,16 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={network}>
-				{#snippet children(network)}
-					<CollapsibleTabs
-						id={`${networkIdKey}:carousel-resources`}
-						sectionIdPrefix={networkIdKey}
-						sections={[
-							{ id: 'resources-faucets', label: 'Faucets' },
-							{ id: 'resources-block-explorers', label: 'Block explorers' },
-						]}
-						data-card
-						class="network-view-collapsible-resources"
-					>
+			<CollapsibleTabs
+				id={`${networkSelectorKey}:carousel-resources`}
+				sectionIdPrefix={networkSelectorKey}
+				sections={[
+					{ id: 'resources-faucets', label: 'Faucets' },
+					{ id: 'resources-block-explorers', label: 'Block explorers' },
+				]}
+				data-card
+				class="network-view-collapsible-resources"
+			>
 						{#snippet Summary({})}
 							<header data-row-item="flexible" data-row="wrap gap-4">
 								<HeadingComponent>Resources</HeadingComponent>
@@ -1440,7 +1462,7 @@
 								emptyText="No faucets listed for this network yet."
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$faucetUrls',
 								}}
 								fieldSources={[
@@ -1459,7 +1481,7 @@
 								emptyText="No block explorers listed for this network yet."
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$blockExplorerUrls',
 								}}
 								fieldSources={[
@@ -1471,25 +1493,23 @@
 								title={label}
 							/>
 						{/snippet}
-					</CollapsibleTabs>
-				{/snippet}
-			</ResourceBoundary>
+			</CollapsibleTabs>
 
 			<ResourceBoundary resource={network}>
 				{#snippet children(network)}
 					<CollapsibleTabs
-						id={`${networkIdKey}:carousel-topology`}
-						sectionIdPrefix={networkIdKey}
+						id={`${networkSelectorKey}:carousel-topology`}
+						sectionIdPrefix={networkSelectorKey}
 						sections={[
 							{ id: 'topology-upgrades', label: 'Upgrades' },
 							...(
-								network.fields.$parent?.[EntityMetaKey.Id] !== undefined ?
+								network.fields.$parent?.[EntityMetaKey.Selector] !== undefined ?
 									([{ id: 'topology-parent-layer', label: 'Parent' }] as const)
 								:
 									[]
 							),
 							...(
-								network.fields.$rollup?.[EntityMetaKey.Id].projectId !== undefined ?
+								network.fields.$rollup?.[EntityMetaKey.Selector].projectId !== undefined ?
 									([{ id: 'topology-rollup', label: 'Rollup' }] as const)
 								:
 									[]
@@ -1542,7 +1562,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$upgrades',
 								}}
 								id={`${id}-list`}
@@ -1552,7 +1572,7 @@
 
 						{#snippet SectionTopologyParentLayer({ id, label })}
 							{#if network.fields.$parent != null}
-								{@const parentId = network.fields.$parent[EntityMetaKey.Id]}
+								{@const parentId = network.fields.$parent[EntityMetaKey.Selector]}
 								<EntitiesList
 									collapsible={false}
 									entityType={EntityType.Network}
@@ -1561,7 +1581,7 @@
 								>
 									{#snippet body({})}
 										<NetworkView
-											entityId={parentId}
+											selector={parentId}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -1573,9 +1593,9 @@
 						{#snippet SectionTopologyRollup({ id, label })}
 							{#if (
 								network.fields.$rollup != null
-								&& network.fields.$rollup[EntityMetaKey.Id].projectId !== undefined
+								&& network.fields.$rollup[EntityMetaKey.Selector].projectId !== undefined
 							)}
-								{@const rollupId = network.fields.$rollup[EntityMetaKey.Id]}
+								{@const rollupId = network.fields.$rollup[EntityMetaKey.Selector]}
 								<EntitiesList
 									collapsible={false}
 									entityType={EntityType.EvmRollup}
@@ -1584,7 +1604,7 @@
 								>
 									{#snippet body({})}
 										<EvmRollupView
-											entityId={rollupId}
+											selector={rollupId}
 											layout={EntityLayout.Summary}
 											open={false}
 										/>
@@ -1599,7 +1619,7 @@
 								href={resolve('/networks')}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$siblingShardNetworks',
 								}}
 								id={`${id}-list`}
@@ -1613,7 +1633,7 @@
 								href={resolve('/networks')}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$testnets',
 								}}
 								id={`${id}-list`}
@@ -1623,7 +1643,7 @@
 
 						{#snippet SectionTopologyMainnet({ id, label })}
 							{#if network.fields.$mainnet != null}
-								{@const mainnetId = network.fields.$mainnet[EntityMetaKey.Id]}
+								{@const mainnetId = network.fields.$mainnet[EntityMetaKey.Selector]}
 								<EntitiesList
 									collapsible={false}
 									entityType={EntityType.Network}
@@ -1632,7 +1652,7 @@
 								>
 									{#snippet body({})}
 										<NetworkView
-											entityId={mainnetId}
+											selector={mainnetId}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -1678,7 +1698,7 @@
 								href={resolve('/networks')}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$childLayers',
 								}}
 								id={`${id}-list`}
@@ -1691,7 +1711,7 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.EvmNetwork,
-									entityId: _entityId,
+									selector: networkSelector,
 									fieldName: '$$settledRollups',
 								}}
 								id={`${id}-list`}

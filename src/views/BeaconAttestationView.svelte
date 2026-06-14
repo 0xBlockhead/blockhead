@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,14 +12,14 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BeaconAttestation>
+			selector: EntitySelector<typeof schema, EntityType.BeaconAttestation>
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
@@ -31,7 +31,7 @@
 	> = $props()
 
 	const attestation = subscribe(EntityType.BeaconAttestation,
-		entityId,
+		selector,
 		(
 			open ?
 				{
@@ -52,7 +52,7 @@
 	// (Derived)
 	const title = $derived(
 		titleProp
-		?? `Attestation ${entityId.index} in slot ${entityId.slot.toLocaleString()}`
+		?? `Attestation ${selector.index} in slot ${selector.slot.toLocaleString()}`
 	)
 
 
@@ -66,7 +66,7 @@
 
 <EntityView
 	entityType={EntityType.BeaconAttestation}
-	{entityId}
+	entitySelector={selector}
 	{title}
 	{layout}
 	bind:open
@@ -75,9 +75,9 @@
 	{#snippet Value()}
 		<span
 			data-badge="small"
-			data-attestation-index={String(entityId.index)}
+			data-attestation-index={String(selector.index)}
 		>
-			{String(entityId.index)}
+			{String(selector.index)}
 		</span>
 	{/snippet}
 
@@ -86,9 +86,9 @@
 			<span>Attestation </span>
 		<span
 			data-badge="small"
-			data-attestation-index={String(entityId.index)}
+			data-attestation-index={String(selector.index)}
 				>
-			{String(entityId.index)}
+			{String(selector.index)}
 		</span>
 		</span>
 	{/snippet}

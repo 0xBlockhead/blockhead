@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,26 +13,26 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.Network>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const network = subscribe(EntityType.Network,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, environment: true, $networkStack: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } }),
 	)
 
 	const bittensorNetwork = subscribe(EntityType.BittensorNetwork,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Bittensor_JsonRpc,
 			], fields: { $$timestamps: ({ limit: 1 }), $$blocks: ({ limit: open ? 12 : 1 }), $$subnets: ({ limit: 24 }) } }),
@@ -40,7 +40,7 @@
 
 
 	// (Derived)
-	const networkIdKey = $derived(stringify(entityId))
+	const networkSelectorKey = $derived(stringify(selector))
 
 
 	// Components
@@ -61,7 +61,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	{entityId}
+	entitySelector={selector}
 	{href}
 	bind:open
 	{layout}
@@ -97,7 +97,7 @@
 								<dt>Finalized block</dt>
 								<dd id="network-summary-head-block">
 									<BittensorBlockView
-										entityId={block[EntityMetaKey.Id]}
+										selector={block[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -126,7 +126,7 @@
 							<dt>Stack</dt>
 							<dd>
 								<NetworkStackView
-									entityId={network.fields.$networkStack[EntityMetaKey.Id]}
+									selector={network.fields.$networkStack[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -146,8 +146,8 @@
 
 	{#snippet Details()}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-execution`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-execution`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{
 					id: 'bittensor-subtensor',
@@ -182,7 +182,7 @@
 						<div>
 							{#if block != null}
 								<BittensorBlockView
-									entityId={block[EntityMetaKey.Id]}
+									selector={block[EntityMetaKey.Selector]}
 									layout={EntityLayout.SummaryDetails}
 								/>
 							{/if}
@@ -196,11 +196,11 @@
 			CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BittensorNetwork,
-						entityId,
+						selector,
 						fieldName: '$$blocks',
 					}}
 					href={href == null ? '' : `${href}/blocks`}
-					id={`${networkIdKey}:bittensor-blocks-bittensorNetworks`}
+					id={`${networkSelectorKey}:bittensor-blocks-bittensorNetworks`}
 					title="Blocks"
 				/>
 			{/snippet}
@@ -210,17 +210,17 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BittensorNetwork,
-						entityId,
+						selector,
 						fieldName: '$$subnets',
 					}}
-					id={`${networkIdKey}:bittensor-subnets-bittensorNetworks`}
+					id={`${networkSelectorKey}:bittensor-subnets-bittensorNetworks`}
 				/>
 			{/snippet}
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-consensus`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-consensus`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{
 					id: 'bittensor-neurons',
@@ -246,10 +246,10 @@
 			CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BittensorNetwork,
-						entityId,
+						selector,
 						fieldName: '$$subnets',
 					}}
-					id={`${networkIdKey}:bittensor-neuron-subnets-bittensorNetworks`}
+					id={`${networkSelectorKey}:bittensor-neuron-subnets-bittensorNetworks`}
 					title="Neuron subnets"
 				/>
 			{/snippet}
@@ -267,10 +267,10 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.BittensorNetwork,
-									entityId,
+									selector,
 									fieldName: '$$timestamps',
 								}}
-								id={`${networkIdKey}:bittensor-consensus-snapshots`}
+								id={`${networkSelectorKey}:bittensor-consensus-snapshots`}
 								title="Network snapshots"
 						/>
 					</div>
@@ -280,8 +280,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-economics`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-economics`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'bittensor-assets-native', label: 'Native coin' },
 				{ id: 'bittensor-assets-subnets', label: 'Subnets' },
@@ -301,7 +301,7 @@
 			CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -319,8 +319,8 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-resources`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-resources`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{
 					id: 'bittensor-resources-faucets',
@@ -347,14 +347,14 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					id={`${networkIdKey}:bittensor-resources-faucets-bittensorNetworks`}
+					id={`${networkSelectorKey}:bittensor-resources-faucets-bittensorNetworks`}
 					title="Faucets"
 				/>
 			{/snippet}
@@ -365,14 +365,14 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						entityId,
+						selector,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
 					href={href ?? ''}
-					id={`${networkIdKey}:bittensor-resources-block-explorers-bittensorNetworks`}
+					id={`${networkSelectorKey}:bittensor-resources-block-explorers-bittensorNetworks`}
 					title="Block explorers"
 				/>
 			{/snippet}

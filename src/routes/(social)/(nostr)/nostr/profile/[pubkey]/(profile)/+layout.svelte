@@ -27,7 +27,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<NostrProfileView
-			entityId={{ pubkey }}
+			selector={{ pubkey }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

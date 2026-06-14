@@ -10,18 +10,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum FarcasterCastEmbedSelector {
+	FarcasterCastIndex = 'farcasterCastIndex',
+}
+
 export default {
 	entityType: EntityType.FarcasterCastEmbed,
 
 	label: 'Farcaster Cast Embed',
 	labelPlural: 'Farcaster Cast Embeds',
 
-	id: type({
-		$cast: FarcasterCast.id,
-		index: 'number',
-	}),
+	selectors: [
+		{
+			name: FarcasterCastEmbedSelector.FarcasterCastIndex,
+			fields: [
+				'$cast',
+				'index',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$cast',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.FarcasterCast,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'index',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'url',
 			type: EntityFieldType.Primitive,

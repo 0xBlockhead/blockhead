@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum TronContractSelector {
+	NetworkAddress = 'networkAddress',
+}
 import { Source } from '$/sources/Source.ts'
 
 const tronScanRestSources = [
@@ -20,12 +23,29 @@ export default {
 	label: 'TRON Contract',
 	labelPlural: 'TRON Contracts',
 
-	id: type({
-		$network: Network.id,
-		address: 'string',
-	}),
+	selectors: [
+		{
+			name: TronContractSelector.NetworkAddress,
+			fields: [
+				'$network',
+				'address',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'address',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$account',
 			type: EntityFieldType.EntityReference,

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,16 +17,16 @@
 
 	// State
 	let {
-		entityId,
-		href = entityId.variant === 'trending' ?
+		selector,
+		href = selector.variant === 'trending' ?
 			resolve('/farcaster/feed/trending')
-		: entityId.variant === 'byUser' ?
+		: selector.variant === 'byUser' ?
 			resolve('/(social)/(farcaster)/farcaster/feed/user/[userId]', {
-				userId: String(entityId.fid),
+				userId: String(selector.fid),
 	})
-		: entityId.variant === 'byChannel' ?
+		: selector.variant === 'byChannel' ?
 			resolve('/(social)/(farcaster)/farcaster/feed/channel/[channelId]', {
-				channelId: entityId.channelId,
+				channelId: selector.channelId,
 	})
 		:
 			resolve('/farcaster/feed'),
@@ -35,7 +35,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.FarcasterFeed>
+			selector: EntitySelector<typeof schema, EntityType.FarcasterFeed>
 			href?: string
 			limit?: number
 			open?: boolean
@@ -47,7 +47,7 @@
 	> = $props()
 
 	const feed = subscribe(EntityType.FarcasterFeed,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
@@ -68,28 +68,28 @@
 
 <EntityView
 	entityType={EntityType.FarcasterFeed}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		{#if entityId.variant === 'byUser'}
+		{#if selector.variant === 'byUser'}
 			<span>
-				FID {String(entityId.fid)}
+				FID {String(selector.fid)}
 			</span>
-		{:else if entityId.variant === 'byChannel'}
+		{:else if selector.variant === 'byChannel'}
 			<TruncatedValue
-				value={`/${entityId.channelId}`}
+				value={`/${selector.channelId}`}
 				format={TruncatedValueFormat.Visual}
 			/>
-		{:else if entityId.variant === 'following'}
+		{:else if selector.variant === 'following'}
 			<span>
-				FID {String(entityId.viewerFid)}
+				FID {String(selector.viewerFid)}
 			</span>
 		{:else}
 			<span>
-				{farcasterFeedKindByVariant[entityId.variant].label}
+				{farcasterFeedKindByVariant[selector.variant].label}
 			</span>
 		{/if}
 	{/snippet}
@@ -105,12 +105,12 @@
 					&& feed.fields.label !== ''
 				) ?
 					feed.fields.label
-				: entityId.variant === 'byUser' ?
-					`FID ${String(entityId.fid)}`
-				: entityId.variant === 'byChannel' ?
-					entityId.channelId
+				: selector.variant === 'byUser' ?
+					`FID ${String(selector.fid)}`
+				: selector.variant === 'byChannel' ?
+					selector.channelId
 				:
-					farcasterFeedKindByVariant[entityId.variant].label
+					farcasterFeedKindByVariant[selector.variant].label
 				}
 			{/snippet}
 		</ResourceBoundary>
@@ -148,7 +148,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const feedDetailKey = stringify(entityId)}
+		{@const feedDetailKey = stringify(selector)}
 		<CollapsibleTabs
 			id={`${feedDetailKey}:carousel-feed`}
 			sectionIdPrefix={feedDetailKey}
@@ -180,7 +180,7 @@
 					href={resolve('/farcaster/feed')}
 					entityFieldReference={{
 						entityType: EntityType.FarcasterFeed,
-						entityId,
+						selector,
 						fieldName: '$$entries',
 					}}
 					id={`${feedDetailKey}:entries`}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,16 +15,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(assets)/(pools)/pool/[chainId]/[poolId]', {
-			chainId: String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)),
-			poolId: entityId.id,
+			chainId: String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)),
+			poolId: selector.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LiquidityPool>
+			selector: EntitySelector<typeof schema, EntityType.LiquidityPool>
 			href?: string
 			open?: boolean
 		},
@@ -39,7 +39,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const pool = subscribe(EntityType.LiquidityPool,
-		entityId,
+		selector,
 		({ fields: { $baseToken: true, $quoteToken: true, $hooks: true, baseTokenSymbol: true, quoteTokenSymbol: true, baseTokenDecimals: true, quoteTokenDecimals: true, fee: true, tickSpacing: true, v4PoolId: true, $$timestamps: ({ sources: [
 					Source.Dexscreener_OpenApi,
 				], limit: 64 }), sqrtPriceX96: true, liquidity: true, tick: true, volumeUSD: true, totalValueLockedUSD: true, marketCapUsd: true, fdvUsd: true, pairCreatedAtMs: true, dexscreenerLabels: true, dexId: true, dexscreenerPairUrl: true, baseTokenPriceUsd: true, baseTokenPriceQuote: true, priceChangePercent24h: true, transactionBuys24h: true, transactionSells24h: true } }),
@@ -58,14 +58,14 @@
 
 <EntityView
 	entityType={EntityType.LiquidityPool}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{open}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -98,7 +98,7 @@
 							<dt>Base token</dt>
 							<dd>
 								<EvmContractView
-									entityId={pool.fields.$baseToken[EntityMetaKey.Id]}
+									selector={pool.fields.$baseToken[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
@@ -111,7 +111,7 @@
 							<dt>Quote token</dt>
 							<dd>
 								<EvmContractView
-									entityId={pool.fields.$quoteToken[EntityMetaKey.Id]}
+									selector={pool.fields.$quoteToken[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
@@ -157,7 +157,7 @@
 							<dt>Hooks</dt>
 							<dd>
 								<EvmContractView
-									entityId={pool.fields.$hooks[EntityMetaKey.Id]}
+									selector={pool.fields.$hooks[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
@@ -362,7 +362,7 @@
 		<LiquidityPool_TimestampsView
 			entityFieldReference={{
 				entityType: EntityType.LiquidityPool,
-				entityId,
+				selector,
 				fieldName: '$$timestamps',
 			}}
 			open={true}

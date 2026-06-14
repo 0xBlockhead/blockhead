@@ -7,13 +7,23 @@ import { TransportType } from '$/constants/TransportType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import type { CosmosSdkTxResponse } from '$/sources/CosmosSdk/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+import { CosmosNetworkSelector } from '$/schema/CosmosNetwork.ts'
+import { CosmosNetwork_TimestampSelector } from '$/schema/CosmosNetwork_Timestamp.ts'
+import { CosmosBlockSelector } from '$/schema/CosmosBlock.ts'
+import { CosmosTransactionSelector } from '$/schema/CosmosTransaction.ts'
+import { CosmosAccountSelector } from '$/schema/CosmosAccount.ts'
+import { CosmosValidatorSelector } from '$/schema/CosmosValidator.ts'
+import { CosmosMessageSelector } from '$/schema/CosmosMessage.ts'
+import { CosmosGovernanceProposalSelector } from '$/schema/CosmosGovernanceProposal.ts'
+import { CosmosDenomSelector } from '$/schema/CosmosDenom.ts'
+import { CosmosModuleSelector } from '$/schema/CosmosModule.ts'
+import { CosmosContractSelector } from '$/schema/CosmosContract.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const assertCosmosHub = (network: NetworkId) => {
 	if (
@@ -53,7 +63,7 @@ const cosmosValidatorRows = (
 			[]
 		:
 			[{
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					$network: network,
 					operatorAddress: validator.operator_address,
 				},
@@ -76,7 +86,7 @@ const cosmosProposalRows = (
 	}[],
 ) => (
 	proposals.map((proposal) => ({
-		[EntityMetaKey.Id]: {
+		[EntityMetaKey.Selector]: {
 			$network: network,
 			proposalId: proposal.id,
 		},
@@ -86,30 +96,30 @@ const cosmosProposalRows = (
 )
 
 const cosmosMessageRows = (
-	entityId: {
+	entitySelector: {
 		$network: NetworkId
 		txHash: string
 	},
 	wireTransaction: CosmosSdkTxResponse,
 ) => (
 	(wireTransaction.tx?.body?.messages ?? []).map((message, messageIndex) => ({
-		[EntityMetaKey.Id]: {
-			$transaction: entityId,
+		[EntityMetaKey.Selector]: {
+			$transaction: entitySelector,
 			messageIndex,
 		},
 		typeUrl: message['@type'] ?? 'unknown',
 		...((message.signer ?? message.sender) != null && {
 			$signer: {
-				[EntityMetaKey.Id]: {
-					$network: entityId.$network,
+				[EntityMetaKey.Selector]: {
+					$network: entitySelector.$network,
 					address: (message.signer ?? message.sender) ?? '',
 				},
 			},
 		}),
 		...(message.contract != null && {
 			$contract: {
-				[EntityMetaKey.Id]: {
-					$network: entityId.$network,
+				[EntityMetaKey.Selector]: {
+					$network: entitySelector.$network,
 					address: message.contract,
 				},
 			},
@@ -124,11 +134,11 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId)
+				[CosmosNetworkSelector.Network]: async (entitySelector) => {
+				assertCosmosHub(entitySelector)
 				return {
 					$network: {
-						[EntityMetaKey.Id]: entityId,
+						[EntityMetaKey.Selector]: entitySelector,
 					},
 					restEndpoints: [
 						{
@@ -150,8 +160,8 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$network)
+				[CosmosNetwork_TimestampSelector.NetworkTimestampMs]: async ({ $network }) => {
+				assertCosmosHub($network)
 				const {
 					getLatestBlock,
 					getNodeInfo,
@@ -217,15 +227,13 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 				entityType: EntityType.CosmosBlock,
 				resolve: {
-					[EntityIdProjection.Identity]: async (entityId) => {
-					assertCosmosHub(entityId.$network)
-					if (!('height' in entityId))
-						throw new Error('CosmosSdk_Rest: CosmosBlock hash lookup is unsupported')
+					[CosmosBlockSelector.Height]: async ({ $network, height }) => {
+					assertCosmosHub($network)
 
 					const { getBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				const wireBlock = await getBlock({
 					restBaseUrl: cosmosHubRestBaseUrl,
-					height: entityId.height,
+					height,
 				})
 				return {
 					hash: wireBlock.block_id.hash,
@@ -247,17 +255,17 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$network)
+				[CosmosTransactionSelector.NetworkTxHash]: async (entitySelector) => {
+				assertCosmosHub(entitySelector.$network)
 				const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				const wireTransaction = await getTx({
 					restBaseUrl: cosmosHubRestBaseUrl,
-					txHash: entityId.txHash,
+					txHash: entitySelector.txHash,
 				})
 				return {
 					$block: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector.$network,
 							height: BigInt(wireTransaction.tx_response.height),
 						},
 					},
@@ -266,7 +274,7 @@ export default {
 					gasUsed: BigInt(wireTransaction.tx_response.gas_used),
 					memo: wireTransaction.tx?.body?.memo,
 					$$messages: cosmosMessageRows(
-					entityId,
+					entitySelector,
 					wireTransaction,
 					),
 				}
@@ -286,12 +294,12 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosAccount,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$network)
+				[CosmosAccountSelector.NetworkAddress]: async ({ $network, address }) => {
+				assertCosmosHub($network)
 				const { getAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				const account = (await getAccount({
 					restBaseUrl: cosmosHubRestBaseUrl,
-					address: entityId.address,
+					address: address,
 				})).account
 				return {
 					...((account?.base_account?.account_number ?? account?.account_number) != null && {
@@ -313,12 +321,12 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosValidator,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$network)
+				[CosmosValidatorSelector.NetworkOperatorAddress]: async ({ $network, operatorAddress }) => {
+				assertCosmosHub($network)
 				const { getValidator } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				return cosmosValidatorFields((await getValidator({
 					restBaseUrl: cosmosHubRestBaseUrl,
-					operatorAddress: entityId.operatorAddress,
+					operatorAddress: operatorAddress,
 				})).validator)
 			}
 			},
@@ -335,17 +343,17 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosMessage,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$transaction.$network)
+				[CosmosMessageSelector.CosmosTransactionMessageIndex]: async ({ $transaction, messageIndex }) => {
+				assertCosmosHub($transaction.$network)
 				const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				const cosmosMessage = cosmosMessageRows(
-					entityId.$transaction,
+					$transaction,
 					await getTx({
 						restBaseUrl: cosmosHubRestBaseUrl,
-						txHash: entityId.$transaction.txHash,
+						txHash: $transaction.txHash,
 					}),
-				).at(entityId.messageIndex)
-				if (cosmosMessage == null) throw new Error(`CosmosSdk_Rest: message not found for ${entityId.$transaction.txHash}:${entityId.messageIndex}`)
+				).at(messageIndex)
+				if (cosmosMessage == null) throw new Error(`CosmosSdk_Rest: message not found for ${$transaction.txHash}:${messageIndex}`)
 				return cosmosMessage
 			}
 			},
@@ -360,12 +368,12 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosGovernanceProposal,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$network)
+				[CosmosGovernanceProposalSelector.NetworkProposalId]: async ({ $network, proposalId }) => {
+				assertCosmosHub($network)
 				const { getProposal } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				const proposal = (await getProposal({
 					restBaseUrl: cosmosHubRestBaseUrl,
-					proposalId: entityId.proposalId,
+					proposalId: proposalId,
 				})).proposal
 				return {
 					title: proposal.title ?? proposal.messages?.[0]?.content?.title,
@@ -383,12 +391,12 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosDenom,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$network)
+				[CosmosDenomSelector.NetworkDenom]: async ({ $network, denom }) => {
+				assertCosmosHub($network)
 				const { getDenomMetadata } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				const metadata = (await getDenomMetadata({
 					restBaseUrl: cosmosHubRestBaseUrl,
-					denom: entityId.denom,
+					denom: denom,
 				})).metadata
 				return {
 					display: metadata.display,
@@ -408,18 +416,18 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosModule,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$network)
+				[CosmosModuleSelector.NetworkModuleName]: async ({ $network, moduleName }) => {
+				assertCosmosHub($network)
 				const { getModuleAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				const moduleAccount = await getModuleAccount({
 					restBaseUrl: cosmosHubRestBaseUrl,
-					moduleName: entityId.moduleName,
+					moduleName: moduleName,
 				})
 				return {
 					...(moduleAccount.account?.base_account?.address != null && {
 						$authority: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								address: moduleAccount.account.base_account.address,
 							},
 						},
@@ -436,25 +444,25 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosContract,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$network)
+				[CosmosContractSelector.NetworkAddress]: async ({ $network, address }) => {
+				assertCosmosHub($network)
 				const { getContractInfo } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				const contractInfo = (await getContractInfo({
 					restBaseUrl: cosmosHubRestBaseUrl,
-					address: entityId.address,
+					address: address,
 				})).contract_info
 				return {
 					codeId: BigInt(contractInfo.code_id),
 					$creator: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
 							address: contractInfo.creator,
 						},
 					},
 					...(contractInfo.admin != null && {
 						$admin: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								address: contractInfo.admin,
 							},
 						},
@@ -473,8 +481,8 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId)
+				[CosmosNetworkSelector.Network]: async (entitySelector) => {
+				assertCosmosHub(entitySelector)
 				return [
 					{
 						url: cosmosHubRestBaseUrl,
@@ -493,12 +501,12 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId)
+				[CosmosNetworkSelector.Network]: async (entitySelector) => {
+				assertCosmosHub(entitySelector)
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							timestampMs: Date.now(),
 						},
 					},
@@ -514,8 +522,8 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertCosmosHub(entityId)
+				[CosmosNetworkSelector.Network]: async (entitySelector, context) => {
+				assertCosmosHub(entitySelector)
 				const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				const latestBlock = await getLatestBlock({ restBaseUrl: cosmosHubRestBaseUrl })
 				const latestBlockHeight = BigInt(latestBlock.block.header.height)
@@ -525,8 +533,8 @@ export default {
 						resolverContextRowLimit(context),
 					),
 				}, (_value, blockOffset) => ({
-					[EntityMetaKey.Id]: {
-						$network: entityId,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector,
 						height: latestBlockHeight - BigInt(blockOffset),
 					},
 					...(blockOffset === 0 && {
@@ -547,11 +555,11 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId)
+				[CosmosNetworkSelector.Network]: async (entitySelector) => {
+				assertCosmosHub(entitySelector)
 				const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				return cosmosValidatorRows(
-					entityId,
+					entitySelector,
 					(await getValidators({ restBaseUrl: cosmosHubRestBaseUrl })).validators,
 				)
 			}
@@ -565,11 +573,11 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId)
+				[CosmosNetworkSelector.Network]: async (entitySelector) => {
+				assertCosmosHub(entitySelector)
 				const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				return cosmosProposalRows(
-					entityId,
+					entitySelector,
 					(await getProposals({ restBaseUrl: cosmosHubRestBaseUrl })).proposals,
 				)
 			}
@@ -584,14 +592,14 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertCosmosHub(entityId.$network)
+				[CosmosTransactionSelector.NetworkTxHash]: async (entitySelector) => {
+				assertCosmosHub(entitySelector.$network)
 				const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				return cosmosMessageRows(
-					entityId,
+					entitySelector,
 					await getTx({
 						restBaseUrl: cosmosHubRestBaseUrl,
-						txHash: entityId.txHash,
+						txHash: entitySelector.txHash,
 					}),
 				)
 			}

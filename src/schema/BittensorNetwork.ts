@@ -8,13 +8,24 @@ import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum BittensorNetworkSelector {
+	Network = 'network',
+}
+
 export default {
 	entityType: EntityType.BittensorNetwork,
 
 	label: 'Bittensor network',
 	labelPlural: 'Bittensor networks',
 
-	id: Network.id,
+	selectors: [
+		{
+			name: BittensorNetworkSelector.Network,
+			fields: [
+				'$network',
+			],
+		},
+	],
 
 	fields: [
 		{

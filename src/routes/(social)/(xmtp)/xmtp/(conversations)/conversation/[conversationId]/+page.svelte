@@ -12,6 +12,6 @@
 
 <Page>
 	<XmtpConversationView
-		entityId={{ id: params.conversationId }}
+		selector={{ id: params.conversationId }}
 	/>
 </Page>

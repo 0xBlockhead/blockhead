@@ -9,19 +9,46 @@ import { EntityType } from '$/schema/EntityType.ts'
 import LiquidityPool from '$/schema/LiquidityPool.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum LiquidityPool_TimestampSelector {
+	LiquidityPoolTimestampMsFeedKey = 'liquidityPoolTimestampMsFeedKey',
+}
+
 export default {
 	entityType: EntityType.LiquidityPool_Timestamp,
 
 	label: 'Liquidity pool observation',
 	labelPlural: 'Liquidity pool observations',
 
-	id: type({
-		$liquidityPool: LiquidityPool.id,
-		timestampMs: 'number',
-		'feedKey?': 'string',
-	}),
+	selectors: [
+		{
+			name: LiquidityPool_TimestampSelector.LiquidityPoolTimestampMsFeedKey,
+			fields: [
+				'$liquidityPool',
+				'timestampMs',
+				'feedKey',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$liquidityPool',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.LiquidityPool,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'feedKey',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: '$parentLiquidityPool',
 			type: EntityFieldType.EntityReference,

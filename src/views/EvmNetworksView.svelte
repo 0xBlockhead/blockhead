@@ -75,7 +75,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: (
@@ -96,7 +96,7 @@
 					return (
 						evmNetworks
 							.flatMap((value) => {
-								const chainId = Number(value[EntityMetaKey.Id].caip2.reference)
+								const chainId = Number(value[EntityMetaKey.Selector].caip2.reference)
 								if (chainIds.has(chainId)) return []
 								chainIds.add(chainId)
 								return [{ value }]
@@ -110,12 +110,12 @@
 				entityType={EntityType.EvmNetwork}
 				id={`${id}-items`}
 				href={href}
-				getKey={(line) => stringifyId(line.value[EntityMetaKey.Id])}
+				getKey={(line) => stringifyId(line.value[EntityMetaKey.Selector])}
 				getSortValue={(line) => (
-					Number(line.value[EntityMetaKey.Id].caip2.reference) === 1 ?
+					Number(line.value[EntityMetaKey.Selector].caip2.reference) === 1 ?
 						0
 					:
-						Number.MAX_SAFE_INTEGER + Number(line.value[EntityMetaKey.Id].caip2.reference)
+						Number.MAX_SAFE_INTEGER + Number(line.value[EntityMetaKey.Selector].caip2.reference)
 				)}
 				placeholderKeys={new SvelteSet<string | number>()}
 				placeholderText="Loading EVM networks…"
@@ -132,7 +132,7 @@
 
 				{#snippet Item({ item: line })}
 					<EvmNetworkView
-						entityId={line.value[EntityMetaKey.Id]}
+						selector={line.value[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

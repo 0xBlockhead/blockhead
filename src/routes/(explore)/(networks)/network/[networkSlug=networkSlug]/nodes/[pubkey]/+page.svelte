@@ -13,7 +13,7 @@
 
 <Page>
 	<LightningNodeView
-		entityId={{
+		selector={{
 			$network: { networkSlug: params.networkSlug },
 			publicKey: params.pubkey,
 		}}

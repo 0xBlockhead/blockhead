@@ -98,8 +98,8 @@
 				entityType={EntityType.EvmAccount}
 				{title}
 				open={true}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
 				placeholderKeys={new SvelteSet<string>()}
 				placeholderText={`Loading ${title.toLowerCase()}…`}
 				resource={actors}
@@ -112,9 +112,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const id = item.value[EntityMetaKey.Id]}
+					{@const id = item.value[EntityMetaKey.Selector]}
 					<EvmAccountView
-						entityId={id}
+						selector={id}
 						layout={EntityLayout.SummaryDetails}
 						open={true}
 					/>

@@ -10,18 +10,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import OracleFeed from '$/schema/OracleFeed.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum OracleFeed_RoundSelector {
+	OracleFeedRoundId = 'oracleFeedRoundId',
+}
+
 export default {
 	entityType: EntityType.OracleFeed_Round,
 
 	label: 'Oracle feed round',
 	labelPlural: 'Oracle feed rounds',
 
-	id: type({
-		$oracleFeed: OracleFeed.id,
-		roundId: 'bigint',
-	}),
+	selectors: [
+		{
+			name: OracleFeed_RoundSelector.OracleFeedRoundId,
+			fields: [
+				'$oracleFeed',
+				'roundId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$oracleFeed',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.OracleFeed,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'roundId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$parentOracleFeed',
 			type: EntityFieldType.EntityReference,

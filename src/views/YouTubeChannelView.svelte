@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,9 +17,9 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(youtube)/youtube/channel/[channelId]', {
-			channelId: entityId.channelId,
+			channelId: selector.channelId,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.YouTubeChannel>
+			selector: EntitySelector<typeof schema, EntityType.YouTubeChannel>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -40,7 +40,7 @@
 	> = $props()
 
 	const channel = subscribe(EntityType.YouTubeChannel,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
@@ -56,7 +56,7 @@
 						] }) }) : ({  })) } }),
 	)
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 
 	// Components
@@ -76,7 +76,7 @@
 
 <EntityView
 	entityType={EntityType.YouTubeChannel}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -90,11 +90,11 @@
 			{#snippet children(channel)}
 				{#if (
 					channel.fields.$icon
-					&& channel.fields.$icon[EntityMetaKey.Id].url
+					&& channel.fields.$icon[EntityMetaKey.Selector].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={channel.fields.$icon[EntityMetaKey.Id].url}
+						src={channel.fields.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{/if}
@@ -104,7 +104,7 @@
 
 	{#snippet Value()}
 		<span>
-			{entityId.channelId}
+			{selector.channelId}
 		</span>
 	{/snippet}
 
@@ -114,7 +114,7 @@
 			placeholderText="Loading channel…"
 		>
 			{#snippet children(channel)}
-				{channel.fields.title ?? entityId.channelId}
+				{channel.fields.title ?? selector.channelId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -237,7 +237,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.YouTubeChannel,
-						entityId,
+						selector,
 						fieldName: '$$videos',
 					}}
 					id={`${idKey}:youtube-videos`}
@@ -250,7 +250,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.YouTubeChannel,
-						entityId,
+						selector,
 						fieldName: '$$playlists',
 					}}
 					id={`${idKey}:youtube-playlists`}
@@ -262,7 +262,7 @@
 				<YouTubeChannel_TimestampsView
 					entityFieldReference={{
 						entityType: EntityType.YouTubeChannel,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					href={href}

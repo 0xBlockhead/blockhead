@@ -19,7 +19,7 @@
 		collapsible={false}
 		entityFieldReference={{
 			entityType: EntityType.FarcasterNetwork,
-			entityId: { scope: 'FarcasterNetwork' },
+			selector: { scope: 'FarcasterNetwork' },
 			fieldName: '$$feeds',
 		}}
 		id="feed-index"

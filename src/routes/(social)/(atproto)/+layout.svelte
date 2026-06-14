@@ -26,7 +26,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<AtprotoView
-			entityId={{
+			selector={{
 				scope: 'AtprotoNetwork',
 			}}
 			layout={EntityLayout.SummaryInline}

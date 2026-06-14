@@ -60,7 +60,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.CosmosSdk_Rest,
@@ -82,8 +82,8 @@
 				entityType={EntityType.CosmosNetwork_Timestamp}
 				id={`${id}-items`}
 				href={href}
-				getKey={(timestamp) => stringify(timestamp[EntityMetaKey.Id])}
-				getSortValue={(timestamp) => -timestamp[EntityMetaKey.Id].timestampMs}
+				getKey={(timestamp) => stringify(timestamp[EntityMetaKey.Selector])}
+				getSortValue={(timestamp) => -timestamp[EntityMetaKey.Selector].timestampMs}
 				open={true}
 				resource={timestamps}
 				{title}
@@ -94,7 +94,7 @@
 				{/snippet}
 
 				{#snippet Item(context)}
-					<CosmosNetwork_TimestampView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+					<CosmosNetwork_TimestampView selector={context!.item[EntityMetaKey.Selector]} layout={EntityLayout.Summary} open={false} />
 				{/snippet}
 			</EntitiesList>
 		{/if}

@@ -12,6 +12,6 @@
 
 <Page>
 	<EnsNameTextRecordsView
-		entityId={{ name: params.ensName }}
+		selector={{ name: params.ensName }}
 	/>
 </Page>

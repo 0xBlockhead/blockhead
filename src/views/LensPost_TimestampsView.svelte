@@ -51,7 +51,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Lens_Graphql,
 					], fields: { [entityFieldReference.fieldName]: {
 						sources: [
@@ -83,7 +83,7 @@
 			>
 				{#snippet Item({ item })}
 					<LensPost_TimestampView
-						entityId={item.value[EntityMetaKey.Id]}
+						selector={item.value[EntityMetaKey.Selector]}
 						{href}
 						layout={EntityLayout.Summary}
 						open={false}

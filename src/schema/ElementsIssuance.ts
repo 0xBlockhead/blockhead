@@ -7,8 +7,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Transaction from '$/schema/UtxoTransaction.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum ElementsIssuanceSelector {
+	UtxoTransactionInputIndex = 'utxoTransactionInputIndex',
+}
 
 export default {
 	entityType: EntityType.ElementsIssuance,
@@ -16,12 +19,29 @@ export default {
 	label: 'Elements issuance',
 	labelPlural: 'Elements issuances',
 
-	id: type({
-		$transaction: Transaction.id,
-		inputIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: ElementsIssuanceSelector.UtxoTransactionInputIndex,
+			fields: [
+				'$transaction',
+				'inputIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.UtxoTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'inputIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$asset',
 			type: EntityFieldType.EntityReference,

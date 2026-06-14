@@ -18,7 +18,7 @@
 		href={resolve('/evm/errors')}
 		entityFieldReference={{
 			entityType: EntityType.EvmProtocol,
-			entityId: {
+			selector: {
 				scope: 'EvmProtocol',
 			},
 			fieldName: '$$evmErrors',

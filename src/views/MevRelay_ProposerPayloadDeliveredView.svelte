@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,10 +17,10 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=caip2Namespace]:[caip2Reference=caip2Reference]', {
-			caip2Namespace: entityId.$network.caip2.namespace,
-			caip2Reference: entityId.$network.caip2.reference,
+			caip2Namespace: selector.$network.caip2.namespace,
+			caip2Reference: selector.$network.caip2.reference,
 		}),
 		layout,
 		open = $bindable(true),
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered>
+			selector: EntitySelector<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -41,14 +41,14 @@
 	> = $props()
 
 	const mevRelayProposerPayloadDelivered = subscribe(EntityType.MevRelay_ProposerPayloadDelivered,
-		entityId,
+		selector,
 		({ sources: [Source.MevRelay_Rest], fields: { builderPubkey: true, value: true, blockNumber: true, ...(open && ({ $executionBlock: true })) } }),
 	)
 
 
 	// (Derived)
-	const payloadIdKey = $derived(
-		stringify(entityId),
+	const payloadSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -66,22 +66,22 @@
 
 <EntityView
 	entityType={EntityType.MevRelay_ProposerPayloadDelivered}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
-	title={`Slot ${String(entityId.slot)}`}
+	title={`Slot ${String(selector.slot)}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{entityId.slot}
+			{selector.slot}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<span>
-			{entityId.slot}
+			{selector.slot}
 		</span>
 	{/snippet}
 
@@ -145,8 +145,8 @@
 
 	{#snippet Details({ open })}
 		<CollapsibleTabs
-			id={`${payloadIdKey}:carousel-payload`}
-			sectionIdPrefix={payloadIdKey}
+			id={`${payloadSelectorKey}:carousel-payload`}
+			sectionIdPrefix={payloadSelectorKey}
 			sections={[
 				{ id: 'mev-included-block', label: 'Block' },
 				] as const}
@@ -190,7 +190,7 @@
 								&& mevRelayProposerPayloadDelivered.fields.$executionBlock !== undefined
 							)}
 								<EvmBlockView
-									entityId={mevRelayProposerPayloadDelivered.fields.$executionBlock[EntityMetaKey.Id]}
+									selector={mevRelayProposerPayloadDelivered.fields.$executionBlock[EntityMetaKey.Selector]}
 									layout={EntityLayout.Summary}
 								/>
 							{:else if open}

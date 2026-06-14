@@ -21,7 +21,7 @@
 		href={resolve('/reddit/links')}
 		entityFieldReference={{
 			entityType: EntityType.RedditSubreddit,
-			entityId: {
+			selector: {
 				name: decodeURIComponent(params.name).toLowerCase(),
 			},
 			fieldName: '$$links',

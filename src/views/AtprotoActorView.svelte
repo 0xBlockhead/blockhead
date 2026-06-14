@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,15 +17,15 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(atproto)/atproto/actor/[did]', {
-			did: 'did' in entityId ? entityId.did : entityId.handle,
+			did: 'did' in selector ? selector.did : selector.handle,
 		}),
 		open = $bindable(true),
 			...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.AtprotoActor>
+			selector: EntitySelector<typeof schema, EntityType.AtprotoActor>
 			href?: string
 			open?: boolean
 		},
@@ -36,10 +36,10 @@
 		>
 	> = $props()
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 	const actor = subscribe(EntityType.AtprotoActor,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Atproto_Xrpc,
 				Source.Atproto_BskySocial_Xrpc,
@@ -67,7 +67,7 @@
 
 <EntityView
 	entityType={EntityType.AtprotoActor}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -77,7 +77,7 @@
 			resource={actor}
 		>
 			{#snippet children(actor)}
-				{@const atprotoBrandIconSrc = actor.fields.$icon?.[EntityMetaKey.Id].url}
+				{@const atprotoBrandIconSrc = actor.fields.$icon?.[EntityMetaKey.Selector].url}
 				{#if atprotoBrandIconSrc}
 					<IconComponent
 						alt={actor.fields.displayName ?? actor.fields.handle ?? ''}
@@ -91,7 +91,7 @@
 
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{'did' in entityId ? entityId.did : `@${entityId.handle}`}
+			{'did' in selector ? selector.did : `@${selector.handle}`}
 		</span>
 	{/snippet}
 
@@ -103,7 +103,7 @@
 			{#snippet children(actor)}
 					{actor.fields.displayName
 						?? actor.fields.handle
-						?? ('did' in entityId ? entityId.did : entityId.handle)}
+						?? ('did' in selector ? selector.did : selector.handle)}
 				{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -116,7 +116,7 @@
 					{@const atprotoSummaryHeadingLine = (
 						actor.fields.displayName
 						?? actor.fields.handle
-						?? ('did' in entityId ? entityId.did : entityId.handle)
+						?? ('did' in selector ? selector.did : selector.handle)
 					)}
 				{#if actor.fields.handle && actor.fields.handle !== atprotoSummaryHeadingLine}
 					<span data-text="muted">
@@ -205,9 +205,9 @@
 							<div>
 								<dt>Banner</dt>
 								<dd>
-									<a href={actor.fields.$banner[EntityMetaKey.Id].url}>
+									<a href={actor.fields.$banner[EntityMetaKey.Selector].url}>
 										<TruncatedValue
-											value={actor.fields.$banner[EntityMetaKey.Id].url}
+											value={actor.fields.$banner[EntityMetaKey.Selector].url}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</a>
@@ -311,7 +311,7 @@
 							)}
 								entityFieldReference={{
 									entityType: EntityType.AtprotoActor,
-									entityId: {
+									selector: {
 										did: actor.fields.did,
 									},
 									fieldName: '$$posts',
@@ -333,7 +333,7 @@
 							<AtprotoActor_TimestampsView
 								entityFieldReference={{
 									entityType: EntityType.AtprotoActor,
-									entityId: {
+									selector: {
 										did: actor.fields.did,
 									},
 									fieldName: '$$timestamps',

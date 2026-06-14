@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum CosmosValidatorSelector {
+	NetworkOperatorAddress = 'networkOperatorAddress',
+}
 
 export default {
 	entityType: EntityType.CosmosValidator,
@@ -15,12 +18,29 @@ export default {
 	label: 'Cosmos Validator',
 	labelPlural: 'Cosmos Validators',
 
-	id: type({
-		$network: Network.id,
-		operatorAddress: 'string',
-	}),
+	selectors: [
+		{
+			name: CosmosValidatorSelector.NetworkOperatorAddress,
+			fields: [
+				'$network',
+				'operatorAddress',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'operatorAddress',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'consensusPubkey',
 			type: EntityFieldType.Primitive,

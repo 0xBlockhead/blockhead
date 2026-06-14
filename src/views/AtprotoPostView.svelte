@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,15 +17,15 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(atproto)/atproto/post/[uri]', {
-			uri: encodeURIComponent(entityId.uri),
+			uri: encodeURIComponent(selector.uri),
 		}),
 		open = $bindable(true),
 			...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.AtprotoPost>
+			selector: EntitySelector<typeof schema, EntityType.AtprotoPost>
 			href?: string
 			open?: boolean
 		},
@@ -36,10 +36,10 @@
 		>
 	> = $props()
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 	const post = subscribe(EntityType.AtprotoPost,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Atproto_Xrpc,
 				Source.Atproto_BskySocial_Xrpc,
@@ -66,7 +66,7 @@
 
 <EntityView
 	entityType={EntityType.AtprotoPost}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -76,7 +76,7 @@
 			endLength={12}
 			format={TruncatedValueFormat.Visual}
 			startLength={20}
-			value={entityId.uri}
+			value={selector.uri}
 		/>
 	{/snippet}
 
@@ -96,7 +96,7 @@
 					{:else}
 						<span data-text="font-monospace">
 							<TruncatedValue
-								value={entityId.uri}
+								value={selector.uri}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</span>
@@ -163,7 +163,7 @@
 							<dt>Author</dt>
 							<dd>
 								<AtprotoActorView
-									entityId={post.fields.$author[EntityMetaKey.Id]}
+									selector={post.fields.$author[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -176,7 +176,7 @@
 							<dt>Reply to</dt>
 							<dd>
 								<svelte:self
-									entityId={post.fields.$parent[EntityMetaKey.Id]}
+									selector={post.fields.$parent[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -184,12 +184,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && post.fields.$root && post.fields.$root[EntityMetaKey.Id].uri !== post.fields.$parent?.[EntityMetaKey.Id].uri}
+					{#if contentOpen && post.fields.$root && post.fields.$root[EntityMetaKey.Selector].uri !== post.fields.$parent?.[EntityMetaKey.Selector].uri}
 						<div>
 							<dt>Thread root</dt>
 							<dd>
 								<svelte:self
-									entityId={post.fields.$root[EntityMetaKey.Id]}
+									selector={post.fields.$root[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -286,7 +286,7 @@
 				<AtprotoPostThreadView
 					entityFieldReference={{
 						entityType: EntityType.AtprotoPost,
-						entityId,
+						selector,
 						fieldName: '$$thread',
 					}}
 					id={`${idKey}:thread-atprotoPosts`}
@@ -311,7 +311,7 @@
 				<AtprotoPost_TimestampsView
 					entityFieldReference={{
 						entityType: EntityType.AtprotoPost,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					href={href}

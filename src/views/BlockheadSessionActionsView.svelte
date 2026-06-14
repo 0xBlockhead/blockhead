@@ -56,7 +56,7 @@
 	// Actions
 	const writeSessionAction = (indexInSequence: number) => {
 		writeLocalBlockheadSessionAction(
-			entityFieldReference.entityId,
+			entityFieldReference.selector,
 			indexInSequence,
 			actionType,
 		)
@@ -87,7 +87,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Local_Internal,
 					], fields: { [entityFieldReference.fieldName]: {
 						sources: [
@@ -145,7 +145,7 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
 				getSortValue={(envelope) => String(envelope.value.indexInSequence ?? 0)}
 				resource={actions}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -158,7 +158,7 @@
 
 				{#snippet Item({ item: envelope })}
 					<BlockheadSessionActionView
-						entityId={envelope.value[EntityMetaKey.Id]}
+						selector={envelope.value[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>
@@ -166,8 +166,8 @@
 					<button
 						type="button"
 						onclick={() => deleteLocalBlockheadSessionAction(
-							entityFieldReference.entityId,
-							envelope.value[EntityMetaKey.Id],
+							entityFieldReference.selector,
+							envelope.value[EntityMetaKey.Selector],
 						)}
 					>
 						Remove

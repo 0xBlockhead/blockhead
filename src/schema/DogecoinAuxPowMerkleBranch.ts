@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import AuxPow from '$/schema/DogecoinBlockAuxPow.ts'
+
+export enum DogecoinAuxPowMerkleBranchSelector {
+	DogecoinBlockAuxPowBranchKind = 'dogecoinBlockAuxPowBranchKind',
+}
 
 export default {
 	entityType: EntityType.DogecoinAuxPowMerkleBranch,
@@ -15,12 +18,29 @@ export default {
 	label: 'Dogecoin AuxPoW Merkle Branch',
 	labelPlural: 'Dogecoin AuxPoW Merkle Branches',
 
-	id: type({
-		$auxPow: AuxPow.id,
-		branchKind: 'string',
-	}),
+	selectors: [
+		{
+			name: DogecoinAuxPowMerkleBranchSelector.DogecoinBlockAuxPowBranchKind,
+			fields: [
+				'$auxPow',
+				'branchKind',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$auxPow',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.DogecoinBlockAuxPow,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'branchKind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'branchHashes',
 			type: EntityFieldType.Primitive,

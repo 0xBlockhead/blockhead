@@ -3,7 +3,7 @@
 	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,10 +16,10 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/erc-4337/smart-account/[address]', {
-				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-				address: entityId.address,
+				...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+				address: selector.address,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Erc4337SmartAccount>
+			selector: EntitySelector<typeof schema, EntityType.Erc4337SmartAccount>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -42,7 +42,7 @@
 	> = $props()
 
 	const smartAccount = subscribe(EntityType.Erc4337SmartAccount,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Blockscout_Rest,
 			], fields: { userOperationsCount: true, $contract: true, $factory: true } }),
@@ -60,7 +60,7 @@
 
 <EntityView
 	entityType={EntityType.Erc4337SmartAccount}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -71,14 +71,14 @@
 	{#snippet Value()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={entityId.address}
+			value={selector.address}
 		/>
 	{/snippet}
 
 	{#snippet Title()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={entityId.address}
+			value={selector.address}
 		/>
 	{/snippet}
 
@@ -111,7 +111,7 @@
 							<dt>Factory</dt>
 							<dd>
 								<Erc4337AccountFactoryView
-									entityId={smartAccount.fields.$factory[EntityMetaKey.Id]}
+									selector={smartAccount.fields.$factory[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 									showTypeAnnotation={false}
@@ -125,7 +125,7 @@
 							<dt>Account contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={smartAccount.fields.$contract[EntityMetaKey.Id]}
+									selector={smartAccount.fields.$contract[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={true}
 									showTypeAnnotation={false}

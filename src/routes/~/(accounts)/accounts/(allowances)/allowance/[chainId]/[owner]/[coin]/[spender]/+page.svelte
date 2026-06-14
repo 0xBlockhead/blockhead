@@ -14,7 +14,7 @@
 
 <Page>
 	<EvmActorCoinAllowanceView
-		entityId={{
+		selector={{
 			$actorCoin: {
 				$actor: {
 					address: params.owner as `0x${string}`,

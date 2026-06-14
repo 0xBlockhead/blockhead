@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -18,17 +18,17 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]',
-			{ accountId: String(entityId.fid) },
+			{ accountId: String(selector.fid) },
 		),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -41,7 +41,7 @@
 	> = $props()
 
 	const connection = subscribe(EntityType.BlockheadFarcasterAccountConnection,
-		entityId,
+		selector,
 		({ sources: [Source.Neynar_Rest], fields: { displayName: true, username: true, $icon: true, ...(open ? ({ bio: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } }),
 	)
 
@@ -51,8 +51,8 @@
 		connection.ready ? connection.current : undefined,
 	)
 
-	const connectionIdKey = $derived(
-		stringify(entityId),
+	const connectionSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -70,7 +70,7 @@
 
 <EntityView
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -83,11 +83,11 @@
 			{#snippet children(connection)}
 				{#if (
 					connection.fields.$icon
-					&& connection.fields.$icon[EntityMetaKey.Id].url
+					&& connection.fields.$icon[EntityMetaKey.Selector].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={connection.fields.$icon[EntityMetaKey.Id].url}
+						src={connection.fields.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{/if}
@@ -97,7 +97,7 @@
 
 	{#snippet Value()}
 		<span>
-			FID {String(entityId.fid)}
+			FID {String(selector.fid)}
 		</span>
 	{/snippet}
 
@@ -110,7 +110,7 @@
 				{@const headline = (
 					connection.fields.displayName
 					?? connection.fields.username
-					?? `FID ${String(entityId.fid)}`
+					?? `FID ${String(selector.fid)}`
 				)}
 				{headline}
 			{/snippet}
@@ -125,7 +125,7 @@
 				{@const headline = (
 					connection.fields.displayName
 					?? connection.fields.username
-					?? `FID ${String(entityId.fid)}`
+					?? `FID ${String(selector.fid)}`
 				)}
 				{#if connection.fields.username !== undefined && connection.fields.username !== headline}
 					<span data-text="muted">
@@ -244,11 +244,11 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			sectionIdPrefix={connectionIdKey}
+			sectionIdPrefix={connectionSelectorKey}
 			sections={[
 				{ id: 'feed', label: 'Farcaster feed' },
 			]}
-			id={`${connectionIdKey}:carousel-feed`}
+			id={`${connectionSelectorKey}:carousel-feed`}
 			data-card
 		>
 			{#snippet Summary({ open: _isOpen })}
@@ -261,17 +261,17 @@
 				<FarcasterCastsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/(social)/(farcaster)/farcaster/feed/user/[userId]', {
-						userId: String(entityId.fid),
+						userId: String(selector.fid),
 					})}
 					entityFieldReference={{
 						entityType: EntityType.FarcasterFeed,
-						entityId: {
+						selector: {
 							variant: 'byUser',
-							fid: entityId.fid,
+							fid: selector.fid,
 						},
 						fieldName: '$$entries',
 					}}
-					id={`${connectionIdKey}:feed-blockheadFarcasterAccountConnections`}
+					id={`${connectionSelectorKey}:feed-blockheadFarcasterAccountConnections`}
 					title="Farcaster feed"
 				/>
 			{/snippet}

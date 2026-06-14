@@ -21,7 +21,7 @@ export const load: PageLoad = ({ params }) => {
 		error(404, 'Invalid blob transaction hash')
 	}
 	return {
-		entityId: {
+		entitySelector: {
 			$network: { caip2: { namespace: 'eip155', reference: params.caip2Reference } },
 			txHash,
 			blobIndex,

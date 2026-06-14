@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum HyperliquidAccountSelector {
+	NetworkAddress = 'networkAddress',
+}
 
 export default {
 	entityType: EntityType.HyperliquidAccount,
@@ -15,12 +18,29 @@ export default {
 	label: 'Hyperliquid Account',
 	labelPlural: 'Hyperliquid Accounts',
 
-	id: type({
-		$network: Network.id,
-		address: 'string',
-	}),
+	selectors: [
+		{
+			name: HyperliquidAccountSelector.NetworkAddress,
+			fields: [
+				'$network',
+				'address',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'address',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'accountRole',
 			type: EntityFieldType.Primitive,

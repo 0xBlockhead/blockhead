@@ -7,17 +7,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadSharedAddressSelector {
+	Id = 'id',
+}
+
 export default {
 	entityType: EntityType.BlockheadSharedAddress,
 
 	label: 'Shared Address',
 	labelPlural: 'Shared Addresses',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: BlockheadSharedAddressSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$network',
 			type: EntityFieldType.EntityReference,

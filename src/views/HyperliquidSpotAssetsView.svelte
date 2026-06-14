@@ -58,7 +58,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Hyperliquid_Rest,
@@ -79,7 +79,7 @@
 				entityType={EntityType.HyperliquidSpotAsset}
 				id={`${id}-items`}
 				href={href}
-				getKey={(asset) => stringify(asset[EntityMetaKey.Id])}
+				getKey={(asset) => stringify(asset[EntityMetaKey.Selector])}
 				open={true}
 				resource={assets}
 				{title}
@@ -91,7 +91,7 @@
 
 				{#snippet Item(context)}
 					<HyperliquidSpotAssetView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

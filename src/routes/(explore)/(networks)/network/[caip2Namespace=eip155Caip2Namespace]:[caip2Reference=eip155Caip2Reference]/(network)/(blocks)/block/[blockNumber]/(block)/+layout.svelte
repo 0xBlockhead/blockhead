@@ -13,7 +13,7 @@
 		params,
 	} = $props()
 
-	const blockEntityId = $derived(
+	const blockEntitySelector = $derived(
 		{
 			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			blockNumber: BigInt(params.blockNumber),
@@ -36,11 +36,11 @@
 		'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]',
 		params,
 	)}
-	id={stringify(blockEntityId)}
+	id={stringify(blockEntitySelector)}
 >
 	{#snippet Summary({ open: _open })}
 		<EvmBlockView
-			entityId={blockEntityId}
+			selector={blockEntitySelector}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

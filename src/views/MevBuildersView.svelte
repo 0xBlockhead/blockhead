@@ -56,7 +56,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.MevRelay_Rest,
@@ -78,7 +78,7 @@
 				entityType={EntityType.MevBuilder}
 				id={`${id}-items`}
 				href={href}
-				getKey={(builder) => builder[EntityMetaKey.Id].builderPubkey}
+				getKey={(builder) => builder[EntityMetaKey.Selector].builderPubkey}
 				placeholderText="Loading builders…"
 				resource={builders}
 				{title}
@@ -91,7 +91,7 @@
 
 				{#snippet Item({ item: builder })}
 					<MevBuilderView
-						entityId={builder[EntityMetaKey.Id]}
+						selector={builder[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

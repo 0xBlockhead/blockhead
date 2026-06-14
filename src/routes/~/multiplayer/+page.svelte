@@ -22,7 +22,7 @@
 
 <Page>
 	<GlobalView
-		entityId={{ scope: 'Multiplayer' }}
+		selector={{ scope: 'Multiplayer' }}
 		title={'Multiplayer'}
 		href={resolve('/~/multiplayer')}
 	>
@@ -57,7 +57,7 @@
 						href={resolve('/~/multiplayer/rooms')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
-							entityId: { scope: '$$blockheadRooms' },
+							selector: { scope: '$$blockheadRooms' },
 							fieldName: '$$blockheadRooms',
 						}}
 						id="rooms"
@@ -70,7 +70,7 @@
 						href={resolve('/~/multiplayer/contacts')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
-							entityId: { scope: '$$blockheadRoomPeers' },
+							selector: { scope: '$$blockheadRoomPeers' },
 							fieldName: '$$blockheadRoomPeers',
 						}}
 						id="contacts"

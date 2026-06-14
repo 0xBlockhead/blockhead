@@ -1,19 +1,19 @@
-import type { EntityFieldName, EntityId, EntityIdProjectionName, EntityType, Schema } from '$/schema/$schema.ts'
+import type { EntityFieldName, EntitySelectorForSelectorName, EntitySelectorName, EntityType, Schema } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import type { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
 	FieldSelector,
 	ResolveLivePublishers,
 	ResolverContext,
 	ResolverValue,
-	SourceResolverDefinition,
 } from '$/resolvers/$resolvers.ts'
 
 export type SourceResolverContext<
 	_Source extends Source,
 > = Omit<ResolverContext, 'publicEnv'> & {
-	readonly publicEnv: SourcePublicEnvFor<_Source>
+	readonly publicEnv: SourcePublicEnv & SourcePublicEnvFor<_Source>
 }
 
 type UnionToIntersection<_Union> = (
@@ -38,8 +38,12 @@ export const defineResolver = <
 	const _Source extends Source,
 	const _EntityType extends EntityType<typeof schema>,
 	const _Resolve extends Partial<{
-		readonly [_ProjectionName in EntityIdProjectionName]: (
-			entityId: EntityId<typeof schema, _EntityType>,
+		readonly [_SelectorName in Extract<EntitySelectorName<typeof schema, _EntityType>, string>]: (
+			entitySelector: EntitySelectorForSelectorName<
+				typeof schema,
+				_EntityType,
+				Extract<_SelectorName, EntitySelectorName<typeof schema, _EntityType>>
+			>,
 			context: SourceResolverContext<_Source>,
 		) => Promise<ResolverValue>
 	}>,
@@ -53,10 +57,10 @@ export const defineResolver = <
 ) => (facets: {
 	fields: Partial<{
 		readonly [
-			_FieldName in EntityFieldName<typeof schema, _EntityType>
+			_FieldName in Extract<EntityFieldName<typeof schema, _EntityType>, string>
 		]: FieldSelector<typeof schema, _EntityType, _FieldName, ResolverSnapshot<_Resolve>, SourceResolverContext<_Source>>
 	}>
 }) => ({
 	...resolver,
 	...facets,
-	} satisfies Omit<SourceResolverDefinition<typeof schema, _Source, _EntityType, SourceResolverContext<_Source>, ResolverSnapshot<_Resolve>>, 'definitionIndex' | 'source'>)
+})

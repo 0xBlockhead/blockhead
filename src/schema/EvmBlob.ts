@@ -1,7 +1,7 @@
 import { type } from 'arktype'
 
 // EIP-4844-style execution blob sidecar: versioned commitment tied to a blob tx hash, not contract storage or IPFS blobs.
-import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -9,8 +9,12 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EvmBlobSelector {
+	EvmNetworkTxHashBlobIndex = 'evmNetworkTxHashBlobIndex',
+}
+
 
 const EvmBlobVersionedHash = type(
 	'/^0x01[0-9a-fA-F]{62}$/' as type.cast<`0x01${string}`>,
@@ -27,31 +31,24 @@ export default {
 	label: 'EVM blob',
 	labelPlural: 'EVM blobs',
 
-	id: type({
-		$network: Network.id,
-		txHash: ZeroExHex,
-		blobIndex: 'number',
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'txHashBlobIndex',
+			name: EvmBlobSelector.EvmNetworkTxHashBlobIndex,
 			fields: [
-				{
-					name: '$network',
-				},
-				{
-					name: 'txHash',
-					normalize: lowercaseHexIdentityValue,
-				},
-				{
-					name: 'blobIndex',
-				},
+				'$network',
+				'txHash',
+				'blobIndex',
 			],
 		},
 	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'txHash',
 			type: EntityFieldType.Primitive,

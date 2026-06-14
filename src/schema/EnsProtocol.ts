@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum EnsProtocolSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.EnsProtocol,
 
 	label: 'ENS protocol',
 	labelPlural: 'ENS protocols',
 
-	id: type({
-		scope: type.unit('EnsProtocol'),
-	}),
+	selectors: [
+		{
+			name: EnsProtocolSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('EnsProtocol'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

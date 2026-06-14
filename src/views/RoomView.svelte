@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -15,17 +15,17 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
-			{ roomId: entityId.id },
+			{ roomId: selector.id },
 		),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BlockheadRoom>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadRoom>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -34,7 +34,7 @@
 	> = $props()
 
 	const room = subscribe(EntityType.BlockheadRoom,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Local_Internal,
 			], fields: { name: true, createdAt: true, createdBy: true } }),
@@ -50,7 +50,7 @@
 
 <EntityView
 	entityType={EntityType.BlockheadRoom}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -58,7 +58,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -68,7 +68,7 @@
 			placeholderText="Loading room…"
 		>
 			{#snippet children(room)}
-				{room.fields.name ?? entityId.id}
+				{room.fields.name ?? selector.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

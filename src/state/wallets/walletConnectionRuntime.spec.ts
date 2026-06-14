@@ -242,20 +242,20 @@ describe('wallet connection runtime normalization', () => {
 		)
 		deleteLocalBlockheadWalletConnection('eip6963:com.example.wallet')
 
-		const sessionIdKey = stringify({ id: 'session-1' })
-		const deletedSessionActionIdKey = stringify({
+		const sessionSelectorKey = stringify({ id: 'session-1' })
+		const deletedSessionActionSelectorKey = stringify({
 			sessionId: 'session-1',
 			actionId: 'action-1',
 		})
-		const walletIdKey = stringify({ id: 'eip6963:com.example.wallet' })
-		const walletAccountIdKey = stringify({
+		const walletSelectorKey = stringify({ id: 'eip6963:com.example.wallet' })
+		const walletAccountSelectorKey = stringify({
 			caip10: {
 				namespace: 'eip155',
 				reference: '1',
 				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 			},
 		})
-		const walletConnectionIdKey = stringify({
+		const walletConnectionSelectorKey = stringify({
 			$wallet: {
 				id: 'eip6963:com.example.wallet',
 			},
@@ -263,41 +263,41 @@ describe('wallet connection runtime normalization', () => {
 
 		expect(entityUpserts).toEqual([
 			expect.objectContaining({
-				[EntityMetaKey.IdKey]: expect.stringMatching(/session-1/),
+				[EntityMetaKey.SelectorKey]: expect.stringMatching(/session-1/),
 				[EntityMetaKey.Source]: Source.Local_Internal,
 				action: expect.objectContaining({
 					type: ActionType.Swap,
 				}),
 			}),
 			expect.objectContaining({
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					id: 'eip6963:com.example.wallet',
 				},
-				[EntityMetaKey.IdKey]: walletIdKey,
+				[EntityMetaKey.SelectorKey]: walletSelectorKey,
 				[EntityMetaKey.Source]: Source.Local_Internal,
 			}),
 			expect.objectContaining({
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					caip10: {
 						namespace: 'eip155',
 						reference: '1',
 						accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 					},
 				},
-				[EntityMetaKey.IdKey]: walletAccountIdKey,
+				[EntityMetaKey.SelectorKey]: walletAccountSelectorKey,
 				[EntityMetaKey.Source]: Source.Local_Internal,
 			}),
 			expect.objectContaining({
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					$wallet: {
 						id: 'eip6963:com.example.wallet',
 					},
 				},
-				[EntityMetaKey.IdKey]: walletConnectionIdKey,
+				[EntityMetaKey.SelectorKey]: walletConnectionSelectorKey,
 				[EntityMetaKey.Source]: Source.Local_Internal,
 				$$connectedAccounts: [
 					{
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							caip10: {
 								namespace: 'eip155',
 								reference: '1',
@@ -317,50 +317,50 @@ describe('wallet connection runtime normalization', () => {
 		expect(fieldUpserts).toEqual([
 			expect.objectContaining({
 				fieldName: '$$actions',
-				[EntityMetaKey.ParentIdKey]: sessionIdKey,
+				[EntityMetaKey.ParentSelectorKey]: sessionSelectorKey,
 				valueKey: expect.stringMatching(/^Entity:/),
 			}),
 			expect.objectContaining({
 				fieldName: '$$blockheadWallets',
 				[EntityMetaKey.Value]: {
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						id: 'eip6963:com.example.wallet',
 					},
-					[EntityMetaKey.IdKey]: walletIdKey,
+					[EntityMetaKey.SelectorKey]: walletSelectorKey,
 				},
-				valueKey: `Entity:${stringify(walletIdKey)}`,
+				valueKey: `Entity:${stringify(walletSelectorKey)}`,
 			}),
 			expect.objectContaining({
 				fieldName: '$$blockheadWalletAccounts',
 				[EntityMetaKey.Value]: {
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						caip10: {
 							namespace: 'eip155',
 							reference: '1',
 							accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 						},
 					},
-					[EntityMetaKey.IdKey]: walletAccountIdKey,
+					[EntityMetaKey.SelectorKey]: walletAccountSelectorKey,
 				},
-				valueKey: `Entity:${stringify(walletAccountIdKey)}`,
+				valueKey: `Entity:${stringify(walletAccountSelectorKey)}`,
 			}),
 			expect.objectContaining({
 				fieldName: '$$blockheadWalletConnections',
 				[EntityMetaKey.Value]: {
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						$wallet: {
 							id: 'eip6963:com.example.wallet',
 						},
 					},
-					[EntityMetaKey.IdKey]: walletConnectionIdKey,
+					[EntityMetaKey.SelectorKey]: walletConnectionSelectorKey,
 				},
-				valueKey: `Entity:${stringify(walletConnectionIdKey)}`,
+				valueKey: `Entity:${stringify(walletConnectionSelectorKey)}`,
 			}),
 		])
 		expect(countUpserts).toEqual([
 			expect.objectContaining({
 				[EntityMetaKey.Source]: Source.Local_Internal,
-				[EntityMetaKey.ParentIdKey]: walletConnectionIdKey,
+				[EntityMetaKey.ParentSelectorKey]: walletConnectionSelectorKey,
 				[EntityMetaKey.Value]: 1,
 				fieldName: '$$connectedAccounts',
 				filterKey: stringify({}),
@@ -369,24 +369,24 @@ describe('wallet connection runtime normalization', () => {
 		expect(entityDeletes).toEqual([
 			stringify([
 				Source.Local_Internal,
-				deletedSessionActionIdKey,
+				deletedSessionActionSelectorKey,
 			]),
 			stringify([
 				Source.Local_Internal,
-				walletConnectionIdKey,
+				walletConnectionSelectorKey,
 			]),
 		])
 		expect(fieldDeletes).toEqual([
 			stringify([
 				Source.Local_Internal,
-				sessionIdKey,
-				`Entity:${stringify(deletedSessionActionIdKey)}`,
+				sessionSelectorKey,
+				`Entity:${stringify(deletedSessionActionSelectorKey)}`,
 			]),
 		])
 		expect(countDeletes).toEqual([
 			stringify([
 				Source.Local_Internal,
-				walletConnectionIdKey,
+				walletConnectionSelectorKey,
 				stringify({}),
 			]),
 		])

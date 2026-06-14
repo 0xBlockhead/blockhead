@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -14,17 +14,17 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]', {
-			caip2Namespace: entityId.$network.caip2.namespace,
-			caip2Reference: entityId.$network.caip2.reference,
+			caip2Namespace: selector.$network.caip2.namespace,
+			caip2Reference: selector.$network.caip2.reference,
 		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmNetwork_Txpool_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.EvmNetwork_Txpool_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -39,7 +39,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const networkTxpoolTimestamp = subscribe(EntityType.EvmNetwork_Txpool_Timestamp,
-		entityId,
+		selector,
 		({ sources: [Source.Voltaire_JsonRpc], fields: { pendingCount: true, queuedCount: true } }),
 	)
 
@@ -54,7 +54,7 @@
 
 <EntityView
 	entityType={EntityType.EvmNetwork_Txpool_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	{open}
@@ -75,7 +75,7 @@
 					queued
 				{:else}
 					<span>
-						chain {String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}
+						chain {String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}
 					</span>
 				{/if}
 			{/snippet}
@@ -96,7 +96,7 @@
 					queued
 				{:else}
 					<span>
-						chain {String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}
+						chain {String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}
 					</span>
 				{/if}
 	{/snippet}
@@ -119,7 +119,7 @@
 				<dt>As of</dt>
 				<dd>
 					<Timestamp
-						timestamp={entityId.timestampMs}
+						timestamp={selector.timestampMs}
 					/>
 				</dd>
 				</div>

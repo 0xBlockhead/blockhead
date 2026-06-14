@@ -132,7 +132,7 @@
 			</form>
 
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Local_Internal,
@@ -160,8 +160,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(evmAccount) => stringify(evmAccount.value[EntityMetaKey.Id])}
-				getSortValue={(evmAccount) => evmAccount.value[EntityMetaKey.Id].address.toLowerCase()}
+				getKey={(evmAccount) => stringify(evmAccount.value[EntityMetaKey.Selector])}
+				getSortValue={(evmAccount) => evmAccount.value[EntityMetaKey.Selector].address.toLowerCase()}
 				placeholderKeys={new SvelteSet<string>()}
 				placeholderText="Loading watched accounts…"
 				resource={actors}
@@ -173,9 +173,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const aid = item.value[EntityMetaKey.Id]}
+					{@const aid = item.value[EntityMetaKey.Selector]}
 					<EvmAccountView
-						entityId={aid}
+						selector={aid}
 						href={resolve('/account/[address]', {
 							address: aid.address,
 						})}

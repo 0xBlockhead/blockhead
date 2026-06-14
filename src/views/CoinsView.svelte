@@ -15,7 +15,7 @@
 	type CoinOrderFieldRow = {
 		marketCapRank?: number
 		marketCapUsd?: number
-		[EntityMetaKey.IdKey]: string
+		[EntityMetaKey.SelectorKey]: string
 		[EntityMetaKey.Value]: {
 			marketCapRank?: number
 			marketCapUsd?: number
@@ -82,7 +82,7 @@
 			],
 			[
 				({ fieldRow }) => (
-					fieldRow[EntityMetaKey.IdKey]
+					fieldRow[EntityMetaKey.SelectorKey]
 				),
 				'asc',
 			],
@@ -127,7 +127,7 @@
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				{@const parent = subscribe(entityFieldReference.entityType,
-					entityFieldReference.entityId,({ sources: catalogCoinIdentitySources, fields: { [entityFieldReference.fieldName]: {
+					entityFieldReference.selector,({ sources: catalogCoinIdentitySources, fields: { [entityFieldReference.fieldName]: {
 							sources: catalogCoinIdentitySources,
 							orderBy: [...globalCoinsFieldOrderBy],
 							limit: limit,
@@ -140,7 +140,7 @@
 					{#snippet children(parent)}
 						<UnorderedList
 							items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
-							getKey={(coin) => stringify(coin[EntityMetaKey.Id])}
+							getKey={(coin) => stringify(coin[EntityMetaKey.Selector])}
 							placeholderKeys={new SvelteSet<string | number>()}
 							orientation={ListOrientation.Column}
 						>
@@ -153,10 +153,10 @@
 						{#snippet Item({
 							item: coin,
 						})}
-							{@const entityId = coin[EntityMetaKey.Id]}
+							{@const selector = coin[EntityMetaKey.Selector]}
 							<CoinView
-								entityId={entityId}
-								id={stringify(entityId)}
+								selector={selector}
+								id={stringify(selector)}
 								layout={EntityLayout.Summary}
 								open={false}
 							/>
@@ -205,7 +205,7 @@
 				href={resolve('/markets')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$marketPrices' },
+					selector: { scope: '$$marketPrices' },
 					fieldName: '$$marketPrices',
 				}}
 				id={`${id}:prices-spot`}
@@ -265,7 +265,7 @@
 				CollapsibleProps={{ canToggle: false }}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$marketTimeIntervalTimestamps' },
+					selector: { scope: '$$marketTimeIntervalTimestamps' },
 					fieldName: '$$marketTimeIntervalTimestamps',
 				}}
 				href={resolve('/coins/candles')}
@@ -336,7 +336,7 @@
 				href={resolve('/markets')}
 				entityFieldReference={{
 					entityType: EntityType._Global,
-					entityId: { scope: '$$markets' },
+					selector: { scope: '$$markets' },
 					fieldName: '$$markets',
 				}}
 				id={`${id}:markets-index`}
@@ -385,7 +385,7 @@
 				href={resolve('/coins')}
 				entityFieldReference={{
 					entityType: EntityType.Coin,
-					entityId: { coinId: CoinId.ETH },
+					selector: { coinId: CoinId.ETH },
 					fieldName: '$$coinInstances',
 				}}
 				id={`${id}:deployments-eth`}

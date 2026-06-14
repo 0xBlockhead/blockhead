@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -16,7 +16,7 @@
 
 	// State
 	let {
-		entityId: farcasterUserId,
+		selector: farcasterUserId,
 		href = resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
 			userId: String(farcasterUserId.fid),
 		}),
@@ -24,7 +24,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.FarcasterUser>
+			selector: EntitySelector<typeof schema, EntityType.FarcasterUser>
 			href?: string
 			open?: boolean
 		},
@@ -58,7 +58,7 @@
 
 <EntityView
 	entityType={EntityType.FarcasterUser}
-	entityId={farcasterUserId}
+	entitySelector={farcasterUserId}
 	href={href}
 	bind:open
 	title="Profile"
@@ -70,10 +70,10 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(farcasterUser)}
-				{#if farcasterUser.fields.$icon?.[EntityMetaKey.Id].url !== undefined}
+				{#if farcasterUser.fields.$icon?.[EntityMetaKey.Selector].url !== undefined}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={farcasterUser.fields.$icon[EntityMetaKey.Id].url}
+						src={farcasterUser.fields.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{/if}
@@ -171,9 +171,9 @@
 							{#snippet children(farcasterUser)}
 								{#if farcasterUser.fields.$primaryEvmAccount != null}
 									<EvmAccountView
-										entityId={farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Id]}
+										selector={farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector]}
 										href={resolve('/account/[address]', {
-											address: farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Id].address,
+											address: farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector].address,
 										})}
 										layout={EntityLayout.Title}
 										open={false}
@@ -195,26 +195,26 @@
 						{#snippet children(farcasterUser)}
 							{#if farcasterUser.fields.$$verifiedAddresses?.values.length}
 									<ul data-column="gap-2">
-										{#each farcasterUser.fields.$$verifiedAddresses.values as verification (String(verification[EntityMetaKey.Id].protocol) + ':' + verification[EntityMetaKey.Id].address)}
+										{#each farcasterUser.fields.$$verifiedAddresses.values as verification (String(verification[EntityMetaKey.Selector].protocol) + ':' + verification[EntityMetaKey.Selector].address)}
 											<li>
 												{#if verification.$evmAccount}
 													<EvmAccountView
-														entityId={verification.$evmAccount[EntityMetaKey.Id]}
+														selector={verification.$evmAccount[EntityMetaKey.Selector]}
 														href={resolve('/account/[address]', {
-															address: verification.$evmAccount[EntityMetaKey.Id].address,
+															address: verification.$evmAccount[EntityMetaKey.Selector].address,
 														})}
 														layout={EntityLayout.Title}
 														open={false}
 													/>
 												{:else if verification.$solanaAccount}
 													<SolanaAccountView
-														entityId={verification.$solanaAccount[EntityMetaKey.Id]}
+														selector={verification.$solanaAccount[EntityMetaKey.Selector]}
 														layout={EntityLayout.Title}
 														open={false}
 													/>
 												{:else}
 													<span data-text="mono muted">
-														{verification[EntityMetaKey.Id].protocol}:{verification[EntityMetaKey.Id].address}
+														{verification[EntityMetaKey.Selector].protocol}:{verification[EntityMetaKey.Selector].address}
 													</span>
 												{/if}
 											</li>

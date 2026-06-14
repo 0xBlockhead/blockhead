@@ -9,18 +9,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import YouTubeComment from '$/schema/YouTubeComment.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum YouTubeComment_TimestampSelector {
+	YouTubeCommentTimestampMs = 'youTubeCommentTimestampMs',
+}
+
 export default {
 	entityType: EntityType.YouTubeComment_Timestamp,
 
 	label: 'YouTube comment snapshot',
 	labelPlural: 'YouTube comment snapshots',
 
-	id: type({
-		$comment: YouTubeComment.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: YouTubeComment_TimestampSelector.YouTubeCommentTimestampMs,
+			fields: [
+				'$comment',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$comment',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.YouTubeComment,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'likeCount',
 			type: EntityFieldType.Primitive,

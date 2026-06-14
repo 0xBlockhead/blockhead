@@ -103,7 +103,7 @@
 
 <Page>
 	<GlobalView
-		entityId={{ scope: 'Social' }}
+		selector={{ scope: 'Social' }}
 		title="Social"
 		href={resolve('/social')}
 	>
@@ -170,7 +170,7 @@
 
 				{#snippet SectionFarcaster({ id, label })}
 					<FarcasterView
-						entityId={{
+						selector={{
 							scope: 'FarcasterNetwork',
 						}}
 						open={hubOpen}

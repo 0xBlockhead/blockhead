@@ -9,6 +9,11 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum CoinSelector {
+	CoinId = 'coinId',
+}
+
+
 
 export default {
 	entityType: EntityType.Coin,
@@ -16,11 +21,22 @@ export default {
 	label: 'Coin',
 	labelPlural: 'Coins',
 
-	id: type({
-		coinId: type.valueOf(CoinId),
-	}),
+	selectors: [
+		{
+			name: CoinSelector.CoinId,
+			fields: [
+				'coinId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'coinId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(CoinId),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'symbol',
 			type: EntityFieldType.Primitive,

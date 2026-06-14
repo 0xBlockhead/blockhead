@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.FilecoinMessage>
+			selector: EntitySelector<typeof schema, EntityType.FilecoinMessage>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const filecoinMessage = subscribe(EntityType.FilecoinMessage,
-		entityId,
+		selector,
 		({ fields: { method: true, nonce: true, valueAttoFil: true, gasLimit: true } }),
 	)
 
@@ -42,15 +42,15 @@
 
 <EntityView
 	entityType={EntityType.FilecoinMessage}
-	{entityId}
-	title={entityId.cid}
+	entitySelector={selector}
+	title={selector.cid}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.cid}
+			value={selector.cid}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

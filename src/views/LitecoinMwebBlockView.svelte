@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LitecoinMwebBlock>
+			selector: EntitySelector<typeof schema, EntityType.LitecoinMwebBlock>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const litecoinMwebBlock = subscribe(EntityType.LitecoinMwebBlock,
-		entityId,
+		selector,
 		({ fields: { hogExTransactionId: true, kernelRoot: true } }),
 	)
 
@@ -41,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.LitecoinMwebBlock}
-	{entityId}
-	title={`MWEB Block #${entityId.$block.height.toString()}`}
-	idDragPlainText={entityId.$block.height.toString()}
+	entitySelector={selector}
+	title={`MWEB Block #${selector.$block.height.toString()}`}
+	idDragPlainText={selector.$block.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.$block.height.toString()}
+			#{selector.$block.height.toString()}
 		</span>
 	{/snippet}
 

@@ -8,9 +8,9 @@ import type { PageLoad } from './$types.ts'
 
 
 export const load: PageLoad = ({ params }) => {
-	const entityId = NostrReactionSchema.id({
+	const entitySelector = NostrReactionSchema.id({
 		eventId: decodeURIComponent(params.eventId).trim().toLowerCase(),
 	})
-	if (entityId instanceof arktype.errors) error(404, 'Invalid Nostr event id')
-	return { entityId }
+	if (entitySelector instanceof arktype.errors) error(404, 'Invalid Nostr event id')
+	return { entitySelector }
 }

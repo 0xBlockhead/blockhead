@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ZeroGStorageLogEntry>
+			selector: EntitySelector<typeof schema, EntityType.ZeroGStorageLogEntry>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const zeroGStorageLogEntry = subscribe(EntityType.ZeroGStorageLogEntry,
-		entityId,
+		selector,
 		({ fields: { sequenceNumber: true, commitment: true } }),
 	)
 
@@ -42,16 +42,16 @@
 
 <EntityView
 	entityType={EntityType.ZeroGStorageLogEntry}
-	{entityId}
-	title={entityId.logEntryId}
-	idDragPlainText={entityId.logEntryId}
+	entitySelector={selector}
+	title={selector.logEntryId}
+	idDragPlainText={selector.logEntryId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.logEntryId}
+			value={selector.logEntryId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

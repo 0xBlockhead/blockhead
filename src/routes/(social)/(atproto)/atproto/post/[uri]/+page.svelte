@@ -13,7 +13,7 @@
 
 <Page>
 	<AtprotoPostView
-		entityId={{ uri: decodeURIComponent(params.uri) }}
+		selector={{ uri: decodeURIComponent(params.uri) }}
 	>
 	</AtprotoPostView>
 </Page>

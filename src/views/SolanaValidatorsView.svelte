@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Solana_JsonRpc,
@@ -84,8 +84,8 @@
 				entityType={EntityType.SolanaValidator}
 				id={`${id}-items`}
 				href={href}
-				getKey={(validator) => stringify(validator[EntityMetaKey.Id])}
-				getSortValue={(validator) => stringify(validator[EntityMetaKey.Id])}
+				getKey={(validator) => stringify(validator[EntityMetaKey.Selector])}
+				getSortValue={(validator) => stringify(validator[EntityMetaKey.Selector])}
 				open={true}
 				resource={validators}
 				{title}
@@ -99,7 +99,7 @@
 
 				{#snippet Item(context)}
 					<SolanaValidatorView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

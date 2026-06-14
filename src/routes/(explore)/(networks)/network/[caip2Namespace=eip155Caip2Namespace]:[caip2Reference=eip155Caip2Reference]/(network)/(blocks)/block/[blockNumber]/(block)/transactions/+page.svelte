@@ -11,7 +11,7 @@
 
 <Page>
 		<EvmBlockView
-		entityId={{
+			selector={{
 			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			blockNumber: BigInt(params.blockNumber),
 		}}

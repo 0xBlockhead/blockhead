@@ -3,15 +3,20 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { BittensorNetworkSelector } from '$/schema/BittensorNetwork.ts'
+import { BittensorNetwork_TimestampSelector } from '$/schema/BittensorNetwork_Timestamp.ts'
+import { BittensorBlockSelector } from '$/schema/BittensorBlock.ts'
+import { BittensorSubnetSelector } from '$/schema/BittensorSubnet.ts'
+import { BittensorMetagraph_TimestampSelector } from '$/schema/BittensorMetagraph_Timestamp.ts'
+import { BittensorNeuronSelector } from '$/schema/BittensorNeuron.ts'
 
-type NetworkId = EntityId<typeof schema, EntityType.Network>
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertBittensorMainnet = (network: NetworkId) => {
 	if (!('networkSlug' in network) || network.networkSlug !== 'bittensor') {
@@ -47,11 +52,11 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-					assertBittensorMainnet(entityId)
+				[BittensorNetworkSelector.Network]: async (entitySelector) => {
+					assertBittensorMainnet(entitySelector)
 					return {
 						$network: {
-							[EntityMetaKey.Id]: entityId,
+							[EntityMetaKey.Selector]: entitySelector,
 						},
 					}
 				}
@@ -65,8 +70,8 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-					assertBittensorMainnet(entityId.$network)
+				[BittensorNetwork_TimestampSelector.NetworkTimestampMs]: async ({ $network }) => {
+					assertBittensorMainnet($network)
 					const {
 						getMainnetRpcUrl,
 						getAllDynamicInfo,
@@ -131,27 +136,24 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-					assertBittensorMainnet(entityId.$network)
+				[BittensorBlockSelector.NetworkBlockNumberHash]: async ({ $network, blockNumber, hash: hashSelector }) => {
+					assertBittensorMainnet($network)
 					const {
 						getMainnetRpcUrl,
 						getBlock,
 						getBlockHash,
 					} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-					const hash = entityId.hash ?? await getBlockHash({
-						rpcUrl: getMainnetRpcUrl,
-						blockNumber: entityId.blockNumber,
-					})
+					const hash = hashSelector
 					const block = await getBlock({
 						rpcUrl: getMainnetRpcUrl,
 						blockHash: hash,
 					})
 					return {
 						hash,
-						...(entityId.blockNumber > 0n && {
+						...(blockNumber > 0n && {
 							$parent: {
-								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
+								[EntityMetaKey.Selector]: {
+									$network: $network,
 									blockNumber: blockNumberFromHeader(block.block.header) - 1n,
 									hash: block.block.header.parentHash,
 								},
@@ -176,8 +178,8 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-					assertBittensorMainnet(entityId.$network)
+				[BittensorSubnetSelector.NetworkNetuid]: async ({ $network, netuid }) => {
+					assertBittensorMainnet($network)
 					const {
 						getMainnetRpcUrl,
 						getDynamicInfo,
@@ -191,19 +193,19 @@ export default {
 					] = await Promise.all([
 						getSubnetInfo({
 							rpcUrl: getMainnetRpcUrl,
-							netuid: entityId.netuid,
+							netuid: netuid,
 						}),
 						getDynamicInfo({
 							rpcUrl: getMainnetRpcUrl,
-							netuid: entityId.netuid,
+							netuid: netuid,
 						}),
 						getSubnetHyperparams({
 							rpcUrl: getMainnetRpcUrl,
-							netuid: entityId.netuid,
+							netuid: netuid,
 						}),
 					])
 					return {
-						netuid: entityId.netuid,
+						netuid: netuid,
 						subnetInfoByteLength: subnetInfo.length,
 						dynamicInfoByteLength: dynamicInfo.length,
 						hyperparamsByteLength: hyperparams.length,
@@ -222,8 +224,8 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorMetagraph_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-					assertBittensorMainnet(entityId.$subnet.$network)
+				[BittensorMetagraph_TimestampSelector.BittensorSubnetTimestampMs]: async ({ $subnet }) => {
+					assertBittensorMainnet($subnet.$network)
 					const {
 						getMainnetRpcUrl,
 						getMetagraph,
@@ -231,7 +233,7 @@ export default {
 					return {
 						metagraphByteLength: (await getMetagraph({
 							rpcUrl: getMainnetRpcUrl,
-							netuid: entityId.$subnet.netuid,
+							netuid: $subnet.netuid,
 						})).length,
 					}
 				}
@@ -245,10 +247,10 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNeuron,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-					assertBittensorMainnet(entityId.$subnet.$network)
+				[BittensorNeuronSelector.BittensorSubnetUid]: async ({ $subnet, uid }) => {
+					assertBittensorMainnet($subnet.$network)
 					return {
-						uid: entityId.uid,
+						uid: uid,
 					}
 				}
 			}
@@ -261,12 +263,12 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-					assertBittensorMainnet(entityId)
+				[BittensorNetworkSelector.Network]: async (entitySelector) => {
+					assertBittensorMainnet(entitySelector)
 					return [
 						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector,
 								timestampMs: Date.now(),
 							},
 						},
@@ -282,8 +284,8 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-					assertBittensorMainnet(entityId)
+				[BittensorNetworkSelector.Network]: async (entitySelector, context) => {
+					assertBittensorMainnet(entitySelector)
 					const {
 						getMainnetRpcUrl,
 						getFinalizedHead,
@@ -302,8 +304,8 @@ export default {
 							resolverContextRowLimit(context),
 						),
 					}, (_value, blockOffset) => ({
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							blockNumber: finalizedBlockNumber - BigInt(blockOffset),
 							...(blockOffset === 0 && {
 								hash: finalizedBlockHash,
@@ -321,8 +323,8 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-					assertBittensorMainnet(entityId)
+				[BittensorNetworkSelector.Network]: async (entitySelector) => {
+					assertBittensorMainnet(entitySelector)
 					const {
 						getMainnetRpcUrl,
 						getAllDynamicInfo,
@@ -332,8 +334,8 @@ export default {
 							rpcUrl: getMainnetRpcUrl,
 						})) ?? 0,
 					}, (_value, netuid) => ({
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							netuid,
 						},
 					}))
@@ -348,12 +350,12 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-					assertBittensorMainnet(entityId.$network)
+				[BittensorSubnetSelector.NetworkNetuid]: async (entitySelector) => {
+					assertBittensorMainnet(entitySelector.$network)
 					return [
 						{
-							[EntityMetaKey.Id]: {
-								$subnet: entityId,
+							[EntityMetaKey.Selector]: {
+								$subnet: entitySelector,
 								timestampMs: Date.now(),
 							},
 						},
@@ -369,8 +371,8 @@ export default {
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-					assertBittensorMainnet(entityId.$network)
+				[BittensorSubnetSelector.NetworkNetuid]: async ({ $network }) => {
+					assertBittensorMainnet($network)
 					return []
 				}
 			}

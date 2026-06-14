@@ -5,11 +5,14 @@ import { regex } from 'arkregex'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
+import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
+import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const nearNepRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
@@ -19,7 +22,7 @@ const nearNepRows = async (entries: { type: string, name: string }[]) => {
 			[]
 		:
 			[{
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					realm: SpecificationRealm.Near,
 					category: ProposalCategory.Nep,
 					number: parseInt(proposalNumberRaw, 10),
@@ -35,13 +38,13 @@ export default {
 		defineResolver(Source.NearNeps_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Near || entityId.category !== ProposalCategory.Nep) {
+				if (realm !== SpecificationRealm.Near || category !== ProposalCategory.Nep) {
 					throw new Error('NearNeps_Github: proposal resolver only supports NEAR NEPs')
 				}
 				const { getMarkdownText } = await import('$/sources/NearNeps/Github/queries.ts')
-				const text = await singleFlight(getMarkdownText)({ number: entityId.number })
+				const text = await singleFlight(getMarkdownText)({ number: number })
 				const frontmatter = parseFrontmatter(text)
 				const body = stripFrontmatter(text)
 				return {
@@ -64,7 +67,7 @@ export default {
 		defineResolver(Source.NearNeps_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async () => {
+				[_GlobalSelector.Scope]: async () => {
 				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
 				return nearNepRows(await getContents())
 			}
@@ -78,9 +81,9 @@ export default {
 		defineResolver(Source.NearNeps_Github, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Near) throw new Error('NearNeps_Github: $$proposals only supports NEAR')
+				if (realm !== SpecificationRealm.Near) throw new Error('NearNeps_Github: $$proposals only supports NEAR')
 				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
 				return nearNepRows(await getContents())
 			}
@@ -94,9 +97,9 @@ export default {
 		defineResolver(Source.NearNeps_Github, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Near || entityId.category !== ProposalCategory.Nep) throw new Error('NearNeps_Github: $$proposals only supports NEAR NEPs')
+				if (realm !== SpecificationRealm.Near || category !== ProposalCategory.Nep) throw new Error('NearNeps_Github: $$proposals only supports NEAR NEPs')
 				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
 				return nearNepRows(await getContents())
 			}

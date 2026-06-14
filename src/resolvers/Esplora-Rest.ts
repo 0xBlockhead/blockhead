@@ -12,12 +12,15 @@ import {
 	liquidNetworkId,
 } from '$/constants/ElementsNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { EsploraAsset } from '$/sources/Esplora/Rest/types.ts'
+import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
+import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
+import { ElementsAssetSelector } from '$/schema/ElementsAsset.ts'
+import { ElementsNetworkSelector } from '$/schema/ElementsNetwork.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -61,7 +64,7 @@ const elementsAssetRowFromWire = (
 	$network: typeof liquidNetworkId,
 	asset: EsploraAsset,
 ) => ({
-	[EntityMetaKey.Id]: {
+	[EntityMetaKey.Selector]: {
 		$network,
 		assetId: asset.asset_id,
 	},
@@ -75,25 +78,22 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const restBaseUrl = esploraRestBaseUrlForNetwork(entityId.$network)
+				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
+				const restBaseUrl = esploraRestBaseUrlForNetwork($network)
 				const {
 					getBlock,
 					getBlockHashByHeight,
 				} = await import('$/sources/Esplora/Rest/queries.ts')
 				const block = await getBlock({
 					restBaseUrl,
-					blockHash: entityId.hash ?? await getBlockHashByHeight({
-						restBaseUrl,
-						height: entityId.height,
-					}),
+					blockHash: hash,
 				})
 				return {
 					hash: block.id,
 					...(block.previousblockhash != null && {
 						$parent: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								height: BigInt(block.height - 1),
 								hash: block.previousblockhash,
 							},
@@ -126,18 +126,18 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const restBaseUrl = esploraRestBaseUrlForNetwork(entityId.$network)
+				[UtxoTransactionSelector.NetworkTxId]: async ({ $network, txId }) => {
+				const restBaseUrl = esploraRestBaseUrlForNetwork($network)
 				const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
 				const transaction = await getTransaction({
 					restBaseUrl,
-					txId: entityId.txId,
+					txId: txId,
 				})
 				return {
 					...(transaction.status.block_height != null && {
 						$block: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								height: BigInt(transaction.status.block_height),
 								...(transaction.status.block_hash != null && {
 									hash: transaction.status.block_hash,
@@ -173,20 +173,20 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[ElementsAssetSelector.ElementsNetworkAssetId]: async ({ $network, assetId }) => {
 				if (
-					!('networkSlug' in entityId.$network)
-					|| entityId.$network.networkSlug !== liquidNetworkId.networkSlug
+					!('networkSlug' in $network)
+					|| $network.networkSlug !== liquidNetworkId.networkSlug
 				)
 					throw new Error('Esplora_Rest: unsupported Elements network')
 
 				const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
 				const asset = await getAsset({
 					restBaseUrl: liquidMainnetEsploraRestBaseUrl,
-					assetId: entityId.assetId,
+					assetId: assetId,
 				})
-				if (asset.asset_id !== entityId.assetId)
-					throw new Error(`Esplora_Rest: asset id mismatch for ${entityId.assetId}`)
+				if (asset.asset_id !== assetId)
+					throw new Error(`Esplora_Rest: asset id mismatch for ${assetId}`)
 
 				return elementsAssetFieldsFromWire(asset)
 			}
@@ -208,10 +208,10 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[ElementsNetworkSelector.Network]: async (entitySelector) => {
 				if (
-					!('networkSlug' in entityId)
-					|| entityId.networkSlug !== liquidNetworkId.networkSlug
+					!('networkSlug' in entitySelector)
+					|| entitySelector.networkSlug !== liquidNetworkId.networkSlug
 				)
 					throw new Error('Esplora_Rest: unsupported Elements network')
 
@@ -233,10 +233,10 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[ElementsNetworkSelector.Network]: async (entitySelector, context) => {
 				if (
-					!('networkSlug' in entityId)
-					|| entityId.networkSlug !== liquidNetworkId.networkSlug
+					!('networkSlug' in entitySelector)
+					|| entitySelector.networkSlug !== liquidNetworkId.networkSlug
 				)
 					throw new Error('Esplora_Rest: unsupported Elements network')
 

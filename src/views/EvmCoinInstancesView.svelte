@@ -83,7 +83,7 @@
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				{@const parent = subscribe(entityFieldReference.entityType,
-					entityFieldReference.entityId,({ sources: [
+					entityFieldReference.selector,({ sources: [
 							Source.Coingecko_Rest,
 							Source.CoinMarketCap_Rest,
 							Source.Coinpaprika_OpenApi,
@@ -122,8 +122,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-					getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+					getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+					getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
 					placeholderText="Loading deployments…"
 					resource={coinInstances}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -138,9 +138,9 @@
 					{/snippet}
 
 					{#snippet Item({ item })}
-						{@const coinInstanceId = item.value[EntityMetaKey.Id]}
+						{@const coinInstanceId = item.value[EntityMetaKey.Selector]}
 						<EvmCoinInstanceView
-							entityId={coinInstanceId}
+							selector={coinInstanceId}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

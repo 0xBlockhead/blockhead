@@ -12,6 +12,11 @@ import { UrlString } from '$/schema/UrlString.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum MoneroNetworkSelector {
+	Network = 'network',
+}
+
+
 const moneroRpcEndpointField = type({
 	url: UrlString,
 	transportType: type.valueOf(TransportType),
@@ -24,7 +29,14 @@ export default {
 	label: 'Monero network',
 	labelPlural: 'Monero networks',
 
-	id: Network.id,
+	selectors: [
+		{
+			name: MoneroNetworkSelector.Network,
+			fields: [
+				'$network',
+			],
+		},
+	],
 
 	fields: [
 		{

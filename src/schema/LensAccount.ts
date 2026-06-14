@@ -1,19 +1,22 @@
 import { type } from 'arktype'
 
-import { EvmAddress, lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-	type EntityIdentityValueNormalizer,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const lowercaseIdentityValue: EntityIdentityValueNormalizer = (value) => (
-	String(value).toLowerCase()
-)
+export enum LensAccountSelector {
+	Address = 'address',
+	LocalName = 'localName',
+	LegacyProfileId = 'legacyProfileId',
+}
+
+
 
 export default {
 	entityType: EntityType.LensAccount,
@@ -21,47 +24,23 @@ export default {
 	label: 'Lens account',
 	labelPlural: 'Lens accounts',
 
-	id: type.or(
-		type({
-			address: EvmAddress,
-			'+': 'reject',
-		}),
-		type({
-			localName: 'string',
-			'+': 'reject',
-		}),
-		type({
-			legacyProfileId: 'string',
-			'+': 'reject',
-		}),
-	),
-
-	lookups: [
+	selectors: [
 		{
-			name: 'localName',
+			name: LensAccountSelector.Address,
 			fields: [
-				{
-					name: 'localName',
-					normalize: lowercaseIdentityValue,
-				},
+				'address',
 			],
 		},
 		{
-			name: 'legacyProfileId',
+			name: LensAccountSelector.LocalName,
+			fields: [
+				'localName',
+			],
+		},
+		{
+			name: LensAccountSelector.LegacyProfileId,
 			fields: [
 				'legacyProfileId',
-			],
-		},
-	],
-
-	identities: [
-		{
-			name: 'address',
-			fields: [
-				{
-					name: 'address',
-					normalize: lowercaseHexIdentityValue,
-				},
 			],
 		},
 	],

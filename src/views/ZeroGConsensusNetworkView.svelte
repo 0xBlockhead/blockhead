@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ZeroGConsensusNetwork>
+			selector: EntitySelector<typeof schema, EntityType.ZeroGConsensusNetwork>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const zeroGConsensusNetwork = subscribe(EntityType.ZeroGConsensusNetwork,
-		entityId,
+		selector,
 		({ fields: { sharedStakingStatusSource: true } }),
 	)
 
@@ -41,15 +41,15 @@
 
 <EntityView
 	entityType={EntityType.ZeroGConsensusNetwork}
-	{entityId}
-	title={entityId.consensusNetworkId}
+	entitySelector={selector}
+	title={selector.consensusNetworkId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.consensusNetworkId}
+			value={selector.consensusNetworkId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

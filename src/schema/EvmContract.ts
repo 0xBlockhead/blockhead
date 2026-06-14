@@ -9,8 +9,12 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAbi } from '$/schema/EvmAbi.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EvmContractSelector {
+	EvmNetworkAddress = 'evmNetworkAddress',
+}
+
 
 const storageSlotRead = type({
 	slot: ZeroExHex,
@@ -23,12 +27,29 @@ export default {
 	label: 'EVM Contract',
 	labelPlural: 'EVM Contracts',
 
-	id: type({
-		$network: Network.id,
-		address: EvmAddress,
-	}),
+	selectors: [
+		{
+			name: EvmContractSelector.EvmNetworkAddress,
+			fields: [
+				'$network',
+				'address',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'address',
+			type: EntityFieldType.Primitive,
+			primitiveType: EvmAddress,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'precompileName',
 			type: EntityFieldType.Primitive,

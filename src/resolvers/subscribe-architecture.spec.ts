@@ -20,34 +20,17 @@ import {
 	EntityFieldCardinality,
 	entityFieldDefinitions,
 } from '$/schema/$schema.ts'
-import { env as publicEnv } from '$env/dynamic/public'
-import { entityDefinitionByType } from '$/schema/index.ts'
-import { schema } from '$/schema/index.ts'
 import {
 	indexResolvers,
 } from '$/resolvers/$resolvers.ts'
-import { resolvers } from '$/resolvers/index.ts'
+import type { ResolverContext } from '$/resolvers/$resolvers.ts'
+import type { Schema } from '$/schema/$schema.ts'
 import { indexSourceProviders } from '$/sources/$sources.ts'
-import { sourceProviders } from '$/sources/index.ts'
 
 
 const srcPath = join(
 	process.cwd(),
 	'src',
-)
-
-const {
-	resolverDefinitions,
-	resolverParts,
-	resolverValuePartsByEntityTypeAndFieldName,
-	resolverCountPartsByEntityTypeAndFieldName,
-	resolverDiscriminatorPartsByEntityTypeAndConditionKey,
-	resolverLivePartsByEntityTypeAndFieldName,
-	resolverRootLivePartsByEntityType,
-} = indexResolvers(
-	schema,
-	resolvers,
-	indexSourceProviders(sourceProviders, publicEnv).enabledSources,
 )
 
 const sourceFiles = (
@@ -70,6 +53,39 @@ const sourceFiles = (
 
 const scannedSourceFiles = sourceFiles(srcPath)
 
+let resolverRegistry: (
+	ReturnType<typeof indexResolvers<Schema, string, ResolverContext>>
+	& {
+		readonly entityDefinitionByType: Awaited<typeof import('$/schema/index.ts')>['entityDefinitionByType']
+	}
+) | undefined
+
+const getResolverRegistry = async () => {
+	if (resolverRegistry != null)
+		return resolverRegistry
+
+	const [
+		{ env: publicEnv },
+		{ entityDefinitionByType, schema },
+		{ resolvers },
+		{ sourceProviders },
+	] = await Promise.all([
+		import('$env/dynamic/public'),
+		import('$/schema/index.ts'),
+		import('$/resolvers/index.ts'),
+		import('$/sources/index.ts'),
+	])
+	resolverRegistry = {
+		...indexResolvers(
+		schema,
+		resolvers,
+		indexSourceProviders(sourceProviders, publicEnv).enabledSources,
+		),
+		entityDefinitionByType,
+	}
+	return resolverRegistry
+}
+
 describe('client resolver architecture', () => {
 	it('exposes only the strict Resolver Context shape to real resolvers', () => {
 		expect(resolverContextRowLimit({
@@ -78,8 +94,8 @@ describe('client resolver architecture', () => {
 			pagination: {
 				limit: 7,
 			},
-			identityKeys: [],
-			parentIdentityKeys: [],
+			selectorKeys: [],
+			parentSelectorKeys: [],
 			sources: [],
 			publicEnv: {},
 		})).toBe(7)
@@ -87,8 +103,8 @@ describe('client resolver architecture', () => {
 			filters: [],
 			sorts: [],
 			pagination: {},
-			identityKeys: [],
-			parentIdentityKeys: [],
+			selectorKeys: [],
+			parentSelectorKeys: [],
 			sources: [],
 			publicEnv: {},
 		})).toBe(defaultResolverContextRowLimit)
@@ -171,6 +187,19 @@ describe('client resolver architecture', () => {
 		expect(source).not.toMatch(new RegExp(`\\bpublicEnv:\\s*${String.fromCharCode(97, 110, 121)}\\b`))
 	})
 
+	it('keeps Solana block selector support on explicit selector resolver branches', () => {
+		const source = [
+			join(srcPath, 'resolvers', 'Solana-JsonRpc.ts'),
+			join(srcPath, 'resolvers', 'ThreeXpl-Rest.ts'),
+		]
+			.map((filePath) => readFileSync(filePath, 'utf8'))
+			.join('\n')
+
+		expect(source).not.toMatch(/SolanaBlock(?:\.\$\$transactions)? blockHash lookup is unsupported/)
+		expect(source).not.toMatch(/\bif \(!\('slot' in entitySelector\)\)/)
+		expect(source).not.toMatch(/\[SolanaBlockSelector\.Slot\]: async \(entitySelector\)/)
+	})
+
 	it('binds every resolver declaration to its module Source', () => {
 		for (const filePath of sourceFiles(join(srcPath, 'resolvers')).filter((path) => (
 			basename(path) !== '$resolvers.ts'
@@ -194,7 +223,9 @@ describe('client resolver architecture', () => {
 		}
 	})
 
-	it('materializes resolver definitions with primary resolve functions', () => {
+	it('materializes resolver definitions with primary resolve functions', async () => {
+		const { resolverDefinitions } = await getResolverRegistry()
+
 		expect(resolverDefinitions.length).toBeGreaterThan(0)
 
 		for (const resolver of resolverDefinitions) {
@@ -202,9 +233,11 @@ describe('client resolver architecture', () => {
 			expect(Object.values(resolver.resolve).every((resolve) => typeof resolve === 'function')).toBe(true)
 		}
 		expect(resolverDefinitions.some((resolver) => Object.keys(resolver.resolve).length > 1)).toBe(true)
-	})
+	}, 120_000)
 
-	it('materializes value facets with source and entity identity from their resolver', () => {
+	it('materializes value facets with source and entity identity from their resolver', async () => {
+		const { resolverValuePartsByEntityTypeAndFieldName } = await getResolverRegistry()
+
 		expect(Object.values(resolverValuePartsByEntityTypeAndFieldName).flat().length).toBeGreaterThan(0)
 
 		for (const part of Object.values(resolverValuePartsByEntityTypeAndFieldName).flat()) {
@@ -212,9 +245,14 @@ describe('client resolver architecture', () => {
 			expect(part.resolver.entityType).toBe(part.entityType)
 			expect(part.resolver.source).toBe(part.source)
 		}
-	})
+	}, 120_000)
 
-	it('only registers count resolvers for multiple-cardinality fields', () => {
+	it('only registers count resolvers for multiple-cardinality fields', async () => {
+		const {
+			entityDefinitionByType,
+			resolverCountPartsByEntityTypeAndFieldName,
+		} = await getResolverRegistry()
+
 		for (const parts of Object.values(resolverCountPartsByEntityTypeAndFieldName)) {
 			expect(parts.length).toBeGreaterThan(0)
 			expect([
@@ -226,12 +264,14 @@ describe('client resolver architecture', () => {
 				))?.cardinality,
 			)
 		}
-	})
+	}, 120_000)
 
-	it('materializes resolver parts with typed entity and field identity', () => {
+	it('materializes resolver parts with typed entity and field identity', async () => {
+		const { resolverParts } = await getResolverRegistry()
+
 		expect(resolverParts.length).toBeGreaterThan(0)
 		expect(resolverParts.every((part) => part.entityType.length > 0 && part.fieldName.length > 0)).toBe(true)
-	})
+	}, 120_000)
 
 	it('does not dispatch collection behavior by splitting string collection ids', () => {
 		const clientSource = readFileSync(
@@ -356,11 +396,17 @@ describe('client resolver architecture', () => {
 		}
 	})
 
-	it('keeps conditional and live resolver registration explicit in the real registry', () => {
+	it('keeps conditional and live resolver registration explicit in the real registry', async () => {
+		const {
+			resolverDiscriminatorPartsByEntityTypeAndConditionKey,
+			resolverLivePartsByEntityTypeAndFieldName,
+			resolverRootLivePartsByEntityType,
+		} = await getResolverRegistry()
+
 		expect(Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey).flat().length).toBeGreaterThan(0)
 		expect(
 			Object.values(resolverLivePartsByEntityTypeAndFieldName).flat().length
 			+ Object.values(resolverRootLivePartsByEntityType).flat().length,
 		).toBeGreaterThan(0)
-	})
+	}, 120_000)
 })

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -19,7 +19,7 @@
 	// State
 	let {
 		RouteContent,
-		entityId,
+		selector,
 		href,
 		open = $bindable(true),
 		collapsible = true,
@@ -27,7 +27,7 @@
 	}: WithRest<
 		{
 			RouteContent?: Snippet
-			entityId: EntityId<typeof schema, EntityType.EvmCoinInstance>
+			selector: EntitySelector<typeof schema, EntityType.EvmCoinInstance>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -44,7 +44,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const coinInstance = subscribe(EntityType.EvmCoinInstance,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Coingecko_Rest,
 				Source.Constants_Internal,
@@ -53,7 +53,7 @@
 	)
 
 	const network = subscribe(EntityType.EvmNetwork,
-		entityId.$network,
+		selector.$network,
 		({ sources: [
 				Source.Constants_Internal,
 				Source.Chainlist_Rest,
@@ -64,7 +64,7 @@
 
 	// (Derived)
 	const coinInstanceKey = $derived(
-		stringify(entityId),
+		stringify(selector),
 	)
 
 
@@ -83,14 +83,14 @@
 <EntityView
 	entityType={EntityType.EvmCoinInstance}
 	bind:open
-	{entityId}
+	entitySelector={selector}
 	href={
 		href ?? (
-			entityId.type === CoinInstanceType.NativeCurrency ?
+			selector.type === CoinInstanceType.NativeCurrency ?
 				resolve(
 					'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
 					{
-						chainId: String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)),
+						chainId: String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)),
 						coinInstanceSlug: 'native',
 					},
 				)
@@ -98,8 +98,8 @@
 				resolve(
 					'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
 					{
-						chainId: String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)),
-						coinInstanceSlug: entityId.$contract.address,
+						chainId: String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)),
+						coinInstanceSlug: selector.$contract.address,
 					},
 				)
 		)
@@ -112,9 +112,9 @@
 			resource={coinInstance}
 		>
 			{#snippet children(coinInstance)}
-				{#if coinInstance.fields.$icon?.[EntityMetaKey.Id].url !== undefined}
+				{#if coinInstance.fields.$icon?.[EntityMetaKey.Selector].url !== undefined}
 					<IconComponent
-						src={coinInstance.fields.$icon[EntityMetaKey.Id].url}
+						src={coinInstance.fields.$icon[EntityMetaKey.Selector].url}
 						alt={coinInstance.fields.symbol ?? coinInstance.fields.name ?? ''}
 					/>
 				{/if}
@@ -141,10 +141,10 @@
 		>
 			{#snippet children(coinInstance)}
 				{coinInstance.fields.symbol ?? coinInstance.fields.name ?? (
-					entityId.type === CoinInstanceType.NativeCurrency ?
-						`Native (${evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)})`
+					selector.type === CoinInstanceType.NativeCurrency ?
+						`Native (${evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)})`
 					:
-						`ERC-20 (${evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)})`
+						`ERC-20 (${evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)})`
 				)}
 			{/snippet}
 		</ResourceBoundary>
@@ -168,16 +168,16 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>Chain</dt>
-						<dd>{String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}</dd>
+						<dd>{String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}</dd>
 					</div>
 					<div>
 						<dt>Kind</dt>
 						<dd>
-							{#if entityId.type === CoinInstanceType.NativeCurrency}
+							{#if selector.type === CoinInstanceType.NativeCurrency}
 								Native
 							{:else}
 								<EvmContractView
-									entityId={entityId.$contract}
+									selector={selector.$contract}
 									layout={EntityLayout.Value}
 									open={true}
 									showTypeAnnotation={false}
@@ -245,7 +245,7 @@
 							<dt>Canonical deployment</dt>
 							<dd>
 								<EvmCoinInstanceView
-									entityId={coinInstance.fields.$canonicalInstance[EntityMetaKey.Id]}
+									selector={coinInstance.fields.$canonicalInstance[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -289,7 +289,7 @@
 								href={resolve('/bridge')}
 								entityFieldReference={{
 									entityType: EntityType.EvmCoinInstance,
-									entityId,
+									selector,
 									fieldName: '$$outboundBridgeCapabilities',
 								}}
 								{id}
@@ -305,7 +305,7 @@
 								href={resolve('/bridge')}
 								entityFieldReference={{
 									entityType: EntityType.EvmCoinInstance,
-									entityId,
+									selector,
 									fieldName: '$$inboundBridgeCapabilities',
 								}}
 								{id}

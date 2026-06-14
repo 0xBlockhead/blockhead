@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -15,19 +15,19 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		title = 'Contract',
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
-			caip2Namespace: entityId.$network.caip2.namespace,
-			caip2Reference: entityId.$network.caip2.reference,
-			address: entityId.address,
+			caip2Namespace: selector.$network.caip2.namespace,
+			caip2Reference: selector.$network.caip2.reference,
+			address: selector.address,
 		}),
 		open = $bindable(true),
 		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmContract>
+			selector: EntitySelector<typeof schema, EntityType.EvmContract>
 			title?: string
 			href?: string
 			open?: boolean
@@ -45,7 +45,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const contract = subscribe(EntityType.EvmContract,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Local_Internal,
 				Source.Constants_Internal,
@@ -81,7 +81,7 @@
 
 <EntityView
 	entityType={EntityType.EvmContract}
-	{entityId}
+	entitySelector={selector}
 	{title}
 	{href}
 	bind:open
@@ -90,9 +90,9 @@
 >
 	{#snippet Value()}
 		<EvmNetworkAccountView
-			entityId={{
-				$network: entityId.$network,
-				$actor: { address: entityId.address },
+			selector={{
+				$network: selector.$network,
+				$actor: { address: selector.address },
 			}}
 			layout={EntityLayout.Value}
 			open={false}
@@ -118,9 +118,9 @@
 					{contract.fields.$verification.$compilation.name}
 				{:else}
 						<EvmNetworkAccountView
-							entityId={{
-								$network: entityId.$network,
-								$actor: { address: entityId.address },
+							selector={{
+								$network: selector.$network,
+								$actor: { address: selector.address },
 							}}
 							layout={EntityLayout.Value}
 							open={false}
@@ -135,7 +135,7 @@
 			<dl data-column-item="center">
 				<div>
 					<dt>Chain ID</dt>
-					<dd>{String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}</dd>
+					<dd>{String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}</dd>
 				</div>
 				<ResourceBoundary
 					placeholderText="Loading contract details…"
@@ -147,9 +147,9 @@
 								<dt>Address</dt>
 								<dd>
 									<EvmNetworkAccountView
-										entityId={{
-											$network: entityId.$network,
-											$actor: { address: entityId.address },
+										selector={{
+											$network: selector.$network,
+											$actor: { address: selector.address },
 										}}
 										layout={EntityLayout.Value}
 										open={false}
@@ -163,14 +163,14 @@
 								<dt>Deployer</dt>
 								<dd>
 									<EvmNetworkAccountView
-										entityId={{
-											$network: entityId.$network,
-											$actor: contract.fields.$deployer[EntityMetaKey.Id],
+										selector={{
+											$network: selector.$network,
+											$actor: contract.fields.$deployer[EntityMetaKey.Selector],
 										}}
 										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(accounts)/account/[address]', {
-											caip2Namespace: entityId.$network.caip2.namespace,
-											caip2Reference: entityId.$network.caip2.reference,
-											address: contract.fields.$deployer[EntityMetaKey.Id].address,
+											caip2Namespace: selector.$network.caip2.namespace,
+											caip2Reference: selector.$network.caip2.reference,
+											address: contract.fields.$deployer[EntityMetaKey.Selector].address,
 										})}
 										layout={EntityLayout.Title}
 										open={false}
@@ -184,11 +184,11 @@
 								<dt>Creation transaction</dt>
 								<dd>
 									<EvmTransactionView
-										entityId={contract.fields.$creationTransaction[EntityMetaKey.Id]}
+										selector={contract.fields.$creationTransaction[EntityMetaKey.Selector]}
 										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
-											caip2Namespace: entityId.$network.caip2.namespace,
-											caip2Reference: entityId.$network.caip2.reference,
-											transactionId: contract.fields.$creationTransaction[EntityMetaKey.Id].txHash,
+											caip2Namespace: selector.$network.caip2.namespace,
+											caip2Reference: selector.$network.caip2.reference,
+											transactionId: contract.fields.$creationTransaction[EntityMetaKey.Selector].txHash,
 										})}
 										layout={EntityLayout.Title}
 										open={false}
@@ -202,7 +202,7 @@
 								<dt>Implementation</dt>
 								<dd>
 									<Self
-										entityId={contract.fields.$implementation[EntityMetaKey.Id]}
+										selector={contract.fields.$implementation[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>

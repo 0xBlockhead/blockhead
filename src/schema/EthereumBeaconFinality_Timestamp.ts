@@ -7,8 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EthereumBeaconFinality_TimestampSelector {
+	EvmNetworkTimestampMs = 'evmNetworkTimestampMs',
+}
 
 export default {
 	entityType: EntityType.EthereumBeaconFinality_Timestamp,
@@ -16,12 +19,29 @@ export default {
 	label: 'Beacon finality snapshot',
 	labelPlural: 'Beacon finality snapshots',
 
-	id: type({
-		$network: Network.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: EthereumBeaconFinality_TimestampSelector.EvmNetworkTimestampMs,
+			fields: [
+				'$network',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'currentJustifiedCheckpointEpoch',
 			type: EntityFieldType.Primitive,

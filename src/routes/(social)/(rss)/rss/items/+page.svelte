@@ -18,7 +18,7 @@
 		href={resolve('/rss/items')}
 		entityFieldReference={{
 			entityType: EntityType.RssNetwork,
-			entityId: { scope: 'RssNetwork' },
+			selector: { scope: 'RssNetwork' },
 			fieldName: '$$rssItems',
 		}}
 		id="rss-items"

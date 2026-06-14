@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Block from '$/schema/PolkadotBlock.ts'
+
+export enum PolkadotExtrinsicSelector {
+	PolkadotBlockExtrinsicIndex = 'polkadotBlockExtrinsicIndex',
+}
 
 export default {
 	entityType: EntityType.PolkadotExtrinsic,
@@ -15,12 +18,29 @@ export default {
 	label: 'Polkadot Extrinsic',
 	labelPlural: 'Polkadot Extrinsics',
 
-	id: type({
-		$block: Block.id,
-		extrinsicIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: PolkadotExtrinsicSelector.PolkadotBlockExtrinsicIndex,
+			fields: [
+				'$block',
+				'extrinsicIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$block',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.PolkadotBlock,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'extrinsicIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'hash',
 			type: EntityFieldType.Primitive,

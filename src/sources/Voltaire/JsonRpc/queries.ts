@@ -12,7 +12,6 @@ import type { Provider } from '@tevm/voltaire/provider'
 
 import type { ExecutionEndpoint } from '$/constants/ExecutionEndpoints.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { getHttpProvider, getWebsocketProvider } from '$/lib/voltaire.ts'
 
 import {
 	getBlockByNumber as getEvmBlockByNumber,
@@ -200,22 +199,28 @@ export const getBlockSpec = (n: number | bigint | 'latest'): 'latest' | `0x${str
 	n === 'latest' ? 'latest' : Hex.fromBigInt(BigInt(n))
 )
 
-export const getProviderForExecutionUrl = ({
+export const getProviderForExecutionUrl = async ({
 	url,
 	transportType,
 }: {
 	url: string
 	transportType: TransportType
-}): Provider => (
-	transportType === TransportType.WebSocket ?
-		getWebsocketProvider(url)
-	:
-		getHttpProvider(url)
-)
+}): Promise<Provider> => {
+	const {
+		getHttpProvider,
+		getWebsocketProvider,
+	} = await import('$/lib/voltaire.ts')
+	return (
+		transportType === TransportType.WebSocket ?
+			getWebsocketProvider(url)
+		:
+			getHttpProvider(url)
+	)
+}
 
 export const getProviderForExecutionEndpoint = (
 	endpoint: ExecutionEndpoint,
-): Provider => (
+): Promise<Provider> => (
 	getProviderForExecutionUrl({
 		url: endpoint.url,
 		transportType: endpoint.transportType,
@@ -356,7 +361,7 @@ export const getChainHeadNumberForRpcUrl = async ({
 		const hex = await getEvmBlockNumber({ rpcUrl })
 		return BigInt(hex)
 	}
-	const provider = getProviderForExecutionUrl({ url: rpcUrl, transportType })
+	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
 	const hexUnknown = await provider.request(Rpc.Eth.BlockNumberRequest())
 	if (typeof hexUnknown !== 'string') {
 		throw new Error('eth_blockNumber: expected hex string')
@@ -408,7 +413,7 @@ export const getBlockByNumberForRpcUrl = async ({
 		}
 	}
 
-	const provider = getProviderForExecutionUrl({ url: rpcUrl, transportType })
+	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
 	return getBlockByNumber({ provider, blockNumber, fullTransactions })
 }
 
@@ -458,7 +463,7 @@ export const getTransactionByHashForRpcUrl = async ({
 	transportType: TransportType
 	txHash: `0x${string}`
 }): Promise<VoltaireTxRpc | null> => {
-	const provider = getProviderForExecutionUrl({ url: rpcUrl, transportType })
+	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
 	return narrowTxRpc(
 		await jsonValueFromProviderRequest(
 			provider.request(Rpc.Eth.GetTransactionByHashRequest(Hex(txHash))),
@@ -475,7 +480,7 @@ export const debugTraceTransactionForRpcUrl = async ({
 	transportType: TransportType
 	txHash: `0x${string}`
 }) => {
-	const provider = getProviderForExecutionUrl({ url: rpcUrl, transportType })
+	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
 	try {
 		const traceJson = await jsonValueFromProviderRequest(
 			provider.request({
@@ -505,15 +510,14 @@ export const getTransactionReceiptForRpcUrl = async ({
 	rpcUrl: string
 	transportType: TransportType
 	txHash: `0x${string}`
-}): Promise<VoltaireReceiptRpc | null> => (
-	narrowVoltaireReceiptRpc(
+}): Promise<VoltaireReceiptRpc | null> => {
+	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
+	return narrowVoltaireReceiptRpc(
 		await jsonValueFromProviderRequest(
-			getProviderForExecutionUrl({ url: rpcUrl, transportType }).request(
-				Rpc.Eth.GetTransactionReceiptRequest(Hex(txHash)),
-			),
+			provider.request(Rpc.Eth.GetTransactionReceiptRequest(Hex(txHash))),
 		),
 	)
-)
+}
 
 export const lookupTransactionByHashForRpcUrl = async ({
 	rpcUrl,
@@ -524,7 +528,7 @@ export const lookupTransactionByHashForRpcUrl = async ({
 	transportType: TransportType
 	txHash: `0x${string}`
 }): Promise<{ tx: VoltaireTxRpc; receipt: VoltaireReceiptRpc | null }> => {
-	const provider = getProviderForExecutionUrl({ url: rpcUrl, transportType })
+	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
 	return lookupTransactionByHash({ provider, txHash })
 }
 

@@ -17,7 +17,7 @@
 
 <Page>
 	<BridgeTransactionView
-		entityId={{
+		selector={{
 			$account: {
 				address: EvmAddress.assert(params.address),
 			},

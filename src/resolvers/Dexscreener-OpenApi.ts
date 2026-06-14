@@ -4,12 +4,14 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { LiquidityPoolSelector } from '$/schema/LiquidityPool.ts'
+import { LiquidityPool_TimestampSelector } from '$/schema/LiquidityPool_Timestamp.ts'
 
 export default {
 	source: Source.Dexscreener_OpenApi,
@@ -18,11 +20,11 @@ export default {
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[LiquidityPoolSelector.EvmNetworkId]: async ({ $network, id }) => {
 				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
 				const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 
-				const chainId = Number(entityId.$network.caip2.reference)
+				const chainId = Number($network.caip2.reference)
 				const apiChainId = apiChainIdByChainId[chainId]
 				if (apiChainId == null) {
 					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
@@ -30,7 +32,7 @@ export default {
 				const latestDexPair = (
 					(await getLatestPairs({
 						chainId: apiChainId,
-						pairId: entityId.id,
+						pairId: id,
 					})).pairs?.[0]
 				)
 
@@ -43,7 +45,7 @@ export default {
 				return {
 					...(baseTokenAddress != null && {
 						$baseToken: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$network: {
 									caip2: { namespace: 'eip155' as const, reference: String(chainId) },
 								},
@@ -53,7 +55,7 @@ export default {
 					}),
 					...(quoteTokenAddress != null && {
 						$quoteToken: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$network: {
 									caip2: { namespace: 'eip155' as const, reference: String(chainId) },
 								},
@@ -104,11 +106,11 @@ export default {
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[LiquidityPool_TimestampSelector.LiquidityPoolTimestampMsFeedKey]: async ({ $liquidityPool }) => {
 				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
 				const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 
-				const chainId = Number(entityId.$liquidityPool.$network.caip2.reference)
+				const chainId = Number($liquidityPool.$network.caip2.reference)
 				const apiChainId = apiChainIdByChainId[chainId]
 				if (apiChainId == null) {
 					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
@@ -116,7 +118,7 @@ export default {
 				const latestDexPair = (
 					(await getLatestPairs({
 						chainId: apiChainId,
-						pairId: entityId.$liquidityPool.id,
+						pairId: $liquidityPool.id,
 					})).pairs?.[0]
 				)
 
@@ -156,7 +158,7 @@ export default {
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_entityId, context) => {
+				[_GlobalSelector.Scope]: async (_entitySelector, context) => {
 				const { numericChainIdByDexscreenerApiChainLabel } = await import(
 					'$/sources/Dexscreener/OpenApi/constants.ts',
 				)
@@ -177,7 +179,7 @@ export default {
 									[]
 								:
 									[{
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											$network: {
 												caip2: { namespace: 'eip155' as const, reference: String(chainId) },
 											},
@@ -188,9 +190,9 @@ export default {
 						})
 						.filter((liquidityPool, index, liquidityPools) => (
 							liquidityPools.findIndex((otherLiquidityPool) => (
-								otherLiquidityPool[EntityMetaKey.Id].id === liquidityPool[EntityMetaKey.Id].id
-								&& otherLiquidityPool[EntityMetaKey.Id].$network.caip2.reference
-									=== liquidityPool[EntityMetaKey.Id].$network.caip2.reference
+								otherLiquidityPool[EntityMetaKey.Selector].id === liquidityPool[EntityMetaKey.Selector].id
+								&& otherLiquidityPool[EntityMetaKey.Selector].$network.caip2.reference
+									=== liquidityPool[EntityMetaKey.Selector].$network.caip2.reference
 							)) === index
 						))
 				)
@@ -210,10 +212,10 @@ export default {
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => [
+				[LiquidityPoolSelector.EvmNetworkId]: async (entitySelector) => [
 				{
-					[EntityMetaKey.Id]: {
-						$liquidityPool: entityId,
+					[EntityMetaKey.Selector]: {
+						$liquidityPool: entitySelector,
 						timestampMs: Date.now(),
 						feedKey: 'dexscreener',
 					},
@@ -229,8 +231,8 @@ export default {
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => ({
-				[EntityMetaKey.Id]: entityId.$liquidityPool,
+				[LiquidityPool_TimestampSelector.LiquidityPoolTimestampMsFeedKey]: async ({ $liquidityPool }) => ({
+				[EntityMetaKey.Selector]: $liquidityPool,
 			})
 			}
 		})({

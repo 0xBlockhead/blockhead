@@ -7,17 +7,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum YouTubeChannelSelector {
+	ChannelId = 'channelId',
+}
+
 export default {
 	entityType: EntityType.YouTubeChannel,
 
 	label: 'YouTube channel',
 	labelPlural: 'YouTube channels',
 
-	id: type({
-		channelId: 'string',
-	}),
+	selectors: [
+		{
+			name: YouTubeChannelSelector.ChannelId,
+			fields: [
+				'channelId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'channelId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'title',
 			type: EntityFieldType.Primitive,

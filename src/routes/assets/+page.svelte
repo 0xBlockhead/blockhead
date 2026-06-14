@@ -23,7 +23,7 @@
 
 <Page>
 	<GlobalView
-		entityId={{ scope: 'Assets' }}
+		selector={{ scope: 'Assets' }}
 		title="Assets"
 		href={resolve('/assets')}
 		open
@@ -60,7 +60,7 @@
 						href={resolve('/coins')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
-							entityId: { scope: '$$coins' },
+							selector: { scope: '$$coins' },
 							fieldName: '$$coins',
 						}}
 						id="coins"
@@ -74,7 +74,7 @@
 						href={resolve('/currencies')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
-							entityId: { scope: '$$currencies' },
+							selector: { scope: '$$currencies' },
 							fieldName: '$$currencies',
 						}}
 						open={hubOpen}
@@ -86,7 +86,7 @@
 						href={resolve('/pools')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
-							entityId: { scope: '$$liquidityPools' },
+							selector: { scope: '$$liquidityPools' },
 							fieldName: '$$liquidityPools',
 						}}
 						id="pools"

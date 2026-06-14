@@ -10,6 +10,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum AssetInstanceSelector {
+	NetworkKindAssetKey = 'networkKindAssetKey',
+}
+
+
 export enum AssetInstanceKind {
 	Native = 'Native',
 	Token = 'Token',
@@ -23,13 +28,36 @@ export default {
 	label: 'Asset instance',
 	labelPlural: 'Asset instances',
 
-	id: type({
-		$network: Network.id,
-		kind: type.valueOf(AssetInstanceKind),
-		assetKey: 'string',
-	}),
+	selectors: [
+		{
+			name: AssetInstanceSelector.NetworkKindAssetKey,
+			fields: [
+				'$network',
+				'kind',
+				'assetKey',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'kind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(AssetInstanceKind),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'assetKey',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'coinId',
 			type: EntityFieldType.Primitive,

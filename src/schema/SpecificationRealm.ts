@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { SpecificationRealm } from '$/constants/SpecificationProposal.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum SpecificationRealmSelector {
+	Realm = 'realm',
+}
+
 export default {
 	entityType: EntityType.SpecificationRealm,
 
 	label: 'Specification realm',
 	labelPlural: 'Specification realms',
 
-	id: type({
-		realm: type.valueOf(SpecificationRealm),
-	}),
+	selectors: [
+		{
+			name: SpecificationRealmSelector.Realm,
+			fields: [
+				'realm',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'realm',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(SpecificationRealm),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'label',
 			type: EntityFieldType.Primitive,

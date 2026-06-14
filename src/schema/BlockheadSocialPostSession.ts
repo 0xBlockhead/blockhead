@@ -7,6 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadSocialPostSessionSelector {
+	Id = 'id',
+}
+
+
 export enum SocialProtocol {
 	Farcaster = 'Farcaster',
 }
@@ -23,11 +28,22 @@ export default {
 	label: 'Social Post Session',
 	labelPlural: 'Social Post Sessions',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: BlockheadSocialPostSessionSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

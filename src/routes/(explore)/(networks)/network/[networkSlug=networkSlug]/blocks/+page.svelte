@@ -50,7 +50,7 @@
 				<UtxoBlocksView
 					entityFieldReference={{
 						entityType: EntityType.UtxoNetwork,
-						entityId: network.fields.caip2 == null ?
+						selector: network.fields.caip2 == null ?
 							{ networkSlug: network.fields.slug }
 						:
 							{ caip2: network.fields.caip2 },
@@ -63,7 +63,7 @@
 				<SolanaBlocksView
 					entityFieldReference={{
 						entityType: EntityType.SolanaNetwork,
-						entityId: {
+						selector: {
 							caip2: {
 								namespace: 'solana',
 								reference: network.fields.caip2.reference,
@@ -78,7 +78,7 @@
 				<CosmosBlocksView
 					entityFieldReference={{
 						entityType: EntityType.CosmosNetwork,
-						entityId: network.fields.caip2 == null ?
+						selector: network.fields.caip2 == null ?
 							{ networkSlug: network.fields.slug }
 						:
 							{ caip2: network.fields.caip2 },
@@ -91,7 +91,7 @@
 				<FilecoinTipsetsView
 					entityFieldReference={{
 						entityType: EntityType.FilecoinNetwork,
-						entityId: network.fields.caip2 == null ?
+						selector: network.fields.caip2 == null ?
 							{ networkSlug: network.fields.slug }
 						:
 							{ caip2: network.fields.caip2 },
@@ -105,7 +105,7 @@
 				<PolkadotBlocksView
 					entityFieldReference={{
 						entityType: EntityType.PolkadotNetwork,
-						entityId: network.fields.caip2 == null ?
+						selector: network.fields.caip2 == null ?
 							{ networkSlug: network.fields.slug }
 						:
 							{ caip2: network.fields.caip2 },
@@ -118,7 +118,7 @@
 				<NearBlocksView
 					entityFieldReference={{
 						entityType: EntityType.NearNetwork,
-						entityId: { networkSlug: 'near' },
+						selector: { networkSlug: 'near' },
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -128,7 +128,7 @@
 				<TronBlocksView
 					entityFieldReference={{
 						entityType: EntityType.TronNetwork,
-						entityId: network.fields.caip2 == null ?
+						selector: network.fields.caip2 == null ?
 							{ networkSlug: network.fields.slug }
 						:
 							{ caip2: network.fields.caip2 },
@@ -141,7 +141,7 @@
 				<MoneroBlocksView
 					entityFieldReference={{
 						entityType: EntityType.MoneroNetwork,
-						entityId: network.fields.caip2 == null ?
+						selector: network.fields.caip2 == null ?
 							{ networkSlug: network.fields.slug }
 						:
 							{ caip2: network.fields.caip2 },
@@ -154,7 +154,7 @@
 				<HyperliquidBlocksView
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
-						entityId: network.fields.caip2 == null ?
+						selector: network.fields.caip2 == null ?
 							{ networkSlug: network.fields.slug }
 						:
 							{ caip2: network.fields.caip2 },
@@ -167,7 +167,7 @@
 				<BittensorBlocksView
 					entityFieldReference={{
 						entityType: EntityType.BittensorNetwork,
-						entityId: network.fields.caip2 == null ?
+						selector: network.fields.caip2 == null ?
 							{ networkSlug: network.fields.slug }
 						:
 							{ caip2: network.fields.caip2 },
@@ -180,7 +180,7 @@
 				<ZeroGBlocksView
 					entityFieldReference={{
 						entityType: EntityType.ZeroGNetwork,
-						entityId: { networkSlug: '0g' },
+						selector: { networkSlug: '0g' },
 						fieldName: '$$blocks',
 					}}
 					{href}

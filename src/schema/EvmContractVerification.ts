@@ -10,15 +10,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import EvmContract from '$/schema/EvmContract.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum EvmContractVerificationSelector {
+	EvmContract = 'evmContract',
+}
+
 export default {
 	entityType: EntityType.EvmContractVerification,
 
 	label: 'EVM contract verification',
 	labelPlural: 'EVM contract verifications',
 
-	id: EvmContract.id,
+	selectors: [
+		{
+			name: EvmContractVerificationSelector.EvmContract,
+			fields: [
+				'$contract',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$contract',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'match',
 			type: EntityFieldType.Primitive,

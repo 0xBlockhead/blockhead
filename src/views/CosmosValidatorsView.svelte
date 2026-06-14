@@ -60,7 +60,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.CosmosSdk_Rest,
@@ -81,8 +81,8 @@
 				entityType={EntityType.CosmosValidator}
 				id={`${id}-items`}
 				href={href}
-				getKey={(validator) => stringify(validator[EntityMetaKey.Id])}
-				getSortValue={(validator) => stringify(validator[EntityMetaKey.Id])}
+				getKey={(validator) => stringify(validator[EntityMetaKey.Selector])}
+				getSortValue={(validator) => stringify(validator[EntityMetaKey.Selector])}
 				open={true}
 				resource={validators}
 				{title}
@@ -93,7 +93,7 @@
 				{/snippet}
 
 				{#snippet Item(context)}
-					<CosmosValidatorView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+					<CosmosValidatorView selector={context!.item[EntityMetaKey.Selector]} layout={EntityLayout.Summary} open={false} />
 				{/snippet}
 			</EntitiesList>
 		{/if}

@@ -4,12 +4,15 @@ import {
 import { evmAbiFromJsonValue } from '$/lib/evmAbi.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { SourcifyContractLookup } from '$/sources/Sourcify/Rest/types.ts'
+import { EvmContractVerificationSelector } from '$/schema/EvmContractVerification.ts'
+import { EvmContractCompilationSelector } from '$/schema/EvmContractCompilation.ts'
+import { EvmContractSourceBundleSelector } from '$/schema/EvmContractSourceBundle.ts'
+import { EvmContractSelector } from '$/schema/EvmContract.ts'
 
 const sourcifyFirstStorageLayoutRecord = (
 	root: unknown,
@@ -66,14 +69,14 @@ const sourcifySourceFilesFromLookup = (
 	)
 )
 
-const getSourcifyContractLookupForEntityId = async (entityId: {
+const getSourcifyContractLookupForEntitySelector = async ({ $network, address }: {
 	$network: { caip2: { namespace: 'eip155', reference: string } }
 	address: `0x${string}`
 }) => {
 	const { getContractLookup } = await import('$/sources/Sourcify/Rest/queries.ts')
 	return singleFlight(getContractLookup)({
-		chainId: Number(entityId.$network.caip2.reference),
-		address: entityId.address,
+		chainId: Number($network.caip2.reference),
+		address: address,
 	})
 }
 
@@ -84,8 +87,8 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractVerification,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
+				[EvmContractVerificationSelector.EvmContract]: async (entitySelector) => {
+				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 				if (contractLookup == null) throw new Error('Sourcify_Rest: contract not verified')
 				return {
 					...(contractLookup.match != null && contractLookup.match !== '' && { match: contractLookup.match }),
@@ -103,10 +106,10 @@ export default {
 					))(Date.parse(contractLookup.verifiedAt ?? '')),
 					...(contractLookup.matchId != null && contractLookup.matchId !== '' && { matchId: String(contractLookup.matchId) }),
 					$compilation: {
-						[EntityMetaKey.Id]: entityId,
+						[EntityMetaKey.Selector]: entitySelector,
 					},
 					$sourceBundle: {
-						[EntityMetaKey.Id]: entityId,
+						[EntityMetaKey.Selector]: entitySelector,
 					},
 				}
 			}
@@ -126,8 +129,8 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractCompilation,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
+				[EvmContractCompilationSelector.EvmContract]: async (entitySelector) => {
+				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 				if (contractLookup == null) throw new Error('Sourcify_Rest: compilation not verified')
 				const language = contractLookup.metadata?.language ?? contractLookup.compilation?.language
 				const compiler = (
@@ -176,8 +179,8 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractSourceBundle,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
+				[EvmContractSourceBundleSelector.EvmContract]: async (entitySelector) => {
+				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 				if (contractLookup == null) throw new Error('Sourcify_Rest: source bundle not verified')
 				return {
 					files: sourcifySourceFilesFromLookup(contractLookup),
@@ -193,8 +196,8 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
+				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
+				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 				if (contractLookup == null) return undefined
 				return (
 					Array.isArray(contractLookup.abi) ?
@@ -213,10 +216,10 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				if (await getSourcifyContractLookupForEntityId(entityId) == null) return undefined
+				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
+				if (await getSourcifyContractLookupForEntitySelector(entitySelector) == null) return undefined
 				return {
-					[EntityMetaKey.Id]: entityId,
+					[EntityMetaKey.Selector]: entitySelector,
 				}
 			}
 			}
@@ -229,12 +232,12 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
+				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
+				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 				const deployer = contractLookup?.deployment?.deployer
 				if (deployer == null || !deployer.startsWith('0x')) return undefined
 				return {
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						address: deployer.toLowerCase() as `0x${string}`,
 					},
 				}
@@ -249,8 +252,8 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
+				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
+				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 				const txHash = contractLookup?.deployment?.transactionHash
 				if (txHash == null) return undefined
 				const normalized = (
@@ -258,8 +261,8 @@ export default {
 				).hexLowerOfByteSize(txHash, 32)
 				if (normalized == null) return undefined
 				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector.$network,
 						txHash: normalized,
 					},
 				}
@@ -274,8 +277,8 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
+				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
+				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 				const implementationAddress = contractLookup?.proxyResolution?.implementations?.[0]?.address
 				if (implementationAddress == null || !implementationAddress.startsWith('0x')) return undefined
 				const normalized = (
@@ -283,8 +286,8 @@ export default {
 				).hexLowerOfByteSize(implementationAddress, 20)
 				if (normalized == null) return undefined
 				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector.$network,
 						address: normalized,
 					},
 				}

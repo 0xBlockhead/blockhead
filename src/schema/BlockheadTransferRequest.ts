@@ -8,7 +8,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
+
+export enum BlockheadTransferRequestSelector {
+	IdEvmNetwork = 'idEvmNetwork',
+}
+
 
 const transferAllocationRow = type({
 	destination: EvmAddress,
@@ -22,12 +26,29 @@ export default {
 	label: 'Transfer Request',
 	labelPlural: 'Transfer Requests',
 
-	id: type({
-		id: 'string',
-		$network: Network.id,
-	}),
+	selectors: [
+		{
+			name: BlockheadTransferRequestSelector.IdEvmNetwork,
+			fields: [
+				'id',
+				'$network',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$room',
 			type: EntityFieldType.EntityReference,

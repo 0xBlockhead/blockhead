@@ -51,7 +51,7 @@
 	{collapsible}
 	data-entity-field-name={entityFieldReference.fieldName}
 	data-entity-field-type={entityFieldReference.entityType}
-	data-entity-field-parent={stringify(entityFieldReference.entityId)}
+	data-entity-field-parent={stringify(entityFieldReference.selector)}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -72,7 +72,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Allium_Rest,
 					], fields: { [entityFieldReference.fieldName]: {
 						sources: [
@@ -94,8 +94,8 @@
 						open={true}
 						data-entity-field-name={entityFieldReference.fieldName}
 						data-entity-field-type={entityFieldReference.entityType}
-						data-entity-field-parent={stringify(entityFieldReference.entityId)}
-						getKey={(evmNetworkActorCoinBalance) => stringify(evmNetworkActorCoinBalance[EntityMetaKey.Id])}
+						data-entity-field-parent={stringify(entityFieldReference.selector)}
+						getKey={(evmNetworkActorCoinBalance) => stringify(evmNetworkActorCoinBalance[EntityMetaKey.Selector])}
 						placeholderKeys={new SvelteSet<string>()}
 						placeholderText={`Loading ${title.toLowerCase()}…`}
 						items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
@@ -109,7 +109,7 @@
 
 						{#snippet Item({ item })}
 							<EvmNetworkActorCoinBalanceView
-								entityId={item[EntityMetaKey.Id]}
+								selector={item[EntityMetaKey.Selector]}
 								layout={EntityLayout.Summary}
 								open={false}
 							/>

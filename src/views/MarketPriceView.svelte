@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 
 	import {
@@ -24,16 +24,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(assets)/(markets)/market/[marketKey]', {
-			marketKey: stringify(entityId.$market),
+			marketKey: stringify(selector.$market),
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.MarketPrice>
+			selector: EntitySelector<typeof schema, EntityType.MarketPrice>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -47,7 +47,7 @@
 
 	// Functions
 	const marketAssetSymbol = (
-		leg: typeof entityId.$market.$base,
+		leg: typeof selector.$market.$base,
 	) => (
 		leg.kind === MarketAssetKind.Coin ?
 			leg.$coin.coinId
@@ -64,35 +64,37 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const marketPrice = subscribe(EntityType.MarketPrice,
-		entityId,
-		({ sources: [
-				Source.Constants_Internal,
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.CoinMarketCap_Rest,
-				Source.Coinpaprika_OpenApi,
-				Source.Defillama_OpenApi,
-				Source.TradingView_Rest,
-				Source.Blockscout_Rest,
-			], fields: { $parentMarket: true, ...((open || layout === EntityLayout.Value) && ({ $$quotes: ({ sources: [
-					Source.Blockscout_Rest,
+	const marketPrice = $derived(
+		subscribe(EntityType.MarketPrice,
+			selector,
+			({ sources: [
+					Source.Constants_Internal,
 					Source.Coingecko_Rest,
 					Source.Coingecko_OpenApi,
 					Source.CoinMarketCap_Rest,
 					Source.Coinpaprika_OpenApi,
 					Source.Defillama_OpenApi,
 					Source.TradingView_Rest,
-				], limit: 32 }) })) } }),
+					Source.Blockscout_Rest,
+					], fields: { $parentMarket: true, ...(open && ({ $$quotes: ({ sources: [
+						Source.Blockscout_Rest,
+						Source.Coingecko_Rest,
+						Source.Coingecko_OpenApi,
+						Source.CoinMarketCap_Rest,
+						Source.Coinpaprika_OpenApi,
+						Source.Defillama_OpenApi,
+						Source.TradingView_Rest,
+					], limit: 32 }) })) } }),
+		),
 	)
 
 
 	// (Derived)
 	const marketIdLabel = $derived(
-		entityId.$market.marketKind === MarketKind.Spot ?
-			`${entityId.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$market.$base)}-${marketAssetSymbol(entityId.$market.$quote)}`
+		selector.$market.marketKind === MarketKind.Spot ?
+			`${selector.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(selector.$market.$base)}-${marketAssetSymbol(selector.$market.$quote)}`
 		:
-			`${entityId.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$market.$base)}-${marketAssetSymbol(entityId.$market.$quote)} (${marketKindByMarketKind[entityId.$market.marketKind].label})`
+			`${selector.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(selector.$market.$base)}-${marketAssetSymbol(selector.$market.$quote)} (${marketKindByMarketKind[selector.$market.marketKind].label})`
 	)
 
 
@@ -108,7 +110,7 @@
 
 <EntityView
 	entityType={EntityType.MarketPrice}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	{open}
@@ -120,6 +122,19 @@
 			resource={marketPrice}
 			placeholderText="Loading quotes…"
 		>
+			{#snippet Pending()}
+				<span>
+					{(
+						selector.feedKey != null && selector.feedKey !== '' ?
+							selector.feedKey
+						: selector.$network != null ?
+							`Chain ${String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}`
+						:
+							'Quote stream'
+					)}
+				</span>
+			{/snippet}
+
 			{#snippet children(marketPrice)}
 				{@const headQuoteId = (
 					(marketPrice.fields.$$quotes?.values ?? [])
@@ -127,14 +142,14 @@
 							leftQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
 							rightQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
 						) => (
-							rightQuote[EntityMetaKey.Id].timestampMs
-								- leftQuote[EntityMetaKey.Id].timestampMs
+							rightQuote[EntityMetaKey.Selector].timestampMs
+								- leftQuote[EntityMetaKey.Selector].timestampMs
 						))[0]
-						?.[EntityMetaKey.Id]
+						?.[EntityMetaKey.Selector]
 				)}
 				{#if headQuoteId}
 					<Market_TimestampView
-						entityId={headQuoteId}
+						selector={headQuoteId}
 						layout={EntityLayout.Value}
 						open={false}
 						showTypeAnnotation={false}
@@ -142,10 +157,10 @@
 				{:else}
 					<span>
 						{(
-							entityId.feedKey != null && entityId.feedKey !== '' ?
-								entityId.feedKey
-							: entityId.$network != null ?
-								`Chain ${String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}`
+							selector.feedKey != null && selector.feedKey !== '' ?
+								selector.feedKey
+							: selector.$network != null ?
+								`Chain ${String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}`
 							:
 								'Quote stream'
 						)}
@@ -175,14 +190,14 @@
 										leftQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
 										rightQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
 									) => (
-										rightQuote[EntityMetaKey.Id].timestampMs
-											- leftQuote[EntityMetaKey.Id].timestampMs
+										rightQuote[EntityMetaKey.Selector].timestampMs
+											- leftQuote[EntityMetaKey.Selector].timestampMs
 									))[0]
-									?.[EntityMetaKey.Id]
+									?.[EntityMetaKey.Selector]
 							)}
 							{#if headQuoteId}
 								<Market_TimestampView
-									entityId={headQuoteId}
+									selector={headQuoteId}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
@@ -220,7 +235,7 @@
 					>
 						{#snippet children(marketPrice)}
 							<MarketView
-								entityId={marketPrice.fields.$parentMarket?.[EntityMetaKey.Id] ?? entityId.$market}
+								selector={marketPrice.fields.$parentMarket?.[EntityMetaKey.Selector] ?? selector.$market}
 								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
@@ -240,7 +255,7 @@
 			collapsible={false}
 			entityFieldReference={{
 				entityType: EntityType.MarketPrice,
-				entityId,
+				selector,
 				fieldName: '$$quotes',
 			}}
 			open={false}

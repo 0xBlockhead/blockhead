@@ -72,7 +72,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 						Source.Reddit_Rest,
 					], fields: { [entityFieldReference.fieldName]: {
@@ -91,7 +91,7 @@
 					)
 					return (
 						redditSubreddits.map((value) => ({
-							entityId: value[EntityMetaKey.Id],
+							selector: value[EntityMetaKey.Selector],
 						}))
 					)
 				},
@@ -105,8 +105,8 @@
 				open={true}
 				resource={subreddits}
 				placeholderText="Loading subreddits…"
-				getKey={(subreddit) => stringify(subreddit.entityId)}
-				getSortValue={(subreddit) => subreddit.entityId.name}
+				getKey={(subreddit) => stringify(subreddit.selector)}
+				getSortValue={(subreddit) => subreddit.selector.name}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}
@@ -119,7 +119,7 @@
 					item: subreddit,
 				})}
 					<RedditSubredditView
-						entityId={subreddit.entityId}
+						selector={subreddit.selector}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

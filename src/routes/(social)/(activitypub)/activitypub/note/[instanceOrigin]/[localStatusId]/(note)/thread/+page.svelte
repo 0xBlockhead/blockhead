@@ -21,7 +21,7 @@
 		href={resolve('/activitypub/notes')}
 		entityFieldReference={{
 			entityType: EntityType.ActivityPubNote,
-			entityId: {
+			selector: {
 				instanceOrigin: decodeURIComponent(params.instanceOrigin),
 				localStatusId: decodeURIComponent(params.localStatusId),
 			},

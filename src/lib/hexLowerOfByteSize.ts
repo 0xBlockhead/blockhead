@@ -5,7 +5,7 @@ import { Hex } from '@tevm/voltaire/Hex'
  * Hex conventions (`$/schema/ZeroExHex.ts`):
  * - **Entity / collection domain:** lowercase `0x` + hex (`EvmAddress`, `ZeroExHex`). Build with literals, `Hex.*` from Tevm, or **one** normalization at a provider boundary — do not strip to digits and re-prefix inside resolvers.
  * - **`zeroExLowerCase`:** trusted value that already has `0x`; lowercase only (subgraphs, stable URL segments).
- * - **`with0xHex`:** **Ingress only** — input may omit `0x` or use odd casing (user input, some legacy wire). Do not wrap entity id fields that are already typed `0x${string}`.
+ * - **`with0xHex`:** **Ingress only** — input may omit `0x` or use odd casing (user input, some legacy wire). Do not wrap entity selector fields that are already typed `0x${string}`.
  *
  * Arktype `string.hex` is digits-only (no `0x`); prefer `$ZeroExHex` for JSON-RPC-shaped strings.
  */

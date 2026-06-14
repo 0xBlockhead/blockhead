@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,18 +12,18 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.UtxoOutput>
+			selector: EntitySelector<typeof schema, EntityType.UtxoOutput>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const utxoOutput = subscribe(EntityType.UtxoOutput, entityId, ({ fields: { valueSats: true, scriptPubKeyAsm: true, scriptPubKeyHex: true, scriptPubKeyType: true, $address: true, isSpent: true } }))
+	const utxoOutput = subscribe(EntityType.UtxoOutput, selector, ({ fields: { valueSats: true, scriptPubKeyAsm: true, scriptPubKeyHex: true, scriptPubKeyType: true, $address: true, isSpent: true } }))
 
 
 	// Components
@@ -37,15 +37,15 @@
 
 <EntityView
 	entityType={EntityType.UtxoOutput}
-	{entityId}
-	title={`Output #${entityId.outputIndex.toString()}`}
-	idDragPlainText={entityId.outputIndex.toString()}
+	entitySelector={selector}
+	title={`Output #${selector.outputIndex.toString()}`}
+	idDragPlainText={selector.outputIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.outputIndex.toString()}
+			#{selector.outputIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -113,7 +113,7 @@
 							<dt>Address</dt>
 							<dd>
 								<UtxoAddressView
-									entityId={utxoOutput.fields.$address[EntityMetaKey.Id]}
+									selector={utxoOutput.fields.$address[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

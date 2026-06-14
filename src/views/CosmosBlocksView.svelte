@@ -60,7 +60,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.CosmosSdk_Rest,
@@ -82,7 +82,7 @@
 				entityType={EntityType.CosmosBlock}
 				id={`${id}-items`}
 				href={href}
-				getKey={(block) => stringify(block[EntityMetaKey.Id])}
+				getKey={(block) => stringify(block[EntityMetaKey.Selector])}
 				open={true}
 				resource={blocks}
 				{title}
@@ -93,7 +93,7 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					<CosmosBlockView entityId={item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+					<CosmosBlockView selector={item[EntityMetaKey.Selector]} layout={EntityLayout.Summary} open={false} />
 				{/snippet}
 			</EntitiesList>
 		{/if}

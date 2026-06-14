@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,17 +11,17 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.BittensorSubnet>
+		selector: EntitySelector<typeof schema, EntityType.BittensorSubnet>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const subnet = subscribe(EntityType.BittensorSubnet,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 				Source.Bittensor_JsonRpc,
@@ -40,15 +40,15 @@
 
 <EntityView
 	entityType={EntityType.BittensorSubnet}
-	{entityId}
-	title={`Subnet #${entityId.netuid}`}
-	idDragPlainText={String(entityId.netuid)}
+	entitySelector={selector}
+	title={`Subnet #${selector.netuid}`}
+	idDragPlainText={String(selector.netuid)}
 	bind:open
 	{layout}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(entityId.netuid)}
+			#{String(selector.netuid)}
 		</span>
 	{/snippet}
 
@@ -108,10 +108,10 @@
 						CollapsibleProps={{ canToggle: false }}
 						entityFieldReference={{
 							entityType: EntityType.BittensorSubnet,
-							entityId,
+							selector,
 							fieldName: '$$metagraphTimestamps',
 						}}
-						id={`${stringify(entityId)}:bittensor-metagraph-snapshots`}
+						id={`${stringify(selector)}:bittensor-metagraph-snapshots`}
 					/>
 				{/if}
 
@@ -120,10 +120,10 @@
 						CollapsibleProps={{ canToggle: false }}
 						entityFieldReference={{
 							entityType: EntityType.BittensorSubnet,
-							entityId,
+							selector,
 							fieldName: '$$neurons',
 						}}
-						id={`${stringify(entityId)}:bittensor-neurons`}
+						id={`${stringify(selector)}:bittensor-neurons`}
 					/>
 				{/if}
 			{/snippet}

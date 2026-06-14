@@ -8,6 +8,11 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 
+export enum YouTubeVideoSelector {
+	VideoId = 'videoId',
+}
+
+
 const YouTubeVideoId = type(
 	'/^[A-Za-z0-9_-]{11}$/' as type.cast<string>,
 )
@@ -24,11 +29,22 @@ export default {
 	label: 'YouTube video',
 	labelPlural: 'YouTube videos',
 
-	id: type({
-		videoId: YouTubeVideoId,
-	}),
+	selectors: [
+		{
+			name: YouTubeVideoSelector.VideoId,
+			fields: [
+				'videoId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'videoId',
+			type: EntityFieldType.Primitive,
+			primitiveType: YouTubeVideoId,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'title',
 			type: EntityFieldType.Primitive,

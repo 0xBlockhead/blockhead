@@ -1,6 +1,4 @@
 import { type } from 'arktype'
-import { lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
-
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -8,8 +6,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
-import TronWitness from '$/schema/TronWitness.ts'
+
+export enum TronBlockSelector {
+	NetworkHeightHash = 'networkHeightHash',
+}
 import { Source } from '$/sources/Source.ts'
 
 const tronPublicBlockSources = [
@@ -23,31 +23,30 @@ export default {
 	label: 'TRON Block',
 	labelPlural: 'TRON Blocks',
 
-	id: type({
-		$network: Network.id,
-		height: 'bigint',
-		'hash?': 'string',
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'heightHash',
+			name: TronBlockSelector.NetworkHeightHash,
 			fields: [
-				{
-					name: '$network',
-				},
-				{
-					name: 'height',
-				},
-				{
-					name: 'hash',
-					normalize: lowercaseHexIdentityValue,
-				},
+				'$network',
+				'height',
+				'hash',
 			],
 		},
 	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'height',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'hash',
 			type: EntityFieldType.Primitive,
@@ -80,7 +79,6 @@ export default {
 			name: '$witness',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.TronWitness,
-			entityId: TronWitness.id,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: tronPublicBlockSources,
 		},

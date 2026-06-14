@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,17 +17,17 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]', {
-				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-				blockNumber: entityId.blockNumber.toString(),
+				...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+				blockNumber: selector.blockNumber.toString(),
 			}),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmBlock>
+			selector: EntitySelector<typeof schema, EntityType.EvmBlock>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -39,19 +39,21 @@
 		>
 	> = $props()
 
-	const block = subscribe(EntityType.EvmBlock,
-		entityId,
-		({ sources: [
-				Source.Blockscout_Rest,
-				Source.Voltaire_JsonRpc,
-				Source.ZeroGChain_JsonRpc,
-			], fields: { timestamp: true, transactionCount: true, ...(open && ({ gasUsed: true, gasLimit: true, baseFeePerGas: true, blobGasUsed: true, excessBlobGas: true, $parent: true, $miner: true })) } }),
+	const block = $derived(
+		subscribe(EntityType.EvmBlock,
+			selector,
+			({ sources: [
+					Source.Blockscout_Rest,
+					Source.Voltaire_JsonRpc,
+					Source.ZeroGChain_JsonRpc,
+				], fields: { hash: true, timestamp: true, transactionCount: true, ...(open && ({ gasUsed: true, gasLimit: true, baseFeePerGas: true, blobGasUsed: true, excessBlobGas: true, $parent: true, $miner: true })) } }),
+		),
 	)
 
 
 	// (Derived)
-	const blockIdKey = $derived(
-		stringify(entityId),
+	const blockSelectorKey = $derived(
+		stringify(selector),
 	)
 
 
@@ -72,17 +74,17 @@
 
 <EntityView
 	entityType={EntityType.EvmBlock}
-	{entityId}
+	entitySelector={selector}
 	href={href}
-	title={`Block #${String(entityId.blockNumber)}`}
-	idDragPlainText={String(entityId.blockNumber)}
+	title={`Block #${String(selector.blockNumber)}`}
+	idDragPlainText={String(selector.blockNumber)}
 	bind:open
 	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(entityId.blockNumber)}
+			#{String(selector.blockNumber)}
 		</span>
 	{/snippet}
 
@@ -90,7 +92,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Block </span>
 		<span data-badge="small">
-			#{String(entityId.blockNumber)}
+			#{String(selector.blockNumber)}
 		</span>
 		</span>
 	{/snippet}
@@ -112,16 +114,23 @@
 		{#if contentOpen}
 			<dl data-column-item="center">
 				<div>
-				<dt>Hash</dt>
-				<dd>
-					{#if entityId.hash}
-						<TruncatedValue
-							value={entityId.hash}
-							format={TruncatedValueFormat.Abbr}
-						/>
-					{/if}
-				</dd>
-			</div>
+					<dt>Hash</dt>
+					<dd>
+						<ResourceBoundary
+							resource={block}
+							placeholderText="Loading block…"
+						>
+							{#snippet children(block)}
+								{#if block.fields.hash}
+									<TruncatedValue
+										value={block.fields.hash}
+										format={TruncatedValueFormat.Abbr}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
 			<div>
 				<dt>Transactions</dt>
@@ -258,7 +267,7 @@
 							{#snippet children(block)}
 								{#if block.fields.$parent}
 									<EvmBlockView
-										entityId={block.fields.$parent[EntityMetaKey.Id]}
+										selector={block.fields.$parent[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -280,9 +289,9 @@
 							{#snippet children(block)}
 								{#if block.fields.$miner}
 									<EvmNetworkAccountView
-										entityId={{
-											$network: entityId.$network,
-											$actor: block.fields.$miner[EntityMetaKey.Id],
+										selector={{
+											$network: selector.$network,
+											$actor: block.fields.$miner[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
 										open={false}
@@ -301,12 +310,12 @@
 		open,
 	})}
 		<CollapsibleTabs
-			sectionIdPrefix={blockIdKey}
+			sectionIdPrefix={blockSelectorKey}
 			sections={[
 				{ id: 'chain', label: 'Chain' },
 				{ id: 'transactions', label: 'Transactions' },
 			]}
-			id={`${blockIdKey}:carousel-related`}
+			id={`${blockSelectorKey}:carousel-related`}
 			data-card
 		>
 			{#snippet Summary({ open: _isOpen })}
@@ -337,7 +346,7 @@
 					{#snippet children(block)}
 						{#if block.fields.$parent}
 							<EvmBlockView
-								entityId={block.fields.$parent[EntityMetaKey.Id]}
+								selector={block.fields.$parent[EntityMetaKey.Selector]}
 								layout={EntityLayout.Value}
 							/>
 						{/if}
@@ -349,12 +358,12 @@
 				<EvmTransactionsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/transactions', {
-						...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-						blockNumber: String(entityId.blockNumber),
+						...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+						blockNumber: String(selector.blockNumber),
 					})}
 					entityFieldReference={{
 						entityType: EntityType.EvmBlock,
-						entityId,
+						selector,
 						fieldName: '$$transactions',
 					}}
 					id="transactions"

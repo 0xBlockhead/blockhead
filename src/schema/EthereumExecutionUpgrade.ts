@@ -7,12 +7,15 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import {
 	ExecutionProtocol,
 	NetworkExecutionUpgradeLayer,
 } from '$/schema/NetworkUpgradeProtocols.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EthereumExecutionUpgradeSelector {
+	EvmNetworkUpgradeId = 'evmNetworkUpgradeId',
+}
 
 export default {
 	entityType: EntityType.EthereumExecutionUpgrade,
@@ -20,12 +23,29 @@ export default {
 	label: 'Execution Upgrade',
 	labelPlural: 'Execution Upgrades',
 
-	id: type({
-		$network: Network.id,
-		upgradeId: 'string',
-	}),
+	selectors: [
+		{
+			name: EthereumExecutionUpgradeSelector.EvmNetworkUpgradeId,
+			fields: [
+				'$network',
+				'upgradeId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'upgradeId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

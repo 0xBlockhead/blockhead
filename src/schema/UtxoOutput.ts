@@ -7,8 +7,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Transaction from '$/schema/UtxoTransaction.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum UtxoOutputSelector {
+	UtxoTransactionOutputIndex = 'utxoTransactionOutputIndex',
+}
 
 export default {
 	entityType: EntityType.UtxoOutput,
@@ -16,12 +19,29 @@ export default {
 	label: 'UTXO Output',
 	labelPlural: 'UTXO Outputs',
 
-	id: type({
-		$transaction: Transaction.id,
-		outputIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: UtxoOutputSelector.UtxoTransactionOutputIndex,
+			fields: [
+				'$transaction',
+				'outputIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.UtxoTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'outputIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'valueSats',
 			type: EntityFieldType.Primitive,

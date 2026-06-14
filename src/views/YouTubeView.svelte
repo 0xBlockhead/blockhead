@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,7 +17,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/youtube'),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -26,7 +26,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.YouTubeNetwork>
+			selector: EntitySelector<typeof schema, EntityType.YouTubeNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const network = subscribe(EntityType.YouTubeNetwork,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$youtubeChannels: ({ sources: [
@@ -71,7 +71,7 @@
 
 <EntityView
 	entityType={EntityType.YouTubeNetwork}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -167,10 +167,10 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const networkIdKey = stringify(entityId)}
+		{@const networkSelectorKey = stringify(selector)}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-registry`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-registry`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={collapsibleTabsSections([
 				{ id: 'channels', label: 'Channels' },
 				{ id: 'videos', label: 'Popular videos' },
@@ -196,7 +196,7 @@
 					href={resolve('/youtube/channels')}
 					entityFieldReference={{
 						entityType: EntityType.YouTubeNetwork,
-						entityId,
+						selector,
 						fieldName: '$$youtubeChannels',
 					}}
 					id="channels"
@@ -210,7 +210,7 @@
 					href={resolve('/youtube/videos')}
 					entityFieldReference={{
 						entityType: EntityType.YouTubeNetwork,
-						entityId,
+						selector,
 						fieldName: '$$youtubeVideos',
 					}}
 					id="videos"
@@ -226,7 +226,7 @@
 					href={resolve('/youtube/playlists')}
 					entityFieldReference={{
 						entityType: EntityType.YouTubeNetwork,
-						entityId,
+						selector,
 						fieldName: '$$youtubePlaylists',
 					}}
 					id="playlists"

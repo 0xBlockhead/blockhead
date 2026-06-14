@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,11 +11,11 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		Form,
 		open = $bindable(true),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.IpfsResource>
+		selector: EntitySelector<typeof schema, EntityType.IpfsResource>
 		Form: Snippet
 		open?: boolean
 	} = $props()
@@ -28,14 +28,14 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const ipfs = subscribe(EntityType.IpfsResource,
-		entityId,
+		selector,
 		({ sources: [Source.Ipfs_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, ...(open && ({ text: true, cidVersion: true, cidMultibase: true, cidMulticodecCode: true, cidMultihashCode: true, cidMultihashDigestHex: true, isCidSubdomainSafe: true, $media: true })) } }),
 	)
 
 
 	// (Derived)
 	const ipfsChromeKey = $derived(
-		stringify(entityId),
+		stringify(selector),
 	)
 
 
@@ -54,8 +54,8 @@
 <EntityView
 	layout={EntityLayout.SummaryDetails}
 	entityType={EntityType.IpfsResource}
-	{entityId}
-	title={ipfsResourceCanonicalUri(entityId)}
+	entitySelector={selector}
+	title={ipfsResourceCanonicalUri(selector)}
 	bind:open
 >
 	{#snippet Content()}
@@ -217,13 +217,13 @@
 					{/if}
 					{#if (
 						open
-						&& ipfs.fields.$media?.[EntityMetaKey.Id].url !== undefined
+						&& ipfs.fields.$media?.[EntityMetaKey.Selector].url !== undefined
 					)}
 						<div>
 							<dt>Media</dt>
 							<dd>
 								<Media
-									media={{ url: ipfs.fields.$media[EntityMetaKey.Id].url }}
+									media={{ url: ipfs.fields.$media[EntityMetaKey.Selector].url }}
 									alt={ipfs.fields.fileName ?? ''}
 								/>
 							</dd>
@@ -295,7 +295,7 @@
 					<p>
 						<code>
 							<TruncatedValue
-								value={ipfsResourceCanonicalUri(entityId)}
+								value={ipfsResourceCanonicalUri(selector)}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</code>

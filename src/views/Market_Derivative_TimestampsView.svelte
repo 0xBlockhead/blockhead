@@ -69,7 +69,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const market = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Coingecko_OpenApi,
@@ -92,8 +92,8 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.Market_Derivative_Timestamp}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampMs)}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Selector])}
+				getSortValue={(row) => String(row.value[EntityMetaKey.Selector].timestampMs)}
 				placeholderKeys={new SvelteSet<string>()}
 				resource={timestamps}
 				{title}
@@ -109,8 +109,8 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<Market_Derivative_TimestampView
-						entityId={row[EntityMetaKey.Id]}
-						id={stringify(row[EntityMetaKey.Id])}
+						selector={row[EntityMetaKey.Selector]}
+						id={stringify(row[EntityMetaKey.Selector])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

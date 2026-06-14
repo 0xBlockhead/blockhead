@@ -64,7 +64,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const lensNetwork = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				{
 					sources: [Source.Constants_Internal],
 					fields: {
@@ -85,7 +85,7 @@
 					?? []
 				),
 			)}
-			{#key stringify(entityFieldReference.entityId)}
+			{#key stringify(entityFieldReference.selector)}
 				<EntitiesList
 					collapsible={false}
 					showSummary={false}
@@ -93,8 +93,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(row[EntityMetaKey.Id])}
-					getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
+					getKey={(row) => stringify(row[EntityMetaKey.Selector])}
+					getSortValue={(row) => stringify(row[EntityMetaKey.Selector])}
 					placeholderText="Loading Lens network…"
 					resource={accounts}
 				>
@@ -106,7 +106,7 @@
 
 					{#snippet Item({ item })}
 						<LensAccountView
-							entityId={item[EntityMetaKey.Id]}
+							selector={item[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum PolkadotValidatorSelector {
+	NetworkStashAccountId = 'networkStashAccountId',
+}
 
 export default {
 	entityType: EntityType.PolkadotValidator,
@@ -15,12 +18,29 @@ export default {
 	label: 'Polkadot Validator',
 	labelPlural: 'Polkadot Validators',
 
-	id: type({
-		$network: Network.id,
-		stashAccountId: 'string',
-	}),
+	selectors: [
+		{
+			name: PolkadotValidatorSelector.NetworkStashAccountId,
+			fields: [
+				'$network',
+				'stashAccountId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'stashAccountId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$controller',
 			type: EntityFieldType.EntityReference,

@@ -3,11 +3,11 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { SwarmResourceSelector } from '$/schema/SwarmResource.ts'
 import { Source } from '$/sources/Source.ts'
 
 export default {
@@ -17,13 +17,13 @@ export default {
 		defineResolver(Source.Swarm_Rest, {
 			entityType: EntityType.SwarmResource,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SwarmResourceSelector.ResourceAddress]: async ({ contentPath, reference }) => {
 				const { swarmOnlyReferencePattern } = await import('$/sources/Swarm/Rest/constants.ts')
 				const normalizedReference = (
-					(await import('$/sources/Swarm/Rest/queries.ts')).normalizeReference(entityId.reference)
+					(await import('$/sources/Swarm/Rest/queries.ts')).normalizeReference(reference)
 				)
 				if (!swarmOnlyReferencePattern.test(normalizedReference)) {
-					throw new Error(`Swarm_Rest: invalid reference ${entityId.reference}`)
+					throw new Error(`Swarm_Rest: invalid reference ${reference}`)
 				}
 				const {
 					fetchBrowseResult,
@@ -32,12 +32,12 @@ export default {
 				let browseResult
 				try {
 					browseResult = await fetchBrowseResult({
-						reference: entityId.reference,
-						contentPath: entityId.contentPath,
+						reference: reference,
+						contentPath: contentPath,
 					})
 				} catch (error) {
 					throw new Error(
-						`Swarm_Rest: unable to load bzz://${entityId.reference}${entityId.contentPath ? `/${entityId.contentPath}` : ''}`,
+						`Swarm_Rest: unable to load bzz://${reference}${contentPath ? `/${contentPath}` : ''}`,
 						{ cause: error },
 					)
 				}
@@ -54,7 +54,7 @@ export default {
 								{
 									...media,
 									$original: {
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											url: browseResult.gatewayUrl,
 										},
 										...(browseResult.contentType != null && { mimeType: browseResult.contentType }),

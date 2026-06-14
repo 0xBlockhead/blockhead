@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.HyperliquidPerpMarket>
+			selector: EntitySelector<typeof schema, EntityType.HyperliquidPerpMarket>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const market = subscribe(EntityType.HyperliquidPerpMarket,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Hyperliquid_Rest,
 			], fields: { maxLeverage: true, onlyIsolated: true } }),
@@ -44,14 +44,14 @@
 
 <EntityView
 	entityType={EntityType.HyperliquidPerpMarket}
-	{entityId}
-	title={entityId.coin}
+	entitySelector={selector}
+	title={selector.coin}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{entityId.coin}
+		{selector.coin}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

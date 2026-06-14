@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { ensEthereumChainId } from '$/constants/Ens.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,13 +15,13 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 	}: {
-		entityId: EntityId<typeof schema, EntityType.EnsName>
+		selector: EntitySelector<typeof schema, EntityType.EnsName>
 	} = $props()
 
 	const ens = subscribe(EntityType.EnsName,
-		entityId,
+		selector,
 		({ sources: [Source.Voltaire_JsonRpc], fields: { $resolvedActor: true } }),
 	)
 
@@ -39,11 +39,11 @@
 	resource={ens}
 >
 	{#snippet children(ens)}
-		{@const resolvedActorId = ens.fields.$resolvedActor?.[EntityMetaKey.Id]}
+		{@const resolvedActorId = ens.fields.$resolvedActor?.[EntityMetaKey.Selector]}
 		{#if resolvedActorId}
 			<section>
 				<EvmNetworkView
-					entityId={{ chainId: ensEthereumChainId }}
+					selector={{ chainId: ensEthereumChainId }}
 					layout={EntityLayout.Summary}
 					open={false}
 				/>
@@ -51,17 +51,17 @@
 
 			<!-- href override: card links to this resolves-to page, not /account/… -->
 			<EvmAccountView
-				entityId={resolvedActorId}
+				selector={resolvedActorId}
 				href={resolve(
 					'/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to',
-					{ ensName: entityId.name },
+					{ ensName: selector.name },
 				)}
 				title="Addr record"
 			/>
 		{:else}
 			<p data-text="muted">
 				No forward resolution on the Voltaire ENS row for
-				<span data-text="font-monospace">{entityId.name}</span>
+				<span data-text="font-monospace">{selector.name}</span>
 				yet.
 			</p>
 		{/if}

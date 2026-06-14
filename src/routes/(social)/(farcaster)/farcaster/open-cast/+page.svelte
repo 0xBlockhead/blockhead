@@ -9,7 +9,7 @@
 
 
 	// State
-	const entityId = $derived(
+	const entitySelector = $derived(
 		((clientUrl) => (
 			clientUrl instanceof arktype.errors ?
 				undefined
@@ -27,10 +27,10 @@
 
 
 <Page>
-	{#if entityId}
+	{#if entitySelector}
 		<FarcasterCastView
 			variant="feed"
-			{entityId}
+			selector={selector}
 		/>
 	{/if}
 </Page>

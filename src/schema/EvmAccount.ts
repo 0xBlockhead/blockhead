@@ -10,18 +10,46 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum EvmAccountSelector {
+	Address = 'address',
+	AddressInteropAddress = 'addressInteropAddress',
+}
+
 export default {
 	entityType: EntityType.EvmAccount,
 
 	label: 'EVM account',
 	labelPlural: 'EVM accounts',
 
-	id: type({
-		address: EvmAddress,
-		'interopAddress?': 'string',
-	}),
+	selectors: [
+		{
+			name: EvmAccountSelector.Address,
+			fields: [
+				'address',
+			],
+		},
+		{
+			name: EvmAccountSelector.AddressInteropAddress,
+			fields: [
+				'address',
+				'interopAddress',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'address',
+			type: EntityFieldType.Primitive,
+			primitiveType: EvmAddress,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'interopAddress',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: '$primaryName',
 			type: EntityFieldType.EntityReference,

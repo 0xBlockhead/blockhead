@@ -7,17 +7,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum CctpAllowanceSelector {
+	ApiHost = 'apiHost',
+}
+
 export default {
 	entityType: EntityType.CctpAllowance,
 
 	label: 'CCTP Allowance',
 	labelPlural: 'CCTP Allowances',
 
-	id: type({
-		apiHost: 'string',
-	}),
+	selectors: [
+		{
+			name: CctpAllowanceSelector.ApiHost,
+			fields: [
+				'apiHost',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'apiHost',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'allowance',
 			type: EntityFieldType.Primitive,

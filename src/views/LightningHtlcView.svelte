@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LightningHtlc>
+			selector: EntitySelector<typeof schema, EntityType.LightningHtlc>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const htlc = subscribe(EntityType.LightningHtlc,
-		entityId,
+		selector,
 		({ sources: [
 				Source.LightningLnd_Rest,
 			], fields: { direction: true, amountMsat: true, expiryHeight: true, hashLock: true, state: true } }),
@@ -44,15 +44,15 @@
 
 <EntityView
 	entityType={EntityType.LightningHtlc}
-	{entityId}
-	title={`HTLC #${entityId.htlcIndex}`}
-	idDragPlainText={String(entityId.htlcIndex)}
+	entitySelector={selector}
+	title={`HTLC #${selector.htlcIndex}`}
+	idDragPlainText={String(selector.htlcIndex)}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.htlcIndex}
+			#{selector.htlcIndex}
 		</span>
 	{/snippet}
 

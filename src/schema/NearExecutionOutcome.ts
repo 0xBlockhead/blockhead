@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Transaction from '$/schema/NearTransaction.ts'
+
+export enum NearExecutionOutcomeSelector {
+	NearTransactionOutcomeId = 'nearTransactionOutcomeId',
+}
 
 export default {
 	entityType: EntityType.NearExecutionOutcome,
@@ -15,12 +18,29 @@ export default {
 	label: 'NEAR Execution Outcome',
 	labelPlural: 'NEAR Execution Outcomes',
 
-	id: type({
-		$transaction: Transaction.id,
-		outcomeId: 'string',
-	}),
+	selectors: [
+		{
+			name: NearExecutionOutcomeSelector.NearTransactionOutcomeId,
+			fields: [
+				'$transaction',
+				'outcomeId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.NearTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'outcomeId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'status',
 			type: EntityFieldType.Primitive,

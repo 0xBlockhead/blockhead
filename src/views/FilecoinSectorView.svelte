@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.FilecoinSector>
+			selector: EntitySelector<typeof schema, EntityType.FilecoinSector>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const filecoinSector = subscribe(EntityType.FilecoinSector,
-		entityId,
+		selector,
 		({ fields: { sealedCid: true, activationEpoch: true, expirationEpoch: true } }),
 	)
 
@@ -42,16 +42,16 @@
 
 <EntityView
 	entityType={EntityType.FilecoinSector}
-	{entityId}
-	title={`Sector #${entityId.sectorNumber.toString()}`}
-	idDragPlainText={entityId.sectorNumber.toString()}
+	entitySelector={selector}
+	title={`Sector #${selector.sectorNumber.toString()}`}
+	idDragPlainText={selector.sectorNumber.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.sectorNumber.toString()}
+			#{selector.sectorNumber.toString()}
 		</span>
 	{/snippet}
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,10 +17,10 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/(social)/(nostr)/nostr/reaction/[eventId]',
-			{ eventId: entityId.eventId },
+			{ eventId: selector.eventId },
 		),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -29,7 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.NostrReaction>
+			selector: EntitySelector<typeof schema, EntityType.NostrReaction>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -41,7 +41,7 @@
 	> = $props()
 
 	const reaction = subscribe(EntityType.NostrReaction,
-		entityId,
+		selector,
 		({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
@@ -62,7 +62,7 @@
 
 <EntityView
 	entityType={EntityType.NostrReaction}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -70,7 +70,7 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.eventId}
+			value={selector.eventId}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -160,7 +160,7 @@
 							{#snippet children(reaction)}
 								{#if reaction.fields.$author}
 									<NostrProfileView
-										entityId={reaction.fields.$author[EntityMetaKey.Id]}
+										selector={reaction.fields.$author[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -180,7 +180,7 @@
 							{#snippet children(reaction)}
 								{#if reaction.fields.$targetNote}
 									<NostrNoteView
-										entityId={reaction.fields.$targetNote[EntityMetaKey.Id]}
+										selector={reaction.fields.$targetNote[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -200,7 +200,7 @@
 							{#snippet children(reaction)}
 								{#if reaction.fields.$targetArticle}
 									<NostrArticleView
-										entityId={reaction.fields.$targetArticle[EntityMetaKey.Id]}
+										selector={reaction.fields.$targetArticle[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>

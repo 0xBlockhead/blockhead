@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -15,17 +15,17 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 		'/(explore)/(evm)/evm/(calldata)/calldata/[hex]',
-		{ hex: entityId.hex },
+		{ hex: selector.hex },
 		),
 		title = 'Calldata',
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmCalldata>
+			selector: EntitySelector<typeof schema, EntityType.EvmCalldata>
 			href?: string
 			title?: string
 			open?: boolean
@@ -34,7 +34,7 @@
 	> = $props()
 
 	const calldata = subscribe(EntityType.EvmCalldata,
-		entityId,
+		selector,
 		{
 			sources: [
 				Source.Local_Internal,
@@ -54,14 +54,14 @@
 <EntityView
 	entityType={EntityType.EvmCalldata}
 	bind:open
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{title}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.hex}
+			{selector.hex}
 		</span>
 	{/snippet}
 
@@ -86,7 +86,7 @@
 				<dt>Calldata</dt>
 				<dd>
 					<TruncatedValue
-						value={entityId.hex}
+						value={selector.hex}
 						format={TruncatedValueFormat.Abbr}
 					/>
 				</dd>
@@ -95,7 +95,7 @@
 			<div>
 				<dt>Payload length</dt>
 				<dd>
-					{String((entityId.hex.length - 2) / 2)}
+					{String((selector.hex.length - 2) / 2)}
 					bytes
 					<span data-text="muted">
 						(nibble-prefixed <code>0x</code>
@@ -114,7 +114,7 @@
 							<dd>
 								<TruncatedValue
 									format={TruncatedValueFormat.Visual}
-									value={entityId.hex}
+									value={selector.hex}
 								/>
 							</dd>
 						</div>

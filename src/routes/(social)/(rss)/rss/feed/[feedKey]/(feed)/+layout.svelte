@@ -27,7 +27,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<RssFeedView
-			entityId={{ feedUrl }}
+			selector={{ feedUrl }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

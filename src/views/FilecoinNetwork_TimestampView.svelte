@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -10,17 +10,17 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.FilecoinNetwork_Timestamp>
+		selector: EntitySelector<typeof schema, EntityType.FilecoinNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const snapshot = subscribe(EntityType.FilecoinNetwork_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Lotus_JsonRpc,
 			], fields: { headHeight: true, headTipsetKey: true, headBlockCount: true, headTimestampMs: true, networkVersion: true, lotusVersion: true, lotusAgent: true, blockDelaySeconds: true, totalRawBytePower: true, totalQualityAdjustedPower: true } }),
@@ -38,7 +38,7 @@
 
 <EntityView
 	entityType={EntityType.FilecoinNetwork_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	bind:open
 	{layout}
 >
@@ -53,7 +53,7 @@
 				{:else if snapshot.fields.networkVersion !== undefined}
 					<NumberValue value={snapshot.fields.networkVersion} />
 				{:else}
-					<Timestamp timestamp={entityId.timestampMs} />
+					<Timestamp timestamp={selector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
@@ -21,16 +21,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
-			iso4217: entityId.iso4217,
+			iso4217: selector.iso4217,
 			}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Currency>
+			selector: EntitySelector<typeof schema, EntityType.Currency>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -43,7 +43,7 @@
 	> = $props()
 
 	const currency = subscribe(EntityType.Currency,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, symbol: true, $$timestamps: ({ sources: [
@@ -51,7 +51,7 @@
 				], limit: 1, fields: { marketCap: true } }), ...(open && ({ minorUnitExponent: true })) } }),
 	)
 
-	const idPrefix = entityId.iso4217
+	const idPrefix = selector.iso4217
 
 
 	// Components
@@ -68,16 +68,16 @@
 
 <EntityView
 	entityType={EntityType.Currency}
-	{entityId}
+	entitySelector={selector}
 	href={href}
-	title={entityId.iso4217}
+	title={selector.iso4217}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{entityId.iso4217}
+			{selector.iso4217}
 		</span>
 	{/snippet}
 
@@ -87,7 +87,7 @@
 			placeholderText="Loading currency…"
 		>
 			{#snippet children(currency)}
-				{currency.fields.name ?? entityId.iso4217}
+				{currency.fields.name ?? selector.iso4217}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -156,8 +156,8 @@
 	{#snippet Details({ open })}
 		<section data-scroll-marker-label="Catalog snapshot">
 			<Currency_TimestampView
-				entityId={{
-					$currency: { iso4217: entityId.iso4217 },
+				selector={{
+					$currency: { iso4217: selector.iso4217 },
 					timestampMs: currencyCatalogSnapshotTimestampMs,
 				}}
 				layout={EntityLayout.Title}
@@ -200,7 +200,7 @@
 			{/snippet}
 
 			{#snippet SectionMarketsAsBase({ id, label })}
-				{#if entityId.iso4217 === Iso4217.USD}
+				{#if selector.iso4217 === Iso4217.USD}
 					<p data-text="muted">
 						<a href={resolve('/markets')}>All catalog markets</a>
 						— spot indices quote in USD.
@@ -211,7 +211,7 @@
 						href={resolve('/markets')}
 						entityFieldReference={{
 							entityType: EntityType.Currency,
-							entityId,
+							selector,
 							fieldName: '$$marketsWithCurrencyAsBase',
 						}}
 						{id}
@@ -226,7 +226,7 @@
 					href={resolve('/markets')}
 					entityFieldReference={{
 						entityType: EntityType.Currency,
-						entityId,
+						selector,
 						fieldName: '$$marketsWithCurrencyAsQuote',
 					}}
 					{id}

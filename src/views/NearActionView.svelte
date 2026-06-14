@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.NearAction>
+			selector: EntitySelector<typeof schema, EntityType.NearAction>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const nearAction = subscribe(EntityType.NearAction,
-		entityId,
+		selector,
 		({ fields: { actionKind: true, methodName: true, depositYoctoNear: true } }),
 	)
 
@@ -41,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.NearAction}
-	{entityId}
-	title={`Action #${entityId.actionIndex.toString()}`}
-	idDragPlainText={entityId.actionIndex.toString()}
+	entitySelector={selector}
+	title={`Action #${selector.actionIndex.toString()}`}
+	idDragPlainText={selector.actionIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.actionIndex.toString()}
+			#{selector.actionIndex.toString()}
 		</span>
 	{/snippet}
 

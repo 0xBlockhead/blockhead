@@ -6,8 +6,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum BeaconSyncCommitteeSelector {
+	EvmNetworkPeriod = 'evmNetworkPeriod',
+}
 
 export default {
 	entityType: EntityType.BeaconSyncCommittee,
@@ -15,12 +18,29 @@ export default {
 	label: 'Beacon sync committee',
 	labelPlural: 'Beacon sync committees',
 
-	id: type({
-		$network: Network.id,
-		period: 'number',
-	}),
+	selectors: [
+		{
+			name: BeaconSyncCommitteeSelector.EvmNetworkPeriod,
+			fields: [
+				'$network',
+				'period',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'period',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'validatorIndices',
 			type: EntityFieldType.Primitive,

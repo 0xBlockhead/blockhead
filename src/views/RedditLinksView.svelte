@@ -70,7 +70,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 						Source.Reddit_Rest,
 					], fields: { [entityFieldReference.fieldName]: {
@@ -90,7 +90,7 @@
 					)
 					return (
 						redditLinks.map((link, index) => ({
-							...link[EntityMetaKey.Id],
+							...link[EntityMetaKey.Selector],
 							sortKey: index,
 						}))
 					)
@@ -119,7 +119,7 @@
 						item: link,
 					})}
 						<RedditLinkView
-							entityId={{ fullname: link.fullname }}
+							selector={{ fullname: link.fullname }}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

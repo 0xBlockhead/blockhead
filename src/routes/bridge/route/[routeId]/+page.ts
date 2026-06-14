@@ -3,21 +3,25 @@ import { error } from '@sveltejs/kit'
 import { type as arktype } from 'arktype'
 import { parse } from 'devalue'
 
+import { parseEntitySelector } from '$/schema/$schema.ts'
 import BridgeRouteSchema from '$/schema/BridgeRoute.ts'
+import { schema } from '$/schema/index.ts'
 
 import type { PageLoad } from './$types.ts'
 
 
 export const load: PageLoad = ({ params }) => {
-	let entityId: ReturnType<typeof BridgeRouteSchema.id>
+	let entitySelector
 	try {
-		entityId = BridgeRouteSchema.id(
+		entitySelector = parseEntitySelector(
+			schema,
+			BridgeRouteSchema,
 			parse(decodeURIComponent(params.routeId)),
 		)
 	} catch {
 		error(404, 'Invalid bridge route')
 	}
-	if (entityId instanceof arktype.errors) error(404, 'Invalid bridge route')
+	if (entitySelector instanceof arktype.errors) error(404, 'Invalid bridge route')
 
-	return { entityId }
+	return { entitySelector }
 }

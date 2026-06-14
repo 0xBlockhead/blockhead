@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -36,8 +36,8 @@
 
 
 	// (Derived)
-	const entityId = $derived(
-		{ id: sourceId } satisfies EntityId<typeof schema, EntityType.BlockheadSource>
+	const selector = $derived(
+		{ id: sourceId } satisfies EntitySelector<typeof schema, EntityType.BlockheadSource>
 	)
 
 
@@ -48,7 +48,7 @@
 
 <EntityView
 	entityType={EntityType.BlockheadSource}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{title}
 	bind:open
@@ -56,7 +56,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 

@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import AuxPow from '$/schema/DogecoinBlockAuxPow.ts'
+
+export enum DogecoinAuxPowParentBlockHeaderSelector {
+	DogecoinBlockAuxPow = 'dogecoinBlockAuxPow',
+}
 
 export default {
 	entityType: EntityType.DogecoinAuxPowParentBlockHeader,
@@ -15,11 +18,22 @@ export default {
 	label: 'Dogecoin AuxPoW Parent Header',
 	labelPlural: 'Dogecoin AuxPoW Parent Headers',
 
-	id: type({
-		$auxPow: AuxPow.id,
-	}),
+	selectors: [
+		{
+			name: DogecoinAuxPowParentBlockHeaderSelector.DogecoinBlockAuxPow,
+			fields: [
+				'$auxPow',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$auxPow',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.DogecoinBlockAuxPow,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'hash',
 			type: EntityFieldType.Primitive,

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,11 +16,11 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/~/(dashboards)/dashboard/[dashboardId]',
 			{
-				dashboardId: entityId.id,
+				dashboardId: selector.id,
 			},
 		),
 		title = 'Panel tree',
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BlockheadPanelTree>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadPanelTree>
 			href?: string
 			title?: string
 			open?: boolean
@@ -40,7 +40,7 @@
 	> = $props()
 
 	const panelTree = subscribe(EntityType.BlockheadPanelTree,
-		entityId,
+		selector,
 		{
 			sources: [
 				Source.Local_Internal,
@@ -57,7 +57,7 @@
 
 <EntityView
 	entityType={EntityType.BlockheadPanelTree}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{title}
 	bind:open
@@ -65,7 +65,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -95,7 +95,7 @@
 		<section
 			data-card
 			data-column="gap-2"
-			id={`${stringify(entityId)}:metadata`}
+			id={`${stringify(selector)}:metadata`}
 		>
 			<ResourceBoundary resource={panelTree}>
 				{#snippet children(panelTree)}

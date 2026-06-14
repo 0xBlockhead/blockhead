@@ -9,18 +9,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import YouTubeVideo from '$/schema/YouTubeVideo.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum YouTubeVideo_TimestampSelector {
+	YouTubeVideoTimestampMs = 'youTubeVideoTimestampMs',
+}
+
 export default {
 	entityType: EntityType.YouTubeVideo_Timestamp,
 
 	label: 'YouTube video snapshot',
 	labelPlural: 'YouTube video snapshots',
 
-	id: type({
-		$video: YouTubeVideo.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: YouTubeVideo_TimestampSelector.YouTubeVideoTimestampMs,
+			fields: [
+				'$video',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$video',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.YouTubeVideo,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'viewCount',
 			type: EntityFieldType.Primitive,

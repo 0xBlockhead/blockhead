@@ -70,7 +70,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const global = subscribe(EntityType._Global,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ sources: [Source.Local_Internal], fields: { $$blockheadPanelTrees: true } }),
 			)}
 			{@const panelTrees = derive(
@@ -85,8 +85,8 @@
 				entityType={EntityType.BlockheadPanelTree}
 				{title}
 				open={true}
-				getKey={(panelTree) => stringify(panelTree[EntityMetaKey.Id])}
-				getSortValue={(panelTree) => panelTree[EntityMetaKey.Id].id}
+				getKey={(panelTree) => stringify(panelTree[EntityMetaKey.Selector])}
+				getSortValue={(panelTree) => panelTree[EntityMetaKey.Selector].id}
 				resource={panelTrees}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -98,7 +98,7 @@
 
 				{#snippet Item({ item: panelTree })}
 					<BlockheadPanelTreeView
-						entityId={panelTree[EntityMetaKey.Id]}
+						selector={panelTree[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

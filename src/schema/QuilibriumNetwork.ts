@@ -13,6 +13,11 @@ import { UrlString } from '$/schema/UrlString.ts'
 import { networkFields } from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum QuilibriumNetworkSelector {
+	NetworkSlug = 'networkSlug',
+}
+
+
 const quilibriumDocsEndpointField = type({
 	url: UrlString,
 	transportType: type.valueOf(TransportType),
@@ -41,12 +46,22 @@ export default {
 	label: 'Quilibrium network',
 	labelPlural: 'Quilibrium networks',
 
-	id: type({
-		networkSlug: type.unit('quilibrium'),
-	}),
+	selectors: [
+		{
+			name: QuilibriumNetworkSelector.NetworkSlug,
+			fields: [
+				'networkSlug',
+			],
+		},
+	],
 
 	fields: [
-		networkFields[0],
+		{
+			name: 'networkSlug',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('quilibrium'),
+			cardinality: EntityFieldCardinality.One,
+		},		networkFields[0],
 		networkFields[1],
 		networkFields[2],
 		networkFields[3],

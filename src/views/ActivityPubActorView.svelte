@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,16 +16,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-			instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
-			localAccountId: 'localAccountId' in entityId ? entityId.localAccountId : entityId.acct,
+			instanceOrigin: encodeURIComponent(selector.instanceOrigin),
+			localAccountId: 'localAccountId' in selector ? selector.localAccountId : selector.acct,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ActivityPubActor>
+			selector: EntitySelector<typeof schema, EntityType.ActivityPubActor>
 			href?: string
 			open?: boolean
 		},
@@ -39,10 +39,10 @@
 	import { htmlToPlainText } from '$/lib/html.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 	const actor = subscribe(EntityType.ActivityPubActor,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Mastodon_Rest,
 				Source.Fedi_Rest,
@@ -70,7 +70,7 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubActor}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -82,9 +82,9 @@
 			{#snippet children(actor)}
 				{#if actor.fields.$icon}
 					<IconComponent
-						alt={actor.fields.displayName ?? actor.fields.acct ?? actor.fields.username ?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
+						alt={actor.fields.displayName ?? actor.fields.acct ?? actor.fields.username ?? ('localAccountId' in selector ? selector.localAccountId : selector.acct)}
 						shape={IconShape.Circle}
-						src={actor.fields.$icon[EntityMetaKey.Id].url}
+						src={actor.fields.$icon[EntityMetaKey.Selector].url}
 					/>
 				{/if}
 			{/snippet}
@@ -93,7 +93,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={'localAccountId' in entityId ? `@${entityId.localAccountId}@${entityId.instanceOrigin}` : `@${entityId.acct}`}
+			value={'localAccountId' in selector ? `@${selector.localAccountId}@${selector.instanceOrigin}` : `@${selector.acct}`}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -107,7 +107,7 @@
 				{actor.fields.displayName
 					?? actor.fields.acct
 					?? actor.fields.username
-					?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
+					?? ('localAccountId' in selector ? selector.localAccountId : selector.acct)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -121,7 +121,7 @@
 					actor.fields.displayName
 					?? actor.fields.acct
 					?? actor.fields.username
-					?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
+					?? ('localAccountId' in selector ? selector.localAccountId : selector.acct)}
 				{#if actor.fields.username && actor.fields.username !== activityPubSummaryHeadingLine}
 					<span data-text="muted">
 						@{actor.fields.username}
@@ -172,7 +172,7 @@
 								actor.fields.displayName
 								?? actor.fields.acct
 								?? actor.fields.username
-								?? ('localAccountId' in entityId ? entityId.localAccountId : entityId.acct)}
+								?? ('localAccountId' in selector ? selector.localAccountId : selector.acct)}
 
 						{#if actor.fields.acct && actor.fields.acct !== activityPubSummaryHeadingLine}
 							<div>
@@ -351,8 +351,8 @@
 								CollapsibleProps={{ canToggle: false }}
 								entityFieldReference={{
 									entityType: EntityType.ActivityPubActor,
-									entityId: {
-										instanceOrigin: entityId.instanceOrigin,
+									selector: {
+										instanceOrigin: selector.instanceOrigin,
 										localAccountId: actor.fields.localAccountId,
 									},
 									fieldName: '$$notes',
@@ -376,14 +376,14 @@
 							<ActivityPubActor_TimestampsView
 								entityFieldReference={{
 									entityType: EntityType.ActivityPubActor,
-									entityId: {
-										instanceOrigin: entityId.instanceOrigin,
+									selector: {
+										instanceOrigin: selector.instanceOrigin,
 										localAccountId: actor.fields.localAccountId,
 									},
 									fieldName: '$$timestamps',
 								}}
 								href={resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-									instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
+									instanceOrigin: encodeURIComponent(selector.instanceOrigin),
 									localAccountId: actor.fields.localAccountId,
 								})}
 								id={`${idKey}:metric-snapshots`}

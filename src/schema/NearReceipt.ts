@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum NearReceiptSelector {
+	NetworkReceiptId = 'networkReceiptId',
+}
 
 export default {
 	entityType: EntityType.NearReceipt,
@@ -15,12 +18,29 @@ export default {
 	label: 'NEAR Receipt',
 	labelPlural: 'NEAR Receipts',
 
-	id: type({
-		$network: Network.id,
-		receiptId: 'string',
-	}),
+	selectors: [
+		{
+			name: NearReceiptSelector.NetworkReceiptId,
+			fields: [
+				'$network',
+				'receiptId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'receiptId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$predecessor',
 			type: EntityFieldType.EntityReference,

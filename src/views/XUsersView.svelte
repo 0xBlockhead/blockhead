@@ -65,7 +65,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ sources: [Source.Constants_Internal], fields: { [entityFieldReference.fieldName]: {
+		entityFieldReference.selector,({ sources: [Source.Constants_Internal], fields: { [entityFieldReference.fieldName]: {
 				sources: [
 					Source.X_Rest,
 					Source.X_FxEmbed_Rest,
@@ -94,8 +94,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Selector])}
+				getSortValue={(row) => stringify(row.value[EntityMetaKey.Selector])}
 				resource={users}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -108,7 +108,7 @@
 
 				{#snippet Item({ item })}
 						<XUserView
-							entityId={item.value[EntityMetaKey.Id]}
+							selector={item.value[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

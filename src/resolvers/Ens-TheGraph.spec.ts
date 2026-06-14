@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { EnsSubgraphDomain } from '$/sources/TheGraph/Graphql/Ens/types.ts'
+import { EnsNameSelector } from '$/schema/EnsName.ts'
+import { EvmAccountSelector } from '$/schema/EvmAccount.ts'
 
 
 const getName = vi.fn()
@@ -45,8 +46,8 @@ const resolverContext = {
 	filters: [],
 	sorts: [],
 	pagination: {},
-	identityKeys: [],
-	parentIdentityKeys: [],
+	selectorKeys: [],
+	parentSelectorKeys: [],
 	sources: [],
 	publicEnv: {},
 }
@@ -96,7 +97,7 @@ describe('Ens-TheGraph entity resolver', () => {
 		expect(ensNameResolver).toBeDefined()
 		getName.mockResolvedValueOnce([vitalikDomainWire])
 
-		const resolvedEntity = await ensNameResolver.resolve[EntityIdProjection.Identity](
+		const resolvedEntity = await ensNameResolver.resolve[EnsNameSelector.NormalizedName](
 			{ name: 'vitalik.eth' },
 			resolverContext,
 		)
@@ -105,24 +106,24 @@ describe('Ens-TheGraph entity resolver', () => {
 			subgraphId: vitalikDomainWire.id,
 			labelName: 'vitalik',
 			$parent: {
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					name: 'eth',
 				},
 			},
 			$$subdomains: [
 				{
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						name: 'sub.vitalik.eth',
 					},
 				},
 			],
 			$subgraphResolvedActor: {
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
 				},
 			},
 			$subgraphOwnerActor: {
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					address: '0x000000000000000000000000000000000000dead',
 				},
 			},
@@ -146,7 +147,7 @@ describe('Ens-TheGraph entity resolver', () => {
 			owner: null,
 		}])
 
-		const resolvedEntity = await ensNameResolver.resolve[EntityIdProjection.Identity](
+		const resolvedEntity = await ensNameResolver.resolve[EnsNameSelector.NormalizedName](
 			{ name: 'vitalik.eth' },
 			resolverContext,
 		)
@@ -170,14 +171,14 @@ describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 			},
 		])
 
-			const resolvedEntity = await ensNamesOwnedResolver.resolve[EntityIdProjection.Identity](
+			const resolvedEntity = await ensNamesOwnedResolver.resolve[EvmAccountSelector.AddressInteropAddress](
 				{ address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045' },
 				resolverContext,
 			)
 
 			expect(resolvedEntity).toEqual([
 				{
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						name: 'owned.eth',
 				},
 			},

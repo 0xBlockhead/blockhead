@@ -9,6 +9,11 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 
+export enum NostrArticleSelector {
+	CanonicalCoordinate = 'canonicalCoordinate',
+}
+
+
 const NostrPubkey = type(
 	'/^[0-9a-f]{64}$/' as type.cast<string>,
 )
@@ -19,19 +24,11 @@ export default {
 	label: 'Nostr article',
 	labelPlural: 'Nostr articles',
 
-	id: type({
-		pubkey: NostrPubkey,
-		identifier: 'string',
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'canonicalCoordinate',
+			name: NostrArticleSelector.CanonicalCoordinate,
 			fields: [
-				{
-					name: 'pubkey',
-					normalize: lowercaseHexIdentityValue,
-				},
+				'pubkey',
 				'identifier',
 			],
 		},

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.UtxoInput>
+			selector: EntitySelector<typeof schema, EntityType.UtxoInput>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const utxoInput = subscribe(EntityType.UtxoInput,
-		entityId,
+		selector,
 		({ fields: { coinbaseScript: true, scriptSigAsm: true, sequence: true, witness: true } }),
 	)
 
@@ -42,16 +42,16 @@
 
 <EntityView
 	entityType={EntityType.UtxoInput}
-	{entityId}
-	title={`Input #${entityId.inputIndex.toString()}`}
-	idDragPlainText={entityId.inputIndex.toString()}
+	entitySelector={selector}
+	title={`Input #${selector.inputIndex.toString()}`}
+	idDragPlainText={selector.inputIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.inputIndex.toString()}
+			#{selector.inputIndex.toString()}
 		</span>
 	{/snippet}
 

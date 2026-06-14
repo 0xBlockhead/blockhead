@@ -10,17 +10,32 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum StateChannelSelector {
+	Id = 'id',
+}
+
 export default {
 	entityType: EntityType.StateChannel,
 
 	label: 'State Channel',
 	labelPlural: 'State Channels',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: StateChannelSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$network',
 			type: EntityFieldType.EntityReference,

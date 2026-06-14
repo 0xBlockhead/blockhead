@@ -18,12 +18,12 @@
 
 
 <Page>
-	{#if data.noteEntityId}
+	{#if data.noteEntitySelector}
 		<NostrReactionsView
 			href={resolve('/nostr/reactions')}
 			entityFieldReference={{
 				entityType: EntityType.NostrNote,
-				entityId: data.noteEntityId,
+				selector: data.noteEntitySelector,
 				fieldName: '$$reactions',
 			}}
 			id="nostr-reactions"

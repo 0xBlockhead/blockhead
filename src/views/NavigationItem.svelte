@@ -147,7 +147,7 @@
 							{@render LabelSnippet({ node })}
 						{:else if node.address.network}
 							<EvmNetworkAccountView
-								entityId={{
+								selector={{
 									$network: {
 										caip2: {
 											namespace: 'eip155',
@@ -162,7 +162,7 @@
 							/>
 						{:else}
 							<EvmAccountView
-								entityId={{ address: node.address.address }}
+								selector={{ address: node.address.address }}
 								href={navHref}
 								layout={EntityLayout.Title}
 								open={false}
@@ -274,7 +274,7 @@
 						{:else}
 							{#if node.address?.network}
 								<EvmNetworkAccountView
-									entityId={{
+									selector={{
 										$network: {
 											caip2: {
 												namespace: 'eip155',
@@ -288,7 +288,7 @@
 								/>
 							{:else if node.address}
 								<EvmAccountView
-									entityId={{ address: node.address.address }}
+									selector={{ address: node.address.address }}
 									href={resolve('/account/[address]', {
 										address: node.address.address,
 									})}

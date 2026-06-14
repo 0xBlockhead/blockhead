@@ -9,6 +9,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum UrlSelector {
+	Url = 'url',
+}
+
+
 
 export default {
 	entityType: EntityType.Url,
@@ -16,11 +21,22 @@ export default {
 	label: 'URL',
 	labelPlural: 'URLs',
 
-	id: type({
-		url: UrlString,
-	}),
+	selectors: [
+		{
+			name: UrlSelector.Url,
+			fields: [
+				'url',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'url',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'catalogName',
 			type: EntityFieldType.Primitive,

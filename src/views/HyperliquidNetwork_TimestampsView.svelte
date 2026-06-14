@@ -58,7 +58,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Hyperliquid_Rest,
@@ -79,8 +79,8 @@
 				entityType={EntityType.HyperliquidNetwork_Timestamp}
 				id={`${id}-items`}
 				href={href}
-				getKey={(timestamp) => stringify(timestamp[EntityMetaKey.Id])}
-				getSortValue={(timestamp) => -Number(timestamp[EntityMetaKey.Id].timestampMs)}
+				getKey={(timestamp) => stringify(timestamp[EntityMetaKey.Selector])}
+				getSortValue={(timestamp) => -Number(timestamp[EntityMetaKey.Selector].timestampMs)}
 				open={true}
 				resource={timestamps}
 				{title}
@@ -92,7 +92,7 @@
 
 				{#snippet Item(context)}
 					<HyperliquidNetwork_TimestampView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

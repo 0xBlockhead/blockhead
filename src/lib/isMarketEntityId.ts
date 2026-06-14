@@ -1,5 +1,5 @@
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
@@ -17,9 +17,9 @@ const legShapeOk = (leg: unknown) => (
 /**
  * Runtime guard for `Market.id` objects (e.g. from field `Value` before collection merge completes).
  */
-export const isMarketEntityId = (
+export const isMarketEntitySelector = (
 	v: unknown,
-): v is EntityId<typeof schema, EntityType.Market> => (
+): v is EntitySelector<typeof schema, EntityType.Market> => (
 	v !== undefined
 	&& typeof v === 'object'
 	&& v !== null

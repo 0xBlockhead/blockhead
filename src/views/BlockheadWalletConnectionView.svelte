@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { blockheadWalletConnectionStatusByStatus } from '$/constants/Blockhead.ts'
 	import { walletProtocolByProtocol } from '$/constants/Wallet.ts'
@@ -19,14 +19,14 @@
 	// State
 	let {
 		onRemove,
-		entityId,
-		href = resolve(`/~/accounts/connections/connection/${encodeURIComponent(entityId.$wallet.id)}`),
+		selector,
+		href = resolve(`/~/accounts/connections/connection/${encodeURIComponent(selector.$wallet.id)}`),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			onRemove?: () => void
-			entityId: EntityId<typeof schema, EntityType.BlockheadWalletConnection>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadWalletConnection>
 			href?: string
 			open?: boolean
 		},
@@ -39,7 +39,7 @@
 	> = $props()
 
 	const walletConnection = $derived(subscribe(EntityType.BlockheadWalletConnection,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Local_Internal,
 			], fields: { status: true, protocol: true, transportKind: true, scopes: true, $$connectedAccounts: true, $activeAccount: true, selected: true, connectedAt: true, disconnectedAt: true, sessionId: true, sessionTopic: true, error: true } }),
@@ -48,7 +48,7 @@
 
 	// (Derived)
 	const walletConnectionKey = $derived(
-		stringify(entityId),
+		stringify(selector),
 	)
 
 
@@ -66,19 +66,19 @@
 <EntityView
 	entityType={EntityType.BlockheadWalletConnection}
 	bind:open
-	{entityId}
+	entitySelector={selector}
 	{href}
-	title={entityId.$wallet.id}
+	title={selector.$wallet.id}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{entityId.$wallet.id}
+			{selector.$wallet.id}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
-		{entityId.$wallet.id}
+		{selector.$wallet.id}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -117,7 +117,7 @@
 							<dt>Active account</dt>
 							<dd>
 								<BlockheadWalletAccountView
-									entityId={walletConnection.fields.$activeAccount.__id}
+									selector={walletConnection.fields.$activeAccount.__selector}
 									open={false}
 								/>
 							</dd>
@@ -212,7 +212,7 @@
 							<ul data-column="gap-1">
 								{#each walletConnection.fields.$connectedAccounts as account (stringify(account))}
 									<li>
-										<BlockheadWalletAccountView entityId={account.__id} />
+										<BlockheadWalletAccountView selector={account.__selector} />
 									</li>
 								{/each}
 							</ul>

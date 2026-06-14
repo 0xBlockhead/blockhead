@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -15,17 +15,17 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
-			{ roomId: entityId.id },
+			{ roomId: selector.id },
 		),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BlockheadRoom>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadRoom>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const room = subscribe(EntityType.BlockheadRoom,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Local_Internal,
 			], fields: { name: true, ...(open ? ({ createdAt: true, createdBy: true, $$peers: true }) : ({  })) } }),
@@ -55,14 +55,14 @@
 
 <EntityView
 	entityType={EntityType.BlockheadRoom}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -72,7 +72,7 @@
 			placeholderText="Loading room…"
 		>
 			{#snippet children(room)}
-				{room.fields.name ?? entityId.id}
+				{room.fields.name ?? selector.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -144,10 +144,10 @@
 			<BlockheadRoomPeersView
 				entityFieldReference={{
 					entityType: EntityType.BlockheadRoom,
-					entityId,
+					selector,
 					fieldName: '$$peers',
 				}}
-				id={`${entityId.id}:peers`}
+				id={`${selector.id}:peers`}
 			/>
 		{/if}
 	{/snippet}

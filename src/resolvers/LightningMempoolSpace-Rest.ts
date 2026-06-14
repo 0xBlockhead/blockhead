@@ -5,7 +5,6 @@ import {
 import { bitcoinMainnetCaip2 } from '$/constants/BitcoinNetwork.ts'
 import { lightningMempoolSpaceRestBaseUrl, lightningNetworkId } from '$/constants/LightningNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -18,6 +17,10 @@ import type {
 	MempoolSpaceLightningRankedNode,
 	MempoolSpaceLightningStatistics,
 } from '$/sources/LightningMempoolSpace/Rest/types.ts'
+import { LightningNetworkSelector } from '$/schema/LightningNetwork.ts'
+import { LightningNetwork_TimestampSelector } from '$/schema/LightningNetwork_Timestamp.ts'
+import { LightningNodeSelector } from '$/schema/LightningNode.ts'
+import { LightningChannelSelector } from '$/schema/LightningChannel.ts'
 
 const bitcoinMainnet = {
 	caip2: bitcoinMainnetCaip2,
@@ -62,7 +65,7 @@ const statusFromMempoolSpace = (status: number | null | undefined): LightningCha
 )
 
 const nodeReferenceFromPublicKey = (publicKey: string) => ({
-	[EntityMetaKey.Id]: {
+	[EntityMetaKey.Selector]: {
 		$network: lightningNetworkId,
 		publicKey,
 	},
@@ -90,7 +93,7 @@ const nodeFieldsFromMempoolSpaceNode = (
 const nodeReferenceFromMempoolSpaceChannelNode = (
 	node: MempoolSpaceLightningChannelNode,
 ) => ({
-	[EntityMetaKey.Id]: {
+	[EntityMetaKey.Selector]: {
 		$network: lightningNetworkId,
 		publicKey: node.public_key,
 	},
@@ -103,7 +106,7 @@ const nodeReferenceFromMempoolSpaceChannelNode = (
 const nodeReferenceFromMempoolSpaceRankedNode = (
 	node: MempoolSpaceLightningRankedNode,
 ) => ({
-	[EntityMetaKey.Id]: {
+	[EntityMetaKey.Selector]: {
 		$network: lightningNetworkId,
 		publicKey: node.publicKey,
 	},
@@ -119,7 +122,7 @@ const nodeReferenceFromMempoolSpaceRankedNode = (
 const channelFieldsFromMempoolSpaceChannel = (
 	channel: MempoolSpaceLightningChannel,
 ) => ({
-	[EntityMetaKey.Id]: {
+	[EntityMetaKey.Selector]: {
 		$network: lightningNetworkId,
 		channelId: channel.id,
 	},
@@ -146,7 +149,7 @@ const channelFieldsFromMempoolSpaceChannel = (
 const timestampFieldsFromMempoolSpaceStatistics = (
 	statistics: MempoolSpaceLightningStatistics,
 ) => ({
-	[EntityMetaKey.Id]: {
+	[EntityMetaKey.Selector]: {
 		$lightningNetwork: {
 			$network: lightningNetworkId,
 		},
@@ -171,12 +174,12 @@ export default {
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLightningNetwork(entityId.$network)
+				[LightningNetworkSelector.Network]: async ({ $network }) => {
+				assertLightningNetwork($network)
 				return {
 					name: 'Lightning Network',
 					$settlementNetwork: {
-						[EntityMetaKey.Id]: bitcoinMainnet,
+						[EntityMetaKey.Selector]: bitcoinMainnet,
 					},
 				}
 			}
@@ -191,8 +194,8 @@ export default {
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLightningNetwork(entityId.$lightningNetwork.$network)
+				[LightningNetwork_TimestampSelector.LightningNetworkTimestampMs]: async ({ $lightningNetwork }) => {
+				assertLightningNetwork($lightningNetwork.$network)
 				const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 				return timestampFieldsFromMempoolSpaceStatistics(
 					(await getLightningStatistics({
@@ -219,13 +222,13 @@ export default {
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNode,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLightningNetwork(entityId.$network)
+				[LightningNodeSelector.NetworkPublicKey]: async ({ $network, publicKey }) => {
+				assertLightningNetwork($network)
 				const { getLightningNode } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 				return nodeFieldsFromMempoolSpaceNode(
 					await getLightningNode({
 						restBaseUrl: lightningMempoolSpaceRestBaseUrl,
-						publicKey: entityId.publicKey,
+						publicKey: publicKey,
 					}),
 				)
 			}
@@ -247,13 +250,13 @@ export default {
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningChannel,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLightningNetwork(entityId.$network)
+				[LightningChannelSelector.NetworkChannelId]: async ({ $network, channelId }) => {
+				assertLightningNetwork($network)
 				const { getLightningChannel } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 				return channelFieldsFromMempoolSpaceChannel(
 					await getLightningChannel({
 						restBaseUrl: lightningMempoolSpaceRestBaseUrl,
-						channelId: entityId.channelId,
+						channelId: channelId,
 					}),
 				)
 			}
@@ -280,8 +283,8 @@ export default {
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLightningNetwork(entityId.$network)
+				[LightningNetworkSelector.Network]: async ({ $network }) => {
+				assertLightningNetwork($network)
 				const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 				return [
 					timestampFieldsFromMempoolSpaceStatistics(
@@ -301,8 +304,8 @@ export default {
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertLightningNetwork(entityId.$network)
+				[LightningNetworkSelector.Network]: async ({ $network }, context) => {
+				assertLightningNetwork($network)
 				const { getTopLightningNodesByConnectivity } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 				return (
 					await getTopLightningNodesByConnectivity({
@@ -320,8 +323,8 @@ export default {
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertLightningNetwork(entityId.$network)
+				[LightningNetworkSelector.Network]: async ({ $network }, context) => {
+				assertLightningNetwork($network)
 				const {
 					getLightningNodeChannels,
 					getTopLightningNodesByConnectivity,
@@ -335,7 +338,7 @@ export default {
 						publicKey: nodes[0].publicKey,
 					})
 				).slice(0, resolverContextRowLimit(context)).map((channel) => ({
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						$network: lightningNetworkId,
 						channelId: channel.id,
 					},
@@ -358,17 +361,17 @@ export default {
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNode,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertLightningNetwork(entityId.$network)
+				[LightningNodeSelector.NetworkPublicKey]: async ({ $network, publicKey }, context) => {
+				assertLightningNetwork($network)
 				const { getLightningNodeChannels } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 				return (
 					await getLightningNodeChannels({
 						restBaseUrl: lightningMempoolSpaceRestBaseUrl,
-						publicKey: entityId.publicKey,
+						publicKey: publicKey,
 					})
 				).slice(0, resolverContextRowLimit(context)).map((channel) => ({
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector.$network,
 						channelId: channel.id,
 					},
 					shortChannelId: channel.short_id ?? undefined,

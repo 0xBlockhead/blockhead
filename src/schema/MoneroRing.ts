@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import KeyImage from '$/schema/MoneroKeyImage.ts'
+
+export enum MoneroRingSelector {
+	MoneroKeyImage = 'moneroKeyImage',
+}
 
 export default {
 	entityType: EntityType.MoneroRing,
@@ -15,11 +18,22 @@ export default {
 	label: 'Monero Ring',
 	labelPlural: 'Monero Rings',
 
-	id: type({
-		$keyImage: KeyImage.id,
-	}),
+	selectors: [
+		{
+			name: MoneroRingSelector.MoneroKeyImage,
+			fields: [
+				'$keyImage',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$keyImage',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MoneroKeyImage,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$$members',
 			type: EntityFieldType.EntitiesReference,

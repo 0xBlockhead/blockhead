@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.SolanaAccount>
+			selector: EntitySelector<typeof schema, EntityType.SolanaAccount>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const solanaAccount = subscribe(EntityType.SolanaAccount,
-		entityId,
+		selector,
 		({ fields: { $ownerProgram: true, lamports: true, rentEpoch: true, executable: true, dataEncoding: true } }),
 	)
 
@@ -44,15 +44,15 @@
 
 <EntityView
 	entityType={EntityType.SolanaAccount}
-	{entityId}
-	title={entityId.pubkey}
+	entitySelector={selector}
+	title={selector.pubkey}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.pubkey}
+			value={selector.pubkey}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -69,7 +69,7 @@
 							<dt>Owner program</dt>
 							<dd>
 								<SolanaProgramView
-									entityId={solanaAccount.fields.$ownerProgram[EntityMetaKey.Id]}
+									selector={solanaAccount.fields.$ownerProgram[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

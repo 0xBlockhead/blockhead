@@ -75,7 +75,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: (
 							entityFieldReference.entityType === EntityType.EvmNetwork ?
@@ -104,10 +104,10 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmTokenTransfer}
-				getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
+				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
 				getSortValue={(line) => (
-					line.value[EntityMetaKey.Id].logIndex
-					+ (line.value[EntityMetaKey.Id].transferIndex / 1000)
+					line.value[EntityMetaKey.Selector].logIndex
+					+ (line.value[EntityMetaKey.Selector].transferIndex / 1000)
 			)}
 				placeholderText="Loading token transfers…"
 				resource={transfers}
@@ -124,9 +124,9 @@
 
 				{#snippet Item({ item })}
 					{@const line = item.value}
-					{@const transferId = line[EntityMetaKey.Id]}
+					{@const transferId = line[EntityMetaKey.Selector]}
 					<EvmTokenTransferView
-						entityId={transferId}
+						selector={transferId}
 						layout={EntityLayout.SummaryDetails}
 						open={false}
 						showParentTransaction={false}

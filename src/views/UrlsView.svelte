@@ -69,7 +69,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ fields: {
+		entityFieldReference.selector,({ fields: {
 			[entityFieldReference.fieldName]: {
 				sources: fieldSources,
 				limit: limit,
@@ -84,7 +84,7 @@
 			)
 			const byUrl = new Map<string, Entity<typeof schema, EntityType.Url>>()
 			for (const url of urls) {
-				const key = url[EntityMetaKey.Id].url
+				const key = url[EntityMetaKey.Selector].url
 				if (byUrl.has(key)) continue
 					byUrl.set(key, url)
 			}
@@ -101,8 +101,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(envelope) => envelope.value[EntityMetaKey.Id].url}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].url}
+				getKey={(envelope) => envelope.value[EntityMetaKey.Selector].url}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].url}
 				resource={urls}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -115,7 +115,7 @@
 
 				{#snippet Item({ item: envelope })}
 							<UrlView
-								entityId={envelope.value[EntityMetaKey.Id]}
+								selector={envelope.value[EntityMetaKey.Selector]}
 								layout={EntityLayout.Summary}
 								open={false}
 							/>

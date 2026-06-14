@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,19 +17,19 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(lens)/lens/account/[address]', {
 			address: (
-				'address' in entityId ? entityId.address
-				: 'localName' in entityId ? entityId.localName
-				: `legacy:${entityId.legacyProfileId}`
+				'address' in selector ? selector.address
+				: 'localName' in selector ? selector.localName
+				: `legacy:${selector.legacyProfileId}`
 			),
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LensAccount>
+			selector: EntitySelector<typeof schema, EntityType.LensAccount>
 			href?: string
 			open?: boolean
 		},
@@ -40,10 +40,10 @@
 		>
 	> = $props()
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 	const lensAccount = subscribe(EntityType.LensAccount,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Lens_Graphql,
 			], fields: { address: true, localName: true, displayName: true, bio: true, createdAt: true, followerCount: true, followingCount: true, $$timestamps: ({ sources: [
@@ -68,7 +68,7 @@
 
 <EntityView
 	entityType={EntityType.LensAccount}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -79,10 +79,10 @@
 			placeholderText="Loading Lens profile…"
 		>
 			{#snippet children(lensAccount)}
-				{#if lensAccount.fields.$icon?.[EntityMetaKey.Id].url}
+				{#if lensAccount.fields.$icon?.[EntityMetaKey.Selector].url}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={lensAccount.fields.$icon[EntityMetaKey.Id].url}
+						src={lensAccount.fields.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{:else}
@@ -98,7 +98,7 @@
 
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{'address' in entityId ? entityId.address : 'localName' in entityId ? `@${entityId.localName}` : entityId.legacyProfileId}
+			{'address' in selector ? selector.address : 'localName' in selector ? `@${selector.localName}` : selector.legacyProfileId}
 		</span>
 	{/snippet}
 
@@ -110,7 +110,7 @@
 			{#snippet children(lensAccount)}
 				{lensAccount.fields.displayName
 					?? lensAccount.fields.localName
-					?? ('address' in entityId ? entityId.address : 'localName' in entityId ? entityId.localName : entityId.legacyProfileId)}
+					?? ('address' in selector ? selector.address : 'localName' in selector ? selector.localName : selector.legacyProfileId)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -126,7 +126,7 @@
 					&& lensAccount.fields.localName !== (
 						lensAccount.fields.displayName
 						?? lensAccount.fields.localName
-						?? ('address' in entityId ? entityId.address : 'localName' in entityId ? entityId.localName : entityId.legacyProfileId)
+						?? ('address' in selector ? selector.address : 'localName' in selector ? selector.localName : selector.legacyProfileId)
 					)
 				)}
 					<span data-text="muted">
@@ -247,7 +247,7 @@
 							)}
 							entityFieldReference={{
 								entityType: EntityType.LensAccount,
-								entityId: {
+								selector: {
 									address: lensAccount.fields.address,
 								},
 								fieldName: '$$posts',
@@ -267,7 +267,7 @@
 						<LensAccount_TimestampsView
 							entityFieldReference={{
 								entityType: EntityType.LensAccount,
-								entityId: {
+								selector: {
 									address: lensAccount.fields.address,
 								},
 								fieldName: '$$timestamps',

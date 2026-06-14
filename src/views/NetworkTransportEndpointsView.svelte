@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { Source } from '$/sources/Source.ts'
@@ -36,7 +36,7 @@
 	// State
 	let {
 		parentEntityType,
-		parentEntityId,
+		parentEntitySelector,
 		endpointFieldNames,
 		fieldSources,
 		listEntityType,
@@ -49,7 +49,7 @@
 	}: WithRest<
 		{
 			parentEntityType: NetworkTransportEndpointEntityType
-			parentEntityId: EntityId<typeof schema, NetworkTransportEndpointEntityType>
+			parentEntitySelector: EntitySelector<typeof schema, NetworkTransportEndpointEntityType>
 			endpointFieldNames: readonly NetworkTransportEndpointFieldName[]
 			fieldSources: readonly Source[]
 			listEntityType: EntityType
@@ -87,7 +87,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(parentEntityType,
-				parentEntityId,
+				parentEntitySelector,
 				{
 					sources: [...fieldSources],
 					fields: Object.fromEntries(

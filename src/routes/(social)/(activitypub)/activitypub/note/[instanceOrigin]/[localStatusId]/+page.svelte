@@ -13,7 +13,7 @@
 
 <Page>
 	<ActivityPubNoteView
-		entityId={{
+		selector={{
 			instanceOrigin: decodeURIComponent(params.instanceOrigin),
 			localStatusId: decodeURIComponent(params.localStatusId),
 		}}

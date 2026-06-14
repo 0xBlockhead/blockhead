@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum LightningInvoiceSelector {
+	NetworkPaymentHash = 'networkPaymentHash',
+}
 import { Source } from '$/sources/Source.ts'
 
 export enum LightningInvoiceState {
@@ -24,12 +27,29 @@ export default {
 	label: 'Lightning invoice',
 	labelPlural: 'Lightning invoices',
 
-	id: type({
-		$network: Network.id,
-		paymentHash: 'string',
-	}),
+	selectors: [
+		{
+			name: LightningInvoiceSelector.NetworkPaymentHash,
+			fields: [
+				'$network',
+				'paymentHash',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'paymentHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'paymentRequest',
 			type: EntityFieldType.Primitive,

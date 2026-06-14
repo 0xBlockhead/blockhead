@@ -80,7 +80,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						...marketCatalogFieldSources,
 					], fields: { [entityFieldReference.fieldName]: {
 						limit: 8192,
@@ -95,7 +95,7 @@
 						Object.values(
 							Object.groupBy(
 								markets,
-								(market) => stringify(market[EntityMetaKey.Id]),
+								(market) => stringify(market[EntityMetaKey.Selector]),
 							),
 						)
 							.flatMap((group) => (
@@ -107,11 +107,11 @@
 							.filter((market) => (
 								(
 									filterMarketVenueId == null
-									|| market[EntityMetaKey.Id].$marketVenue.marketVenueId === filterMarketVenueId
+									|| market[EntityMetaKey.Selector].$marketVenue.marketVenueId === filterMarketVenueId
 								)
 								&& (
 									filterMarketKind == null
-									|| market[EntityMetaKey.Id].marketKind === filterMarketKind
+									|| market[EntityMetaKey.Selector].marketKind === filterMarketKind
 								)
 							))
 					)
@@ -121,8 +121,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.Market}
-				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
+				getKey={(row) => stringify(row[EntityMetaKey.Selector])}
+				getSortValue={(row) => stringify(row[EntityMetaKey.Selector])}
 				open={true}
 				resource={markets}
 				{title}
@@ -136,8 +136,8 @@
 
 				{#snippet Item({ item })}
 					<MarketView
-						entityId={item[EntityMetaKey.Id]}
-						id={stringify(item[EntityMetaKey.Id])}
+						selector={item[EntityMetaKey.Selector]}
+						id={stringify(item[EntityMetaKey.Selector])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -27,10 +27,13 @@ export const derive = <_Value, _Result>(
 	)
 
 	const promise = $derived(
-		resource.then(async (value) => {
-			await tick()
-			return transform(value)
-		})
+		resource.current !== undefined ?
+			Promise.resolve(current)
+		:
+			resource.then(async (value) => {
+				await tick()
+				return transform(value)
+			})
 	)
 
 	// @ts-expect-error current

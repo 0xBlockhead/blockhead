@@ -31,7 +31,7 @@
 	>
 		{#snippet Summary({ open: _open })}
 			<EnsView
-				entityId={{ name: params.ensName }}
+				selector={{ name: params.ensName }}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

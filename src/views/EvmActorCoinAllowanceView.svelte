@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -19,19 +19,19 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/~/(accounts)/accounts/(allowances)/allowance/[chainId]/[owner]/[coin]/[spender]',
 			{
-				chainId: String(evmChainIdFromCaip2(`${entityId.$actorCoin.$coinInstance.$network.caip2.namespace}:${entityId.$actorCoin.$coinInstance.$network.caip2.reference}`)),
-				owner: entityId.$actorCoin.$actor.address,
+				chainId: String(evmChainIdFromCaip2(`${selector.$actorCoin.$coinInstance.$network.caip2.namespace}:${selector.$actorCoin.$coinInstance.$network.caip2.reference}`)),
+				owner: selector.$actorCoin.$actor.address,
 				coin: (
-					entityId.$actorCoin.$coinInstance.type === CoinInstanceType.Erc20Token ?
-						entityId.$actorCoin.$coinInstance.$contract.address
+					selector.$actorCoin.$coinInstance.type === CoinInstanceType.Erc20Token ?
+						selector.$actorCoin.$coinInstance.$contract.address
 					:
 						pathNativeCoin
 				),
-				spender: entityId.$spender.address,
+				spender: selector.$spender.address,
 			},
 		),
 		open = $bindable(true),
@@ -39,7 +39,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmActorCoinAllowance>
+			selector: EntitySelector<typeof schema, EntityType.EvmActorCoinAllowance>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -53,10 +53,10 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const allowanceAnchorKey = stringify(entityId)
+	const allowanceAnchorKey = stringify(selector)
 
 	const allowance = subscribe(EntityType.EvmActorCoinAllowance,
-		entityId,
+		selector,
 		({ sources: [Source.Voltaire_JsonRpc], fields: { allowance: true, lastChecked: true, ...(open ? ({ $spenderContract: true }) : ({  })) } }),
 	)
 
@@ -76,7 +76,7 @@
 
 <EntityView
 	entityType={EntityType.EvmActorCoinAllowance}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -109,9 +109,9 @@
 				<dt>Owner</dt>
 				<dd>
 					<EvmNetworkAccountView
-						entityId={{
-							$network: entityId.$actorCoin.$coinInstance.$network,
-							$actor: entityId.$actorCoin.$actor,
+						selector={{
+							$network: selector.$actorCoin.$coinInstance.$network,
+							$actor: selector.$actorCoin.$actor,
 						}}
 						layout={EntityLayout.Title}
 						open={false}
@@ -123,18 +123,18 @@
 				<dd>
 					<TruncatedValue
 						format={TruncatedValueFormat.Visual}
-						value={entityId.$spender.address}
+						value={selector.$spender.address}
 					/>
 				</dd>
 			</div>
 			<div>
 				<dt>Asset</dt>
 				<dd>
-					{#if entityId.$actorCoin.$coinInstance.type === CoinInstanceType.NativeCurrency}
+					{#if selector.$actorCoin.$coinInstance.type === CoinInstanceType.NativeCurrency}
 						Native gas token (chain issuance)
-					{:else if entityId.$actorCoin.$coinInstance.type === CoinInstanceType.Erc20Token}
+					{:else if selector.$actorCoin.$coinInstance.type === CoinInstanceType.Erc20Token}
 						<EvmContractView
-							entityId={entityId.$actorCoin.$coinInstance.$contract}
+							selector={selector.$actorCoin.$coinInstance.$contract}
 							layout={EntityLayout.Value}
 							open={false}
 							showTypeAnnotation={false}
@@ -190,9 +190,9 @@
 							placeholderText="Loading spender…"
 						>
 							{#snippet children(allowance)}
-								{#if allowance.fields.$spenderContract?.[EntityMetaKey.Id]}
+								{#if allowance.fields.$spenderContract?.[EntityMetaKey.Selector]}
 									<EvmContractView
-										entityId={allowance.fields.$spenderContract[EntityMetaKey.Id]}
+										selector={allowance.fields.$spenderContract[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}

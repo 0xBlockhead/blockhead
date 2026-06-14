@@ -5,12 +5,12 @@ import { canonicalIpfsCidString, decodeIpfsCid } from '$/lib/multiformats.ts'
 import { ipfsResourceCanonicalUri } from '$/lib/ipfs.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { IpfsResourceSelector } from '$/schema/IpfsResource.ts'
 
 export default {
 	source: Source.Ipfs_Rest,
@@ -19,12 +19,12 @@ export default {
 		defineResolver(Source.Ipfs_Rest, {
 			entityType: EntityType.IpfsResource,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[IpfsResourceSelector.ResourceAddress]: async ({ contentPath, namespace, target }) => {
 				const { fetchBrowseResult } = await import('$/sources/Ipfs/Rest/queries.ts')
 				const browseResult = await fetchBrowseResult({
-					namespace: entityId.namespace,
-					target: entityId.target,
-					contentPath: entityId.contentPath,
+					namespace: namespace,
+					target: target,
+					contentPath: contentPath,
 				})
 				const decodedCid = (
 					browseResult.namespace === 'ipfs' ?
@@ -45,7 +45,7 @@ export default {
 								{
 									...media,
 									$original: {
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											url: browseResult.gatewayUrl,
 										},
 										...(browseResult.contentType != null && { mimeType: browseResult.contentType }),

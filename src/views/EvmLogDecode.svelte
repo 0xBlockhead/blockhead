@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,7 +15,7 @@
 	}: {
 		topics: string[]
 		data?: string
-		emitterContractId?: EntityId<typeof schema, EntityType.EvmContract>
+		emitterContractId?: EntitySelector<typeof schema, EntityType.EvmContract>
 		open?: boolean
 	} = $props()
 
@@ -45,7 +45,7 @@
 				{ hex: topic0Hex }
 			:
 					{ hex: emptyTopicHex }
-		) satisfies EntityId<typeof schema, EntityType.EvmTopic>,
+		) satisfies EntitySelector<typeof schema, EntityType.EvmTopic>,
 		({ sources: [
 				Source.Openchain_Rest,
 			], fields: { signatures: true } }),

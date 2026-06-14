@@ -7,6 +7,6 @@
 
 <Page>
 	<RedditView
-		entityId={{ scope: 'RedditNetwork' }}
+		selector={{ scope: 'RedditNetwork' }}
 	/>
 </Page>

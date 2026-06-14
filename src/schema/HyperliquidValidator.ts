@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum HyperliquidValidatorSelector {
+	NetworkValidator = 'networkValidator',
+}
 
 export default {
 	entityType: EntityType.HyperliquidValidator,
@@ -15,12 +18,29 @@ export default {
 	label: 'Hyperliquid Validator',
 	labelPlural: 'Hyperliquid Validators',
 
-	id: type({
-		$network: Network.id,
-		validator: 'string',
-	}),
+	selectors: [
+		{
+			name: HyperliquidValidatorSelector.NetworkValidator,
+			fields: [
+				'$network',
+				'validator',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'validator',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

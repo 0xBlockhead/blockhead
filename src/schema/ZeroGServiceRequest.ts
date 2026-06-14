@@ -5,10 +5,13 @@ import {
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-	} from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import EvmAccount from '$/schema/EvmAccount.ts'
-	import ZeroGServiceProvider from '$/schema/ZeroGServiceProvider.ts'
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import ZeroGServiceProvider from '$/schema/ZeroGServiceProvider.ts'
+
+export enum ZeroGServiceRequestSelector {
+	ZeroGServiceProviderRequestId = 'zeroGServiceProviderRequestId',
+}
 
 export default {
 	entityType: EntityType.ZeroGServiceRequest,
@@ -16,19 +19,35 @@ export default {
 	label: '0G service request',
 	labelPlural: '0G service requests',
 
-	id: type({
-		$serviceProvider: ZeroGServiceProvider.id,
-		requestId: 'string',
-	}),
+	selectors: [
+		{
+			name: ZeroGServiceRequestSelector.ZeroGServiceProviderRequestId,
+			fields: [
+				'$serviceProvider',
+				'requestId',
+			],
+		},
+	],
 
 	fields: [
-			{
-				name: '$requester',
-				type: EntityFieldType.EntityReference,
-				entityType: EntityType.EvmAccount,
-				entityId: EvmAccount.id,
-				cardinality: EntityFieldCardinality.ZeroOrOne,
-			},
+		{
+			name: '$serviceProvider',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.ZeroGServiceProvider,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'requestId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$requester',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: 'requestHash',
 			type: EntityFieldType.Primitive,

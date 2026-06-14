@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -10,17 +10,17 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.BittensorNeuron>
+		selector: EntitySelector<typeof schema, EntityType.BittensorNeuron>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const neuron = subscribe(EntityType.BittensorNeuron,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Bittensor_JsonRpc,
 			], fields: { uid: true } }),
@@ -36,15 +36,15 @@
 
 <EntityView
 	entityType={EntityType.BittensorNeuron}
-	{entityId}
-	title={`Neuron #${entityId.uid}`}
-	idDragPlainText={String(entityId.uid)}
+	entitySelector={selector}
+	title={`Neuron #${selector.uid}`}
+	idDragPlainText={String(selector.uid)}
 	bind:open
 	{layout}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(entityId.uid)}
+			#{String(selector.uid)}
 		</span>
 	{/snippet}
 
@@ -66,7 +66,7 @@
 				<dl>
 					<div>
 						<dt>Subnet</dt>
-						<dd><NumberValue value={entityId.$subnet.netuid} /></dd>
+						<dd><NumberValue value={selector.$subnet.netuid} /></dd>
 					</div>
 
 					<div>

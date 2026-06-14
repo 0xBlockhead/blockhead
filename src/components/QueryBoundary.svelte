@@ -1,8 +1,10 @@
 <script module lang="ts">
-	export enum Layout {
-		Block = 'Block',
-		Inline = 'Inline',
+	export const Layout = {
+		Block: 'Block',
+		Inline: 'Inline',
 	}
+
+	type Layout = typeof Layout[keyof typeof Layout]
 </script>
 
 
@@ -11,7 +13,10 @@
 	import type { Snippet } from 'svelte'
 
 	import { serializeError } from '$/lib/errors.ts'
-	import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
+	import type {
+		QueryResourceError,
+		TanStackLiveQuerySnapshot,
+	} from '$/lib/db/queryResource.svelte.ts'
 
 
 	// State
@@ -27,11 +32,11 @@
 		children: Snippet<[data: Data]>
 		Pending?: Snippet
 		Failed?: Snippet<[
-			error: unknown,
+			error: QueryResourceError,
 			retry: () => void,
 		]>
 		placeholderText?: string
-		query: QueryLike<Data>
+		query: TanStackLiveQuerySnapshot<Data>
 		boundaryKey?: string
 		layout?: Layout
 	} = $props()

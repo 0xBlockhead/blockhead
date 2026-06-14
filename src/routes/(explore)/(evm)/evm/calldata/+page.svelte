@@ -7,6 +7,6 @@
 
 <Page>
 	<EvmCalldataView
-		entityId={{ hex: '0x00000000' }}
+		selector={{ hex: '0x00000000' }}
 	/>
 </Page>

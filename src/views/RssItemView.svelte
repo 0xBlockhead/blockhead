@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,12 +17,12 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/(social)/(rss)/rss/item/[feedKey]/[guid]',
 			{
-				feedKey: encodeURIComponent(entityId.feedUrl),
-				guid: encodeURIComponent(entityId.guid),
+				feedKey: encodeURIComponent(selector.feedUrl),
+				guid: encodeURIComponent(selector.guid),
 			},
 		),
 		layout,
@@ -32,7 +32,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.RssItem>
+			selector: EntitySelector<typeof schema, EntityType.RssItem>
 			href?: string
 			layout?: import('$/components/EntityView.svelte').EntityLayout
 			open?: boolean
@@ -44,7 +44,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const item = subscribe(EntityType.RssItem,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Rss_Rest,
 				Source.Rss2Json_Rest,
@@ -65,7 +65,7 @@
 
 <EntityView
 	entityType={EntityType.RssItem}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -73,7 +73,7 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.guid}
+			value={selector.guid}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -84,7 +84,7 @@
 			placeholderText="Loading item…"
 		>
 			{#snippet children(item)}
-				{item.fields.title ?? entityId.guid}
+				{item.fields.title ?? selector.guid}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -128,7 +128,7 @@
 								endLength={12}
 								format={TruncatedValueFormat.Visual}
 								startLength={20}
-								value={entityId.guid}
+								value={selector.guid}
 							/>
 						</dd>
 					</div>
@@ -138,7 +138,7 @@
 							<dt>Feed</dt>
 							<dd>
 								<RssFeedView
-									entityId={item.fields.$feed[EntityMetaKey.Id]}
+									selector={item.fields.$feed[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -243,7 +243,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const idKey = stringify(entityId)}
+		{@const idKey = stringify(selector)}
 		<CollapsibleTabs
 			id={`${idKey}:carousel-item`}
 			sectionIdPrefix={idKey}

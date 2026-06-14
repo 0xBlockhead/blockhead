@@ -4,11 +4,13 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { ZeroGStorageNodeSelector } from '$/schema/ZeroGStorageNode.ts'
+import { ZeroGDataBlobSelector } from '$/schema/ZeroGDataBlob.ts'
+import { ZeroGDataChunkSelector } from '$/schema/ZeroGDataChunk.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -23,18 +25,18 @@ const localStorageNodeId = async () => {
 	return (await getStatus({ rpcUrl: zeroGStorageNodeDefaultLocalRpcUrl })).networkIdentity.flowAddress
 }
 
-const fileInfoForDataBlob = async (entityId: {
+const fileInfoForDataBlob = async ({ $network, dataRoot }: {
 	$network: NetworkId
 	dataRoot: string
 }) => {
-	assertZeroGMainnet(entityId.$network)
+	assertZeroGMainnet($network)
 	const { getFileInfo } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
 	const fileInfo = await getFileInfo({
 		rpcUrl: zeroGStorageNodeDefaultLocalRpcUrl,
-		root: entityId.dataRoot,
+		root: dataRoot,
 		needAvailable: true,
 	})
-	if (fileInfo == null) throw new Error(`ZeroGStorageNode_JsonRpc: data root not found ${entityId.dataRoot}`)
+	if (fileInfo == null) throw new Error(`ZeroGStorageNode_JsonRpc: data root not found ${dataRoot}`)
 	return fileInfo
 }
 
@@ -45,16 +47,16 @@ export default {
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertZeroGMainnet(entityId.$network)
+				[ZeroGStorageNodeSelector.NetworkNodeId]: async ({ $network, nodeId }) => {
+				assertZeroGMainnet($network)
 				const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
 				const status = await getStatus({ rpcUrl: zeroGStorageNodeDefaultLocalRpcUrl })
-				if (status.networkIdentity.flowAddress !== entityId.nodeId) {
-					throw new Error(`ZeroGStorageNode_JsonRpc: local node ${status.networkIdentity.flowAddress} does not match ${entityId.nodeId}`)
+				if (status.networkIdentity.flowAddress !== nodeId) {
+					throw new Error(`ZeroGStorageNode_JsonRpc: local node ${status.networkIdentity.flowAddress} does not match ${nodeId}`)
 				}
 				return {
 					$operator: {
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							address: status.networkIdentity.flowAddress,
 						},
 					},
@@ -72,13 +74,13 @@ export default {
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataBlob,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const fileInfo = await fileInfoForDataBlob(entityId)
+				[ZeroGDataBlobSelector.NetworkDataRoot]: async (entitySelector) => {
+				const fileInfo = await fileInfoForDataBlob(entitySelector)
 				return {
 					sizeBytes: BigInt(fileInfo.tx.size),
 					$$chunks: fileInfo.tx.streamIds.map((_chunkRoot, chunkIndex) => ({
-						[EntityMetaKey.Id]: {
-							$dataBlob: entityId,
+						[EntityMetaKey.Selector]: {
+							$dataBlob: entitySelector,
 							chunkIndex,
 						},
 					})),
@@ -95,14 +97,14 @@ export default {
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataChunk,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const fileInfo = await fileInfoForDataBlob(entityId.$dataBlob)
-				const chunkRoot = fileInfo.tx.streamIds.at(entityId.chunkIndex)
-				if (chunkRoot == null) throw new Error(`ZeroGStorageNode_JsonRpc: chunk not found ${entityId.$dataBlob.dataRoot}:${String(entityId.chunkIndex)}`)
+				[ZeroGDataChunkSelector.ZeroGDataBlobChunkIndex]: async ({ $dataBlob, chunkIndex }) => {
+				const fileInfo = await fileInfoForDataBlob($dataBlob)
+				const chunkRoot = fileInfo.tx.streamIds.at(chunkIndex)
+				if (chunkRoot == null) throw new Error(`ZeroGStorageNode_JsonRpc: chunk not found ${$dataBlob.dataRoot}:${String(chunkIndex)}`)
 				return {
 					$storageNode: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$dataBlob.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $dataBlob.$network,
 							nodeId: await localStorageNodeId(),
 						},
 					},

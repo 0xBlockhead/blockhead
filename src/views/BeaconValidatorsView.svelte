@@ -58,7 +58,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Beacon_Rest,
@@ -74,14 +74,14 @@
 					?? []
 				),
 			)}
-			{#key stringify(entityFieldReference.entityId)}
+			{#key stringify(entityFieldReference.selector)}
 				<EntitiesList
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.BeaconValidator}
 					id={`${id}-items`}
 					href={href}
-					getKey={(validator) => String(validator[EntityMetaKey.Id].validatorIndex)}
+					getKey={(validator) => String(validator[EntityMetaKey.Selector].validatorIndex)}
 					placeholderText="Loading validators…"
 					resource={validators}
 					{title}
@@ -96,7 +96,7 @@
 
 					{#snippet Item({ item: validator })}
 						<BeaconValidatorView
-							entityId={validator[EntityMetaKey.Id]}
+							selector={validator[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

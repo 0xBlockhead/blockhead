@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.MoneroStealthOutput>
+			selector: EntitySelector<typeof schema, EntityType.MoneroStealthOutput>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const moneroStealthOutput = subscribe(EntityType.MoneroStealthOutput,
-		entityId,
+		selector,
 		({ fields: { publicKey: true, commitment: true } }),
 	)
 
@@ -41,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.MoneroStealthOutput}
-	{entityId}
-	title={`Stealth output #${entityId.outputIndex.toString()}`}
-	idDragPlainText={entityId.outputIndex.toString()}
+	entitySelector={selector}
+	title={`Stealth output #${selector.outputIndex.toString()}`}
+	idDragPlainText={selector.outputIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.outputIndex.toString()}
+			#{selector.outputIndex.toString()}
 		</span>
 	{/snippet}
 

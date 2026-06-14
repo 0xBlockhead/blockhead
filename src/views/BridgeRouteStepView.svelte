@@ -10,7 +10,7 @@
 	} from '$/constants/Bridge.ts'
 
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -27,14 +27,14 @@
 
 	// State
 	let {
-		entityId,
-		href = resolve(`/bridge/route/${encodeURIComponent(stringify(entityId.$route))}/step/${String(entityId.index)}`),
+		selector,
+		href = resolve(`/bridge/route/${encodeURIComponent(stringify(selector.$route))}/step/${String(selector.index)}`),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BridgeRouteStep>
+			selector: EntitySelector<typeof schema, EntityType.BridgeRouteStep>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -46,7 +46,7 @@
 	> = $props()
 
 	const step = subscribe(EntityType.BridgeRouteStep,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
@@ -64,14 +64,14 @@
 
 <EntityView
 	entityType={EntityType.BridgeRouteStep}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.index}
+			#{selector.index}
 		</span>
 	{/snippet}
 
@@ -85,7 +85,7 @@
 					step.fields.tool != null && step.fields.tool !== '' ?
 						(bridgeToolByKey[step.fields.tool]?.label ?? step.fields.tool)
 					:
-						`Step ${entityId.index + 1}`
+						`Step ${selector.index + 1}`
 				)}
 			{/snippet}
 		</ResourceBoundary>
@@ -218,7 +218,7 @@
 						{#snippet children(step)}
 							{#if step.fields.$fromNetwork}
 								<EvmNetworkView
-									entityId={step.fields.$fromNetwork[EntityMetaKey.Id]}
+									selector={step.fields.$fromNetwork[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -238,7 +238,7 @@
 						{#snippet children(step)}
 							{#if step.fields.$toNetwork}
 								<EvmNetworkView
-									entityId={step.fields.$toNetwork[EntityMetaKey.Id]}
+									selector={step.fields.$toNetwork[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -259,7 +259,7 @@
 							{#snippet children(step)}
 								{#if step.fields.$fromToken}
 									<EvmCoinInstanceView
-										entityId={step.fields.$fromToken[EntityMetaKey.Id]}
+										selector={step.fields.$fromToken[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
 										showTypeAnnotation={false}
@@ -282,7 +282,7 @@
 							{#snippet children(step)}
 								{#if step.fields.$toToken}
 									<EvmCoinInstanceView
-										entityId={step.fields.$toToken[EntityMetaKey.Id]}
+										selector={step.fields.$toToken[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
 										showTypeAnnotation={false}

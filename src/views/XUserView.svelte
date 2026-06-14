@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,15 +17,15 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(x)/x/user/[userId]', {
-			userId: 'id' in entityId ? entityId.id : entityId.username,
+			userId: 'id' in selector ? selector.id : selector.username,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.XUser>
+			selector: EntitySelector<typeof schema, EntityType.XUser>
 			href?: string
 			open?: boolean
 		},
@@ -37,9 +37,9 @@
 	> = $props()
 
 	const user = subscribe(EntityType.XUser,
-		entityId,
+		selector,
 		({
-			...(!('id' in entityId) && {
+			...(!('id' in selector) && {
 				sources: [Source.X_FxEmbed_Rest],
 			}),
 			fields: { id: true, username: true, name: true, description: true, location: true, websiteUrl: true, verified: true, createdAt: true, followerCount: true, followingCount: true, tweetCount: true, listedCount: true, $$timestamps: ({ limit: 1 }), $icon: true, $profileBanner: true, $$posts: true },
@@ -64,7 +64,7 @@
 
 <EntityView
 	entityType={EntityType.XUser}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{open}
 	{...EntityViewProps}
@@ -79,7 +79,7 @@
 					<IconComponent
 						alt={user.fields.name ?? user.fields.username ?? ''}
 						shape={IconShape.Circle}
-						src={user.fields.$icon[EntityMetaKey.Id].url}
+						src={user.fields.$icon[EntityMetaKey.Selector].url}
 					/>
 				{/if}
 			{/snippet}
@@ -88,7 +88,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={'id' in entityId ? entityId.id : `@${entityId.username}`}
+			value={'id' in selector ? selector.id : `@${selector.username}`}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -99,7 +99,7 @@
 			placeholderText="Loading X profile…"
 		>
 			{#snippet children(user)}
-				{user.fields.name ?? user.fields.username ?? ('id' in entityId ? entityId.id : entityId.username)}
+				{user.fields.name ?? user.fields.username ?? ('id' in selector ? selector.id : selector.username)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -113,7 +113,7 @@
 				{#if (
 					user.fields.username !== undefined
 					&& user.fields.username !== (
-						user.fields.name ?? ('id' in entityId ? entityId.id : entityId.username)
+						user.fields.name ?? ('id' in selector ? selector.id : selector.username)
 					)
 				)}
 					<span data-text="muted">
@@ -269,15 +269,15 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const userIdKey = stringify(entityId)}
+		{@const userSelectorKey = stringify(selector)}
 		<CollapsibleTabs
-			sectionIdPrefix={userIdKey}
+			sectionIdPrefix={userSelectorKey}
 				sections={collapsibleTabsSections([
 					{ id: 'profile', label: 'Profile' },
 					{ id: 'posts', label: 'Posts' },
 					{ id: 'metric-snapshots', label: 'Metrics' },
 				])}
-			id={`${userIdKey}:carousel-profile`}
+			id={`${userSelectorKey}:carousel-profile`}
 			data-card
 		>
 			{#snippet Summary({ open: _isOpen })}
@@ -302,11 +302,11 @@
 								<p><strong>Description:</strong> {user.fields.description}</p>
 							{/if}
 
-							{#if user.fields.$profileBanner?.[EntityMetaKey.Id].url != null}
+							{#if user.fields.$profileBanner?.[EntityMetaKey.Selector].url != null}
 								<figure>
 									<Media
 										alt=""
-										media={{ url: user.fields.$profileBanner[EntityMetaKey.Id].url }}
+										media={{ url: user.fields.$profileBanner[EntityMetaKey.Selector].url }}
 									/>
 								</figure>
 							{/if}
@@ -339,12 +339,12 @@
 								)}
 								entityFieldReference={{
 									entityType: EntityType.XUser,
-									entityId: {
+									selector: {
 										id: user.fields.id,
 									},
 									fieldName: '$$posts',
 								}}
-								id={`${userIdKey}:posts`}
+								id={`${userSelectorKey}:posts`}
 								title="Posts"
 							/>
 						{/if}
@@ -358,7 +358,7 @@
 						<XUser_TimestampsView
 							entityFieldReference={{
 								entityType: EntityType.XUser,
-								entityId: {
+								selector: {
 									id: user.fields.id,
 								},
 								fieldName: '$$timestamps',
@@ -366,7 +366,7 @@
 							href={resolve('/(social)/(x)/x/user/[userId]', {
 								userId: user.fields.id,
 							})}
-							id={`${userIdKey}:metric-snapshots`}
+							id={`${userSelectorKey}:metric-snapshots`}
 							title="Metric snapshots"
 						/>
 					{/snippet}

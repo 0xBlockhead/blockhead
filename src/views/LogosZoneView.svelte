@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LogosZone>
+			selector: EntitySelector<typeof schema, EntityType.LogosZone>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const zone = subscribe(EntityType.LogosZone,
-		entityId,
+		selector,
 		({ sources: [
 				Source.LogosDocs_Rest,
 			], fields: { zoneKind: true } }),
@@ -43,14 +43,14 @@
 
 <EntityView
 	entityType={EntityType.LogosZone}
-	{entityId}
-	title={entityId.zoneId}
+	entitySelector={selector}
+	title={selector.zoneId}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
-		{entityId.zoneId}
+		{selector.zoneId}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

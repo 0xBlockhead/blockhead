@@ -5,11 +5,14 @@ import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts
 import { regex } from 'arkregex'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
+import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
+import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const githubFilecoinFipProposalRows = async (
 	data: {
@@ -24,7 +27,7 @@ const githubFilecoinFipProposalRows = async (
 			[]
 		:
 			[{
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					realm: SpecificationRealm.Filecoin,
 					category: ProposalCategory.Fip,
 					number: parseInt(proposalNumberRaw, 10),
@@ -40,13 +43,13 @@ export default {
 		defineResolver(Source.FilecoinFips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Filecoin || entityId.category !== ProposalCategory.Fip) {
+				if (realm !== SpecificationRealm.Filecoin || category !== ProposalCategory.Fip) {
 					throw new Error('FilecoinFips_Github: unsupported proposal id')
 				}
 				const { getMarkdownText } = await import('$/sources/FilecoinFips/Github/queries.ts')
-				const text = await singleFlight(getMarkdownText)({ number: entityId.number })
+				const text = await singleFlight(getMarkdownText)({ number: number })
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
 				return {
@@ -69,7 +72,7 @@ export default {
 		defineResolver(Source.FilecoinFips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async () => {
+				[_GlobalSelector.Scope]: async () => {
 				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
 				return githubFilecoinFipProposalRows(await singleFlight(getContents)())
 			}
@@ -83,9 +86,9 @@ export default {
 		defineResolver(Source.FilecoinFips_Github, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Filecoin) {
+				if (realm !== SpecificationRealm.Filecoin) {
 					throw new Error('FilecoinFips_Github: $$proposals only supports SpecificationRealm.Filecoin')
 				}
 				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
@@ -101,9 +104,9 @@ export default {
 		defineResolver(Source.FilecoinFips_Github, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Filecoin || entityId.category !== ProposalCategory.Fip) {
+				if (realm !== SpecificationRealm.Filecoin || category !== ProposalCategory.Fip) {
 					throw new Error('FilecoinFips_Github: $$proposals only supports Filecoin FIP proposal kind')
 				}
 				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,15 +15,15 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(assets)/(leverage)/position/[positionId]', {
-			positionId: entityId.id,
+			positionId: selector.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Leverage>
+			selector: EntitySelector<typeof schema, EntityType.Leverage>
 			href?: string
 			open?: boolean
 		},
@@ -31,7 +31,7 @@
 	> = $props()
 
 	const leverage = subscribe(EntityType.Leverage,
-		entityId,
+		selector,
 		({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }),
 	)
 
@@ -48,14 +48,14 @@
 
 <EntityView
 	entityType={EntityType.Leverage}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{open}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -91,7 +91,7 @@
 							<dd>
 								{#if leverage.fields.$pool !== undefined}
 									<EvmNetworkView
-										entityId={leverage.fields.$pool[EntityMetaKey.Id].$network}
+										selector={leverage.fields.$pool[EntityMetaKey.Selector].$network}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -105,7 +105,7 @@
 							<dd>
 								{#if leverage.fields.$pool !== undefined}
 									<LiquidityPoolView
-										entityId={leverage.fields.$pool[EntityMetaKey.Id]}
+										selector={leverage.fields.$pool[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={true}
 										showTypeAnnotation={false}
@@ -120,9 +120,9 @@
 								<dt>Owner</dt>
 								<dd>
 									<EvmNetworkAccountView
-										entityId={{
-											$network: leverage.fields.$pool[EntityMetaKey.Id].$network,
-											$actor: leverage.fields.$owner[EntityMetaKey.Id],
+										selector={{
+											$network: leverage.fields.$pool[EntityMetaKey.Selector].$network,
+											$actor: leverage.fields.$owner[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
 										open={false}

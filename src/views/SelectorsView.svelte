@@ -70,7 +70,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Openchain_Rest,
@@ -95,8 +95,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmSelector}
-				getKey={(envelope) => envelope.value[EntityMetaKey.Id].hex}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].hex}
+				getKey={(envelope) => envelope.value[EntityMetaKey.Selector].hex}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].hex}
 				open={true}
 				resource={selectors}
 				{title}
@@ -110,7 +110,7 @@
 
 				{#snippet Item({ item })}
 					<EvmSelectorView
-						entityId={item.value[EntityMetaKey.Id]}
+						selector={item.value[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 						showTypeAnnotation={false}

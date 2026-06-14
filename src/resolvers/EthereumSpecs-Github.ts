@@ -4,8 +4,9 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EntityIdProjection } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
+import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { EthereumExecutionUpgradeSelector } from '$/schema/EthereumExecutionUpgrade.ts'
 
 
 export default {
@@ -15,20 +16,20 @@ export default {
 		defineResolver(Source.EthereumSpecs_Github, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 				const preset = (
-					Number(entityId.caip2.reference) === 1 ?
+					Number(caip2.reference) === 1 ?
 						'mainnet'
-					: Number(entityId.caip2.reference) === 11_155_111 ?
+					: Number(caip2.reference) === 11_155_111 ?
 						'sepolia'
-					: Number(entityId.caip2.reference) === 17_000 ?
+					: Number(caip2.reference) === 17_000 ?
 						'holesky'
 					:
 						undefined
 				)
 				if (preset == null) {
 					throw new Error(
-						`EthereumSpecs_Github: no consensus preset for chain ${String(Number(entityId.caip2.reference))}`,
+						`EthereumSpecs_Github: no consensus preset for chain ${String(Number(caip2.reference))}`,
 					)
 				}
 				const { fetchConsensusSpecsConfigYaml } = await import('$/sources/EthereumSpecs/Github/queries.ts')
@@ -44,10 +45,10 @@ export default {
 		defineResolver(Source.EthereumSpecs_Github, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				if (!ethereumReferenceForkMetadataChainIds.some((chainId) => chainId === Number(entityId.caip2.reference))) {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				if (!ethereumReferenceForkMetadataChainIds.some((chainId) => chainId === Number(entitySelector.caip2.reference))) {
 					throw new Error(
-						`EthereumSpecs_Github: go-ethereum params unsupported for chain ${String(Number(entityId.caip2.reference))}`,
+						`EthereumSpecs_Github: go-ethereum params unsupported for chain ${String(Number(caip2.reference))}`,
 					)
 				}
 				const { fetchGoEthereumParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')
@@ -63,10 +64,10 @@ export default {
 		defineResolver(Source.EthereumSpecs_Github, {
 			entityType: EntityType.EthereumExecutionUpgrade,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EthereumExecutionUpgradeSelector.EvmNetworkUpgradeId]: async ({ $network, upgradeId }) => {
 				const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 				const networkUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[
-					`${Number(entityId.$network.caip2.reference)}:${entityId.upgradeId}`
+					`${Number($network.caip2.reference)}:${upgradeId}`
 				]
 				const filename = networkUpgrade.executionSpecsPinnedMarkdownFilename
 				if (filename == null) return undefined

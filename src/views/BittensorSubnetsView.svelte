@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Bittensor_JsonRpc,
@@ -84,8 +84,8 @@
 				entityType={EntityType.BittensorSubnet}
 				id={`${id}-items`}
 				href={href}
-				getKey={(subnet) => stringify(subnet[EntityMetaKey.Id])}
-				getSortValue={(subnet) => subnet[EntityMetaKey.Id].netuid}
+				getKey={(subnet) => stringify(subnet[EntityMetaKey.Selector])}
+				getSortValue={(subnet) => subnet[EntityMetaKey.Selector].netuid}
 				open={true}
 				resource={subnets}
 				{title}
@@ -99,7 +99,7 @@
 
 				{#snippet Item(context)}
 					<BittensorSubnetView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

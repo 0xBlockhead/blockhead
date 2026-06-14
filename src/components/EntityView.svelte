@@ -25,7 +25,7 @@
 >
 	// Types/constants
 	import type { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { entityDefinitionByType, schema } from '$/schema/index.ts'
 
 
@@ -52,12 +52,12 @@
 	// State
 	let {
 		entityType,
-		entityId,
+		entitySelector,
 
 		title,
 		href,
 
-		/** Override `text/plain` when dragging the default title row; default is `stringify(entityId)`. */
+		/** Override `text/plain` when dragging the default title row; default is `stringify(entitySelector)`. */
 		idDragPlainText,
 
 		layout = EntityLayout.SummaryDetails,
@@ -83,7 +83,7 @@
 	}: WithRest<
 		{
 			entityType: _EntityType
-			entityId: EntityId<typeof schema, _EntityType>
+			entitySelector: EntitySelector<typeof schema, _EntityType>
 
 			title?: string
 			href?: string
@@ -126,7 +126,7 @@
 	import Collapsible from '$/components/Collapsible.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import EntityIdComponent from './EntityId.svelte'
+	import EntityId from './EntityId.svelte'
 	import EntityDetails from './EntityDetails.svelte'
 </script>
 
@@ -150,8 +150,8 @@
 		>
 			<div data-row="start wrap">
 				<HeadingComponent>
-					<EntityIdComponent
-						{entityId}
+					<EntityId
+						{entitySelector}
 						{href}
 						{idDragPlainText}
 						{Icon}
@@ -165,7 +165,7 @@
 								{entityTitle}
 							{/if}
 						{/snippet}
-					</EntityIdComponent>
+					</EntityId>
 				</HeadingComponent>
 
 				{#if HeadingAfter}
@@ -190,8 +190,8 @@
 		data-row-item="flexible"
 		data-row="inline align-center wrap"
 	>
-		<EntityIdComponent
-			{entityId}
+		<EntityId
+			{entitySelector}
 			{href}
 			{idDragPlainText}
 			{Icon}
@@ -215,7 +215,7 @@
 					{/if}
 				{/if}
 			{/snippet}
-		</EntityIdComponent>
+		</EntityId>
 	</span>
 
 {:else if layout === EntityLayout.SummaryInline}
@@ -251,8 +251,8 @@
 		data-column-item="flexible"
 		data-column
 		{...articleProps}
-		id={stringify(entityId)}
-		style:view-transition-name={`EntityView-${stringify(entityId)}`}
+		id={stringify(entitySelector)}
+		style:view-transition-name={`EntityView-${stringify(entitySelector)}`}
 	>
 		{#snippet Annotation()}
 			{#if TypeAnnotationTooltip}
@@ -275,7 +275,7 @@
 			{ontoggle}
 			onclose={() => {
 				if (!isInsidePage)
-					onNestedCollapsibleClose?.(stringify(entityId))
+					onNestedCollapsibleClose?.(stringify(entitySelector))
 			}}
 			data-column-item="flexible"
 			data-card
@@ -293,7 +293,7 @@
 				{#if Details && open}
 					<EntityDetails
 						{entityType}
-						{entityId}
+						{entitySelector}
 					>
 						{#if Content && open}
 							{@render Content({

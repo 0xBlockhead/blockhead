@@ -105,18 +105,18 @@
 
 	// Functions
 	const proposalKindKey = (specificationProposalKind: Entity<typeof schema, EntityType.SpecificationProposalKind>) => (
-		stringify(specificationProposalKind[EntityMetaKey.Id])
+		stringify(specificationProposalKind[EntityMetaKey.Selector])
 	)
 
 	const kindPanelDomId = (kind: Entity<typeof schema, EntityType.SpecificationProposalKind>) => (
-		`proposal-kind:${kind[EntityMetaKey.Id].realm}:${kind[EntityMetaKey.Id].category}:proposals`
+		`proposal-kind:${kind[EntityMetaKey.Selector].realm}:${kind[EntityMetaKey.Selector].category}:proposals`
 	)
 
 
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ sources: [
+		entityFieldReference.selector,({ sources: [
 				Source.Constants_Internal,
 			], fields: { [entityFieldReference.fieldName]: {
 				limit: 512,
@@ -135,8 +135,8 @@
 			return (
 				specificationProposalKinds
 					.toSorted((first, second) => (
-						(first.labelPlural ?? first.label ?? stringify(first[EntityMetaKey.Id])).localeCompare(
-							second.labelPlural ?? second.label ?? stringify(second[EntityMetaKey.Id]),
+						(first.labelPlural ?? first.label ?? stringify(first[EntityMetaKey.Selector])).localeCompare(
+							second.labelPlural ?? second.label ?? stringify(second[EntityMetaKey.Selector]),
 						)
 					))
 			)
@@ -212,21 +212,21 @@
 				{:else if !showSummary}
 					<div {...standaloneKindPanelsProps}>
 						{#each proposalKinds as specificationProposalKind (proposalKindKey(specificationProposalKind))}
-							<section data-scroll-marker-label={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Id].category)}>
+							<section data-scroll-marker-label={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Selector].category)}>
 								<ProposalsView
 									href={resolve('/proposals')}
 									collapsible={false}
 									entityFieldReference={{
 										entityType: EntityType.SpecificationProposalKind,
-										entityId: {
-											realm: specificationProposalKind[EntityMetaKey.Id].realm,
-											category: specificationProposalKind[EntityMetaKey.Id].category,
+										selector: {
+											realm: specificationProposalKind[EntityMetaKey.Selector].realm,
+											category: specificationProposalKind[EntityMetaKey.Selector].category,
 										},
 										fieldName: '$$proposals',
 									}}
 									id={kindPanelDomId(specificationProposalKind)}
 									open
-									title={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Id].category)}
+									title={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Selector].category)}
 								/>
 							</section>
 						{/each}
@@ -295,15 +295,15 @@
 										href={resolve('/proposals')}
 										entityFieldReference={{
 											entityType: EntityType.SpecificationProposalKind,
-											entityId: {
-												realm: specificationProposalKind[EntityMetaKey.Id].realm,
-												category: specificationProposalKind[EntityMetaKey.Id].category,
+											selector: {
+												realm: specificationProposalKind[EntityMetaKey.Selector].realm,
+												category: specificationProposalKind[EntityMetaKey.Selector].category,
 											},
 											fieldName: '$$proposals',
 										}}
 										id={kindPanelDomId(specificationProposalKind)}
 										open
-										title={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Id].category)}
+										title={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Selector].category)}
 									/>
 								</section>
 							{/each}
@@ -351,9 +351,9 @@
 								>
 									{#each proposalKinds as specificationProposalKind (proposalKindKey(specificationProposalKind))}
 										<a
-											data-scroll-marker-label={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Id].category)}
+											data-scroll-marker-label={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Selector].category)}
 											href={`#${kindPanelDomId(specificationProposalKind)}`}
-										>{specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Id].category)}</a>
+										>{specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Selector].category)}</a>
 									{/each}
 								</div>
 
@@ -370,21 +370,21 @@
 						>
 							<div {...standaloneKindPanelsProps}>
 								{#each proposalKinds as specificationProposalKind (proposalKindKey(specificationProposalKind))}
-									<section data-scroll-marker-label={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Id].category)}>
+									<section data-scroll-marker-label={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Selector].category)}>
 										<ProposalsView
 											href={resolve('/proposals')}
 											collapsible={false}
 											entityFieldReference={{
 												entityType: EntityType.SpecificationProposalKind,
-												entityId: {
-													realm: specificationProposalKind[EntityMetaKey.Id].realm,
-													category: specificationProposalKind[EntityMetaKey.Id].category,
+												selector: {
+													realm: specificationProposalKind[EntityMetaKey.Selector].realm,
+													category: specificationProposalKind[EntityMetaKey.Selector].category,
 												},
 												fieldName: '$$proposals',
 											}}
 											id={kindPanelDomId(specificationProposalKind)}
 											open
-											title={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Id].category)}
+											title={specificationProposalKind.labelPlural ?? specificationProposalKind.label ?? String(specificationProposalKind[EntityMetaKey.Selector].category)}
 										/>
 									</section>
 								{/each}

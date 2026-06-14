@@ -7,7 +7,7 @@
 
 <Page>
 	<IpfsProtocolView
-		entityId={{
+		selector={{
 			scope: 'IpfsProtocol',
 		}}
 	/>

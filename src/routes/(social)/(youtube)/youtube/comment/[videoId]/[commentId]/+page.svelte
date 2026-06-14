@@ -13,7 +13,7 @@
 
 <Page>
 	<YouTubeCommentView
-		entityId={{
+		selector={{
 			videoId: decodeURIComponent(params.videoId),
 			commentId: decodeURIComponent(params.commentId),
 		}}

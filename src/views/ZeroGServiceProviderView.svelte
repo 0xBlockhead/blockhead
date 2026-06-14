@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,18 +12,18 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ZeroGServiceProvider>
+			selector: EntitySelector<typeof schema, EntityType.ZeroGServiceProvider>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const serviceProvider = subscribe(EntityType.ZeroGServiceProvider, entityId, ({ fields: { serviceKind: true, $operator: true, verificationMethod: true, $$requests: true } }))
+	const serviceProvider = subscribe(EntityType.ZeroGServiceProvider, selector, ({ fields: { serviceKind: true, $operator: true, verificationMethod: true, $$requests: true } }))
 
 
 	// Components
@@ -37,14 +37,14 @@
 
 <EntityView
 	entityType={EntityType.ZeroGServiceProvider}
-	{entityId}
-	title={entityId.providerId}
+	entitySelector={selector}
+	title={selector.providerId}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.providerId}
+			value={selector.providerId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -72,7 +72,7 @@
 							<dt>Operator</dt>
 							<dd>
 								<EvmAccountView
-									entityId={serviceProvider.fields.$operator[EntityMetaKey.Id]}
+									selector={serviceProvider.fields.$operator[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -92,10 +92,10 @@
 							<dt>Requests</dt>
 							<dd>
 								<ul>
-									{#each serviceProvider.fields.$$requests.values as request (request[EntityMetaKey.Id].requestId)}
+									{#each serviceProvider.fields.$$requests.values as request (request[EntityMetaKey.Selector].requestId)}
 										<li>
 											<ZeroGServiceRequestView
-												entityId={request[EntityMetaKey.Id]}
+												selector={request[EntityMetaKey.Selector]}
 												layout={EntityLayout.Title}
 												open={false}
 											/>

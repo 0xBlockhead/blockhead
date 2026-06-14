@@ -2,8 +2,8 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EntityIdProjection } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
+import { PayjoinDirectorySelector } from '$/schema/PayjoinDirectory.ts'
 
 export default {
 	source: Source.PayjoinDirectory_Rest,
@@ -12,15 +12,15 @@ export default {
 		defineResolver(Source.PayjoinDirectory_Rest, {
 			entityType: EntityType.PayjoinDirectory,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[PayjoinDirectorySelector.DirectoryUrl]: async ({ directoryUrl }) => {
 				const {
 					getOhttpKeyConfigBase64,
 					ohttpGatewayUrlForDirectory,
 				} = await import('$/sources/Payjoin/Directory/Rest/queries.ts')
 				return {
-					ohttpGatewayUrl: ohttpGatewayUrlForDirectory(entityId.directoryUrl),
+					ohttpGatewayUrl: ohttpGatewayUrlForDirectory(directoryUrl),
 					ohttpKeyConfig: await getOhttpKeyConfigBase64({
-						directoryUrl: entityId.directoryUrl,
+						directoryUrl: directoryUrl,
 					}),
 				}
 			}

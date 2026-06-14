@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Miner from '$/schema/FilecoinMiner.ts'
+
+export enum FilecoinSectorSelector {
+	FilecoinMinerSectorNumber = 'filecoinMinerSectorNumber',
+}
 
 export default {
 	entityType: EntityType.FilecoinSector,
@@ -15,12 +18,29 @@ export default {
 	label: 'Filecoin Sector',
 	labelPlural: 'Filecoin Sectors',
 
-	id: type({
-		$miner: Miner.id,
-		sectorNumber: 'bigint',
-	}),
+	selectors: [
+		{
+			name: FilecoinSectorSelector.FilecoinMinerSectorNumber,
+			fields: [
+				'$miner',
+				'sectorNumber',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$miner',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.FilecoinMiner,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'sectorNumber',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'sealedCid',
 			type: EntityFieldType.Primitive,

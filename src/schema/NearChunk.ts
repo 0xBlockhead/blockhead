@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum NearChunkSelector {
+	NetworkChunkHash = 'networkChunkHash',
+}
 
 export default {
 	entityType: EntityType.NearChunk,
@@ -15,12 +18,29 @@ export default {
 	label: 'NEAR Chunk',
 	labelPlural: 'NEAR Chunks',
 
-	id: type({
-		$network: Network.id,
-		chunkHash: 'string',
-	}),
+	selectors: [
+		{
+			name: NearChunkSelector.NetworkChunkHash,
+			fields: [
+				'$network',
+				'chunkHash',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'chunkHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$block',
 			type: EntityFieldType.EntityReference,

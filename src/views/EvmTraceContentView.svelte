@@ -39,7 +39,7 @@
 			<dt>From</dt>
 			<dd>
 				<EvmNetworkAccountView
-					entityId={{
+					selector={{
 						$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 						$actor: { address: trace.from },
 					}}
@@ -55,7 +55,7 @@
 			<dt>To</dt>
 			<dd>
 				<EvmNetworkAccountView
-					entityId={{
+					selector={{
 						$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 						$actor: { address: trace.to },
 					}}

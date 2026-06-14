@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,14 +12,14 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BeaconCommittee>
+			selector: EntitySelector<typeof schema, EntityType.BeaconCommittee>
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
@@ -31,7 +31,7 @@
 	> = $props()
 
 	const committee = subscribe(EntityType.BeaconCommittee,
-		entityId,
+		selector,
 		(
 			open ?
 				{
@@ -51,7 +51,7 @@
 	// (Derived)
 	const title = $derived(
 		titleProp
-		?? `Committee ${entityId.index} in slot ${entityId.slot.toLocaleString()}`
+		?? `Committee ${selector.index} in slot ${selector.slot.toLocaleString()}`
 	)
 
 
@@ -64,7 +64,7 @@
 
 <EntityView
 	entityType={EntityType.BeaconCommittee}
-	{entityId}
+	entitySelector={selector}
 	{title}
 	{layout}
 	bind:open
@@ -73,9 +73,9 @@
 	{#snippet Value()}
 		<span
 			data-badge="small"
-			data-committee-index={String(entityId.index)}
+			data-committee-index={String(selector.index)}
 		>
-			{String(entityId.index)}
+			{String(selector.index)}
 		</span>
 	{/snippet}
 
@@ -84,9 +84,9 @@
 			<span>Committee </span>
 		<span
 			data-badge="small"
-			data-committee-index={String(entityId.index)}
+			data-committee-index={String(selector.index)}
 				>
-			{String(entityId.index)}
+			{String(selector.index)}
 		</span>
 		</span>
 	{/snippet}

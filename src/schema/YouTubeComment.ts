@@ -7,6 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum YouTubeCommentSelector {
+	VideoIdCommentId = 'videoIdCommentId',
+}
+
+
 const YouTubeVideoId = type(
 	'/^[A-Za-z0-9_-]{11}$/' as type.cast<string>,
 )
@@ -17,12 +22,29 @@ export default {
 	label: 'YouTube comment',
 	labelPlural: 'YouTube comments',
 
-	id: type({
-		videoId: YouTubeVideoId,
-		commentId: 'string',
-	}),
+	selectors: [
+		{
+			name: YouTubeCommentSelector.VideoIdCommentId,
+			fields: [
+				'videoId',
+				'commentId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'videoId',
+			type: EntityFieldType.Primitive,
+			primitiveType: YouTubeVideoId,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'commentId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'text',
 			type: EntityFieldType.Primitive,

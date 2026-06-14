@@ -9,6 +9,11 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 
+export enum NostrProfileSelector {
+	CanonicalPubkey = 'canonicalPubkey',
+}
+
+
 const NostrPubkey = type(
 	'/^[0-9a-f]{64}$/' as type.cast<string>,
 )
@@ -19,18 +24,11 @@ export default {
 	label: 'Nostr profile',
 	labelPlural: 'Nostr profiles',
 
-	id: type({
-		pubkey: NostrPubkey,
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'canonicalPubkey',
+			name: NostrProfileSelector.CanonicalPubkey,
 			fields: [
-				{
-					name: 'pubkey',
-					normalize: lowercaseHexIdentityValue,
-				},
+				'pubkey',
 			],
 		},
 	],

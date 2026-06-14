@@ -11,7 +11,7 @@
 
 <Page>
 	<BeaconEpochView
-		entityId={{
+		selector={{
 			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			epoch: Number(params.epochNumber),
 		}}

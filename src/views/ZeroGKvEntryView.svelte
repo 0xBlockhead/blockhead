@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,18 +12,18 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ZeroGKvEntry>
+			selector: EntitySelector<typeof schema, EntityType.ZeroGKvEntry>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const zeroGKvEntry = subscribe(EntityType.ZeroGKvEntry, entityId, ({ fields: { $logEntry: true, $owner: true, valueHash: true } }))
+	const zeroGKvEntry = subscribe(EntityType.ZeroGKvEntry, selector, ({ fields: { $logEntry: true, $owner: true, valueHash: true } }))
 
 
 	// Components
@@ -37,15 +37,15 @@
 
 <EntityView
 	entityType={EntityType.ZeroGKvEntry}
-	{entityId}
-	title={entityId.key}
-	idDragPlainText={entityId.key}
+	entitySelector={selector}
+	title={selector.key}
+	idDragPlainText={selector.key}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.key}
+			value={selector.key}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -71,7 +71,7 @@
 							<dt>Owner</dt>
 							<dd>
 								<EvmAccountView
-									entityId={zeroGKvEntry.fields.$owner[EntityMetaKey.Id]}
+									selector={zeroGKvEntry.fields.$owner[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -96,7 +96,7 @@
 							<dt>Log entry</dt>
 							<dd>
 								<ZeroGStorageLogEntryView
-									entityId={zeroGKvEntry.fields.$logEntry[EntityMetaKey.Id]}
+									selector={zeroGKvEntry.fields.$logEntry[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

@@ -12,6 +12,6 @@
 
 <Page>
 	<BlockheadRoomView
-		entityId={{ id: params.roomId }}
+		selector={{ id: params.roomId }}
 	/>
 </Page>

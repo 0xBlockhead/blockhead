@@ -1,15 +1,15 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// State
 	let {
-		entityId,
+		selector,
 	}: {
-		entityId?: EntityId<typeof schema, EntityType.SwarmResource>
+		selector?: EntitySelector<typeof schema, EntityType.SwarmResource>
 	} = $props()
 
 
@@ -21,13 +21,13 @@
 
 
 {#snippet Form()}
-	<SwarmBrowseForm {entityId} />
+	<SwarmBrowseForm {selector} />
 {/snippet}
 
 
-{#if entityId !== undefined}
+{#if selector !== undefined}
 	<SwarmBrowseEntityChrome
-		{entityId}
+		{selector}
 		Form={Form}
 	/>
 {:else}

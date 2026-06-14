@@ -6,9 +6,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import EvmAccount from '$/schema/EvmAccount.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum BeaconWithdrawalSelector {
+	EvmNetworkSlotIndex = 'evmNetworkSlotIndex',
+}
 
 export default {
 	entityType: EntityType.BeaconWithdrawal,
@@ -16,13 +18,36 @@ export default {
 	label: 'Beacon withdrawal',
 	labelPlural: 'Beacon withdrawals',
 
-	id: type({
-		$network: Network.id,
-		slot: 'number',
-		index: 'number',
-	}),
+	selectors: [
+		{
+			name: BeaconWithdrawalSelector.EvmNetworkSlotIndex,
+			fields: [
+				'$network',
+				'slot',
+				'index',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'slot',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'index',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'validatorIndex',
 			type: EntityFieldType.Primitive,
@@ -45,7 +70,6 @@ export default {
 			name: '$account',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
-			entityId: EvmAccount.id,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Beacon_Rest,

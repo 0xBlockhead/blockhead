@@ -21,7 +21,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<FarcasterUserView
-			entityId={{ fid: Number(page.params.userId) }}
+			selector={{ fid: Number(page.params.userId) }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

@@ -62,7 +62,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.L2Beat_Rest,
@@ -84,7 +84,7 @@
 				entityType={EntityType.EvmRollup}
 				id={`${id}-items`}
 				href={href}
-				getKey={(rollup) => rollup[EntityMetaKey.Id].projectId}
+				getKey={(rollup) => rollup[EntityMetaKey.Selector].projectId}
 				placeholderText="Loading rollups…"
 				resource={rollups}
 				{title}
@@ -99,7 +99,7 @@
 
 				{#snippet Item({ item: rollup })}
 					<EvmRollupView
-						entityId={rollup[EntityMetaKey.Id]}
+						selector={rollup[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

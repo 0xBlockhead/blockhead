@@ -7,7 +7,10 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
-import Network from '$/schema/EvmNetwork.ts'
+
+export enum EvmNetworkBridgeSelector {
+	FromToUrl = 'fromToUrl',
+}
 
 export default {
 	entityType: EntityType.EvmNetworkBridge,
@@ -15,11 +18,16 @@ export default {
 	label: 'Bridge',
 	labelPlural: 'Bridges',
 
-	id: type({
-		$fromNetwork: Network.id,
-		$toNetwork: Network.id,
-		url: UrlString,
-	}),
+	selectors: [
+		{
+			name: EvmNetworkBridgeSelector.FromToUrl,
+			fields: [
+				'$fromNetwork',
+				'$toNetwork',
+				'url',
+			],
+		},
+	],
 
 	fields: [
 		{

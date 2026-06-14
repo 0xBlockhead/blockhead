@@ -8,8 +8,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum Erc4337PaymasterSelector {
+	EvmNetworkAddress = 'evmNetworkAddress',
+}
 
 export default {
 	entityType: EntityType.Erc4337Paymaster,
@@ -17,12 +20,29 @@ export default {
 	label: 'ERC-4337 paymaster',
 	labelPlural: 'ERC-4337 paymasters',
 
-	id: type({
-		$network: Network.id,
-		address: EvmAddress,
-	}),
+	selectors: [
+		{
+			name: Erc4337PaymasterSelector.EvmNetworkAddress,
+			fields: [
+				'$network',
+				'address',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'address',
+			type: EntityFieldType.Primitive,
+			primitiveType: EvmAddress,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'userOperationsCount',
 			type: EntityFieldType.Primitive,

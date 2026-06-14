@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum PolkadotPalletSelector {
+	NetworkPalletName = 'networkPalletName',
+}
 
 export default {
 	entityType: EntityType.PolkadotPallet,
@@ -15,12 +18,29 @@ export default {
 	label: 'Polkadot Pallet',
 	labelPlural: 'Polkadot Pallets',
 
-	id: type({
-		$network: Network.id,
-		palletName: 'string',
-	}),
+	selectors: [
+		{
+			name: PolkadotPalletSelector.NetworkPalletName,
+			fields: [
+				'$network',
+				'palletName',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'palletName',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'index',
 			type: EntityFieldType.Primitive,

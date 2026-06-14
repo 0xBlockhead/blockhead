@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,16 +15,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(atproto)/atproto/post/[uri]', {
-			uri: encodeURIComponent(entityId.$post.uri),
+			uri: encodeURIComponent(selector.$post.uri),
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.AtprotoPost_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.AtprotoPost_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -36,7 +36,7 @@
 	> = $props()
 
 	const atprotoPostTimestamp = subscribe(EntityType.AtprotoPost_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Atproto_Xrpc,
 				Source.Atproto_BskySocial_Xrpc,
@@ -54,7 +54,7 @@
 
 <EntityView
 	entityType={EntityType.AtprotoPost_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -62,11 +62,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

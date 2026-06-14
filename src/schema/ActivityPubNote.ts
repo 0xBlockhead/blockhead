@@ -10,6 +10,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum ActivityPubNoteSelector {
+	InstanceOriginLocalStatusId = 'instanceOriginLocalStatusId',
+}
+
+
 const mastodonVisibilityPrimitive = type.or(
 	...mastodonVisibilities.map((visibility) => type.unit(visibility.visibility)),
 )
@@ -20,12 +25,29 @@ export default {
 	label: 'ActivityPub note',
 	labelPlural: 'ActivityPub notes',
 
-	id: type({
-		instanceOrigin: UrlString,
-		localStatusId: 'string',
-	}),
+	selectors: [
+		{
+			name: ActivityPubNoteSelector.InstanceOriginLocalStatusId,
+			fields: [
+				'instanceOrigin',
+				'localStatusId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'instanceOrigin',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'localStatusId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$author',
 			type: EntityFieldType.EntityReference,

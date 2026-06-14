@@ -7,8 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import EvmAccount from '$/schema/EvmAccount.ts'
-import Network from '$/schema/Network.ts'
+
+export enum ZeroGStorageNodeSelector {
+	NetworkNodeId = 'networkNodeId',
+}
 
 export default {
 	entityType: EntityType.ZeroGStorageNode,
@@ -16,17 +18,33 @@ export default {
 	label: '0G storage node',
 	labelPlural: '0G storage nodes',
 
-	id: type({
-		$network: Network.id,
-		nodeId: 'string',
-	}),
+	selectors: [
+		{
+			name: ZeroGStorageNodeSelector.NetworkNodeId,
+			fields: [
+				'$network',
+				'nodeId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'nodeId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$operator',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
-			entityId: EvmAccount.id,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

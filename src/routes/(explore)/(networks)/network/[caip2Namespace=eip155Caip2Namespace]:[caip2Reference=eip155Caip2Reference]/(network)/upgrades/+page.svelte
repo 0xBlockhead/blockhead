@@ -18,7 +18,7 @@
 	<EthereumNetworkUpgradesView
 		entityFieldReference={{
 			entityType: EntityType.EvmNetwork,
-			entityId: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
+			selector: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			fieldName: '$$upgrades',
 		}}
 		id="upgrades"

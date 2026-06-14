@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,16 +16,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(assets)/(markets)/market/[marketKey]', {
-			marketKey: stringify(entityId.$market),
+			marketKey: stringify(selector.$market),
 		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Market_Derivative_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.Market_Derivative_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const derivativeTimestamp = subscribe(EntityType.Market_Derivative_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Coingecko_OpenApi,
 			], fields: { fundingRate: true, openInterestUsd: true, indexBasisPercent: true, markPrice: true, indexPrice: true, expiredAtMs: true, lastTradedAtMs: true, providerAssetId: true, transport: true } }),
@@ -55,7 +55,7 @@
 
 <EntityView
 	entityType={EntityType.Market_Derivative_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -72,7 +72,7 @@
 					{String(derivativeTimestamp.fields.fundingRate)}%
 				{:else}
 					<Timestamp
-						timestamp={entityId.timestampMs}
+						timestamp={selector.timestampMs}
 					/>
 				{/if}
 			{/snippet}
@@ -89,7 +89,7 @@
 					{String(derivativeTimestamp.fields.fundingRate)}%
 				{:else}
 					<Timestamp
-						timestamp={entityId.timestampMs}
+						timestamp={selector.timestampMs}
 					/>
 				{/if}
 	{/snippet}
@@ -113,7 +113,7 @@
 						<dt>Observed at</dt>
 						<dd>
 							<Timestamp
-								timestamp={entityId.timestampMs}
+								timestamp={selector.timestampMs}
 							/>
 						</dd>
 					</div>

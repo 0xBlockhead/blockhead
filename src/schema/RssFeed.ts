@@ -8,17 +8,32 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 
+export enum RssFeedSelector {
+	FeedUrl = 'feedUrl',
+}
+
 export default {
 	entityType: EntityType.RssFeed,
 
 	label: 'RSS feed',
 	labelPlural: 'RSS feeds',
 
-	id: type({
-		feedUrl: UrlString,
-	}),
+	selectors: [
+		{
+			name: RssFeedSelector.FeedUrl,
+			fields: [
+				'feedUrl',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'feedUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'title',
 			type: EntityFieldType.Primitive,

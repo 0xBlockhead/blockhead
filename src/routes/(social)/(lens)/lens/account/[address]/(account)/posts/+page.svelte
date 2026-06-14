@@ -4,7 +4,7 @@
 		params,
 	} = $props()
 
-	const entityId = $derived.by(() => {
+	const entitySelector = $derived.by(() => {
 		const raw = decodeURIComponent(params.address).trim()
 		if (raw.startsWith('legacy:'))
 			return { legacyProfileId: raw.slice('legacy:'.length) }
@@ -35,6 +35,6 @@
 
 <Page>
 	<LensAccountView
-		{entityId}
+		selector={selector}
 	/>
 </Page>

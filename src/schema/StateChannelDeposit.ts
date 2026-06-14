@@ -9,17 +9,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum StateChannelDepositSelector {
+	Id = 'id',
+}
+
 export default {
 	entityType: EntityType.StateChannelDeposit,
 
 	label: 'State Channel Deposit',
 	labelPlural: 'State Channel Deposits',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: StateChannelDepositSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$channel',
 			type: EntityFieldType.EntityReference,

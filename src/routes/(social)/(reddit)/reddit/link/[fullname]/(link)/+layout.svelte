@@ -27,7 +27,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<RedditLinkView
-			entityId={{ fullname: decodeURIComponent(fullname) }}
+			selector={{ fullname: decodeURIComponent(fullname) }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

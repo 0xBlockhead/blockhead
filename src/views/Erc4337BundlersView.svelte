@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ fields: { $$erc4337Bundlers: ({ sources: [
 							Source.Blockscout_Rest,
 						], limit: 16 }) } }),
@@ -80,8 +80,8 @@
 				entityType={EntityType.Erc4337Bundler}
 				id={`${id}-items`}
 				href={href}
-				getKey={(bundler) => stringify(bundler[EntityMetaKey.Id])}
-				getSortValue={(bundler) => bundler[EntityMetaKey.Id].address}
+				getKey={(bundler) => stringify(bundler[EntityMetaKey.Selector])}
+				getSortValue={(bundler) => bundler[EntityMetaKey.Selector].address}
 				placeholderText="Loading bundlers…"
 				resource={bundlers}
 				{title}
@@ -94,7 +94,7 @@
 
 				{#snippet Item({ item: bundler })}
 					<Erc4337BundlerView
-						entityId={bundler[EntityMetaKey.Id]}
+						selector={bundler[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

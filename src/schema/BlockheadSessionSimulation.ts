@@ -7,6 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadSessionSimulationSelector {
+	Id = 'id',
+}
+
+
 export enum BlockheadSessionSimulationStatus {
 	Success = 'success',
 	Failed = 'failed',
@@ -18,11 +23,22 @@ export default {
 	label: 'Session Simulation',
 	labelPlural: 'Session Simulations',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: BlockheadSessionSimulationSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$session',
 			type: EntityFieldType.EntityReference,

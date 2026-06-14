@@ -7,11 +7,15 @@ import {
 	filfoxMainnetRestBaseUrl,
 } from '$/constants/FilecoinNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { FilecoinTipsetSelector } from '$/schema/FilecoinTipset.ts'
+import { FilecoinBlockSelector } from '$/schema/FilecoinBlock.ts'
+import { FilecoinMessageSelector } from '$/schema/FilecoinMessage.ts'
+import { FilecoinActorSelector } from '$/schema/FilecoinActor.ts'
+import { FilecoinMinerSelector } from '$/schema/FilecoinMiner.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -32,15 +36,15 @@ export default {
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinTipset,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertFilecoinMainnet(entityId.$network)
+				[FilecoinTipsetSelector.NetworkHeightTipsetKey]: async ({ $network, height }) => {
+				assertFilecoinMainnet($network)
 				const {
 					getBlock,
 					getTipset,
 				} = await import('$/sources/Filfox/Rest/queries.ts')
 				const tipset = await getTipset({
 					restBaseUrl: filfoxMainnetRestBaseUrl,
-					height: entityId.height,
+					height: height,
 				})
 				const firstBlock = tipset.blocks.at(0)
 				const block = (
@@ -53,11 +57,11 @@ export default {
 						})
 				)
 				return {
-					...(block != null && entityId.height > 0n && {
+					...(block != null && height > 0n && {
 						$parent: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								height: entityId.height - 1n,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
+								height: height - 1n,
 								tipsetKey: block.parents.join(','),
 							},
 						},
@@ -65,16 +69,16 @@ export default {
 					}),
 					timestampMs: tipset.timestamp * 1000,
 					$$blocks: tipset.blocks.map((block) => ({
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector.$network,
 							cid: block.cid,
 						},
 						$tipset: {
-							[EntityMetaKey.Id]: entityId,
+							[EntityMetaKey.Selector]: entitySelector,
 						},
 						$miner: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
 								minerAddress: block.miner,
 							},
 						},
@@ -97,15 +101,15 @@ export default {
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertFilecoinMainnet(entityId.$network)
+				[FilecoinBlockSelector.NetworkCid]: async ({ $network, cid }) => {
+				assertFilecoinMainnet($network)
 				const {
 					getBlock,
 					getTipset,
 				} = await import('$/sources/Filfox/Rest/queries.ts')
 				const block = await getBlock({
 					restBaseUrl: filfoxMainnetRestBaseUrl,
-					blockCid: entityId.cid,
+					blockCid: cid,
 				})
 				const tipset = await getTipset({
 					restBaseUrl: filfoxMainnetRestBaseUrl,
@@ -113,15 +117,15 @@ export default {
 				})
 				return {
 					$tipset: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
 							height: BigInt(block.height),
 							tipsetKey: tipset.blocks.map((tipsetBlock) => tipsetBlock.cid).join(','),
 						},
 					},
 					$miner: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
 							minerAddress: block.miner,
 						},
 					},
@@ -142,23 +146,23 @@ export default {
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinMessage,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertFilecoinMainnet(entityId.$network)
+				[FilecoinMessageSelector.NetworkCid]: async ({ $network, cid }) => {
+				assertFilecoinMainnet($network)
 				const { getMessage } = await import('$/sources/Filfox/Rest/queries.ts')
 				const message = await getMessage({
 					restBaseUrl: filfoxMainnetRestBaseUrl,
-					messageCid: entityId.cid,
+					messageCid: cid,
 				})
 				return {
 					$from: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
 							address: message.from,
 						},
 					},
 					$to: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
 							address: message.to,
 						},
 					},
@@ -187,12 +191,12 @@ export default {
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinActor,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertFilecoinMainnet(entityId.$network)
+				[FilecoinActorSelector.NetworkAddress]: async ({ $network, address: addressSelector }) => {
+				assertFilecoinMainnet($network)
 				const { getAddress } = await import('$/sources/Filfox/Rest/queries.ts')
 				const address = await getAddress({
 					restBaseUrl: filfoxMainnetRestBaseUrl,
-					address: entityId.address,
+					addressSelector: addressSelector,
 				})
 				return {
 					balanceAttoFil: BigInt(address.balance),
@@ -208,27 +212,27 @@ export default {
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinMiner,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertFilecoinMainnet(entityId.$network)
+				[FilecoinMinerSelector.NetworkMinerAddress]: async ({ $network, minerAddress }) => {
+				assertFilecoinMainnet($network)
 				const { getAddress } = await import('$/sources/Filfox/Rest/queries.ts')
 				const address = await getAddress({
 					restBaseUrl: filfoxMainnetRestBaseUrl,
-					address: entityId.minerAddress,
+					address: minerAddress,
 				})
-				if (address.miner == null) throw new Error(`Filfox_Rest: address ${entityId.minerAddress} is not a miner`)
+				if (address.miner == null) throw new Error(`Filfox_Rest: address ${minerAddress} is not a miner`)
 				return {
 					...(address.miner.owner != null && {
 						$owner: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								address: address.miner.owner.address,
 							},
 						},
 					}),
 					...(address.miner.worker != null && {
 						$worker: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								address: address.miner.worker.address,
 							},
 						},
@@ -252,27 +256,27 @@ export default {
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertFilecoinMainnet(entityId.$network)
+				[FilecoinBlockSelector.NetworkCid]: async ({ $network, cid }, context) => {
+				assertFilecoinMainnet($network)
 				const { getBlockMessages } = await import('$/sources/Filfox/Rest/queries.ts')
 				return (await getBlockMessages({
 					restBaseUrl: filfoxMainnetRestBaseUrl,
-					blockCid: entityId.cid,
+					blockCid: cid,
 					pageSize: resolverContextRowLimit(context),
 				})).messages.map((message) => ({
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector.$network,
 						cid: message.cid,
 					},
 					$from: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector.$network,
 							address: message.from,
 						},
 					},
 					$to: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector.$network,
 							address: message.to,
 						},
 					},

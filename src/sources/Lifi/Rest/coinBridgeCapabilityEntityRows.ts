@@ -1,29 +1,29 @@
 import { bridgeToolByKey, bridgeTools } from '$/constants/Bridge.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { LifiBridgeTool } from '$/sources/Lifi/Rest/types.ts'
 import { stringify } from 'devalue'
 
 
-type CoinInstanceEntityId = EntityId<typeof schema, EntityType.EvmCoinInstance>
+type CoinInstanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmCoinInstance>
 
-type CoinBridgeCapabilityEntityId = EntityId<typeof schema, EntityType.CoinBridgeCapability>
+type CoinBridgeCapabilityEntitySelector = EntitySelector<typeof schema, EntityType.CoinBridgeCapability>
 
 const bridgeToolsCatalogKeys = new Set<string>(
 	Object.keys(bridgeToolByKey).map((key) => String(key)),
 )
 
 export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
-	instanceIds: readonly { [EntityMetaKey.Id]: CoinInstanceEntityId }[],
+	instanceIds: readonly { [EntityMetaKey.Selector]: CoinInstanceEntitySelector }[],
 	tools: readonly LifiBridgeTool[],
 ) => {
-	const instanceByChainId: Partial<Record<number, CoinInstanceEntityId>> = {}
+	const instanceByChainId: Partial<Record<number, CoinInstanceEntitySelector>> = {}
 
 	for (const row of instanceIds) {
-		const instanceId = row[EntityMetaKey.Id]
+		const instanceId = row[EntityMetaKey.Selector]
 		const chainId = Number(instanceId.$network.caip2.reference)
 		const current = instanceByChainId[chainId]
 		instanceByChainId[chainId] = (
@@ -40,7 +40,7 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 
 	const seenKeys = new Set<string>()
 	const rows: {
-		[EntityMetaKey.Id]: CoinBridgeCapabilityEntityId
+		[EntityMetaKey.Selector]: CoinBridgeCapabilityEntitySelector
 		toolKey: string
 		railId: (typeof bridgeTools)[number]['railId']
 		settlementModel: (typeof bridgeTools)[number]['settlementModel']
@@ -64,14 +64,14 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 				$fromInstance: fromInstance,
 				$toInstance: toInstance,
 				toolKey: tool.key,
-			} satisfies CoinBridgeCapabilityEntityId
+			} satisfies CoinBridgeCapabilityEntitySelector
 
 			const dedupeKey = stringify(capabilityId)
 			if (seenKeys.has(dedupeKey)) continue
 			seenKeys.add(dedupeKey)
 
 			rows.push({
-				[EntityMetaKey.Id]: capabilityId,
+				[EntityMetaKey.Selector]: capabilityId,
 				toolKey: tool.key,
 				...mechanics,
 			})
@@ -79,6 +79,6 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 	}
 
 	return rows.toSorted((left, right) => (
-		stringify(left[EntityMetaKey.Id]).localeCompare(stringify(right[EntityMetaKey.Id]))
+		stringify(left[EntityMetaKey.Selector]).localeCompare(stringify(right[EntityMetaKey.Selector]))
 	))
 }

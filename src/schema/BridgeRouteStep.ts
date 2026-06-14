@@ -15,18 +15,39 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum BridgeRouteStepSelector {
+	BridgeRouteIndex = 'bridgeRouteIndex',
+}
+
 export default {
 	entityType: EntityType.BridgeRouteStep,
 
 	label: 'Bridge Route Step',
 	labelPlural: 'Bridge Route Steps',
 
-	id: type({
-		$route: BridgeRoute.id,
-		index: 'number',
-	}),
+	selectors: [
+		{
+			name: BridgeRouteStepSelector.BridgeRouteIndex,
+			fields: [
+				'$route',
+				'index',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$route',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.BridgeRoute,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'index',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'stepType',
 			type: EntityFieldType.Primitive,

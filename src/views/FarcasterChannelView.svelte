@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -17,15 +17,15 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
-			channelId: entityId.id,
+			channelId: selector.id,
 		}),
 		open = $bindable(true),
 			...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.FarcasterChannel>
+			selector: EntitySelector<typeof schema, EntityType.FarcasterChannel>
 			href?: string
 			open?: boolean
 		},
@@ -36,7 +36,7 @@
 	> = $props()
 
 	const channel = subscribe(EntityType.FarcasterChannel,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Farcaster_Rest,
 			], fields: { name: true, url: true, description: true, $icon: true, createdAt: true, followerCount: true, memberCount: true, $$timestamps: ({ sources: [
@@ -61,7 +61,7 @@
 
 <EntityView
 	entityType={EntityType.FarcasterChannel}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -72,10 +72,10 @@
 			placeholderText="Loading Farcaster channel (channel id / slug)…"
 		>
 			{#snippet children(channel)}
-				{#if channel.fields.$icon?.[EntityMetaKey.Id].url}
+				{#if channel.fields.$icon?.[EntityMetaKey.Selector].url}
 					<IconComponent
-						src={channel.fields.$icon[EntityMetaKey.Id].url}
-						alt={channel.fields.name ?? entityId.id}
+						src={channel.fields.$icon[EntityMetaKey.Selector].url}
+						alt={channel.fields.name ?? selector.id}
 					/>
 				{/if}
 			{/snippet}
@@ -84,7 +84,7 @@
 
 	{#snippet Value()}
 		<span>
-			/{entityId.id}
+			/{selector.id}
 		</span>
 	{/snippet}
 
@@ -94,7 +94,7 @@
 			placeholderText="Loading Farcaster channel (channel id / slug)…"
 		>
 			{#snippet children(channel)}
-				{channel.fields.name ?? `/${entityId.id}`}
+				{channel.fields.name ?? `/${selector.id}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -191,12 +191,12 @@
 							{#snippet children(channel)}
 								{#if (
 									channel.fields.$lead !== undefined
-									&& channel.fields.$lead[EntityMetaKey.Id].fid !== undefined
+									&& channel.fields.$lead[EntityMetaKey.Selector].fid !== undefined
 								)}
 									<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-										userId: String(channel.fields.$lead[EntityMetaKey.Id].fid),
+										userId: String(channel.fields.$lead[EntityMetaKey.Selector].fid),
 									})}>
-										FID {String(channel.fields.$lead[EntityMetaKey.Id].fid)}
+										FID {String(channel.fields.$lead[EntityMetaKey.Selector].fid)}
 									</a>
 								{/if}
 							{/snippet}
@@ -216,12 +216,12 @@
 							{#snippet children(channel)}
 								{#if (
 									channel.fields.$moderator !== undefined
-									&& channel.fields.$moderator[EntityMetaKey.Id].fid !== undefined
+									&& channel.fields.$moderator[EntityMetaKey.Selector].fid !== undefined
 								)}
 									<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-										userId: String(channel.fields.$moderator[EntityMetaKey.Id].fid),
+										userId: String(channel.fields.$moderator[EntityMetaKey.Selector].fid),
 									})}>
-										FID {String(channel.fields.$moderator[EntityMetaKey.Id].fid)}
+										FID {String(channel.fields.$moderator[EntityMetaKey.Selector].fid)}
 									</a>
 								{/if}
 							{/snippet}
@@ -241,12 +241,12 @@
 							{#snippet children(channel)}
 								{#if channel.fields.$$moderators?.values.length}
 									<ul>
-										{#each channel.fields.$$moderators.values as mod (String(mod[EntityMetaKey.Id].fid))}
+										{#each channel.fields.$$moderators.values as mod (String(mod[EntityMetaKey.Selector].fid))}
 											<li>
 												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-													userId: String(mod[EntityMetaKey.Id].fid),
+													userId: String(mod[EntityMetaKey.Selector].fid),
 												})}>
-													FID {String(mod[EntityMetaKey.Id].fid)}
+													FID {String(mod[EntityMetaKey.Selector].fid)}
 												</a>
 											</li>
 										{/each}
@@ -367,7 +367,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const channelDetailKey = stringify(entityId)}
+		{@const channelDetailKey = stringify(selector)}
 		<CollapsibleTabs
 			id={`${channelDetailKey}:carousel-channel`}
 			sectionIdPrefix={channelDetailKey}
@@ -404,11 +404,11 @@
 								<h3>Channel</h3>
 								{#if (
 									channel.fields.$headerImage !== undefined
-									&& channel.fields.$headerImage[EntityMetaKey.Id].url !== undefined
+									&& channel.fields.$headerImage[EntityMetaKey.Selector].url !== undefined
 								)}
 									<p>
 										<Media
-											media={{ url: channel.fields.$headerImage[EntityMetaKey.Id].url }}
+											media={{ url: channel.fields.$headerImage[EntityMetaKey.Selector].url }}
 											fit="cover"
 										/>
 									</p>
@@ -422,7 +422,7 @@
 				<FarcasterChannel_TimestampsView
 					entityFieldReference={{
 							entityType: EntityType.FarcasterChannel,
-							entityId,
+							selector,
 							fieldName: '$$timestamps',
 					}}
 					href={href}

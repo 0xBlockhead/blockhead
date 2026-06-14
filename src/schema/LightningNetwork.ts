@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum LightningNetworkSelector {
+	Network = 'network',
+}
 import { Source } from '$/sources/Source.ts'
 
 export default {
@@ -16,11 +19,22 @@ export default {
 	label: 'Lightning Network',
 	labelPlural: 'Lightning Networks',
 
-	id: type({
-		$network: Network.id,
-	}),
+	selectors: [
+		{
+			name: LightningNetworkSelector.Network,
+			fields: [
+				'$network',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

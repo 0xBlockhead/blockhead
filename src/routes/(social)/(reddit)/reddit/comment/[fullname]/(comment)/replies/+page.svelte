@@ -21,7 +21,7 @@
 		href={resolve('/reddit/comments')}
 		entityFieldReference={{
 			entityType: EntityType.RedditComment,
-			entityId: {
+			selector: {
 				fullname: decodeURIComponent(params.fullname),
 			},
 			fieldName: '$$replies',

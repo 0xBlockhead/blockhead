@@ -18,7 +18,7 @@
 		href={resolve('/activitypub/actors')}
 		entityFieldReference={{
 			entityType: EntityType.ActivityPubNetwork,
-			entityId: { scope: 'ActivityPubNetwork' },
+			selector: { scope: 'ActivityPubNetwork' },
 			fieldName: '$$activityPubActors',
 		}}
 		id="activitypub-actors"

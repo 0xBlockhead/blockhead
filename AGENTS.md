@@ -197,6 +197,15 @@
 
 - Svelte 5 runes; NEVER legacy Svelte 4 (`$:`, `onMount`, `writable`)
 - Prefer single expressions and inline logic
+
+### SvelteKit-shaped resources
+
+- SvelteKit remote `query()` is the reference implementation for low-level resource reactivity. Before changing `TanStackLiveQueryResource`, `ResourceBoundary`, or route resource fixtures, read `node_modules/@sveltejs/kit/src/runtime/client/remote-functions/query/instance.svelte.js` and preserve its two-surface contract: getters (`current`, `loading`, `ready`, `error`) and promise methods (`then`, `catch`, `finally`) must both observe the same resource-owned state machine.
+- `ResourceBoundary` is a pure consumer of SvelteKit-shaped resources. It must not accept TanStack live-query snapshots directly, inspect TanStack state, branch on `Symbol.toStringTag`, call `subscribeChanges`, install resource `.subscribe` listeners, key/remount children to force updates, or choose between TanStack and SvelteKit modes.
+- The TanStack/source notification hook belongs in the TanStack-to-SvelteKit resource adapter, not in views, routes, or `ResourceBoundary`. App-level `subscribe(...)` may manage product resource lifecycle, but the boundary contract remains only `current` / `loading` / `ready` / `error` / `then` / `catch` / `finally`.
+- Resource tests must prove direct getter reads and promise reads. Do not hide stale adapter reactivity with parent-local state updates, fixture-side `await tick()` before reading `.then`, boundary remount keys, debug-only direct displays, or softened assertions that no real view depends on.
+- A resource/boundary fix is not complete until Playwright proves visible DOM updates from a TanStack/source notification through both a direct resource getter read and `ResourceBoundary`, without route reload.
+
 - File layout:
 	- two blank lines between:
 		- `<script module lang="ts">`
@@ -420,10 +429,13 @@ If a lower layer starts importing a higher one, move the shared code down into `
 
 ## Schema (`src/schema/**`)
 
-Definitions in `$/schema/*.ts`; register in `$/schema/index.ts`. ArkType types entity ids and primitives; child rows use `$$…` entity-reference fields.
+Definitions in `$/schema/*.ts`; register in `$/schema/index.ts`. Entity definitions declare `selectors` before `fields`. Selectors are the only entity-addressing contract; there is no entity-level `id`, `identities`, or `lookups`. ArkType types selector fields and primitives; child rows use `$$…` entity-reference fields.
 
+- Selectors represent unique entity-identifying field sets. Interop identifiers are separate selectors when they identify the same entity, not required payload fields on other selectors. If two selectors are derivable from each other, represent that with resolved fields and pure synchronous selector derivation/resolvers so the client can equate requests by the fields already resolved.
+- Async/provider resolvers should use the most straightforward selector representation for that source. Do not repeat purely derivable interop calculations in every provider resolver when a pure synchronous selector resolver covers the transform.
+- `EntityFieldCardinality.Zero` is a domain statement: assuming the field is resolvable, no value is acceptable and accurate for the subject matter. Never use `Zero` to mean a resolver/source may or may not support a field. If a resolver supports a field, its logic owns resolving that field's cardinality; unsupported fields are represented by absent resolver facets, not by schema cardinality.
 - Timestamped observations: As-of metrics (quotes, gas tiers, mempool counts, OHLC, …) live on `*_Timestamp` entities (`timestampMs` in the id; extra id keys when needed, e.g. `feedKey?`, candle `timeInterval`). Parents hold stable identity only—no snapshot scalars such as `price` or tiered gas on the header row. If an endpoint’s stats are deterministic for the entity id itself, such as Beaconcha.in epoch overview stats keyed by epoch rather than an observation time, model those fields on the owning entity instead of inventing a timestamp row.
-- Resolvers / views: use one `defineResolver` per snapshot, with `fields` selectors for entity fields, list refs, counts, and live facets. When upstream exposes one stats clock, `entityId.timestampMs` must match it. Latest row: sort `$$…` by `timestampMs`, nest `*_TimestampView`; history: `*_TimestampsView`.
+- Resolvers / views: use one `defineResolver` per snapshot, with `fields` selectors for entity fields, list refs, counts, and live facets. When upstream exposes one stats clock, the timestamp selector field must match it. Latest row: sort `$$…` by `timestampMs`, nest `*_TimestampView`; history: `*_TimestampsView`.
 - Examples: `MarketPrice` / `$$quotes` → `Market_Timestamp`; `Coin` / `$$timestamps` → `Coin_Timestamp`; `Market` → `Market_Timestamp`, `Market_TimeInterval_Timestamp`; `Network` / `$$gasEstimateTimestamps` → `Network_GasEstimate_Timestamp`, `$$txpoolTimestamps` → `Network_Txpool_Timestamp`; `Currency` / `$$timestamps` → `Currency_Timestamp`.
 - Lifecycle timestamps: `createdAt`, `updatedAt`, etc. on sessions, social, bridges, ENS stay on the owning record—they are not metric streams.
 
@@ -676,7 +688,7 @@ Most live queries live in `.svelte` views, but there is also existing shared que
 
 ### TanStack DB OPFS persistence
 
-`$/collections/$collections.ts` composes TanStack DB in this order: `createCollection(...)` → `persistedCollectionOptions(...)` → `queryCollectionOptions(...)`, with the local `persistOnDemandSubsets(...)` wrapper around the query collection options.
+`$/client/$client.svelte.ts` composes product TanStack DB collections in this order: `createCollection(...)` → `persistedCollectionOptions(...)` → `queryCollectionOptions(...)` for Entity/Field/Count Product Data, plus a local-only persisted `LoadedSubset` collection for durable subset-completion metadata.
 
 Built-in TanStack behavior:
 
@@ -685,21 +697,21 @@ Built-in TanStack behavior:
 - TanStack owns query keys, stale/cache state, row persistence, row ownership metadata for non-empty query results, collection metadata persistence, and OPFS hydration.
 - `persistedGcTime: Number.POSITIVE_INFINITY` and `staleTime: Number.POSITIVE_INFINITY` mean persisted rows and query results should not expire during normal app use. Keep both infinite unless a replacement refresh/expiry path is verified against warm reloads; a finite `staleTime` has previously caused immediate warm-reload refetches.
 
-Local behavior in `persistOnDemandSubsets(...)`:
+Local collection query behavior:
 
-- TanStack’s persisted wrapper still calls the upstream on-demand loader after OPFS hydration. In this app, that would re-run resolvers and repeat catalog HTTP requests after reload unless we short-circuit it.
-- The wrapper returns `true` before the upstream loader when the OPFS-hydrated in-memory collection already has rows matching the requested `eq` / `in` subset filters.
-- For successful empty subsets, the wrapper stores a collection metadata marker keyed by the parsed filters/sorts/limit (`blockhead:loaded-subset:...`). This is required because row ownership cannot represent “this subset loaded and returned zero rows.”
-- If neither hydrated rows nor the loaded-subset marker satisfy the request, the wrapper delegates to TanStack Query’s upstream `loadSubset(...)`; after it succeeds, the wrapper marks that subset as loaded.
-- Keep the wrapper typed from package-provided TanStack types where possible, especially `SyncConfig`, `LoadSubsetOptions`, and `ReturnType<typeof parseLoadSubsetOptions>`. Avoid duplicating sync param/result shapes locally unless package types cannot express the boundary.
-- Do not remove this wrapper or replace it with route/view-specific guards. The purpose is to preserve TanStack’s built-in on-demand hydration while preventing unnecessary resolver/network calls for already persisted subsets across all views.
+- TanStack’s persisted wrapper still invokes each Product Data collection `queryFn` after OPFS hydration. The query function must therefore return hydrated rows or row-count-validated loaded-marker completion before resolver work when the requested completed subset is already durable.
+- Entity/Field/Count `queryFn`s wait for `LoadedSubset` hydration, check matching Product Data rows, and only run resolvers when durable rows/markers cannot satisfy the subset. For Field and Count collection `queryFn`s, hydrated rows satisfy a request only when every requested compatible source is represented; lower-priority hydrated rows must not suppress a missing higher-priority compatible source. A nonzero loaded marker never proves a nonempty subset by itself; it can suppress resolver work only when the matching persisted row count is present. For rendered Count results, resource readiness must at least be priority-complete: do not settle from a lower-priority Count Row while an earlier compatible count source is still missing.
+- After every successful remote subset load, including successful zero-row and partial-source-result loads, the query function writes a `LoadedSubset` row keyed by `collectionId` plus the canonical loaded key plus `rowCount`, and awaits OPFS persistence. This is required because Product Data rows alone cannot represent “this subset loaded and returned zero rows” or “this compatible source completed with no row,” while the row count prevents a marker from hiding missing persisted nonempty rows after reload.
+- New route-dependent subsets that were not cold-completed are legitimate TanStack on-demand work after reload. Do not treat all warm catalog HTTP as a persistence failure unless the corresponding collection subset was cold-marked or cold-hydrated.
+- Keep collection query functions typed from package-provided TanStack types where possible, especially `LoadSubsetOptions` and TanStack Query Collection metadata. Avoid duplicating sync param/result shapes locally unless package types cannot express the boundary.
+- Do not replace this collection-level logic with route/view-specific guards, manual preloads, in-memory caches, or raw provider-response persistence unless the Product Data invariant is explicitly changed.
 
 Verification:
 
-- Use `tests/e2e/tanstack-db-persistence.e2e.ts` for OPFS persistence checks. It clears OPFS, installs the `$collections.ts` persistence probe (`window.__blockheadPersistenceProbe` / sessionStorage), cold-loads routes, waits for cold `markLoaded` on catalog field collections, reloads, then waits for warm `loadSubset` short-circuits (`hydrated-rows` | `loaded-marker` | `snapshot`) with the **same `loadedKey`** as cold — and asserts no warm `queryFn` or `remote` loadSubset for those collections. Helpers: `tests/_e2eBrowserHelpers.ts` (`waitForPersistenceMarkLoaded`, `waitForPersistenceShortCircuit`, `persistenceMarkLoadedEvent`). `/networks` asserts `EntityFieldCollection:_Global:$$networks` only (nested list `NetworkView` rows may still fetch per-network catalog HTTP independently). `/network/1` additionally asserts warm catalog HTTP count stays zero for Chainlist-marked collections that completed cold `markLoaded`.
+- Use `tests/e2e/tanstack-db-persistence.e2e.ts` for OPFS persistence checks. It clears OPFS, installs the client persistence probe (`window.__blockheadPersistenceProbe` / sessionStorage), cold-loads representative routes, records cold `markLoaded` events, reloads, and asserts completed Entity/Field/Count Product Data subsets hydrate from OPFS without warm `remote` replay for the same `collectionId` + `loadedKey`.
 - **CI / pre-merge gate:** `pnpm run test:e2e:persistence` (canonical routes: `/networks`, `/network/1`; dedicated dev server). Full route discovery: `pnpm run test:e2e:persistence:full` (slow; may fail on unrelated page console errors).
 - Real-network suites may need provider-specific noise filtering for unrelated upstream 400/404/422/fetch failures.
-- Current focused status: `/network/1` and `/networks` pass the TanStack DB persistence test together.
+- Current focused status: `PLAYWRIGHT_SKIP_WEBSERVER=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:5174 E2E_REAL_PERSISTENCE_PATHS=/network/eip155:1 ./node_modules/.bin/playwright test tests/e2e/tanstack-db-persistence.e2e.ts --reporter=line` passes for completed-subset replay. Warm catalog HTTP for cold-unmarked route work is not a persistence failure under the current on-demand Product Data model.
 
 Regression history (do not reintroduce):
 

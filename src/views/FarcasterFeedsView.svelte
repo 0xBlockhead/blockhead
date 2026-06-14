@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -38,7 +38,7 @@
 
 
 	// Functions
-	const summaryHref = (idArg: EntityId<typeof schema, EntityType.FarcasterFeed>) => (
+	const summaryHref = (idArg: EntitySelector<typeof schema, EntityType.FarcasterFeed>) => (
 		idArg.variant === 'trending' ?
 			resolve('/farcaster/feed/trending')
 		: idArg.variant === 'byUser' ?
@@ -91,7 +91,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentNetwork = subscribe(EntityType.FarcasterNetwork,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				({ fields: { $$feeds: ({ sources: [Source.Farcaster_Rest], limit: limit }) } }),
 			)}
 			{@const feeds = derive(
@@ -110,8 +110,8 @@
 				{id}
 				{title}
 				open={true}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Selector])}
+				getSortValue={(row) => stringify(row.value[EntityMetaKey.Selector])}
 				placeholderText="Loading Farcaster feeds (trending, FID, channel)…"
 				resource={feeds}
 			>
@@ -122,9 +122,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const feedId = item.value[EntityMetaKey.Id]}
+					{@const feedId = item.value[EntityMetaKey.Selector]}
 					<FarcasterFeedView
-						entityId={feedId}
+						selector={feedId}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

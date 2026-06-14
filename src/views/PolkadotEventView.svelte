@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.PolkadotEvent>
+			selector: EntitySelector<typeof schema, EntityType.PolkadotEvent>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const polkadotEvent = subscribe(EntityType.PolkadotEvent,
-		entityId,
+		selector,
 		({ fields: { eventName: true } }),
 	)
 
@@ -40,16 +40,16 @@
 
 <EntityView
 	entityType={EntityType.PolkadotEvent}
-	{entityId}
-	title={`Event #${entityId.eventIndex.toString()}`}
-	idDragPlainText={entityId.eventIndex.toString()}
+	entitySelector={selector}
+	title={`Event #${selector.eventIndex.toString()}`}
+	idDragPlainText={selector.eventIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.eventIndex.toString()}
+			#{selector.eventIndex.toString()}
 		</span>
 	{/snippet}
 

@@ -18,7 +18,7 @@
 		href={resolve('/farcaster/users')}
 		entityFieldReference={{
 			entityType: EntityType.FarcasterNetwork,
-			entityId: { scope: 'FarcasterNetwork' },
+			selector: { scope: 'FarcasterNetwork' },
 			fieldName: '$$users',
 		}}
 		id="users"

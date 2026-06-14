@@ -23,7 +23,7 @@
 		)}
 		entityFieldReference={{
 			entityType: EntityType.EvmNetwork,
-			entityId: { caip2: { namespace: 'eip155' as const, reference: String(1) } },
+			selector: { caip2: { namespace: 'eip155' as const, reference: String(1) } },
 			fieldName: '$$contracts',
 		}}
 		id="contracts"

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.PolkadotExtrinsic>
+			selector: EntitySelector<typeof schema, EntityType.PolkadotExtrinsic>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const polkadotExtrinsic = subscribe(EntityType.PolkadotExtrinsic,
-		entityId,
+		selector,
 		({ fields: { hash: true, callName: true, success: true } }),
 	)
 
@@ -41,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.PolkadotExtrinsic}
-	{entityId}
-	title={`Extrinsic #${entityId.extrinsicIndex.toString()}`}
-	idDragPlainText={entityId.extrinsicIndex.toString()}
+	entitySelector={selector}
+	title={`Extrinsic #${selector.extrinsicIndex.toString()}`}
+	idDragPlainText={selector.extrinsicIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.extrinsicIndex.toString()}
+			#{selector.extrinsicIndex.toString()}
 		</span>
 	{/snippet}
 

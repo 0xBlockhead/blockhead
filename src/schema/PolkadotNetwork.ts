@@ -12,6 +12,11 @@ import { UrlString } from '$/schema/UrlString.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum PolkadotNetworkSelector {
+	Network = 'network',
+}
+
+
 const polkadotRpcEndpointField = type({
 	url: UrlString,
 	transportType: type.valueOf(TransportType),
@@ -24,7 +29,14 @@ export default {
 	label: 'Polkadot network',
 	labelPlural: 'Polkadot networks',
 
-	id: Network.id,
+	selectors: [
+		{
+			name: PolkadotNetworkSelector.Network,
+			fields: [
+				'$network',
+			],
+		},
+	],
 
 	fields: [
 		{

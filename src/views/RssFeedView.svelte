@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,9 +17,9 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(rss)/rss/feed/[feedKey]', {
-			feedKey: encodeURIComponent(entityId.feedUrl),
+			feedKey: encodeURIComponent(selector.feedUrl),
 		}),
 		limit = 25,
 		layout,
@@ -29,7 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.RssFeed>
+			selector: EntitySelector<typeof schema, EntityType.RssFeed>
 			href?: string
 			limit?: number
 			layout?: import('$/components/EntityView.svelte').EntityLayout
@@ -42,7 +42,7 @@
 	> = $props()
 
 	const feed = subscribe(EntityType.RssFeed,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Rss_Rest,
 				Source.Rss2Json_Rest,
@@ -52,7 +52,7 @@
 						] }) }) : ({  })) } }),
 	)
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 
 	// Components
@@ -69,7 +69,7 @@
 
 <EntityView
 	entityType={EntityType.RssFeed}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -81,7 +81,7 @@
 				{#if feed.fields.imageUrl}
 					<IconComponent
 						src={feed.fields.imageUrl}
-						alt={feed.fields.title ?? entityId.feedUrl}
+						alt={feed.fields.title ?? selector.feedUrl}
 					/>
 				{/if}
 			{/snippet}
@@ -90,7 +90,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.feedUrl}
+			value={selector.feedUrl}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -101,7 +101,7 @@
 			placeholderText="Loading feed…"
 		>
 			{#snippet children(feed)}
-				{feed.fields.title ?? entityId.feedUrl}
+				{feed.fields.title ?? selector.feedUrl}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -135,7 +135,7 @@
 		<dl data-column-item="center">
 			<div>
 				<dt>Feed URL</dt>
-				<dd>{entityId.feedUrl}</dd>
+				<dd>{selector.feedUrl}</dd>
 			</div>
 
 			<ResourceBoundary
@@ -240,7 +240,7 @@
 					href={resolve('/rss/items')}
 					entityFieldReference={{
 						entityType: EntityType.RssFeed,
-						entityId,
+						selector,
 						fieldName: '$$items',
 					}}
 					id={`${idKey}:feed-items-rssFeeds`}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -14,16 +14,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/~/(accounts)/accounts/(positions)/position/[chainId]/[positionId]', {
-			chainId: String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`)),
-			positionId: entityId.id,
+			chainId: String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)),
+			positionId: selector.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LiquidityPosition>
+			selector: EntitySelector<typeof schema, EntityType.LiquidityPosition>
 			href?: string
 			open?: boolean
 		},
@@ -37,7 +37,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const liquidityPosition = subscribe(EntityType.LiquidityPosition,
-		entityId,
+		selector,
 		({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }),
 	)
 
@@ -54,14 +54,14 @@
 
 <EntityView
 	entityType={EntityType.LiquidityPosition}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{open}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -97,7 +97,7 @@
 							<dd>
 								{#if liquidityPosition.fields.$pool !== undefined}
 									<EvmNetworkView
-										entityId={liquidityPosition.fields.$pool[EntityMetaKey.Id].$network}
+										selector={liquidityPosition.fields.$pool[EntityMetaKey.Selector].$network}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -111,7 +111,7 @@
 							<dd>
 								{#if liquidityPosition.fields.$pool !== undefined}
 									<LiquidityPoolView
-										entityId={liquidityPosition.fields.$pool[EntityMetaKey.Id]}
+										selector={liquidityPosition.fields.$pool[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={true}
 										showTypeAnnotation={false}
@@ -126,9 +126,9 @@
 								<dt>Owner</dt>
 								<dd>
 									<EvmNetworkAccountView
-										entityId={{
-											$network: liquidityPosition.fields.$pool[EntityMetaKey.Id].$network,
-											$actor: liquidityPosition.fields.$owner[EntityMetaKey.Id],
+										selector={{
+											$network: liquidityPosition.fields.$pool[EntityMetaKey.Selector].$network,
+											$actor: liquidityPosition.fields.$owner[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
 										open={false}

@@ -18,7 +18,7 @@
 		href={resolve('/lens/posts')}
 		entityFieldReference={{
 			entityType: EntityType.LensNetwork,
-			entityId: { scope: 'LensNetwork' },
+			selector: { scope: 'LensNetwork' },
 			fieldName: '$$lensPosts',
 		}}
 		id="lens-posts"

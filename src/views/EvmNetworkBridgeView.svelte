@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,14 +12,14 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
-		href = entityId.url,
+		selector,
+		href = selector.url,
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmNetworkBridge>
+			selector: EntitySelector<typeof schema, EntityType.EvmNetworkBridge>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -31,7 +31,7 @@
 	> = $props()
 
 	const bridge = subscribe(EntityType.EvmNetworkBridge,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
@@ -47,21 +47,21 @@
 
 <EntityView
 	entityType={EntityType.EvmNetworkBridge}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
-	title={`Execution bridge ${entityId.$fromNetwork.caip2.namespace}:${entityId.$fromNetwork.caip2.reference} → ${entityId.$toNetwork.caip2.namespace}:${entityId.$toNetwork.caip2.reference}`}
+	title={`Execution bridge ${selector.$fromNetwork.caip2.namespace}:${selector.$fromNetwork.caip2.reference} → ${selector.$toNetwork.caip2.namespace}:${selector.$toNetwork.caip2.reference}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{entityId.url}
+			{selector.url}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<span>
-			Execution bridge {entityId.$fromNetwork.caip2.namespace}:{entityId.$fromNetwork.caip2.reference} → {entityId.$toNetwork.caip2.namespace}:{entityId.$toNetwork.caip2.reference}
+			Execution bridge {selector.$fromNetwork.caip2.namespace}:{selector.$fromNetwork.caip2.reference} → {selector.$toNetwork.caip2.namespace}:{selector.$toNetwork.caip2.reference}
 		</span>
 	{/snippet}
 
@@ -70,24 +70,24 @@
 			<div>
 				<dt>From</dt>
 				<dd>
-					{entityId.$fromNetwork.caip2.namespace}:{entityId.$fromNetwork.caip2.reference}
+					{selector.$fromNetwork.caip2.namespace}:{selector.$fromNetwork.caip2.reference}
 				</dd>
 			</div>
 			<div>
 				<dt>To</dt>
 				<dd>
-					{entityId.$toNetwork.caip2.namespace}:{entityId.$toNetwork.caip2.reference}
+					{selector.$toNetwork.caip2.namespace}:{selector.$toNetwork.caip2.reference}
 				</dd>
 			</div>
 			<div>
 				<dt>URL</dt>
 				<dd>
 					<a
-						href={entityId.url}
+						href={selector.url}
 						rel="noreferrer"
 						target="_blank"
 					>
-						{entityId.url}
+						{selector.url}
 					</a>
 				</dd>
 			</div>

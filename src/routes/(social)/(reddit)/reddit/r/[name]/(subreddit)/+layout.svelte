@@ -27,7 +27,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<RedditSubredditView
-			entityId={{ name: decodeURIComponent(name).toLowerCase() }}
+			selector={{ name: decodeURIComponent(name).toLowerCase() }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

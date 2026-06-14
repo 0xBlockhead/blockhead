@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,16 +15,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(assets)/(marketVenues)/market-venue/[marketVenueId=marketVenueId]', {
-				marketVenueId: entityId.marketVenueId,
+				marketVenueId: selector.marketVenueId,
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.MarketVenue>
+			selector: EntitySelector<typeof schema, EntityType.MarketVenue>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -36,7 +36,7 @@
 	> = $props()
 
 	const marketVenue = subscribe(EntityType.MarketVenue,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true } }),
@@ -52,9 +52,9 @@
 
 <EntityView
 	entityType={EntityType.MarketVenue}
-	{entityId}
+	entitySelector={selector}
 	href={href}
-	title={entityId.marketVenueId}
+	title={selector.marketVenueId}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -66,7 +66,7 @@
 			placeholderText="Loading market venue…"
 		>
 			{#snippet children(marketVenue)}
-				{marketVenue.fields.label ?? entityId.marketVenueId}
+				{marketVenue.fields.label ?? selector.marketVenueId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -81,14 +81,14 @@
 					<div>
 						<dt>Venue id</dt>
 						<dd>
-							<code>{entityId.marketVenueId}</code>
+							<code>{selector.marketVenueId}</code>
 						</dd>
 					</div>
 
 					<div>
 						<dt>Label</dt>
 						<dd>
-				{marketVenue.fields.label ?? entityId.marketVenueId}
+				{marketVenue.fields.label ?? selector.marketVenueId}
 						</dd>
 					</div>
 				</dl>
@@ -103,7 +103,7 @@
 			href={resolve('/markets')}
 			entityFieldReference={{
 				entityType: EntityType.MarketVenue,
-				entityId,
+				selector,
 				fieldName: '$$markets',
 			}}
 			open={false}

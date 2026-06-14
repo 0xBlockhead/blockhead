@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,13 +16,13 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BlockheadSessionAction>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
 			open?: boolean
 			collapsible?: boolean
 		},
@@ -34,7 +34,7 @@
 
 	const sessionAction = $derived(
 		subscribe(EntityType.BlockheadSessionAction,
-			entityId,
+			selector,
 			({ sources: [
 					Source.Local_Internal,
 				], fields: { indexInSequence: true, action: true, createdAt: true, updatedAt: true } }),
@@ -56,7 +56,7 @@
 		actionType: ActionType,
 	) => {
 		updateLocalBlockheadSessionActionType(
-			entityId,
+			selector,
 			sessionAction,
 			actionType,
 		)
@@ -71,13 +71,13 @@
 
 <EntityView
 	entityType={EntityType.BlockheadSessionAction}
-	{entityId}
+	entitySelector={selector}
 	bind:open
 	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>{entityId.actionId}</span>
+		<span>{selector.actionId}</span>
 	{/snippet}
 
 	{#snippet Title()}

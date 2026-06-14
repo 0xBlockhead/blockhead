@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum FilecoinNetwork_TimestampSelector {
+	NetworkTimestampMs = 'networkTimestampMs',
+}
 import { Source } from '$/sources/Source.ts'
 
 export default {
@@ -16,12 +19,29 @@ export default {
 	label: 'Filecoin network snapshot',
 	labelPlural: 'Filecoin network snapshots',
 
-	id: type({
-		$network: Network.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: FilecoinNetwork_TimestampSelector.NetworkTimestampMs,
+			fields: [
+				'$network',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'headHeight',
 			type: EntityFieldType.Primitive,

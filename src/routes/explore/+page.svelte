@@ -23,7 +23,7 @@
 
 <Page>
 	<GlobalView
-		entityId={{ scope: 'Explore' }}
+		selector={{ scope: 'Explore' }}
 		title="Explore"
 		href={resolve('/explore')}
 	>
@@ -61,7 +61,7 @@
 						href={resolve('/networks')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
-							entityId: { scope: '$$networks' },
+							selector: { scope: '$$networks' },
 							fieldName: '$$networks',
 						}}
 						id="networks"
@@ -73,7 +73,7 @@
 					<EthereumNetworkUpgradesView
 						entityFieldReference={{
 							entityType: EntityType._Global,
-							entityId: { scope: '$$networkUpgrades' },
+							selector: { scope: '$$networkUpgrades' },
 							fieldName: '$$networkUpgrades',
 						}}
 						id="upgrades"
@@ -105,7 +105,7 @@
 				<SpecificationRealmsView
 					entityFieldReference={{
 						entityType: EntityType._Global,
-						entityId: { scope: '$$specificationRealms' },
+						selector: { scope: '$$specificationRealms' },
 						fieldName: '$$specificationRealms',
 					}}
 					id="proposal-realms"

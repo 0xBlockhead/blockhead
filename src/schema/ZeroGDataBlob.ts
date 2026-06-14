@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum ZeroGDataBlobSelector {
+	NetworkDataRoot = 'networkDataRoot',
+}
 
 export default {
 	entityType: EntityType.ZeroGDataBlob,
@@ -15,12 +18,29 @@ export default {
 	label: '0G data blob',
 	labelPlural: '0G data blobs',
 
-	id: type({
-		$network: Network.id,
-		dataRoot: 'string',
-	}),
+	selectors: [
+		{
+			name: ZeroGDataBlobSelector.NetworkDataRoot,
+			fields: [
+				'$network',
+				'dataRoot',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'dataRoot',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$consensusNetwork',
 			type: EntityFieldType.EntityReference,

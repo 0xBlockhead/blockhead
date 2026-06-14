@@ -9,6 +9,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum XPostSelector {
+	Id = 'id',
+}
+
+
 const XId = type(
 	'/^\\d+$/' as type.cast<string>,
 )
@@ -19,11 +24,22 @@ export default {
 	label: 'X post',
 	labelPlural: 'X posts',
 
-	id: type({
-		id: XId,
-	}),
+	selectors: [
+		{
+			name: XPostSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: XId,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$author',
 			type: EntityFieldType.EntityReference,

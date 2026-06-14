@@ -14,6 +14,6 @@
 
 <Page>
 	<EvmCoinInstanceView
-		entityId={data.entityId}
+		selector={data.selector}
 	/>
 </Page>

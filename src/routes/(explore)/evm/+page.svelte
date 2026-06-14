@@ -7,7 +7,7 @@
 
 <Page>
 	<EvmProtocolView
-		entityId={{
+		selector={{
 			scope: 'EvmProtocol',
 		}}
 	/>

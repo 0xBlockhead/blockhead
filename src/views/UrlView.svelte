@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,13 +16,13 @@
 
 	// State
 	let {
-		entityId,
-		href = resolve(`/url/${encodeURIComponent(entityId.url)}`),
+		selector,
+		href = resolve(`/url/${encodeURIComponent(selector.url)}`),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Url>
+			selector: EntitySelector<typeof schema, EntityType.Url>
 			href?: string
 			open?: boolean
 		},
@@ -33,7 +33,7 @@
 	> = $props()
 
 	const url = subscribe(EntityType.Url,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 				Source.MetadataVision_Rest,
@@ -54,14 +54,14 @@
 
 <EntityView
 	entityType={EntityType.Url}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{open}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.url}
+			{selector.url}
 		</span>
 	{/snippet}
 
@@ -71,7 +71,7 @@
 			placeholderText="Loading URL entity…"
 		>
 			{#snippet children(url)}
-				{url.fields.openGraphTitle ?? url.fields.catalogName ?? entityId.url}
+				{url.fields.openGraphTitle ?? url.fields.catalogName ?? selector.url}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -140,11 +140,11 @@
 							{#snippet children(url)}
 								{#if (
 									url.fields.$openGraphImage != null
-									&& url.fields.$openGraphImage[EntityMetaKey.Id].url
+									&& url.fields.$openGraphImage[EntityMetaKey.Selector].url
 								)}
 									<Media
 										alt={url.fields.openGraphTitle ?? ''}
-										media={{ url: url.fields.$openGraphImage[EntityMetaKey.Id].url }}
+										media={{ url: url.fields.$openGraphImage[EntityMetaKey.Selector].url }}
 									/>
 								{/if}
 							{/snippet}
@@ -160,20 +160,20 @@
 						{#snippet children(url)}
 							{#if url.fields.openGraphTitle != null}
 								<a
-									href={entityId.url}
+									href={selector.url}
 									rel="noreferrer"
 									target="_blank"
 								>
-									{entityId.url}
+									{selector.url}
 								</a>
 							{:else}
 								{#if url.fields.catalogName != null}
 									<a
-										href={entityId.url}
+										href={selector.url}
 										rel="noreferrer"
 										target="_blank"
 									>
-										{entityId.url}
+										{selector.url}
 									</a>
 								{/if}
 							{/if}

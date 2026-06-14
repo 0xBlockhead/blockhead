@@ -7,8 +7,11 @@ import {
 	EntityFieldType,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum BeaconValidatorSelector {
+	EvmNetworkValidatorIndex = 'evmNetworkValidatorIndex',
+}
 
 export default {
 	entityType: EntityType.BeaconValidator,
@@ -16,12 +19,29 @@ export default {
 	label: 'Beacon validator',
 	labelPlural: 'Beacon validators',
 
-	id: type({
-		$network: Network.id,
-		validatorIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: BeaconValidatorSelector.EvmNetworkValidatorIndex,
+			fields: [
+				'$network',
+				'validatorIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'validatorIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'balanceGwei',
 			type: EntityFieldType.Primitive,

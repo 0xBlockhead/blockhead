@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,14 +12,14 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BeaconSyncCommittee>
+			selector: EntitySelector<typeof schema, EntityType.BeaconSyncCommittee>
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
@@ -31,7 +31,7 @@
 	> = $props()
 
 	const committee = subscribe(EntityType.BeaconSyncCommittee,
-		entityId,
+		selector,
 		(
 			open ?
 				{
@@ -51,7 +51,7 @@
 	// (Derived)
 	const title = $derived(
 		titleProp
-		?? `Sync committee period ${entityId.period.toLocaleString()}`
+		?? `Sync committee period ${selector.period.toLocaleString()}`
 	)
 
 
@@ -64,7 +64,7 @@
 
 <EntityView
 	entityType={EntityType.BeaconSyncCommittee}
-	{entityId}
+	entitySelector={selector}
 	{title}
 	{layout}
 	bind:open
@@ -72,7 +72,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{entityId.period}
+			{selector.period}
 		</span>
 	{/snippet}
 

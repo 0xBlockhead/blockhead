@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,18 +12,18 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.HyperliquidValidator>
+			selector: EntitySelector<typeof schema, EntityType.HyperliquidValidator>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const hyperliquidValidator = subscribe(EntityType.HyperliquidValidator, entityId, ({ fields: { name: true, $signer: true, commission: true, recentBlockCount: true, isActive: true, stake: true, isJailed: true } }))
+	const hyperliquidValidator = subscribe(EntityType.HyperliquidValidator, selector, ({ fields: { name: true, $signer: true, commission: true, recentBlockCount: true, isActive: true, stake: true, isJailed: true } }))
 
 
 	// Components
@@ -36,13 +36,13 @@
 
 <EntityView
 	entityType={EntityType.HyperliquidValidator}
-	{entityId}
-	title={entityId.validator}
+	entitySelector={selector}
+	title={selector.validator}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{entityId.validator.toString()}
+		{selector.validator.toString()}
 	{/snippet}
 
 	{#snippet Content()}
@@ -64,7 +64,7 @@
 							<dt>Signer</dt>
 							<dd>
 								<HyperliquidAccountView
-									entityId={hyperliquidValidator.fields.$signer[EntityMetaKey.Id]}
+									selector={hyperliquidValidator.fields.$signer[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

@@ -8,17 +8,16 @@
 </script>
 
 
-<script lang="ts" generics="Data extends {} | null">
+<script lang="ts" generics="
+	Data
+">
 	// Types/constants
 	import type { Snippet } from 'svelte'
 
-	import Boundary from '$/components/Boundary.svelte'
+	import { serializeError } from '$/lib/errors.ts'
 	import {
-		type QueryLike,
 		type QueryResourceError,
-		type RemoteResourceLike,
-		toQueryResource,
-		toQueryResourceFromRemote,
+		type SvelteKitResource,
 	} from '$/lib/db/queryResource.svelte.ts'
 
 
@@ -29,7 +28,6 @@
 		Failed,
 		placeholderText = 'Loading…',
 		resource: resourceRaw,
-		boundaryKey = 'ResourceBoundary',
 		layout = Layout.Inline,
 	}: {
 		children: Snippet<[data: Data]>
@@ -39,72 +37,72 @@
 			retry: () => void,
 		]>
 		placeholderText?: string
-		resource:
-			| QueryLike<Data>
-			| RemoteResourceLike<Data>
-		boundaryKey?: string
+		resource: SvelteKitResource<Data>
 		layout?: Layout
 	} = $props()
-
-	const resource = $derived(
-		'data' in resourceRaw ?
-			toQueryResource(() => resourceRaw)
-		:
-			toQueryResourceFromRemote(() => resourceRaw)
-	)
 </script>
 
 
-<Boundary {boundaryKey}>
-	{@const current = resource.current}
+{#if resourceRaw.error !== undefined}
+	{@render FailedFallback(
+		resourceRaw.error,
+		() => {},
+	)}
+{:else if resourceRaw.current !== undefined}
+	{@render children(resourceRaw.current)}
+{:else}
+	{@render PendingFallback()}
+{/if}
 
-	{#if resource.error !== undefined}
-		{#if Failed}
-			{@render Failed(
-				resource.error,
-				() => {},
-			)}
-		{:else if layout === Layout.Inline}
+{#snippet PendingFallback()}
+	{#if Pending}
+		{@render Pending()}
+	{:else}
+		{#if layout === Layout.Inline}
 			<span
 				data-tag
-				class="inline-placeholder"
-				aria-label={resource.error instanceof Error ? resource.error.message : String(resource.error)}
+				data-text="muted"
+				class="loading inline-placeholder"
+				aria-busy="true"
+				aria-label={typeof placeholderText === 'string' ? placeholderText : 'Loading…'}
 			>
 				•••
 			</span>
 		{:else}
-			<div data-card>
-				<p>{resource.error instanceof Error ? resource.error.message : String(resource.error)}</p>
+			<div
+				data-card
+				data-text="muted"
+				class="loading"
+			>
+				<p>{typeof placeholderText === 'string' ? placeholderText : 'Loading…'}</p>
 			</div>
 		{/if}
-	{:else if current !== undefined}
-		{@render children(current)}
-	{:else}
-		{#if Pending}
-			{@render Pending()}
-		{:else}
-			{#if layout === Layout.Inline}
-				<span
-					data-tag
-					data-text="muted"
-					class="loading inline-placeholder"
-					aria-busy="true"
-					aria-label={typeof placeholderText === 'string' ? placeholderText : 'Loading…'}
-				>
-					•••
-				</span>
-			{:else}
-				<div
-					data-card
-					data-text="muted"
-					class="loading"
-				>
-					<p>{typeof placeholderText === 'string' ? placeholderText : 'Loading…'}</p>
-				</div>
-			{/if}
-		{/if}
 	{/if}
-</Boundary>
+{/snippet}
+
+{#snippet FailedFallback(
+	error,
+	retry,
+)}
+	{#if Failed}
+		{@render Failed(
+			error,
+			retry,
+		)}
+	{:else if layout === Layout.Inline}
+		<span
+			data-tag
+			class="inline-placeholder"
+			aria-label={error instanceof Error ? error.message : serializeError(error)}
+		>
+			•••
+		</span>
+	{:else}
+		<div data-card>
+			<p>{error instanceof Error ? error.message : serializeError(error)}</p>
+		</div>
+	{/if}
+{/snippet}
 
 
 <style>

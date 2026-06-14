@@ -18,7 +18,7 @@
 		href={resolve('/reddit/subreddits')}
 		entityFieldReference={{
 			entityType: EntityType.RedditNetwork,
-			entityId: { scope: 'RedditNetwork' },
+			selector: { scope: 'RedditNetwork' },
 			fieldName: '$$redditSubreddits',
 		}}
 		id="subreddits"

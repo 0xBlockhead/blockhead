@@ -8,11 +8,15 @@ import {
 } from '$/constants/HyperliquidNetwork.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { HyperliquidNetworkSelector } from '$/schema/HyperliquidNetwork.ts'
+import { HyperliquidPerpMarketSelector } from '$/schema/HyperliquidPerpMarket.ts'
+import { HyperliquidSpotAssetSelector } from '$/schema/HyperliquidSpotAsset.ts'
+import { HyperliquidAccountSelector } from '$/schema/HyperliquidAccount.ts'
+import { HyperliquidValidatorSelector } from '$/schema/HyperliquidValidator.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -29,11 +33,11 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertHyperliquidMainnet(entityId)
+				[HyperliquidNetworkSelector.Network]: async (entitySelector) => {
+				assertHyperliquidMainnet(entitySelector)
 				return {
 					$network: {
-						[EntityMetaKey.Id]: entityId,
+						[EntityMetaKey.Selector]: entitySelector,
 					},
 					restEndpoints: [...hyperliquidMainnetRestEndpoints],
 				}
@@ -49,13 +53,13 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidPerpMarket,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertHyperliquidMainnet(entityId.$network)
+				[HyperliquidPerpMarketSelector.NetworkCoin]: async ({ $network, coin }) => {
+				assertHyperliquidMainnet($network)
 				const { getMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 				const perpMarket = (await getMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl })).universe
-					.find((market) => market.name === entityId.coin)
+					.find((market) => market.name === entitySelector.coin)
 				if (perpMarket == null)
-					throw new Error(`Hyperliquid_Rest: perp market not found for ${entityId.coin}`)
+					throw new Error(`Hyperliquid_Rest: perp market not found for ${coin}`)
 				return {
 					maxLeverage: perpMarket.maxLeverage,
 					...(perpMarket.onlyIsolated != null && {
@@ -74,13 +78,13 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidSpotAsset,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertHyperliquidMainnet(entityId.$network)
+				[HyperliquidSpotAssetSelector.NetworkAssetId]: async ({ $network, assetId }) => {
+				assertHyperliquidMainnet($network)
 				const { getSpotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 				const spotToken = (await getSpotMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl })).tokens
-					.find((token) => token.index === entityId.assetId)
+					.find((token) => token.index === entitySelector.assetId)
 				if (spotToken == null)
-					throw new Error(`Hyperliquid_Rest: spot asset not found for ${String(entityId.assetId)}`)
+					throw new Error(`Hyperliquid_Rest: spot asset not found for ${String(assetId)}`)
 				return {
 					name: spotToken.name,
 					szDecimals: spotToken.szDecimals,
@@ -103,27 +107,27 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidAccount,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertHyperliquidMainnet(entityId.$network)
+				[HyperliquidAccountSelector.NetworkAddress]: async ({ $network, address }) => {
+				assertHyperliquidMainnet($network)
 				const { getUserRole } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 				const userRoleWire = await getUserRole({
 					restBaseUrl: hyperliquidMainnetRestBaseUrl,
-					user: entityId.address,
+					user: address,
 				})
 				return {
 					accountRole: userRoleWire.role,
 					...(userRoleWire.role === 'agent' && {
 						$masterAccount: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								address: userRoleWire.data.user,
 							},
 						},
 					}),
 					...(userRoleWire.role === 'subAccount' && {
 						$masterAccount: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								address: userRoleWire.data.master,
 							},
 						},
@@ -141,17 +145,17 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidValidator,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertHyperliquidMainnet(entityId.$network)
+				[HyperliquidValidatorSelector.NetworkValidator]: async ({ $network, validator: validatorSelector }) => {
+				assertHyperliquidMainnet($network)
 				const { getValidatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 				const validator = (await getValidatorSummaries({ restBaseUrl: hyperliquidMainnetRestBaseUrl }))
-					.find((summary) => summary.validator.toLowerCase() === entityId.validator.toLowerCase())
-				if (validator == null) throw new Error(`Hyperliquid_Rest: validator not found for ${entityId.validator}`)
+					.find((summary) => summary.validatorSelector.toLowerCase() === entitySelector.validatorSelector.toLowerCase())
+				if (validator == null) throw new Error(`Hyperliquid_Rest: validator not found for ${validator}`)
 				return {
 					name: validator.name,
 					$signer: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
 							address: validator.signer,
 						},
 					},
@@ -178,8 +182,8 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertHyperliquidMainnet(entityId)
+				[HyperliquidNetworkSelector.Network]: async (entitySelector) => {
+				assertHyperliquidMainnet(entitySelector)
 				const {
 					getMeta,
 					getSpotMeta,
@@ -196,8 +200,8 @@ export default {
 				])
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							timestampMs: Date.now(),
 						},
 						perpMarketCount: perpMeta.universe.length,
@@ -223,20 +227,20 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertHyperliquidMainnet(entityId)
+				[HyperliquidNetworkSelector.Network]: async (entitySelector, context) => {
+				assertHyperliquidMainnet(entitySelector)
 				const { getValidatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 				return (await getValidatorSummaries({ restBaseUrl: hyperliquidMainnetRestBaseUrl }))
 					.slice(0, resolverContextRowLimit(context))
 					.map((validator) => ({
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							validator: validator.validator,
 						},
 						name: validator.name,
 						$signer: {
-							[EntityMetaKey.Id]: {
-								$network: entityId,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector,
 								address: validator.signer,
 							},
 						},
@@ -257,14 +261,14 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertHyperliquidMainnet(entityId)
+				[HyperliquidNetworkSelector.Network]: async (entitySelector, context) => {
+				assertHyperliquidMainnet(entitySelector)
 				const { getMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 				return (await getMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl })).universe
 					.slice(0, resolverContextRowLimit(context))
 					.map((market) => ({
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							coin: market.name,
 						},
 						maxLeverage: market.maxLeverage,
@@ -283,14 +287,14 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertHyperliquidMainnet(entityId)
+				[HyperliquidNetworkSelector.Network]: async (entitySelector, context) => {
+				assertHyperliquidMainnet(entitySelector)
 				const { getSpotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 				return (await getSpotMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl })).tokens
 					.slice(0, resolverContextRowLimit(context))
 					.map((token) => ({
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector,
 							assetId: token.index,
 						},
 						name: token.name,

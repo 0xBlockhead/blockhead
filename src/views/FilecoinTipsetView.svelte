@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,12 +13,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.FilecoinTipset>
+			selector: EntitySelector<typeof schema, EntityType.FilecoinTipset>
 			open?: boolean
 		},
 		Pick<
@@ -29,7 +29,7 @@
 	> = $props()
 
 	const tipset = subscribe(EntityType.FilecoinTipset,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Filfox_Rest,
 			], fields: { timestampMs: true, $$blocks: true, ...(open && ({ $parent: true, parentWeight: true })) } }),
@@ -46,16 +46,16 @@
 
 <EntityView
 	entityType={EntityType.FilecoinTipset}
-	{entityId}
-	title={`Tipset #${entityId.height.toString()}`}
-	idDragPlainText={entityId.height.toString()}
+	entitySelector={selector}
+	title={`Tipset #${selector.height.toString()}`}
+	idDragPlainText={selector.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.height.toString()}
+			#{selector.height.toString()}
 		</span>
 	{/snippet}
 
@@ -83,7 +83,7 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>Key</dt>
-						<dd>{entityId.tipsetKey}</dd>
+						<dd>{selector.tipsetKey}</dd>
 					</div>
 
 						{#if (tipset.fields.$$blocks?.values.length ?? 0) > 0}
@@ -99,7 +99,7 @@
 							<dd>
 								<EntityView
 									entityType={EntityType.FilecoinTipset}
-									entityId={tipset.fields.$parent[EntityMetaKey.Id]}
+								entitySelector={tipset.fields.$parent[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

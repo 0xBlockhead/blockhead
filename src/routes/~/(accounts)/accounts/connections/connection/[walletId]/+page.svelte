@@ -15,5 +15,5 @@
 
 
 <Page>
-	<BlockheadWalletConnectionView entityId={data.entityId} />
+	<BlockheadWalletConnectionView selector={data.selector} />
 </Page>

@@ -66,7 +66,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const pool = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Dexscreener_OpenApi,
@@ -89,8 +89,8 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.LiquidityPool_Timestamp}
-				getKey={(timestamp) => stringify(timestamp.value[EntityMetaKey.Id])}
-				getSortValue={(timestamp) => String(timestamp.value[EntityMetaKey.Id].timestampMs)}
+				getKey={(timestamp) => stringify(timestamp.value[EntityMetaKey.Selector])}
+				getSortValue={(timestamp) => String(timestamp.value[EntityMetaKey.Selector].timestampMs)}
 				placeholderKeys={new SvelteSet<string>()}
 				resource={timestamps}
 				{title}
@@ -105,8 +105,8 @@
 
 				{#snippet Item({ item })}
 					<LiquidityPool_TimestampView
-						entityId={item.value[EntityMetaKey.Id]}
-						id={stringify(item.value[EntityMetaKey.Id])}
+						selector={item.value[EntityMetaKey.Selector]}
+						id={stringify(item.value[EntityMetaKey.Selector])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -72,7 +72,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const market = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 						Source.Blockscout_Rest,
 						Source.Coingecko_Rest,
@@ -112,8 +112,8 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.Market_Timestamp}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampMs)}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Selector])}
+				getSortValue={(row) => String(row.value[EntityMetaKey.Selector].timestampMs)}
 				placeholderKeys={new SvelteSet<string>()}
 				resource={quotes}
 				{title}
@@ -129,8 +129,8 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<Market_TimestampView
-						entityId={row[EntityMetaKey.Id]}
-						id={stringify(row[EntityMetaKey.Id])}
+						selector={row[EntityMetaKey.Selector]}
+						id={stringify(row[EntityMetaKey.Selector])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

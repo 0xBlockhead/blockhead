@@ -10,21 +10,36 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadWalletAccountSelector {
+	Caip10 = 'caip10',
+}
+
 export default {
 	entityType: EntityType.BlockheadWalletAccount,
 
 	label: 'Wallet Account',
 	labelPlural: 'Wallet Accounts',
 
-	id: type({
-		caip10: {
-			namespace: 'string',
-			reference: 'string',
-			accountAddress: 'string',
+	selectors: [
+		{
+			name: BlockheadWalletAccountSelector.Caip10,
+			fields: [
+				'caip10',
+			],
 		},
-	}),
+	],
 
 	fields: [
+		{
+			name: 'caip10',
+			type: EntityFieldType.Primitive,
+			primitiveType: type({
+				namespace: 'string',
+				reference: 'string',
+				accountAddress: 'string',
+			}),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$network',
 			type: EntityFieldType.EntityReference,

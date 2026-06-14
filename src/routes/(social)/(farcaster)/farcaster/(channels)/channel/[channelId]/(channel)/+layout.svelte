@@ -20,7 +20,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<FarcasterChannelView
-			entityId={{ id: params.channelId }}
+			selector={{ id: params.channelId }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

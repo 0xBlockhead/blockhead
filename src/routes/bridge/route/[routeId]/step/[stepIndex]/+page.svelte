@@ -15,5 +15,5 @@
 
 
 <Page>
-	<BridgeRouteStepView entityId={data.entityId} />
+	<BridgeRouteStepView selector={data.selector} />
 </Page>

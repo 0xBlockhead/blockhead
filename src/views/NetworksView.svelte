@@ -3,7 +3,7 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -30,7 +30,7 @@
 			title?: string
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Network>
-			networkIds?: readonly EntityId<typeof schema, EntityType.Network>[]
+			networkIds?: readonly EntitySelector<typeof schema, EntityType.Network>[]
 			id: string
 			href?: string
 		},
@@ -68,7 +68,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ sources: [
+		entityFieldReference.selector,({ sources: [
 				Source.Constants_Internal,
 			], fields: { [entityFieldReference.fieldName]: {
 				limit: 4096,
@@ -85,11 +85,11 @@
 					.filter((value) => (
 						networkIds == null
 						|| networkIds.some((networkId) => (
-							stringifyId(networkId) === stringifyId(value[EntityMetaKey.Id])
+							stringifyId(networkId) === stringifyId(value[EntityMetaKey.Selector])
 						))
 					))
 					.flatMap((value) => {
-						const key = stringifyId(value[EntityMetaKey.Id])
+						const key = stringifyId(value[EntityMetaKey.Selector])
 						if (keys.has(key)) return []
 						keys.add(key)
 						return [{ value }]
@@ -104,8 +104,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(line) => stringifyId(line.value[EntityMetaKey.Id])}
-				getSortValue={(line) => stringifyId(line.value[EntityMetaKey.Id])}
+				getKey={(line) => stringifyId(line.value[EntityMetaKey.Selector])}
+				getSortValue={(line) => stringifyId(line.value[EntityMetaKey.Selector])}
 				placeholderKeys={new SvelteSet<string | number>()}
 				placeholderText="Loading networks…"
 				resource={filteredNetworks}
@@ -120,7 +120,7 @@
 
 				{#snippet Item({ item: line })}
 						<NetworkView
-							entityId={line.value[EntityMetaKey.Id]}
+							selector={line.value[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

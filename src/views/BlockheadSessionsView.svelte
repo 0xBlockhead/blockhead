@@ -49,7 +49,7 @@
 
 	// Actions
 	const createSession = () => {
-		writeLocalBlockheadSession(entityFieldReference.entityId, sessionName)
+		writeLocalBlockheadSession(entityFieldReference.selector, sessionName)
 		sessionName = ''
 	}
 
@@ -87,7 +87,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Local_Internal,
 					], fields: { [entityFieldReference.fieldName]: {
 						sources: [
@@ -139,8 +139,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
 				resource={sessions}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -152,7 +152,7 @@
 
 				{#snippet Item({ item: envelope })}
 					<BlockheadSessionView
-						entityId={envelope.value[EntityMetaKey.Id]}
+						selector={envelope.value[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

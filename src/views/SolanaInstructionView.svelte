@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,18 +12,18 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.SolanaInstruction>
+			selector: EntitySelector<typeof schema, EntityType.SolanaInstruction>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const solanaInstruction = subscribe(EntityType.SolanaInstruction, entityId, ({ fields: { $program: true, parsedType: true, data: true, $$accounts: true } }))
+	const solanaInstruction = subscribe(EntityType.SolanaInstruction, selector, ({ fields: { $program: true, parsedType: true, data: true, $$accounts: true } }))
 
 
 	// Components
@@ -37,15 +37,15 @@
 
 <EntityView
 	entityType={EntityType.SolanaInstruction}
-	{entityId}
-	title={`Instruction #${entityId.instructionIndex.toString()}`}
-	idDragPlainText={entityId.instructionIndex.toString()}
+	entitySelector={selector}
+	title={`Instruction #${selector.instructionIndex.toString()}`}
+	idDragPlainText={selector.instructionIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.instructionIndex.toString()}
+			#{selector.instructionIndex.toString()}
 		</span>
 	{/snippet}
 
@@ -70,7 +70,7 @@
 							<dt>Program</dt>
 							<dd>
 								<SolanaProgramView
-									entityId={solanaInstruction.fields.$program[EntityMetaKey.Id]}
+									selector={solanaInstruction.fields.$program[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -102,10 +102,10 @@
 							<dt>Accounts</dt>
 							<dd>
 								<ul>
-									{#each solanaInstruction.fields.$$accounts.values as account (account[EntityMetaKey.Id].pubkey)}
+									{#each solanaInstruction.fields.$$accounts.values as account (account[EntityMetaKey.Selector].pubkey)}
 										<li>
 											<SolanaAccountView
-												entityId={account[EntityMetaKey.Id]}
+												selector={account[EntityMetaKey.Selector]}
 												layout={EntityLayout.Title}
 												open={false}
 											/>

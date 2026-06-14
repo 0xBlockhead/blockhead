@@ -8,8 +8,12 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import type { Entity } from '$/schema/$schema.ts'
-import { schema } from '$/schema/index.ts'
+import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+
+export enum MediaObjectSelector {
+	Url = 'url',
+}
 
 export default {
 	entityType: EntityType.MediaObject,
@@ -17,11 +21,22 @@ export default {
 	label: 'Media Object',
 	labelPlural: 'Media Objects',
 
-	id: type({
-		url: UrlString,
-	}),
+	selectors: [
+		{
+			name: MediaObjectSelector.Url,
+			fields: [
+				'url',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'url',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'width',
 			type: EntityFieldType.Primitive,

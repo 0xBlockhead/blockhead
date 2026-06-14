@@ -60,7 +60,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Lotus_JsonRpc,
@@ -82,8 +82,8 @@
 				entityType={EntityType.FilecoinMiner}
 				id={`${id}-items`}
 				href={href}
-				getKey={(miner) => stringify(miner[EntityMetaKey.Id])}
-				getSortValue={(miner) => stringify(miner[EntityMetaKey.Id])}
+				getKey={(miner) => stringify(miner[EntityMetaKey.Selector])}
+				getSortValue={(miner) => stringify(miner[EntityMetaKey.Selector])}
 				open={true}
 				resource={miners}
 				{title}
@@ -97,7 +97,7 @@
 
 				{#snippet Item(context)}
 					<FilecoinMinerView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.CosmosValidator>
+			selector: EntitySelector<typeof schema, EntityType.CosmosValidator>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const cosmosValidator = subscribe(EntityType.CosmosValidator,
-		entityId,
+		selector,
 		({ fields: { consensusPubkey: true, moniker: true, jailed: true, status: true, tokens: true } }),
 	)
 
@@ -42,15 +42,15 @@
 
 <EntityView
 	entityType={EntityType.CosmosValidator}
-	{entityId}
-	title={entityId.operatorAddress}
+	entitySelector={selector}
+	title={selector.operatorAddress}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.operatorAddress}
+			value={selector.operatorAddress}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

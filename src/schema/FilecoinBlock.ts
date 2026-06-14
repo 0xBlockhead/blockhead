@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum FilecoinBlockSelector {
+	NetworkCid = 'networkCid',
+}
 
 export default {
 	entityType: EntityType.FilecoinBlock,
@@ -15,12 +18,29 @@ export default {
 	label: 'Filecoin Block',
 	labelPlural: 'Filecoin Blocks',
 
-	id: type({
-		$network: Network.id,
-		cid: 'string',
-	}),
+	selectors: [
+		{
+			name: FilecoinBlockSelector.NetworkCid,
+			fields: [
+				'$network',
+				'cid',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'cid',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$tipset',
 			type: EntityFieldType.EntityReference,

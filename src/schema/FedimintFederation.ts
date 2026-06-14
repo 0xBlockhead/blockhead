@@ -8,17 +8,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum FedimintFederationSelector {
+	FederationId = 'federationId',
+}
+
 export default {
 	entityType: EntityType.FedimintFederation,
 
 	label: 'Fedimint federation',
 	labelPlural: 'Fedimint federations',
 
-	id: type({
-		federationId: 'string',
-	}),
+	selectors: [
+		{
+			name: FedimintFederationSelector.FederationId,
+			fields: [
+				'federationId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'federationId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

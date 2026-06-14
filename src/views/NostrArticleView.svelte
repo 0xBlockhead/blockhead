@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -18,12 +18,12 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/(social)/(nostr)/nostr/article/[pubkey]/[identifier]',
 			{
-				pubkey: entityId.pubkey,
-				identifier: entityId.identifier,
+				pubkey: selector.pubkey,
+				identifier: selector.identifier,
 			},
 		),
 		open = $bindable(
@@ -33,7 +33,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.NostrArticle>
+			selector: EntitySelector<typeof schema, EntityType.NostrArticle>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -46,7 +46,7 @@
 	> = $props()
 
 	const article = subscribe(EntityType.NostrArticle,
-		entityId,
+		selector,
 		({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
@@ -69,7 +69,7 @@
 
 <EntityView
 	entityType={EntityType.NostrArticle}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -80,7 +80,7 @@
 				{#if article.fields.imageUrl}
 					<IconComponent
 						src={article.fields.imageUrl}
-						alt={article.fields.title ?? entityId.identifier}
+						alt={article.fields.title ?? selector.identifier}
 					/>
 				{/if}
 			{/snippet}
@@ -89,7 +89,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.identifier}
+			value={selector.identifier}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -100,7 +100,7 @@
 			placeholderText="Loading article…"
 		>
 			{#snippet children(article)}
-				{article.fields.title ?? entityId.identifier}
+				{article.fields.title ?? selector.identifier}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -151,7 +151,7 @@
 							<dt>Author</dt>
 							<dd>
 								<NostrProfileView
-									entityId={article.fields.$author[EntityMetaKey.Id]}
+									selector={article.fields.$author[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -190,7 +190,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const idKey = stringify(entityId)}
+		{@const idKey = stringify(selector)}
 		<CollapsibleTabs
 			id={`${idKey}:carousel-article`}
 			sectionIdPrefix={idKey}

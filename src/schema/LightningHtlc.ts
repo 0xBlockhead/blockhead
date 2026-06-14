@@ -10,6 +10,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import LightningChannel from '$/schema/LightningChannel.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum LightningHtlcSelector {
+	LightningChannelHtlcIndex = 'lightningChannelHtlcIndex',
+}
+
+
 export enum LightningHtlcDirection {
 	Incoming = 'Incoming',
 	Outgoing = 'Outgoing',
@@ -21,12 +26,29 @@ export default {
 	label: 'Lightning HTLC',
 	labelPlural: 'Lightning HTLCs',
 
-	id: type({
-		$channel: LightningChannel.id,
-		htlcIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: LightningHtlcSelector.LightningChannelHtlcIndex,
+			fields: [
+				'$channel',
+				'htlcIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$channel',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.LightningChannel,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'htlcIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'direction',
 			type: EntityFieldType.Primitive,

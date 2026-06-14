@@ -21,11 +21,11 @@
 	<NostrNotesView
 		href={resolve(
 			'/(social)/(nostr)/nostr/profile/[pubkey]/(profile)/notes',
-			{ pubkey: data.entityId.pubkey },
+			{ pubkey: data.selector.pubkey },
 		)}
 		entityFieldReference={{
 			entityType: EntityType.NostrProfile,
-			entityId: data.entityId,
+			selector: data.selector,
 			fieldName: '$$notes',
 		}}
 		id="nostr-profile-notes"

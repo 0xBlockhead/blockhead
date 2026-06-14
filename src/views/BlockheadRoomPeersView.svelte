@@ -17,7 +17,7 @@
 	let {
 		entityFieldReference = {
 			entityType: EntityType._Global,
-			entityId: { scope: '$$blockheadRoomPeers' },
+			selector: { scope: '$$blockheadRoomPeers' },
 			fieldName: '$$blockheadRoomPeers',
 		},
 		title = 'Room peers',
@@ -79,7 +79,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Local_Internal,
@@ -107,8 +107,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(envelope) => envelope.value[EntityMetaKey.Id].id}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
+				getKey={(envelope) => envelope.value[EntityMetaKey.Selector].id}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].id}
 				resource={peers}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -120,7 +120,7 @@
 
 				{#snippet Item({ item: envelope })}
 					<BlockheadRoomPeerView
-						entityId={envelope.value[EntityMetaKey.Id]}
+						selector={envelope.value[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

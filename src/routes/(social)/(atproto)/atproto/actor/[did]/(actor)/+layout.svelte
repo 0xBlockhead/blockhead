@@ -27,7 +27,7 @@
 >
 		{#snippet Summary({ open: _open })}
 			<AtprotoActorView
-				entityId={
+				selector={
 					decodeURIComponent(did).startsWith('did:') ?
 						{ did: decodeURIComponent(did) }
 					:

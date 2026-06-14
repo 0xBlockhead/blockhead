@@ -7,7 +7,7 @@
 
 <Page>
 	<ActivityPubView
-		entityId={{
+		selector={{
 			scope: 'ActivityPubNetwork',
 		}}
 	/>

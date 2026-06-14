@@ -13,7 +13,7 @@
 
 <Page>
 	<UtxoTransactionView
-		entityId={{
+		selector={{
 			$network: { networkSlug: params.networkSlug },
 			txId: params.txId,
 		}}

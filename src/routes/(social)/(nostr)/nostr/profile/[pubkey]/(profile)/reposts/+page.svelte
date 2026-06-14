@@ -16,7 +16,7 @@
 	<NostrRepostsView
 		entityFieldReference={{
 			entityType: EntityType.NostrProfile,
-			entityId: data.entityId,
+			selector: data.selector,
 			fieldName: '$$reposts',
 		}}
 		id="nostr-profile-reposts"

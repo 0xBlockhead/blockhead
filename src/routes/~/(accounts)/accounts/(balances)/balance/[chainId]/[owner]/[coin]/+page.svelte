@@ -14,7 +14,7 @@
 
 <Page>
 	<EvmNetworkActorCoinBalanceView
-		entityId={{
+		selector={{
 			$actor: {
 				address: params.owner as `0x${string}`,
 			},

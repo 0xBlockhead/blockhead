@@ -10,18 +10,33 @@ import { EntityType } from '$/schema/EntityType.ts'
 import BittensorSubnet from '$/schema/BittensorSubnet.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum BittensorNeuronSelector {
+	BittensorSubnetUid = 'bittensorSubnetUid',
+}
+
 export default {
 	entityType: EntityType.BittensorNeuron,
 
 	label: 'Bittensor neuron',
 	labelPlural: 'Bittensor neurons',
 
-	id: type({
-		$subnet: BittensorSubnet.id,
-		uid: 'number',
-	}),
+	selectors: [
+		{
+			name: BittensorNeuronSelector.BittensorSubnetUid,
+			fields: [
+				'$subnet',
+				'uid',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$subnet',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.BittensorSubnet,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'uid',
 			type: EntityFieldType.Primitive,

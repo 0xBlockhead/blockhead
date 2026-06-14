@@ -76,7 +76,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Local_Internal,
@@ -101,8 +101,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BlockheadRoom}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
 				id={`${id}-items`}
 				open={true}
 				resource={rooms}
@@ -116,9 +116,9 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const roomId = item.value[EntityMetaKey.Id]}
+					{@const roomId = item.value[EntityMetaKey.Selector]}
 					<RoomView
-						entityId={roomId}
+						selector={roomId}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

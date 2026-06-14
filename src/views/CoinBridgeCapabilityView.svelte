@@ -9,7 +9,7 @@
 	} from '$/constants/Bridge.ts'
 
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -20,14 +20,14 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		href,
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.CoinBridgeCapability>
+			selector: EntitySelector<typeof schema, EntityType.CoinBridgeCapability>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -39,7 +39,7 @@
 	> = $props()
 
 	const capability = subscribe(EntityType.CoinBridgeCapability,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
@@ -56,7 +56,7 @@
 
 <EntityView
 	entityType={EntityType.CoinBridgeCapability}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -64,7 +64,7 @@
 >
 	{#snippet Value()}
 		<span>
-			{bridgeToolByKey[entityId.toolKey]?.label ?? entityId.toolKey}
+			{bridgeToolByKey[selector.toolKey]?.label ?? selector.toolKey}
 		</span>
 	{/snippet}
 
@@ -74,7 +74,7 @@
 			placeholderText="Loading…"
 		>
 			{#snippet children(capability)}
-				{bridgeToolByKey[entityId.toolKey]?.label ?? entityId.toolKey}
+				{bridgeToolByKey[selector.toolKey]?.label ?? selector.toolKey}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -144,7 +144,7 @@
 				<dt>From</dt>
 				<dd>
 					<EvmCoinInstanceView
-						entityId={entityId.$fromInstance}
+						selector={selector.$fromInstance}
 						layout={EntityLayout.Value}
 						open={true}
 						showTypeAnnotation={false}
@@ -155,7 +155,7 @@
 				<dt>To</dt>
 				<dd>
 					<EvmCoinInstanceView
-						entityId={entityId.$toInstance}
+						selector={selector.$toInstance}
 						layout={EntityLayout.Value}
 						open={true}
 						showTypeAnnotation={false}

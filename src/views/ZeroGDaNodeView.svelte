@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,18 +12,18 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ZeroGDaNode>
+			selector: EntitySelector<typeof schema, EntityType.ZeroGDaNode>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const zeroGDaNode = subscribe(EntityType.ZeroGDaNode, entityId, ({ fields: { $quorum: true, $operator: true, endpoint: true } }))
+	const zeroGDaNode = subscribe(EntityType.ZeroGDaNode, selector, ({ fields: { $quorum: true, $operator: true, endpoint: true } }))
 
 
 	// Components
@@ -37,14 +37,14 @@
 
 <EntityView
 	entityType={EntityType.ZeroGDaNode}
-	{entityId}
-	title={entityId.nodeId}
+	entitySelector={selector}
+	title={selector.nodeId}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.nodeId}
+			value={selector.nodeId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -61,7 +61,7 @@
 							<dt>Operator</dt>
 							<dd>
 								<EvmAccountView
-									entityId={zeroGDaNode.fields.$operator[EntityMetaKey.Id]}
+									selector={zeroGDaNode.fields.$operator[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -81,7 +81,7 @@
 							<dt>Quorum</dt>
 							<dd>
 								<ZeroGDaQuorumView
-									entityId={zeroGDaNode.fields.$quorum[EntityMetaKey.Id]}
+									selector={zeroGDaNode.fields.$quorum[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

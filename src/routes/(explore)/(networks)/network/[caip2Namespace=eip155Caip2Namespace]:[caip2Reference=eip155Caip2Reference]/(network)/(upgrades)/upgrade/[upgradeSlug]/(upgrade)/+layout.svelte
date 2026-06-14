@@ -27,7 +27,7 @@
 		(() => {
 			const segment = params.upgradeSlug
 			const direct = networkUpgrades.find((networkUpgrade) => {
-				const id = networkUpgrade[EntityMetaKey.Id]
+				const id = networkUpgrade[EntityMetaKey.Selector]
 				if (evmChainIdFromCaip2(`${id.$network.caip2.namespace}:${id.$network.caip2.reference}`) !== chainId) return false
 				const slugRaw = networkUpgrade.slug
 				const slug = (
@@ -48,7 +48,7 @@
 					|| segmentSlug === slugSegment
 					|| segmentSlug === upgradeIdSegment
 				)
-			})?.[EntityMetaKey.Id].upgradeId
+			})?.[EntityMetaKey.Selector].upgradeId
 
 			if (direct != null) {
 				return direct
@@ -65,10 +65,10 @@
 				if (aliasRow != null) {
 					return (
 						networkUpgrades.find((networkUpgrade) => (
-							evmChainIdFromCaip2(`${networkUpgrade[EntityMetaKey.Id].$network.caip2.namespace}:${networkUpgrade[EntityMetaKey.Id].$network.caip2.reference}`) === chainId
-							&& networkUpgrade[EntityMetaKey.Id].upgradeId === aliasRow.umbrellaUpgradeId
+							evmChainIdFromCaip2(`${networkUpgrade[EntityMetaKey.Selector].$network.caip2.namespace}:${networkUpgrade[EntityMetaKey.Selector].$network.caip2.reference}`) === chainId
+							&& networkUpgrade[EntityMetaKey.Selector].upgradeId === aliasRow.umbrellaUpgradeId
 						))
-						?.[EntityMetaKey.Id].upgradeId
+						?.[EntityMetaKey.Selector].upgradeId
 					)
 				}
 			}
@@ -104,7 +104,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<NetworkUpgradeView
-			entityId={{
+			selector={{
 				$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 				upgradeId: resolvedUpgradeId,
 			}}

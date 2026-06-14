@@ -13,7 +13,7 @@
 
 <Page>
 	<LensPostView
-		entityId={{ id: decodeURIComponent(params.postId) }}
+		selector={{ id: decodeURIComponent(params.postId) }}
 	>
 	</LensPostView>
 </Page>

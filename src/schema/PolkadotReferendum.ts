@@ -6,7 +6,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum PolkadotReferendumSelector {
+	NetworkReferendumId = 'networkReferendumId',
+}
 
 export default {
 	entityType: EntityType.PolkadotReferendum,
@@ -14,12 +17,29 @@ export default {
 	label: 'Polkadot referendum',
 	labelPlural: 'Polkadot referenda',
 
-	id: type({
-		$network: Network.id,
-		referendumId: 'string',
-	}),
+	selectors: [
+		{
+			name: PolkadotReferendumSelector.NetworkReferendumId,
+			fields: [
+				'$network',
+				'referendumId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'referendumId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'track',
 			type: EntityFieldType.Primitive,

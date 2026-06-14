@@ -8,8 +8,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import Market from '$/schema/Market.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum OracleFeedSelector {
+	EvmNetworkAddress = 'evmNetworkAddress',
+}
 
 export default {
 	entityType: EntityType.OracleFeed,
@@ -17,12 +20,29 @@ export default {
 	label: 'Oracle feed',
 	labelPlural: 'Oracle feeds',
 
-	id: type({
-		$network: Network.id,
-		address: EvmAddress,
-	}),
+	selectors: [
+		{
+			name: OracleFeedSelector.EvmNetworkAddress,
+			fields: [
+				'$network',
+				'address',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'address',
+			type: EntityFieldType.Primitive,
+			primitiveType: EvmAddress,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$market',
 			type: EntityFieldType.EntityReference,

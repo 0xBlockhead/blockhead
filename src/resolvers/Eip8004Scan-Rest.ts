@@ -7,12 +7,13 @@ import {
 	EvmNftStandard,
 } from '$/constants/Evm.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { EvmNftSelector } from '$/schema/EvmNft.ts'
 
 export default {
 	source: Source.Eip8004Scan_Rest,
@@ -21,22 +22,22 @@ export default {
 		defineResolver(Source.Eip8004Scan_Rest, {
 			entityType: EntityType.EvmNft,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNftSelector.EvmContractTokenId]: async ({ $contract, tokenId }) => {
 				const { fetchAgentDetail } = await import(
 					'$/sources/Eip8004Scan/Rest/queries.ts'
 				)
 				const detail = await fetchAgentDetail({
-					chainId: Number(entityId.$contract.$network.caip2.reference),
-					tokenId: entityId.tokenId,
+					chainId: Number($contract.$network.caip2.reference),
+					tokenId: tokenId,
 				})
 				if (detail == null) {
 					throw new Error(
-						`Eip8004Scan_Rest: agent ${entityId.$contract.$network.caip2.reference}/${entityId.tokenId} not found`,
+						`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${tokenId} not found`,
 					)
 				}
-				if (detail.contractAddress !== entityId.$contract.address.toLowerCase()) {
+				if (detail.contractAddress !== $contract.address.toLowerCase()) {
 					throw new Error(
-						`Eip8004Scan_Rest: agent ${entityId.$contract.$network.caip2.reference}/${entityId.$contract.address}/${entityId.tokenId} not found`,
+						`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${$contract.address}/${tokenId} not found`,
 					)
 				}
 				return {
@@ -49,7 +50,7 @@ export default {
 					fetchedAt: detail.fetchedAt,
 					...(detail.agentWallet != null && {
 						$agentWallet: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								address: EvmAddress.assert(detail.agentWallet),
 							},
 						},
@@ -91,7 +92,7 @@ export default {
 		defineResolver(Source.Eip8004Scan_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_entityId, context) => {
+				[_GlobalSelector.Scope]: async (_entitySelector, context) => {
 				const { fetchAgentList } = await import(
 					'$/sources/Eip8004Scan/Rest/queries.ts'
 				)
@@ -99,7 +100,7 @@ export default {
 				const agents = await fetchAgentList({ limit })
 				return (
 					agents.map((agent) => ({
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							$contract: {
 								$network: {
 									caip2: { namespace: 'eip155' as const, reference: String(agent.chainId) },

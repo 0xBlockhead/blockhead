@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum TronTokenSelector {
+	NetworkTokenId = 'networkTokenId',
+}
 import { Source } from '$/sources/Source.ts'
 
 export enum TronTokenStandard {
@@ -27,12 +30,29 @@ export default {
 	label: 'TRON Token',
 	labelPlural: 'TRON Tokens',
 
-	id: type({
-		$network: Network.id,
-		tokenId: 'string',
-	}),
+	selectors: [
+		{
+			name: TronTokenSelector.NetworkTokenId,
+			fields: [
+				'$network',
+				'tokenId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'tokenId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'standard',
 			type: EntityFieldType.Primitive,

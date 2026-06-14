@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -25,7 +25,7 @@
 	// State
 	let {
 		children,
-		entityId,
+		selector,
 		title,
 		href,
 		open = $bindable(true),
@@ -36,7 +36,7 @@
 			children?: Snippet<[context: {
 				open?: boolean,
 			}]>
-			entityId: EntityId<typeof schema, EntityType._Global>
+			selector: EntitySelector<typeof schema, EntityType._Global>
 			title: string
 			/** href override: hub pages (`/assets`, `/explore`, `/social`, …) each pass their canonical URL. */
 			href: ResolvedPathname
@@ -47,7 +47,7 @@
 	> = $props()
 
 	const global = subscribe(EntityType._Global,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Local_Internal,
 				...(
@@ -76,14 +76,14 @@
 
 <EntityView
 	entityType={EntityType._Global}
-	{entityId}
+	entitySelector={selector}
 	{title}
 	{href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		{entityId.scope}
+		{selector.scope}
 	{/snippet}
 
 	{#snippet Title()}
@@ -94,7 +94,7 @@
 		{#if !children}
 			<section
 				data-scroll-marker-label="Usage"
-				id={`global:${entityId.scope}:usage`}
+				id={`global:${selector.scope}:usage`}
 			>
 				<ResourceBoundary
 					resource={global}
@@ -143,8 +143,8 @@
 			})}
 		{:else}
 			<CollapsibleTabs
-				id={`global:${entityId.scope}:carousel-app`}
-				sectionIdPrefix={`global:${entityId.scope}`}
+				id={`global:${selector.scope}:carousel-app`}
+				sectionIdPrefix={`global:${selector.scope}`}
 				sections={[
 					{ id: 'nav', label: 'Nav' },
 					{ id: 'usage', label: 'Usage' },

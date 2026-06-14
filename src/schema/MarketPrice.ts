@@ -7,8 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import Market from '$/schema/Market.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum MarketPriceSelector {
+	Market = 'market',
+}
 
 export default {
 	entityType: EntityType.MarketPrice,
@@ -16,17 +19,34 @@ export default {
 	label: 'Quote stream',
 	labelPlural: 'Quote streams',
 
-	/**
-	 * Quote stream id: which market, optional per-feed key, optional on-chain context.
-	 * Timestamped spot/index prints live on `Market_Timestamp` (`$$quotes`).
-	 */
-	id: type({
-		$market: Market.id,
-		'feedKey?': 'string',
-		'$network?': Network.id,
-	}),
+	selectors: [
+		{
+			name: MarketPriceSelector.Market,
+			fields: [
+				'$market',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$market',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Market,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'feedKey',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: '$parentMarket',
 			type: EntityFieldType.EntityReference,

@@ -7,8 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum BeaconSlotSelector {
+	EvmNetworkSlot = 'evmNetworkSlot',
+}
 
 export default {
 	entityType: EntityType.BeaconSlot,
@@ -16,12 +19,29 @@ export default {
 	label: 'Beacon slot',
 	labelPlural: 'Beacon slots',
 
-	id: type({
-		$network: Network.id,
-		slot: 'number',
-	}),
+	selectors: [
+		{
+			name: BeaconSlotSelector.EvmNetworkSlot,
+			fields: [
+				'$network',
+				'slot',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'slot',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'epoch',
 			type: EntityFieldType.Primitive,

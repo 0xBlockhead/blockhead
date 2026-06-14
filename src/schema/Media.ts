@@ -9,8 +9,13 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import type { Entity } from '$/schema/$schema.ts'
-import { schema } from '$/schema/index.ts'
+import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+
+export enum MediaSelector {
+	Url = 'url',
+}
+
 
 
 export enum MediaType {
@@ -33,11 +38,22 @@ export default {
 	label: 'Media',
 	labelPlural: 'Media',
 
-	id: type({
-		url: UrlString,
-	}),
+	selectors: [
+		{
+			name: MediaSelector.Url,
+			fields: [
+				'url',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'url',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'type',
 			type: EntityFieldType.Primitive,

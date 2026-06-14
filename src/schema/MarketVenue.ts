@@ -9,6 +9,11 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum MarketVenueSelector {
+	MarketVenueId = 'marketVenueId',
+}
+
+
 
 export default {
 	entityType: EntityType.MarketVenue,
@@ -16,11 +21,22 @@ export default {
 	label: 'Market venue',
 	labelPlural: 'Market venues',
 
-	id: type({
-		marketVenueId: type.valueOf(MarketVenueId),
-	}),
+	selectors: [
+		{
+			name: MarketVenueSelector.MarketVenueId,
+			fields: [
+				'marketVenueId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'marketVenueId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(MarketVenueId),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'label',
 			type: EntityFieldType.Primitive,

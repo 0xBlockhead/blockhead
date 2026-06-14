@@ -11,7 +11,7 @@
 
 	type AtprotoPostOrderFieldRow = {
 		createdAt?: number
-		[EntityMetaKey.IdKey]: string
+		[EntityMetaKey.SelectorKey]: string
 	}
 
 
@@ -54,7 +54,7 @@
 			},
 		],
 		[
-			({ fieldRow }) => fieldRow[EntityMetaKey.IdKey],
+			({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
 			'asc',
 		],
 	] as const satisfies DeclarativeOrderBy<AtprotoPostOrderFieldRow>
@@ -91,7 +91,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const atprotoNetworkOrAccount = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				(
 					entityFieldReference.entityType === EntityType.AtprotoNetwork ?
 						(
@@ -138,7 +138,7 @@
 						)
 				),
 			)}
-			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}
+			{#key `${stringify(entityFieldReference.selector)}-${limit}-${fieldOpen}`}
 				<ResourceBoundary
 					resource={atprotoNetworkOrAccount}
 					placeholderText={`Loading ${title.toLowerCase()}…`}
@@ -151,7 +151,7 @@
 							id={`${id}-items`}
 							{title}
 							open={true}
-							getKey={(atprotoPost) => atprotoPost[EntityMetaKey.Id].uri}
+							getKey={(atprotoPost) => atprotoPost[EntityMetaKey.Selector].uri}
 							placeholderText={`Loading ${title.toLowerCase()}…`}
 							items={
 								entityFieldReference.entityType === EntityType.AtprotoNetwork ?
@@ -168,7 +168,7 @@
 
 							{#snippet Item({ item })}
 								<AtprotoPostView
-									entityId={{ uri: item[EntityMetaKey.Id].uri }}
+									selector={{ uri: item[EntityMetaKey.Selector].uri }}
 									layout={EntityLayout.Summary}
 									open={false}
 								/>

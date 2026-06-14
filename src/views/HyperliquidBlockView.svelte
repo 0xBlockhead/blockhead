@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.HyperliquidBlock>
+			selector: EntitySelector<typeof schema, EntityType.HyperliquidBlock>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const hyperliquidBlock = subscribe(EntityType.HyperliquidBlock,
-		entityId,
+		selector,
 		({ fields: { hash: true, timestampMs: true } }),
 	)
 
@@ -42,16 +42,16 @@
 
 	<EntityView
 		entityType={EntityType.HyperliquidBlock}
-		{entityId}
-		title={'height' in entityId ? `Block #${entityId.height.toString()}` : `Block ${entityId.hash}`}
-		idDragPlainText={'height' in entityId ? entityId.height.toString() : entityId.hash}
+	entitySelector={selector}
+		title={'height' in selector ? `Block #${selector.height.toString()}` : `Block ${selector.hash}`}
+		idDragPlainText={'height' in selector ? selector.height.toString() : selector.hash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			{'height' in entityId ? `#${entityId.height.toString()}` : entityId.hash}
+			{'height' in selector ? `#${selector.height.toString()}` : selector.hash}
 		</span>
 	{/snippet}
 

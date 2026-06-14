@@ -10,8 +10,13 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import EvmContract from '$/schema/EvmContract.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EvmCoinInstanceSelector {
+	NetworkType = 'networkType',
+	NetworkTypeContract = 'networkTypeContract',
+}
+
 
 export enum CoinInstanceType {
 	NativeCurrency = 'NativeCurrency',
@@ -24,19 +29,43 @@ export default {
 	label: 'Coin deployment',
 	labelPlural: 'Coin deployments',
 
-	id: type.or(
-		type({
-			$network: Network.id,
-			type: type.unit(CoinInstanceType.NativeCurrency),
-		}),
-		type({
-			$network: Network.id,
-			type: type.unit(CoinInstanceType.Erc20Token),
-			$contract: EvmContract.id,
-		}),
-	),
+	selectors: [
+		{
+			name: EvmCoinInstanceSelector.NetworkType,
+			fields: [
+				'$network',
+				'type',
+			],
+		},
+		{
+			name: EvmCoinInstanceSelector.NetworkTypeContract,
+			fields: [
+				'$network',
+				'type',
+				'$contract',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'type',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(CoinInstanceType),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$contract',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'coinId',
 			type: EntityFieldType.Primitive,

@@ -18,7 +18,7 @@
 		href={resolve('/bridge')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
-			entityId: { scope: '$$bridgeTransactions' },
+			selector: { scope: '$$bridgeTransactions' },
 			fieldName: '$$bridgeTransactions',
 		}}
 		id="transactions"

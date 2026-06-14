@@ -9,18 +9,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import AtprotoActor from '$/schema/AtprotoActor.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum AtprotoActor_TimestampSelector {
+	AtprotoActorTimestampMs = 'atprotoActorTimestampMs',
+}
+
 export default {
 	entityType: EntityType.AtprotoActor_Timestamp,
 
 	label: 'AT Protocol actor snapshot',
 	labelPlural: 'AT Protocol actor snapshots',
 
-	id: type({
-		$actor: AtprotoActor.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: AtprotoActor_TimestampSelector.AtprotoActorTimestampMs,
+			fields: [
+				'$actor',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$actor',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.AtprotoActor,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'followersCount',
 			type: EntityFieldType.Primitive,

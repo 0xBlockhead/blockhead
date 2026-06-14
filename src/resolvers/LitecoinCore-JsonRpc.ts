@@ -6,11 +6,12 @@ import {
 	litecoinMainnetCaip2,
 } from '$/constants/BitcoinNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
+import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 
 const assertLitecoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
@@ -29,18 +30,15 @@ export default {
 		defineResolver(Source.LitecoinCore_JsonRpc, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLitecoinMainnet(entityId.$network)
+				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
+				assertLitecoinMainnet($network)
 				const {
 					getBlock,
 					getBlockHash,
 				} = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
 				const block = await getBlock({
 					rpcUrl: litecoinCoreDefaultLocalRpcUrl,
-					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: litecoinCoreDefaultLocalRpcUrl,
-						height: entityId.height,
-					}),
+					blockHash: hash,
 				})
 				if (typeof block === 'string') {
 					throw new Error('LitecoinCore_JsonRpc: expected verbose block')
@@ -49,8 +47,8 @@ export default {
 					hash: block.hash,
 					...(block.previousblockhash != null && {
 						$parent: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								height: BigInt(block.height - 1),
 								hash: block.previousblockhash,
 							},
@@ -70,15 +68,15 @@ export default {
 					$$transactions: block.tx.map((transaction) => (
 						typeof transaction === 'string' ?
 							{
-								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector.$network,
 									txId: transaction,
 								},
 							}
 						:
 							{
-								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector.$network,
 									txId: transaction.txid,
 								},
 								version: transaction.version,
@@ -110,19 +108,19 @@ export default {
 		defineResolver(Source.LitecoinCore_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLitecoinMainnet(entityId.$network)
+				[UtxoTransactionSelector.NetworkTxId]: async ({ $network, txId }) => {
+				assertLitecoinMainnet($network)
 				const { getRawTransaction } = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
 				const transaction = await getRawTransaction({
 					rpcUrl: litecoinCoreDefaultLocalRpcUrl,
-					txId: entityId.txId,
+					txId: txId,
 				})
 				if (typeof transaction === 'string') {
 					throw new Error('LitecoinCore_JsonRpc: expected verbose transaction')
 				}
 				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId.$network,
+					[EntityMetaKey.Selector]: {
+						$network: $network,
 						txId: transaction.txid,
 					},
 					version: transaction.version,

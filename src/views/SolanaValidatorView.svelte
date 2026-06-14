@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.SolanaValidator>
+			selector: EntitySelector<typeof schema, EntityType.SolanaValidator>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const solanaValidator = subscribe(EntityType.SolanaValidator,
-		entityId,
+		selector,
 		({ fields: { nodePubkey: true, activatedStakeLamports: true, commission: true, delinquent: true } }),
 	)
 
@@ -42,15 +42,15 @@
 
 <EntityView
 	entityType={EntityType.SolanaValidator}
-	{entityId}
-	title={entityId.votePubkey}
+	entitySelector={selector}
+	title={selector.votePubkey}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.votePubkey}
+			value={selector.votePubkey}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

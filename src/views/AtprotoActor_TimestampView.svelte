@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,19 +15,19 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(atproto)/atproto/actor/[did]', {
-			did: 'did' in entityId.$actor ?
-				entityId.$actor.did
+			did: 'did' in selector.$actor ?
+				selector.$actor.did
 			:
-				entityId.$actor.handle,
+				selector.$actor.handle,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.AtprotoActor_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.AtprotoActor_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -39,7 +39,7 @@
 	> = $props()
 
 	const atprotoActorTimestamp = subscribe(EntityType.AtprotoActor_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Atproto_Xrpc,
 				Source.Atproto_BskySocial_Xrpc,
@@ -57,7 +57,7 @@
 
 <EntityView
 	entityType={EntityType.AtprotoActor_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -65,11 +65,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

@@ -7,8 +7,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/ElementsNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum ElementsAssetSelector {
+	ElementsNetworkAssetId = 'elementsNetworkAssetId',
+}
 
 export default {
 	entityType: EntityType.ElementsAsset,
@@ -16,12 +19,29 @@ export default {
 	label: 'Elements asset',
 	labelPlural: 'Elements assets',
 
-	id: type({
-		$network: Network.id,
-		assetId: 'string',
-	}),
+	selectors: [
+		{
+			name: ElementsAssetSelector.ElementsNetworkAssetId,
+			fields: [
+				'$network',
+				'assetId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.ElementsNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'assetId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

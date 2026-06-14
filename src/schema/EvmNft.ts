@@ -6,16 +6,18 @@ import {
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
+	conditionalOn,
 	type EntityDefinition,
-	type EntityFieldEntry,
 	type EntityFieldDefinition,
-} from '$/schema/$schema.ts'
-import {
-	conditionalFieldGroup,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import EvmContract from '$/schema/EvmContract.ts'
+
+export enum EvmNftSelector {
+	EvmContractTokenId = 'evmContractTokenId',
+}
+
 
 const evmNftDiscriminatorFields = [
 	{
@@ -38,12 +40,29 @@ export default {
 	label: 'EVM NFT',
 	labelPlural: 'EVM NFTs',
 
-	id: type({
-		$contract: EvmContract.id,
-		tokenId: 'string',
-	}),
+	selectors: [
+		{
+			name: EvmNftSelector.EvmContractTokenId,
+			fields: [
+				'$contract',
+				'tokenId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$contract',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'tokenId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		...evmNftDiscriminatorFields,
 		{
 			name: 'tokenUri',
@@ -69,74 +88,128 @@ export default {
 			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-		conditionalFieldGroup(
-			evmNftDiscriminatorFields,
-			'format',
-			[
-				EvmNftFormat.Eip8004Registration,
-			],
-			[
-				{
-					name: 'agentRegistry',
-					type: EntityFieldType.Primitive,
-					primitiveType: type('string'),
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				{
-					name: 'agentId',
-					type: EntityFieldType.Primitive,
-					primitiveType: type('string'),
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				{
-					name: 'agentUri',
-					type: EntityFieldType.Primitive,
-					primitiveType: UrlString,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				{
-					name: 'contactEndpoint',
-					type: EntityFieldType.Primitive,
-					primitiveType: UrlString,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				{
-					name: '$agentWallet',
-					type: EntityFieldType.EntityReference,
-					entityType: EntityType.EvmAccount,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				{
-					name: 'x402Support',
-					type: EntityFieldType.Primitive,
-					primitiveType: type('boolean'),
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				{
-					name: 'active',
-					type: EntityFieldType.Primitive,
-					primitiveType: type('boolean'),
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				{
-					name: 'supportedTrust',
-					type: EntityFieldType.Primitive,
-					primitiveType: type('string[]'),
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				{
-					name: 'registrationTypeIri',
-					type: EntityFieldType.Primitive,
-					primitiveType: type('string'),
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-			],
-		),
+		{
+			name: 'agentRegistry',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmNftDiscriminatorFields,
+				'format',
+				[
+					EvmNftFormat.Eip8004Registration,
+				],
+			),
+		},
+		{
+			name: 'agentId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmNftDiscriminatorFields,
+				'format',
+				[
+					EvmNftFormat.Eip8004Registration,
+				],
+			),
+		},
+		{
+			name: 'agentUri',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmNftDiscriminatorFields,
+				'format',
+				[
+					EvmNftFormat.Eip8004Registration,
+				],
+			),
+		},
+		{
+			name: 'contactEndpoint',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmNftDiscriminatorFields,
+				'format',
+				[
+					EvmNftFormat.Eip8004Registration,
+				],
+			),
+		},
+		{
+			name: '$agentWallet',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmNftDiscriminatorFields,
+				'format',
+				[
+					EvmNftFormat.Eip8004Registration,
+				],
+			),
+		},
+		{
+			name: 'x402Support',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmNftDiscriminatorFields,
+				'format',
+				[
+					EvmNftFormat.Eip8004Registration,
+				],
+			),
+		},
+		{
+			name: 'active',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmNftDiscriminatorFields,
+				'format',
+				[
+					EvmNftFormat.Eip8004Registration,
+				],
+			),
+		},
+		{
+			name: 'supportedTrust',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string[]'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmNftDiscriminatorFields,
+				'format',
+				[
+					EvmNftFormat.Eip8004Registration,
+				],
+			),
+		},
+		{
+			name: 'registrationTypeIri',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmNftDiscriminatorFields,
+				'format',
+				[
+					EvmNftFormat.Eip8004Registration,
+				],
+			),
+		},
 		{
 			name: 'fetchedAt',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-	] as const satisfies readonly EntityFieldEntry[],
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum SolanaTransactionSelector {
+	NetworkSignature = 'networkSignature',
+}
 
 export default {
 	entityType: EntityType.SolanaTransaction,
@@ -15,12 +18,29 @@ export default {
 	label: 'Solana Transaction',
 	labelPlural: 'Solana Transactions',
 
-	id: type({
-		$network: Network.id,
-		signature: 'string',
-	}),
+	selectors: [
+		{
+			name: SolanaTransactionSelector.NetworkSignature,
+			fields: [
+				'$network',
+				'signature',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'signature',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$block',
 			type: EntityFieldType.EntityReference,

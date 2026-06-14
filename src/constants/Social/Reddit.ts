@@ -1,5 +1,5 @@
 // Types
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 
@@ -14,7 +14,7 @@ export const redditNetworkFieldValues = {
 } as const
 
 /** Subreddit `name` matches Reddit’s canonical id: lowercase, no `r/` prefix. */
-export const redditNetworkSeedSubreddits: readonly EntityId<typeof schema, EntityType.RedditSubreddit>[] = [
+export const redditNetworkSeedSubreddits: readonly EntitySelector<typeof schema, EntityType.RedditSubreddit>[] = [
 	{ name: 'askreddit' },
 	{ name: 'ethereum' },
 	{ name: 'sveltejs' },

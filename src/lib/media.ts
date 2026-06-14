@@ -97,7 +97,7 @@ export const mediaFromUrl = <_MediaType extends MediaType>(
 			undefined
 		:
 			{
-				[EntityMetaKey.Id]: { url: resolved.url },
+				[EntityMetaKey.Selector]: { url: resolved.url },
 				type,
 				transport: resolved.transport,
 			}

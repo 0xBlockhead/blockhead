@@ -4,12 +4,14 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { lightningNetworkId } from '$/constants/LightningNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
 import { Source } from '$/sources/Source.ts'
+import { LightningNodeSelector } from '$/schema/LightningNode.ts'
+import { LightningChannelSelector } from '$/schema/LightningChannel.ts'
+import { LightningNetworkSelector } from '$/schema/LightningNetwork.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -26,10 +28,10 @@ export default {
 		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningNode,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLightningNetwork(entityId.$network)
+				[LightningNodeSelector.NetworkPublicKey]: async ({ $network, publicKey }) => {
+				assertLightningNetwork($network)
 				const { getNode } = await import('$/sources/Amboss/Graphql/queries.ts')
-				const node = await getNode({ publicKey: entityId.publicKey })
+				const node = await getNode({ publicKey: publicKey })
 				const graphNode = node.graph_info.node
 				const channels = node.graph_info.channels
 				const primaryAddress = graphNode?.addresses[0]
@@ -79,14 +81,14 @@ export default {
 		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningChannel,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertLightningNetwork(entityId.$network)
+				[LightningChannelSelector.NetworkChannelId]: async ({ $network, channelId }) => {
+				assertLightningNetwork($network)
 				const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
-				const edge = await getEdge({ channelId: entityId.channelId })
+				const edge = await getEdge({ channelId: channelId })
 				const edgeInfo = edge.graph?.info
 
 				return {
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						$network: lightningNetworkId,
 						channelId: edge.long_channel_id,
 					},
@@ -108,7 +110,7 @@ export default {
 					),
 					...(edgeInfo?.node1_pub != null && {
 						$node0: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$network: lightningNetworkId,
 								publicKey: edgeInfo.node1_pub,
 							},
@@ -116,7 +118,7 @@ export default {
 					}),
 					...(edgeInfo?.node2_pub != null && {
 						$node1: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$network: lightningNetworkId,
 								publicKey: edgeInfo.node2_pub,
 							},
@@ -142,14 +144,14 @@ export default {
 		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertLightningNetwork(entityId.$network)
+				[LightningNetworkSelector.Network]: async ({ $network }, context) => {
+				assertLightningNetwork($network)
 				const { getPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')
 				const pubkeys = await getPopularNodePubkeys()
 				return pubkeys
 					.slice(0, resolverContextRowLimit(context))
 					.map((publicKey) => ({
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							$network: lightningNetworkId,
 							publicKey,
 						},

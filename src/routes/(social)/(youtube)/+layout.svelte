@@ -26,7 +26,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<YouTubeView
-			entityId={{
+			selector={{
 				scope: 'YouTubeNetwork',
 			}}
 			layout={EntityLayout.SummaryInline}

@@ -8,17 +8,32 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 
+export enum NostrRelaySelector {
+	RelayUrl = 'relayUrl',
+}
+
 export default {
 	entityType: EntityType.NostrRelay,
 
 	label: 'Nostr relay',
 	labelPlural: 'Nostr relays',
 
-	id: type({
-		relayUrl: UrlString,
-	}),
+	selectors: [
+		{
+			name: NostrRelaySelector.RelayUrl,
+			fields: [
+				'relayUrl',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'relayUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

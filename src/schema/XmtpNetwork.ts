@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum XmtpNetworkSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.XmtpNetwork,
 
 	label: 'XMTP network',
 	labelPlural: 'XMTP networks',
 
-	id: type({
-		scope: type.unit('XmtpNetwork'),
-	}),
+	selectors: [
+		{
+			name: XmtpNetworkSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('XmtpNetwork'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

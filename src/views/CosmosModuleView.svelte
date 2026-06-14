@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -12,18 +12,18 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.CosmosModule>
+			selector: EntitySelector<typeof schema, EntityType.CosmosModule>
 			open?: boolean
 		},
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const cosmosModule = subscribe(EntityType.CosmosModule, entityId, ({ fields: { $authority: true } }))
+	const cosmosModule = subscribe(EntityType.CosmosModule, selector, ({ fields: { $authority: true } }))
 
 
 	// Components
@@ -35,13 +35,13 @@
 
 <EntityView
 	entityType={EntityType.CosmosModule}
-	{entityId}
-	title={entityId.moduleName}
+	entitySelector={selector}
+	title={selector.moduleName}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{entityId.moduleName.toString()}
+		{selector.moduleName.toString()}
 	{/snippet}
 
 	{#snippet Content()}
@@ -56,7 +56,7 @@
 							<dt>Authority</dt>
 							<dd>
 								<CosmosAccountView
-									entityId={cosmosModule.fields.$authority[EntityMetaKey.Id]}
+									selector={cosmosModule.fields.$authority[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

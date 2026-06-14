@@ -23,7 +23,7 @@
 
 <Page>
 	<GlobalView
-		entityId={{ scope: 'Accounts' }}
+		selector={{ scope: 'Accounts' }}
 		title="Accounts"
 		href={resolve('/~/accounts')}
 	>
@@ -66,7 +66,7 @@
 						href={resolve('/~/accounts/watched-accounts')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
-							entityId: { scope: '$$actors' },
+							selector: { scope: '$$actors' },
 							fieldName: '$$actors',
 						}}
 						id="accounts"
@@ -79,7 +79,7 @@
 						href={resolve('/~/accounts/balances')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
-							entityId: { scope: '$$actorCoins' },
+							selector: { scope: '$$actorCoins' },
 							fieldName: '$$actorCoins',
 						}}
 						id="balances"

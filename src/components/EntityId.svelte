@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId as SchemaEntityId, EntityType as SchemaEntityType } from '$/schema/$schema.ts'
+	import type { EntitySelector as SchemaEntitySelector, EntityType as SchemaEntityType } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
 	import type { Snippet } from 'svelte'
@@ -8,15 +8,15 @@
 
 	// State
 	let {
-		entityId,
+		entitySelector,
 		href,
 		idDragPlainText,
 		Icon,
 		children,
 	}: {
-		entityId: SchemaEntityId<typeof schema, SchemaEntityType<typeof schema>>
+		entitySelector: SchemaEntitySelector<typeof schema, SchemaEntityType<typeof schema>>
 		href?: string
-		/** `text/plain` for drag; default `stringify(entityId)`. */
+		/** `text/plain` for drag; default `stringify(entitySelector)`. */
 		idDragPlainText?: string
 		Icon?: Snippet
 		children: Snippet
@@ -25,7 +25,7 @@
 
 	// Inner context
 	const onDragStart = (e: DragEvent) => {
-		e.dataTransfer?.setData('text/plain', idDragPlainText ?? stringify(entityId))
+		e.dataTransfer?.setData('text/plain', idDragPlainText ?? stringify(entitySelector))
 		if (href !== undefined && href.length > 0) {
 			e.dataTransfer?.setData('text/uri', href)
 		}
@@ -39,7 +39,7 @@
 		{href}
 		draggable={true}
 		ondragstart={onDragStart}
-		style:view-transition-name={`EntityId-${stringify(entityId)}`}
+		style:view-transition-name={`EntitySelector-${stringify(entitySelector)}`}
 	>
 		<span data-row="inline wrap align-center gap-2">
 			{#if Icon}
@@ -56,7 +56,7 @@
 		role="group"
 		draggable={true}
 		ondragstart={onDragStart}
-		style:view-transition-name={`EntityId-${stringify(entityId)}`}
+		style:view-transition-name={`EntitySelector-${stringify(entitySelector)}`}
 	>
 		<span data-row="inline wrap align-center gap-2">
 			{#if Icon}

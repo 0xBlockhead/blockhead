@@ -3,7 +3,7 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -18,11 +18,11 @@
 	// State
 	let {
 		pageContent,
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(accounts)/account/[address]', {
-			caip2Namespace: entityId.$network.caip2.namespace,
-			caip2Reference: entityId.$network.caip2.reference,
-			address: entityId.$actor.address,
+			caip2Namespace: selector.$network.caip2.namespace,
+			caip2Reference: selector.$network.caip2.reference,
+			address: selector.$actor.address,
 		}),
 		title = 'Network account',
 		layout = EntityLayout.SummaryDetails,
@@ -31,7 +31,7 @@
 	}: WithRest<
 		{
 			pageContent?: Snippet
-			entityId: EntityId<typeof schema, EntityType.EvmNetworkAccount>
+			selector: EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
 			href?: string
 			title?: string
 			layout?: EntityLayout
@@ -46,10 +46,10 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const evmNetworkAccountDetailAnchorKey = stringify(entityId)
+	const evmNetworkAccountDetailAnchorKey = stringify(selector)
 
 	const network = subscribe(EntityType.EvmNetwork,
-		entityId.$network,
+		selector.$network,
 		({ sources: [
 				Source.Constants_Internal,
 				...(open ?
@@ -68,14 +68,14 @@
 	)
 
 	const actor = subscribe(EntityType.EvmAccount,
-		entityId.$actor,
+		selector.$actor,
 		({ sources: [
 				Source.Voltaire_JsonRpc,
 			], fields: { $primaryName: true, $icon: true } }),
 	)
 
 	const evmNetworkAccount = subscribe(EntityType.EvmNetworkAccount,
-		entityId,
+		selector,
 		open ?
 			{
 				sources: [
@@ -125,7 +125,7 @@
 
 <EntityView
 	entityType={EntityType.EvmNetworkAccount}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{title}
 	{layout}
@@ -140,16 +140,16 @@
 				<IconComponent
 					alt=""
 					shape={IconShape.Square}
-					src={blo(entityId.$actor.address)}
+					src={blo(selector.$actor.address)}
 				/>
 			{/snippet}
 
 			{#snippet children(actor)}
-				{@const avatarUrl = actor.fields.$icon?.[EntityMetaKey.Id].url}
+				{@const avatarUrl = actor.fields.$icon?.[EntityMetaKey.Selector].url}
 				<IconComponent
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
-					src={avatarUrl ?? blo(entityId.$actor.address)}
+					src={avatarUrl ?? blo(selector.$actor.address)}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -160,12 +160,12 @@
 			resource={actor}
 		>
 			{#snippet children(actor)}
-				{#if actor.fields.$primaryName?.[EntityMetaKey.Id].name}
-					{actor.fields.$primaryName?.[EntityMetaKey.Id].name}
+				{#if actor.fields.$primaryName?.[EntityMetaKey.Selector].name}
+					{actor.fields.$primaryName?.[EntityMetaKey.Selector].name}
 				{:else}
 					<TruncatedValue
 						format={TruncatedValueFormat.Visual}
-						value={entityId.$actor.address}
+						value={selector.$actor.address}
 					/>
 				{/if}
 			{/snippet}
@@ -175,7 +175,7 @@
 	{#snippet Title()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={entityId.$actor.address}
+			value={selector.$actor.address}
 		/>
 
 		<small data-row="inline align-center wrap" data-text="muted">
@@ -186,7 +186,7 @@
 			>
 				{#snippet children(network)}
 					<EvmNetworkView
-						entityId={entityId.$network}
+						selector={selector.$network}
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -217,7 +217,7 @@
 					<dd>
 						<TruncatedValue
 							format={TruncatedValueFormat.Visual}
-							value={entityId.$actor.address}
+							value={selector.$actor.address}
 						/>
 					</dd>
 				</div>
@@ -226,7 +226,7 @@
 				<div>
 					<dt>CAIP-2</dt>
 					<dd data-text="mono">
-						<code>eip155:{String(evmChainIdFromCaip2(`${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}`))}</code>
+						<code>eip155:{String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}</code>
 					</dd>
 				</div>
 			{/if}
@@ -235,7 +235,7 @@
 					<dt>Network</dt>
 					<dd>
 						<EvmNetworkView
-							entityId={entityId.$network}
+							selector={selector.$network}
 							layout={EntityLayout.Value}
 							open={false}
 						/>
@@ -270,9 +270,9 @@
 								<dt>Contract</dt>
 								<dd>
 									<EvmContractView
-										entityId={{
-											$network: entityId.$network,
-											address: entityId.$actor.address,
+										selector={{
+											$network: selector.$network,
+											address: selector.$actor.address,
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
@@ -380,7 +380,7 @@
 					collapsible={false}
 					entityFieldReference={{
 						entityType: EntityType.EvmNetworkAccount,
-						entityId,
+						selector,
 						fieldName: '$$ownedCoins',
 					}}
 					id={`${evmNetworkAccountDetailAnchorKey}:actor-owned-coins`}
@@ -405,8 +405,8 @@
 										{#if contractPosition.pool != null}
 											<div data-row="wrap align-center gap-2">
 												<EvmContractView
-													entityId={{
-														$network: entityId.$network,
+													selector={{
+														$network: selector.$network,
 														address: contractPosition.pool.address,
 													}}
 													layout={EntityLayout.Title}
@@ -469,7 +469,7 @@
 					collapsible={false}
 					entityFieldReference={{
 						entityType: EntityType.EvmNetworkAccount,
-						entityId,
+						selector,
 						fieldName: '$$transactions',
 					}}
 					id={`${evmNetworkAccountDetailAnchorKey}:activity-tx`}
@@ -483,7 +483,7 @@
 					collapsible={false}
 					entityFieldReference={{
 						entityType: EntityType.EvmNetworkAccount,
-						entityId,
+						selector,
 						fieldName: '$$tokenTransfers',
 					}}
 					id={`${evmNetworkAccountDetailAnchorKey}:activity-token-tx-transfers`}
@@ -498,7 +498,7 @@
 					collapsible={false}
 					entityFieldReference={{
 						entityType: EntityType.EvmNetworkAccount,
-						entityId,
+						selector,
 						fieldName: '$$internalTransfers',
 					}}
 					id={`${evmNetworkAccountDetailAnchorKey}:activity-internal-tx`}

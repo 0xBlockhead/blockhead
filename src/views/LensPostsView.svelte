@@ -67,7 +67,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const lensNetworkOrAccount = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				(
 					entityFieldReference.entityType === EntityType.LensNetwork ?
 						{
@@ -110,7 +110,7 @@
 					return lensPosts
 				},
 			)}
-			{#key `${stringify(entityFieldReference.entityId)}-${limit}`}
+			{#key `${stringify(entityFieldReference.selector)}-${limit}`}
 				<EntitiesList
 					collapsible={false}
 					showSummary={false}
@@ -118,7 +118,7 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => row[EntityMetaKey.Id].id}
+					getKey={(row) => row[EntityMetaKey.Selector].id}
 					getSortValue={(row) => (
 						-(row.timestamp ?? 0)
 					)}
@@ -132,7 +132,7 @@
 
 					{#snippet Item({ item })}
 						<LensPostView
-							entityId={{ id: item[EntityMetaKey.Id].id }}
+							selector={{ id: item[EntityMetaKey.Selector].id }}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

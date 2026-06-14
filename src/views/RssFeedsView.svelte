@@ -80,7 +80,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 					], fields: { [entityFieldReference.fieldName]: {
 						sources: [
@@ -97,7 +97,7 @@
 					)
 					return (
 						rssFeeds.map((value) => ({
-							entityId: value[EntityMetaKey.Id],
+							selector: value[EntityMetaKey.Selector],
 						}))
 					)
 				},
@@ -110,8 +110,8 @@
 				{title}
 				resource={feeds}
 				placeholderText="Loading feeds…"
-				getKey={(feed) => stringify(feed.entityId)}
-				getSortValue={(feed) => feed.entityId.feedUrl}
+				getKey={(feed) => stringify(feed.selector)}
+				getSortValue={(feed) => feed.selector.feedUrl}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}
@@ -124,7 +124,7 @@
 					item: feed,
 				})}
 					<RssFeedView
-						entityId={feed.entityId}
+						selector={feed.selector}
 						layout={EntityLayout.SummaryDetails}
 						open={false}
 					/>

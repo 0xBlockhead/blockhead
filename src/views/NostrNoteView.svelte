@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -18,9 +18,9 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(nostr)/nostr/note/[eventId]', {
-			eventId: entityId.eventId,
+			eventId: selector.eventId,
 		}),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -29,7 +29,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.NostrNote>
+			selector: EntitySelector<typeof schema, EntityType.NostrNote>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -42,7 +42,7 @@
 	> = $props()
 
 	const note = subscribe(EntityType.NostrNote,
-		entityId,
+		selector,
 		({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
@@ -72,14 +72,14 @@
 
 <EntityView
 	entityType={EntityType.NostrNote}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.eventId}
+			value={selector.eventId}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -165,7 +165,7 @@
 					<dt>Author</dt>
 					<dd>
 								<NostrProfileView
-									entityId={note.fields.$author[EntityMetaKey.Id]}
+									selector={note.fields.$author[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -188,7 +188,7 @@
 					<dd>
 								{#if note.fields.$replyToNote}
 										<svelte:self
-										entityId={note.fields.$replyToNote[EntityMetaKey.Id]}
+											selector={note.fields.$replyToNote[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 											open={false}
 									/>
@@ -252,7 +252,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const idKey = stringify(entityId)}
+		{@const idKey = stringify(selector)}
 		<CollapsibleTabs
 			id={`${idKey}:carousel-note`}
 			sectionIdPrefix={idKey}
@@ -309,11 +309,11 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve(
 						'/(social)/(nostr)/nostr/note/[eventId]/(note)/replies',
-						{ eventId: entityId.eventId },
+						{ eventId: selector.eventId },
 					)}
 					entityFieldReference={{
 						entityType: EntityType.NostrNote,
-						entityId,
+						selector,
 						fieldName: '$$replies',
 					}}
 					id={`${idKey}:replies`}
@@ -328,7 +328,7 @@
 					href={resolve('/nostr/reactions')}
 					entityFieldReference={{
 						entityType: EntityType.NostrNote,
-						entityId,
+						selector,
 						fieldName: '$$reactions',
 					}}
 					id={`${idKey}:reactions`}

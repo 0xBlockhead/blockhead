@@ -56,7 +56,7 @@
 						connectionA.walletId.localeCompare(connectionB.walletId)
 					)) as connection (connection.walletId)}
 						<BlockheadWalletConnectionView
-							entityId={{
+							selector={{
 								$wallet: {
 									id: connection.walletId,
 								},

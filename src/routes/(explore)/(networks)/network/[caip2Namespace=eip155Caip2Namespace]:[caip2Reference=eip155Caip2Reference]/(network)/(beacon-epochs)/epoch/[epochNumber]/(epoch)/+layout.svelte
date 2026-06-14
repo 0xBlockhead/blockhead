@@ -13,7 +13,7 @@
 		params,
 	} = $props()
 
-	const epochEntityId = $derived(
+	const epochEntitySelector = $derived(
 		{
 			$network: { caip2: { namespace: 'eip155', reference: params.caip2Reference } },
 			epoch: Number(params.epochNumber),
@@ -36,11 +36,11 @@
 		'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(beacon-epochs)/epoch/[epochNumber]',
 		params,
 	)}
-	id={stringify(epochEntityId)}
+	id={stringify(epochEntitySelector)}
 >
 	{#snippet Summary({ open: _open })}
 		<BeaconEpochView
-			entityId={epochEntityId}
+			selector={epochEntitySelector}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

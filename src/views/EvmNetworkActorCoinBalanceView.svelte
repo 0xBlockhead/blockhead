@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -18,15 +18,15 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]',
 			{
-				chainId: String(evmChainIdFromCaip2(`${entityId.$coinInstance.$network.caip2.namespace}:${entityId.$coinInstance.$network.caip2.reference}`)),
-				owner: entityId.$actor.address,
+				chainId: String(evmChainIdFromCaip2(`${selector.$coinInstance.$network.caip2.namespace}:${selector.$coinInstance.$network.caip2.reference}`)),
+				owner: selector.$actor.address,
 				coin: (
-					entityId.$coinInstance.type === CoinInstanceType.Erc20Token ?
-						entityId.$coinInstance.$contract.address
+					selector.$coinInstance.type === CoinInstanceType.Erc20Token ?
+						selector.$coinInstance.$contract.address
 					:
 						pathNativeCoin
 				),
@@ -36,7 +36,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+			selector: EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 			href?: string
 			open?: boolean
 		},
@@ -50,10 +50,10 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	import { formatValue } from '$/lib/number.ts'
 
-	const actorCoinDetailAnchorKey = stringify(entityId)
+	const actorCoinDetailAnchorKey = stringify(selector)
 
 	const actorCoin = subscribe(EntityType.EvmNetworkActorCoinBalance,
-		entityId,
+		selector,
 		({ sources: [Source.Allium_Rest], fields: { symbol: true, balance: true, ...(open ? ({ decimals: true, usdValue: true }) : ({  })) } }),
 	)
 
@@ -95,7 +95,7 @@
 
 <EntityView
 	entityType={EntityType.EvmNetworkActorCoinBalance}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -132,9 +132,9 @@
 				<dt>Account</dt>
 				<dd>
 					<EvmNetworkAccountView
-						entityId={{
-							$network: entityId.$coinInstance.$network,
-							$actor: entityId.$actor,
+						selector={{
+							$network: selector.$coinInstance.$network,
+							$actor: selector.$actor,
 						}}
 						layout={EntityLayout.Title}
 						open={false}
@@ -144,11 +144,11 @@
 			<div>
 				<dt>Asset</dt>
 				<dd>
-					{#if entityId.$coinInstance.type === CoinInstanceType.NativeCurrency}
+					{#if selector.$coinInstance.type === CoinInstanceType.NativeCurrency}
 						Native gas token (chain issuance)
-					{:else if entityId.$coinInstance.type === CoinInstanceType.Erc20Token}
+					{:else if selector.$coinInstance.type === CoinInstanceType.Erc20Token}
 						<EvmContractView
-							entityId={entityId.$coinInstance.$contract}
+							selector={selector.$coinInstance.$contract}
 							layout={EntityLayout.Value}
 							open={false}
 							showTypeAnnotation={false}

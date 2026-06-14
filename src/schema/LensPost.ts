@@ -7,17 +7,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum LensPostSelector {
+	Id = 'id',
+}
+
 export default {
 	entityType: EntityType.LensPost,
 
 	label: 'Lens post',
 	labelPlural: 'Lens posts',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: LensPostSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$author',
 			type: EntityFieldType.EntityReference,

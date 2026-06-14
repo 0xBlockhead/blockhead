@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,19 +15,19 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		id,
 		open = true,
 		CollapsibleProps = {},
 	}: {
-		entityId: EntityId<typeof schema, EntityType.EvmTransaction>
+		selector: EntitySelector<typeof schema, EntityType.EvmTransaction>
 		id: string
 		open?: boolean
 		CollapsibleProps?: ComponentProps<typeof EvmInternalTransfersView>['CollapsibleProps']
 	} = $props()
 
 	const evmTransaction = subscribe(EntityType.EvmTransaction,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
@@ -60,11 +60,11 @@
 			{#if evmTransaction.fields.value !== undefined && evmTransaction.fields.value > 0n}
 				<div data-row="wrap gap-2 align-baseline">
 					<span data-text="annotation">Signed envelope</span>
-					{#if evmTransaction.fields.$from?.[EntityMetaKey.Id].address !== undefined}
+					{#if evmTransaction.fields.$from?.[EntityMetaKey.Selector].address !== undefined}
 						<EvmNetworkAccountView
-							entityId={{
-								$network: entityId.$network,
-								$actor: evmTransaction.fields.$from[EntityMetaKey.Id],
+							selector={{
+								$network: selector.$network,
+								$actor: evmTransaction.fields.$from[EntityMetaKey.Selector],
 							}}
 							layout={EntityLayout.Title}
 							open={false}
@@ -73,11 +73,11 @@
 					<span data-text="muted">sent</span>
 					<NumberValue value={evmTransaction.fields.value} />
 					<span data-text="muted">to</span>
-					{#if evmTransaction.fields.$to?.[EntityMetaKey.Id].address !== undefined}
+					{#if evmTransaction.fields.$to?.[EntityMetaKey.Selector].address !== undefined}
 						<EvmNetworkAccountView
-							entityId={{
-								$network: entityId.$network,
-								$actor: evmTransaction.fields.$to[EntityMetaKey.Id],
+							selector={{
+								$network: selector.$network,
+								$actor: evmTransaction.fields.$to[EntityMetaKey.Selector],
 							}}
 							layout={EntityLayout.Title}
 							open={false}
@@ -89,12 +89,12 @@
 			<EvmInternalTransfersView
 				{CollapsibleProps}
 				href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
-					...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-					transactionId: entityId.txHash,
+					...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+					transactionId: selector.txHash,
 					})}
 				entityFieldReference={{
 					entityType: EntityType.EvmTransaction,
-					entityId,
+					selector,
 					fieldName: '$$internalTransfers',
 				}}
 				id={`${id}:internal-transfers`}
@@ -104,12 +104,12 @@
 			<EvmTokenTransfersView
 				{CollapsibleProps}
 				href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
-					...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-					transactionId: entityId.txHash,
+					...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+					transactionId: selector.txHash,
 					})}
 				entityFieldReference={{
 					entityType: EntityType.EvmTransaction,
-					entityId,
+					selector,
 					fieldName: '$$tokenTransfers',
 				}}
 				id={`${id}:token-transfers`}

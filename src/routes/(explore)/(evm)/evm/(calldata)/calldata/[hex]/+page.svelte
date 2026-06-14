@@ -13,6 +13,6 @@
 
 <Page>
 	<EvmCalldataView
-		entityId={data.entityId}
+		selector={data.selector}
 	/>
 </Page>

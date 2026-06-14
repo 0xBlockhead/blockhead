@@ -5,7 +5,6 @@ import {
 import { caip2ByNetworkSlug } from '$/constants/Network.ts'
 import { solanaMainnetRpcEndpoints } from '$/constants/SolanaNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -15,11 +14,20 @@ import type {
 	SolanaRpcTransactionWithMeta,
 	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
+import { SolanaBlockSelector } from '$/schema/SolanaBlock.ts'
+import { SolanaNetwork_TimestampSelector } from '$/schema/SolanaNetwork_Timestamp.ts'
+import { SolanaTransactionSelector } from '$/schema/SolanaTransaction.ts'
+import { SolanaInstructionSelector } from '$/schema/SolanaInstruction.ts'
+import { SolanaAccountSelector } from '$/schema/SolanaAccount.ts'
+import { SolanaProgramSelector } from '$/schema/SolanaProgram.ts'
+import { SolanaTokenMintSelector } from '$/schema/SolanaTokenMint.ts'
+import { SolanaValidatorSelector } from '$/schema/SolanaValidator.ts'
+import { SolanaNetworkSelector } from '$/schema/SolanaNetwork.ts'
 
 const solanaMainnetRpcUrl = solanaMainnetRpcEndpoints[0].url
 const solanaMainnetCaip2 = caip2ByNetworkSlug.solana
 
-const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
+const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { slug: string }) => {
 	if (
 		!('caip2' in network)
 		|| network.caip2.namespace !== solanaMainnetCaip2.namespace
@@ -30,13 +38,13 @@ const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: s
 }
 
 const solanaTransactionFields = (
-	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+	network: { caip2: { namespace: string; reference: string } } | { slug: string },
 	transaction: SolanaRpcTransactionWithMeta,
 	slot?: bigint,
 ) => ({
 	...(slot != null && {
 		$block: {
-			[EntityMetaKey.Id]: {
+			[EntityMetaKey.Selector]: {
 				$network: network,
 				slot,
 			},
@@ -49,7 +57,7 @@ const solanaTransactionFields = (
 			:
 				{
 					$feePayer: {
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							$network: network,
 							pubkey: feePayer.pubkey,
 						},
@@ -66,11 +74,11 @@ const solanaTransactionFields = (
 })
 
 const solanaInstructionFields = (
-	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+	network: { caip2: { namespace: string; reference: string } } | { slug: string },
 	instruction: SolanaRpcInstruction,
 ) => ({
 	$program: {
-		[EntityMetaKey.Id]: {
+		[EntityMetaKey.Selector]: {
 			$network: network,
 			programId: instruction.programId,
 		},
@@ -83,7 +91,7 @@ const solanaInstructionFields = (
 	}),
 	...(instruction.accounts != null && {
 		$$accounts: instruction.accounts.map((pubkey) => ({
-			[EntityMetaKey.Id]: {
+			[EntityMetaKey.Selector]: {
 				$network: network,
 				pubkey,
 			},
@@ -92,15 +100,15 @@ const solanaInstructionFields = (
 })
 
 const solanaInstructionRows = (
-	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+	network: { caip2: { namespace: string; reference: string } } | { slug: string },
 	transactionId: {
-		$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+		$network: { caip2: { namespace: string; reference: string } } | { slug: string }
 		signature: string
 	},
 	transaction: SolanaRpcTransactionWithMeta,
 ) => [
 	...transaction.transaction.message.instructions.map((instruction, instructionIndex) => ({
-		[EntityMetaKey.Id]: {
+		[EntityMetaKey.Selector]: {
 			$transaction: transactionId,
 			instructionIndex,
 		},
@@ -112,7 +120,7 @@ const solanaInstructionRows = (
 	...(transaction.meta?.innerInstructions ?? [])
 		.flatMap((innerInstructionGroup) => (
 			innerInstructionGroup.instructions.map((instruction, innerInstructionIndex) => ({
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					$transaction: transactionId,
 					instructionIndex: innerInstructionGroup.index,
 					innerInstructionIndex,
@@ -125,27 +133,27 @@ const solanaInstructionRows = (
 		)),
 ]
 
-const getTransaction = async (entityId: {
-	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+const getTransaction = async ({ $network, signature }: {
+	$network: { caip2: { namespace: string; reference: string } } | { slug: string }
 	signature: string
 }) => {
-	assertSolanaMainnet(entityId.$network)
+	assertSolanaMainnet($network)
 	const { getTransaction } = await import('$/sources/Solana/JsonRpc/queries.ts')
 	const transaction = await getTransaction({
 		rpcUrl: solanaMainnetRpcUrl,
-		signature: entityId.signature,
+		signature: signature,
 	})
-	if (transaction == null) throw new Error(`Solana_JsonRpc: transaction not found for signature ${entityId.signature}`)
+	if (transaction == null) throw new Error(`Solana_JsonRpc: transaction not found for signature ${signature}`)
 	return transaction
 }
 
 const solanaValidatorRows = (
-	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+	network: { caip2: { namespace: string; reference: string } } | { slug: string },
 	voteAccounts: SolanaRpcVoteAccounts,
 ) => (
 	[
 		...voteAccounts.current.map((voteAccount) => ({
-			[EntityMetaKey.Id]: {
+			[EntityMetaKey.Selector]: {
 				$network: network,
 				votePubkey: voteAccount.votePubkey,
 			},
@@ -155,7 +163,7 @@ const solanaValidatorRows = (
 			delinquent: false,
 		})),
 		...voteAccounts.delinquent.map((voteAccount) => ({
-			[EntityMetaKey.Id]: {
+			[EntityMetaKey.Selector]: {
 				$network: network,
 				votePubkey: voteAccount.votePubkey,
 			},
@@ -172,60 +180,61 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.Solana_JsonRpc, {
-				entityType: EntityType.SolanaBlock,
-				resolve: {
-					[EntityIdProjection.Identity]: async (entityId) => {
-					assertSolanaMainnet(entityId.$network)
-					if (!('slot' in entityId))
-						throw new Error('Solana_JsonRpc: SolanaBlock blockHash lookup is unsupported')
+			entityType: EntityType.SolanaBlock,
+			resolve: {
+				[SolanaBlockSelector.Slot]: async ({ $network, slot }: {
+					$network: { caip2: { namespace: string; reference: string } } | { slug: string }
+					slot: bigint
+				}) => {
+					assertSolanaMainnet($network)
 
 					const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
-				const block = await getBlock({
-					rpcUrl: solanaMainnetRpcUrl,
-					slot: entityId.slot,
-				})
-				if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${entityId.slot.toString()}`)
-				return {
-					...(block.blockHeight != null && {
-						blockHeight: BigInt(block.blockHeight),
-					}),
-					blockHash: block.blockhash,
-					previousBlockHash: block.previousBlockhash,
-					$parent: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
-							slot: BigInt(block.parentSlot),
-						},
-					},
-					parentSlot: BigInt(block.parentSlot),
-					...(block.blockTime != null && {
-						timestampMs: block.blockTime * 1000,
-					}),
-					transactionCount: block.transactions.length,
-					$$transactions: block.transactions.flatMap((transaction) => {
-						const signature = transaction.transaction.signatures.at(0)
-						return signature == null ?
-							[]
-						:
-							[
-							{
-								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
-									signature,
-								},
-								...solanaTransactionFields(
-									entityId.$network,
-									transaction,
-									entityId.slot,
-								),
+					const block = await getBlock({
+						rpcUrl: solanaMainnetRpcUrl,
+						slot,
+					})
+					if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${slot.toString()}`)
+					return {
+						...(block.blockHeight != null && {
+							blockHeight: BigInt(block.blockHeight),
+						}),
+						blockHash: block.blockhash,
+						previousBlockHash: block.previousBlockhash,
+						$parent: {
+							[EntityMetaKey.Selector]: {
+								$network,
+								slot: BigInt(block.parentSlot),
 							},
-						]
-					}),
-				}
-			}
+						},
+						parentSlot: BigInt(block.parentSlot),
+						...(block.blockTime != null && {
+							timestampMs: block.blockTime * 1000,
+						}),
+						transactionCount: block.transactions.length,
+						$$transactions: block.transactions.flatMap((transaction) => {
+							const signature = transaction.transaction.signatures.at(0)
+							return signature == null ?
+								[]
+							:
+								[
+									{
+										[EntityMetaKey.Selector]: {
+											$network,
+											signature,
+										},
+										...solanaTransactionFields(
+											$network,
+											transaction,
+											slot,
+										),
+									},
+								]
+						}),
+					}
 				},
+			},
 		})({
-				fields: {
+			fields: {
 				blockHeight: (block) => block.blockHeight,
 				blockHash: (block) => block.blockHash,
 				previousBlockHash: (block) => block.previousBlockHash,
@@ -235,13 +244,12 @@ export default {
 				transactionCount: (block) => block.transactionCount,
 				$$transactions: (block) => block.$$transactions,
 			},
-			}),
-
+		}),
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertSolanaMainnet(entityId.$network)
+				[SolanaNetwork_TimestampSelector.SolanaNetworkTimestampMs]: async ({ $network }) => {
+				assertSolanaMainnet($network)
 				const {
 					getEpochInfo,
 					getHealth,
@@ -310,21 +318,27 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const transaction = await getTransaction(entityId)
-				return {
-					...solanaTransactionFields(
-						entityId.$network,
-						transaction,
-						BigInt(transaction.slot),
-					),
-					$$instructions: solanaInstructionRows(
-						entityId.$network,
-						entityId,
-						transaction,
-					),
-				}
-			}
+				[SolanaTransactionSelector.NetworkSignature]: async ({ $network, signature }) => {
+					const transaction = await getTransaction({
+						$network,
+						signature,
+					})
+					return {
+						...solanaTransactionFields(
+							$network,
+							transaction,
+							BigInt(transaction.slot),
+						),
+						$$instructions: solanaInstructionRows(
+							$network,
+							{
+								$network,
+								signature,
+							},
+							transaction,
+						),
+					}
+				},
 			},
 		})({
 				fields: {
@@ -341,22 +355,17 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const transaction = await getTransaction(entityId.$transaction)
-				const instruction = (
-					entityId.innerInstructionIndex == null ?
-						transaction.transaction.message.instructions[entityId.instructionIndex]
-					:
-						transaction.meta?.innerInstructions
-							?.find((innerInstructionGroup) => innerInstructionGroup.index === entityId.instructionIndex)
-							?.instructions[entityId.innerInstructionIndex]
-				)
-				if (instruction == null) throw new Error(`Solana_JsonRpc: instruction not found for ${entityId.$transaction.signature}`)
-				return solanaInstructionFields(
-					entityId.$transaction.$network,
-					instruction,
-				)
-			}
+				[SolanaInstructionSelector.SolanaTransactionInstructionIndexInnerInstructionIndex]: async ({ $transaction, instructionIndex, innerInstructionIndex }) => {
+					const transaction = await getTransaction($transaction)
+					const instruction = transaction.meta?.innerInstructions
+						?.find((innerInstructionGroup) => innerInstructionGroup.index === instructionIndex)
+						?.instructions[innerInstructionIndex]
+					if (instruction == null) throw new Error(`Solana_JsonRpc: instruction not found for ${$transaction.signature}`)
+					return solanaInstructionFields(
+						$transaction.$network,
+						instruction,
+					)
+				},
 			},
 		})({
 				fields: {
@@ -370,18 +379,18 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaAccount,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertSolanaMainnet(entityId.$network)
+				[SolanaAccountSelector.NetworkPubkey]: async ({ $network, pubkey }) => {
+				assertSolanaMainnet($network)
 				const { getAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 				const accountInfo = await getAccountInfo({
 					rpcUrl: solanaMainnetRpcUrl,
-					pubkey: entityId.pubkey,
+					pubkey: pubkey,
 				})
-				if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: account not found for pubkey ${entityId.pubkey}`)
+				if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: account not found for pubkey ${pubkey}`)
 				return {
 					$ownerProgram: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
 							programId: accountInfo.value.owner,
 						},
 					},
@@ -405,13 +414,13 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaProgram,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertSolanaMainnet(entityId.$network)
+				[SolanaProgramSelector.NetworkProgramId]: async ({ $network, programId }) => {
+				assertSolanaMainnet($network)
 				return {
 					$programAccount: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
-							pubkey: entityId.programId,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
+							pubkey: programId,
 						},
 					},
 				}
@@ -426,29 +435,29 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTokenMint,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertSolanaMainnet(entityId.$network)
+				[SolanaTokenMintSelector.NetworkMintAddress]: async ({ $network, mintAddress }) => {
+				assertSolanaMainnet($network)
 				const { getParsedTokenMintAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 				const accountInfo = await getParsedTokenMintAccountInfo({
 					rpcUrl: solanaMainnetRpcUrl,
-					pubkey: entityId.mintAddress,
+					pubkey: mintAddress,
 				})
-				if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token mint not found for address ${entityId.mintAddress}`)
+				if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token mint not found for address ${mintAddress}`)
 				return {
 					supply: BigInt(accountInfo.value.data.parsed.info.supply),
 					decimals: accountInfo.value.data.parsed.info.decimals,
 					...(accountInfo.value.data.parsed.info.mintAuthority != null && {
 						$mintAuthority: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								pubkey: accountInfo.value.data.parsed.info.mintAuthority,
 							},
 						},
 					}),
 					...(accountInfo.value.data.parsed.info.freezeAuthority != null && {
 						$freezeAuthority: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
+							[EntityMetaKey.Selector]: {
+								$network: $network,
 								pubkey: accountInfo.value.data.parsed.info.freezeAuthority,
 							},
 						},
@@ -468,21 +477,21 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaValidator,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertSolanaMainnet(entityId.$network)
+				[SolanaValidatorSelector.NetworkVotePubkey]: async ({ $network, votePubkey }) => {
+				assertSolanaMainnet($network)
 				const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
 				const voteAccounts = await getVoteAccounts({
 					rpcUrl: solanaMainnetRpcUrl,
-					votePubkey: entityId.votePubkey,
+					votePubkey: votePubkey,
 				})
 				const currentVoteAccount = voteAccounts.current.find((voteAccount) => (
-					voteAccount.votePubkey === entityId.votePubkey
+					voteAccount.votePubkey === votePubkey
 				))
 				const delinquentVoteAccount = voteAccounts.delinquent.find((voteAccount) => (
-					voteAccount.votePubkey === entityId.votePubkey
+					voteAccount.votePubkey === votePubkey
 				))
 				const voteAccount = currentVoteAccount ?? delinquentVoteAccount
-				if (voteAccount == null) throw new Error(`Solana_JsonRpc: validator vote account not found for ${entityId.votePubkey}`)
+				if (voteAccount == null) throw new Error(`Solana_JsonRpc: validator vote account not found for ${votePubkey}`)
 				return {
 					nodePubkey: voteAccount.nodePubkey,
 					activatedStakeLamports: BigInt(voteAccount.activatedStake),
@@ -503,12 +512,12 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertSolanaMainnet(entityId)
+				[SolanaNetworkSelector.Caip2]: async ({ caip2 }) => {
+				assertSolanaMainnet({ caip2 })
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: { caip2 },
 							timestampMs: Date.now(),
 						},
 					},
@@ -524,8 +533,8 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertSolanaMainnet(entityId)
+				[SolanaNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				assertSolanaMainnet({ caip2 })
 				const {
 					getBlocks,
 					getSlot,
@@ -545,8 +554,8 @@ export default {
 					.toReversed()
 					.slice(0, limit)
 					.map((slot) => ({
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: { caip2 },
 							slot: BigInt(slot),
 						},
 					}))
@@ -561,11 +570,11 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertSolanaMainnet(entityId)
+				[SolanaNetworkSelector.Caip2]: async ({ caip2 }) => {
+				assertSolanaMainnet({ caip2 })
 				const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
 				return solanaValidatorRows(
-					entityId,
+					{ caip2 },
 					await getVoteAccounts({
 						rpcUrl: solanaMainnetRpcUrl,
 					}),
@@ -581,8 +590,8 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertSolanaMainnet(entityId)
+				[SolanaNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				assertSolanaMainnet({ caip2 })
 				const {
 					getBlock,
 					getBlocks,
@@ -615,17 +624,17 @@ export default {
 								return signature == null ?
 								[]
 							:
-								[
-								{
-									[EntityMetaKey.Id]: {
-										$network: entityId,
-											signature,
-									},
-									...solanaTransactionFields(
-										entityId,
-										transaction,
-										slot,
-									),
+									[
+									{
+										[EntityMetaKey.Selector]: {
+											$network: { caip2 },
+												signature,
+										},
+										...solanaTransactionFields(
+											{ caip2 },
+											transaction,
+											slot,
+										),
 								},
 							]
 							}) ?? []
@@ -642,8 +651,8 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
-				assertSolanaMainnet(entityId)
+				[SolanaNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				assertSolanaMainnet({ caip2 })
 				const {
 					getBlock,
 					getBlocks,
@@ -679,8 +688,8 @@ export default {
 				]
 					.slice(0, limit)
 					.map((pubkey) => ({
-						[EntityMetaKey.Id]: {
-							$network: entityId,
+						[EntityMetaKey.Selector]: {
+							$network: { caip2 },
 							pubkey,
 						},
 					}))
@@ -694,55 +703,61 @@ export default {
 
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaBlock,
-				resolve: {
-					[EntityIdProjection.Identity]: async (entityId) => {
-					assertSolanaMainnet(entityId.$network)
-					if (!('slot' in entityId))
-						throw new Error('Solana_JsonRpc: SolanaBlock.$$transactions blockHash lookup is unsupported')
+			resolve: {
+				[SolanaBlockSelector.Slot]: async ({ $network, slot }: {
+					$network: { caip2: { namespace: string; reference: string } } | { slug: string }
+					slot: bigint
+				}) => {
+					assertSolanaMainnet($network)
 
 					const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
-				const block = await getBlock({
-					rpcUrl: solanaMainnetRpcUrl,
-					slot: entityId.slot,
-				})
-				if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${entityId.slot.toString()}`)
+					const block = await getBlock({
+						rpcUrl: solanaMainnetRpcUrl,
+						slot,
+					})
+					if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${slot.toString()}`)
 					return block.transactions.flatMap((transaction) => {
 						const signature = transaction.transaction.signatures.at(0)
 						return signature == null ?
-						[]
-					:
-						[
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-									signature,
-							},
-							...solanaTransactionFields(
-								entityId.$network,
-								transaction,
-								entityId.slot,
-							),
-						},
-					]
+							[]
+						:
+							[
+								{
+									[EntityMetaKey.Selector]: {
+										$network,
+										signature,
+									},
+									...solanaTransactionFields(
+										$network,
+										transaction,
+										slot,
+									),
+								},
+							]
 					})
-			}
 				},
+			},
 		})({
-				fields: {
+			fields: {
 				$$transactions: (transactions) => transactions,
 			},
-			}),
-
+		}),
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => (
-				solanaInstructionRows(
-					entityId.$network,
-					entityId,
-					await getTransaction(entityId),
+				[SolanaTransactionSelector.NetworkSignature]: async ({ $network, signature }) => (
+					solanaInstructionRows(
+						$network,
+						{
+							$network,
+							signature,
+						},
+						await getTransaction({
+							$network,
+							signature,
+						}),
+					)
 				)
-			)
 			},
 		})({
 				fields: {

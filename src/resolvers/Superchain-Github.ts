@@ -7,11 +7,11 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
 
 export default {
 	source: Source.Superchain_Github,
@@ -20,11 +20,11 @@ export default {
 		defineResolver(Source.Superchain_Github, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await singleFlight(fetchNetworks)()
-				const network = networks.find((candidate) => candidate.chainId === Number(entityId.caip2.reference))
+				const network = networks.find((candidate) => candidate.chainId === Number(entitySelector.caip2.reference))
 				if (network == null) return {}
 				return {
 					name: network.name,
@@ -37,7 +37,7 @@ export default {
 					),
 					...(network.parentChainId != null && {
 						$parent: {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								caip2: {
 									namespace: 'eip155',
 									reference: String(network.parentChainId),
@@ -69,7 +69,7 @@ export default {
 								undefined
 							:
 								{
-									[EntityMetaKey.Id]: {
+									[EntityMetaKey.Selector]: {
 										caip2: {
 											namespace: 'eip155',
 											reference: String(mainnet.chainId),
@@ -95,7 +95,7 @@ export default {
 		defineResolver(Source.Superchain_Github, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 				const {
 					superchainMainnetIdentifier,
 					superchainSepoliaIdentifier,
@@ -103,15 +103,15 @@ export default {
 				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await singleFlight(fetchNetworks)()
 				const namespaceFilter = (
-					Number(entityId.caip2.reference) === 1 ?
+					Number(caip2.reference) === 1 ?
 						superchainMainnetIdentifier
-					: Number(entityId.caip2.reference) === 11155111 ?
+					: Number(caip2.reference) === 11155111 ?
 						superchainSepoliaIdentifier
 					:
 						undefined
 				)
 				return networks.flatMap((network) => (
-					network.parentChainId !== Number(entityId.caip2.reference)
+					network.parentChainId !== Number(entitySelector.caip2.reference)
 					|| (
 						namespaceFilter != null
 						&& network.namespace !== namespaceFilter
@@ -119,7 +119,7 @@ export default {
 						[]
 					:
 						[{
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								caip2: {
 									namespace: 'eip155',
 									reference: String(network.chainId),
@@ -138,11 +138,11 @@ export default {
 			defineResolver(Source.Superchain_Github, {
 				entityType: EntityType.EvmNetwork,
 				resolve: {
-					[EntityIdProjection.Identity]: async (entityId) => {
+					[EvmNetworkSelector.Caip2]: async (entitySelector) => {
 					const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 					const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 					const networks = await singleFlight(fetchNetworks)()
-					const network = networks.find((candidate) => candidate.chainId === Number(entityId.caip2.reference))
+					const network = networks.find((candidate) => candidate.chainId === Number(entitySelector.caip2.reference))
 					if (network == null || network.namespace !== superchainMainnetIdentifier) return []
 					return networks.flatMap((candidate) => (
 						candidate.namespace === superchainMainnetIdentifier
@@ -150,7 +150,7 @@ export default {
 							[]
 						:
 							[{
-								[EntityMetaKey.Id]: {
+								[EntityMetaKey.Selector]: {
 									caip2: {
 										namespace: 'eip155',
 										reference: String(candidate.chainId),

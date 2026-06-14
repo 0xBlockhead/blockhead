@@ -3,7 +3,7 @@ import { Iso4217 } from '$/constants/Currency.ts'
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import type { MarketVenueId as _MarketVenueId } from '$/constants/MarketVenue.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type {
@@ -75,11 +75,11 @@ export const catalogCoinIdByCoingeckoId = (
 	)
 )
 
-export const marketEntityIdFromCoingeckoDerivativesExchangeTicker = (
+export const marketEntitySelectorFromCoingeckoDerivativesExchangeTicker = (
 	ticker: CoingeckoDerivativesExchangeTicker,
 	marketVenueId: MarketVenueId,
 	catalogCoinIdByCoingeckoIdMap: Record<string, CoinId>,
-): EntityId<typeof schema, EntityType.Market> | null => {
+): EntitySelector<typeof schema, EntityType.Market> | null => {
 	const baseCoinId = (
 		ticker.coin_id == null ?
 			undefined
@@ -114,11 +114,11 @@ export const marketEntityIdFromCoingeckoDerivativesExchangeTicker = (
 	}
 }
 
-export const marketEntityIdFromCoingeckoSpotTicker = (
+export const marketEntitySelectorFromCoingeckoSpotTicker = (
 	ticker: CoingeckoOpenApiCoinTicker,
 	catalogCoinId: CoinId,
 	catalogCoinIdByCoingeckoIdMap: Record<string, CoinId>,
-): EntityId<typeof schema, EntityType.Market> | null => {
+): EntitySelector<typeof schema, EntityType.Market> | null => {
 	const coingeckoBaseId = ticker.coin_id
 	if (
 		coingeckoBaseId == null
@@ -188,7 +188,7 @@ export const marketEntityIdFromCoingeckoSpotTicker = (
 
 
 export const derivativeTickerMatchesMarket = (
-	marketId: EntityId<typeof schema, EntityType.Market>,
+	marketId: EntitySelector<typeof schema, EntityType.Market>,
 	ticker: CoingeckoDerivativesExchangeTicker,
 	catalogCoinIdByCoingeckoIdMap: Record<string, string>,
 ): boolean => (

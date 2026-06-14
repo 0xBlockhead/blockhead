@@ -6,7 +6,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum NetworkUpgradeSelector {
+	NetworkUpgradeId = 'networkUpgradeId',
+}
 import { Source } from '$/sources/Source.ts'
 
 export default {
@@ -15,12 +18,29 @@ export default {
 	label: 'Network upgrade',
 	labelPlural: 'Network upgrades',
 
-	id: type({
-		$network: Network.id,
-		upgradeId: 'string',
-	}),
+	selectors: [
+		{
+			name: NetworkUpgradeSelector.NetworkUpgradeId,
+			fields: [
+				'$network',
+				'upgradeId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'upgradeId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

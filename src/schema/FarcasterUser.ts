@@ -10,17 +10,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum FarcasterUserSelector {
+	Fid = 'fid',
+}
+
 export default {
 	entityType: EntityType.FarcasterUser,
 
 	label: 'Farcaster User',
 	labelPlural: 'Farcaster Users',
 
-	id: type({
-		fid: 'number',
-	}),
+	selectors: [
+		{
+			name: FarcasterUserSelector.Fid,
+			fields: [
+				'fid',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'fid',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'username',
 			type: EntityFieldType.Primitive,

@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum BitcoinCashBcmrMetadataSelector {
+	NetworkCategoryIdRegistryUrl = 'networkCategoryIdRegistryUrl',
+}
 
 export default {
 	entityType: EntityType.BitcoinCashBcmrMetadata,
@@ -15,13 +18,36 @@ export default {
 	label: 'Bitcoin Cash Metadata Registry Entry',
 	labelPlural: 'Bitcoin Cash Metadata Registry Entries',
 
-	id: type({
-		$network: Network.id,
-		categoryId: 'string',
-		registryUrl: 'string',
-	}),
+	selectors: [
+		{
+			name: BitcoinCashBcmrMetadataSelector.NetworkCategoryIdRegistryUrl,
+			fields: [
+				'$network',
+				'categoryId',
+				'registryUrl',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'categoryId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'registryUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

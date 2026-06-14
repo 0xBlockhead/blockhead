@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Bittensor_JsonRpc,
@@ -84,8 +84,8 @@
 				entityType={EntityType.BittensorNeuron}
 				id={`${id}-items`}
 				href={href}
-				getKey={(neuron) => stringify(neuron[EntityMetaKey.Id])}
-				getSortValue={(neuron) => neuron[EntityMetaKey.Id].uid}
+				getKey={(neuron) => stringify(neuron[EntityMetaKey.Selector])}
+				getSortValue={(neuron) => neuron[EntityMetaKey.Selector].uid}
 				open={true}
 				resource={neurons}
 				{title}
@@ -99,7 +99,7 @@
 
 				{#snippet Item(context)}
 					<BittensorNeuronView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.SummaryInline}
 					/>
 				{/snippet}

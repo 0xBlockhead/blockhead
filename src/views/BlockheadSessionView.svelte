@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,17 +16,17 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/~/(sessions)/session/[sessionId]',
-			{ sessionId: entityId.id },
+			{ sessionId: selector.id },
 		),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BlockheadSession>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadSession>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -39,7 +39,7 @@
 
 	const session = $derived(
 		subscribe(EntityType.BlockheadSession,
-			entityId,
+			selector,
 			({ sources: [
 					Source.Local_Internal,
 				], fields: { name: true, status: true, createdAt: true, updatedAt: true, lockedAt: true, ...(open ? ({ simulationCount: true, $$actions: ({ sources: [
@@ -59,14 +59,14 @@
 
 <EntityView
 	entityType={EntityType.BlockheadSession}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
-			{entityId.id}
+			{selector.id}
 		</span>
 	{/snippet}
 
@@ -76,7 +76,7 @@
 			placeholderText="Loading session…"
 		>
 			{#snippet children(session)}
-				{session.fields.name ?? entityId.id}
+				{session.fields.name ?? selector.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -221,10 +221,10 @@
 			href={href}
 			entityFieldReference={{
 				entityType: EntityType.BlockheadSession,
-				entityId,
+				selector,
 				fieldName: '$$actions',
 			}}
-			id={`${entityId.id}:actions`}
+			id={`${selector.id}:actions`}
 			open={_open}
 		/>
 	{/snippet}

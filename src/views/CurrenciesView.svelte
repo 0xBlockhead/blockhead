@@ -16,11 +16,11 @@
 			}
 		}
 		marketCap?: bigint
-		[EntityMetaKey.Id]: {
+		[EntityMetaKey.Selector]: {
 			iso4217: string
 		}
 		[EntityMetaKey.Value]: {
-			[EntityMetaKey.Id]: {
+			[EntityMetaKey.Selector]: {
 				iso4217: string
 			}
 			$$timestamps?: {
@@ -69,7 +69,7 @@
 			],
 			[
 				({ fieldRow }) => (
-					fieldRow[EntityMetaKey.Id].iso4217
+					fieldRow[EntityMetaKey.Selector].iso4217
 				),
 				'asc',
 			],
@@ -127,7 +127,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 					], fields: { [entityFieldReference.fieldName]: {
 						orderBy: [...globalCurrenciesFieldOrderBy],
@@ -156,7 +156,7 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.Currency}
-				getKey={(currency) => currency[EntityMetaKey.Id].iso4217}
+				getKey={(currency) => currency[EntityMetaKey.Selector].iso4217}
 				getSortValue={(currency) => (
 					-Number(currency.$$timestamps?.[0]?.marketCap ?? 0)
 				)}
@@ -172,7 +172,7 @@
 
 				{#snippet Item({ item })}
 					<CurrencyView
-						entityId={item[EntityMetaKey.Id]}
+						selector={item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

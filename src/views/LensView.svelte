@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,7 +17,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(lens)/lens'),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -26,7 +26,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LensNetwork>
+			selector: EntitySelector<typeof schema, EntityType.LensNetwork>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -34,10 +34,10 @@
 		never
 	> = $props()
 
-	const networkIdKey = stringify(entityId)
+	const networkSelectorKey = stringify(selector)
 
 	const lensNetwork = subscribe(EntityType.LensNetwork,
-		entityId,
+		selector,
 		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$lensAccounts: ({ sources: [
 							Source.Constants_Internal,
 							Source.Lens_Graphql,
@@ -59,7 +59,7 @@
 
 <EntityView
 	entityType={EntityType.LensNetwork}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	layout={EntityLayout.SummaryDetails}
 	bind:open
@@ -160,8 +160,8 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-registry`}
-			sectionIdPrefix={networkIdKey}
+			id={`${networkSelectorKey}:carousel-registry`}
+			sectionIdPrefix={networkSelectorKey}
 			sections={collapsibleTabsSections([
 				{ id: 'registry-accounts', label: 'Profiles' },
 				{ id: 'registry-posts', label: 'Publications' },
@@ -186,10 +186,10 @@
 					href={resolve('/lens/accounts')}
 					entityFieldReference={{
 						entityType: EntityType.LensNetwork,
-						entityId,
+						selector,
 						fieldName: '$$lensAccounts',
 					}}
-					id={`${networkIdKey}:accounts`}
+					id={`${networkSelectorKey}:accounts`}
 					open={_open}
 				/>
 			{/snippet}
@@ -200,10 +200,10 @@
 					href={resolve('/lens/posts')}
 					entityFieldReference={{
 						entityType: EntityType.LensNetwork,
-						entityId,
+						selector,
 						fieldName: '$$lensPosts',
 					}}
-					id={`${networkIdKey}:posts`}
+					id={`${networkSelectorKey}:posts`}
 					open={_open}
 					title="Recent Lens v3 publications"
 				/>

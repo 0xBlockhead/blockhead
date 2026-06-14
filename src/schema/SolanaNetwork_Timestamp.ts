@@ -10,18 +10,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import SolanaNetwork from '$/schema/SolanaNetwork.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum SolanaNetwork_TimestampSelector {
+	SolanaNetworkTimestampMs = 'solanaNetworkTimestampMs',
+}
+
 export default {
 	entityType: EntityType.SolanaNetwork_Timestamp,
 
 	label: 'Solana network snapshot',
 	labelPlural: 'Solana network snapshots',
 
-	id: type({
-		$network: SolanaNetwork.id,
-		timestampMs: 'number',
-	}),
+	selectors: [
+		{
+			name: SolanaNetwork_TimestampSelector.SolanaNetworkTimestampMs,
+			fields: [
+				'$network',
+				'timestampMs',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.SolanaNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestampMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'absoluteSlot',
 			type: EntityFieldType.Primitive,

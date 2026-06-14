@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -22,12 +22,12 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]', {
-			caip2Namespace: entityId.$network.caip2.namespace,
-			caip2Reference: entityId.$network.caip2.reference,
-			transactionId: entityId.txHash,
-			logIndex: String(entityId.logIndex),
+			caip2Namespace: selector.$network.caip2.namespace,
+			caip2Reference: selector.$network.caip2.reference,
+			transactionId: selector.txHash,
+			logIndex: String(selector.logIndex),
 		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
@@ -38,7 +38,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmTokenTransfer>
+			selector: EntitySelector<typeof schema, EntityType.EvmTokenTransfer>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -52,7 +52,7 @@
 	> = $props()
 
 	const transfer = subscribe(EntityType.EvmTokenTransfer,
-		entityId,
+		selector,
 		({ sources: [Source.Blockscout_Rest], fields: { standard: true, amount: true, tokenSymbol: true, ...(open && ({ tokenDecimals: true, tokenName: true, $from: true, $to: true, $tokenContract: true, $coinInstance: true })) } }),
 	)
 
@@ -70,7 +70,7 @@
 
 <EntityView
 	entityType={EntityType.EvmTokenTransfer}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -79,7 +79,7 @@
 >
 	{#snippet Value()}
 		<span>
-			log #{entityId.logIndex}.{entityId.transferIndex}
+			log #{selector.logIndex}.{selector.transferIndex}
 		</span>
 	{/snippet}
 
@@ -87,7 +87,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Token transfer </span>
 			<span>
-				log #{entityId.logIndex}.{entityId.transferIndex}
+				log #{selector.logIndex}.{selector.transferIndex}
 			</span>
 		</span>
 	{/snippet}
@@ -111,13 +111,13 @@
 							<dd>
 									<a
 										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
-											caip2Namespace: entityId.$network.caip2.namespace,
-											caip2Reference: entityId.$network.caip2.reference,
-											transactionId: entityId.txHash,
+											caip2Namespace: selector.$network.caip2.namespace,
+											caip2Reference: selector.$network.caip2.reference,
+											transactionId: selector.txHash,
 										})}
 									>
 									<TruncatedValue
-										value={entityId.txHash}
+										value={selector.txHash}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								</a>
@@ -152,14 +152,14 @@
 						</div>
 					{/if}
 
-					{#if transfer.fields.$from?.[EntityMetaKey.Id].address !== undefined}
+					{#if transfer.fields.$from?.[EntityMetaKey.Selector].address !== undefined}
 						<div>
 							<dt>From</dt>
 							<dd>
 								<EvmNetworkAccountView
-									entityId={{
-										$network: entityId.$network,
-										$actor: transfer.fields.$from[EntityMetaKey.Id],
+									selector={{
+										$network: selector.$network,
+										$actor: transfer.fields.$from[EntityMetaKey.Selector],
 									}}
 									layout={EntityLayout.Title}
 									open={false}
@@ -168,14 +168,14 @@
 						</div>
 					{/if}
 
-					{#if transfer.fields.$to?.[EntityMetaKey.Id].address !== undefined}
+					{#if transfer.fields.$to?.[EntityMetaKey.Selector].address !== undefined}
 						<div>
 							<dt>To</dt>
 							<dd>
 								<EvmNetworkAccountView
-									entityId={{
-										$network: entityId.$network,
-										$actor: transfer.fields.$to[EntityMetaKey.Id],
+									selector={{
+										$network: selector.$network,
+										$actor: transfer.fields.$to[EntityMetaKey.Selector],
 									}}
 									layout={EntityLayout.Title}
 									open={false}
@@ -189,7 +189,7 @@
 							<dt>Token</dt>
 							<dd>
 								<EvmCoinInstanceView
-									entityId={transfer.fields.$coinInstance[EntityMetaKey.Id]}
+									selector={transfer.fields.$coinInstance[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
@@ -201,7 +201,7 @@
 							<dt>Token contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={transfer.fields.$tokenContract[EntityMetaKey.Id]}
+									selector={transfer.fields.$tokenContract[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}

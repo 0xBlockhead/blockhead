@@ -3,25 +3,54 @@
  */
 import { type } from 'arktype'
 import { MarketAssetKind } from '$/constants/Market.ts'
-import Coin from '$/schema/Coin.ts'
-import CoinInstance from '$/schema/EvmCoinInstance.ts'
-import Currency from '$/schema/Currency.ts'
+import { CoinId } from '$/constants/Coin.ts'
+import { Iso4217 } from '$/constants/Currency.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
-const id = type.or(
+export const marketAsset = type.or(
 	type({
 		kind: type.unit(MarketAssetKind.Coin),
-		$coin: Coin.id,
+		$coin: type({
+			coinId: type.valueOf(CoinId),
+		}),
 	}),
 	type({
 		kind: type.unit(MarketAssetKind.CoinInstance),
-		$coinInstance: CoinInstance.id,
+		$coinInstance: type.or(
+			type({
+				$network: type({
+					caip2: type({
+						namespace: 'string',
+						reference: 'string',
+					}),
+				}),
+				type: type.unit(CoinInstanceType.NativeCurrency),
+			}),
+			type({
+				$network: type({
+					caip2: type({
+						namespace: 'string',
+						reference: 'string',
+					}),
+				}),
+				type: type.unit(CoinInstanceType.Erc20Token),
+				$contract: type({
+					$network: type({
+						caip2: type({
+							namespace: 'string',
+							reference: 'string',
+						}),
+					}),
+					address: EvmAddress,
+				}),
+			}),
+		),
 	}),
 	type({
 		kind: type.unit(MarketAssetKind.Currency),
-		$currency: Currency.id,
+		$currency: type({
+			iso4217: type.valueOf(Iso4217),
+		}),
 	}),
 )
-
-export default {
-	id,
-}

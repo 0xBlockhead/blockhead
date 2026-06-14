@@ -9,18 +9,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import LiquidityPool from '$/schema/LiquidityPool.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum LiquidityPool_BlockSelector {
+	LiquidityPoolBlockNumber = 'liquidityPoolBlockNumber',
+}
+
 export default {
 	entityType: EntityType.LiquidityPool_Block,
 
 	label: 'Liquidity pool block snapshot',
 	labelPlural: 'Liquidity pool block snapshots',
 
-	id: type({
-		$liquidityPool: LiquidityPool.id,
-		blockNumber: 'bigint',
-	}),
+	selectors: [
+		{
+			name: LiquidityPool_BlockSelector.LiquidityPoolBlockNumber,
+			fields: [
+				'$liquidityPool',
+				'blockNumber',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$liquidityPool',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.LiquidityPool,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'blockNumber',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$parentLiquidityPool',
 			type: EntityFieldType.EntityReference,

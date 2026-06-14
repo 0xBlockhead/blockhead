@@ -105,18 +105,18 @@
 
 	// Functions
 	const specificationRealmKey = (specificationRealm: Entity<typeof schema, EntityType.SpecificationRealm>) => (
-		stringify(specificationRealm[EntityMetaKey.Id])
+		stringify(specificationRealm[EntityMetaKey.Selector])
 	)
 
 	const realmPanelDomId = (realm: Entity<typeof schema, EntityType.SpecificationRealm>) => (
-		`proposal-realm:${realm[EntityMetaKey.Id].realm}:proposal-kinds`
+		`proposal-realm:${realm[EntityMetaKey.Selector].realm}:proposal-kinds`
 	)
 
 
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ sources: [
+		entityFieldReference.selector,({ sources: [
 				Source.Constants_Internal,
 			], fields: { [entityFieldReference.fieldName]: {
 				limit: 512,
@@ -134,8 +134,8 @@
 			return (
 				specificationRealms
 					.toSorted((first, second) => (
-						(first.label ?? stringify(first[EntityMetaKey.Id])).localeCompare(
-							second.label ?? stringify(second[EntityMetaKey.Id]),
+						(first.label ?? stringify(first[EntityMetaKey.Selector])).localeCompare(
+							second.label ?? stringify(second[EntityMetaKey.Selector]),
 						)
 					))
 			)
@@ -211,17 +211,17 @@
 				{:else if !showSummary}
 					<div {...standaloneRealmPanelsProps}>
 						{#each specificationRealms as specificationRealm (specificationRealmKey(specificationRealm))}
-							<section data-scroll-marker-label={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Id].realm)}>
+							<section data-scroll-marker-label={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Selector].realm)}>
 								<ProposalKindsView
 									collapsible={false}
 									entityFieldReference={{
 										entityType: EntityType.SpecificationRealm,
-										entityId: { realm: specificationRealm[EntityMetaKey.Id].realm },
+										selector: { realm: specificationRealm[EntityMetaKey.Selector].realm },
 										fieldName: '$$proposalKinds',
 									}}
 									id={realmPanelDomId(specificationRealm)}
 									open
-									title={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Id].realm)}
+									title={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Selector].realm)}
 								/>
 							</section>
 						{/each}
@@ -289,12 +289,12 @@
 										CollapsibleProps={{ canToggle: false }}
 										entityFieldReference={{
 											entityType: EntityType.SpecificationRealm,
-											entityId: { realm: specificationRealm[EntityMetaKey.Id].realm },
+											selector: { realm: specificationRealm[EntityMetaKey.Selector].realm },
 											fieldName: '$$proposalKinds',
 										}}
 										id={realmPanelDomId(specificationRealm)}
 										open
-										title={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Id].realm)}
+										title={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Selector].realm)}
 									/>
 								</section>
 							{/each}
@@ -342,9 +342,9 @@
 								>
 									{#each specificationRealms as specificationRealm (specificationRealmKey(specificationRealm))}
 										<a
-											data-scroll-marker-label={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Id].realm)}
+											data-scroll-marker-label={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Selector].realm)}
 											href={`#${realmPanelDomId(specificationRealm)}`}
-										>{specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Id].realm)}</a>
+										>{specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Selector].realm)}</a>
 									{/each}
 								</div>
 
@@ -361,17 +361,17 @@
 						>
 							<div {...standaloneRealmPanelsProps}>
 								{#each specificationRealms as specificationRealm (specificationRealmKey(specificationRealm))}
-									<section data-scroll-marker-label={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Id].realm)}>
+									<section data-scroll-marker-label={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Selector].realm)}>
 										<ProposalKindsView
 											collapsible={false}
 											entityFieldReference={{
 												entityType: EntityType.SpecificationRealm,
-												entityId: { realm: specificationRealm[EntityMetaKey.Id].realm },
+												selector: { realm: specificationRealm[EntityMetaKey.Selector].realm },
 												fieldName: '$$proposalKinds',
 											}}
 											id={realmPanelDomId(specificationRealm)}
 											open
-											title={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Id].realm)}
+											title={specificationRealm.label ?? String(specificationRealm[EntityMetaKey.Selector].realm)}
 										/>
 									</section>
 								{/each}

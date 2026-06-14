@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum HyperliquidSpotAssetSelector {
+	NetworkAssetId = 'networkAssetId',
+}
 
 export default {
 	entityType: EntityType.HyperliquidSpotAsset,
@@ -15,12 +18,29 @@ export default {
 	label: 'Hyperliquid Spot Asset',
 	labelPlural: 'Hyperliquid Spot Assets',
 
-	id: type({
-		$network: Network.id,
-		assetId: 'number',
-	}),
+	selectors: [
+		{
+			name: HyperliquidSpotAssetSelector.NetworkAssetId,
+			fields: [
+				'$network',
+				'assetId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'assetId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,

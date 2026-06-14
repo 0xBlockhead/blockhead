@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,16 +15,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(lens)/lens/post/[postId]', {
-			postId: entityId.$post.id,
+			postId: selector.$post.id,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LensPost_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.LensPost_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -36,7 +36,7 @@
 	> = $props()
 
 	const lensPostTimestamp = subscribe(EntityType.LensPost_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Lens_Graphql,
 			], fields: { commentCount: true, repostCount: true, quoteCount: true, bookmarkCount: true, collectCount: true, reactionCount: true } }),
@@ -53,7 +53,7 @@
 
 <EntityView
 	entityType={EntityType.LensPost_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -61,11 +61,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

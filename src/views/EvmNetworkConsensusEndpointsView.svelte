@@ -2,7 +2,7 @@
 	// Types/constants
 	import { consensusProtocolByProtocol } from '$/constants/EvmNetwork.ts'
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +13,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		emptyText = 'No consensus endpoints listed for this network yet.',
 		title = 'Endpoints',
 		open = $bindable(true),
@@ -22,7 +22,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmNetwork>
+			selector: EntitySelector<typeof schema, EntityType.EvmNetwork>
 			emptyText?: string
 			title?: string
 			open?: boolean
@@ -58,7 +58,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const network = subscribe(EntityType.EvmNetwork,
-				entityId,
+				selector,
 				({ sources: [
 						Source.Constants_Internal,
 					], fields: { consensusEndpoints: true } }),

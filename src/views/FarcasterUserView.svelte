@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,15 +17,15 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-			userId: String(entityId.fid),
+			userId: String(selector.fid),
 		}),
 		open = $bindable(true),
 			...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.FarcasterUser>
+			selector: EntitySelector<typeof schema, EntityType.FarcasterUser>
 			href?: string
 			open?: boolean
 		},
@@ -45,7 +45,7 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	const farcasterUserResource = subscribe(EntityType.FarcasterUser,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
@@ -76,7 +76,7 @@
 
 <EntityView
 	entityType={EntityType.FarcasterUser}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
@@ -89,11 +89,11 @@
 			{#snippet children(farcasterUser)}
 				{#if (
 					farcasterUser.fields.$icon
-					&& farcasterUser.fields.$icon[EntityMetaKey.Id].url
+					&& farcasterUser.fields.$icon[EntityMetaKey.Selector].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={farcasterUser.fields.$icon[EntityMetaKey.Id].url}
+						src={farcasterUser.fields.$icon[EntityMetaKey.Selector].url}
 						alt=""
 					/>
 				{/if}
@@ -103,7 +103,7 @@
 
 	{#snippet Value()}
 		<span>
-			FID {String(entityId.fid)}
+			FID {String(selector.fid)}
 		</span>
 	{/snippet}
 
@@ -115,7 +115,7 @@
 			{#snippet children(farcasterUser)}
 				{farcasterUser.fields.displayName
 					?? farcasterUser.fields.username
-					?? `FID ${String(entityId.fid)}`}
+					?? `FID ${String(selector.fid)}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -131,7 +131,7 @@
 					&& farcasterUser.fields.username !== (
 						farcasterUser.fields.displayName
 						?? farcasterUser.fields.username
-						?? `FID ${String(entityId.fid)}`
+						?? `FID ${String(selector.fid)}`
 					)
 				)}
 					<span data-text="muted">
@@ -179,7 +179,7 @@
 						{#snippet children(farcasterUser)}
 							{#if farcasterUser.fields.url}
 								<UrlView
-									entityId={{
+									selector={{
 										url: farcasterUser.fields.url,
 									}}
 									layout={EntityLayout.Title}
@@ -221,9 +221,9 @@
 							<dt>Primary EVM account</dt>
 							<dd>
 								<EvmAccountView
-									entityId={farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Id]}
+									selector={farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector]}
 									href={resolve('/account/[address]', {
-										address: farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Id].address,
+										address: farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector].address,
 									})}
 									layout={EntityLayout.Title}
 									open={false}
@@ -245,26 +245,26 @@
 							{#snippet children(farcasterUser)}
 									{#if farcasterUser.fields.$$verifiedAddresses?.values.length}
 										<ul data-column="gap-2">
-											{#each farcasterUser.fields.$$verifiedAddresses.values as verification (stringify(verification[EntityMetaKey.Id]))}
+											{#each farcasterUser.fields.$$verifiedAddresses.values as verification (stringify(verification[EntityMetaKey.Selector]))}
 												<li>
 													{#if verification.$evmAccount}
 														<EvmAccountView
-															entityId={verification.$evmAccount[EntityMetaKey.Id]}
+															selector={verification.$evmAccount[EntityMetaKey.Selector]}
 															href={resolve('/account/[address]', {
-																address: verification.$evmAccount[EntityMetaKey.Id].address,
+																address: verification.$evmAccount[EntityMetaKey.Selector].address,
 															})}
 															layout={EntityLayout.Title}
 															open={false}
 														/>
 													{:else if verification.$solanaAccount}
 														<SolanaAccountView
-															entityId={verification.$solanaAccount[EntityMetaKey.Id]}
+															selector={verification.$solanaAccount[EntityMetaKey.Selector]}
 															layout={EntityLayout.Title}
 															open={false}
 														/>
 													{:else}
 														<span data-text="mono muted">
-															{verification[EntityMetaKey.Id].protocol}:{verification[EntityMetaKey.Id].address}
+															{verification[EntityMetaKey.Selector].protocol}:{verification[EntityMetaKey.Selector].address}
 														</span>
 													{/if}
 												</li>
@@ -301,8 +301,8 @@
 		open: _open,
 	})}
 		<CollapsibleTabs
-			id={`farcaster-user:${String(entityId.fid)}:carousel`}
-			sectionIdPrefix={`farcaster-user:${String(entityId.fid)}`}
+			id={`farcaster-user:${String(selector.fid)}:carousel`}
+			sectionIdPrefix={`farcaster-user:${String(selector.fid)}`}
 			sections={collapsibleTabsSections([
 				{ id: 'overview', label: 'Profile' },
 				{ id: 'casts', label: 'Casts' },
@@ -340,7 +340,7 @@
 				<EntitiesList
 					entityType={EntityType.FarcasterCast}
 					href={resolve('/farcaster/feed')}
-					id={`farcaster-user:${String(entityId.fid)}:casts-farcasterUsers`}
+					id={`farcaster-user:${String(selector.fid)}:casts-farcasterUsers`}
 					title="Casts"
 					bind:open
 					collapsible={false}
@@ -348,7 +348,7 @@
 					{#snippet body()}
 						{#if open}
 							{@const farcasterUserCasts = subscribe(EntityType.FarcasterUser,
-								entityId,
+								selector,
 								({ fields: { $$casts: true } }),
 							)}
 							{@const casts = derive(
@@ -364,13 +364,13 @@
 								showSummary={false}
 								entityType={EntityType.FarcasterCast}
 								href={resolve('/farcaster/feed')}
-								id={`farcaster-user:${String(entityId.fid)}:casts-farcasterUsers-items`}
+								id={`farcaster-user:${String(selector.fid)}:casts-farcasterUsers-items`}
 								placeholderText="Loading casts (Farcaster FID + cast hash)…"
 								resource={casts}
 								title="Casts"
-								getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+								getKey={(row) => stringify(row.result[EntityMetaKey.Selector])}
 								getSortValue={(row) => (
-									[...stringify(row.result[EntityMetaKey.Id])].map((character) => (
+									[...stringify(row.result[EntityMetaKey.Selector])].map((character) => (
 										String.fromCharCode(0xffff - character.charCodeAt(0))
 									)).join('')
 								)}
@@ -383,9 +383,9 @@
 								{/snippet}
 
 								{#snippet Item({ item })}
-									{@const castId = item.result[EntityMetaKey.Id]}
+									{@const castId = item.result[EntityMetaKey.Selector]}
 									<FarcasterCastView
-										entityId={castId}
+										selector={castId}
 										layout={EntityLayout.Summary}
 										variant="feed"
 									/>
@@ -400,11 +400,11 @@
 				<FarcasterUser_TimestampsView
 					entityFieldReference={{
 						entityType: EntityType.FarcasterUser,
-						entityId,
+						selector,
 						fieldName: '$$timestamps',
 					}}
 					href={href}
-					id={`farcaster-user:${String(entityId.fid)}:metric-snapshots`}
+					id={`farcaster-user:${String(selector.fid)}:metric-snapshots`}
 					title="Metric snapshots"
 				/>
 			{/snippet}

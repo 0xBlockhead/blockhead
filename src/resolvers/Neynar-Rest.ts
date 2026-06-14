@@ -7,7 +7,6 @@ import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import type { CastHash } from '$/schema/FarcasterCast.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
@@ -16,6 +15,11 @@ import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { FarcasterUserSelector } from '$/schema/FarcasterUser.ts'
+import { BlockheadFarcasterAccountConnectionSelector } from '$/schema/BlockheadFarcasterAccountConnection.ts'
+import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
+import { FarcasterFeedSelector } from '$/schema/FarcasterFeed.ts'
+import { FarcasterChannelSelector } from '$/schema/FarcasterChannel.ts'
 
 const zeroXLowerHexCastHash = (hash: string): CastHash => {
 	const hex = (
@@ -50,13 +54,13 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[FarcasterUserSelector.Fid]: async ({ fid }, context) => {
 				const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
 				const bulkUsers = await singleFlight(getBulkUsers)({
 					publicEnv: context.publicEnv,
-					fids: [entityId.fid],
+					fids: [fid],
 				})
-				const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === entityId.fid)
+				const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === entitySelector.fid)
 				if (user == null) throw new Error('Neynar_Rest: user not found')
 				const bioRaw = user.profile?.bio
 				const ethAddresses = (
@@ -89,7 +93,7 @@ export default {
 					:
 						{
 							$primaryEvmAccount: {
-								[EntityMetaKey.Id]: {
+								[EntityMetaKey.Selector]: {
 									address: EvmAddress.assert(ethAddresses.at(0)),
 								},
 							},
@@ -121,16 +125,16 @@ export default {
 					$$verifiedAddresses: [
 						...ethAddresses.map((address) => (
 							((evmAddress) => ({
-								[EntityMetaKey.Id]: {
-									fid: entityId.fid,
+								[EntityMetaKey.Selector]: {
+									fid: entitySelector.fid,
 									protocol: 'ethereum' as const,
 									address: evmAddress,
 								},
 								$user: {
-									[EntityMetaKey.Id]: entityId,
+									[EntityMetaKey.Selector]: entitySelector,
 								},
 								$evmAccount: {
-									[EntityMetaKey.Id]: {
+									[EntityMetaKey.Selector]: {
 										address: evmAddress,
 									},
 								},
@@ -139,16 +143,16 @@ export default {
 							}))(EvmAddress.assert(address))
 						)),
 						...solAddresses.map((address) => ({
-								[EntityMetaKey.Id]: {
-									fid: entityId.fid,
+								[EntityMetaKey.Selector]: {
+									fid: entitySelector.fid,
 									protocol: 'solana' as const,
 									address,
 								},
 							$user: {
-								[EntityMetaKey.Id]: entityId,
+								[EntityMetaKey.Selector]: entitySelector,
 							},
 							$solanaAccount: {
-								[EntityMetaKey.Id]: {
+								[EntityMetaKey.Selector]: {
 									$network: {
 										caip2: {
 											namespace: 'solana',
@@ -181,13 +185,13 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[BlockheadFarcasterAccountConnectionSelector.Fid]: async ({ fid }, context) => {
 				const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
 				const bulkUsers = await singleFlight(getBulkUsers)({
 					publicEnv: context.publicEnv,
-					fids: [entityId.fid],
+					fids: [fid],
 				})
-				const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === entityId.fid)
+				const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === entitySelector.fid)
 				if (user == null) throw new Error('Neynar_Rest: Blockhead Farcaster connection user not found')
 				const bioRaw = user.profile?.bio
 				const ethList = (
@@ -234,22 +238,22 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[FarcasterCastSelector.FidHash]: async (entitySelector, context) => {
 				const {
 					getCastByClientUrl,
 					getCastByHash,
 				} = await import('$/sources/Neynar/Rest/queries.ts')
 				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
-				type EntityIdCast = import('$/schema/$schema.ts').EntityId<typeof schema, EntityType.FarcasterCast>
+				type EntitySelectorCast = import('$/schema/$schema.ts').EntitySelector<typeof schema, EntityType.FarcasterCast>
 				type FieldValuesCast = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
 				const cast = await (
-					'hash' in entityId ?
+					'hash' in entitySelector ?
 						singleFlight(getCastByHash)(
 							context.publicEnv,
-							zeroXLowerHexCastHash(entityId.hash),
+							zeroXLowerHexCastHash(entitySelector.hash),
 						)
-					: 'clientUrl' in entityId ?
-						singleFlight(getCastByClientUrl)(context.publicEnv, entityId.clientUrl)
+					: 'clientUrl' in entitySelector ?
+						singleFlight(getCastByClientUrl)(context.publicEnv, entitySelector.clientUrl)
 					:
 						undefined
 				)
@@ -262,21 +266,21 @@ export default {
 					throw new Error('Neynar_Rest: cast missing author fid')
 				}
 				if (
-					'hash' in entityId
-					&& castHash !== zeroXLowerHexCastHash(entityId.hash)
+					'hash' in entitySelector
+					&& castHash !== zeroXLowerHexCastHash(entitySelector.hash)
 				) {
 					throw new Error('Neynar_Rest: cast hash mismatch')
 				}
 				if (
-					'fid' in entityId
-					&& cast.author.fid !== entityId.fid
+					'fid' in entitySelector
+					&& cast.author.fid !== entitySelector.fid
 				) {
 					throw new Error('Neynar_Rest: cast author mismatch')
 				}
 				if (!Number.isFinite(timestamp)) {
 					throw new Error('Neynar_Rest: cast missing timestamp')
 				}
-				const castId: EntityIdCast = {
+				const castId: EntitySelectorCast = {
 					fid: cast.author.fid,
 					hash: castHash,
 				}
@@ -301,18 +305,18 @@ export default {
 					...(cast.author.username != null && cast.author.username !== '' && {
 						username: cast.author.username,
 					}),
-					...('clientUrl' in entityId && {
-						clientUrl: entityId.clientUrl,
+					...('clientUrl' in entitySelector && {
+						clientUrl: entitySelector.clientUrl,
 					}),
 					$author: {
-						[EntityMetaKey.Id]: { fid: cast.author.fid },
+						[EntityMetaKey.Selector]: { fid: cast.author.fid },
 					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
 					$postedViaApp: (
 						cast.app?.fid == null ?
 							undefined
 						:
 							({
-								[EntityMetaKey.Id]: { fid: cast.app.fid },
+								[EntityMetaKey.Selector]: { fid: cast.app.fid },
 							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
 					),
 					text: optionalNonemptyString(cast.text) ?? '',
@@ -323,7 +327,7 @@ export default {
 							undefined
 						:
 							{
-								[EntityMetaKey.Id]: {
+								[EntityMetaKey.Selector]: {
 									fid: cast.parent_author.fid,
 									hash: zeroXLowerHexCastHash(String(cast.parent_hash)),
 								},
@@ -338,7 +342,7 @@ export default {
 						const ogImages = embed.metadata?.html?.ogImage
 						const og0 = ogImages?.[0]?.url
 						return (({
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$cast: castId,
 								index,
 							},
@@ -346,14 +350,14 @@ export default {
 							$embeddedCast: (
 								embed.cast?.hash != null && embed.cast.author?.fid != null ?
 									{
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											fid: embed.cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(embed.cast.hash)),
 										},
 									} satisfies Entity<typeof schema, EntityType.FarcasterCast>
 								: embed.cast_id?.fid != null && embed.cast_id.hash != null ?
 									{
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											fid: embed.cast_id.fid,
 											hash: zeroXLowerHexCastHash(String(embed.cast_id.hash)),
 										},
@@ -384,29 +388,29 @@ export default {
 					}),
 					$channel: (
 						channelId == null ? undefined : {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								id: channelId,
 							},
 						} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
 					),
 				} satisfies Partial<FieldValuesCast>
 			},
-				['usernameHashPrefix']: async (entityId, context) => {
+				[FarcasterCastSelector.UsernameHashPrefix]: async (entitySelector, context) => {
 				const {
 					getCastByClientUrl,
 					getCastByHash,
 				} = await import('$/sources/Neynar/Rest/queries.ts')
 				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
-				type EntityIdCast = import('$/schema/$schema.ts').EntityId<typeof schema, EntityType.FarcasterCast>
+				type EntitySelectorCast = import('$/schema/$schema.ts').EntitySelector<typeof schema, EntityType.FarcasterCast>
 				type FieldValuesCast = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
 				const cast = await (
-					'hash' in entityId ?
+					'hash' in entitySelector ?
 						singleFlight(getCastByHash)(
 							context.publicEnv,
-							zeroXLowerHexCastHash(entityId.hash),
+							zeroXLowerHexCastHash(entitySelector.hash),
 						)
-					: 'clientUrl' in entityId ?
-						singleFlight(getCastByClientUrl)(context.publicEnv, entityId.clientUrl)
+					: 'clientUrl' in entitySelector ?
+						singleFlight(getCastByClientUrl)(context.publicEnv, entitySelector.clientUrl)
 					:
 						undefined
 				)
@@ -419,21 +423,21 @@ export default {
 					throw new Error('Neynar_Rest: cast missing author fid')
 				}
 				if (
-					'hash' in entityId
-					&& castHash !== zeroXLowerHexCastHash(entityId.hash)
+					'hash' in entitySelector
+					&& castHash !== zeroXLowerHexCastHash(entitySelector.hash)
 				) {
 					throw new Error('Neynar_Rest: cast hash mismatch')
 				}
 				if (
-					'fid' in entityId
-					&& cast.author.fid !== entityId.fid
+					'fid' in entitySelector
+					&& cast.author.fid !== entitySelector.fid
 				) {
 					throw new Error('Neynar_Rest: cast author mismatch')
 				}
 				if (!Number.isFinite(timestamp)) {
 					throw new Error('Neynar_Rest: cast missing timestamp')
 				}
-				const castId: EntityIdCast = {
+				const castId: EntitySelectorCast = {
 					fid: cast.author.fid,
 					hash: castHash,
 				}
@@ -458,18 +462,18 @@ export default {
 					...(cast.author.username != null && cast.author.username !== '' && {
 						username: cast.author.username,
 					}),
-					...('clientUrl' in entityId && {
-						clientUrl: entityId.clientUrl,
+					...('clientUrl' in entitySelector && {
+						clientUrl: entitySelector.clientUrl,
 					}),
 					$author: {
-						[EntityMetaKey.Id]: { fid: cast.author.fid },
+						[EntityMetaKey.Selector]: { fid: cast.author.fid },
 					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
 					$postedViaApp: (
 						cast.app?.fid == null ?
 							undefined
 						:
 							({
-								[EntityMetaKey.Id]: { fid: cast.app.fid },
+								[EntityMetaKey.Selector]: { fid: cast.app.fid },
 							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
 					),
 					text: optionalNonemptyString(cast.text) ?? '',
@@ -480,7 +484,7 @@ export default {
 							undefined
 						:
 							{
-								[EntityMetaKey.Id]: {
+								[EntityMetaKey.Selector]: {
 									fid: cast.parent_author.fid,
 									hash: zeroXLowerHexCastHash(String(cast.parent_hash)),
 								},
@@ -495,7 +499,7 @@ export default {
 						const ogImages = embed.metadata?.html?.ogImage
 						const og0 = ogImages?.[0]?.url
 						return (({
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$cast: castId,
 								index,
 							},
@@ -503,14 +507,14 @@ export default {
 							$embeddedCast: (
 								embed.cast?.hash != null && embed.cast.author?.fid != null ?
 									{
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											fid: embed.cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(embed.cast.hash)),
 										},
 									} satisfies Entity<typeof schema, EntityType.FarcasterCast>
 								: embed.cast_id?.fid != null && embed.cast_id.hash != null ?
 									{
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											fid: embed.cast_id.fid,
 											hash: zeroXLowerHexCastHash(String(embed.cast_id.hash)),
 										},
@@ -541,29 +545,29 @@ export default {
 					}),
 					$channel: (
 						channelId == null ? undefined : {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								id: channelId,
 							},
 						} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
 					),
 				} satisfies Partial<FieldValuesCast>
 			},
-				['clientUrl']: async (entityId, context) => {
+				[FarcasterCastSelector.ClientUrl]: async (entitySelector, context) => {
 				const {
 					getCastByClientUrl,
 					getCastByHash,
 				} = await import('$/sources/Neynar/Rest/queries.ts')
 				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
-				type EntityIdCast = import('$/schema/$schema.ts').EntityId<typeof schema, EntityType.FarcasterCast>
+				type EntitySelectorCast = import('$/schema/$schema.ts').EntitySelector<typeof schema, EntityType.FarcasterCast>
 				type FieldValuesCast = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
 				const cast = await (
-					'hash' in entityId ?
+					'hash' in entitySelector ?
 						singleFlight(getCastByHash)(
 							context.publicEnv,
-							zeroXLowerHexCastHash(entityId.hash),
+							zeroXLowerHexCastHash(entitySelector.hash),
 						)
-					: 'clientUrl' in entityId ?
-						singleFlight(getCastByClientUrl)(context.publicEnv, entityId.clientUrl)
+					: 'clientUrl' in entitySelector ?
+						singleFlight(getCastByClientUrl)(context.publicEnv, entitySelector.clientUrl)
 					:
 						undefined
 				)
@@ -576,21 +580,21 @@ export default {
 					throw new Error('Neynar_Rest: cast missing author fid')
 				}
 				if (
-					'hash' in entityId
-					&& castHash !== zeroXLowerHexCastHash(entityId.hash)
+					'hash' in entitySelector
+					&& castHash !== zeroXLowerHexCastHash(entitySelector.hash)
 				) {
 					throw new Error('Neynar_Rest: cast hash mismatch')
 				}
 				if (
-					'fid' in entityId
-					&& cast.author.fid !== entityId.fid
+					'fid' in entitySelector
+					&& cast.author.fid !== entitySelector.fid
 				) {
 					throw new Error('Neynar_Rest: cast author mismatch')
 				}
 				if (!Number.isFinite(timestamp)) {
 					throw new Error('Neynar_Rest: cast missing timestamp')
 				}
-				const castId: EntityIdCast = {
+				const castId: EntitySelectorCast = {
 					fid: cast.author.fid,
 					hash: castHash,
 				}
@@ -615,18 +619,18 @@ export default {
 					...(cast.author.username != null && cast.author.username !== '' && {
 						username: cast.author.username,
 					}),
-					...('clientUrl' in entityId && {
-						clientUrl: entityId.clientUrl,
+					...('clientUrl' in entitySelector && {
+						clientUrl: entitySelector.clientUrl,
 					}),
 					$author: {
-						[EntityMetaKey.Id]: { fid: cast.author.fid },
+						[EntityMetaKey.Selector]: { fid: cast.author.fid },
 					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
 					$postedViaApp: (
 						cast.app?.fid == null ?
 							undefined
 						:
 							({
-								[EntityMetaKey.Id]: { fid: cast.app.fid },
+								[EntityMetaKey.Selector]: { fid: cast.app.fid },
 							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
 					),
 					text: optionalNonemptyString(cast.text) ?? '',
@@ -637,7 +641,7 @@ export default {
 							undefined
 						:
 							{
-								[EntityMetaKey.Id]: {
+								[EntityMetaKey.Selector]: {
 									fid: cast.parent_author.fid,
 									hash: zeroXLowerHexCastHash(String(cast.parent_hash)),
 								},
@@ -652,7 +656,7 @@ export default {
 						const ogImages = embed.metadata?.html?.ogImage
 						const og0 = ogImages?.[0]?.url
 						return (({
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$cast: castId,
 								index,
 							},
@@ -660,14 +664,14 @@ export default {
 							$embeddedCast: (
 								embed.cast?.hash != null && embed.cast.author?.fid != null ?
 									{
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											fid: embed.cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(embed.cast.hash)),
 										},
 									} satisfies Entity<typeof schema, EntityType.FarcasterCast>
 								: embed.cast_id?.fid != null && embed.cast_id.hash != null ?
 									{
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											fid: embed.cast_id.fid,
 											hash: zeroXLowerHexCastHash(String(embed.cast_id.hash)),
 										},
@@ -698,7 +702,7 @@ export default {
 					}),
 					$channel: (
 						channelId == null ? undefined : {
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								id: channelId,
 							},
 						} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
@@ -733,10 +737,10 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[FarcasterFeedSelector.Trending]: async ({ channelId, fid, variant, viewerFid }, context) => {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
-				if (entityId.variant === 'trending') {
+				if (variant === 'trending') {
 					const page = await singleFlight(getFeed)(
 						context.publicEnv,
 						{
@@ -754,7 +758,7 @@ export default {
 									[]
 								:
 									[{
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
 										},
@@ -762,13 +766,13 @@ export default {
 							))
 					)
 				}
-				if (entityId.variant === 'byUser') {
+				if (variant === 'byUser') {
 					const page = await singleFlight(getFeed)(
 						context.publicEnv,
 						{
 							feedType: 'filter',
 							filterType: 'fids',
-							fids: [entityId.fid],
+							fids: [fid],
 							limit,
 						},
 					)
@@ -781,7 +785,7 @@ export default {
 									[]
 								:
 									[{
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
 										},
@@ -789,13 +793,13 @@ export default {
 							))
 					)
 				}
-				if (entityId.variant === 'byChannel') {
+				if (variant === 'byChannel') {
 					const page = await singleFlight(getFeed)(
 						context.publicEnv,
 						{
 							feedType: 'filter',
 							filterType: 'channel_id',
-							channelId: entityId.channelId,
+							channelId: channelId,
 							limit,
 						},
 					)
@@ -808,7 +812,7 @@ export default {
 									[]
 								:
 									[{
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
 										},
@@ -820,7 +824,7 @@ export default {
 						context.publicEnv,
 						{
 							feedType: 'following',
-							fid: entityId.viewerFid,
+							fid: viewerFid,
 							limit,
 						},
 					)
@@ -833,7 +837,331 @@ export default {
 									[]
 								:
 									[{
-										[EntityMetaKey.Id]: {
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+			},
+[FarcasterFeedSelector.ByUser]: async ({ channelId, fid, variant, viewerFid }, context) => {
+				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
+				const limit = resolverContextRowLimit(context)
+				if (variant === 'trending') {
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'global_trending',
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+				}
+				if (variant === 'byUser') {
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'fids',
+							fids: [fid],
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+				}
+				if (variant === 'byChannel') {
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'channel_id',
+							channelId: channelId,
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+				}
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'following',
+							fid: viewerFid,
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+							|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+			},
+[FarcasterFeedSelector.ByChannel]: async ({ channelId, fid, variant, viewerFid }, context) => {
+				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
+				const limit = resolverContextRowLimit(context)
+				if (variant === 'trending') {
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'global_trending',
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+				}
+				if (variant === 'byUser') {
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'fids',
+							fids: [fid],
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+				}
+				if (variant === 'byChannel') {
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'channel_id',
+							channelId: channelId,
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+				}
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'following',
+							fid: viewerFid,
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+							|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+			},
+[FarcasterFeedSelector.Following]: async ({ channelId, fid, variant, viewerFid }, context) => {
+				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
+				const limit = resolverContextRowLimit(context)
+				if (variant === 'trending') {
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'global_trending',
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+				}
+				if (variant === 'byUser') {
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'fids',
+							fids: [fid],
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+				}
+				if (variant === 'byChannel') {
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'channel_id',
+							channelId: channelId,
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
+							))
+					)
+				}
+					const page = await singleFlight(getFeed)(
+						context.publicEnv,
+						{
+							feedType: 'following',
+							fid: viewerFid,
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+							|| cast.hash === '' ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
 										},
@@ -851,7 +1179,7 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[FarcasterUserSelector.Fid]: async ({ fid }, context) => {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				const page = await singleFlight(getFeed)(
@@ -859,7 +1187,7 @@ export default {
 					{
 						feedType: 'filter',
 						filterType: 'fids',
-						fids: [entityId.fid],
+						fids: [fid],
 						limit,
 					},
 				)
@@ -872,7 +1200,7 @@ export default {
 								[]
 							:
 								[{
-									[EntityMetaKey.Id]: {
+									[EntityMetaKey.Selector]: {
 										fid: cast.author.fid,
 										hash: zeroXLowerHexCastHash(String(cast.hash)),
 									},
@@ -890,7 +1218,7 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[FarcasterChannelSelector.Id]: async ({ id }, context) => {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				const page = await singleFlight(getFeed)(
@@ -898,7 +1226,7 @@ export default {
 					{
 						feedType: 'filter',
 						filterType: 'channel_id',
-						channelId: entityId.id,
+						channelId: id,
 						limit,
 					},
 				)
@@ -911,7 +1239,7 @@ export default {
 								[]
 							:
 								[{
-									[EntityMetaKey.Id]: {
+									[EntityMetaKey.Selector]: {
 										fid: cast.author.fid,
 										hash: zeroXLowerHexCastHash(String(cast.hash)),
 									},

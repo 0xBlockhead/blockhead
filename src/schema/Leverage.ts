@@ -10,7 +10,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
+
+export enum LeverageSelector {
+	EvmNetworkId = 'evmNetworkId',
+}
 
 export default {
 	entityType: EntityType.Leverage,
@@ -18,12 +21,29 @@ export default {
 	label: 'Leverage',
 	labelPlural: 'Leverage',
 
-	id: type({
-		$network: Network.id,
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: LeverageSelector.EvmNetworkId,
+			fields: [
+				'$network',
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$pool',
 			type: EntityFieldType.EntityReference,

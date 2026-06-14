@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Transaction from '$/schema/LitecoinMwebTransaction.ts'
+
+export enum LitecoinMwebPegOutSelector {
+	LitecoinMwebTransactionPegOutIndex = 'litecoinMwebTransactionPegOutIndex',
+}
 
 export default {
 	entityType: EntityType.LitecoinMwebPegOut,
@@ -15,12 +18,29 @@ export default {
 	label: 'Litecoin MWEB Peg-out',
 	labelPlural: 'Litecoin MWEB Peg-outs',
 
-	id: type({
-		$transaction: Transaction.id,
-		pegOutIndex: 'number',
-	}),
+	selectors: [
+		{
+			name: LitecoinMwebPegOutSelector.LitecoinMwebTransactionPegOutIndex,
+			fields: [
+				'$transaction',
+				'pegOutIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.LitecoinMwebTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'pegOutIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$transparentOutput',
 			type: EntityFieldType.EntityReference,

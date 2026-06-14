@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Iso4217 } from '$/constants/Currency.ts'
 	import { MarketAssetKind } from '$/constants/Market.ts'
@@ -18,9 +18,9 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(assets)/(markets)/market/[marketKey]', {
-			marketKey: stringify(entityId.$market),
+			marketKey: stringify(selector.$market),
 			}),
 		layout,
 		open = $bindable(true),
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Market_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.Market_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -42,7 +42,7 @@
 	> = $props()
 
 	const marketTimestamp = subscribe(EntityType.Market_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Blockscout_Rest,
 				Source.Coingecko_Rest,
@@ -66,7 +66,7 @@
 
 <EntityView
 	entityType={EntityType.Market_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -81,8 +81,8 @@
 			{#snippet children(marketTimestamp)}
 				{#if marketTimestamp.fields.price !== undefined}
 					<CurrencyAmount
-						currency={entityId.$market.$quote.kind === MarketAssetKind.Currency ?
-							entityId.$market.$quote.$currency.iso4217
+						currency={selector.$market.$quote.kind === MarketAssetKind.Currency ?
+							selector.$market.$quote.$currency.iso4217
 						:
 							Iso4217.USD}
 						showDecimalPlaces={6}
@@ -90,7 +90,7 @@
 					/>
 				{:else}
 					<Timestamp
-						timestamp={entityId.timestampMs}
+						timestamp={selector.timestampMs}
 					/>
 				{/if}
 			{/snippet}
@@ -105,8 +105,8 @@
 			{#snippet children(marketTimestamp)}
 				{#if marketTimestamp.fields.price !== undefined}
 					<CurrencyAmount
-						currency={entityId.$market.$quote.kind === MarketAssetKind.Currency ?
-							entityId.$market.$quote.$currency.iso4217
+						currency={selector.$market.$quote.kind === MarketAssetKind.Currency ?
+							selector.$market.$quote.$currency.iso4217
 						:
 							Iso4217.USD}
 							showDecimalPlaces={6}
@@ -114,7 +114,7 @@
 					/>
 				{:else}
 					<Timestamp
-						timestamp={entityId.timestampMs}
+						timestamp={selector.timestampMs}
 					/>
 				{/if}
 	{/snippet}
@@ -132,8 +132,8 @@
 
 	{#snippet Content({})}
 		{@const quoteCurrency = (
-			entityId.$market.$quote.kind === MarketAssetKind.Currency ?
-				entityId.$market.$quote.$currency.iso4217
+			selector.$market.$quote.kind === MarketAssetKind.Currency ?
+				selector.$market.$quote.$currency.iso4217
 			:
 				Iso4217.USD
 		)}
@@ -160,7 +160,7 @@
 						<dt>Quote time</dt>
 						<dd>
 							<Timestamp
-								timestamp={entityId.timestampMs}
+								timestamp={selector.timestampMs}
 							/>
 						</dd>
 					</div>
@@ -169,7 +169,7 @@
 						<dt>Market</dt>
 						<dd>
 							<MarketView
-								entityId={entityId.$market}
+								selector={selector.$market}
 								layout={EntityLayout.Title}
 								open={false}
 							/>

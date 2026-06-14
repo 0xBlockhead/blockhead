@@ -2,8 +2,8 @@ import type { QueryClient } from '@tanstack/query-core'
 import { extractSimpleComparisons, parseOrderByExpression } from '@tanstack/db'
 import type { LoadSubsetOptions } from '@tanstack/db'
 
-import { EntityFieldCardinality, EntityMetaKey, entityFieldConditionKey, entityFieldDefinitions, entityIdProjectionNames } from '$/schema/$schema.ts'
-import type { EntityFieldName, EntityId, EntityType, Schema } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityMetaKey, entityFieldConditionKey, entityFieldDefinitions } from '$/schema/$schema.ts'
+import type { EntityFieldName, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export type ResolverValue =
@@ -45,7 +45,7 @@ type ResolverSelect<
 > = {
 	select(
 		snapshot: _Snapshot,
-		entityId: EntityId<_Schema, _EntityType>,
+		entitySelector: EntitySelector<_Schema, _EntityType>,
 		context: _Context,
 	): ResolverValue
 }['select']
@@ -58,9 +58,35 @@ type ResolverCount<
 > = {
 	resolveCount(
 		snapshot: _Snapshot,
-		entityId: EntityId<_Schema, _EntityType>,
+		entitySelector: EntitySelector<_Schema, _EntityType>,
 		context: _Context,
 	): number
+}['resolveCount']
+
+type ResolverSelectCandidate<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_Snapshot,
+	_Context extends ResolverContext,
+> = {
+	select(
+		snapshot: _Snapshot,
+		entitySelector: EntitySelector<_Schema, _EntityType>,
+		context: _Context,
+	): ResolverValue | Promise<ResolverValue>
+}['select']
+
+type ResolverCountCandidate<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_Snapshot,
+	_Context extends ResolverContext,
+> = {
+	resolveCount(
+		snapshot: _Snapshot,
+		entitySelector: EntitySelector<_Schema, _EntityType>,
+		context: _Context,
+	): number | Promise<number>
 }['resolveCount']
 
 type ResolverFilter = {
@@ -83,8 +109,8 @@ export type ResolverSubset = {
 		readonly cursor?: LoadSubsetKeyValue
 	}
 	readonly sources?: readonly string[]
-	readonly identityKeys: readonly string[]
-	readonly parentIdentityKeys: readonly string[]
+	readonly selectorKeys: readonly string[]
+	readonly parentSelectorKeys: readonly string[]
 }
 
 export type ResolverContext = ResolverSubset & {
@@ -141,7 +167,7 @@ export const plainLoadSubsetKeyValue = (
 		: (
 			seen.add(value),
 			Object.fromEntries(
-				Object.entries(value).map(([key, child]) => [
+				Object.entries(Object(value)).map(([key, child]) => [
 					key,
 					plainLoadSubsetKeyValue(child, seen),
 				])
@@ -211,28 +237,28 @@ export const parseResolverSubset = (
 			cursor: request.cursor == null ? undefined : plainLoadSubsetKeyValue(request.cursor),
 		},
 		sources: sources.length === 0 ? undefined : sources,
-		identityKeys: filters.flatMap((filter) => {
-			if (filter.fieldPath[0] !== EntityMetaKey.IdKey)
+		selectorKeys: filters.flatMap((filter) => {
+			if (filter.fieldPath[0] !== EntityMetaKey.SelectorKey)
 				return []
 			if (filter.operator === 'eq') {
 				if (typeof filter.value !== 'string')
-					throw new Error(`Resolver Subset Parser expected string ${EntityMetaKey.IdKey} equality value`)
+					throw new Error(`Resolver Subset Parser expected string ${EntityMetaKey.SelectorKey} equality value`)
 				return [filter.value]
 			}
 			if (!Array.isArray(filter.value) || !filter.value.every((item) => typeof item === 'string'))
-				throw new Error(`Resolver Subset Parser expected string ${EntityMetaKey.IdKey} inclusion values`)
+				throw new Error(`Resolver Subset Parser expected string ${EntityMetaKey.SelectorKey} inclusion values`)
 			return filter.value
 		}),
-		parentIdentityKeys: filters.flatMap((filter) => {
-			if (filter.fieldPath[0] !== EntityMetaKey.ParentIdKey)
+		parentSelectorKeys: filters.flatMap((filter) => {
+			if (filter.fieldPath[0] !== EntityMetaKey.ParentSelectorKey)
 				return []
 			if (filter.operator === 'eq') {
 				if (typeof filter.value !== 'string')
-					throw new Error(`Resolver Subset Parser expected string ${EntityMetaKey.ParentIdKey} equality value`)
+					throw new Error(`Resolver Subset Parser expected string ${EntityMetaKey.ParentSelectorKey} equality value`)
 				return [filter.value]
 			}
 			if (!Array.isArray(filter.value) || !filter.value.every((item) => typeof item === 'string'))
-				throw new Error(`Resolver Subset Parser expected string ${EntityMetaKey.ParentIdKey} inclusion values`)
+				throw new Error(`Resolver Subset Parser expected string ${EntityMetaKey.ParentSelectorKey} inclusion values`)
 			return filter.value
 		}),
 	}
@@ -307,7 +333,7 @@ export type ResolveLivePublisherContext<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = {
-	readonly parentEntityId: EntityId<_Schema, _EntityType>
+	readonly parentEntitySelector: EntitySelector<_Schema, _EntityType>
 	readonly queryClient: QueryClient
 	readonly signal: AbortSignal
 	readonly trigger: ResolverContext & {
@@ -362,7 +388,7 @@ type ResolverResolve<
 	_Context extends ResolverContext,
 > = {
 	resolve(
-		entityId: EntityId<_Schema, _EntityType>,
+		entitySelector: EntitySelector<_Schema, _EntityType>,
 		context: _Context,
 	): ResolverValue | Promise<ResolverValue>
 }['resolve']
@@ -378,20 +404,53 @@ export type SourceResolverDefinition<
 	readonly definitionIndex: number
 	readonly source: _Source
 	readonly entityType: _EntityType
-	readonly resolve: Partial<Record<string, ResolverResolve<_Schema, _EntityType, _Context>>>
-	readonly fields: Partial<Record<string, FieldSelector<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>, _Snapshot, _Context>>> & Partial<{
-		readonly [
-			_FieldName in EntityFieldName<_Schema, _EntityType>
-		]: FieldSelector<_Schema, _EntityType, _FieldName, _Snapshot, _Context>
-	}>
+	readonly resolve: Partial<Record<
+		string,
+		ResolverResolve<_Schema, _EntityType, _Context>
+	>>
+	readonly fields: Partial<Record<
+		string,
+		FieldSelector<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>, _Snapshot, _Context>
+	>>
 	readonly resolveLive?: ResolveLivePublishers<_Schema, _EntityType>
+}
+
+export type SourceResolverDefinitionCandidate<
+	_Schema extends Schema = Schema,
+	_Source extends string = string,
+	_EntityType extends EntityType<_Schema> = EntityType<_Schema>,
+	_Context extends ResolverContext = ResolverContext,
+	_Snapshot = ResolverValue,
+> = Omit<
+	SourceResolverDefinition<_Schema, _Source, _EntityType, _Context, _Snapshot>,
+	'resolve' | 'fields'
+> & {
+	readonly resolve: Partial<Record<string, ResolverResolve<_Schema, _EntityType, _Context>>>
+	readonly fields: Partial<Record<
+		string,
+		| ResolverSelectCandidate<_Schema, _EntityType, _Snapshot, _Context>
+		| {
+			readonly parentSelectors?: readonly string[]
+			readonly select?: ResolverSelectCandidate<_Schema, _EntityType, _Snapshot, _Context>
+			readonly resolveCount?: ResolverCountCandidate<_Schema, _EntityType, _Snapshot, _Context>
+			readonly resolveLive?: {
+				readonly start: (
+					context: ResolveLivePublisherContext<_Schema, _EntityType> & {
+						readonly field: ResolveLiveFieldHandle<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>
+					},
+				) => void | (() => void) | Promise<void | (() => void)>
+			}
+			readonly partial?: boolean
+		}
+	>>
 }
 
 export type ResolverPart<
 	_Schema extends Schema = Schema,
 	_Source extends string = string,
+	_Context extends ResolverContext = ResolverContext,
 > = {
-	readonly resolver: SourceResolverDefinition<_Schema, _Source>
+	readonly resolver: SourceResolverDefinition<_Schema, _Source, EntityType<_Schema>, _Context>
 	readonly partIndex: number
 	readonly source: _Source
 	readonly entityType: EntityType<_Schema>
@@ -399,13 +458,13 @@ export type ResolverPart<
 	readonly parentSelectors?: readonly string[]
 	readonly select?: (
 		snapshot: ResolverValue,
-		entityId: EntityId<_Schema, EntityType<_Schema>>,
-		context: ResolverContext,
+		entitySelector: EntitySelector<_Schema, EntityType<_Schema>>,
+		context: _Context,
 	) => ResolverValue
 	readonly resolveCount?: (
 		snapshot: ResolverValue,
-		entityId: EntityId<_Schema, EntityType<_Schema>>,
-		context: ResolverContext,
+		entitySelector: EntitySelector<_Schema, EntityType<_Schema>>,
+		context: _Context,
 	) => number
 	readonly resolveLive?: {
 		readonly start: (context: ResolveLivePublisherContext<_Schema, EntityType<_Schema>> & {
@@ -418,8 +477,9 @@ export type ResolverPart<
 export type ResolverRootLivePart<
 	_Schema extends Schema = Schema,
 	_Source extends string = string,
+	_Context extends ResolverContext = ResolverContext,
 > = {
-	readonly resolver: SourceResolverDefinition<_Schema, _Source>
+	readonly resolver: SourceResolverDefinition<_Schema, _Source, EntityType<_Schema>, _Context>
 	readonly publisher: ResolveLivePublishers<_Schema, EntityType<_Schema>>[string]
 	readonly publisherName: string
 	readonly source: _Source
@@ -429,26 +489,44 @@ export type ResolverRootLivePart<
 export type ResolverIndexes<
 	_Schema extends Schema = Schema,
 	_Source extends string = string,
+	_Context extends ResolverContext = ResolverContext,
 > = {
-	readonly resolverDefinitionsByEntityType: Partial<Record<string, readonly SourceResolverDefinition<_Schema, _Source>[]>>
-	readonly resolverParts: readonly ResolverPart<_Schema, _Source>[]
-	readonly resolverValuePartsByEntityTypeAndFieldName: Partial<Record<string, readonly ResolverPart<_Schema, _Source>[]>>
-	readonly resolverCountPartsByEntityTypeAndFieldName: Partial<Record<string, readonly ResolverPart<_Schema, _Source>[]>>
-	readonly resolverLivePartsByEntityTypeAndFieldName: Partial<Record<string, readonly ResolverPart<_Schema, _Source>[]>>
-	readonly resolverRootLivePartsByEntityType: Partial<Record<string, readonly ResolverRootLivePart<_Schema, _Source>[]>>
-	readonly resolverDiscriminatorPartsByEntityTypeAndConditionKey: Partial<Record<string, Partial<Record<string, readonly ResolverPart<_Schema, _Source>[]>>>>
+	readonly resolverDefinitionsByEntityType: Partial<{
+		readonly [
+			_EntityType in EntityType<_Schema>
+		]: readonly SourceResolverDefinition<_Schema, _Source, _EntityType, _Context>[]
+	}>
+	readonly resolverParts: readonly ResolverPart<_Schema, _Source, _Context>[]
+	readonly resolverValuePartsByEntityTypeAndFieldName: Partial<{
+		readonly [_EntityType in EntityType<_Schema>]: readonly ResolverPart<_Schema, _Source, _Context>[]
+	}>
+	readonly resolverCountPartsByEntityTypeAndFieldName: Partial<{
+		readonly [_EntityType in EntityType<_Schema>]: readonly ResolverPart<_Schema, _Source, _Context>[]
+	}>
+	readonly resolverLivePartsByEntityTypeAndFieldName: Partial<{
+		readonly [_EntityType in EntityType<_Schema>]: readonly ResolverPart<_Schema, _Source, _Context>[]
+	}>
+	readonly resolverRootLivePartsByEntityType: Partial<{
+		readonly [_EntityType in EntityType<_Schema>]: readonly ResolverRootLivePart<_Schema, _Source, _Context>[]
+	}>
+	readonly resolverDiscriminatorPartsByEntityTypeAndConditionKey: Partial<{
+		readonly [_EntityType in EntityType<_Schema>]: Partial<Record<string, readonly ResolverPart<_Schema, _Source, _Context>[]>>
+	}>
 	readonly resolverPartsKey: (entityType: string, fieldName: string) => string
 }
 
 export type SourceResolverModule<
 	_Schema extends Schema,
 	_Source extends string,
+	_Context extends ResolverContext = ResolverContext,
 > = {
 	readonly source: _Source
-	readonly resolvers: readonly Omit<
-		SourceResolverDefinition<_Schema, _Source>,
-		'definitionIndex' | 'source'
-	>[]
+	readonly resolvers: readonly {
+		readonly [_EntityType in EntityType<_Schema>]: Omit<
+			SourceResolverDefinition<_Schema, _Source, _EntityType, _Context>,
+			'definitionIndex' | 'source'
+		>
+	}[EntityType<_Schema>][]
 }
 
 export const validateResolverDefinitions = <
@@ -456,7 +534,7 @@ export const validateResolverDefinitions = <
 	_Source extends string,
 >(
 	schema: _Schema,
-	resolverDefinitions: readonly SourceResolverDefinition<_Schema, _Source>[],
+	resolverDefinitions: readonly SourceResolverDefinitionCandidate<_Schema, _Source>[],
 ) => {
 	const fieldDefinitionByEntityTypeAndFieldName = Object.fromEntries(
 		schema.map((entityDefinition) => [
@@ -469,10 +547,10 @@ export const validateResolverDefinitions = <
 			),
 		]),
 	)
-	const entityIdProjectionNamesByEntityType = Object.fromEntries(
+	const entitySelectorNamesByEntityType = Object.fromEntries(
 		schema.map((entityDefinition) => [
 			entityDefinition.entityType,
-			new Set(entityIdProjectionNames(entityDefinition)),
+			new Set(entityDefinition.selectors.map((selector) => selector.name)),
 		]),
 	)
 
@@ -480,9 +558,9 @@ export const validateResolverDefinitions = <
 		if (!schema.some((entityDefinition) => entityDefinition.entityType === resolver.entityType))
 			throw new Error(`${resolver.source}:${resolver.entityType} references unknown entity`)
 
-		for (const projectionName of Object.keys(resolver.resolve)) {
-			if (!entityIdProjectionNamesByEntityType[resolver.entityType]?.has(projectionName))
-				throw new Error(`${resolver.source}:${resolver.entityType} references unknown id projection ${projectionName}`)
+		for (const selectorName of Object.keys(resolver.resolve)) {
+			if (!entitySelectorNamesByEntityType[resolver.entityType]?.has(selectorName))
+				throw new Error(`${resolver.source}:${resolver.entityType} references unknown selector ${selectorName}`)
 		}
 
 		for (const fieldName of Object.keys(resolver.fields)) {
@@ -504,9 +582,9 @@ export const validateResolverDefinitions = <
 			if (typeof fieldSelector === 'function')
 				continue
 
-			for (const acceptedParentProjectionName of fieldSelector.parentSelectors ?? []) {
-				if (!entityIdProjectionNamesByEntityType[resolver.entityType]?.has(acceptedParentProjectionName))
-					throw new Error(`${resolver.source}:${resolver.entityType}.${fieldName} references unknown parent id projection ${acceptedParentProjectionName}`)
+			for (const parentSelectorName of fieldSelector.parentSelectors ?? []) {
+				if (!entitySelectorNamesByEntityType[resolver.entityType]?.has(parentSelectorName))
+					throw new Error(`${resolver.source}:${resolver.entityType}.${fieldName} references unknown parent selector ${parentSelectorName}`)
 			}
 
 			if (fieldSelector.select?.constructor.name === 'AsyncFunction')
@@ -542,12 +620,13 @@ export const resolverPartsKey = (
 export const indexResolvers = <
 	const _Schema extends Schema,
 	const _Source extends string,
+	_Context extends ResolverContext,
 >(
 	schema: _Schema,
-	resolverModules: readonly SourceResolverModule<_Schema, _Source>[],
+	resolverModules: readonly SourceResolverModule<_Schema, _Source, _Context>[],
 	enabledSources: ReadonlySet<_Source>,
 ) => {
-	const resolverDefinitions: SourceResolverDefinition<_Schema, _Source>[] = resolverModules
+	const resolverDefinitions: SourceResolverDefinition<_Schema, _Source, EntityType<_Schema>, _Context>[] = resolverModules
 		.filter((module) => enabledSources.has(module.source))
 		.flatMap((module) => (
 			module.resolvers.map((resolver) => ({
@@ -566,7 +645,7 @@ export const indexResolvers = <
 		resolverDefinitions,
 		(resolver) => resolver.entityType,
 	)
-	const resolverParts: ResolverPart<_Schema, _Source>[] = []
+	const resolverParts: ResolverPart<_Schema, _Source, _Context>[] = []
 	for (const resolver of resolverDefinitions) {
 		let partIndex = 0
 		for (const fieldName of Object.keys(resolver.fields)) {
@@ -664,15 +743,14 @@ export const indexResolvers = <
 			Object.fromEntries(
 				entityFieldDefinitions(entityDefinition)
 					.flatMap((fieldDefinition) => {
-						const when = 'when' in fieldDefinition ? fieldDefinition.when : undefined
 						return (
-							when == null ?
+							fieldDefinition.when == null ?
 								[]
 							:
 								[[
-									entityFieldConditionKey(when),
+									entityFieldConditionKey(fieldDefinition.when),
 									resolverValuePartsByEntityTypeAndFieldName[
-										resolverPartsKey(entityDefinition.entityType, when.fieldName)
+										resolverPartsKey(entityDefinition.entityType, fieldDefinition.when.fieldName)
 									] ?? [],
 								]]
 						)
@@ -702,6 +780,6 @@ export const indexResolvers = <
 			resolverRootLivePartsByEntityType,
 			resolverDiscriminatorPartsByEntityTypeAndConditionKey,
 			resolverPartsKey,
-		} satisfies ResolverIndexes<_Schema, _Source>,
+		} satisfies ResolverIndexes<_Schema, _Source, _Context>,
 	}
 }

@@ -73,7 +73,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Blockscout_Rest,
@@ -95,8 +95,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmLog}
-				getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
-				getSortValue={(line) => line.value[EntityMetaKey.Id].logIndex}
+				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
+				getSortValue={(line) => line.value[EntityMetaKey.Selector].logIndex}
 				placeholderText="Loading receipt logs…"
 				resource={logs}
 				{title}
@@ -113,9 +113,9 @@
 
 				{#snippet Item({ item })}
 					{@const line = item.value}
-					{@const logId = line[EntityMetaKey.Id]}
+					{@const logId = line[EntityMetaKey.Selector]}
 					<EvmLogView
-						entityId={logId}
+						selector={logId}
 						layout={EntityLayout.Summary}
 						open={false}
 						collapsible={false}

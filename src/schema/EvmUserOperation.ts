@@ -7,9 +7,12 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
-import Network from '$/schema/EvmNetwork.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EvmUserOperationSelector {
+	EvmNetworkHash = 'evmNetworkHash',
+}
 
 export default {
 	entityType: EntityType.EvmUserOperation,
@@ -17,27 +20,23 @@ export default {
 	label: 'User operation',
 	labelPlural: 'User operations',
 
-	id: type({
-		$network: Network.id,
-		hash: ZeroExHex,
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'hash',
+			name: EvmUserOperationSelector.EvmNetworkHash,
 			fields: [
-				{
-					name: '$network',
-				},
-				{
-					name: 'hash',
-					normalize: lowercaseHexIdentityValue,
-				},
+				'$network',
+				'hash',
 			],
 		},
 	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'hash',
 			type: EntityFieldType.Primitive,

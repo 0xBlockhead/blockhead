@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -14,16 +14,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(social)/(x)/x/post/[postId]', {
-			postId: entityId.$post.id,
+			postId: selector.$post.id,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.XPost_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.XPost_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -35,7 +35,7 @@
 	> = $props()
 
 	const xPostTimestamp = subscribe(EntityType.XPost_Timestamp,
-		entityId,
+		selector,
 		({ fields: { likeCount: true, retweetCount: true, replyCount: true, quoteCount: true } }),
 	)
 
@@ -50,7 +50,7 @@
 
 <EntityView
 	entityType={EntityType.XPost_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -58,11 +58,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

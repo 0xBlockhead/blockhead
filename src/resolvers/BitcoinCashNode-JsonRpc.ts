@@ -6,11 +6,14 @@ import {
 	bitcoinCashNodeDefaultLocalRpcUrl,
 } from '$/constants/BitcoinNetwork.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
+import { BitcoinCashCashTokenFungibleAmountSelector } from '$/schema/BitcoinCashCashTokenFungibleAmount.ts'
+import { BitcoinCashCashTokenNftSelector } from '$/schema/BitcoinCashCashTokenNft.ts'
+import { BitcoinCashCashTokenCommitmentSelector } from '$/schema/BitcoinCashCashTokenCommitment.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -24,21 +27,21 @@ const assertBitcoinCashMainnet = (network: NetworkId) => {
 	}
 }
 
-const getOutput = async (entityId: {
+const getOutput = async ({ $transaction, outputIndex }: {
 	$transaction: {
 		$network: NetworkId
 		txId: string
 	}
 	outputIndex: number
 }) => {
-	assertBitcoinCashMainnet(entityId.$transaction.$network)
+	assertBitcoinCashMainnet($transaction.$network)
 	const { getRawTransaction } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
 	const transaction = await getRawTransaction({
 		rpcUrl: bitcoinCashNodeDefaultLocalRpcUrl,
-		txId: entityId.$transaction.txId,
+		txId: $transaction.txId,
 	})
-	const output = transaction.vout.at(entityId.outputIndex)
-	if (output == null) throw new Error(`BitcoinCashNode_JsonRpc: output not found for ${entityId.$transaction.txId}:${String(entityId.outputIndex)}`)
+	const output = transaction.vout.at(outputIndex)
+	if (output == null) throw new Error(`BitcoinCashNode_JsonRpc: output not found for ${$transaction.txId}:${String(outputIndex)}`)
 	return output
 }
 
@@ -49,8 +52,8 @@ export default {
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const output = await getOutput(entityId)
+				[UtxoOutputSelector.UtxoTransactionOutputIndex]: async (entitySelector) => {
+				const output = await getOutput(entitySelector)
 				return {
 					valueSats: BigInt(Math.round(output.value * 100_000_000)),
 					scriptPubKeyAsm: output.scriptPubKey.asm,
@@ -58,23 +61,23 @@ export default {
 					scriptPubKeyType: output.scriptPubKey.type,
 					...(output.scriptPubKey.address != null && {
 						$address: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$transaction.$network,
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$transaction.$network,
 								address: output.scriptPubKey.address,
 							},
 						},
 					}),
 					...(output.tokenData?.amount != null && {
 						$bitcoinCashCashTokenFungibleAmount: {
-							[EntityMetaKey.Id]: {
-								$output: entityId,
+							[EntityMetaKey.Selector]: {
+								$output: entitySelector,
 							},
 						},
 					}),
 					...(output.tokenData?.nft != null && {
 						$bitcoinCashCashTokenNft: {
-							[EntityMetaKey.Id]: {
-								$output: entityId,
+							[EntityMetaKey.Selector]: {
+								$output: entitySelector,
 							},
 						},
 					}),
@@ -96,13 +99,13 @@ export default {
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const output = await getOutput(entityId.$output)
+				[BitcoinCashCashTokenFungibleAmountSelector.UtxoOutput]: async ({ $output }) => {
+				const output = await getOutput($output)
 				if (output.tokenData?.amount == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken fungible amount')
 				return {
 					$category: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$output.$transaction.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $output.$transaction.$network,
 							categoryId: output.tokenData.category,
 						},
 					},
@@ -120,19 +123,19 @@ export default {
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenNft,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const output = await getOutput(entityId.$output)
+				[BitcoinCashCashTokenNftSelector.UtxoOutput]: async ({ $output }) => {
+				const output = await getOutput($output)
 				if (output.tokenData?.nft == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken NFT')
 				return {
 					$category: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$output.$transaction.$network,
+						[EntityMetaKey.Selector]: {
+							$network: $output.$transaction.$network,
 							categoryId: output.tokenData.category,
 						},
 					},
 					$commitment: {
-						[EntityMetaKey.Id]: {
-							$output: entityId.$output,
+						[EntityMetaKey.Selector]: {
+							$output: $output,
 						},
 					},
 					capability: output.tokenData.nft.capability,
@@ -150,8 +153,8 @@ export default {
 		defineResolver(Source.BitcoinCashNode_JsonRpc, {
 			entityType: EntityType.BitcoinCashCashTokenCommitment,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const output = await getOutput(entityId.$output)
+				[BitcoinCashCashTokenCommitmentSelector.UtxoOutput]: async ({ $output }) => {
+				const output = await getOutput($output)
 				if (output.tokenData?.nft == null) throw new Error('BitcoinCashNode_JsonRpc: output has no CashToken NFT commitment')
 				return {
 					commitmentHex: output.tokenData.nft.commitment,

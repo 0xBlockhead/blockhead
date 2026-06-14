@@ -13,7 +13,7 @@
 
 <Page>
 	<RedditCommentView
-		entityId={{ fullname: decodeURIComponent(params.fullname) }}
+		selector={{ fullname: decodeURIComponent(params.fullname) }}
 	>
 	</RedditCommentView>
 </Page>

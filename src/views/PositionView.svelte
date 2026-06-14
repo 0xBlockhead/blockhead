@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -9,12 +9,12 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LiquidityPosition>
+			selector: EntitySelector<typeof schema, EntityType.LiquidityPosition>
 			open?: boolean
 		},
 		Pick<
@@ -31,7 +31,7 @@
 
 
 <LiquidityPositionView
-	{entityId}
+	{selector}
 	bind:open
 	{...EntityViewProps}
 />

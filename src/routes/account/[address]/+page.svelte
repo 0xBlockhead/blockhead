@@ -14,6 +14,6 @@
 
 <Page>
 	<EvmAccountView
-		entityId={data.entityId}
+		selector={data.selector}
 	/>
 </Page>

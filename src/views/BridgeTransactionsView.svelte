@@ -76,7 +76,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Local_Internal,
@@ -105,9 +105,9 @@
 				open={true}
 				resource={bridgeTransactions}
 				placeholderText="Loading bridge transactions…"
-				getKey={(bridgeTransaction) => stringify(bridgeTransaction.value[EntityMetaKey.Id])}
+				getKey={(bridgeTransaction) => stringify(bridgeTransaction.value[EntityMetaKey.Selector])}
 				getSortValue={(bridgeTransaction) => (
-					`${String(bridgeTransaction.value[EntityMetaKey.Id].createdAt)}\0${stringify(bridgeTransaction.value[EntityMetaKey.Id])}`
+					`${String(bridgeTransaction.value[EntityMetaKey.Selector].createdAt)}\0${stringify(bridgeTransaction.value[EntityMetaKey.Selector])}`
 				)}
 				placeholderKeys={new SvelteSet<string | number>()}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -121,9 +121,9 @@
 				{#snippet Item({
 					item: bridgeTransaction,
 				})}
-					{@const id = bridgeTransaction.value[EntityMetaKey.Id]}
+					{@const id = bridgeTransaction.value[EntityMetaKey.Selector]}
 					<BridgeTransactionView
-						entityId={id}
+						selector={id}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -76,7 +76,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				(
 					entityFieldReference.entityType === EntityType.NostrNetwork ?
 						(
@@ -139,16 +139,16 @@
 					return nostrArticles
 				},
 			)}
-			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}
+			{#key `${stringify(entityFieldReference.selector)}-${limit}-${fieldOpen}`}
 				<EntitiesList
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.NostrArticle}
 					id={`${id}-items`}
 					{title}
-					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getKey={(row) => stringify(row[EntityMetaKey.Selector])}
 					getSortValue={(row) => (
-						`${String(-(row.publishedAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].identifier}`
+						`${String(-(row.publishedAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Selector].identifier}`
 					)}
 					placeholderText={`Loading ${title.toLowerCase()}…`}
 					resource={articles}
@@ -161,7 +161,7 @@
 
 					{#snippet Item({ item })}
 						<NostrArticleView
-							entityId={item[EntityMetaKey.Id]}
+							selector={item[EntityMetaKey.Selector]}
 							layout={EntityLayout.SummaryDetails}
 							open={false}
 						/>

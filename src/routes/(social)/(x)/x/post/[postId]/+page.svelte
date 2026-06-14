@@ -13,7 +13,7 @@
 
 <Page>
 	<XPostView
-		entityId={{ id: decodeURIComponent(params.postId) }}
+		selector={{ id: decodeURIComponent(params.postId) }}
 	>
 	</XPostView>
 </Page>

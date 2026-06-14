@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Transaction from '$/schema/SolanaTransaction.ts'
+
+export enum SolanaInstructionSelector {
+	SolanaTransactionInstructionIndexInnerInstructionIndex = 'solanaTransactionInstructionIndexInnerInstructionIndex',
+}
 
 export default {
 	entityType: EntityType.SolanaInstruction,
@@ -15,13 +18,36 @@ export default {
 	label: 'Solana Instruction',
 	labelPlural: 'Solana Instructions',
 
-	id: type({
-		$transaction: Transaction.id,
-		instructionIndex: 'number',
-		'innerInstructionIndex?': 'number',
-	}),
+	selectors: [
+		{
+			name: SolanaInstructionSelector.SolanaTransactionInstructionIndexInnerInstructionIndex,
+			fields: [
+				'$transaction',
+				'instructionIndex',
+				'innerInstructionIndex',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.SolanaTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'instructionIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'innerInstructionIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 		{
 			name: '$program',
 			type: EntityFieldType.EntityReference,

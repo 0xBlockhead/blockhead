@@ -7,6 +7,6 @@
 
 <Page>
 	<RssView
-		entityId={{ scope: 'RssNetwork' }}
+		selector={{ scope: 'RssNetwork' }}
 	/>
 </Page>

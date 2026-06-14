@@ -1,19 +1,20 @@
 import { type } from 'arktype'
 
-import { ZeroExHex, lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
+	conditionalOn,
 	type EntityDefinition,
-	type EntityFieldEntry,
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
-import {
-	conditionalFieldGroup,
-} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EvmLogSelector {
+	EvmNetworkTxHashLogIndex = 'evmNetworkTxHashLogIndex',
+}
+
 
 const evmLogBaseFields = [
 	{
@@ -114,55 +115,58 @@ export default {
 	label: 'EVM log',
 	labelPlural: 'EVM logs',
 
-	id: type({
-		$network: Network.id,
-		txHash: ZeroExHex,
-		logIndex: 'number',
-	}),
-
-	identities: [
+	selectors: [
 		{
-			name: 'txHashLogIndex',
+			name: EvmLogSelector.EvmNetworkTxHashLogIndex,
 			fields: [
-				{
-					name: '$network',
-				},
-				{
-					name: 'txHash',
-					normalize: lowercaseHexIdentityValue,
-				},
-				{
-					name: 'logIndex',
-				},
+				'$network',
+				'txHash',
+				'logIndex',
 			],
 		},
 	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'txHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'logIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		...evmLogBaseFields,
-		conditionalFieldGroup(
-			evmLogBaseFields,
-			'topics',
-			[
-				'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
-				'0xc3d58168c5ae7397731d063d5bbf3d89e2dc00c66cb903c17f4a2cd2d1f5f0f0',
-				'0x4a39dc06d4c0dbc64b70f1d4d6757603d1ef3e8d6935b7f0b4c97fe61e099437',
-			],
-			{
-				itemIndex: 0,
-			},
-			[
+		{
+			name: '$$tokenTransfers',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmTokenTransfer,
+			cardinality: EntityFieldCardinality.Many,
+			when: conditionalOn(
+				evmLogBaseFields,
+				'topics',
+				[
+					'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+					'0xc3d58168c5ae7397731d063d5bbf3d89e2dc00c66cb903c17f4a2cd2d1f5f0f0',
+					'0x4a39dc06d4c0dbc64b70f1d4d6757603d1ef3e8d6935b7f0b4c97fe61e099437',
+				],
 				{
-					name: '$$tokenTransfers',
-					type: EntityFieldType.EntitiesReference,
-					entityType: EntityType.EvmTokenTransfer,
-					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [
-						Source.Blockscout_Rest,
-						Source.Etherscan_Rest,
-					],
+					itemIndex: 0,
 				},
+			),
+			defaultSources: [
+				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
 			],
-		),
-	] as const satisfies readonly EntityFieldEntry[],
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

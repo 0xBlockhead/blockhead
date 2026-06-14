@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 		import type { ComponentProps, Snippet } from 'svelte'
-		import type { Entity, EntityId } from '$/schema/$schema.ts'
+		import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -19,12 +19,12 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/(social)/(youtube)/youtube/comment/[videoId]/[commentId]',
 			{
-				videoId: encodeURIComponent(entityId.videoId),
-				commentId: encodeURIComponent(entityId.commentId),
+				videoId: encodeURIComponent(selector.videoId),
+				commentId: encodeURIComponent(selector.commentId),
 			},
 		),
 		layout = EntityLayout.SummaryDetails,
@@ -34,7 +34,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.YouTubeComment>
+			selector: EntitySelector<typeof schema, EntityType.YouTubeComment>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -53,7 +53,7 @@
 	> = $props()
 
 	const comment = subscribe(EntityType.YouTubeComment,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
@@ -63,7 +63,7 @@
 				], limit: 1 }), publishedAt: true, publishedAtMs: true, $video: true, $parentComment: true } }),
 	)
 
-	const idKey = stringify(entityId)
+	const idKey = stringify(selector)
 
 
 	// Components
@@ -81,7 +81,7 @@
 
 <EntityView
 	entityType={EntityType.YouTubeComment}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<span>
 			<TruncatedValue
-				value={entityId.commentId}
+				value={selector.commentId}
 				format={TruncatedValueFormat.Visual}
 			/>
 		</span>
@@ -107,7 +107,7 @@
 						comment.fields.text ?
 							comment.fields.text.replaceAll('\n', ' ')
 						:
-							entityId.commentId
+							selector.commentId
 					)}
 					startLength={64}
 					endLength={16}
@@ -213,13 +213,13 @@
 								<dd>
 									{#if comment.fields.$author}
 										<YouTubeChannelView
-											entityId={comment.fields.$author[EntityMetaKey.Id]}
+											selector={comment.fields.$author[EntityMetaKey.Selector]}
 											layout={EntityLayout.Value}
 											open={false}
 										/>
 									{:else if comment.fields.authorChannelId}
 										<YouTubeChannelView
-											entityId={{ channelId: comment.fields.authorChannelId }}
+											selector={{ channelId: comment.fields.authorChannelId }}
 											layout={EntityLayout.Value}
 											open={false}
 										/>
@@ -240,7 +240,7 @@
 								<dt>Video</dt>
 								<dd>
 									<YouTubeVideoView
-										entityId={comment.fields.$video[EntityMetaKey.Id]}
+										selector={comment.fields.$video[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -260,7 +260,7 @@
 								<dt>Parent comment</dt>
 								<dd>
 									<svelte:self
-										entityId={comment.fields.$parentComment[EntityMetaKey.Id]}
+										selector={comment.fields.$parentComment[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -278,7 +278,7 @@
 	})}
 		{#if _open}
 			{@const repliesParent = subscribe(EntityType.YouTubeComment,
-				entityId,
+				selector,
 				({ sources: [
 						Source.Youtube_Rest,
 						Source.Piped_Rest,
@@ -290,7 +290,7 @@
 					repliesParent,
 					(repliesParent) => {
 						const youTubeComments: readonly Entity<typeof schema, EntityType.YouTubeComment>[] = repliesParent.$$replies ?? []
-						return youTubeComments.map((reply) => reply[EntityMetaKey.Id])
+						return youTubeComments.map((reply) => reply[EntityMetaKey.Selector])
 					},
 				)}
 				{@const repliesParentRow = repliesParent.ready ? repliesParent.current : undefined}
@@ -298,8 +298,8 @@
 					<EntitiesList
 						entityType={EntityType.YouTubeComment}
 						href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
-							videoId: encodeURIComponent(entityId.videoId),
-							commentId: encodeURIComponent(entityId.commentId),
+							videoId: encodeURIComponent(selector.videoId),
+							commentId: encodeURIComponent(selector.commentId),
 						})}
 						id={`${idKey}:replies`}
 						title={(
@@ -316,8 +316,8 @@
 								showSummary={false}
 								entityType={EntityType.YouTubeComment}
 								href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
-									videoId: encodeURIComponent(entityId.videoId),
-									commentId: encodeURIComponent(entityId.commentId),
+									videoId: encodeURIComponent(selector.videoId),
+									commentId: encodeURIComponent(selector.commentId),
 								})}
 								id={`${idKey}:replies-items`}
 								title={(
@@ -348,7 +348,7 @@
 									item: comment,
 								})}
 									<svelte:self
-										entityId={{
+										selector={{
 											videoId: comment.videoId,
 											commentId: comment.commentId,
 										}}
@@ -368,7 +368,7 @@
 				<YouTubeComment_TimestampsView
 					entityFieldReference={{
 							entityType: EntityType.YouTubeComment,
-							entityId,
+							selector,
 							fieldName: '$$timestamps',
 					}}
 					href={href}

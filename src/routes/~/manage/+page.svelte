@@ -21,7 +21,7 @@
 
 <Page>
 	<GlobalView
-		entityId={{ scope: 'Manage' }}
+		selector={{ scope: 'Manage' }}
 		title="Manage"
 		href={resolve('/~/manage')}
 	>
@@ -62,7 +62,7 @@
 						href={resolve('/~/manage/sources')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
-							entityId: { scope: '$$blockheadSources' },
+							selector: { scope: '$$blockheadSources' },
 							fieldName: '$$blockheadSources',
 						}}
 						id="sources"

@@ -3,10 +3,11 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EntityIdProjection } from '$/schema/$schema.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/Source.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
+import { AssetInstanceSelector } from '$/schema/AssetInstance.ts'
 
 const trustWalletChainByNetworkSlug = new Map([
 	['bitcoin', 'bitcoin'],
@@ -33,10 +34,10 @@ const trustWalletChainByEip155Reference = new Map([
 ])
 
 const trustWalletChain = (
-	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+	network: { caip2: { namespace: string; reference: string } } | { slug: string },
 ) => (
-	'networkSlug' in network ?
-		trustWalletChainByNetworkSlug.get(network.networkSlug)
+	'slug' in network ?
+		trustWalletChainByNetworkSlug.get(network.slug)
 	: network.caip2.namespace === 'eip155' ?
 		trustWalletChainByEip155Reference.get(network.caip2.reference)
 	: network.caip2.namespace === 'solana' ?
@@ -52,8 +53,16 @@ export default {
 		defineResolver(Source.TrustWalletAssets_Github, {
 			entityType: EntityType.Network,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				const chain = trustWalletChain(entityId)
+				[NetworkSelector.Caip2]: async (entitySelector) => {
+				const chain = trustWalletChain(entitySelector)
+				if (chain == null) throw new Error('TrustWalletAssets_Github: network not mapped')
+				const { getChainLogoUrl } = await import('$/sources/TrustWalletAssets/Github/queries.ts')
+				const iconMedia = mediaFromUrl(getChainLogoUrl(chain), MediaType.Image)
+				if (iconMedia == null) throw new Error(`TrustWalletAssets_Github: invalid logo URL for ${chain}`)
+				return iconMedia
+			},
+[NetworkSelector.Slug]: async (entitySelector) => {
+				const chain = trustWalletChain(entitySelector)
 				if (chain == null) throw new Error('TrustWalletAssets_Github: network not mapped')
 				const { getChainLogoUrl } = await import('$/sources/TrustWalletAssets/Github/queries.ts')
 				const iconMedia = mediaFromUrl(getChainLogoUrl(chain), MediaType.Image)
@@ -70,9 +79,9 @@ export default {
 		defineResolver(Source.TrustWalletAssets_Github, {
 			entityType: EntityType.AssetInstance,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				if (entityId.kind !== AssetInstanceKind.Native) throw new Error('TrustWalletAssets_Github: only native assets are mapped')
-				const chain = trustWalletChain(entityId.$network)
+				[AssetInstanceSelector.NetworkKindAssetKey]: async ({ $network, kind }) => {
+				if (kind !== AssetInstanceKind.Native) throw new Error('TrustWalletAssets_Github: only native assets are mapped')
+				const chain = trustWalletChain($network)
 				if (chain == null) throw new Error('TrustWalletAssets_Github: asset network not mapped')
 				const { getChainLogoUrl } = await import('$/sources/TrustWalletAssets/Github/queries.ts')
 				const iconMedia = mediaFromUrl(getChainLogoUrl(chain), MediaType.Image)

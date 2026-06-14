@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,17 +15,17 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(assets)/(pools)/pool/[chainId]/[poolId]', {
-			chainId: String(evmChainIdFromCaip2(`${entityId.$liquidityPool.$network.caip2.namespace}:${entityId.$liquidityPool.$network.caip2.reference}`)),
-			poolId: entityId.$liquidityPool.id,
+			chainId: String(evmChainIdFromCaip2(`${selector.$liquidityPool.$network.caip2.namespace}:${selector.$liquidityPool.$network.caip2.reference}`)),
+			poolId: selector.$liquidityPool.id,
 		}),
 		layout,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LiquidityPool_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.LiquidityPool_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -41,7 +41,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const poolTimestamp = subscribe(EntityType.LiquidityPool_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Dexscreener_OpenApi,
 			], fields: { $parentLiquidityPool: true, priceUsd: true, priceNative: true, liquidityUsd: true, volumeUsd24h: true, priceChangePercent24h: true, transactionBuys24h: true, transactionSells24h: true, marketCapUsd: true, fdvUsd: true, transport: true } }),
@@ -58,7 +58,7 @@
 
 <EntityView
 	entityType={EntityType.LiquidityPool_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -75,7 +75,7 @@
 					{poolTimestamp.fields.priceUsd}
 				{:else}
 					<Timestamp
-						timestamp={entityId.timestampMs}
+						timestamp={selector.timestampMs}
 					/>
 				{/if}
 			{/snippet}
@@ -99,7 +99,7 @@
 						<dt>Observed at</dt>
 						<dd>
 							<Timestamp
-								timestamp={entityId.timestampMs}
+								timestamp={selector.timestampMs}
 							/>
 						</dd>
 					</div>
@@ -108,7 +108,7 @@
 						<dt>Pool</dt>
 						<dd>
 							<LiquidityPoolView
-								entityId={poolTimestamp.fields.$parentLiquidityPool?.[EntityMetaKey.Id] ?? entityId.$liquidityPool}
+								selector={poolTimestamp.fields.$parentLiquidityPool?.[EntityMetaKey.Selector] ?? selector.$liquidityPool}
 								layout={EntityLayout.Title}
 								open={false}
 							/>

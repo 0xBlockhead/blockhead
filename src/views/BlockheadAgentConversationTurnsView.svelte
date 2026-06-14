@@ -72,7 +72,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const conversation = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Local_Internal,
 					], fields: { [entityFieldReference.fieldName]: {},
 				} }),
@@ -90,7 +90,7 @@
 				entityType={EntityType.BlockheadAgentConversationTurn}
 				id={`${id}-items`}
 				open={true}
-				getKey={(turn) => stringify(turn[EntityMetaKey.Id])}
+				getKey={(turn) => stringify(turn[EntityMetaKey.Selector])}
 				placeholderText="Loading turns…"
 				resource={turns}
 				{title}
@@ -104,7 +104,7 @@
 
 				{#snippet Item({ item: turn })}
 					<BlockheadAgentConversationTurnView
-						entityId={turn[EntityMetaKey.Id]}
+						selector={turn[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

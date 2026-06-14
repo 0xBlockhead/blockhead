@@ -48,7 +48,7 @@
 		</p>
 	{:else}
 		<CurrencyView
-			entityId={{ iso4217: route.iso4217 }}
+			selector={{ iso4217: route.iso4217 }}
 		/>
 	{/if}
 </Page>

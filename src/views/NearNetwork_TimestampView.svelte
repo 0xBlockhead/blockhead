@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -10,17 +10,17 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.NearNetwork_Timestamp>
+		selector: EntitySelector<typeof schema, EntityType.NearNetwork_Timestamp>
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
 	const snapshot = subscribe(EntityType.NearNetwork_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.NearRpc_JsonRpc,
 			], fields: { headHeight: true, headHash: true, epochId: true, epochHeight: true, epochStartHeight: true, chunkCount: true, gasPriceYoctoNear: true, currentValidatorCount: true, nextValidatorCount: true, currentProposalCount: true, protocolVersion: true, latestProtocolVersion: true, nodeVersion: true, syncing: true } }),
@@ -38,7 +38,7 @@
 
 <EntityView
 	entityType={EntityType.NearNetwork_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	bind:open
 	{layout}
 >
@@ -54,7 +54,7 @@
 					<NumberValue value={snapshot.fields.gasPriceYoctoNear} />
 					yoctoNEAR
 				{:else}
-					<Timestamp timestamp={entityId.timestampMs} />
+					<Timestamp timestamp={selector.timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

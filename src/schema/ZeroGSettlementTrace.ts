@@ -9,18 +9,39 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import ZeroGServiceRequest from '$/schema/ZeroGServiceRequest.ts'
 
+export enum ZeroGSettlementTraceSelector {
+	ZeroGServiceRequestTraceId = 'zeroGServiceRequestTraceId',
+}
+
 export default {
 	entityType: EntityType.ZeroGSettlementTrace,
 
 	label: '0G settlement trace',
 	labelPlural: '0G settlement traces',
 
-	id: type({
-		$serviceRequest: ZeroGServiceRequest.id,
-		traceId: 'string',
-	}),
+	selectors: [
+		{
+			name: ZeroGSettlementTraceSelector.ZeroGServiceRequestTraceId,
+			fields: [
+				'$serviceRequest',
+				'traceId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$serviceRequest',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.ZeroGServiceRequest,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'traceId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'settlementTransactionHash',
 			type: EntityFieldType.Primitive,

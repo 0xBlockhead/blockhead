@@ -2,7 +2,6 @@
 	// State
 	let {
 		data,
-		params,
 	} = $props()
 
 
@@ -14,6 +13,6 @@
 
 <Page>
 	<EvmBlobView
-		entityId={data.entityId}
+		selector={data.entitySelector}
 	/>
 </Page>

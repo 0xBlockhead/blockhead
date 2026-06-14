@@ -13,12 +13,12 @@ export const load: PageLoad = ({ params }) => {
 	if ($network instanceof arktype.errors) error(404, 'Invalid network')
 
 	if (params.coinInstanceSlug === 'native') {
-		const entityId = CoinInstanceSchema.id({
+		const entitySelector = CoinInstanceSchema.id({
 			$network,
 			type: CoinInstanceType.NativeCurrency,
 		})
-		if (entityId instanceof arktype.errors) error(404, 'Invalid native coin deployment')
-		return { entityId }
+		if (entitySelector instanceof arktype.errors) error(404, 'Invalid native coin deployment')
+		return { entitySelector }
 	}
 
 	const raw = (
@@ -30,7 +30,7 @@ export const load: PageLoad = ({ params }) => {
 	const address = EvmAddress(raw)
 	if (address instanceof arktype.errors) error(404, 'Invalid token contract address')
 
-	const entityId = CoinInstanceSchema.id({
+	const entitySelector = CoinInstanceSchema.id({
 		$network,
 		type: CoinInstanceType.Erc20Token,
 		$contract: {
@@ -38,7 +38,7 @@ export const load: PageLoad = ({ params }) => {
 			address,
 		},
 	})
-	if (entityId instanceof arktype.errors) error(404, 'Invalid coin deployment')
+	if (entitySelector instanceof arktype.errors) error(404, 'Invalid coin deployment')
 
-	return { entityId }
+	return { entitySelector }
 }

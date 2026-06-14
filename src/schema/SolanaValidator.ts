@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum SolanaValidatorSelector {
+	NetworkVotePubkey = 'networkVotePubkey',
+}
 
 export default {
 	entityType: EntityType.SolanaValidator,
@@ -15,12 +18,29 @@ export default {
 	label: 'Solana Validator',
 	labelPlural: 'Solana Validators',
 
-	id: type({
-		$network: Network.id,
-		votePubkey: 'string',
-	}),
+	selectors: [
+		{
+			name: SolanaValidatorSelector.NetworkVotePubkey,
+			fields: [
+				'$network',
+				'votePubkey',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'votePubkey',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'nodePubkey',
 			type: EntityFieldType.Primitive,

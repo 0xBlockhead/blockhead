@@ -37,7 +37,7 @@
 				<CosmosGovernanceProposalsView
 					entityFieldReference={{
 						entityType: EntityType.CosmosNetwork,
-						entityId: {
+						selector: {
 							networkSlug: network.fields.slug,
 						},
 						fieldName: '$$governanceProposals',

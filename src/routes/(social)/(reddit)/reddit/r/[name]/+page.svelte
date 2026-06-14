@@ -13,7 +13,7 @@
 
 <Page>
 	<RedditSubredditView
-		entityId={{ name: decodeURIComponent(params.name).toLowerCase() }}
+		selector={{ name: decodeURIComponent(params.name).toLowerCase() }}
 	>
 	</RedditSubredditView>
 </Page>

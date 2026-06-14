@@ -32,7 +32,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<ActivityPubNoteView
-			entityId={{
+			selector={{
 				instanceOrigin: decodeURIComponent(instanceOrigin),
 				localStatusId: decodeURIComponent(localStatusId),
 			}}

@@ -70,7 +70,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const activityPubNetwork = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,
+				entityFieldReference.selector,
 				{
 					sources: [Source.Constants_Internal],
 					fields: {
@@ -91,7 +91,7 @@
 					activityPubNetwork.fields.$$activityPubActors?.values ?? []
 				),
 			)}
-			{#key stringify(entityFieldReference.entityId)}
+			{#key stringify(entityFieldReference.selector)}
 				<EntitiesList
 					collapsible={false}
 					showSummary={false}
@@ -100,7 +100,7 @@
 					{title}
 					open={true}
 					getSortValue={(activityPubActor) => {
-						const actorId = activityPubActor[EntityMetaKey.Id]
+						const actorId = activityPubActor[EntityMetaKey.Selector]
 						return 'localAccountId' in actorId ?
 							`${actorId.instanceOrigin}\0${actorId.localAccountId}`
 						:
@@ -116,9 +116,9 @@
 					{/snippet}
 
 					{#snippet Item({ item })}
-						{@const actorId = item[EntityMetaKey.Id]}
+						{@const actorId = item[EntityMetaKey.Selector]}
 						<ActivityPubActorView
-							entityId={actorId}
+							selector={actorId}
 							layout={EntityLayout.Summary}
 							open={false}
 						/>

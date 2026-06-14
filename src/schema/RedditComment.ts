@@ -7,6 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum RedditCommentSelector {
+	Fullname = 'fullname',
+}
+
+
 const RedditCommentFullname = type(
 	'/^t1_[A-Za-z0-9]+$/' as type.cast<string>,
 )
@@ -17,11 +22,22 @@ export default {
 	label: 'Reddit comment',
 	labelPlural: 'Reddit comments',
 
-	id: type({
-		fullname: RedditCommentFullname,
-	}),
+	selectors: [
+		{
+			name: RedditCommentSelector.Fullname,
+			fields: [
+				'fullname',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'fullname',
+			type: EntityFieldType.Primitive,
+			primitiveType: RedditCommentFullname,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'body',
 			type: EntityFieldType.Primitive,

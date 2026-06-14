@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum PolkadotAccountSelector {
+	NetworkAccountId = 'networkAccountId',
+}
 
 export default {
 	entityType: EntityType.PolkadotAccount,
@@ -15,12 +18,29 @@ export default {
 	label: 'Polkadot Account',
 	labelPlural: 'Polkadot Accounts',
 
-	id: type({
-		$network: Network.id,
-		accountId: 'string',
-	}),
+	selectors: [
+		{
+			name: PolkadotAccountSelector.NetworkAccountId,
+			fields: [
+				'$network',
+				'accountId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'accountId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'nonce',
 			type: EntityFieldType.Primitive,

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,14 +16,14 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/swarm'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.SwarmProtocol>
+			selector: EntitySelector<typeof schema, EntityType.SwarmProtocol>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -32,7 +32,7 @@
 	> = $props()
 
 	const protocol = subscribe(EntityType.SwarmProtocol,
-		entityId,
+		selector,
 		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true }) : ({  })) } }),
 	)
 
@@ -53,7 +53,7 @@
 
 <EntityView
 	entityType={EntityType.SwarmProtocol}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -61,7 +61,7 @@
 	title="Swarm"
 >
 	{#snippet Value()}
-		{entityId.scope}
+		{selector.scope}
 	{/snippet}
 
 	{#snippet Title()}
@@ -135,10 +135,10 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const protocolIdKey = stringify(entityId)}
+		{@const protocolSelectorKey = stringify(selector)}
 		<CollapsibleTabs
-			id={`${protocolIdKey}:browse`}
-			sectionIdPrefix={protocolIdKey}
+			id={`${protocolSelectorKey}:browse`}
+			sectionIdPrefix={protocolSelectorKey}
 			sections={[
 				{ id: 'browse', label: 'Browse' },
 			]}

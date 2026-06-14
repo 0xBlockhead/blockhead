@@ -4,15 +4,17 @@ import {
 	EntityFieldCardinality,
 	type EntityDefinition,
 	type EntityFieldDefinition,
-	type EntityIdentityValueNormalizer,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
-const lowercaseIdentityValue: EntityIdentityValueNormalizer = (value) => (
-	String(value).toLowerCase()
-)
+export enum ActivityPubActorSelector {
+	LocalAccountId = 'localAccountId',
+	Acct = 'acct',
+}
+
+
 
 export default {
 	entityType: EntityType.ActivityPubActor,
@@ -20,38 +22,19 @@ export default {
 	label: 'ActivityPub actor',
 	labelPlural: 'ActivityPub actors',
 
-	id: type.or(
-		type({
-			instanceOrigin: UrlString,
-			localAccountId: 'string',
-			'+': 'reject',
-		}),
-		type({
-			instanceOrigin: UrlString,
-			acct: 'string',
-			'+': 'reject',
-		}),
-	),
-
-	lookups: [
+	selectors: [
 		{
-			name: 'acct',
-			fields: [
-				'instanceOrigin',
-				{
-					name: 'acct',
-					normalize: lowercaseIdentityValue,
-				},
-			],
-		},
-	],
-
-	identities: [
-		{
-			name: 'localAccountId',
+			name: ActivityPubActorSelector.LocalAccountId,
 			fields: [
 				'instanceOrigin',
 				'localAccountId',
+			],
+		},
+		{
+			name: ActivityPubActorSelector.Acct,
+			fields: [
+				'instanceOrigin',
+				'acct',
 			],
 		},
 	],

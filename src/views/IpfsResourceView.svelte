@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,14 +11,14 @@
 
 	// State
 	let {
-		entityId,
-		href = ipfsResourceHref(entityId),
+		selector,
+		href = ipfsResourceHref(selector),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.IpfsResource>
+			selector: EntitySelector<typeof schema, EntityType.IpfsResource>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -30,7 +30,7 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const ipfs = subscribe(EntityType.IpfsResource,
-		entityId,
+		selector,
 		({ sources: [Source.Ipfs_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, cidVersion: true, cidMultibase: true, cidMulticodecCode: true, cidMultihashCode: true, cidMultihashDigestHex: true, isCidSubdomainSafe: true } }),
 	)
 
@@ -50,14 +50,14 @@
 
 <EntityView
 	entityType={EntityType.IpfsResource}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.target}
+			{selector.target}
 		</span>
 	{/snippet}
 
@@ -67,13 +67,13 @@
 				{href}
 			>
 				<TruncatedValue
-					value={ipfsResourceCanonicalUri(entityId)}
+					value={ipfsResourceCanonicalUri(selector)}
 					format={TruncatedValueFormat.Visual}
 				/>
 			</a>
 		{:else}
 			<TruncatedValue
-				value={ipfsResourceCanonicalUri(entityId)}
+				value={ipfsResourceCanonicalUri(selector)}
 				format={TruncatedValueFormat.Visual}
 			/>
 		{/if}
@@ -222,7 +222,7 @@
 				</div>
 			{/if}
 
-			{#if open && entityId.namespace === 'ipfs'}
+			{#if open && selector.namespace === 'ipfs'}
 				<div>
 					<dt>Content identifier version</dt>
 					<dd>
@@ -237,7 +237,7 @@
 				</div>
 			{/if}
 
-			{#if open && entityId.namespace === 'ipfs'}
+			{#if open && selector.namespace === 'ipfs'}
 				<div>
 					<dt>Multibase</dt>
 					<dd>
@@ -255,7 +255,7 @@
 				</div>
 			{/if}
 
-			{#if open && entityId.namespace === 'ipfs'}
+			{#if open && selector.namespace === 'ipfs'}
 				<div>
 					<dt>Multicodec code</dt>
 					<dd>
@@ -270,7 +270,7 @@
 				</div>
 			{/if}
 
-			{#if open && entityId.namespace === 'ipfs'}
+			{#if open && selector.namespace === 'ipfs'}
 				<div>
 					<dt>Multihash code</dt>
 					<dd>
@@ -285,7 +285,7 @@
 				</div>
 			{/if}
 
-			{#if open && entityId.namespace === 'ipfs'}
+			{#if open && selector.namespace === 'ipfs'}
 				<div>
 					<dt>Multihash digest</dt>
 					<dd>
@@ -303,7 +303,7 @@
 				</div>
 			{/if}
 
-			{#if open && entityId.namespace === 'ipfs'}
+			{#if open && selector.namespace === 'ipfs'}
 				<div>
 					<dt>Subdomain-safe</dt>
 					<dd>
@@ -323,13 +323,13 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const detailKey = stringify(entityId)}
+		{@const detailKey = stringify(selector)}
 		<CollapsibleTabs
 			id={`${detailKey}:carousel-ipfs-resource`}
 			sectionIdPrefix={detailKey}
 			sections={[
 				{ id: 'ipfs-record', label: 'Record' },
-				...(_open && entityId.namespace === 'ipfs' ? [{ id: 'ipfs-cid', label: 'Encodings' }] : []),
+				...(_open && selector.namespace === 'ipfs' ? [{ id: 'ipfs-cid', label: 'Encodings' }] : []),
 				...(_open ? [{ id: 'ipfs-preview', label: 'Preview' }] : []),
 			]}
 			data-card
@@ -366,8 +366,8 @@
 
 			{#snippet SectionIpfsCid()}
 				<IpfsCidAlternateEncodings
-					contentPath={entityId.contentPath}
-					target={entityId.target}
+					contentPath={selector.contentPath}
+					target={selector.target}
 				/>
 			{/snippet}
 

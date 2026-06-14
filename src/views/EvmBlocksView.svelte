@@ -2,11 +2,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
@@ -38,19 +36,18 @@
 		>
 	> = $props()
 
-	const network = subscribe(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			fields: {
-				[entityFieldReference.fieldName]: {
-					sources: [
-						Source.Voltaire_JsonRpc,
-					],
-					limit: 16,
+	const network = $derived(
+		subscribe(
+			entityFieldReference.entityType,
+			entityFieldReference.selector,
+			{
+				fields: {
+					[entityFieldReference.fieldName]: {
+						limit: 16,
+					},
 				},
 			},
-		},
+		),
 	)
 
 
@@ -97,12 +94,11 @@
 							id={`${id}-items`}
 							{title}
 							open={true}
-							getKey={(row) => String(row[EntityMetaKey.Id].blockNumber)}
+							getKey={(row) => String(row[EntityMetaKey.Selector].blockNumber)}
 							getSortValue={(row) => (
-								-Number(row[EntityMetaKey.Id].blockNumber)
+								-Number(row[EntityMetaKey.Selector].blockNumber)
 							)}
-							items={(network.fields[entityFieldReference.fieldName]?.values ?? [])
-								.filter((block: Entity<typeof schema, EntityType.EvmBlock>) => block[EntityMetaKey.Id].hash != null)}
+							items={network.fields[entityFieldReference.fieldName]?.values ?? []}
 							UnorderedListProps={{ orientation: ListOrientation.Column }}
 						>
 							{#snippet Empty()}
@@ -113,7 +109,7 @@
 
 							{#snippet Item({ item })}
 								<EvmBlockView
-									entityId={item[EntityMetaKey.Id]}
+									selector={item[EntityMetaKey.Selector]}
 									layout={EntityLayout.Summary}
 									open={false}
 								/>

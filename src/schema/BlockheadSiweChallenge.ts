@@ -9,17 +9,32 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
+export enum BlockheadSiweChallengeSelector {
+	Id = 'id',
+}
+
 export default {
 	entityType: EntityType.BlockheadSiweChallenge,
 
 	label: 'SIWE Challenge',
 	labelPlural: 'SIWE Challenges',
 
-	id: type({
-		id: 'string',
-	}),
+	selectors: [
+		{
+			name: BlockheadSiweChallengeSelector.Id,
+			fields: [
+				'id',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'id',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$network',
 			type: EntityFieldType.EntityReference,

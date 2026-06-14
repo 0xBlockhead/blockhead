@@ -2,11 +2,14 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { _GlobalSelector } from '$/schema/_Global.ts'
+import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
+import { SpecificationRealmSelector } from '$/schema/SpecificationRealm.ts'
+import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 
 const hyperliquidHipRows = async () => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
@@ -28,7 +31,7 @@ const hyperliquidHipRows = async () => {
 			title: 'Outcome contracts',
 		},
 	].map((hyperliquidHip) => ({
-		[EntityMetaKey.Id]: {
+		[EntityMetaKey.Selector]: {
 			realm: SpecificationRealm.Hyperliquid,
 			category: ProposalCategory.Hip,
 			number: hyperliquidHip.number,
@@ -47,13 +50,13 @@ export default {
 		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalSelector.RealmCategoryNumber]: async ({ category, number, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Hyperliquid || entityId.category !== ProposalCategory.Hip) {
+				if (realm !== SpecificationRealm.Hyperliquid || category !== ProposalCategory.Hip) {
 					throw new Error('HyperliquidDocs_Rest: proposal resolver only supports Hyperliquid HIPs')
 				}
-				const proposal = (await hyperliquidHipRows()).find((hyperliquidHip) => hyperliquidHip[EntityMetaKey.Id].number === entityId.number)
-				if (proposal == null) throw new Error(`HyperliquidDocs_Rest: HIP not found ${entityId.number.toString()}`)
+				const proposal = (await hyperliquidHipRows()).find((hyperliquidHip) => hyperliquidHip[EntityMetaKey.Selector].number === entitySelector.number)
+				if (proposal == null) throw new Error(`HyperliquidDocs_Rest: HIP not found ${number.toString()}`)
 				return proposal
 			}
 			}
@@ -69,7 +72,7 @@ export default {
 		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[EntityIdProjection.Identity]: hyperliquidHipRows
+				[_GlobalSelector.Scope]: hyperliquidHipRows
 			}
 		})({
 				fields: {
@@ -80,9 +83,9 @@ export default {
 		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationRealmSelector.Realm]: async ({ realm }) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Hyperliquid) throw new Error('HyperliquidDocs_Rest: $$proposals only supports Hyperliquid')
+				if (realm !== SpecificationRealm.Hyperliquid) throw new Error('HyperliquidDocs_Rest: $$proposals only supports Hyperliquid')
 				return hyperliquidHipRows()
 			}
 			}
@@ -95,9 +98,9 @@ export default {
 		defineResolver(Source.HyperliquidDocs_Rest, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
+				[SpecificationProposalKindSelector.RealmCategory]: async ({ category, realm }) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				if (entityId.realm !== SpecificationRealm.Hyperliquid || entityId.category !== ProposalCategory.Hip) throw new Error('HyperliquidDocs_Rest: $$proposals only supports Hyperliquid HIPs')
+				if (realm !== SpecificationRealm.Hyperliquid || category !== ProposalCategory.Hip) throw new Error('HyperliquidDocs_Rest: $$proposals only supports Hyperliquid HIPs')
 				return hyperliquidHipRows()
 			}
 			}

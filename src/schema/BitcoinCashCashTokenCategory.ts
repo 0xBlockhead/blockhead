@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum BitcoinCashCashTokenCategorySelector {
+	NetworkCategoryId = 'networkCategoryId',
+}
 
 export default {
 	entityType: EntityType.BitcoinCashCashTokenCategory,
@@ -15,12 +18,29 @@ export default {
 	label: 'Bitcoin Cash CashToken Category',
 	labelPlural: 'Bitcoin Cash CashToken Categories',
 
-	id: type({
-		$network: Network.id,
-		categoryId: 'string',
-	}),
+	selectors: [
+		{
+			name: BitcoinCashCashTokenCategorySelector.NetworkCategoryId,
+			fields: [
+				'$network',
+				'categoryId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'categoryId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$metadata',
 			type: EntityFieldType.EntityReference,

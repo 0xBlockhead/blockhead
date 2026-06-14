@@ -8,13 +8,24 @@ import { EntityType } from '$/schema/EntityType.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum UtxoNetworkSelector {
+	Network = 'network',
+}
+
 export default {
 	entityType: EntityType.UtxoNetwork,
 
 	label: 'UTXO network',
 	labelPlural: 'UTXO networks',
 
-	id: Network.id,
+	selectors: [
+		{
+			name: UtxoNetworkSelector.Network,
+			fields: [
+				'$network',
+			],
+		},
+	],
 
 	fields: [
 		{

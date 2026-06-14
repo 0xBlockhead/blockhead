@@ -18,7 +18,7 @@
 		href={resolve('/nostr/profiles')}
 		entityFieldReference={{
 			entityType: EntityType.NostrNetwork,
-			entityId: { scope: 'NostrNetwork' },
+			selector: { scope: 'NostrNetwork' },
 			fieldName: '$$nostrProfiles',
 		}}
 		id="nostr-profiles"

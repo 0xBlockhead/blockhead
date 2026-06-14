@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum FilecoinMessageSelector {
+	NetworkCid = 'networkCid',
+}
 
 export default {
 	entityType: EntityType.FilecoinMessage,
@@ -15,12 +18,29 @@ export default {
 	label: 'Filecoin Message',
 	labelPlural: 'Filecoin Messages',
 
-	id: type({
-		$network: Network.id,
-		cid: 'string',
-	}),
+	selectors: [
+		{
+			name: FilecoinMessageSelector.NetworkCid,
+			fields: [
+				'$network',
+				'cid',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'cid',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$from',
 			type: EntityFieldType.EntityReference,

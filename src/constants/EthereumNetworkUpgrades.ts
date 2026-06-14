@@ -37,11 +37,11 @@ import { stringify } from 'devalue'
  * `$network` on ids is applied when expanding to per-chain rows.
  */
 export type NetworkUpgradeMarketingUmbrellaTemplate = {
-	readonly [EntityMetaKey.Id]: { readonly upgradeId: string }
+	readonly [EntityMetaKey.Selector]: { readonly upgradeId: string }
 	readonly name: string
 	readonly slug: string
-	readonly $networkExecutionUpgrade: { readonly [EntityMetaKey.Id]: { readonly upgradeId: string } }
-	readonly $networkConsensusUpgrade: { readonly [EntityMetaKey.Id]: { readonly upgradeId: string } }
+	readonly $networkExecutionUpgrade: { readonly [EntityMetaKey.Selector]: { readonly upgradeId: string } }
+	readonly $networkConsensusUpgrade: { readonly [EntityMetaKey.Selector]: { readonly upgradeId: string } }
 }
 
 
@@ -100,39 +100,39 @@ export const ethereumNetworkUpgradeUmbrellaChainIds = [
 
 export const ethereumNetworkMarketingUmbrellas = [
 	{
-		[EntityMetaKey.Id]: { upgradeId: 'Merge' },
+		[EntityMetaKey.Selector]: { upgradeId: 'Merge' },
 		name: 'The Merge',
 		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Merge'].slug,
-		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Paris' } },
-		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Bellatrix' } },
+		$networkExecutionUpgrade: { [EntityMetaKey.Selector]: { upgradeId: 'Paris' } },
+		$networkConsensusUpgrade: { [EntityMetaKey.Selector]: { upgradeId: 'Bellatrix' } },
 	},
 	{
-		[EntityMetaKey.Id]: { upgradeId: 'Shapella' },
+		[EntityMetaKey.Selector]: { upgradeId: 'Shapella' },
 		name: 'Shapella',
 		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Shapella'].slug,
-		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Shanghai' } },
-		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Capella' } },
+		$networkExecutionUpgrade: { [EntityMetaKey.Selector]: { upgradeId: 'Shanghai' } },
+		$networkConsensusUpgrade: { [EntityMetaKey.Selector]: { upgradeId: 'Capella' } },
 	},
 	{
-		[EntityMetaKey.Id]: { upgradeId: 'Dencun' },
+		[EntityMetaKey.Selector]: { upgradeId: 'Dencun' },
 		name: 'Dencun',
 		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Dencun'].slug,
-		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Cancun' } },
-		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Deneb' } },
+		$networkExecutionUpgrade: { [EntityMetaKey.Selector]: { upgradeId: 'Cancun' } },
+		$networkConsensusUpgrade: { [EntityMetaKey.Selector]: { upgradeId: 'Deneb' } },
 	},
 	{
-		[EntityMetaKey.Id]: { upgradeId: 'Pectra' },
+		[EntityMetaKey.Selector]: { upgradeId: 'Pectra' },
 		name: 'Pectra',
 		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Pectra'].slug,
-		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Prague' } },
-		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Electra' } },
+		$networkExecutionUpgrade: { [EntityMetaKey.Selector]: { upgradeId: 'Prague' } },
+		$networkConsensusUpgrade: { [EntityMetaKey.Selector]: { upgradeId: 'Electra' } },
 	},
 	{
-		[EntityMetaKey.Id]: { upgradeId: 'Fusaka' },
+		[EntityMetaKey.Selector]: { upgradeId: 'Fusaka' },
 		name: 'Fusaka',
 		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Fusaka'].slug,
-		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Osaka' } },
-		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Fulu' } },
+		$networkExecutionUpgrade: { [EntityMetaKey.Selector]: { upgradeId: 'Osaka' } },
+		$networkConsensusUpgrade: { [EntityMetaKey.Selector]: { upgradeId: 'Fulu' } },
 	},
 ] as const satisfies readonly NetworkUpgradeMarketingUmbrellaTemplate[]
 
@@ -176,7 +176,7 @@ const proposalStubs = (
 ): Entity<typeof schema, EntityType.SpecificationProposal>[] => (
 	proposalIds.map((proposalRef) => (
 		{
-			[EntityMetaKey.Id]: {
+			[EntityMetaKey.Selector]: {
 				realm: SpecificationRealm.Ethereum,
 				category: proposalRef.kind,
 				number: proposalRef.number,
@@ -212,7 +212,7 @@ const networkExecutionUpgradeEntityFromSource = (
 	const pinnedFilename = executionSpecsPinnedMarkdownFilenameFromLink(links?.executionSpecs)
 	if (activationSource.blobParameterOnly === true) {
 		return {
-			[EntityMetaKey.Id]: {
+			[EntityMetaKey.Selector]: {
 				$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
 				upgradeId,
 			},
@@ -233,7 +233,7 @@ const networkExecutionUpgradeEntityFromSource = (
 		return null
 	}
 	return {
-		[EntityMetaKey.Id]: {
+		[EntityMetaKey.Selector]: {
 			$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
 			upgradeId,
 		},
@@ -266,7 +266,7 @@ const networkConsensusUpgradeEntityFromSource = (
 		proposalIds,
 	} = activationSource
 	return {
-		[EntityMetaKey.Id]: {
+		[EntityMetaKey.Selector]: {
 			$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
 			upgradeId,
 		},
@@ -302,7 +302,7 @@ const networkUpgradeEntityFromSource = (
 		slug: slugMaybe,
 	} = activationSource
 	return {
-		[EntityMetaKey.Id]: {
+		[EntityMetaKey.Selector]: {
 			$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
 			upgradeId,
 		},
@@ -312,14 +312,14 @@ const networkUpgradeEntityFromSource = (
 			slugOverride: slugMaybe,
 		}),
 		$networkExecutionUpgrade: {
-			[EntityMetaKey.Id]: {
+			[EntityMetaKey.Selector]: {
 				$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
 				upgradeId,
 			},
 		},
 		...(hasConsensus && {
 			$networkConsensusUpgrade: {
-				[EntityMetaKey.Id]: {
+				[EntityMetaKey.Selector]: {
 					$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
 					upgradeId,
 				},
@@ -334,7 +334,7 @@ const uniqueProposalsById = (
 	const seen = new Set<string>()
 	const out: Entity<typeof schema, EntityType.SpecificationProposal>[] = []
 	for (const proposal of proposals) {
-		const key = stringify(proposal[EntityMetaKey.Id])
+		const key = stringify(proposal[EntityMetaKey.Selector])
 		if (seen.has(key)) continue
 		seen.add(key)
 		out.push(proposal)
@@ -378,11 +378,11 @@ const networkConsensusUpgradesBuilt = (
 const executionByKey: Record<string, Entity<typeof schema, EntityType.EthereumExecutionUpgrade>> = {}
 const consensusByKey: Record<string, Entity<typeof schema, EntityType.EthereumConsensusUpgrade>> = {}
 for (const executionUpgrade of networkExecutionUpgradesBuilt) {
-	const id = executionUpgrade[EntityMetaKey.Id]
+	const id = executionUpgrade[EntityMetaKey.Selector]
 	executionByKey[`${id.$network.caip2.reference}:${id.upgradeId}`] = executionUpgrade
 }
 for (const consensusUpgrade of networkConsensusUpgradesBuilt) {
-	const id = consensusUpgrade[EntityMetaKey.Id]
+	const id = consensusUpgrade[EntityMetaKey.Selector]
 	consensusByKey[`${id.$network.caip2.reference}:${id.upgradeId}`] = consensusUpgrade
 }
 
@@ -395,8 +395,8 @@ for (const chainId of chainIdsWithUpgradeActivations) {
 	}
 	const subsumedOnChain = new Set<string>()
 	for (const definition of ethereumNetworkMarketingUmbrellas) {
-		const executionUpgradeId = definition.$networkExecutionUpgrade[EntityMetaKey.Id].upgradeId
-		const consensusUpgradeId = definition.$networkConsensusUpgrade[EntityMetaKey.Id].upgradeId
+		const executionUpgradeId = definition.$networkExecutionUpgrade[EntityMetaKey.Selector].upgradeId
+		const consensusUpgradeId = definition.$networkConsensusUpgrade[EntityMetaKey.Selector].upgradeId
 			subsumedOnChain.add(executionUpgradeId)
 			subsumedOnChain.add(consensusUpgradeId)
 		}
@@ -408,24 +408,24 @@ const networkUpgradeMarketingUmbrellas = (
 		.filter((chainId) => chainIdsWithUpgradeActivations.includes(chainId))
 		.flatMap((chainId) => (
 			ethereumNetworkMarketingUmbrellas.flatMap((definition) => {
-				const executionUpgradeId = definition.$networkExecutionUpgrade[EntityMetaKey.Id].upgradeId
-				const consensusUpgradeId = definition.$networkConsensusUpgrade[EntityMetaKey.Id].upgradeId
-				const umbrellaUpgradeId = definition[EntityMetaKey.Id].upgradeId
+				const executionUpgradeId = definition.$networkExecutionUpgrade[EntityMetaKey.Selector].upgradeId
+				const consensusUpgradeId = definition.$networkConsensusUpgrade[EntityMetaKey.Selector].upgradeId
+				const umbrellaUpgradeId = definition[EntityMetaKey.Selector].upgradeId
 				return [{
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
 						upgradeId: umbrellaUpgradeId,
 					},
 					name: definition.name,
 					slug: definition.slug,
 					$networkExecutionUpgrade: {
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
 							upgradeId: executionUpgradeId,
 						},
 					},
 					$networkConsensusUpgrade: {
-						[EntityMetaKey.Id]: {
+						[EntityMetaKey.Selector]: {
 							$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
 							upgradeId: consensusUpgradeId,
 						},
@@ -492,21 +492,21 @@ export const ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug = Object.fromEn
 
 export const networkUpgradeByChainIdAndUpgradeId = Object.fromEntries(
 	networkUpgrades.map((networkUpgrade) => [
-		`${networkUpgrade[EntityMetaKey.Id].$network.caip2.reference}:${networkUpgrade[EntityMetaKey.Id].upgradeId}`,
+		`${networkUpgrade[EntityMetaKey.Selector].$network.caip2.reference}:${networkUpgrade[EntityMetaKey.Selector].upgradeId}`,
 		networkUpgrade,
 	]),
 )
 
 export const networkExecutionUpgradeByChainIdAndUpgradeId = Object.fromEntries(
 	networkExecutionUpgrades.map((executionUpgrade) => [
-		`${executionUpgrade[EntityMetaKey.Id].$network.caip2.reference}:${executionUpgrade[EntityMetaKey.Id].upgradeId}`,
+		`${executionUpgrade[EntityMetaKey.Selector].$network.caip2.reference}:${executionUpgrade[EntityMetaKey.Selector].upgradeId}`,
 		executionUpgrade,
 	]),
 )
 
 export const networkConsensusUpgradeByChainIdAndUpgradeId = Object.fromEntries(
 	networkConsensusUpgrades.map((consensusUpgrade) => [
-		`${consensusUpgrade[EntityMetaKey.Id].$network.caip2.reference}:${consensusUpgrade[EntityMetaKey.Id].upgradeId}`,
+		`${consensusUpgrade[EntityMetaKey.Selector].$network.caip2.reference}:${consensusUpgrade[EntityMetaKey.Selector].upgradeId}`,
 		consensusUpgrade,
 	]),
 )

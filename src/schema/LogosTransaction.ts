@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum LogosTransactionSelector {
+	NetworkTransactionHash = 'networkTransactionHash',
+}
 
 export default {
 	entityType: EntityType.LogosTransaction,
@@ -15,12 +18,29 @@ export default {
 	label: 'Logos Transaction',
 	labelPlural: 'Logos Transactions',
 
-	id: type({
-		$network: Network.id,
-		transactionHash: 'string',
-	}),
+	selectors: [
+		{
+			name: LogosTransactionSelector.NetworkTransactionHash,
+			fields: [
+				'$network',
+				'transactionHash',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'transactionHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$account',
 			type: EntityFieldType.EntityReference,

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -10,8 +10,8 @@
 
 	// State
 	let {
-		entityId,
-		href = getEvmSelectorPath(entityId.hex),
+		selector,
+		href = getEvmSelectorPath(selector.hex),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -23,7 +23,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmSelector>
+			selector: EntitySelector<typeof schema, EntityType.EvmSelector>
 			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
@@ -39,8 +39,8 @@
 	import { getEvmSelectorPath } from '$/lib/signature-paths.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const selector = subscribe(EntityType.EvmSelector,
-		entityId,
+	const decodedSelector = subscribe(EntityType.EvmSelector,
+		selector,
 		({ sources: [
 				Source.Openchain_Rest,
 			], fields: { ...(open && ({ signatures: true })) } }),
@@ -56,7 +56,7 @@
 
 <EntityView
 	entityType={EntityType.EvmSelector}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -65,17 +65,17 @@
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.hex}
+			{selector.hex}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={selector}
+			resource={decodedSelector}
 			placeholderText="Loading decoded function selector…"
 		>
 			{#snippet children(selector)}
-				{selector.fields.signatures?.[0] ?? entityId.hex}
+				{selector.fields.signatures?.[0] ?? selector.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,7 +101,7 @@
 						<dt>Selector</dt>
 						<dd>
 							<TruncatedValue
-								value={entityId.hex}
+								value={selector.hex}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</dd>

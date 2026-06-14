@@ -13,7 +13,7 @@
 
 <Page>
 	<ActivityPubActorView
-		entityId={
+		selector={
 			decodeURIComponent(params.localAccountId).includes('@') ?
 				{
 					instanceOrigin: decodeURIComponent(params.instanceOrigin),

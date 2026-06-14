@@ -20,7 +20,7 @@ import {
 
 
 /** Routes exercised by `route-views-smoke.e2e.ts` and boundary-settle checks. */
-const RSS_PROBE_FEED_URL = 'https://blog.svelte.dev/feed.xml' as const
+const RSS_PROBE_FEED_URL = 'https://hnrss.org/frontpage' as const
 
 export const ADDR = VITALIK_ADDRESS
 

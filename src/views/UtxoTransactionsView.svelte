@@ -63,7 +63,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Blockchair_Rest,
@@ -91,8 +91,8 @@
 				entityType={EntityType.UtxoTransaction}
 				id={`${id}-items`}
 				href={href}
-				getKey={(transaction) => stringify(transaction[EntityMetaKey.Id])}
-				getSortValue={(transaction) => stringify(transaction[EntityMetaKey.Id])}
+				getKey={(transaction) => stringify(transaction[EntityMetaKey.Selector])}
+				getSortValue={(transaction) => stringify(transaction[EntityMetaKey.Selector])}
 				open={true}
 				resource={transactions}
 				{title}
@@ -106,7 +106,7 @@
 
 				{#snippet Item(context)}
 					<UtxoTransactionView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

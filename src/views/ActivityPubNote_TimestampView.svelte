@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,12 +15,12 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]',
 			{
-				instanceOrigin: encodeURIComponent(entityId.$note.instanceOrigin),
-				localStatusId: entityId.$note.localStatusId,
+				instanceOrigin: encodeURIComponent(selector.$note.instanceOrigin),
+				localStatusId: selector.$note.localStatusId,
 			},
 		),
 		layout = EntityLayout.Summary,
@@ -28,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ActivityPubNote_Timestamp>
+			selector: EntitySelector<typeof schema, EntityType.ActivityPubNote_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -40,7 +40,7 @@
 	> = $props()
 
 	const activityPubNoteTimestamp = subscribe(EntityType.ActivityPubNote_Timestamp,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Mastodon_Rest,
 				Source.Fedi_Rest,
@@ -58,7 +58,7 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubNote_Timestamp}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -66,11 +66,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		<Timestamp timestamp={selector.timestampMs} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

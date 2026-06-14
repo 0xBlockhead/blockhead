@@ -6,7 +6,6 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { timestampMsFromUnixSeconds } from '$/lib/time.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -18,6 +17,13 @@ import type {
 	RedditApiSubredditAbout,
 	RedditApiThing,
 } from '$/sources/Reddit/Rest/types.ts'
+import { RedditSubredditSelector } from '$/schema/RedditSubreddit.ts'
+import { RedditLinkSelector } from '$/schema/RedditLink.ts'
+import { RedditCommentSelector } from '$/schema/RedditComment.ts'
+import { RedditSubreddit_TimestampSelector } from '$/schema/RedditSubreddit_Timestamp.ts'
+import { RedditLink_TimestampSelector } from '$/schema/RedditLink_Timestamp.ts'
+import { RedditComment_TimestampSelector } from '$/schema/RedditComment_Timestamp.ts'
+import { RedditNetworkSelector } from '$/schema/RedditNetwork.ts'
 
 
 const redditSubredditIconUrl = (
@@ -51,21 +57,21 @@ const redditRepliesListingFromThing = (
 
 const redditDirectReplyRefsByParentFromCommentForest = (
 	children: readonly RedditApiThing[] | undefined,
-): Map<string, { [EntityMetaKey.Id]: { fullname: string } }[]> => {
-	const byParent = new Map<string, { [EntityMetaKey.Id]: { fullname: string } }[]>()
+): Map<string, { [EntityMetaKey.Selector]: { fullname: string } }[]> => {
+	const byParent = new Map<string, { [EntityMetaKey.Selector]: { fullname: string } }[]>()
 
 	const visit = (thing: RedditApiThing) => {
 		if (thing.kind !== 't1' || thing.data.name == null) return
-		const ref = { [EntityMetaKey.Id]: { fullname: thing.data.name } }
+		const ref = { [EntityMetaKey.Selector]: { fullname: thing.data.name } }
 		const redditReplyListing = redditRepliesListingFromThing(thing.data.replies)
 		const directReplies = (redditReplyListing?.data.children ?? []).flatMap((child) => (
 			child.kind === 't1' && child.data.name != null ?
-				[{ [EntityMetaKey.Id]: { fullname: child.data.name } }]
+				[{ [EntityMetaKey.Selector]: { fullname: child.data.name } }]
 			:
 				[]
 		))
 		if (directReplies.length > 0) {
-			byParent.set(ref[EntityMetaKey.Id].fullname, directReplies)
+			byParent.set(ref[EntityMetaKey.Selector].fullname, directReplies)
 		}
 		for (const child of redditReplyListing?.data.children ?? []) {
 			visit(child)
@@ -87,9 +93,9 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditSubredditSelector.Name]: async ({ name }, context) => {
 				const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
-				const subredditAbout = (await singleFlight(getSubredditAbout)(context.publicEnv, entityId.name)).data
+				const subredditAbout = (await singleFlight(getSubredditAbout)(context.publicEnv, name)).data
 				return {
 					title: optionalNonemptyString(subredditAbout.title),
 					publicDescription: optionalNonemptyString(subredditAbout.public_description),
@@ -127,9 +133,9 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditLinkSelector.Fullname]: async ({ fullname }, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.fullname))
+				const redditThing = (await singleFlight(getInfo)(context.publicEnv, fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't3') throw new Error('Reddit_Rest: link not found')
@@ -151,7 +157,7 @@ export default {
 						undefined
 					:
 						{
-							[EntityMetaKey.Id]: { name: sub.toLowerCase() },
+							[EntityMetaKey.Selector]: { name: sub.toLowerCase() },
 						}
 				),
 					permalink: optionalNonemptyString(redditThing.data.permalink),
@@ -175,9 +181,9 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditCommentSelector.Fullname]: async ({ fullname }, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.fullname))
+				const redditThing = (await singleFlight(getInfo)(context.publicEnv, fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't1') throw new Error('Reddit_Rest: comment not found')
@@ -196,11 +202,11 @@ export default {
 						undefined
 					:
 						{
-							[EntityMetaKey.Id]: { fullname: linkId },
+							[EntityMetaKey.Selector]: { fullname: linkId },
 						}
 				),
 					...(parentId?.startsWith('t1_') === true && {
-						$parentComment: { [EntityMetaKey.Id]: { fullname: parentId } },
+						$parentComment: { [EntityMetaKey.Selector]: { fullname: parentId } },
 					}),
 				}
 			}
@@ -220,9 +226,9 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditSubreddit_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditSubreddit_TimestampSelector.RedditSubredditTimestampMs]: async ({ $subreddit }, context) => {
 				const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
-				const subredditAbout = (await singleFlight(getSubredditAbout)(context.publicEnv, entityId.$subreddit.name)).data
+				const subredditAbout = (await singleFlight(getSubredditAbout)(context.publicEnv, $subreddit.name)).data
 				return {
 					...(subredditAbout.subscribers != null && { subscriberCount: subredditAbout.subscribers }),
 					...(subredditAbout.active_user_count != null && {
@@ -241,9 +247,9 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditLink_TimestampSelector.RedditLinkTimestampMs]: async ({ $link }, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.$link.fullname))
+				const redditThing = (await singleFlight(getInfo)(context.publicEnv, $link.fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't3') throw new Error('Reddit_Rest: link not found')
@@ -265,9 +271,9 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditComment_Timestamp,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditComment_TimestampSelector.RedditCommentTimestampMs]: async ({ $comment }, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.$comment.fullname))
+				const redditThing = (await singleFlight(getInfo)(context.publicEnv, $comment.fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't1') throw new Error('Reddit_Rest: comment not found')
@@ -284,7 +290,7 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_entityId, context) => {
+				[RedditNetworkSelector.Scope]: async (_entitySelector, context) => {
 				const { listPopularLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -295,7 +301,7 @@ export default {
 							const name = optionalNonemptyString(child.data.subreddit)
 							if (name == null) return []
 							return [{
-								[EntityMetaKey.Id]: { name: name.toLowerCase() },
+								[EntityMetaKey.Selector]: { name: name.toLowerCase() },
 							}]
 						})
 				)
@@ -310,7 +316,7 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (_entityId, context) => {
+				[RedditNetworkSelector.Scope]: async (_entitySelector, context) => {
 				const { listPopularLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
@@ -322,7 +328,7 @@ export default {
 							:
 								[
 								{
-									[EntityMetaKey.Id]: { fullname: child.data.name },
+									[EntityMetaKey.Selector]: { fullname: child.data.name },
 								},
 							]
 						))
@@ -338,13 +344,13 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditSubredditSelector.Name]: async (entitySelector, context) => {
 				const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
-				const data = (await singleFlight(getSubredditAbout)(context.publicEnv, entityId.name)).data
+				const data = (await singleFlight(getSubredditAbout)(context.publicEnv, entitySelector.name)).data
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$subreddit: entityId,
+						[EntityMetaKey.Selector]: {
+							$subreddit: entitySelector,
 							timestampMs: Date.now(),
 						},
 						...(data.subscribers != null && { subscriberCount: data.subscribers }),
@@ -362,19 +368,19 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditSubredditSelector.Name]: async ({ name }, context) => {
 				const { listSubredditLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listSubredditLinks)(publicEnv, entityId.name, limit)).data.children ?? [])
+					((await singleFlight(listSubredditLinks)(publicEnv, name, limit)).data.children ?? [])
 						.flatMap((child) => (
 							child.kind !== 't3' || child.data.name == null ?
 								[]
 							:
 								[
 								{
-									[EntityMetaKey.Id]: { fullname: child.data.name },
+									[EntityMetaKey.Selector]: { fullname: child.data.name },
 								},
 							]
 						))
@@ -390,16 +396,16 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditLinkSelector.Fullname]: async (entitySelector, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.fullname))
+				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entitySelector.fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't3') throw new Error('Reddit_Rest: link not found')
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$link: entityId,
+						[EntityMetaKey.Selector]: {
+							$link: entitySelector,
 							timestampMs: Date.now(),
 						},
 						...(redditThing.data.score != null && { score: redditThing.data.score }),
@@ -419,16 +425,16 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditLinkSelector.Fullname]: async ({ fullname }, context) => {
 				const { getLinkCommentsByArticleId } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
-				const articleId = redditLinkArticleIdFromFullname(entityId.fullname)
+				const articleId = redditLinkArticleIdFromFullname(fullname)
 				return (
 					((await singleFlight(getLinkCommentsByArticleId)(publicEnv, articleId, limit))[1]?.data.children ?? [])
 						.flatMap((child) => (
 							child.kind === 't1' && child.data.name != null ?
-								[{ [EntityMetaKey.Id]: { fullname: child.data.name } }]
+								[{ [EntityMetaKey.Selector]: { fullname: child.data.name } }]
 							:
 								[]
 						))
@@ -444,9 +450,9 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditLinkSelector.Fullname]: async ({ fullname }, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.fullname))
+				const redditThing = (await singleFlight(getInfo)(context.publicEnv, fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't3') throw new Error('Reddit_Rest: link not found')
@@ -466,16 +472,16 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditCommentSelector.Fullname]: async (entitySelector, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entityId.fullname))
+				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entitySelector.fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't1') throw new Error('Reddit_Rest: comment not found')
 				return [
 					{
-						[EntityMetaKey.Id]: {
-							$comment: entityId,
+						[EntityMetaKey.Selector]: {
+							$comment: entitySelector,
 							timestampMs: Date.now(),
 						},
 						...(redditThing.data.score != null && { score: redditThing.data.score }),
@@ -492,11 +498,11 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId, context) => {
+				[RedditCommentSelector.Fullname]: async ({ fullname }, context) => {
 				const { getInfo, getLinkCommentsByArticleId } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
-				const redditThing = (await singleFlight(getInfo)(publicEnv, entityId.fullname))
+				const redditThing = (await singleFlight(getInfo)(publicEnv, fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't1') {
@@ -510,7 +516,7 @@ export default {
 				const byParent = redditDirectReplyRefsByParentFromCommentForest(
 					((await singleFlight(getLinkCommentsByArticleId)(publicEnv, articleId, limit))[1]?.data.children ?? []),
 				)
-				return byParent.get(entityId.fullname) ?? []
+				return byParent.get(fullname) ?? []
 			}
 			},
 		})({

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -19,16 +19,16 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve(
 			'/~/(agents)/agents/(conversations)/conversation/[conversationId]',
-			{ conversationId: entityId.id },
+			{ conversationId: selector.id },
 		),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BlockheadAgentConversation>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadAgentConversation>
 			href?: string
 			open?: boolean
 		},
@@ -39,7 +39,7 @@
 	> = $props()
 
 	const conversation = subscribe(EntityType.BlockheadAgentConversation,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Local_Internal,
 			], fields: { name: true, pinned: true, createdAt: true, updatedAt: true, ...(open ? ({ systemPrompt: true, defaultConnectionId: true, defaultModelId: true }) : ({  })) } }),
@@ -56,14 +56,14 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAgentConversation}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={entityId.id}
+			value={selector.id}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		{#if true}
 			{#snippet ConversationHeading(conversation: ResourceFields)}
-				{conversation.fields.name ?? entityId.id}
+				{conversation.fields.name ?? selector.id}
 			{/snippet}
 
 			<ResourceBoundary

@@ -1,7 +1,7 @@
 import { bridgeToolByKey } from '$/constants/Bridge.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -21,7 +21,7 @@ export const coinInstanceRefFromLifiToken = (
 		((address) => (
 			NATIVE_LIFI_TOKEN_ADDRESSES.has(address) ?
 				{
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						$network: { chainId: token.chainId },
 						type: CoinInstanceType.NativeCurrency,
 					},
@@ -32,7 +32,7 @@ export const coinInstanceRefFromLifiToken = (
 						undefined
 					:
 						{
-							[EntityMetaKey.Id]: {
+							[EntityMetaKey.Selector]: {
 								$network: { chainId: token.chainId },
 								type: CoinInstanceType.Erc20Token,
 								$contract: {
@@ -64,7 +64,7 @@ export const lifiToolKeyFromQuoteStep = (
 )
 
 export const bridgeRouteStepEntityFieldsFromLifiQuoteStep = (
-	routeId: EntityId<typeof schema, EntityType.BridgeRoute>,
+	routeId: EntitySelector<typeof schema, EntityType.BridgeRoute>,
 	index: number,
 	step: LifiQuoteStepLike,
 ) => {
@@ -72,17 +72,17 @@ export const bridgeRouteStepEntityFieldsFromLifiQuoteStep = (
 	const fromTokenRef = coinInstanceRefFromLifiToken(step.action.fromToken)
 	const toTokenRef = coinInstanceRefFromLifiToken(step.action.toToken)
 	return {
-		[EntityMetaKey.Id]: {
+		[EntityMetaKey.Selector]: {
 			$route: routeId,
 			index,
 		},
 		stepType: step.type,
 		tool: toolKey === '' ? step.tool : toolKey,
 		$fromNetwork: {
-			[EntityMetaKey.Id]: { chainId: step.action.fromChainId },
+			[EntityMetaKey.Selector]: { chainId: step.action.fromChainId },
 		},
 		$toNetwork: {
-			[EntityMetaKey.Id]: { chainId: step.action.toChainId },
+			[EntityMetaKey.Selector]: { chainId: step.action.toChainId },
 		},
 		...(fromTokenRef != null && { $fromToken: fromTokenRef }),
 		...(toTokenRef != null && { $toToken: toTokenRef }),

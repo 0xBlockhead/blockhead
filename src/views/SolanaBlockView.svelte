@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,12 +12,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.SolanaBlock>
+			selector: EntitySelector<typeof schema, EntityType.SolanaBlock>
 			open?: boolean
 		},
 		Pick<
@@ -28,7 +28,7 @@
 	> = $props()
 
 	const block = subscribe(EntityType.SolanaBlock,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Solana_JsonRpc,
 			], fields: { blockHeight: true, blockHash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentSlot: true, previousBlockHash: true })) } }),
@@ -46,27 +46,27 @@
 
 <EntityView
 	entityType={EntityType.SolanaBlock}
-	{entityId}
+	entitySelector={selector}
 	href={
-		'slot' in entityId ?
+		'slot' in selector ?
 			(
-				'networkSlug' in entityId.$network ?
-					`/network/${entityId.$network.networkSlug}/blocks/${entityId.slot.toString()}`
+				'networkSlug' in selector.$network ?
+					`/network/${selector.$network.networkSlug}/blocks/${selector.slot.toString()}`
 				:
-					`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/blocks/${entityId.slot.toString()}`
+					`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/blocks/${selector.slot.toString()}`
 			)
 		:
 			undefined
 	}
-	title={'slot' in entityId ? `Slot #${entityId.slot.toString()}` : `Slot ${entityId.blockHash}`}
-	idDragPlainText={'slot' in entityId ? entityId.slot.toString() : entityId.blockHash}
+	title={'slot' in selector ? `Slot #${selector.slot.toString()}` : `Slot ${selector.blockHash}`}
+	idDragPlainText={'slot' in selector ? selector.slot.toString() : selector.blockHash}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			{'slot' in entityId ? `#${entityId.slot.toString()}` : entityId.blockHash}
+			{'slot' in selector ? `#${selector.slot.toString()}` : selector.blockHash}
 		</span>
 	{/snippet}
 

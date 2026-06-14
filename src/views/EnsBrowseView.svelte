@@ -162,8 +162,8 @@
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.EnsName}
-					getKey={(ensName) => ensName[EntityMetaKey.Id].name}
-					getSortValue={(ensName) => ensName[EntityMetaKey.Id].name}
+					getKey={(ensName) => ensName[EntityMetaKey.Selector].name}
+					getSortValue={(ensName) => ensName[EntityMetaKey.Selector].name}
 					href={resolve('/ens')}
 					id="ens-substring-search-results-items"
 					open={true}
@@ -178,7 +178,7 @@
 
 					{#snippet Item({ item })}
 						<EnsView
-							entityId={item[EntityMetaKey.Id]}
+							selector={item[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
 							open={false}
 							showTypeAnnotation={false}
@@ -228,16 +228,16 @@
 						<a
 							data-link
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-								ensName: reverseAccount.current.fields.$primaryName[EntityMetaKey.Id].name,
+								ensName: reverseAccount.current.fields.$primaryName[EntityMetaKey.Selector].name,
 							})}
-						>{reverseAccount.current.fields.$primaryName[EntityMetaKey.Id].name}</a>
+						>{reverseAccount.current.fields.$primaryName[EntityMetaKey.Selector].name}</a>
 					</dd>
 				</div>
 				<div>
 					<dt>Address</dt>
 					<dd>
 						<EvmNetworkAccountView
-							entityId={{
+							selector={{
 								$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
 								$actor: { address: reverseAddress },
 							}}

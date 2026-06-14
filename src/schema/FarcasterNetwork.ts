@@ -9,17 +9,32 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum FarcasterNetworkSelector {
+	Scope = 'scope',
+}
+
 export default {
 	entityType: EntityType.FarcasterNetwork,
 
 	label: 'Farcaster Network',
 	labelPlural: 'Farcaster Networks',
 
-	id: type({
-		scope: type.unit('FarcasterNetwork'),
-	}),
+	selectors: [
+		{
+			name: FarcasterNetworkSelector.Scope,
+			fields: [
+				'scope',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'scope',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('FarcasterNetwork'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'protocolName',
 			type: EntityFieldType.Primitive,

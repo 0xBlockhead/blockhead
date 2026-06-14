@@ -1,5 +1,5 @@
 // Types
-import type { EntityId } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 
@@ -14,7 +14,7 @@ export const nostrNetworkFieldValues = {
 } as const
 
 /** Relay `relayUrl` is a public `wss://` endpoint (NIP-11 metadata optional). */
-export const nostrNetworkSeedRelays: readonly EntityId<typeof schema, EntityType.NostrRelay>[] = [
+export const nostrNetworkSeedRelays: readonly EntitySelector<typeof schema, EntityType.NostrRelay>[] = [
 	{
 		relayUrl: 'wss://relay.damus.io',
 	},
@@ -27,7 +27,7 @@ export const nostrNetworkSeedRelays: readonly EntityId<typeof schema, EntityType
 ]
 
 /** Profile `pubkey` is 64-char lowercase hex (secp256k1 x-only). */
-export const nostrNetworkSeedProfiles: readonly EntityId<typeof schema, EntityType.NostrProfile>[] = [
+export const nostrNetworkSeedProfiles: readonly EntitySelector<typeof schema, EntityType.NostrProfile>[] = [
 	{
 		pubkey: '82341f880b9929660a178be448011edd0e5839858c4fc1480b5fd4b6205d127b',
 	},

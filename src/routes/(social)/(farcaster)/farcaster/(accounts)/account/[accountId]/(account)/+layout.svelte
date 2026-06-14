@@ -24,7 +24,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<BlockheadFarcasterAccountConnectionView
-			entityId={{ fid: Number(page.params.accountId) }}
+			selector={{ fid: Number(page.params.accountId) }}
 			layout={EntityLayout.SummaryInline}
 			title="Account"
 		/>

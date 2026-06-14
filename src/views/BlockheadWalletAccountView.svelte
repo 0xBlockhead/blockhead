@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,12 +15,12 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.BlockheadWalletAccount>
+			selector: EntitySelector<typeof schema, EntityType.BlockheadWalletAccount>
 			open?: boolean
 		},
 		Pick<
@@ -32,7 +32,7 @@
 	> = $props()
 
 	const walletAccount = $derived(subscribe(EntityType.BlockheadWalletAccount,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Local_Internal,
 			], fields: { $network: true, address: true, label: true, capabilities: true } }),
@@ -50,18 +50,18 @@
 <EntityView
 	entityType={EntityType.BlockheadWalletAccount}
 	bind:open
-	{entityId}
-	title={`${entityId.caip10.namespace}:${entityId.caip10.reference}:${entityId.caip10.accountAddress}`}
+	entitySelector={selector}
+	title={`${selector.caip10.namespace}:${selector.caip10.reference}:${selector.caip10.accountAddress}`}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<TruncatedValue value={entityId.caip10.accountAddress} />
+		<TruncatedValue value={selector.caip10.accountAddress} />
 	{/snippet}
 
 	{#snippet Title()}
 		<ResourceBoundary
 			resource={walletAccount}
-			placeholderText={entityId.caip10.accountAddress}
+			placeholderText={selector.caip10.accountAddress}
 		>
 			{#snippet children(walletAccount)}
 				{walletAccount.fields.label ?? walletAccount.fields.address}
@@ -84,12 +84,12 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>Namespace</dt>
-						<dd>{entityId.caip10.namespace}</dd>
+						<dd>{selector.caip10.namespace}</dd>
 					</div>
 
 					<div>
 						<dt>Reference</dt>
-						<dd>{entityId.caip10.reference}</dd>
+						<dd>{selector.caip10.reference}</dd>
 					</div>
 
 					<div>
@@ -111,7 +111,7 @@
 							<dt>Network</dt>
 							<dd>
 								<NetworkView
-									entityId={walletAccount.fields.$network[EntityMetaKey.Id]}
+									selector={walletAccount.fields.$network[EntityMetaKey.Selector]}
 									open={false}
 									layout={EntityLayout.Value}
 								/>

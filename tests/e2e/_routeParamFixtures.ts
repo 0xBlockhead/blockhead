@@ -36,7 +36,7 @@ const NOSTR_PROBE_NOTE_EVENT_ID = `${'a'.repeat(64)}` as const
 
 const YOUTUBE_PROBE_CHANNEL_ID = 'UC_x5XG1OV2P6uZZ5FSM9Ttw' as const
 
-const RSS_PROBE_FEED_URL = 'https://blog.svelte.dev/feed.xml' as const
+const RSS_PROBE_FEED_URL = 'https://hnrss.org/frontpage' as const
 
 const LENS_PROBE_POST_ID = '161m1s2r2av9deyh2a3' as const
 

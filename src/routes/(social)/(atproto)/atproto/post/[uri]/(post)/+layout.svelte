@@ -27,7 +27,7 @@
 >
 	{#snippet Summary({ open: _open })}
 		<AtprotoPostView
-			entityId={{ uri: decodeURIComponent(uri) }}
+			selector={{ uri: decodeURIComponent(uri) }}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

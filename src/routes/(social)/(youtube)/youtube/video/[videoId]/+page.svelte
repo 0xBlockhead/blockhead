@@ -13,6 +13,6 @@
 
 <Page>
 	<YouTubeVideoView
-		entityId={{ videoId: decodeURIComponent(params.videoId) }}
+		selector={{ videoId: decodeURIComponent(params.videoId) }}
 	/>
 </Page>

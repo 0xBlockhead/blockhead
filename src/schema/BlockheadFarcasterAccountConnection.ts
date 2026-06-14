@@ -8,6 +8,11 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum BlockheadFarcasterAccountConnectionSelector {
+	Fid = 'fid',
+}
+
+
 export enum BlockheadFarcasterConnectionAuthMethod {
 	Custody = 'custody',
 	AuthAddress = 'authAddress',
@@ -19,11 +24,22 @@ export default {
 	label: 'Farcaster Account Connection',
 	labelPlural: 'Farcaster Account Connections',
 
-	id: type({
-		fid: 'number',
-	}),
+	selectors: [
+		{
+			name: BlockheadFarcasterAccountConnectionSelector.Fid,
+			fields: [
+				'fid',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: 'fid',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'username',
 			type: EntityFieldType.Primitive,

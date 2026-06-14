@@ -51,7 +51,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ sources: [
+		entityFieldReference.selector,({ sources: [
 				Source.Reddit_Rest,
 				Source.Reddit_PublicJson,
 			], fields: { [entityFieldReference.fieldName]: {
@@ -85,7 +85,7 @@
 			>
 				{#snippet Item({ item })}
 						<RedditComment_TimestampView
-							entityId={item.value[EntityMetaKey.Id]}
+							selector={item.value[EntityMetaKey.Selector]}
 							{href}
 							layout={EntityLayout.Summary}
 							open={false}

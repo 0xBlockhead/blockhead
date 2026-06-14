@@ -68,7 +68,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ sources: [
+				entityFieldReference.selector,({ sources: [
 						Source.Constants_Internal,
 						Source.Voltaire_JsonRpc,
 					], fields: { [entityFieldReference.fieldName]: {
@@ -104,9 +104,9 @@
 			>
 				{#snippet Item({ item })}
 					{@const row = item.value}
-					{@const rowId = row[EntityMetaKey.Id]}
+					{@const rowId = row[EntityMetaKey.Selector]}
 					<EvmNetwork_Txpool_TimestampView
-						entityId={rowId}
+						selector={rowId}
 						href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]', {
 							caip2Namespace: rowId.$network.caip2.namespace,
 							caip2Reference: rowId.$network.caip2.reference,

@@ -13,6 +13,11 @@ import { UrlString } from '$/schema/UrlString.ts'
 import { networkFields } from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
+export enum NearNetworkSelector {
+	NetworkSlug = 'networkSlug',
+}
+
+
 const nearRpcEndpointField = type({
 	url: UrlString,
 	transportType: type.valueOf(TransportType),
@@ -25,12 +30,22 @@ export default {
 	label: 'NEAR network',
 	labelPlural: 'NEAR networks',
 
-	id: type({
-		networkSlug: type.unit('near'),
-	}),
+	selectors: [
+		{
+			name: NearNetworkSelector.NetworkSlug,
+			fields: [
+				'networkSlug',
+			],
+		},
+	],
 
 	fields: [
-		networkFields[0],
+		{
+			name: 'networkSlug',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit('near'),
+			cardinality: EntityFieldCardinality.One,
+		},		networkFields[0],
 		networkFields[1],
 		networkFields[2],
 		networkFields[3],

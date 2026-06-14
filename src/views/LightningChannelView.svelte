@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -13,12 +13,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.LightningChannel>
+			selector: EntitySelector<typeof schema, EntityType.LightningChannel>
 			open?: boolean
 		},
 		Pick<
@@ -29,7 +29,7 @@
 	> = $props()
 
 	const channel = subscribe(EntityType.LightningChannel,
-		entityId,
+		selector,
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
@@ -48,20 +48,20 @@
 
 <EntityView
 	entityType={EntityType.LightningChannel}
-	{entityId}
+	entitySelector={selector}
 	href={
-		'networkSlug' in entityId.$network ?
-			`/network/${entityId.$network.networkSlug}/channels/${entityId.channelId}`
+		'networkSlug' in selector.$network ?
+			`/network/${selector.$network.networkSlug}/channels/${selector.channelId}`
 		:
-			`/network/${entityId.$network.caip2.namespace}:${entityId.$network.caip2.reference}/channels/${entityId.channelId}`
+			`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/channels/${selector.channelId}`
 	}
-	title={entityId.channelId}
+	title={selector.channelId}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.channelId}
+			value={selector.channelId}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}
@@ -140,7 +140,7 @@
 							<dt>Node 0</dt>
 							<dd>
 								<LightningNodeView
-									entityId={lightningChannel.fields.$node0[EntityMetaKey.Id]}
+									selector={lightningChannel.fields.$node0[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -152,7 +152,7 @@
 							<dt>Node 1</dt>
 							<dd>
 								<LightningNodeView
-									entityId={lightningChannel.fields.$node1[EntityMetaKey.Id]}
+									selector={lightningChannel.fields.$node1[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -7,7 +7,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/Network.ts'
+
+export enum ZeroGStorageLogEntrySelector {
+	NetworkLogEntryId = 'networkLogEntryId',
+}
 
 export default {
 	entityType: EntityType.ZeroGStorageLogEntry,
@@ -15,12 +18,29 @@ export default {
 	label: '0G storage log entry',
 	labelPlural: '0G storage log entries',
 
-	id: type({
-		$network: Network.id,
-		logEntryId: 'string',
-	}),
+	selectors: [
+		{
+			name: ZeroGStorageLogEntrySelector.NetworkLogEntryId,
+			fields: [
+				'$network',
+				'logEntryId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'logEntryId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$dataBlob',
 			type: EntityFieldType.EntityReference,

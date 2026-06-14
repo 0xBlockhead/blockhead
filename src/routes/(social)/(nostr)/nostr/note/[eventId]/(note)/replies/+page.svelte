@@ -21,11 +21,11 @@
 	<NostrNotesView
 		href={resolve(
 			'/(social)/(nostr)/nostr/note/[eventId]/(note)/replies',
-			{ eventId: data.entityId.eventId },
+			{ eventId: data.selector.eventId },
 		)}
 		entityFieldReference={{
 			entityType: EntityType.NostrNote,
-			entityId: data.entityId,
+			selector: data.selector,
 			fieldName: '$$replies',
 		}}
 		id="nostr-note-replies"

@@ -68,7 +68,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.entityId,({ sources: [
+		entityFieldReference.selector,({ sources: [
 				Source.Constants_Internal,
 				Source.Reddit_Rest,
 			], fields: { [entityFieldReference.fieldName]: {
@@ -113,7 +113,7 @@
 				{title}
 				resource={comments}
 				placeholderText="Loading comment thread…"
-				getKey={(comment) => comment.comment[EntityMetaKey.Id].fullname}
+				getKey={(comment) => comment.comment[EntityMetaKey.Selector].fullname}
 				getSortValue={(comment) => comment.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 				open={true}
@@ -133,7 +133,7 @@
 							item: comment,
 						})}
 							<RedditCommentView
-								entityId={comment.comment[EntityMetaKey.Id]}
+								selector={comment.comment[EntityMetaKey.Selector]}
 								layout={EntityLayout.Summary}
 								open={false}
 							/>

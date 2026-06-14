@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,14 +16,14 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/evm'),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.EvmProtocol>
+			selector: EntitySelector<typeof schema, EntityType.EvmProtocol>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -32,7 +32,7 @@
 	> = $props()
 
 	const protocol = subscribe(EntityType.EvmProtocol,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Constants_Internal,
 				Source.Local_Internal,
@@ -58,7 +58,7 @@
 
 <EntityView
 	entityType={EntityType.EvmProtocol}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	bind:open
 	{collapsible}
@@ -66,7 +66,7 @@
 	title="EVM"
 >
 	{#snippet Value()}
-		{entityId.scope}
+		{selector.scope}
 	{/snippet}
 
 	{#snippet Title()}
@@ -154,15 +154,15 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const protocolIdKey = stringify(entityId)}
+		{@const protocolSelectorKey = stringify(selector)}
 		<CollapsibleTabs
-			sectionIdPrefix={protocolIdKey}
+			sectionIdPrefix={protocolSelectorKey}
 			sections={[
 				{ id: 'topics', label: 'Topics' },
 				{ id: 'selectors', label: 'Selectors' },
 				{ id: 'errors', label: 'Errors' },
 			]}
-			id={`${protocolIdKey}:catalogs`}
+			id={`${protocolSelectorKey}:catalogs`}
 			data-card
 			scrollContainerProps={entityViewDetailCarouselScrollProps}
 		>
@@ -183,10 +183,10 @@
 					href={resolve('/evm/topics')}
 					entityFieldReference={{
 						entityType: EntityType.EvmProtocol,
-						entityId,
+						selector,
 						fieldName: '$$evmTopics',
 					}}
-					id={`${protocolIdKey}:topics`}
+					id={`${protocolSelectorKey}:topics`}
 					open={true}
 				/>
 			{/snippet}
@@ -197,10 +197,10 @@
 					href={resolve('/evm/selectors')}
 					entityFieldReference={{
 						entityType: EntityType.EvmProtocol,
-						entityId,
+						selector,
 						fieldName: '$$evmSelectors',
 					}}
-					id={`${protocolIdKey}:selectors`}
+					id={`${protocolSelectorKey}:selectors`}
 					open={true}
 				/>
 			{/snippet}
@@ -211,21 +211,21 @@
 					href={resolve('/evm/errors')}
 					entityFieldReference={{
 						entityType: EntityType.EvmProtocol,
-						entityId,
+						selector,
 						fieldName: '$$evmErrors',
 					}}
-					id={`${protocolIdKey}:errors`}
+					id={`${protocolSelectorKey}:errors`}
 					open={true}
 				/>
 			{/snippet}
 	</CollapsibleTabs>
 
 		<CollapsibleTabs
-			sectionIdPrefix={protocolIdKey}
+			sectionIdPrefix={protocolSelectorKey}
 			sections={[
 				{ id: 'decoder', label: 'Decoder' },
 			]}
-			id={`${protocolIdKey}:tools`}
+			id={`${protocolSelectorKey}:tools`}
 			data-card
 			scrollContainerProps={entityViewDetailCarouselScrollProps}
 		>

@@ -6,8 +6,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum MevBuilderSelector {
+	EvmNetworkBuilderPubkey = 'evmNetworkBuilderPubkey',
+}
 
 export default {
 	entityType: EntityType.MevBuilder,
@@ -15,12 +18,29 @@ export default {
 	label: 'MEV builder',
 	labelPlural: 'MEV builders',
 
-	id: type({
-		$network: Network.id,
-		builderPubkey: 'string',
-	}),
+	selectors: [
+		{
+			name: MevBuilderSelector.EvmNetworkBuilderPubkey,
+			fields: [
+				'$network',
+				'builderPubkey',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'builderPubkey',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'deliveredPayloadCount',
 			type: EntityFieldType.Primitive,

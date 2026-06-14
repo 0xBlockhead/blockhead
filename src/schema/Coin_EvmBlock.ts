@@ -9,18 +9,39 @@ import { EntityType } from '$/schema/EntityType.ts'
 import Coin from '$/schema/Coin.ts'
 import EvmBlock from '$/schema/EvmBlock.ts'
 
+export enum Coin_EvmBlockSelector {
+	CoinEvmBlock = 'coinEvmBlock',
+}
+
 export default {
 	entityType: EntityType.Coin_EvmBlock,
 
 	label: 'Coin EVM Block',
 	labelPlural: 'Coin EVM Blocks',
 
-	id: type({
-		$coin: Coin.id,
-		$block: EvmBlock.id,
-	}),
+	selectors: [
+		{
+			name: Coin_EvmBlockSelector.CoinEvmBlock,
+			fields: [
+				'$coin',
+				'$block',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$coin',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Coin,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$block',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmBlock,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'price',
 			type: EntityFieldType.Primitive,

@@ -18,7 +18,7 @@
 		href={resolve('/atproto/actors')}
 		entityFieldReference={{
 			entityType: EntityType.AtprotoNetwork,
-			entityId: { scope: 'AtprotoNetwork' },
+			selector: { scope: 'AtprotoNetwork' },
 			fieldName: '$$atprotoActors',
 		}}
 		id="atproto-actors"

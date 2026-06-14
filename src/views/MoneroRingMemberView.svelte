@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,12 +11,12 @@
 	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityId,
+		selector,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.MoneroRingMember>
+			selector: EntitySelector<typeof schema, EntityType.MoneroRingMember>
 			open?: boolean
 		},
 		Pick<
@@ -27,7 +27,7 @@
 	> = $props()
 
 	const moneroRingMember = subscribe(EntityType.MoneroRingMember,
-		entityId,
+		selector,
 		({ fields: { globalOutputIndex: true } }),
 	)
 
@@ -41,16 +41,16 @@
 
 <EntityView
 	entityType={EntityType.MoneroRingMember}
-	{entityId}
-	title={`Ring member #${entityId.memberIndex.toString()}`}
-	idDragPlainText={entityId.memberIndex.toString()}
+	entitySelector={selector}
+	title={`Ring member #${selector.memberIndex.toString()}`}
+	idDragPlainText={selector.memberIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{entityId.memberIndex.toString()}
+			#{selector.memberIndex.toString()}
 		</span>
 	{/snippet}
 

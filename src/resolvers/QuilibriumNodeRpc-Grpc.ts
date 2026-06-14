@@ -2,11 +2,15 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	EntityIdProjection,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { QuilibriumFrameSelector } from '$/schema/QuilibriumFrame.ts'
+import { QuilibriumShardSelector } from '$/schema/QuilibriumShard.ts'
+import { QuilibriumAccountSelector } from '$/schema/QuilibriumAccount.ts'
+import { QuilibriumPendingTransactionSelector } from '$/schema/QuilibriumPendingTransaction.ts'
+import { QuilibriumNetworkSelector } from '$/schema/QuilibriumNetwork.ts'
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
@@ -23,13 +27,13 @@ export default {
 		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumFrame,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertQuilibriumMainnet(entityId.$network)
+				[QuilibriumFrameSelector.NetworkFrameNumberShardKey]: async ({ $network, shardKey }) => {
+				assertQuilibriumMainnet($network)
 				return {
 					$shard: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
-							shardKey: entityId.shardKey,
+						[EntityMetaKey.Selector]: {
+							$network: $network,
+							shardKey: shardKey,
 						},
 					},
 				}
@@ -44,10 +48,10 @@ export default {
 		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumShard,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertQuilibriumMainnet(entityId.$network)
+				[QuilibriumShardSelector.NetworkShardKey]: async ({ $network, shardKey }) => {
+				assertQuilibriumMainnet($network)
 				return {
-					...(entityId.shardKey === 'master' && { shardKind: 'master' }),
+					...(shardKey === 'master' && { shardKind: 'master' }),
 				}
 			}
 			}
@@ -60,10 +64,10 @@ export default {
 		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumAccount,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertQuilibriumMainnet(entityId.$network)
+				[QuilibriumAccountSelector.NetworkAccountAddress]: async ({ $network, accountAddress }) => {
+				assertQuilibriumMainnet($network)
 				return {
-					accountKind: entityId.accountAddress.startsWith('0x') ? 'implicit' : 'originated',
+					accountKind: accountAddress.startsWith('0x') ? 'implicit' : 'originated',
 				}
 			}
 			}
@@ -76,8 +80,8 @@ export default {
 		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumPendingTransaction,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertQuilibriumMainnet(entityId.$network)
+				[QuilibriumPendingTransactionSelector.NetworkTransactionHash]: async ({ $network }) => {
+				assertQuilibriumMainnet($network)
 				return {
 					transactionType: 'pending',
 				}
@@ -92,12 +96,12 @@ export default {
 		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
-				[EntityIdProjection.Identity]: async (entityId) => {
-				assertQuilibriumMainnet(entityId)
+				[QuilibriumNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				assertQuilibriumMainnet(entitySelector)
 				return {
-					[EntityMetaKey.Id]: {
+					[EntityMetaKey.Selector]: {
 						$network: {
-							networkSlug: entityId.networkSlug,
+							networkSlug: entitySelector.networkSlug,
 						},
 						shardKey: 'master',
 					},

@@ -27,7 +27,7 @@
 		proposalCategoryBySlug[params.proposalKindSlug]?.id,
 	)
 
-	const entityId = $derived(
+	const entitySelector = $derived(
 		realm != null && category != null && proposalKindAllowedInRealmByKey[`${realm}:${category}`] != null ?
 			{
 				realm,
@@ -45,17 +45,17 @@
 </script>
 
 
-{#if entityId !== undefined}
+{#if entitySelector !== undefined}
 	<ParentPageCollapsible
 		href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {
 			specificationRealmSlug: params.specificationRealmSlug,
 			proposalKindSlug: params.proposalKindSlug,
 		})}
-		id={stringify(entityId)}
+		id={stringify(entitySelector)}
 	>
 		{#snippet Summary({ open: _open })}
 			<ProposalKindView
-				{entityId}
+				selector={entitySelector}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

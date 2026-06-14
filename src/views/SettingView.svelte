@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,7 +15,7 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/~/manage'),
 		title = 'Manage',
 		layout = EntityLayout.SummaryDetails,
@@ -23,7 +23,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType._Global>
+			selector: EntitySelector<typeof schema, EntityType._Global>
 			href?: string
 			title?: string
 			layout?: EntityLayout
@@ -33,7 +33,7 @@
 	> = $props()
 
 	const global = subscribe(EntityType._Global,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Local_Internal,
 				...(
@@ -54,7 +54,7 @@
 
 <EntityView
 	entityType={EntityType._Global}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{title}
 	{layout}
@@ -62,7 +62,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		{entityId.scope}
+		{selector.scope}
 
 	{/snippet}
 

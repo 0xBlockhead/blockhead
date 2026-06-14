@@ -58,7 +58,7 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.entityId,({ fields: {
+				entityFieldReference.selector,({ fields: {
 					[entityFieldReference.fieldName]: {
 						sources: [
 							Source.Solana_JsonRpc,
@@ -79,7 +79,7 @@
 				entityType={EntityType.SolanaTransaction}
 				id={`${id}-items`}
 				{href}
-				getKey={(transaction) => stringify(transaction[EntityMetaKey.Id])}
+				getKey={(transaction) => stringify(transaction[EntityMetaKey.Selector])}
 				getSortValue={(transaction) => -Number(transaction.slot ?? 0n)}
 				open={true}
 				resource={transactions}
@@ -92,7 +92,7 @@
 
 				{#snippet Item(context)}
 					<SolanaTransactionView
-						entityId={context!.item[EntityMetaKey.Id]}
+						selector={context!.item[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

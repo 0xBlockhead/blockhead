@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -15,10 +15,10 @@
 
 	// State
 	let {
-		entityId,
+		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/erc-4337/bundler/[address]', {
-				...{ caip2Namespace: entityId.$network.caip2.namespace, caip2Reference: entityId.$network.caip2.reference },
-				address: entityId.address,
+				...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+				address: selector.address,
 		}),
 		layout = EntityLayout.Summary,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -27,7 +27,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Erc4337Bundler>
+			selector: EntitySelector<typeof schema, EntityType.Erc4337Bundler>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -41,7 +41,7 @@
 	> = $props()
 
 	const bundler = subscribe(EntityType.Erc4337Bundler,
-		entityId,
+		selector,
 		({ sources: [
 				Source.Blockscout_Rest,
 			], fields: { userOperationsCount: true } }),
@@ -58,7 +58,7 @@
 
 <EntityView
 	entityType={EntityType.Erc4337Bundler}
-	{entityId}
+	entitySelector={selector}
 	href={href}
 	{layout}
 	bind:open
@@ -69,14 +69,14 @@
 	{#snippet Value()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={entityId.address}
+			value={selector.address}
 		/>
 	{/snippet}
 
 	{#snippet Title()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
-			value={entityId.address}
+			value={selector.address}
 		/>
 	{/snippet}
 
@@ -107,11 +107,11 @@
 						<dt>Operator</dt>
 						<dd>
 							<EvmAccountView
-								entityId={{
-									address: entityId.address,
+								selector={{
+									address: selector.address,
 								}}
 								href={resolve('/account/[address]', {
-									address: entityId.address,
+									address: selector.address,
 								})}
 								layout={EntityLayout.Title}
 								open={false}

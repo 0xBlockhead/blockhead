@@ -8,8 +8,11 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
-import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/Source.ts'
+
+export enum EthereumConsensusUpgradeSelector {
+	EvmNetworkUpgradeId = 'evmNetworkUpgradeId',
+}
 
 export default {
 	entityType: EntityType.EthereumConsensusUpgrade,
@@ -17,12 +20,29 @@ export default {
 	label: 'Consensus Upgrade',
 	labelPlural: 'Consensus Upgrades',
 
-	id: type({
-		$network: Network.id,
-		upgradeId: 'string',
-	}),
+	selectors: [
+		{
+			name: EthereumConsensusUpgradeSelector.EvmNetworkUpgradeId,
+			fields: [
+				'$network',
+				'upgradeId',
+			],
+		},
+	],
 
 	fields: [
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'upgradeId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'name',
 			type: EntityFieldType.Primitive,
