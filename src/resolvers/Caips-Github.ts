@@ -3,7 +3,6 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { regex } from 'arkregex'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -59,7 +58,7 @@ export default {
 					category !== ProposalCategory.Caip
 					|| realm !== SpecificationRealm.ChainAgnostic
 				) throw new Error('Caips_Github: unsupported proposal id')
-				const text = await singleFlight(getMarkdownTextForNumber)({ number: number })
+				const text = await getMarkdownTextForNumber({ number: number })
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
 				return {
@@ -84,7 +83,7 @@ export default {
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
 				const { getContents } = await import('$/sources/Caips/Github/queries.ts')
-				return githubCaipProposalIndexRows(await singleFlight(getContents)())
+				return githubCaipProposalIndexRows(await getContents())
 			}
 			}
 		})({
@@ -102,7 +101,7 @@ export default {
 					throw new Error('Caips_Github: $$proposals only supports SpecificationRealm.ChainAgnostic')
 				}
 				const { getContents } = await import('$/sources/Caips/Github/queries.ts')
-				return githubCaipProposalIndexRows(await singleFlight(getContents)())
+				return githubCaipProposalIndexRows(await getContents())
 			}
 			}
 		})({
@@ -120,7 +119,7 @@ export default {
 					throw new Error('Caips_Github: $$proposals only supports CAIP proposal kind')
 				}
 				const { getContents } = await import('$/sources/Caips/Github/queries.ts')
-				return githubCaipProposalIndexRows(await singleFlight(getContents)())
+				return githubCaipProposalIndexRows(await getContents())
 			}
 			}
 		})({

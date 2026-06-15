@@ -3,7 +3,6 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { regex } from 'arkregex'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -49,7 +48,7 @@ export default {
 					throw new Error('FilecoinFips_Github: unsupported proposal id')
 				}
 				const { getMarkdownText } = await import('$/sources/FilecoinFips/Github/queries.ts')
-				const text = await singleFlight(getMarkdownText)({ number: number })
+				const text = await getMarkdownText({ number: number })
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
 				return {
@@ -74,7 +73,7 @@ export default {
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
 				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
-				return githubFilecoinFipProposalRows(await singleFlight(getContents)())
+				return githubFilecoinFipProposalRows(await getContents())
 			}
 			}
 		})({
@@ -92,7 +91,7 @@ export default {
 					throw new Error('FilecoinFips_Github: $$proposals only supports SpecificationRealm.Filecoin')
 				}
 				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
-				return githubFilecoinFipProposalRows(await singleFlight(getContents)())
+				return githubFilecoinFipProposalRows(await getContents())
 			}
 			}
 		})({
@@ -110,7 +109,7 @@ export default {
 					throw new Error('FilecoinFips_Github: $$proposals only supports Filecoin FIP proposal kind')
 				}
 				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
-				return githubFilecoinFipProposalRows(await singleFlight(getContents)())
+				return githubFilecoinFipProposalRows(await getContents())
 			}
 			}
 		})({

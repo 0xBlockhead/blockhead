@@ -52,6 +52,7 @@ export const marketTimeIntervalsEqual = (
 export const candleFromOhlc = (
 	$market: EntitySelector<typeof schema, EntityType.Market>,
 	timeInterval: MarketTimeInterval,
+	feedKey: string,
 	[timestampMs, open, high, low, close, quoteVolume]: OhlcCandle,
 ) => {
 	const id = (
@@ -59,6 +60,7 @@ export const candleFromOhlc = (
 			$market,
 			timeInterval,
 			timestampMs: Math.floor(timestampMs),
+			feedKey,
 		}
 	) satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>
 
@@ -80,12 +82,14 @@ export const candleFromOhlc = (
 export const candlesFromOhlc = (
 	$market: EntitySelector<typeof schema, EntityType.Market>,
 	timeInterval: MarketTimeInterval,
+	feedKey: string,
 	rows: OhlcCandle[],
 ) => (
 	rows.map((row) => (
 		candleFromOhlc(
 			$market,
 			timeInterval,
+			feedKey,
 			row,
 		)
 	))

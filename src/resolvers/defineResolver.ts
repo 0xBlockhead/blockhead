@@ -16,37 +16,47 @@ export type SourceResolverContext<
 	readonly publicEnv: SourcePublicEnv & SourcePublicEnvFor<_Source>
 }
 
-type UnionToIntersection<_Union> = (
-	(_Union extends _Union ? (_value: _Union) => void : never) extends (_value: infer _Intersection) => void ?
-		_Intersection
-	:
-		never
-)
-
 type ResolverSnapshotValue<_Resolve> = Awaited<ReturnType<Extract<_Resolve[keyof _Resolve], (...parameters: never[]) => Promise<ResolverValue>>>>
 
 type ResolverSnapshot<_Resolve> = (
 	[Extract<_Resolve[keyof _Resolve], (...parameters: never[]) => Promise<ResolverValue>>] extends [never] ?
 		ResolverValue
-	: unknown extends ResolverSnapshotValue<_Resolve> ?
-		ResolverValue
 	:
-		UnionToIntersection<ResolverSnapshotValue<_Resolve>>
+		ResolverSnapshotValue<_Resolve>
 )
+
+type ResolveShape<
+	_Source extends Source,
+	_EntityType extends EntityType<typeof schema>,
+> = Partial<{
+	readonly [_SelectorName in Extract<EntitySelectorName<typeof schema, _EntityType>, string>]: (
+		entitySelector: EntitySelectorForSelectorName<
+			typeof schema,
+			_EntityType,
+			Extract<_SelectorName, EntitySelectorName<typeof schema, _EntityType>>
+		>,
+		context: SourceResolverContext<_Source>,
+	) => Promise<ResolverValue>
+}>
+
+type ResolverFields<
+	_Source extends Source,
+	_EntityType extends EntityType<typeof schema>,
+	_Resolve extends ResolveShape<_Source, _EntityType>,
+> = Partial<{
+	readonly [_FieldName in EntityFieldName<typeof schema, _EntityType>]: FieldSelector<
+		typeof schema,
+		_EntityType,
+		_FieldName,
+		ResolverSnapshot<_Resolve>,
+		SourceResolverContext<_Source>
+	>
+}>
 
 export const defineResolver = <
 	const _Source extends Source,
 	const _EntityType extends EntityType<typeof schema>,
-	const _Resolve extends Partial<{
-		readonly [_SelectorName in Extract<EntitySelectorName<typeof schema, _EntityType>, string>]: (
-			entitySelector: EntitySelectorForSelectorName<
-				typeof schema,
-				_EntityType,
-				Extract<_SelectorName, EntitySelectorName<typeof schema, _EntityType>>
-			>,
-			context: SourceResolverContext<_Source>,
-		) => Promise<ResolverValue>
-	}>,
+	const _Resolve extends ResolveShape<_Source, _EntityType>,
 >(
 	_source: _Source,
 	resolver: {
@@ -55,11 +65,9 @@ export const defineResolver = <
 	resolveLive?: ResolveLivePublishers<typeof schema, _EntityType>
 },
 ) => (facets: {
-	fields: Partial<{
-		readonly [
-			_FieldName in Extract<EntityFieldName<typeof schema, _EntityType>, string>
-		]: FieldSelector<typeof schema, _EntityType, _FieldName, ResolverSnapshot<_Resolve>, SourceResolverContext<_Source>>
-	}>
+	fields: ResolverFields<_Source, _EntityType, _Resolve>
+} = {
+	fields: {},
 }) => ({
 	...resolver,
 	...facets,

@@ -32,20 +32,15 @@
 
 	const attestation = subscribe(EntityType.BeaconAttestation,
 		selector,
-		(
-			open ?
-				{
-					sources: [
-						Source.Beacon_Rest,
-					],
-					fields: {
-						committeeIndex: true,
-						aggregationBits: true,
-					},
-				}
-			:
-				{ fields: {} }
-		),
+		{
+			sources: [
+				Source.Beacon_Rest,
+			],
+			fields: {
+				committeeIndex: true,
+				aggregationBits: true,
+			},
+		},
 	)
 
 

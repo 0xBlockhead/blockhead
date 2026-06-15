@@ -1,4 +1,3 @@
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -23,7 +22,7 @@ export default {
 					l2beatHostChainToParentChainId,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				const summary = await singleFlight(fetchScalingSummary)()
+				const summary = await fetchScalingSummary()
 				const project = summary.projects[projectId]
 				if (project == null) throw new Error('L2Beat_Rest: rollup project not found')
 				const settlementChainId = l2beatHostChainToParentChainId[project.hostChain]
@@ -71,7 +70,7 @@ export default {
 					l2BeatProjectChainIds,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				const summary = await singleFlight(fetchScalingSummary)()
+				const summary = await fetchScalingSummary()
 				return [
 					{
 						[EntityMetaKey.Selector]: {
@@ -114,7 +113,7 @@ export default {
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
 				const projectId = l2BeatProjectIdByChainId[caip2.reference]
 				if (projectId == null) return undefined
-				const summary = await singleFlight(fetchScalingSummary)()
+				const summary = await fetchScalingSummary()
 				const project = summary.projects[projectId]
 				if (project == null || project.isArchived === true) return undefined
 				const parentChainId = l2beatHostChainToParentChainId[project.hostChain]
@@ -142,7 +141,7 @@ export default {
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
 				const projectId = l2BeatProjectIdByChainId[entitySelector.caip2.reference]
 				if (projectId == null) return undefined
-				const summary = await singleFlight(fetchScalingSummary)()
+				const summary = await fetchScalingSummary()
 				const project = summary.projects[projectId]
 				if (project == null || project.isArchived === true) return undefined
 				return {
@@ -180,7 +179,7 @@ export default {
 						))
 				)
 				if (hostLabels.length === 0) return []
-				const summary = await singleFlight(fetchScalingSummary)()
+				const summary = await fetchScalingSummary()
 				return (
 					l2BeatProjectChainIds.flatMap(({ projectId }) => {
 						const chainId = chainIdByL2BeatProjectId[projectId]
@@ -232,7 +231,7 @@ export default {
 						))
 				)
 				if (hostLabels.length === 0) return []
-				const summary = await singleFlight(fetchScalingSummary)()
+				const summary = await fetchScalingSummary()
 				const chainIds = (
 					l2BeatProjectChainIds.flatMap(({ projectId }) => {
 						const chainId = chainIdByL2BeatProjectId[projectId]

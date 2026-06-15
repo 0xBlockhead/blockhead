@@ -28,8 +28,11 @@ type Row = {
 	readonly [EntityMetaKey.SelectorKey]: string
 	readonly [EntityMetaKey.ParentSelectorKey]: string
 	readonly [EntityMetaKey.Source]: string
+	readonly [EntityMetaKey.Value]: string
 	readonly category: string
+	readonly filterKey: string
 	readonly rank: number
+	readonly valueKey: string
 	readonly nested: {
 		readonly value: number
 	}
@@ -199,6 +202,16 @@ describe('ResolverSubset parser', () => {
 		})
 	})
 
+	it('preserves empty source inclusion filters as an explicit empty source set', () => {
+		expect(parseResolverSubset(subsetOptions(
+			new BaseQueryBuilder()
+				.from({
+					row: rows,
+				})
+				.where(({ row }) => inArray(row[EntityMetaKey.Source], [])),
+		)).sources).toEqual([])
+	})
+
 	it('rejects unsupported filter operators explicitly', () => {
 		expect(() => parseResolverSubset(subsetOptions(
 			new BaseQueryBuilder()
@@ -231,10 +244,10 @@ describe('ResolverSubset parser', () => {
 		))).toThrow('Resolver Subset Parser unsupported orderBy LoadSubsetOptions')
 	})
 
-	it('keys field subsets by filter, order, and window semantics while count subsets keep only filter semantics', () => {
+	it('keys field subsets by row filters, order, and window while count subsets keep only parent, source, and count filter', () => {
 		const fieldKeys = new Set<string>()
 		const countKeys = new Set<string>()
-		for (let index = 0; index < 64; index += 1) {
+		for (let index = 0; index < 512; index += 1) {
 			const loadSubsetOptions = subsetOptions(
 				new BaseQueryBuilder()
 					.from({
@@ -243,7 +256,10 @@ describe('ResolverSubset parser', () => {
 					.where(({ row }) => and(
 						eq(row[EntityMetaKey.ParentSelectorKey], (index & 1) === 0 ? 'parent-a' : 'parent-b'),
 						eq(row[EntityMetaKey.Source], (index & 2) === 0 ? 'SourceA' : 'SourceB'),
-						eq(row.category, (index & 4) === 0 ? 'public' : 'private'),
+						eq(row.filterKey, (index & 4) === 0 ? 'filter-a' : 'filter-b'),
+						eq(row.valueKey, (index & 64) === 0 ? 'value-a' : 'value-b'),
+						eq(row[EntityMetaKey.Value], (index & 128) === 0 ? 'A' : 'B'),
+						eq(row.category, (index & 256) === 0 ? 'public' : 'private'),
 					))
 					.orderBy(
 						({ row }) => row.rank,
@@ -266,7 +282,60 @@ describe('ResolverSubset parser', () => {
 			countKeys.add(stringify(countLoadedSubsetKey(loadSubsetOptions)))
 		}
 
-		expect(fieldKeys.size).toBe(64)
+		expect(fieldKeys.size).toBe(512)
 		expect(countKeys.size).toBe(8)
+	})
+
+	it('normalizes count subset keys to the dimensions that identify a count row', () => {
+		expect(countLoadedSubsetKey(subsetOptions(
+			new BaseQueryBuilder()
+				.from({
+					row: rows,
+				})
+				.where(({ row }) => and(
+					eq(row[EntityMetaKey.ParentSelectorKey], 'parent-a'),
+					inArray(row[EntityMetaKey.Source], [
+						'SourceB',
+						'SourceA',
+					]),
+					eq(row.valueKey, 'value-a'),
+					eq(row[EntityMetaKey.Value], 'A'),
+					eq(row.filterKey, 'filter-a'),
+				))
+				.orderBy(
+					({ row }) => row.rank,
+					'desc',
+				),
+			{
+				limit: 10,
+				offset: 5,
+				cursor: {
+					whereFrom: eq(1, 1),
+					whereCurrent: eq(2, 2),
+					lastKey: 'cursor-key',
+				},
+			},
+		))).toEqual({
+			filters: [
+				{
+					fieldPath: [EntityMetaKey.ParentSelectorKey],
+					operator: 'eq',
+					value: 'parent-a',
+				},
+				{
+					fieldPath: [EntityMetaKey.Source],
+					operator: 'in',
+					value: [
+						'SourceA',
+						'SourceB',
+					],
+				},
+				{
+					fieldPath: ['filterKey'],
+					operator: 'eq',
+					value: 'filter-a',
+				},
+			],
+		})
 	})
 })

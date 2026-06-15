@@ -1,6 +1,7 @@
 import { type } from 'arktype'
 
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import type { JsonObject } from '$/typescript/JsonValue.ts'
 
 
 // Types/constants
@@ -61,5 +62,5 @@ export const actionTypeDefinitionByActionType = Object.fromEntries(
 
 export type Action = {
 	type: ActionType
-	params: Record<string, unknown>
+	params: JsonObject
 }

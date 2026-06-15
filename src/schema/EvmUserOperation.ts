@@ -41,7 +41,7 @@ export default {
 			name: 'hash',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Blockscout_Rest,
 			],

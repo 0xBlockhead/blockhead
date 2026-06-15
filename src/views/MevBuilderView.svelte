@@ -32,19 +32,14 @@
 
 	const builder = subscribe(EntityType.MevBuilder,
 		selector,
-		(
-			open ?
-				{
-					sources: [
-						Source.MevRelay_Rest,
-					],
-					fields: {
-						deliveredPayloadCount: true,
-					},
-				}
-			:
-				{ fields: {} }
-		),
+		{
+			sources: [
+				Source.MevRelay_Rest,
+			],
+			fields: {
+				deliveredPayloadCount: true,
+			},
+		},
 	)
 
 

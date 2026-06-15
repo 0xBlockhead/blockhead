@@ -39,6 +39,15 @@ const {
 	resolvers,
 	indexSourceProviders(sourceProviders, publicEnv).enabledSources,
 )
+const {
+	resolverDefinitions: allSourceResolverDefinitions,
+} = indexResolvers(
+	schema,
+	resolvers,
+	new Set(sourceProviders.flatMap((sourceProvider) => (
+		sourceProvider.sources.map((sourceDefinition) => sourceDefinition.source)
+	))),
+)
 
 const fieldDefinitionByEntityTypeAndFieldName = Object.fromEntries(
 	schema.map((entityDefinition) => [
@@ -100,7 +109,7 @@ const validFixtureResolver = {
 	fields: {
 		name: () => 'Ada',
 	},
-} satisfies SourceResolverDefinition<Schema, 'Fixture'>
+} satisfies SourceResolverDefinition<typeof fixtureSchema, 'Fixture'>
 
 
 describe('resolver registry live resolver architecture', () => {
@@ -198,11 +207,11 @@ describe('resolver registry live resolver architecture', () => {
 			],
 			] satisfies readonly (readonly [
 				label: string,
-				resolver: SourceResolverDefinitionCandidate<Schema, 'Fixture'>,
+				resolver: SourceResolverDefinitionCandidate<typeof fixtureSchema, 'Fixture', string>,
 				message: RegExp,
 			])[]) {
 			expect(
-				() => validateResolverDefinitions<Schema, 'Fixture'>(fixtureSchema, [resolver]),
+				() => validateResolverDefinitions(fixtureSchema, [resolver]),
 				label,
 			).toThrow(message)
 		}
@@ -405,6 +414,39 @@ describe('resolver registry live resolver architecture', () => {
 			|| Object.keys(resolver.resolve).includes('usernameHashPrefix')
 			|| Object.keys(resolver.resolve).includes('localName')
 		))).toBe(true)
+	})
+
+	it('keeps concrete selector fields materializable through resolver selectors or field facets', () => {
+		expect(
+			schema.flatMap((entityDefinition) => {
+				const entityResolvers = allSourceResolverDefinitions.filter((resolver) => (
+					resolver.entityType === entityDefinition.entityType
+				))
+				if (entityResolvers.length === 0)
+					return []
+
+				const acceptedSelectorFieldNames = new Set(entityResolvers.flatMap((resolver) => (
+					Object.keys(resolver.resolve).flatMap((selectorName) => (
+						entityDefinition.selectors
+							.find((selector) => selector.name === selectorName)
+							?.fields ?? []
+					))
+				)))
+				const materializedFieldNames = new Set(entityResolvers.flatMap((resolver) => (
+					Object.keys(resolver.fields)
+				)))
+
+				return entityDefinition.selectors.flatMap((selector) => (
+					selector.fields.flatMap((fieldName) => (
+						acceptedSelectorFieldNames.has(fieldName)
+						|| materializedFieldNames.has(fieldName) ?
+							[]
+						:
+							[`${entityDefinition.entityType}.${selector.name}.${fieldName}`]
+					))
+				))
+			}),
+		).toEqual([])
 	})
 
 	it('only indexes count facets for multiple-cardinality fields', () => {

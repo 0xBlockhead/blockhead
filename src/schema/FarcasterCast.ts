@@ -72,19 +72,19 @@ export default {
 			name: 'username',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'hashPrefix',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'clientUrl',
 			type: EntityFieldType.Primitive,
 			primitiveType: UrlString,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$author',

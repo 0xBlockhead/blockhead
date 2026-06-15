@@ -4,7 +4,7 @@
 		params,
 	} = $props()
 
-	const entitySelector = $derived.by(() => {
+	const selector = $derived.by(() => {
 		const raw = decodeURIComponent(params.address).trim()
 		if (raw.startsWith('legacy:'))
 			return { legacyProfileId: raw.slice('legacy:'.length) }

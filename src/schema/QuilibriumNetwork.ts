@@ -14,7 +14,7 @@ import { networkFields } from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
 export enum QuilibriumNetworkSelector {
-	NetworkSlug = 'networkSlug',
+	Slug = 'slug',
 }
 
 
@@ -48,20 +48,20 @@ export default {
 
 	selectors: [
 		{
-			name: QuilibriumNetworkSelector.NetworkSlug,
+			name: QuilibriumNetworkSelector.Slug,
 			fields: [
-				'networkSlug',
+				'slug',
 			],
 		},
 	],
 
 	fields: [
 		{
-			name: 'networkSlug',
+			name: 'slug',
 			type: EntityFieldType.Primitive,
 			primitiveType: type.unit('quilibrium'),
 			cardinality: EntityFieldCardinality.One,
-		},		networkFields[0],
+		},
 		networkFields[1],
 		networkFields[2],
 		networkFields[3],

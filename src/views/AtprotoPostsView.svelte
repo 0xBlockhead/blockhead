@@ -90,93 +90,84 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const atprotoNetworkOrAccount = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				(
-					entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-						(
-							fieldOpen ?
-								{
-									sources: [Source.Constants_Internal],
-									fields: {
-										protocolName: true,
-										$$atprotoPosts: {
-											sources: [
-												Source.Atproto_Xrpc,
-												Source.Atproto_BskySocial_Xrpc,
-											],
-											orderBy: [...atprotoPostOrderBy],
-											limit: limit,
-										},
+			{#if fieldOpen}
+				{@const atprotoNetworkOrAccount = subscribe(entityFieldReference.entityType,
+					entityFieldReference.selector,
+					(
+						entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+							{
+								sources: [Source.Constants_Internal],
+								fields: {
+									protocolName: true,
+									$$atprotoPosts: {
+										sources: [
+											Source.Atproto_Xrpc,
+											Source.Atproto_BskySocial_Xrpc,
+										],
+										orderBy: [...atprotoPostOrderBy],
+										limit: limit,
 									},
-								}
-							:
-								{
-									sources: [Source.Constants_Internal],
-									fields: {
-										protocolName: true,
-									},
-								}
-						)
-					:
-						(
-							fieldOpen ?
-								{
-									fields: {
-										$$posts: {
-											sources: [
-												Source.Atproto_Xrpc,
-												Source.Atproto_BskySocial_Xrpc,
-											],
-											orderBy: [...atprotoPostOrderBy],
-											limit: limit,
-										},
-									},
-								}
-							:
-								{ fields: {} }
-						)
-				),
-			)}
-			{#key `${stringify(entityFieldReference.selector)}-${limit}-${fieldOpen}`}
-				<ResourceBoundary
-					resource={atprotoNetworkOrAccount}
-					placeholderText={`Loading ${title.toLowerCase()}…`}
-				>
-					{#snippet children(atprotoNetworkOrAccount)}
-						<EntitiesList
-							collapsible={false}
-							showSummary={false}
-							entityType={EntityType.AtprotoPost}
-							id={`${id}-items`}
-							{title}
-							open={true}
-							getKey={(atprotoPost) => atprotoPost[EntityMetaKey.Selector].uri}
-							placeholderText={`Loading ${title.toLowerCase()}…`}
-							items={
-								entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-									atprotoNetworkOrAccount.fields.$$atprotoPosts?.values ?? []
-								:
-									atprotoNetworkOrAccount.fields.$$posts?.values ?? []
+								},
 							}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">
-									No posts yet.
-								</p>
-							{/snippet}
+						:
+							{
+								fields: {
+									$$posts: {
+										sources: [
+											Source.Atproto_Xrpc,
+											Source.Atproto_BskySocial_Xrpc,
+										],
+										orderBy: [...atprotoPostOrderBy],
+										limit: limit,
+									},
+								},
+							}
+					),
+				)}
+				{#key `${stringify(entityFieldReference.selector)}-${limit}`}
+					<ResourceBoundary
+						resource={atprotoNetworkOrAccount}
+						placeholderText={`Loading ${title.toLowerCase()}…`}
+					>
+						{#snippet children(atprotoNetworkOrAccount)}
+							<EntitiesList
+								collapsible={false}
+								showSummary={false}
+								entityType={EntityType.AtprotoPost}
+								id={`${id}-items`}
+								{title}
+								open={true}
+								getKey={(atprotoPost) => atprotoPost[EntityMetaKey.Selector].uri}
+								placeholderText={`Loading ${title.toLowerCase()}…`}
+								items={
+									entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+										atprotoNetworkOrAccount.fields.$$atprotoPosts?.values ?? []
+									:
+										atprotoNetworkOrAccount.fields.$$posts?.values ?? []
+								}
+							>
+								{#snippet Empty()}
+									<p data-text="muted">
+										No posts yet.
+									</p>
+								{/snippet}
 
-							{#snippet Item({ item })}
-								<AtprotoPostView
-									selector={{ uri: item[EntityMetaKey.Selector].uri }}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/snippet}
-						</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
-			{/key}
+								{#snippet Item({ item })}
+									<AtprotoPostView
+										selector={{ uri: item[EntityMetaKey.Selector].uri }}
+										layout={EntityLayout.Summary}
+										open={false}
+									/>
+								{/snippet}
+							</EntitiesList>
+						{/snippet}
+					</ResourceBoundary>
+				{/key}
+			{:else}
+				<p data-text="muted">
+					Facet idle—no posts request.
+				</p>
+			{/if}
 		{/if}
 	{/snippet}
 </EntitiesList>

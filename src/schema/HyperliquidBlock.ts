@@ -53,7 +53,7 @@ export default {
 			name: 'hash',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'timestampMs',

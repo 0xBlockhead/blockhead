@@ -1,4 +1,5 @@
 import { getJson } from '$/lib/http.ts'
+import type { EvmAddress } from '$/schema/ZeroExHex.ts'
 import ZeroG from '$/sources/ZeroG/index.ts'
 import type {
 	ZeroGStorageScanList,
@@ -100,7 +101,7 @@ export const listStorageMiners = ({
 export const getStorageMiner = ({
 	address,
 }: {
-	address: string
+	address: typeof EvmAddress.infer
 }) => (
 	getStorageScanData<ZeroGStorageScanMinerInfo>({
 		path: `/api/miners/${address}`,

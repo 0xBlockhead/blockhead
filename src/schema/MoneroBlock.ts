@@ -8,6 +8,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 
 export enum MoneroBlockSelector {
+	NetworkHeight = 'networkHeight',
 	NetworkHeightHash = 'networkHeightHash',
 }
 
@@ -18,6 +19,13 @@ export default {
 	labelPlural: 'Monero Blocks',
 
 	selectors: [
+		{
+			name: MoneroBlockSelector.NetworkHeight,
+			fields: [
+				'$network',
+				'height',
+			],
+		},
 		{
 			name: MoneroBlockSelector.NetworkHeightHash,
 			fields: [
@@ -45,7 +53,7 @@ export default {
 			name: 'hash',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$parent',

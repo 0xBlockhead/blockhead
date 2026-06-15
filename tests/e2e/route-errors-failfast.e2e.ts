@@ -128,16 +128,16 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 		page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
 		await installChainlistRpcsJsonStub(page)
 
-			for (const [index, pathname] of pageUrls.entries()) {
-				console.log(`[route-errors-failfast] ${index + 1}/${pageUrls.length} ${pathname}`)
-				await test.step(pathname, async () => {
-					await withRouteTimeout(
-						pathname,
-						index,
-						pageUrls.length,
-						visitRouteFailFast(page, testInfo, pathname),
-					)
-				})
-			}
+		for (const [index, pathname] of pageUrls.entries()) {
+			console.log(`[route-errors-failfast] ${index + 1}/${pageUrls.length} ${pathname}`)
+			await test.step(pathname, async () => {
+				await withRouteTimeout(
+					pathname,
+					index,
+					pageUrls.length,
+					visitRouteFailFast(page, testInfo, pathname),
+				)
+			})
+		}
 	})
 })

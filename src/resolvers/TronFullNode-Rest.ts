@@ -18,10 +18,10 @@ import { TronBlockSelector } from '$/schema/TronBlock.ts'
 import { TronTransactionSelector } from '$/schema/TronTransaction.ts'
 import { TronAccountSelector } from '$/schema/TronAccount.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const assertTronMainnet = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug.tron.slug) {
+	if (!('slug' in network) || network.slug !== networkBySlug.tron.slug) {
 		throw new Error('TronFullNode_Rest: unsupported network')
 	}
 }
@@ -170,7 +170,10 @@ export default {
 			}
 		})({
 				fields: {
-			hash: (block) => block.hash,
+			hash: (block) => {
+				if (block.hash == null) throw new Error('TronFullNode_Rest: block missing hash')
+				return block.hash
+			},
 			$parent: (block) => block.$parent,
 			parentHash: (block) => block.parentHash,
 			timestampMs: (block) => block.timestampMs,
@@ -221,7 +224,7 @@ export default {
 			amountSun: (transaction) => transaction.amountSun,
 			assetName: (transaction) => transaction.assetName,
 			rawDataHex: (transaction) => transaction.rawDataHex,
-			signatures: (transaction) => transaction.signatures,
+			signatures: (transaction) => transaction.signatures ?? [],
 		},
 			}),
 

@@ -1,7 +1,7 @@
 // Constants
 
 export const liquidNetworkId = {
-	networkSlug: 'liquid',
+	slug: 'liquid',
 } as const
 
 export const liquidMainnetEsploraRestBaseUrl = 'https://blockstream.info/liquid/api'

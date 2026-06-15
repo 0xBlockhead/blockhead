@@ -84,41 +84,44 @@
 	)
 
 	const evmNetworkAccountPortfolioSlices = $derived(
-		evmNetworkAccountSliceChainIds.map((chainId) => (
-			subscribe(EntityType.EvmNetworkAccount,
-				{
-					$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
-					$actor: selector,
-				},
-				{
-					...(open && activityChainIds.some((activityChainId) => activityChainId === chainId) && {
-						sources: [
-							Source.Blockscout_Rest,
-						],
-					}),
-					fields: {
-						...(open && balanceChainIds.some((balanceChainId) => balanceChainId === chainId) && {
-							$$ownedCoins: {
-								sources: [
-									Source.Allium_Rest,
-								],
-							},
-						}),
-						...(open && activityChainIds.some((activityChainId) => activityChainId === chainId) && {
-							$$transactions: true,
-							$$tokenTransfers: true,
-							$$internalTransfers: true,
-							isContract: true,
-							transactionCount: true,
-							tokenTransferCount: true,
-							firstTransactionAt: true,
-							lastTransactionAt: true,
-							nftCount: true,
-						}),
+		open ?
+			evmNetworkAccountSliceChainIds.map((chainId) => (
+				subscribe(EntityType.EvmNetworkAccount,
+					{
+						$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
+						$actor: selector,
 					},
-				},
-			)
-		)),
+					{
+						...(activityChainIds.some((activityChainId) => activityChainId === chainId) && {
+							sources: [
+								Source.Blockscout_Rest,
+							],
+						}),
+						fields: {
+							...(balanceChainIds.some((balanceChainId) => balanceChainId === chainId) && {
+								$$ownedCoins: {
+									sources: [
+										Source.Allium_Rest,
+									],
+								},
+							}),
+							...(activityChainIds.some((activityChainId) => activityChainId === chainId) && {
+								$$transactions: true,
+								$$tokenTransfers: true,
+								$$internalTransfers: true,
+								isContract: true,
+								transactionCount: true,
+								tokenTransferCount: true,
+								firstTransactionAt: true,
+								lastTransactionAt: true,
+								nftCount: true,
+							}),
+						},
+					},
+				)
+			))
+		:
+			[],
 	)
 
 	const idKey = $derived(stringify(selector))

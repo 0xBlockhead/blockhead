@@ -30,17 +30,15 @@
 
 	const withdrawal = subscribe(EntityType.BeaconWithdrawal,
 		selector,
-		open
-			? {
-					sources: [Source.Beacon_Rest],
-					fields: {
-						validatorIndex: true,
-						$validator: true,
-						$account: true,
-						amountGwei: true,
-					},
-				}
-			: { fields: {} },
+		{
+			sources: [Source.Beacon_Rest],
+			fields: {
+				validatorIndex: true,
+				$validator: true,
+				$account: true,
+				amountGwei: true,
+			},
+		},
 	)
 
 	// Components

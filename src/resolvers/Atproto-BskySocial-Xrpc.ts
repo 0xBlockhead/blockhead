@@ -3,7 +3,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { atprotoNetworkSeedActors } from '$/constants/Social/Atproto.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
@@ -29,7 +28,7 @@ export default {
 			resolve: {
 				[AtprotoActorSelector.Did]: async ({ did }) => {
 				const { getProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const profile = await singleFlight(getProfile)(did)
+				const profile = await getProfile(did)
 				const displayName = optionalNonemptyString(profile.displayName)
 				const description = optionalNonemptyString(profile.description)
 				const indexedAt = optionalTimestampMs(profile.indexedAt)
@@ -79,7 +78,7 @@ export default {
 			resolve: {
 				[AtprotoPostSelector.Uri]: async ({ uri }) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const postView = (await singleFlight(getPosts)([uri])).posts.at(0)
+				const postView = (await getPosts([uri])).posts.at(0)
 				if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
 				const atprotoRecord = postView.record
 				const createdAt = Date.parse(atprotoRecord.createdAt)
@@ -130,7 +129,7 @@ export default {
 			resolve: {
 				[AtprotoActor_TimestampSelector.AtprotoActorTimestampMs]: async ({ $actor: { did } }) => {
 				const { getProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const profile = await singleFlight(getProfile)(did)
+				const profile = await getProfile(did)
 				return {
 					...(profile.followersCount != null && { followersCount: profile.followersCount }),
 					...(profile.followsCount != null && { followsCount: profile.followsCount }),
@@ -151,7 +150,7 @@ export default {
 			resolve: {
 				[AtprotoPost_TimestampSelector.AtprotoPostTimestampMs]: async ({ $post }) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const postView = (await singleFlight(getPosts)([$post.uri])).posts.at(0)
+				const postView = (await getPosts([$post.uri])).posts.at(0)
 				if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
 				return {
 					...(postView.likeCount != null && { likeCount: postView.likeCount }),
@@ -183,7 +182,7 @@ export default {
 						:
 							[]
 					)),
-					...((await singleFlight(searchActorsTypeahead)({
+					...((await searchActorsTypeahead({
 						limit,
 						q: 'bsky',
 					})).actors ?? [])
@@ -211,7 +210,7 @@ export default {
 				const { searchPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(searchPosts)({
+					((await searchPosts({
 						limit,
 						q: 'bsky',
 					})).posts ?? [])
@@ -236,7 +235,7 @@ export default {
 			resolve: {
 				[AtprotoActorSelector.Did]: async ({ did }) => {
 				const { getProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const profile = await singleFlight(getProfile)(did)
+				const profile = await getProfile(did)
 				return [
 					{
 						[EntityMetaKey.Selector]: {
@@ -264,7 +263,7 @@ export default {
 				[AtprotoActorSelector.Did]: async ({ did }, context) => {
 				const { getAuthorFeed } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
-				const { feed } = await singleFlight(getAuthorFeed)({
+				const { feed } = await getAuthorFeed({
 					actor: did,
 					limit,
 					includePins: true,
@@ -289,7 +288,7 @@ export default {
 			resolve: {
 				[AtprotoPostSelector.Uri]: async (entitySelector) => {
 				const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-				const postView = (await singleFlight(getPosts)([entitySelector.uri])).posts.at(0)
+				const postView = (await getPosts([entitySelector.uri])).posts.at(0)
 				if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
 				return [
 					{
@@ -314,35 +313,35 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost,
 			resolve: {
-				[AtprotoPostSelector.Uri]: async ({ uri: uriSelector }, context) => {
+				[AtprotoPostSelector.Uri]: async ({ uri }, context) => {
 					const { getPostThread } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
-					const { thread } = await singleFlight(getPostThread)(uriSelector)
+					const { thread } = await getPostThread(uri)
 					if (thread == null)
-						throw new Error(`Atproto_BskySocial_Xrpc: post thread not found for ${uriSelector}`)
+						throw new Error(`Atproto_BskySocial_Xrpc: post thread not found for ${uri}`)
 
-					const threadPostUri = optionalNonemptyString(thread.post.uriSelector)
+					const threadPostUri = optionalNonemptyString(thread.post.uri)
 					if (threadPostUri == null) {
-						throw new Error(`Atproto_BskySocial_Xrpc: post thread not found for ${uriSelector}`)
+						throw new Error(`Atproto_BskySocial_Xrpc: post thread not found for ${uri}`)
 					}
-				const ancestors: { [EntityMetaKey.Selector]: { uriSelector: string } }[] = []
+				const ancestors: { [EntityMetaKey.Selector]: { uri: string } }[] = []
 				let parent = thread.parent
 				while (parent != null) {
-					const uri = optionalNonemptyString(parent.post.uriSelector)
-					if (uri == null) break
-					if (uri !== uriSelector) {
-						ancestors.unshift({ [EntityMetaKey.Selector]: { uri } })
+					const parentUri = optionalNonemptyString(parent.post.uri)
+					if (parentUri == null) break
+					if (parentUri !== uri) {
+						ancestors.unshift({ [EntityMetaKey.Selector]: { uri: parentUri } })
 					}
 					parent = parent.parent
 				}
 				const descendants: { [EntityMetaKey.Selector]: { uri: string } }[] = []
 				const walkReplies = (node: NonNullable<typeof thread>) => {
 					for (const reply of node.replies ?? []) {
-						const uri = optionalNonemptyString(reply.post.uri)
-						if (uri != null && uri !== entitySelector.uri) {
-							descendants.push({ [EntityMetaKey.Selector]: { uri } })
+						const replyUri = optionalNonemptyString(reply.post.uri)
+						if (replyUri != null && replyUri !== uri) {
+							descendants.push({ [EntityMetaKey.Selector]: { uri: replyUri } })
 						}
-						if (uri != null) walkReplies(reply)
+						if (replyUri != null) walkReplies(reply)
 					}
 				}
 				walkReplies(thread)

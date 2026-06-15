@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	bridgeToolByKey,
+	type BridgeToolRow,
 	CoinInstanceRepresentation,
 } from '$/constants/Bridge.ts'
 import { CoinId } from '$/constants/Coin.ts'
@@ -348,12 +349,18 @@ export default {
 				const networkUpgrade = networkUpgradeByChainIdAndUpgradeId[
 					`${$network.caip2.reference}:${upgradeId}`
 				]
+				if (networkUpgrade == null)
+					throw new Error(`Constants_Internal: NetworkUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
+
 				if (networkUpgrade.$networkExecutionUpgrade == null)
 					throw new Error(`Constants_Internal: NetworkUpgrade ${$network.caip2.reference}:${upgradeId} has no $networkExecutionUpgrade`)
 
 				const linkedNetworkExecutionUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[
 					`${networkUpgrade.$networkExecutionUpgrade[EntityMetaKey.Selector].$network.caip2.reference}:${networkUpgrade.$networkExecutionUpgrade[EntityMetaKey.Selector].upgradeId}`
 				]
+				if (linkedNetworkExecutionUpgrade == null)
+					throw new Error(`Constants_Internal: linked execution upgrade not found for ${$network.caip2.reference}:${upgradeId}`)
+
 				const linkedNetworkConsensusUpgrade = (
 					networkUpgrade.$networkConsensusUpgrade == null ?
 						undefined
@@ -392,20 +399,29 @@ export default {
 					...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade.activationEpoch != null && {
 						activationEpoch: linkedNetworkExecutionUpgrade.activationEpoch,
 					}),
-					...(proposals.length > 0 && { $$proposals: proposals }),
+					$$proposals: proposals,
 				}
 			}
 			},
 		})({
 			fields: {
-				name: (upgrade) => upgrade.name,
-				slug: (upgrade) => upgrade.slug,
+				name: (upgrade) => upgrade.name ?? upgrade[EntityMetaKey.Selector].upgradeId,
+				slug: (upgrade) => upgrade.slug ?? upgrade[EntityMetaKey.Selector].upgradeId,
 				activationBlock: (upgrade) => upgrade.activationBlock,
 				activationTimestampMs: (upgrade) => upgrade.activationTimestampMs,
 				activationEpoch: (upgrade) => upgrade.activationEpoch,
-				$networkExecutionUpgrade: (upgrade) => upgrade.$networkExecutionUpgrade,
+				$networkExecutionUpgrade: (upgrade) => {
+					if (upgrade.$networkExecutionUpgrade == null)
+						throw new Error('Constants_Internal: NetworkUpgrade missing $networkExecutionUpgrade')
+
+					return {
+						[EntityMetaKey.Selector]: upgrade.$networkExecutionUpgrade[EntityMetaKey.Selector],
+					}
+				},
 				$networkConsensusUpgrade: (upgrade) => upgrade.$networkConsensusUpgrade,
-				$$proposals: (upgrade) => upgrade.$$proposals,
+				$$proposals: (upgrade) => upgrade.$$proposals.map((proposal) => ({
+					[EntityMetaKey.Selector]: proposal[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 
@@ -419,14 +435,19 @@ export default {
 				const networkExecutionUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[
 					`${$network.caip2.reference}:${upgradeId}`
 				]
+				if (networkExecutionUpgrade == null)
+					throw new Error(`Constants_Internal: ExecutionUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
 
-				return { ...networkExecutionUpgrade }
+				return {
+					...networkExecutionUpgrade,
+					$$proposals: networkExecutionUpgrade.$$proposals ?? [],
+				}
 			}
 			},
 		})({
 			fields: {
-				name: (upgrade) => upgrade.name,
-				slug: (upgrade) => upgrade.slug,
+				name: (upgrade) => upgrade.name ?? upgrade[EntityMetaKey.Selector].upgradeId,
+				slug: (upgrade) => upgrade.slug ?? upgrade[EntityMetaKey.Selector].upgradeId,
 				activationBlock: (upgrade) => upgrade.activationBlock,
 				activationTimestampMs: (upgrade) => upgrade.activationTimestampMs,
 				activationEpoch: (upgrade) => upgrade.activationEpoch,
@@ -437,7 +458,9 @@ export default {
 				linkExecutionDocs: (upgrade) => upgrade.linkExecutionDocs,
 				linkForkcast: (upgrade) => upgrade.linkForkcast,
 				executionSpecsPinnedMarkdownFilename: (upgrade) => upgrade.executionSpecsPinnedMarkdownFilename,
-				$$proposals: (upgrade) => upgrade.$$proposals,
+				$$proposals: (upgrade) => upgrade.$$proposals.map((proposal) => ({
+					[EntityMetaKey.Selector]: proposal[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 
@@ -451,14 +474,19 @@ export default {
 				const networkConsensusUpgrade = networkConsensusUpgradeByChainIdAndUpgradeId[
 					`${$network.caip2.reference}:${upgradeId}`
 				]
+				if (networkConsensusUpgrade == null)
+					throw new Error(`Constants_Internal: ConsensusUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
 
-				return { ...networkConsensusUpgrade }
+				return {
+					...networkConsensusUpgrade,
+					$$proposals: networkConsensusUpgrade.$$proposals ?? [],
+				}
 			}
 			},
 		})({
 			fields: {
-				name: (upgrade) => upgrade.name,
-				slug: (upgrade) => upgrade.slug,
+				name: (upgrade) => upgrade.name ?? upgrade[EntityMetaKey.Selector].upgradeId,
+				slug: (upgrade) => upgrade.slug ?? upgrade[EntityMetaKey.Selector].upgradeId,
 				activationBlock: (upgrade) => upgrade.activationBlock,
 				activationTimestampMs: (upgrade) => upgrade.activationTimestampMs,
 				activationEpoch: (upgrade) => upgrade.activationEpoch,
@@ -466,7 +494,9 @@ export default {
 				linkEthereumOrg: (upgrade) => upgrade.linkEthereumOrg,
 				linkConsensusDocs: (upgrade) => upgrade.linkConsensusDocs,
 				linkForkcast: (upgrade) => upgrade.linkForkcast,
-				$$proposals: (upgrade) => upgrade.$$proposals,
+				$$proposals: (upgrade) => upgrade.$$proposals.map((proposal) => ({
+					[EntityMetaKey.Selector]: proposal[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 
@@ -621,13 +651,13 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.CoinBridgeCapability,
 			resolve: {
-				[CoinBridgeCapabilitySelector.EvmCoinInstanceEvmCoinInstanceToolKey]: async ({ toolKey }) => {
+				[CoinBridgeCapabilitySelector.EvmCoinInstanceEvmCoinInstanceToolKey]: async ({ toolKey }): Promise<{ toolKey: string } & Omit<BridgeToolRow, 'key'>> => {
 				const coinBridgeCapabilityFields = bridgeToolByKey[toolKey]
 				if (coinBridgeCapabilityFields == null) {
 					throw new Error(`Constants_Internal: unknown LI.FI tool key ${toolKey}`)
 				}
 				return {
-					toolKey: toolKey,
+					toolKey: coinBridgeCapabilityFields.key,
 					...coinBridgeCapabilityFields,
 				}
 			}
@@ -700,39 +730,26 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async (entitySelector) => {
-					const network = (
-						'slug' in entitySelector ?
-							networkBySlug[entitySelector.slug]
-						:
-							networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-					)
-					if (network == null) {
-						throw new Error(`Constants_Internal: Network not found`)
-					}
-					return {
-						slug: network.slug,
-						name: network.name,
+					[NetworkSelector.Caip2]: async ({ caip2 }) => {
+						const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+							return {
+							slug: network.slug,
+							name: network.name,
 						...('caip2' in network && {
 							caip2: network.caip2,
 						}),
 						namespace: network.namespace,
 						environment: network.environment,
-					}
-				},
-				[NetworkSelector.Slug]: async (entitySelector) => {
-					const network = (
-						'slug' in entitySelector ?
-							networkBySlug[entitySelector.slug]
-						:
-							networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-					)
-					if (network == null) {
-						throw new Error(`Constants_Internal: Network not found`)
-					}
-					return {
-						slug: network.slug,
-						name: network.name,
+						}
+					},
+					[NetworkSelector.Slug]: async ({ slug }) => {
+						const network = networkBySlug[slug]
+						if (network == null)
+							throw new Error(`Constants_Internal: Network not found`)
+
+						return {
+							slug: network.slug,
+							name: network.name,
 						...('caip2' in network && {
 							caip2: network.caip2,
 						}),
@@ -754,7 +771,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
-				[NearNetworkSelector.NetworkSlug]: async ({ slug }) => {
+				[NearNetworkSelector.Slug]: async ({ slug }) => {
 				const network = networkBySlug[slug]
 				if (network == null) throw new Error('Constants_Internal: NearNetwork not found')
 				return {
@@ -785,7 +802,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async ({ slug }) => {
+				[ZeroGNetworkSelector.Slug]: async ({ slug }) => {
 				const network = networkBySlug[slug]
 				if (network == null) throw new Error('Constants_Internal: ZeroGNetwork not found')
 				return {
@@ -830,7 +847,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
-				[QuilibriumNetworkSelector.NetworkSlug]: async ({ slug }) => {
+				[QuilibriumNetworkSelector.Slug]: async ({ slug }) => {
 				const network = networkBySlug[slug]
 				if (network == null) throw new Error('Constants_Internal: QuilibriumNetwork not found')
 				return {
@@ -899,13 +916,13 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
-				[ElementsNetworkSelector.Network]: async (entitySelector) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
+					[ElementsNetworkSelector.Network]: async ({ $network }) => {
+					const network = (
+						'slug' in $network ?
+							networkBySlug[$network.slug]
+						:
+							networkByCaip2[`${$network.caip2.namespace}:${$network.caip2.reference}`]
+					)
 				if (network?.slug !== networkBySlug.liquid.slug)
 					throw new Error('Constants_Internal: unsupported Elements network')
 
@@ -917,7 +934,9 @@ export default {
 					},
 					$settlementNetwork: {
 						[EntityMetaKey.Selector]: {
-							slug: 'bitcoin',
+							$network: {
+								slug: 'bitcoin',
+							},
 						},
 					},
 					federationName: 'Liquid Federation',
@@ -964,12 +983,15 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.AssetInstance,
 			resolve: {
-				[AssetInstanceSelector.NetworkKindAssetKey]: async ({ assetKey, kind }) => ({
-				...(kind === AssetInstanceKind.Native && {
+				[AssetInstanceSelector.NetworkKindAssetKey]: async ({ assetKey, kind }) => {
+				if (kind !== AssetInstanceKind.Native)
+					throw new Error('Constants_Internal: AssetInstance name and symbol are native-only')
+
+				return {
 					name: assetKey,
 					symbol: assetKey,
-				}),
-			})
+				}
+			}
 			},
 		})({
 			fields: {
@@ -1322,31 +1344,20 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return undefined
-				const namespace: NetworkNamespace = network.namespace
-				return {
+					[NetworkSelector.Caip2]: async ({ caip2 }) => {
+					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+						const namespace: NetworkNamespace = network.namespace
+					return {
 					[EntityMetaKey.Selector]: {
 						networkStackId: networkStackIdByNamespace[namespace],
 					},
-				}
-				},
-[NetworkSelector.Slug]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return undefined
-				const namespace: NetworkNamespace = network.namespace
-				return {
+					}
+					},
+	[NetworkSelector.Slug]: async ({ slug }) => {
+					const network = networkBySlug[slug]
+					if (network == null) return undefined
+					const namespace: NetworkNamespace = network.namespace
+					return {
 					[EntityMetaKey.Selector]: {
 						networkStackId: networkStackIdByNamespace[namespace],
 					},
@@ -1362,7 +1373,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async ({ slug }) => {
+				[ZeroGNetworkSelector.Slug]: async ({ slug }) => {
 				const network = networkBySlug[slug]
 				if (network == null) return undefined
 				const namespace: NetworkNamespace = network.namespace
@@ -1382,7 +1393,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
-				[QuilibriumNetworkSelector.NetworkSlug]: async ({ slug }) => {
+				[QuilibriumNetworkSelector.Slug]: async ({ slug }) => {
 				const network = networkBySlug[slug]
 				if (network == null) return undefined
 				const namespace: NetworkNamespace = network.namespace
@@ -1402,31 +1413,19 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return []
-				const namespace: NetworkNamespace = network.namespace
-				return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
+					[NetworkSelector.Caip2]: async ({ caip2 }) => {
+					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+						const namespace: NetworkNamespace = network.namespace
+					return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
 					[EntityMetaKey.Selector]: {
 						executionEnvironmentId,
 					},
 				}))
-			},
-[NetworkSelector.Slug]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return []
-				const namespace: NetworkNamespace = network.namespace
-				return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
+				},
+	[NetworkSelector.Slug]: async ({ slug }) => {
+					const network = networkBySlug[slug]
+						const namespace: NetworkNamespace = network.namespace
+					return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
 					[EntityMetaKey.Selector]: {
 						executionEnvironmentId,
 					},
@@ -1442,10 +1441,9 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async ({ slug }) => {
+				[ZeroGNetworkSelector.Slug]: async ({ slug }) => {
 				const network = networkBySlug[slug]
-				if (network == null) return []
-				const namespace: NetworkNamespace = network.namespace
+						const namespace: NetworkNamespace = network.namespace
 				return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
 					[EntityMetaKey.Selector]: {
 						executionEnvironmentId,
@@ -1462,10 +1460,9 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
-				[QuilibriumNetworkSelector.NetworkSlug]: async ({ slug }) => {
+				[QuilibriumNetworkSelector.Slug]: async ({ slug }) => {
 				const network = networkBySlug[slug]
-				if (network == null) return []
-				const namespace: NetworkNamespace = network.namespace
+						const namespace: NetworkNamespace = network.namespace
 				return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
 					[EntityMetaKey.Selector]: {
 						executionEnvironmentId,
@@ -1482,31 +1479,20 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return []
-				const namespace: NetworkNamespace = network.namespace
-				return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
+					[NetworkSelector.Caip2]: async ({ caip2 }) => {
+					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+						const namespace: NetworkNamespace = network.namespace
+					return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
 					[EntityMetaKey.Selector]: {
 						consensusMechanismId,
 					},
 				}))
-			},
-[NetworkSelector.Slug]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return []
-				const namespace: NetworkNamespace = network.namespace
-				return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
+				},
+	[NetworkSelector.Slug]: async ({ slug }) => {
+					const network = networkBySlug[slug]
+					if (network == null) return []
+					const namespace: NetworkNamespace = network.namespace
+					return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
 					[EntityMetaKey.Selector]: {
 						consensusMechanismId,
 					},
@@ -1522,7 +1508,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async ({ slug }) => {
+				[ZeroGNetworkSelector.Slug]: async ({ slug }) => {
 				const network = networkBySlug[slug]
 				if (network == null) return []
 				const namespace: NetworkNamespace = network.namespace
@@ -1542,7 +1528,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
-				[QuilibriumNetworkSelector.NetworkSlug]: async ({ slug }) => {
+				[QuilibriumNetworkSelector.Slug]: async ({ slug }) => {
 				const network = networkBySlug[slug]
 				if (network == null) return []
 				const namespace: NetworkNamespace = network.namespace
@@ -1562,46 +1548,38 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return []
-				const namespace: NetworkNamespace = network.namespace
-				const coinId = nativeAssetCoinIdByNamespace[namespace]
-				if (coinId == null) return []
-				return [
-					{
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector,
-							kind: AssetInstanceKind.Native,
-							assetKey: coinId,
+					[NetworkSelector.Caip2]: async ({ caip2 }) => {
+					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+						const namespace: NetworkNamespace = network.namespace
+						const coinId = nativeAssetCoinIdByNamespace[namespace]
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$network: {
+									caip2,
+								},
+								kind: AssetInstanceKind.Native,
+								assetKey: coinId,
 						},
 						coinId,
 						symbol: coinId,
 					},
 				]
-			},
-[NetworkSelector.Slug]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return []
-				const namespace: NetworkNamespace = network.namespace
-				const coinId = nativeAssetCoinIdByNamespace[namespace]
+				},
+	[NetworkSelector.Slug]: async ({ slug }) => {
+					const network = networkBySlug[slug]
+					if (network == null) return []
+					const namespace: NetworkNamespace = network.namespace
+					const coinId = nativeAssetCoinIdByNamespace[namespace]
 				if (coinId == null) return []
 				return [
-					{
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector,
-							kind: AssetInstanceKind.Native,
-							assetKey: coinId,
+						{
+							[EntityMetaKey.Selector]: {
+								$network: {
+									slug,
+								},
+								kind: AssetInstanceKind.Native,
+								assetKey: coinId,
 						},
 						coinId,
 						symbol: coinId,
@@ -1618,28 +1596,16 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return []
-				return networkResourceUrlEntitySelectors(
+					[NetworkSelector.Caip2]: async ({ caip2 }) => {
+					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+						return networkResourceUrlEntitySelectors(
 					network.slug,
 					NetworkResourceKind.Faucet,
 				)
-			},
-[NetworkSelector.Slug]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return []
-				return networkResourceUrlEntitySelectors(
+				},
+	[NetworkSelector.Slug]: async ({ slug }) => {
+					const network = networkBySlug[slug]
+						return networkResourceUrlEntitySelectors(
 					network.slug,
 					NetworkResourceKind.Faucet,
 				)
@@ -1654,28 +1620,16 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return []
-				return networkResourceUrlEntitySelectors(
+					[NetworkSelector.Caip2]: async ({ caip2 }) => {
+					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+						return networkResourceUrlEntitySelectors(
 					network.slug,
 					NetworkResourceKind.BlockExplorer,
 				)
-			},
-[NetworkSelector.Slug]: async (entitySelector: EntitySelector<typeof schema, EntityType.Network>) => {
-				const network = (
-					'slug' in entitySelector ?
-						networkBySlug[entitySelector.slug]
-					:
-						networkByCaip2[`${entitySelector.caip2.namespace}:${entitySelector.caip2.reference}`]
-				)
-				if (network == null) return []
-				return networkResourceUrlEntitySelectors(
+				},
+	[NetworkSelector.Slug]: async ({ slug }) => {
+					const network = networkBySlug[slug]
+						return networkResourceUrlEntitySelectors(
 					network.slug,
 					NetworkResourceKind.BlockExplorer,
 				)
@@ -2452,10 +2406,10 @@ export default {
 				if (directProposals.length > 0) {
 					return directProposals
 				}
-				const umbrellaNetworkUpgrade = networkUpgrades.find((networkUpgrade) => (
-					networkUpgrade.$networkConsensusUpgrade?.[EntityMetaKey.Selector].$network.caip2.reference === entitySelector.$network.caip2.reference
-					&& networkUpgrade.$networkConsensusUpgrade[EntityMetaKey.Selector].upgradeId === entitySelector.upgradeId
-				))
+					const umbrellaNetworkUpgrade = networkUpgrades.find((networkUpgrade) => (
+						networkUpgrade.$networkConsensusUpgrade?.[EntityMetaKey.Selector].$network.caip2.reference === $network.caip2.reference
+						&& networkUpgrade.$networkConsensusUpgrade[EntityMetaKey.Selector].upgradeId === upgradeId
+					))
 				if (umbrellaNetworkUpgrade != null) {
 					if (umbrellaNetworkUpgrade.$networkExecutionUpgrade == null)
 						throw new Error(`Constants_Internal: NetworkUpgrade ${umbrellaNetworkUpgrade[EntityMetaKey.Selector].$network.caip2.reference}:${umbrellaNetworkUpgrade[EntityMetaKey.Selector].upgradeId} has no $networkExecutionUpgrade`)
@@ -2840,7 +2794,7 @@ export default {
 						:
 							[{
 							[EntityMetaKey.Selector]: {
-								$network: { caip2: entitySelector.caip2 },
+									$network: { caip2 },
 								address,
 							},
 						}]
@@ -2856,7 +2810,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async ({ slug }) => {
+				[ZeroGNetworkSelector.Slug]: async ({ slug }) => {
 				const network = networkBySlug[slug]
 				if (network == null) return []
 				const namespace: NetworkNamespace = network.namespace
@@ -2886,7 +2840,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
-				[QuilibriumNetworkSelector.NetworkSlug]: async ({ slug }) => {
+				[QuilibriumNetworkSelector.Slug]: async ({ slug }) => {
 				const network = networkBySlug[slug]
 				if (network == null) return []
 				const namespace: NetworkNamespace = network.namespace

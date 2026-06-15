@@ -6,7 +6,7 @@
 
 
 	// Functions
-	const entitySelector: EntitySelector<typeof schema, EntityType.FarcasterFeed> = {
+	const selector: EntitySelector<typeof schema, EntityType.FarcasterFeed> = {
 		variant: 'trending',
 	}
 

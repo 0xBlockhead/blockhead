@@ -2,7 +2,6 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { type } from 'arktype'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
@@ -32,7 +31,7 @@ export default {
 			resolve: {
 				[XUserSelector.Id]: async ({ id }, context) => {
 				const { getUser } = await import('$/sources/X/Rest/queries.ts')
-				const xUser = (await singleFlight(getUser)(context.publicEnv, id)).data
+				const xUser = (await getUser(context.publicEnv, id)).data
 				if (xUser == null) throw new Error('X_Rest: user not found')
 				const createdAt = Date.parse(xUser.created_at ?? '')
 				const websiteUrl = (
@@ -54,8 +53,11 @@ export default {
 				const name = optionalNonemptyString(xUser.name)
 				const description = optionalNonemptyString(xUser.description)
 				const location = optionalNonemptyString(xUser.location)
+				if (xUser.id != null && xUser.id !== id)
+					throw new Error(`X_Rest: user id mismatch ${xUser.id} !== ${id}`)
+
 				return {
-					id: xUser.id,
+					id,
 					...(username != null && { username }),
 					...(name != null && { name }),
 					...(description != null && { description }),
@@ -116,7 +118,7 @@ export default {
 			resolve: {
 				[XPostSelector.Id]: async ({ id }, context) => {
 				const { getTweet } = await import('$/sources/X/Rest/queries.ts')
-				const response = await singleFlight(getTweet)(context.publicEnv, id)
+				const response = await getTweet(context.publicEnv, id)
 				const tweet = response.data
 				if (tweet == null) throw new Error('X_Rest: post not found')
 				const mediaByKey = new Map(
@@ -205,7 +207,7 @@ export default {
 			resolve: {
 				[XUser_TimestampSelector.XUserTimestampMs]: async ({ $user: { id } }, context) => {
 				const { getUser } = await import('$/sources/X/Rest/queries.ts')
-				const user = (await singleFlight(getUser)(context.publicEnv, id)).data
+				const user = (await getUser(context.publicEnv, id)).data
 				if (user == null) throw new Error('X_Rest: user not found')
 				return {
 					followerCount: user.public_metrics?.followers_count,
@@ -229,7 +231,7 @@ export default {
 			resolve: {
 				[XPost_TimestampSelector.XPostTimestampMs]: async ({ $post }, context) => {
 				const { getTweet } = await import('$/sources/X/Rest/queries.ts')
-				const tweet = (await singleFlight(getTweet)(context.publicEnv, $post.id)).data
+				const tweet = (await getTweet(context.publicEnv, $post.id)).data
 				if (tweet == null) throw new Error('X_Rest: post not found')
 				return {
 					likeCount: tweet.public_metrics?.like_count,
@@ -254,7 +256,7 @@ export default {
 				[XNetworkSelector.Scope]: async (_entitySelector, context) => {
 				const { searchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
-				const tweetSearchResponse = await singleFlight(searchRecentTweets)(context.publicEnv, limit)
+				const tweetSearchResponse = await searchRecentTweets(context.publicEnv, limit)
 				return [
 					...(tweetSearchResponse.includes?.users ?? [])
 						.flatMap((user) => {
@@ -288,7 +290,7 @@ export default {
 				const { searchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(searchRecentTweets)(context.publicEnv, limit)).data ?? [])
+					((await searchRecentTweets(context.publicEnv, limit)).data ?? [])
 						.flatMap((wirePost) => (
 							wirePost.id == null ?
 								[]
@@ -311,7 +313,7 @@ export default {
 			resolve: {
 				[XPostSelector.Id]: async (entitySelector, context) => {
 				const { getTweet } = await import('$/sources/X/Rest/queries.ts')
-				const tweet = (await singleFlight(getTweet)(context.publicEnv, entitySelector.id)).data
+				const tweet = (await getTweet(context.publicEnv, entitySelector.id)).data
 				if (tweet == null) throw new Error('X_Rest: post not found')
 				return [
 					{
@@ -338,12 +340,14 @@ export default {
 			resolve: {
 				[XUserSelector.Id]: async ({ id }, context) => {
 				const { getUser } = await import('$/sources/X/Rest/queries.ts')
-				const user = (await singleFlight(getUser)(context.publicEnv, id)).data
+				const user = (await getUser(context.publicEnv, id)).data
 				if (user == null) throw new Error('X_Rest: user not found')
 				return [
 					{
 						[EntityMetaKey.Selector]: {
-							$user: entitySelector,
+							$user: {
+								id,
+							},
 							timestampMs: Date.now(),
 						},
 						followerCount: user.public_metrics?.followers_count,
@@ -366,7 +370,7 @@ export default {
 				[XUserSelector.Id]: async ({ id }, context) => {
 				const { listUserTweets } = await import('$/sources/X/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
-				const { data = [] } = await singleFlight(listUserTweets)(context.publicEnv, id, limit)
+				const { data = [] } = await listUserTweets(context.publicEnv, id, limit)
 				return (
 					data
 						.flatMap((wirePost) => (

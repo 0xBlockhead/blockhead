@@ -5,7 +5,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { BitcoinCashBcmrMetadataSelector } from '$/schema/BitcoinCashBcmrMetadata.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string } | { slug: string }
 
 const assertBitcoinCashMainnet = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'bip122' || network.caip2.reference !== '000000000000000000651ef99cb9fcbe') {

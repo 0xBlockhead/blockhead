@@ -35,7 +35,7 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{@const entitySelector = network.fields.caip2 == null ?
+			{@const selector = network.fields.caip2 == null ?
 				{ networkSlug: network.fields.slug }
 			:
 				{ caip2: network.fields.caip2 }}

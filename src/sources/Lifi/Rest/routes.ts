@@ -18,7 +18,7 @@ import type {
 } from '$/sources/Lifi/Rest/types.ts'
 type BridgeRouteQuoteId = EntitySelector<typeof schema, EntityType.BridgeRoute>
 
-type BridgeRouteStepFields = ReturnType<typeof bridgeRouteStepEntityFieldsFromLifiQuoteStep>
+export type BridgeRouteStepFields = ReturnType<typeof bridgeRouteStepEntityFieldsFromLifiQuoteStep>
 
 export type BridgeRouteResolverBundle = {
 	routeFields: {
@@ -41,7 +41,7 @@ const bridgeRouteQuoteIdToRequest = (
 	toChain: quoteId.toChainId,
 	fromToken: quoteId.fromToken,
 	toToken: quoteId.toToken,
-	fromAmount: quoteId.fromAmount,
+	fromAmount: String(quoteId.fromAmount),
 	fromAddress: quoteId.fromAddress,
 	slippage: quoteId.slippage,
 	toAddress: quoteId.toAddress,
@@ -110,7 +110,7 @@ const bridgeRouteBundleFromQuoteStep = (
 	const fromAmount = parseLifiQuoteAmountBigInt(
 		step.action.fromAmount,
 		'from',
-		quoteId.fromAmount,
+		String(quoteId.fromAmount),
 	)
 	const toAmount = parseLifiQuoteAmountBigInt(
 		step.estimate?.toAmount

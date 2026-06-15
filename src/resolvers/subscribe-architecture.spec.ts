@@ -16,17 +16,6 @@ import {
 	join,
 } from 'node:path'
 
-import {
-	EntityFieldCardinality,
-	entityFieldDefinitions,
-} from '$/schema/$schema.ts'
-import {
-	indexResolvers,
-} from '$/resolvers/$resolvers.ts'
-import type { ResolverContext } from '$/resolvers/$resolvers.ts'
-import type { Schema } from '$/schema/$schema.ts'
-import { indexSourceProviders } from '$/sources/$sources.ts'
-
 
 const srcPath = join(
 	process.cwd(),
@@ -52,39 +41,11 @@ const sourceFiles = (
 )
 
 const scannedSourceFiles = sourceFiles(srcPath)
-
-let resolverRegistry: (
-	ReturnType<typeof indexResolvers<Schema, string, ResolverContext>>
-	& {
-		readonly entityDefinitionByType: Awaited<typeof import('$/schema/index.ts')>['entityDefinitionByType']
-	}
-) | undefined
-
-const getResolverRegistry = async () => {
-	if (resolverRegistry != null)
-		return resolverRegistry
-
-	const [
-		{ env: publicEnv },
-		{ entityDefinitionByType, schema },
-		{ resolvers },
-		{ sourceProviders },
-	] = await Promise.all([
-		import('$env/dynamic/public'),
-		import('$/schema/index.ts'),
-		import('$/resolvers/index.ts'),
-		import('$/sources/index.ts'),
-	])
-	resolverRegistry = {
-		...indexResolvers(
-		schema,
-		resolvers,
-		indexSourceProviders(sourceProviders, publicEnv).enabledSources,
-		),
-		entityDefinitionByType,
-	}
-	return resolverRegistry
-}
+const scannedSourceByFilePath = Object.fromEntries(scannedSourceFiles.map((filePath) => [
+	filePath,
+	readFileSync(filePath, 'utf8'),
+]))
+const scannedSource = Object.values(scannedSourceByFilePath).join('\n')
 
 describe('client resolver architecture', () => {
 	it('exposes only the strict Resolver Context shape to real resolvers', () => {
@@ -117,7 +78,7 @@ describe('client resolver architecture', () => {
 			join(srcPath, 'resolvers', '$resolvers.ts'),
 			join(srcPath, 'client', '$client.svelte.ts'),
 		]) {
-			const source = readFileSync(filePath, 'utf8')
+			const source = scannedSourceByFilePath[filePath]
 
 			expect(source, filePath).not.toMatch(/\$\/schema\/(?:index|EntityType)\.ts/)
 			expect(source, filePath).not.toMatch(/\$\/sources\/(?:index|Source)\.ts/)
@@ -156,7 +117,7 @@ describe('client resolver architecture', () => {
 			join(srcPath, 'components', 'ResourceBoundary.svelte'),
 			join(srcPath, 'lib', 'db', 'queryResource.svelte.ts'),
 		]) {
-			const source = readFileSync(filePath, 'utf8')
+			const source = scannedSourceByFilePath[filePath]
 
 			expect(source, filePath).not.toMatch(broadAnyPattern)
 			expect(source, filePath).not.toMatch(anyAnnotationPattern)
@@ -164,27 +125,38 @@ describe('client resolver architecture', () => {
 	})
 
 	it('does not retain field-specific resolver definition entry points', () => {
-		const source = scannedSourceFiles
-			.map((filePath) => readFileSync(filePath, 'utf8'))
-			.join('\n')
-
-		expect(source).not.toMatch(/\bdefineEntity(?:Field|FieldCount|Live)?Resolver\b/)
-		expect(source).not.toMatch(/\buseEntityField(?:Count)?\b/)
-		expect(source).not.toMatch(/\baccepts:\s*\[/)
-		expect(source).not.toMatch(/\bacceptsParent\b/)
-		expect(source).not.toMatch(/\bresolver\.accepts\b/)
-		expect(source).not.toMatch(/\bresolver\.resolve\(/)
+		expect(scannedSource).not.toMatch(/\bdefineEntity(?:Field|FieldCount|Live)?Resolver\b/)
+		expect(scannedSource).not.toMatch(/\buseEntityField(?:Count)?\b/)
+		expect(scannedSource).not.toMatch(/\baccepts:\s*\[/)
+		expect(scannedSource).not.toMatch(/\bacceptsParent\b/)
+		expect(scannedSource).not.toMatch(/\bresolver\.accepts\b/)
+		expect(scannedSource).not.toMatch(/\bresolver\.resolve\(/)
 	})
 
 	it('does not retain legacy Resolver Context compatibility aliases', () => {
-		const source = scannedSourceFiles
-			.map((filePath) => readFileSync(filePath, 'utf8'))
-			.join('\n')
+		expect(scannedSource).not.toMatch(/\bcontext\.(?:filters|sorts|limit)\b/)
+		expect(scannedSource).not.toMatch(/\bfilters: subsetBase\.filters\b/)
+		expect(scannedSource).not.toMatch(/\bsorts: subsetBase\.sorts\b/)
+		expect(scannedSource).not.toMatch(new RegExp(`\\bpublicEnv:\\s*${String.fromCharCode(97, 110, 121)}\\b`))
+	})
 
-		expect(source).not.toMatch(/\bcontext\.(?:filters|sorts|limit)\b/)
-		expect(source).not.toMatch(/\bfilters: subsetBase\.filters\b/)
-		expect(source).not.toMatch(/\bsorts: subsetBase\.sorts\b/)
-		expect(source).not.toMatch(new RegExp(`\\bpublicEnv:\\s*${String.fromCharCode(97, 110, 121)}\\b`))
+	it('does not retain private product load request structs', () => {
+		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
+
+		expect(clientSource).not.toMatch(/\btype\s+\w*LoadRequest\b/)
+		expect(clientSource).not.toMatch(/\binterface\s+\w*LoadRequest\b/)
+	})
+
+	it('keeps persisted Product Data schema version explicit at the app persistence edge', () => {
+		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
+		const layoutSource = scannedSourceByFilePath[join(srcPath, 'routes', '+layout.svelte')]
+		const persistenceSource = scannedSourceByFilePath[join(srcPath, 'constants', 'Persistence.ts')]
+
+		expect(persistenceSource).toMatch(/\bBLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION\b/)
+		expect(clientSource).not.toMatch(/schemaVersion\s*=\s*1/)
+		expect(clientSource).toMatch(/schemaVersion:\s*number/)
+		expect(layoutSource).toMatch(/\bBLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION\b/)
+		expect(layoutSource).toMatch(/schemaVersion:\s*BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION/)
 	})
 
 	it('keeps Solana block selector support on explicit selector resolver branches', () => {
@@ -192,7 +164,7 @@ describe('client resolver architecture', () => {
 			join(srcPath, 'resolvers', 'Solana-JsonRpc.ts'),
 			join(srcPath, 'resolvers', 'ThreeXpl-Rest.ts'),
 		]
-			.map((filePath) => readFileSync(filePath, 'utf8'))
+			.map((filePath) => scannedSourceByFilePath[filePath])
 			.join('\n')
 
 		expect(source).not.toMatch(/SolanaBlock(?:\.\$\$transactions)? blockHash lookup is unsupported/)
@@ -200,12 +172,36 @@ describe('client resolver architecture', () => {
 		expect(source).not.toMatch(/\[SolanaBlockSelector\.Slot\]: async \(entitySelector\)/)
 	})
 
+	it('does not keep false alternate-selector resolver branches', () => {
+		const source = [
+			join(srcPath, 'resolvers', 'Fedi-Rest.ts'),
+			join(srcPath, 'resolvers', 'Mastodon-Rest.ts'),
+			join(srcPath, 'resolvers', 'Neynar-Rest.ts'),
+			join(srcPath, 'resolvers', 'Lens-Graphql.ts'),
+			join(srcPath, 'resolvers', 'Snapchain-Rest.ts'),
+			join(srcPath, 'resolvers', 'Constants.ts'),
+		]
+			.map((filePath) => scannedSourceByFilePath[filePath])
+			.join('\n')
+
+		expect(source).not.toMatch(/ActivityPubActor_Timestamp acct lookup is unsupported/)
+		expect(source).not.toMatch(/Lens_Graphql: LensAccount\.\$\$posts lookup id is unsupported/)
+		expect(source).not.toMatch(/'address' in entitySelector/)
+		expect(source).not.toMatch(/Source\.Neynar_Rest[\s\S]*\[FarcasterCastSelector\.UsernameHashPrefix\]/)
+		expect(source).not.toMatch(/Source\.Snapchain_Rest[\s\S]*\[FarcasterCastSelector\.Hash\]/)
+		expect(source).not.toMatch(/Snapchain_Rest: cast timestamps require cast fid and hash/)
+		expect(source).not.toMatch(/'slug' in entitySelector/)
+		expect(source).not.toMatch(/networkBySlug\[entitySelector\.slug\]/)
+	})
+
 	it('binds every resolver declaration to its module Source', () => {
-		for (const filePath of sourceFiles(join(srcPath, 'resolvers')).filter((path) => (
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			&&
 			basename(path) !== '$resolvers.ts'
 			&& basename(path) !== 'index.ts'
 		))) {
-			const source = readFileSync(filePath, 'utf8')
+			const source = scannedSourceByFilePath[filePath]
 			const defineResolverCalls = [...source.matchAll(/\bdefineResolver\(/g)]
 			if (defineResolverCalls.length === 0)
 				continue
@@ -223,69 +219,78 @@ describe('client resolver architecture', () => {
 		}
 	})
 
-	it('materializes resolver definitions with primary resolve functions', async () => {
-		const { resolverDefinitions } = await getResolverRegistry()
+	it('keeps resolver and source modules free of single-flight caches', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			|| path.startsWith(join(srcPath, 'sources'))
+		))) {
+			const source = scannedSourceByFilePath[filePath]
 
-		expect(resolverDefinitions.length).toBeGreaterThan(0)
-
-		for (const resolver of resolverDefinitions) {
-			expect(Object.keys(resolver.resolve).length).toBeGreaterThan(0)
-			expect(Object.values(resolver.resolve).every((resolve) => typeof resolve === 'function')).toBe(true)
+			expect(source, filePath).not.toMatch(/\bsingleFlight\b/)
+			expect(source, filePath).not.toMatch(/\$\/lib\/singleFlight\.ts/)
 		}
-		expect(resolverDefinitions.some((resolver) => Object.keys(resolver.resolve).length > 1)).toBe(true)
-	}, 120_000)
+	})
 
-	it('materializes value facets with source and entity identity from their resolver', async () => {
-		const { resolverValuePartsByEntityTypeAndFieldName } = await getResolverRegistry()
+	it('keeps provider instance caches out of generic lib modules', () => {
+		expect(scannedSourceByFilePath[join(srcPath, 'lib', 'voltaire.ts')]).toBeUndefined()
+		for (const filePath of scannedSourceFiles.filter((path) => path.startsWith(join(srcPath, 'lib')))) {
+			const source = scannedSourceByFilePath[filePath]
 
-		expect(Object.values(resolverValuePartsByEntityTypeAndFieldName).flat().length).toBeGreaterThan(0)
-
-		for (const part of Object.values(resolverValuePartsByEntityTypeAndFieldName).flat()) {
-			expect(part.select).toBeDefined()
-			expect(part.resolver.entityType).toBe(part.entityType)
-			expect(part.resolver.source).toBe(part.source)
+			expect(source, filePath).not.toMatch(/@tevm\/voltaire\/provider/)
+			expect(source, filePath).not.toMatch(/\bnew Map<string,\s*Provider>\b/)
 		}
-	}, 120_000)
+	})
 
-	it('only registers count resolvers for multiple-cardinality fields', async () => {
-		const {
-			entityDefinitionByType,
-			resolverCountPartsByEntityTypeAndFieldName,
-		} = await getResolverRegistry()
+	it('keeps source query and constants imports inside resolver resolve functions', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			&& basename(path) !== '$resolvers.ts'
+			&& basename(path) !== 'index.ts'
+		))) {
+			const source = scannedSourceByFilePath[filePath]
 
-		for (const parts of Object.values(resolverCountPartsByEntityTypeAndFieldName)) {
-			expect(parts.length).toBeGreaterThan(0)
-			expect([
-				EntityFieldCardinality.Many,
-				EntityFieldCardinality.ZeroOrMany,
-			]).toContain(
-				entityFieldDefinitions(entityDefinitionByType[parts[0].entityType]).find((field) => (
-					field.name === parts[0].fieldName
-				))?.cardinality,
+			expect(source, filePath).not.toMatch(
+				/^import\s+(?!type\b)[\s\S]*?from ['"]\$\/sources\/.*\/(?:queries|constants)\.ts['"]/m,
 			)
 		}
-	}, 120_000)
+	})
 
-	it('materializes resolver parts with typed entity and field identity', async () => {
-		const { resolverParts } = await getResolverRegistry()
+	it('keeps resolver and source env reads behind source registry and resolver context', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			|| path.startsWith(join(srcPath, 'sources'))
+		))) {
+			const relativePath = filePath.slice(srcPath.length + 1)
+			if (
+				relativePath === 'sources/index.ts'
+				|| relativePath === 'sources/$sources.ts'
+			)
+				continue
 
-		expect(resolverParts.length).toBeGreaterThan(0)
-		expect(resolverParts.every((part) => part.entityType.length > 0 && part.fieldName.length > 0)).toBe(true)
-	}, 120_000)
+			const source = scannedSourceByFilePath[filePath]
+
+			expect(source, filePath).not.toMatch(/\bimport\.meta\.env\b/)
+			expect(source, filePath).not.toMatch(/\$env\/dynamic/)
+		}
+	})
+
+	it('keeps source HTTP CORS policy on provider origins instead of source call sites', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'sources'))
+			&& !/(?:^|\/)index\.ts$/.test(path)
+			&& !/(?:^|\/)constants\.ts$/.test(path)
+		))) {
+			const source = scannedSourceByFilePath[filePath]
+
+			expect(source, filePath).not.toMatch(/\{\s*corsEnabled:/)
+			expect(source, filePath).not.toMatch(/\?\s*\{\s*origins:[\s\S]*:\s*\{\s*corsEnabled:/)
+		}
+	})
 
 	it('does not dispatch collection behavior by splitting string collection ids', () => {
-		const clientSource = readFileSync(
-			join(srcPath, 'client', '$client.svelte.ts'),
-			'utf8',
-		)
-		const resolverSource = readFileSync(
-			join(srcPath, 'resolvers', '$resolvers.ts'),
-			'utf8',
-		)
-		const architectureSource = readFileSync(
-			join(srcPath, 'resolvers', 'subscribe-architecture.spec.ts'),
-			'utf8',
-		)
+		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
+		const resolverSource = scannedSourceByFilePath[join(srcPath, 'resolvers', '$resolvers.ts')]
+		const architectureSource = readFileSync(join(srcPath, 'resolvers', 'subscribe-architecture.spec.ts'), 'utf8')
 
 		expect(clientSource).toContain("kind: 'Entity'")
 		expect(clientSource).toContain("kind: 'Field'")
@@ -297,19 +302,13 @@ describe('client resolver architecture', () => {
 	})
 
 	it('does not expose field-specific count query APIs', () => {
-		const queryPipeline = readFileSync(
-			join(srcPath, 'client', '$client.svelte.ts'),
-			'utf8',
-		)
+		const queryPipeline = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
 
 		expect(queryPipeline).not.toMatch(/\bexport const useEntityField(?:Count)?\b/)
 	})
 
 	it('does not perform raw collection writes during collection setup', () => {
-		const clientSource = readFileSync(
-			join(srcPath, 'client', '$client.svelte.ts'),
-			'utf8',
-		)
+		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
 		const collectionSetupSource = clientSource.slice(
 			clientSource.indexOf('export const createCollections ='),
 			clientSource.indexOf('const isDeclarativeFieldOrderBy ='),
@@ -319,10 +318,7 @@ describe('client resolver architecture', () => {
 	})
 
 	it('keeps raw collection writes inside live publisher and local mutation boundaries', () => {
-		const clientSource = readFileSync(
-			join(srcPath, 'client', '$client.svelte.ts'),
-			'utf8',
-		)
+		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
 		const liveWriteSource = clientSource.slice(
 			clientSource.indexOf('const replaceFieldRows ='),
 			clientSource.indexOf('const parts ='),
@@ -331,7 +327,7 @@ describe('client resolver architecture', () => {
 		expect(liveWriteSource).toMatch(/\butils\.write(?:Upsert|Delete)\b/)
 
 		for (const filePath of scannedSourceFiles) {
-			const source = readFileSync(filePath, 'utf8')
+			const source = scannedSourceByFilePath[filePath]
 			if (!/\butils\.write(?:Upsert|Delete)\b|\b(?:entityCollectionByEntityType|entityFieldCollections|entityFieldCountCollections)\b[\s\S]{0,120}\.delete\(/.test(source))
 				continue
 
@@ -344,7 +340,7 @@ describe('client resolver architecture', () => {
 
 	it('keeps entity-list membership and windowing inside subscribe selection load options', () => {
 		for (const filePath of scannedSourceFiles.filter((sourceFilePath) => sourceFilePath.startsWith(join(srcPath, 'views')))) {
-			const viewSource = readFileSync(filePath, 'utf8')
+			const viewSource = scannedSourceByFilePath[filePath]
 
 			expect(viewSource, filePath).not.toMatch(/\.slice\(0, limit\)/)
 			expect(viewSource, filePath).not.toMatch(/\((?:parent|network)\[entityFieldReference\.fieldName\] \?\? \[\]\)\.slice\(/)
@@ -361,7 +357,7 @@ describe('client resolver architecture', () => {
 			...scannedSourceFiles.filter((sourceFilePath) => sourceFilePath.startsWith(join(srcPath, 'routes'))),
 		]) {
 			const relativePath = filePath.slice(srcPath.length + 1)
-			const source = readFileSync(filePath, 'utf8')
+			const source = scannedSourceByFilePath[filePath]
 
 			if (
 				relativePath !== 'routes/+layout.svelte'
@@ -383,7 +379,7 @@ describe('client resolver architecture', () => {
 			...scannedSourceFiles.filter((sourceFilePath) => sourceFilePath.startsWith(join(srcPath, 'routes'))),
 		]) {
 			const relativePath = filePath.slice(srcPath.length + 1)
-			const source = readFileSync(filePath, 'utf8')
+			const source = scannedSourceByFilePath[filePath]
 
 			if (
 				relativePath !== 'routes/+layout.svelte'
@@ -396,17 +392,25 @@ describe('client resolver architecture', () => {
 		}
 	})
 
-	it('keeps conditional and live resolver registration explicit in the real registry', async () => {
-		const {
-			resolverDiscriminatorPartsByEntityTypeAndConditionKey,
-			resolverLivePartsByEntityTypeAndFieldName,
-			resolverRootLivePartsByEntityType,
-		} = await getResolverRegistry()
+	it('keeps route-local selector bindings aligned with selector props', () => {
+		for (const filePath of scannedSourceFiles.filter((sourceFilePath) => (
+			sourceFilePath.startsWith(join(srcPath, 'routes'))
+			&& sourceFilePath.endsWith('.svelte')
+		))) {
+			const source = scannedSourceByFilePath[filePath]
 
-		expect(Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey).flat().length).toBeGreaterThan(0)
-		expect(
-			Object.values(resolverLivePartsByEntityTypeAndFieldName).flat().length
-			+ Object.values(resolverRootLivePartsByEntityType).flat().length,
-		).toBeGreaterThan(0)
-	}, 120_000)
+			if (!/\bentitySelector\b/.test(source))
+				continue
+
+			expect(source, filePath).not.toMatch(/\bselector=\{selector\}/)
+			expect(source, filePath).not.toMatch(/\$network:\s*selector\b/)
+		}
+	})
+
+	it('does not export legacy raw Product Data collection aliases from app layout', () => {
+		expect(scannedSourceByFilePath[join(srcPath, 'routes', '+layout.svelte')]).not.toMatch(
+			/\bexport const entity(?:CollectionByEntityType|FieldCollections|FieldCountCollections|CollectionsQueryClient)\b/,
+		)
+	})
+
 })

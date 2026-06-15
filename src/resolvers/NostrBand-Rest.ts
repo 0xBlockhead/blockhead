@@ -3,7 +3,6 @@ import { nostrNetworkSeedRelays } from '$/constants/Social/Nostr.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import {
 	optionalTimestampMs,
@@ -222,34 +221,38 @@ const articleRefFromEvent = (event: NostrEvent) => (
 const profileFieldValuesFromMetadata = (
 	metadata: NostrProfileMetadata | undefined,
 	profileEvent: NostrEvent | undefined,
-) => ({
-	...(normalizePubkey(profileEvent?.pubkey) != null && {
-		pubkey: normalizePubkey(profileEvent?.pubkey),
-	}),
-	displayName: optionalNonemptyString(metadata?.display_name ?? metadata?.name),
-	about: optionalNonemptyString(metadata?.about),
-	nip05: optionalNonemptyString(metadata?.nip05),
-	lud16: optionalNonemptyString(metadata?.lud16),
-	lud06: optionalNonemptyString(metadata?.lud06),
-	website: optionalNonemptyString(metadata?.website),
-	...(timestampMsFromUnixSeconds(profileEvent?.created_at) != null && {
-		metadataUpdatedAt: timestampMsFromUnixSeconds(profileEvent?.created_at),
-	}),
-	...((
-		iconMedia,
-	) => (
-		iconMedia != null && {
-			$icon: iconMedia,
-		}
-	))(mediaFromUrl(optionalNonemptyString(metadata?.picture), MediaType.Image)),
-	...((
-		bannerMedia,
-	) => (
-		bannerMedia != null && {
-			$banner: bannerMedia,
-		}
-	))(mediaFromUrl(optionalNonemptyString(metadata?.banner), MediaType.Image)),
-})
+) => {
+	const pubkey = normalizePubkey(profileEvent?.pubkey)
+	if (pubkey == null)
+		throw new Error('NostrBand_Rest: invalid profile pubkey')
+
+	return {
+		pubkey,
+		displayName: optionalNonemptyString(metadata?.display_name ?? metadata?.name),
+		about: optionalNonemptyString(metadata?.about),
+		nip05: optionalNonemptyString(metadata?.nip05),
+		lud16: optionalNonemptyString(metadata?.lud16),
+		lud06: optionalNonemptyString(metadata?.lud06),
+		website: optionalNonemptyString(metadata?.website),
+		...(timestampMsFromUnixSeconds(profileEvent?.created_at) != null && {
+			metadataUpdatedAt: timestampMsFromUnixSeconds(profileEvent?.created_at),
+		}),
+		...((
+			iconMedia,
+		) => (
+			iconMedia != null && {
+				$icon: iconMedia,
+			}
+		))(mediaFromUrl(optionalNonemptyString(metadata?.picture), MediaType.Image)),
+		...((
+			bannerMedia,
+		) => (
+			bannerMedia != null && {
+				$banner: bannerMedia,
+			}
+		))(mediaFromUrl(optionalNonemptyString(metadata?.banner), MediaType.Image)),
+	}
+}
 
 const noteFieldValuesFromEvent = (event: NostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
@@ -294,12 +297,12 @@ const repostFieldValuesFromEvent = (event: NostrEvent) => {
 	if (!isNostrRepostKind(kind)) throw new Error('NostrBand_Rest: not a repost event')
 	const eventPubkey = normalizePubkey(event.pubkey)
 	if (eventPubkey == null) throw new Error('NostrBand_Rest: invalid event pubkey')
+	const eventId = normalizeEventId(String(event.id))
+	if (eventId == null) throw new Error('NostrBand_Rest: invalid repost event id')
 	const repostedArticle = articleRefFromAddressableCoordinate(tagValueFromTags(event.tags, 'a'))
 	return (
 		((repostedEventId) => ({
-			...(normalizeEventId(String(event.id)) != null && {
-				eventId: normalizeEventId(String(event.id)),
-			}),
+			eventId,
 			kind,
 			pubkey: eventPubkey,
 			...(event.tags != null && { tags: event.tags }),
@@ -353,12 +356,15 @@ const repostFieldValuesFromTargetEvent = (
 const reactionFieldValuesFromEvent = (event: NostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
 	if (eventPubkey == null) throw new Error('NostrBand_Rest: invalid event pubkey')
+	const eventId = normalizeEventId(String(event.id))
+	if (eventId == null) throw new Error('NostrBand_Rest: invalid reaction event id')
 	const targetArticle = articleRefFromAddressableCoordinate(tagValueFromTags(event.tags, 'a'))
 	const targetEventId = reactionTargetEventIdFromTags(event.tags)
+	if (targetArticle == null && targetEventId == null)
+		throw new Error('NostrBand_Rest: reaction missing target event id')
+
 	return {
-		...(normalizeEventId(String(event.id)) != null && {
-			eventId: normalizeEventId(String(event.id)),
-		}),
+		eventId,
 		kind: 7,
 		pubkey: eventPubkey,
 		...(event.tags != null && { tags: event.tags }),
@@ -423,13 +429,15 @@ const articlePublishedAtMs = (event: NostrEvent) => (
 const articleFieldValuesFromEvent = (event: NostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
 	if (eventPubkey == null) throw new Error('NostrBand_Rest: invalid event pubkey')
+	const identifier = tagValueFromTags(event.tags, 'd')
+	if (identifier == null)
+		throw new Error('NostrBand_Rest: article missing identifier')
+
 	return (
 		((publishedAt) => ({
 			kind: 30023,
 			pubkey: eventPubkey,
-			...(tagValueFromTags(event.tags, 'd') != null && {
-				identifier: tagValueFromTags(event.tags, 'd'),
-			}),
+			identifier,
 			title: optionalNonemptyString(tagValueFromTags(event.tags, 'title')),
 			summary: optionalNonemptyString(tagValueFromTags(event.tags, 'summary')),
 			imageUrl: optionalNonemptyString(tagValueFromTags(event.tags, 'image')),
@@ -586,7 +594,7 @@ export default {
 			resolve: {
 				[NostrProfileSelector.CanonicalPubkey]: async ({ pubkey }, context) => {
 				const { getProfileByPubkey } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const profileWire = await singleFlight(getProfileByPubkey)(pubkey)
+				const profileWire = await getProfileByPubkey(pubkey)
 				const metadata = profileMetadataFromProfileWire(profileWire)
 				if (metadata == null && profileWire.profile == null) {
 					throw new Error('NostrBand_Rest: profile not found')
@@ -617,7 +625,7 @@ export default {
 			resolve: {
 				[NostrNoteSelector.CanonicalEventId]: async ({ eventId: eventIdSelector }, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const event = eventFromWire(await singleFlight(getEventById)(eventIdSelector))
+				const event = eventFromWire(await getEventById(eventIdSelector))
 				if (event == null || event.kind !== 1) {
 					throw new Error('NostrBand_Rest: note not found')
 				}
@@ -653,7 +661,7 @@ export default {
 					throw new Error('NostrBand_Rest: relay url invalid')
 				}
 				const relay = (
-					((await singleFlight(listTopRelays)(100)).relays ?? [])
+					((await listTopRelays(100)).relays ?? [])
 						.find((relay) => relayUrlFromWire(relay) === relayUrl)
 				)
 				if (relay != null) {
@@ -666,6 +674,12 @@ export default {
 				) {
 					return {
 						name: relayUrl.replace(/^wss:\/\//i, ''),
+						description: undefined,
+						software: undefined,
+						version: undefined,
+						supportedNipCount: undefined,
+						isPaid: undefined,
+						limit: undefined,
 					}
 				}
 				throw new Error('NostrBand_Rest: relay not found')
@@ -688,7 +702,7 @@ export default {
 			resolve: {
 				[NostrRepostSelector.CanonicalEventId]: async ({ eventId: eventIdSelector }, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const event = eventFromWire(await singleFlight(getEventById)(eventIdSelector))
+				const event = eventFromWire(await getEventById(eventIdSelector))
 				if (event == null || !isNostrRepostKind(event.kind)) {
 					throw new Error('NostrBand_Rest: repost not found')
 				}
@@ -701,7 +715,7 @@ export default {
 				const targetEventId = values.$repostedNote[EntityMetaKey.Selector].eventId
 				return repostFieldValuesFromTargetEvent(
 					values,
-					eventFromWire(await singleFlight(getEventById)(targetEventId)),
+					eventFromWire(await getEventById(targetEventId)),
 				)
 			}
 			},
@@ -724,7 +738,7 @@ export default {
 			resolve: {
 				[NostrReactionSelector.CanonicalEventId]: async ({ eventId: eventIdSelector }, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const event = eventFromWire(await singleFlight(getEventById)(eventIdSelector))
+				const event = eventFromWire(await getEventById(eventIdSelector))
 				if (event == null || event.kind !== 7) {
 					throw new Error('NostrBand_Rest: reaction not found')
 				}
@@ -737,7 +751,7 @@ export default {
 				const targetEventId = values.$targetNote[EntityMetaKey.Selector].eventId
 				return reactionFieldValuesFromTargetEvent(
 					values,
-					eventFromWire(await singleFlight(getEventById)(targetEventId)),
+					eventFromWire(await getEventById(targetEventId)),
 				)
 			}
 			},
@@ -767,7 +781,7 @@ export default {
 				}
 				const limit = resolverContextRowLimit(context)
 				const event = (
-					((await singleFlight(listAuthorArticles)(pubkey, limit)).events ?? [])
+					((await listAuthorArticles(pubkey, limit)).events ?? [])
 						.find((noteEvent) => (
 								noteEvent.kind === 30023
 								&& normalizePubkey(noteEvent.pubkey) === pubkey
@@ -812,7 +826,7 @@ export default {
 				const { listTopProfiles } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listTopProfiles)(limit)).profiles ?? [])
+					((await listTopProfiles(limit)).profiles ?? [])
 						.flatMap((topProfile) => {
 							const pubkey = normalizePubkey(topProfile.pubkey ?? (
 								typeof topProfile.profile?.pubkey === 'string' ?
@@ -841,7 +855,7 @@ export default {
 				const { listRecentTextNotes } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listRecentTextNotes)(limit)).events ?? [])
+					((await listRecentTextNotes(limit)).events ?? [])
 						.flatMap((event) => (
 							event.kind !== 1 || normalizeEventId(event.id) == null ?
 								[]
@@ -868,7 +882,7 @@ export default {
 				const { listTopRelays } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listTopRelays)(limit)).relays ?? [])
+					((await listTopRelays(limit)).relays ?? [])
 						.flatMap((relay) => {
 							const relayUrl = relayUrlFromWire(relay)
 							if (relayUrl == null) return []
@@ -892,7 +906,7 @@ export default {
 				const { listRecentReposts } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listRecentReposts)(limit)).events ?? [])
+					((await listRecentReposts(limit)).events ?? [])
 						.flatMap((event) => (
 							!isNostrRepostKind(event.kind) || normalizeEventId(event.id) == null ?
 								[]
@@ -919,7 +933,7 @@ export default {
 				const { listRecentArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listRecentArticles)(limit)).events ?? [])
+					((await listRecentArticles(limit)).events ?? [])
 						.flatMap((event) => articleRefFromEvent(event))
 				)
 			}
@@ -937,7 +951,7 @@ export default {
 				const { listAuthorTextNotes } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listAuthorTextNotes)(pubkey, limit)).events ?? [])
+					((await listAuthorTextNotes(pubkey, limit)).events ?? [])
 						.flatMap((event) => (
 							event.kind !== 1 || normalizeEventId(event.id) == null ?
 								[]
@@ -964,7 +978,7 @@ export default {
 				const { listAuthorArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listAuthorArticles)(pubkey, limit)).events ?? [])
+					((await listAuthorArticles(pubkey, limit)).events ?? [])
 						.flatMap((event) => articleRefFromEvent(event))
 				)
 			}
@@ -982,7 +996,7 @@ export default {
 				const { listAuthorReposts } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listAuthorReposts)(pubkey, limit)).events ?? [])
+					((await listAuthorReposts(pubkey, limit)).events ?? [])
 						.flatMap((event) => (
 							!isNostrRepostKind(event.kind) || normalizeEventId(event.id) == null ?
 								[]
@@ -1008,7 +1022,7 @@ export default {
 				[NostrProfileSelector.CanonicalPubkey]: async ({ pubkey }, context) => {
 				const { getProfileByPubkey } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const metadata = profileMetadataFromProfileWire(
-					await singleFlight(getProfileByPubkey)(pubkey),
+					await getProfileByPubkey(pubkey),
 				)
 				return optionalNonemptyString(
 				metadata?.website,
@@ -1027,7 +1041,7 @@ export default {
 				[NostrProfileSelector.CanonicalPubkey]: async ({ pubkey }, context) => {
 				const { getProfileByPubkey } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const metadata = profileMetadataFromProfileWire(
-					await singleFlight(getProfileByPubkey)(pubkey),
+					await getProfileByPubkey(pubkey),
 				)
 			return mediaFromUrl(
 					optionalNonemptyString(
@@ -1050,7 +1064,7 @@ export default {
 				const { listNoteReplies } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listNoteReplies)(eventId, limit)).events ?? [])
+					((await listNoteReplies(eventId, limit)).events ?? [])
 						.flatMap((event) => (
 							event.kind !== 1 || normalizeEventId(event.id) == null ?
 								[]
@@ -1077,7 +1091,7 @@ export default {
 				const { listNoteReactions } = await import('$/sources/NostrBand/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listNoteReactions)(eventId, limit)).events ?? [])
+					((await listNoteReactions(eventId, limit)).events ?? [])
 						.flatMap((event) => (
 							event.kind !== 7 || normalizeEventId(event.id) == null ?
 								[]
@@ -1102,7 +1116,7 @@ export default {
 			resolve: {
 				[NostrNoteSelector.CanonicalEventId]: async ({ eventId }, context) => {
 				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
-				const event = eventFromWire(await singleFlight(getEventById)(eventId))
+				const event = eventFromWire(await getEventById(eventId))
 				if (event == null || event.kind !== 1) {
 					throw new Error('NostrBand_Rest: note not found for reply target')
 				}

@@ -1,4 +1,5 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -10,7 +11,9 @@ import { caip2ByNetworkSlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	MoneroRpcInfo,
@@ -26,16 +29,12 @@ import { MoneroRingSelector } from '$/schema/MoneroRing.ts'
 import { MoneroRingMemberSelector } from '$/schema/MoneroRingMember.ts'
 import { MoneroStealthOutputSelector } from '$/schema/MoneroStealthOutput.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const moneroMainnetCaip2 = caip2ByNetworkSlug.monero
 
 const assertMoneroMainnet = (network: NetworkId) => {
-	if (
-		!('caip2' in network)
-		|| network.caip2.namespace !== moneroMainnetCaip2.namespace
-		|| network.caip2.reference !== moneroMainnetCaip2.reference
-	) {
+	if (stringify(network) !== stringify({ caip2: moneroMainnetCaip2 })) {
 		throw new Error('MoneroDaemonRpc_JsonRpc: unsupported network')
 	}
 }
@@ -173,10 +172,10 @@ export default {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
 				[MoneroNetworkSelector.Network]: async (entitySelector) => {
-					assertMoneroMainnet(entitySelector)
+					assertMoneroMainnet(entitySelector.$network)
 					return {
 						$network: {
-							[EntityMetaKey.Selector]: entitySelector,
+							[EntityMetaKey.Selector]: entitySelector.$network,
 						},
 						rpcEndpoints: [...moneroMainnetRpcEndpoints],
 					}
@@ -218,11 +217,15 @@ export default {
 							...(block.tx_hashes ?? []),
 						].map((txHash) => ({
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network,
 								txHash,
 							},
 							$block: {
-								[EntityMetaKey.Selector]: entitySelector,
+								[EntityMetaKey.Selector]: {
+									$network,
+									height,
+									hash: block.block_header.hash,
+								},
 							},
 						})),
 					}
@@ -255,8 +258,8 @@ export default {
 					version: (transaction) => transaction.version,
 					unlockTime: (transaction) => transaction.unlockTime,
 					feeAtomicUnits: (transaction) => transaction.feeAtomicUnits,
-					$$keyImages: (transaction) => transaction.$$keyImages,
-					$$stealthOutputs: (transaction) => transaction.$$stealthOutputs,
+					$$keyImages: (transaction) => transaction.$$keyImages ?? [],
+					$$stealthOutputs: (transaction) => transaction.$$stealthOutputs ?? [],
 				},
 			}),
 
@@ -294,7 +297,9 @@ export default {
 					return {
 						$$members: input.key.key_offsets.map((_keyOffset, memberIndex) => ({
 							[EntityMetaKey.Selector]: {
-								$ring: entitySelector,
+								$ring: {
+									$keyImage,
+								},
 								memberIndex,
 							},
 							...moneroRingMemberFields(
@@ -359,7 +364,7 @@ export default {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
 				[MoneroNetworkSelector.Network]: async (entitySelector) => {
-					assertMoneroMainnet(entitySelector)
+					assertMoneroMainnet(entitySelector.$network)
 					const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const info = await getInfo({
 						rpcUrl: moneroDaemonDefaultRpcUrl,
@@ -367,7 +372,7 @@ export default {
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector,
+								$network: entitySelector.$network,
 								timestampMs: Date.now(),
 							},
 							height: BigInt(info.height),
@@ -431,7 +436,7 @@ export default {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
 				[MoneroNetworkSelector.Network]: async (entitySelector, context) => {
-					assertMoneroMainnet(entitySelector)
+					assertMoneroMainnet(entitySelector.$network)
 					const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const info = await getInfo({
 						rpcUrl: moneroDaemonDefaultRpcUrl,
@@ -444,7 +449,7 @@ export default {
 						),
 					}, (_value, blockOffset) => ({
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector,
+							$network: entitySelector.$network,
 							height: headBlockHeight - BigInt(blockOffset),
 							...(blockOffset === 0 && {
 								hash: info.top_block_hash,
@@ -470,7 +475,9 @@ export default {
 					}
 					return input.key.key_offsets.map((_keyOffset, memberIndex) => ({
 						[EntityMetaKey.Selector]: {
-							$ring: entitySelector,
+							$ring: {
+								$keyImage,
+							},
 							memberIndex,
 						},
 						...moneroRingMemberFields(

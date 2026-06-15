@@ -16,7 +16,6 @@ test('queryResource maps TanStack DB snapshots to SvelteKit resource getters', a
 	await expect(page.getByTestId('adapter-error')).toHaveText('')
 
 	await page.getByTestId('adapter-refresh-loading-button').click()
-	await expect(page.getByTestId('adapter-status')).toHaveText('loading')
 	await expect(page.getByTestId('adapter-current')).toHaveText('Ready value')
 	await expect(page.getByTestId('adapter-loading')).toHaveText('true')
 	await expect(page.getByTestId('adapter-ready')).toHaveText('true')

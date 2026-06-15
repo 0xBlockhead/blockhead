@@ -2,7 +2,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -71,8 +70,8 @@ export default {
 					getChipMarkdownText,
 					getTree,
 				} = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-				const chip = (await chipRowsByNumber(await singleFlight(getTree)()))[number]
-				const text = await singleFlight(getChipMarkdownText)({ path: chip.path })
+				const chip = (await chipRowsByNumber(await getTree()))[number]
+				const text = await getChipMarkdownText({ path: chip.path })
 				if (text.trim() === '') throw new Error('BitcoinCashChips_Gitlab: empty proposal text')
 				return {
 					documentCategory: chipMetadataValue(text, 'Type'),
@@ -96,7 +95,7 @@ export default {
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
 				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-				return chipProposalIndexRows(await singleFlight(getTree)())
+				return chipProposalIndexRows(await getTree())
 			}
 			}
 		})({
@@ -114,7 +113,7 @@ export default {
 					throw new Error('BitcoinCashChips_Gitlab: $$proposals only supports Bitcoin Cash')
 				}
 				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-				return chipProposalIndexRows(await singleFlight(getTree)())
+				return chipProposalIndexRows(await getTree())
 			}
 			}
 		})({
@@ -132,7 +131,7 @@ export default {
 					throw new Error('BitcoinCashChips_Gitlab: $$proposals only supports Bitcoin Cash CHIPs')
 				}
 				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-				return chipProposalIndexRows(await singleFlight(getTree)())
+				return chipProposalIndexRows(await getTree())
 			}
 			}
 		})({

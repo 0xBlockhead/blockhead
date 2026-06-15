@@ -11,7 +11,7 @@ import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
 import { SolanaTransactionSelector } from '$/schema/SolanaTransaction.ts'
 import { SolanaInstructionSelector } from '$/schema/SolanaInstruction.ts'
 
-const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
+const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { slug: string }) => {
 	if (
 		!('caip2' in network)
 		|| network.caip2.namespace !== 'solana'
@@ -22,7 +22,7 @@ const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: s
 }
 
 const heliusTransactionFields = (
-	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+	network: { caip2: { namespace: string; reference: string } } | { slug: string },
 	transaction: HeliusEnhancedTransaction,
 ) => ({
 	$block: {
@@ -48,7 +48,7 @@ const heliusTransactionFields = (
 
 const heliusInstructionRows = (
 	transactionId: {
-		$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+		$network: { caip2: { namespace: string; reference: string } } | { slug: string }
 		signature: string
 	},
 	transaction: HeliusEnhancedTransaction,
@@ -56,8 +56,9 @@ const heliusInstructionRows = (
 	(transaction.instructions ?? []).map((instruction, instructionIndex) => ({
 		[EntityMetaKey.Selector]: {
 			$transaction: transactionId,
-			instructionIndex,
+			instructionPath: [instructionIndex],
 		},
+		instructionIndex,
 		$program: {
 			[EntityMetaKey.Selector]: {
 				$network: transactionId.$network,
@@ -67,20 +68,20 @@ const heliusInstructionRows = (
 		...(instruction.data != null && {
 			data: instruction.data,
 		}),
-		...(instruction.accounts != null && {
-			$$accounts: instruction.accounts.map((pubkey) => ({
+		$$accounts: (
+			instruction.accounts?.map((pubkey) => ({
 				[EntityMetaKey.Selector]: {
 					$network: transactionId.$network,
 					pubkey,
 				},
-			})),
-		}),
+			})) ?? []
+		),
 	}))
 )
 
 const getTransaction = async (
 	{ $network, signature }: {
-		$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+		$network: { caip2: { namespace: string; reference: string } } | { slug: string }
 		signature: string
 	},
 	context: SourceResolverContext<Source.Helius_Rest>,
@@ -90,7 +91,7 @@ const getTransaction = async (
 	const transaction = (await getEnhancedTransactions({
 		signatures: [signature],
 		publicEnv: context.publicEnv,
-	})).find((enhancedTransaction) => enhancedTransaction.signature === entitySelector.signature)
+	})).find((enhancedTransaction) => enhancedTransaction.signature === signature)
 	if (transaction == null) throw new Error(`Helius_Rest: transaction not found for signature ${signature}`)
 	return transaction
 }
@@ -126,14 +127,16 @@ export default {
 			$feePayer: (transaction) => transaction.$feePayer,
 			feeLamports: (transaction) => transaction.feeLamports,
 			status: (transaction) => transaction.status,
-			$$instructions: (transaction) => transaction.$$instructions,
+			$$instructions: (transaction) => transaction.$$instructions.map((instruction) => ({
+				[EntityMetaKey.Selector]: instruction[EntityMetaKey.Selector],
+			})),
 		},
 			}),
 
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
-				[SolanaInstructionSelector.SolanaTransactionInstructionIndexInnerInstructionIndex]: async ({ $transaction, instructionIndex }, context) => {
+				[SolanaInstructionSelector.SolanaTransactionInstructionPath]: async ({ $transaction, instructionPath }, context) => {
 				const transaction = await getTransaction(
 					$transaction,
 					context,
@@ -141,8 +144,11 @@ export default {
 				const instruction = heliusInstructionRows(
 					$transaction,
 					transaction,
-				).at(instructionIndex)
-				if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${$transaction.signature}:${instructionIndex}`)
+				).find((instruction) => (
+					instruction[EntityMetaKey.Selector].instructionPath.length === instructionPath.length
+					&& instruction[EntityMetaKey.Selector].instructionPath.every((index, indexIndex) => index === instructionPath[indexIndex])
+				))
+				if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${$transaction.signature}:${instructionPath.join('.')}`)
 				return instruction
 			}
 			}
@@ -169,7 +175,9 @@ export default {
 			}
 		})({
 				fields: {
-			$$instructions: (instructions) => instructions,
+			$$instructions: (instructions) => instructions.map((instruction) => ({
+				[EntityMetaKey.Selector]: instruction[EntityMetaKey.Selector],
+			})),
 		},
 			}),
 	],

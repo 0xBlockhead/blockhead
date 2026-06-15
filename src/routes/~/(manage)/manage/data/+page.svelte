@@ -6,20 +6,13 @@
 	import { indexSourceProviders } from '$/sources/$sources.ts'
 	import { sourceProviders } from '$/sources/index.ts'
 	import { env as publicEnv } from '$env/dynamic/public'
+	import { appClient } from '$/routes/+layout.svelte'
 	import { useCollectionCache } from './collectionCache.svelte.ts'
-
-	type CollectionEntityDefinition = {
-		entityType: string
-		label: string
-		fields: readonly {
-			name: string
-		}[]
-	}
 
 
 	const { enabledSources } = indexSourceProviders(sourceProviders, publicEnv)
 
-	const collectionEntityDefinitions: readonly CollectionEntityDefinition[] = schema.map((entityDefinition) => ({
+	const collectionEntityDefinitions = schema.map((entityDefinition) => ({
 		entityType: entityDefinition.entityType,
 		label: entityDefinition.label,
 		fields: entityFieldDefinitions(entityDefinition).map((field) => ({
@@ -30,7 +23,7 @@
 	const entityCaches = Object.fromEntries(
 		schema.map((entityDefinition) => [
 			entityDefinition.entityType,
-			useCollectionCache(entityCollectionByEntityType[entityDefinition.entityType]),
+			useCollectionCache(appClient.entityCollections[entityDefinition.entityType]),
 		]),
 	)
 
@@ -39,7 +32,7 @@
 			entityFieldDefinitions(entityDefinition).map((field) => [
 				`${entityDefinition.entityType}\0${field.name}`,
 				useCollectionCache(
-					entityFieldCollections[entityDefinition.entityType][field.name],
+					appClient.entityFieldCollections[entityDefinition.entityType][field.name],
 				),
 			])
 		)),
@@ -47,11 +40,6 @@
 
 
 	// Components
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
-
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 

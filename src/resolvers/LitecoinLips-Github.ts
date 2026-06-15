@@ -2,7 +2,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -47,7 +46,7 @@ export default {
 					throw new Error('LitecoinLips_Github: proposal resolver only supports Litecoin LIPs')
 				}
 				const { getMediaWikiText } = await import('$/sources/LitecoinLips/Github/queries.ts')
-				const text = await singleFlight(getMediaWikiText)({ number: number })
+				const text = await getMediaWikiText({ number: number })
 				return {
 					documentCategory: metadataValue(text, 'Type') ?? 'LIP',
 					documentTitle: metadataValue(text, 'Title'),

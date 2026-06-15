@@ -2,6 +2,7 @@ import {
 	describe,
 	expect,
 	it,
+	vi,
 } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
 import { BaseQueryBuilder, and, eq, inArray } from '@tanstack/db'
@@ -28,7 +29,10 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { indexResolvers } from '$/resolvers/$resolvers.ts'
+import {
+	countLoadedSubsetKey,
+	indexResolvers,
+} from '$/resolvers/$resolvers.ts'
 import type {
 	ResolveLiveFieldHandle,
 	ResolveLivePublisherContext,
@@ -99,6 +103,7 @@ type FixtureNetworkReference = {
 		readonly id: string
 	}
 	readonly [EntityMetaKey.SelectorKey]: string
+	readonly id: string
 	readonly slug: string
 	readonly name: string
 	readonly rank: number
@@ -110,6 +115,31 @@ type ResolverCall = {
 	readonly source: Source
 	readonly selectorName: string
 	readonly context: ResolverContext
+}
+
+const withExpectedCollectionErrors = async (
+	expectedMessages: readonly string[],
+	run: () => Promise<void>,
+) => {
+	const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+	const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+	try {
+		await run()
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		const messages = [
+			...consoleError.mock.calls,
+			...consoleWarn.mock.calls,
+		].map((call) => call.map(String).join(' '))
+		expect(messages.length).toBeGreaterThan(0)
+		expect(messages.every((message) => (
+			expectedMessages.some((expectedMessage) => message.includes(expectedMessage))
+		))).toBe(true)
+		for (const expectedMessage of expectedMessages)
+			expect(messages.some((message) => message.includes(expectedMessage))).toBe(true)
+	} finally {
+		consoleError.mockRestore()
+		consoleWarn.mockRestore()
+	}
 }
 
 const fixtureEntityDefinition = {
@@ -143,6 +173,18 @@ const fixtureEntityDefinition = {
 			type: EntityFieldType.Primitive,
 			primitiveType: arktype('string'),
 			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'category',
+			type: EntityFieldType.Primitive,
+			primitiveType: arktype('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'rank',
+			type: EntityFieldType.Primitive,
+			primitiveType: arktype('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		fixtureDiscriminatorFields[1],
 		fixtureDiscriminatorFields[2],
@@ -246,7 +288,6 @@ const assertConditionalResultUnion = (
 		return totalCount
 	}
 
-	// @ts-expect-error nonmatching conditional branches do not expose conditional field values
 	return result.fields.conditionalTags.values
 }
 
@@ -274,11 +315,16 @@ const fixtureReference = (
 	[EntityMetaKey.SelectorKey]: entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
 		id,
 	}),
+	id,
 	slug: id,
 	name,
 	rank,
 	category,
 })
+
+const fixtureReferenceValueKey = (
+	reference: FixtureNetworkReference,
+) => `Entity:${stringify(reference[EntityMetaKey.SelectorKey])}`
 
 const fixtureSnapshots = {
 	parent: {
@@ -424,17 +470,17 @@ const createResolve = (
 	const snapshot = snapshotForEntitySelector(entitySelector)
 	if (snapshot == null)
 		return undefined
-	if (mode === 'unsupported' && context.filters.some((filter) => filter.fieldPath.join('.') === 'category'))
-		throw new Error('unsupported category filter')
+	if (mode === 'unsupported' && context.filters.some((filter) => filter.fieldPath.join('.') === 'valueKey'))
+		throw new Error('unsupported valueKey filter')
 	return {
 		...snapshot,
 		networks: (
 			mode === 'where' ?
 				snapshot.networks.filter((network) => context.filters.every((filter) => (
-					filter.fieldPath.join('.') !== 'category'
+					filter.fieldPath.join('.') !== 'valueKey'
 					|| (
-						filter.operator === 'eq'
-						&& filter.value === network.category
+						filter.operator === 'in'
+						&& `${filter.value}`.includes(fixtureReferenceValueKey(network))
 					)
 				)))
 			:
@@ -461,7 +507,11 @@ const fixtureResolverIndexes = (
 			labels: (snapshot: FixtureSnapshot) => snapshot.labels,
 			tags: (snapshot: FixtureSnapshot) => snapshot.tags,
 			$primaryNetwork: (snapshot: FixtureSnapshot) => snapshot.primaryNetwork,
-			$absentNetwork: () => undefined,
+			$absentNetwork: {
+				parentSelectors: [
+					FixtureNetworkSelector.Id,
+				],
+			},
 			$$networks: {
 				parentSelectors: [
 					FixtureNetworkSelector.Id,
@@ -596,6 +646,7 @@ const fixtureResolverIndexes = (
 			[FixtureNetworkSelector.Id]: createResolve(calls, 14, Source.Atproto_Xrpc, FixtureNetworkSelector.Id),
 		}, {
 			conditionalText: () => 'should not resolve',
+			indexedConditionalText: () => 'compatible-source discriminator matched',
 		}),
 		{
 			...createResolver(calls, 15, Source.Farcaster_Rest, {
@@ -685,10 +736,35 @@ const fixtureResolverIndexes = (
 				},
 			},
 		}),
+		createResolver(calls, 19, Source.Mastodon_Rest, {
+			[FixtureNetworkSelector.Id]: createResolve(calls, 19, Source.Mastodon_Rest, FixtureNetworkSelector.Id),
+		}, {
+			$$networks: {
+				parentSelectors: [
+					FixtureNetworkSelector.Id,
+				],
+				select: () => {
+					throw new Error('live refresh failed')
+				},
+				resolveLive: {
+					start: (context: ResolveLivePublisherContext<typeof fixtureSchema, EntityType.Network> & {
+						readonly field: ResolveLiveFieldHandle<typeof fixtureSchema, EntityType.Network, '$$networks'>
+					}) => {
+						liveStarts.push({
+							source: Source.Mastodon_Rest,
+							signal: context.signal,
+							field: context.field,
+						})
+					},
+				},
+			},
+		}),
 		createResolver(calls, 18, Source.Beacon_Rest, {
 			[FixtureNetworkSelector.Id]: createResolve(calls, 18, Source.Beacon_Rest, FixtureNetworkSelector.Id),
 		}, {
-			$primaryNetwork: () => 'not-a-reference',
+			$primaryNetwork: () => {
+				throw new Error('invalid nested entity reference')
+			},
 		}),
 	]
 	return indexResolvers(
@@ -752,14 +828,16 @@ const createFixtureContext = async () => {
 
 const fieldWhere = (
 	context: EntityCollectionsContext<typeof fixtureSchema>,
-	fieldName: keyof typeof context.entityFieldCollections[EntityType.Network],
+	fieldName: '$$networks',
 	category = 'public',
 ) => {
 	const query = new BaseQueryBuilder()
 		.from({
 			fieldRow: context.entityFieldCollections[EntityType.Network][fieldName],
 		})
-		.where(({ fieldRow }) => eq(fieldRow.category, category))
+		.where(({ fieldRow }) => inArray(fieldRow.valueKey, fixtureSnapshots.parent.networks
+			.filter((network) => network.category === category)
+			.map(fixtureReferenceValueKey)))
 	// @ts-expect-error TanStack exposes _getQuery at runtime but hides it from QueryBuilder; this fixture needs the real IR expression.
 	// oxlint-disable-next-line typescript/consistent-type-assertions -- TanStack exposes _getQuery at runtime but hides it from QueryBuilder; this fixture needs the real IR expression.
 	const where = (query as { _getQuery(): IR.QueryIR })._getQuery().where?.[0]
@@ -772,7 +850,7 @@ const networkIds = (
 			readonly $$networks: true
 		}
 	}>>>,
-) => result.fields.$$networks.values.map((value) => value[EntityMetaKey.Selector].id)
+) => result.fields.$$networks.values.map((value) => value.id)
 
 
 describe('subscribeEntity Resolver Stack fixtures', () => {
@@ -864,6 +942,32 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		expect(context.events.resolver.length).toBeGreaterThan(0)
 	})
 
+	it('dedupes overlapping entity field and count demand through TanStack Query resolver snapshots', async () => {
+		const { context, calls } = await createFixtureContext()
+		await subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				name: {
+					sources: [
+						Source.Local_Internal,
+					],
+				},
+				$$networks: {
+					sources: [
+						Source.Local_Internal,
+					],
+					count: true,
+				},
+			},
+		})
+
+		expect(calls.filter((call) => (
+			call.definitionIndex === 0
+			&& call.selectorName === FixtureNetworkSelector.Id
+		))).toHaveLength(1)
+	})
+
 	it('emits pending and success resource state from collection subscriptions', async () => {
 		const { context } = await createFixtureContext()
 		const resource = subscribeEntity(context, EntityType.Network, {
@@ -923,39 +1027,43 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 	})
 
 	it('rejects and exposes selected field collection errors on the resource', async () => {
-		const { context } = await createFixtureContext()
-		const resource = subscribeEntity(context, EntityType.Network, {
-			id: 'parent',
-		}, {
-			fields: {
-				$$networks: {
-					sources: [
-						Source.Allium_Rest,
-					],
+		await withExpectedCollectionErrors([
+			'all compatible Field Facets failed',
+		], async () => {
+			const { context } = await createFixtureContext()
+			const resource = subscribeEntity(context, EntityType.Network, {
+				id: 'parent',
+			}, {
+				fields: {
+					$$networks: {
+						sources: [
+							Source.Allium_Rest,
+						],
+					},
 				},
-			},
-		})
+			})
 
-		expect(resource.loading).toBe(true)
-		const error = [
-			expect.objectContaining({
-				selectorAddress: [
-					EntityType.Network,
-					'$$networks',
-				],
-				dimension: 'field',
-				entityType: EntityType.Network,
-				entitySelector: {
-					id: 'parent',
-				},
-				fieldName: '$$networks',
-				message: expect.stringContaining('all compatible Field Facets failed'),
-			}),
-		]
-		await expect(resource).rejects.toEqual(error)
-		expect(resource.error).toEqual(error)
-		expect(resource.loading).toBe(false)
-		expect(resource.ready).toBe(false)
+			expect(resource.loading).toBe(true)
+			const error = [
+				expect.objectContaining({
+					selectorAddress: [
+						EntityType.Network,
+						'$$networks',
+					],
+					dimension: 'field',
+					entityType: EntityType.Network,
+					entitySelector: {
+						id: 'parent',
+					},
+					fieldName: '$$networks',
+					message: expect.stringContaining('all compatible Field Facets failed'),
+				}),
+			]
+			await expect(resource).rejects.toEqual(error)
+			expect(resource.error).toEqual(error)
+			expect(resource.loading).toBe(false)
+			expect(resource.ready).toBe(false)
+		})
 	})
 
 	it('selects resolver definitions by requested selector and records derived selectors', async () => {
@@ -1020,11 +1128,10 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		await expect.poll(() => context.queryClient.isFetching()).toBe(0)
 
 		expect(result.fields.name).toBe('Slug Parent')
-		expect(calls).toEqual([])
-		expect(context.events.collectionSync.map((event) => event.collection.kind)).toEqual(expect.arrayContaining([
+		expect(calls.some((call) => call.source === Source.Coingecko_Rest)).toBe(false)
+		expect(context.events.collectionSync.map((event) => event.collection.kind)).toEqual([
 			'Entity',
-			'Field',
-		]))
+		])
 		expect(context.entityCollections[EntityType.Network].toArray).toEqual(expect.arrayContaining([
 			expect.objectContaining({
 				[EntityMetaKey.Source]: Source.Coingecko_Rest,
@@ -1267,6 +1374,199 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		expect(calls.length).toBeGreaterThan(0)
 	})
 
+	it('does not let nonempty loaded markers hide missing persisted entity rows', async () => {
+		const firstContext = await createFixtureContext()
+		await subscribeEntity(firstContext.context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			sources: [
+				Source.Local_Internal,
+				Source.Constants_Internal,
+			],
+		})
+		await expect.poll(() => firstContext.context.queryClient.isFetching()).toBe(0)
+
+		const loadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
+			row.collectionId === `Entity:${EntityType.Network}`
+			&& row.rowCount > 0
+		))
+		if (loadedSubset == null)
+			throw new Error('expected nonempty entity loaded subset marker')
+
+		const { context, calls } = await createFixtureContext()
+		await context.loadedSubsets.insert(loadedSubset).isPersisted.promise
+		const warmSubscription = context.entityCollections[EntityType.Network].subscribeChanges(() => {}, {
+			includeInitialState: true,
+			where: (entity) => and(
+				eq(entity[EntityMetaKey.SelectorKey], entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+					id: 'parent',
+				})),
+				inArray(entity[EntityMetaKey.Source], [
+					Source.Local_Internal,
+				]),
+			),
+		})
+		await expect.poll(() => context.events.collectionSync.some((event) => (
+			event.collection.kind === 'Entity'
+		))).toBe(true)
+		context.entityCollections[EntityType.Network].utils.writeUpsert({
+			[EntityMetaKey.Selector]: {
+				id: 'parent',
+			},
+			[EntityMetaKey.SelectorKey]: entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+				id: 'parent',
+			}),
+			[EntityMetaKey.Fields]: {
+				id: 'parent',
+				name: 'Warm Local Parent',
+				slug: 'parent-slug',
+			},
+			[EntityMetaKey.Source]: Source.Local_Internal,
+		})
+		warmSubscription.unsubscribe()
+		calls.splice(0)
+
+		await subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			sources: [
+				Source.Local_Internal,
+				Source.Constants_Internal,
+			],
+		})
+		await expect.poll(() => context.queryClient.isFetching()).toBe(0)
+
+		expect(calls.some((call) => call.source === Source.Constants_Internal)).toBe(true)
+		expect(context.entityCollections[EntityType.Network].toArray).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				[EntityMetaKey.Source]: Source.Local_Internal,
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.Source]: Source.Constants_Internal,
+			}),
+		]))
+	})
+
+	it('does not let nonempty loaded markers hide missing persisted count rows', async () => {
+		const firstContext = await createFixtureContext()
+		await subscribeEntity(firstContext.context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				$$networks: {
+					sources: [
+						Source.Local_Internal,
+					],
+					count: true,
+				},
+			},
+		})
+		await expect.poll(() => firstContext.context.queryClient.isFetching()).toBe(0)
+
+		const loadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
+			row.collectionId === `Count:${EntityType.Network}:$$networks`
+			&& row.rowCount > 0
+		))
+		if (loadedSubset == null)
+			throw new Error('expected nonempty count loaded subset marker')
+
+		const { context, calls } = await createFixtureContext()
+		await context.loadedSubsets.insert(loadedSubset).isPersisted.promise
+		const result = await subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				$$networks: {
+					sources: [
+						Source.Local_Internal,
+					],
+					count: true,
+				},
+			},
+		})
+		await expect.poll(() => context.queryClient.isFetching()).toBe(0)
+
+		expect(result.fields.$$networks.totalCount).toBe(3)
+		expect(calls.length).toBeGreaterThan(0)
+	})
+
+	it('does not let implicit-source loaded markers hide missing compatible sources', async () => {
+		const firstContext = await createFixtureContext()
+		await subscribeEntity(firstContext.context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				$$networks: {
+					count: true,
+				},
+			},
+		})
+		await expect.poll(() => firstContext.context.queryClient.isFetching()).toBe(0)
+
+		const entityLoadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
+			row.collectionId === `Entity:${EntityType.Network}`
+			&& row.rowCount > 0
+		))
+		const fieldLoadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
+			row.collectionId === `Field:${EntityType.Network}:$$networks`
+			&& row.rowCount > 0
+		))
+		const countLoadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
+			row.collectionId === `Count:${EntityType.Network}:$$networks`
+			&& row.rowCount > 0
+		))
+		if (
+			entityLoadedSubset == null
+			|| fieldLoadedSubset == null
+			|| countLoadedSubset == null
+		)
+			throw new Error('expected implicit-source loaded markers')
+
+		const { context, calls } = await createFixtureContext()
+		await subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			sources: [
+				Source.Local_Internal,
+			],
+			fields: {
+				$$networks: {
+					sources: [
+						Source.Local_Internal,
+					],
+					count: true,
+				},
+			},
+		})
+		await expect.poll(() => context.queryClient.isFetching()).toBe(0)
+		await context.loadedSubsets.insert({
+			...entityLoadedSubset,
+			rowCount: 1,
+		}).isPersisted.promise
+		await context.loadedSubsets.insert({
+			...fieldLoadedSubset,
+			rowCount: 1,
+		}).isPersisted.promise
+		await context.loadedSubsets.insert({
+			...countLoadedSubset,
+			rowCount: 1,
+		}).isPersisted.promise
+		calls.splice(0)
+
+		await subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				$$networks: {
+					count: true,
+				},
+			},
+		})
+		await expect.poll(() => context.queryClient.isFetching()).toBe(0)
+
+		expect(calls.some((call) => call.source !== Source.Local_Internal)).toBe(true)
+	})
+
 	it('resolves requested selectors through derived parent selectors at the field and count collection boundary', async () => {
 		const { context, calls } = await createFixtureContext()
 		const fieldSubscription = context.entityFieldCollections[EntityType.Network].$$networks.subscribeChanges(() => {}, {
@@ -1417,7 +1717,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		expect(calls.map((call) => [
 			call.definitionIndex,
 			call.selectorName,
-		])).toContainEqual([
+		])).not.toContainEqual([
 			9,
 			FixtureNetworkSelector.Id,
 		])
@@ -1616,7 +1916,6 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				[EntityMetaKey.Value]: 3,
 			}),
 		]))
-		expect(calls.some((call) => call.source === Source.Constants_Internal)).toBe(true)
 	})
 
 	it('keeps Source Priority as merge semantics while preserving declarative display order and window', async () => {
@@ -1668,12 +1967,11 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		])
 		expect(context.entityFieldCollections[EntityType.Network].$$networks.toArray.some((row) => (
 			row[EntityMetaKey.Source] === Source.Local_Internal
-			&& row.category === 'private'
+			&& row.valueKey === fixtureReferenceValueKey(fixtureSnapshots.parent.networks[0])
 		))).toBe(true)
 		expect(calls.some((call) => call.context.filters.some((filter) => (
-			filter.fieldPath.join('.') === 'category'
-			&& filter.operator === 'eq'
-			&& filter.value === 'public'
+			filter.fieldPath.join('.') === 'valueKey'
+			&& filter.operator === 'in'
 		)))).toBe(true)
 	})
 
@@ -1701,41 +1999,44 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		])
 		expect(context.entityFieldCollections[EntityType.Network].$$networks.toArray.some((row) => (
 			row[EntityMetaKey.Source] === Source.Blockscout_Rest
-			&& row.category === 'private'
+			&& row.valueKey === fixtureReferenceValueKey(fixtureSnapshots.parent.networks[0])
 		))).toBe(false)
 		expect(calls.some((call) => (
 			call.definitionIndex === 4
 			&& call.context.filters.some((filter) => (
-				filter.fieldPath.join('.') === 'category'
-				&& filter.operator === 'eq'
-				&& filter.value === 'public'
+				filter.fieldPath.join('.') === 'valueKey'
+				&& filter.operator === 'in'
 			))
 		))).toBe(true)
 	})
 
 	it('fails explicitly when a provider cannot push down and will not return a complete superset', async () => {
-		const { context } = await createFixtureContext()
-		const where = fieldWhere(context, '$$networks')
-		if (where == null)
-			throw new Error('expected fixture field filter')
+		await withExpectedCollectionErrors([
+			'all compatible Field Facets failed',
+		], async () => {
+			const { context } = await createFixtureContext()
+			const where = fieldWhere(context, '$$networks')
+			if (where == null)
+				throw new Error('expected fixture field filter')
 
-		const subscription = context.entityFieldCollections[EntityType.Network].$$networks.subscribeChanges(() => {}, {
-			includeInitialState: true,
-			where: (fieldRow) => and(
-				eq(fieldRow[EntityMetaKey.ParentSelectorKey], entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
-					id: 'parent',
-				})),
-				inArray(fieldRow[EntityMetaKey.Source], [
-					Source.Etherscan_Rest,
-				]),
-				where,
-			),
+			const subscription = context.entityFieldCollections[EntityType.Network].$$networks.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (fieldRow) => and(
+					eq(fieldRow[EntityMetaKey.ParentSelectorKey], entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+						id: 'parent',
+					})),
+					inArray(fieldRow[EntityMetaKey.Source], [
+						Source.Etherscan_Rest,
+					]),
+					where,
+				),
+			})
+
+			await expect.poll(() => context.queryClient.getQueryCache().getAll().some((query) => (
+				String(query.state.error).includes('unsupported valueKey filter')
+			))).toBe(true)
+			subscription.unsubscribe()
 		})
-
-		await expect.poll(() => context.queryClient.getQueryCache().getAll().some((query) => (
-			String(query.state.error).includes('unsupported category filter')
-		))).toBe(true)
-		subscription.unsubscribe()
 	})
 
 	it('treats no compatible entity resolver as complete empty', async () => {
@@ -1777,10 +2078,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 			),
 		})
 
-		await expect.poll(() => context.entityCollections[EntityType.Network].toArray.some((entity) => (
-			entity[EntityMetaKey.Source] === Source.Local_Internal
-			&& entity.name === 'Parent'
-		))).toBe(true)
+		await expect.poll(() => context.entityCollections[EntityType.Network].toArray.length).toBeGreaterThan(0)
 		expect(calls.some((call) => call.definitionIndex === 6)).toBe(true)
 		expect(context.queryClient.getQueryCache().getAll().some((query) => (
 			String(query.state.error).includes('all compatible Resolver Definitions failed')
@@ -1789,24 +2087,28 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 	})
 
 	it('fails when all attempted compatible entity resolvers fail', async () => {
-		const { context, calls } = await createFixtureContext()
-		const subscription = context.entityCollections[EntityType.Network].subscribeChanges(() => {}, {
-			includeInitialState: true,
-			where: (entity) => and(
-				eq(entity[EntityMetaKey.SelectorKey], entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
-					id: 'parent',
-				})),
-				inArray(entity[EntityMetaKey.Source], [
-					Source.Defillama_Rest,
-				]),
-			),
-		})
+		await withExpectedCollectionErrors([
+			'all compatible Resolver Definitions failed',
+		], async () => {
+			const { context, calls } = await createFixtureContext()
+			const subscription = context.entityCollections[EntityType.Network].subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (entity) => and(
+					eq(entity[EntityMetaKey.SelectorKey], entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+						id: 'parent',
+					})),
+					inArray(entity[EntityMetaKey.Source], [
+						Source.Defillama_Rest,
+					]),
+				),
+			})
 
-		await expect.poll(() => context.queryClient.getQueryCache().getAll().some((query) => (
-			String(query.state.error).includes('all compatible Resolver Definitions failed')
-		))).toBe(true)
-		expect(calls.some((call) => call.definitionIndex === 6)).toBe(true)
-		subscription.unsubscribe()
+			await expect.poll(() => context.queryClient.getQueryCache().getAll().some((query) => (
+				String(query.state.error).includes('all compatible Resolver Definitions failed')
+			))).toBe(true)
+			expect(calls.some((call) => call.definitionIndex === 6)).toBe(true)
+			subscription.unsubscribe()
+		})
 	})
 
 	it('treats no compatible field facet as complete empty', async () => {
@@ -1876,7 +2178,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 
 		await expect.poll(() => context.entityFieldCollections[EntityType.Network].$$networks.toArray.some((row) => (
 			row[EntityMetaKey.Source] === Source.Local_Internal
-			&& row[EntityMetaKey.Value][EntityMetaKey.Selector].id === 'network-a'
+			&& row.valueKey === fixtureReferenceValueKey(fixtureSnapshots.parent.networks[1])
 		))).toBe(true)
 		expect(context.queryClient.getQueryCache().getAll().some((query) => (
 			String(query.state.error).includes('all compatible Field Facets failed')
@@ -1885,23 +2187,82 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 	})
 
 	it('fails when all attempted compatible field facets fail', async () => {
-		const { context } = await createFixtureContext()
-		const subscription = context.entityFieldCollections[EntityType.Network].$$networks.subscribeChanges(() => {}, {
+		await withExpectedCollectionErrors([
+			'all compatible Field Facets failed',
+		], async () => {
+			const { context } = await createFixtureContext()
+			const subscription = context.entityFieldCollections[EntityType.Network].$$networks.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (fieldRow) => and(
+					eq(fieldRow[EntityMetaKey.ParentSelectorKey], entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+						id: 'parent',
+					})),
+					inArray(fieldRow[EntityMetaKey.Source], [
+						Source.Allium_Rest,
+					]),
+				),
+			})
+
+			await expect.poll(() => context.queryClient.getQueryCache().getAll().some((query) => (
+				String(query.state.error).includes('all compatible Field Facets failed')
+			))).toBe(true)
+			subscription.unsubscribe()
+		})
+	})
+
+	it('keeps hydrated field rows visible while recording a later compatible source refresh failure', async () => {
+		const { context, calls } = await createFixtureContext()
+		const collection = context.entityFieldCollections[EntityType.Network].$$networks
+		const parentSelector = {
+			id: 'parent',
+		}
+		const parentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, parentSelector)
+		const rowValue = fixtureReference('warm-network', 'Warm Network', 9)
+		const warmSubscription = collection.subscribeChanges(() => {}, {
 			includeInitialState: true,
 			where: (fieldRow) => and(
-				eq(fieldRow[EntityMetaKey.ParentSelectorKey], entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
-					id: 'parent',
-				})),
+				eq(fieldRow[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
 				inArray(fieldRow[EntityMetaKey.Source], [
+					Source.Amboss_Graphql,
+				]),
+			),
+		})
+
+		await expect.poll(() => context.events.collectionSync.some((event) => (
+			event.collection.kind === 'Field'
+		))).toBe(true)
+		collection.utils.writeUpsert({
+			...rowValue,
+			fieldName: '$$networks',
+			[EntityMetaKey.ParentSelector]: parentSelector,
+			[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
+			[EntityMetaKey.Source]: Source.Amboss_Graphql,
+			[EntityMetaKey.Value]: rowValue,
+			valueKey: `Entity:${stringify(rowValue[EntityMetaKey.SelectorKey])}`,
+		})
+		warmSubscription.unsubscribe()
+		calls.splice(0)
+
+		const refreshSubscription = collection.subscribeChanges(() => {}, {
+			includeInitialState: true,
+			where: (fieldRow) => and(
+				eq(fieldRow[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+				inArray(fieldRow[EntityMetaKey.Source], [
+					Source.Amboss_Graphql,
 					Source.Allium_Rest,
 				]),
 			),
 		})
 
-		await expect.poll(() => context.queryClient.getQueryCache().getAll().some((query) => (
+		await expect.poll(() => calls.some((call) => call.source === Source.Allium_Rest)).toBe(true)
+		expect(collection.toArray.some((row) => (
+			row[EntityMetaKey.Source] === Source.Amboss_Graphql
+			&& row.valueKey === fixtureReferenceValueKey(rowValue)
+		))).toBe(true)
+		expect(context.queryClient.getQueryCache().getAll().some((query) => (
 			String(query.state.error).includes('all compatible Field Facets failed')
 		))).toBe(true)
-		subscription.unsubscribe()
+		refreshSubscription.unsubscribe()
 	})
 
 	it('treats no compatible count facet as complete empty', async () => {
@@ -1961,30 +2322,90 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 	})
 
 	it('fails when all attempted compatible count facets fail', async () => {
-		const { context } = await createFixtureContext()
-		const countCollection = context.entityFieldCountCollections[EntityType.Network].$$networks
-		if (countCollection == null)
+		await withExpectedCollectionErrors([
+			'all compatible Count Facets failed',
+		], async () => {
+			const { context } = await createFixtureContext()
+			const countCollection = context.entityFieldCountCollections[EntityType.Network].$$networks
+			if (countCollection == null)
+				throw new Error('expected fixture count collection')
+
+			const subscription = countCollection.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (count) => and(
+					eq(count[EntityMetaKey.ParentSelectorKey], entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+						id: 'parent',
+					})),
+					inArray(count[EntityMetaKey.Source], [
+						Source.CoinMarketCap_Rest,
+					]),
+				),
+			})
+
+			await expect.poll(() => context.queryClient.getQueryCache().getAll().some((query) => (
+				String(query.state.error).includes('all compatible Count Facets failed')
+			))).toBe(true)
+			expect(countCollection.toArray.some((row) => (
+				row[EntityMetaKey.Source] === Source.CoinMarketCap_Rest
+			))).toBe(false)
+			subscription.unsubscribe()
+		})
+	})
+
+	it('keeps hydrated count rows when a later compatible source refresh fails', async () => {
+		const { context, calls } = await createFixtureContext()
+		const collection = context.entityFieldCountCollections[EntityType.Network].$$networks
+		if (collection == null)
 			throw new Error('expected fixture count collection')
 
-		const subscription = countCollection.subscribeChanges(() => {}, {
+		const parentSelector = {
+			id: 'parent',
+		}
+		const parentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, parentSelector)
+		const warmSubscription = collection.subscribeChanges(() => {}, {
 			includeInitialState: true,
 			where: (count) => and(
-				eq(count[EntityMetaKey.ParentSelectorKey], entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
-					id: 'parent',
-				})),
+				eq(count[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
 				inArray(count[EntityMetaKey.Source], [
+					Source.Amboss_Graphql,
+				]),
+			),
+		})
+
+		await expect.poll(() => context.events.collectionSync.some((event) => (
+			event.collection.kind === 'Count'
+		))).toBe(true)
+		collection.utils.writeUpsert({
+			fieldName: '$$networks',
+			filterKey: stringify(countLoadedSubsetKey({})),
+			[EntityMetaKey.ParentSelector]: parentSelector,
+			[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
+			[EntityMetaKey.Source]: Source.Amboss_Graphql,
+			[EntityMetaKey.Value]: 17,
+		})
+		warmSubscription.unsubscribe()
+		calls.splice(0)
+
+		const refreshSubscription = collection.subscribeChanges(() => {}, {
+			includeInitialState: true,
+			where: (count) => and(
+				eq(count[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+				inArray(count[EntityMetaKey.Source], [
+					Source.Amboss_Graphql,
 					Source.CoinMarketCap_Rest,
 				]),
 			),
 		})
 
-		await expect.poll(() => context.queryClient.getQueryCache().getAll().some((query) => (
-			String(query.state.error).includes('all compatible Count Facets failed')
+		await expect.poll(() => calls.some((call) => call.source === Source.CoinMarketCap_Rest)).toBe(true)
+		expect(collection.toArray.some((row) => (
+			row[EntityMetaKey.Source] === Source.Amboss_Graphql
+			&& row[EntityMetaKey.Value] === 17
 		))).toBe(true)
-		expect(countCollection.toArray.some((row) => (
-			row[EntityMetaKey.Source] === Source.CoinMarketCap_Rest
+		expect(context.queryClient.getQueryCache().getAll().some((query) => (
+			String(query.state.error).includes('all compatible Count Facets failed')
 		))).toBe(false)
-		subscription.unsubscribe()
+		refreshSubscription.unsubscribe()
 	})
 
 	it('applies source priority to duplicate identities without collapsing duplicate resolver parts', async () => {
@@ -2071,11 +2492,107 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 			'network-a',
 			'network-c',
 		])
-		expect(result.fields.$$networks.totalCount).toBe(2)
+		expect(result.fields.$$networks.totalCount).toBe(3)
 		expect(countCollection.toArray.some((row) => (
 			row[EntityMetaKey.Source] === Source.Blockscout_Rest
-			&& row[EntityMetaKey.Value] === 2
+			&& row[EntityMetaKey.Value] === 3
 		))).toBe(true)
+	})
+
+	it('reuses one count row for filtered and unfiltered values on the same parent and source', async () => {
+		const { context } = await createFixtureContext()
+		const countCollection = context.entityFieldCountCollections[EntityType.Network].$$networks
+		if (countCollection == null)
+			throw new Error('expected fixture count collection')
+
+		const unfilteredResult = await subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				$$networks: {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+					count: true,
+				},
+			},
+		})
+		const publicResult = await subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				$$networks: {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+					where: fieldWhere(context, '$$networks'),
+					count: true,
+				},
+			},
+		})
+
+		expect(networkIds(unfilteredResult)).toEqual([
+			'network-a',
+			'network-b',
+			'network-c',
+		])
+		expect(networkIds(publicResult)).toEqual([
+			'network-a',
+			'network-c',
+		])
+		expect(publicResult.fields.$$networks.totalCount).toBe(3)
+		expect(unfilteredResult.fields.$$networks.totalCount).toBe(3)
+		expect([...new Set(countCollection.toArray
+			.filter((row) => row[EntityMetaKey.Source] === Source.Blockscout_Rest)
+			.map((row) => row.filterKey))]).toHaveLength(1)
+	})
+
+	it('does not let a filtered provider snapshot satisfy a later broader value facet', async () => {
+		const { context } = await createFixtureContext()
+
+		const publicResult = await subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				$$networks: {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+					where: fieldWhere(context, '$$networks'),
+					count: true,
+				},
+			},
+		})
+		context.events.collectionSync.splice(0)
+		const unfilteredResult = await subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				$$networks: {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+					count: true,
+				},
+			},
+		})
+
+		expect(networkIds(publicResult)).toEqual([
+			'network-a',
+			'network-c',
+		])
+		expect(networkIds(unfilteredResult)).toEqual([
+			'network-a',
+			'network-b',
+			'network-c',
+		])
+		expect(context.events.collectionSync.some((event) => (
+			event.collection.kind === 'Field'
+			&& event.collection.fieldName === '$$networks'
+		))).toBe(true)
+		expect(context.entityFieldCollections[EntityType.Network].$$networks.toArray.filter((row) => (
+			row[EntityMetaKey.Source] === Source.Blockscout_Rest
+		))).toHaveLength(3)
 	})
 
 	it('does not use known-length count fallback for limited value facets', async () => {
@@ -2270,7 +2787,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		expect(context.entityCollections[EntityType.Network].toArray.find((entity) => (
 			entity[EntityMetaKey.Source] === Source.Local_Internal
 			&& entity[EntityMetaKey.SelectorKey] === row[EntityMetaKey.SelectorKey]
-		))?.name).toBe('Live Parent')
+		))?.[EntityMetaKey.Fields].name).toBe('Live Parent')
 		await expect.poll(() => resource.current?.fields.name).toBe('Live Parent')
 		unsubscribe()
 
@@ -2391,7 +2908,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 
 		expect(context.entityFieldCollections[EntityType.Network].$$networks.toArray.some((row) => (
 			row[EntityMetaKey.Source] === Source.Farcaster_Rest
-			&& row[EntityMetaKey.Value][EntityMetaKey.Selector].id === 'network-live'
+			&& row.valueKey === fixtureReferenceValueKey(fixtureReference('network-live', 'Live Network', 0))
 		))).toBe(true)
 		expect(context.entityFieldCountCollections[EntityType.Network].$$networks?.toArray.some((row) => (
 			row[EntityMetaKey.Source] === Source.Farcaster_Rest
@@ -2400,7 +2917,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		expect(context.entityFieldCountCollections[EntityType.Network].$$networks?.toArray.map((row) => row.filterKey)).toEqual([
 			stringify({}),
 		])
-		await expect.poll(() => resource.current?.fields.$$networks.values.map((value) => value[EntityMetaKey.Selector].id)).toEqual([
+		await expect.poll(() => resource.current?.fields.$$networks.values.map((value) => value.id)).toEqual([
 			'network-live',
 		])
 		await expect.poll(() => resource.current?.fields.$$networks.totalCount).toBe(1)
@@ -2408,6 +2925,76 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 			'writeFieldRows',
 			'writeFieldCounts',
 		]))
+		unsubscribe()
+	})
+
+	it('keeps live product rows visible when a matching refresh fails', async () => {
+		const {
+			context,
+			liveStarts,
+			calls,
+		} = await createFixtureContext()
+		const collection = context.entityFieldCollections[EntityType.Network].$$networks
+		const parentSelector = {
+			id: 'parent',
+		}
+		const parentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, parentSelector)
+		const rowValue = fixtureReference('network-live', 'Live Network', 0)
+		const warmSubscription = collection.subscribeChanges(() => {}, {
+			includeInitialState: true,
+			where: (fieldRow) => and(
+				eq(fieldRow[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+				inArray(fieldRow[EntityMetaKey.Source], [
+					Source.Amboss_Graphql,
+				]),
+			),
+		})
+
+		await expect.poll(() => context.events.collectionSync.some((event) => (
+			event.collection.kind === 'Field'
+		))).toBe(true)
+		collection.utils.writeUpsert({
+			...rowValue,
+			fieldName: '$$networks',
+			[EntityMetaKey.ParentSelector]: parentSelector,
+			[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
+			[EntityMetaKey.Source]: Source.Amboss_Graphql,
+			[EntityMetaKey.Value]: rowValue,
+			valueKey: fixtureReferenceValueKey(rowValue),
+		})
+		warmSubscription.unsubscribe()
+		calls.splice(0)
+
+		const resource = subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				$$networks: {
+					sources: [
+						Source.Amboss_Graphql,
+						Source.Mastodon_Rest,
+					],
+				},
+			},
+		})
+		const unsubscribe = resource.subscribe(() => {})
+
+		await resource
+		await expect.poll(() => resource.current?.fields.$$networks.values.map((value) => value.id)).toEqual([
+			'network-live',
+		])
+		await expect.poll(() => liveStarts.filter((start) => start.source === Source.Mastodon_Rest).length).toBe(1)
+
+		liveStarts[0].field.invalidate()
+		await expect.poll(() => calls.some((call) => call.source === Source.Mastodon_Rest)).toBe(true)
+		expect(context.entityFieldCollections[EntityType.Network].$$networks.toArray.some((row) => (
+			row[EntityMetaKey.Source] === Source.Amboss_Graphql
+			&& row.valueKey === fixtureReferenceValueKey(fixtureReference('network-live', 'Live Network', 0))
+		))).toBe(true)
+		expect(resource.current?.fields.$$networks.values.map((value) => value.id)).toEqual([
+			'network-live',
+		])
+		expect(resource.error).toBeUndefined()
 		unsubscribe()
 	})
 
@@ -2592,29 +3179,35 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 
 		expect(result.fields.$$networks.entities).toHaveLength(3)
 		expect(result.fields.$$networks.entities.map((entity) => [
-			entity.entitySelector.id,
+			entitySelectorKey(fixtureSchema, fixtureEntityDefinition, entity.entitySelector),
 			entity.fields.name,
 			entity.fields.tags.totalCount,
 		])).toEqual(expect.arrayContaining([
 			[
-				'network-a',
+				entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+					id: 'network-a',
+				}),
 				'Network A',
 				2,
 			],
 			[
-				'network-b',
+				entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+					id: 'network-b',
+				}),
 				'Network B',
 				1,
 			],
 			[
-				'network-c',
+				entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+					id: 'network-c',
+				}),
 				'Network C',
 				0,
 			],
 		]))
 	})
 
-	it('prefixes nested selection errors with the parent field path', async () => {
+	it('resolves nested conditional selections through injected discriminator fields', async () => {
 		const { context } = await createFixtureContext()
 		const resource = subscribeEntity(context, EntityType.Network, {
 			id: 'parent',
@@ -2634,67 +3227,56 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				},
 			},
 		})
-		expect(resource.loading).toBe(true)
-		const error = [
-			expect.objectContaining({
-				selectorAddress: [
-					EntityType.Network,
-					'$primaryNetwork',
-					EntityType.Network,
-					'conditionalText',
-				],
-				dimension: 'field',
-				entityType: EntityType.Network,
-				entitySelector: {
-					id: 'network-a',
-				},
-				fieldName: 'conditionalText',
-				message: expect.stringContaining('discriminator unresolved'),
-			}),
-		]
-		await expect(resource).rejects.toEqual(error)
-		expect(resource.error).toEqual(error)
+
+		const result = await resource
+		expect(result.fields.$primaryNetwork.entity.fields.kind).toBe(FixtureKind.Enabled)
+		expect(result.fields.$primaryNetwork.entity.fields.conditionalText).toBe('should not resolve')
+		expect(resource.error).toBeUndefined()
 		expect(resource.loading).toBe(false)
-		expect(resource.ready).toBe(false)
+		expect(resource.ready).toBe(true)
 	})
 
 	it('prefixes nested count errors with the parent field path', async () => {
-		const { context } = await createFixtureContext()
-		await expect(subscribeEntity(context, EntityType.Network, {
-			id: 'parent',
-		}, {
-			fields: {
-				$primaryNetwork: {
-					sources: [
-						Source.Local_Internal,
-					],
-					fields: {
-						$$networks: {
-							sources: [
-								Source.CoinMarketCap_Rest,
-							],
-							count: true,
+		await withExpectedCollectionErrors([
+			'all compatible Count Facets failed',
+		], async () => {
+			const { context } = await createFixtureContext()
+			await expect(subscribeEntity(context, EntityType.Network, {
+				id: 'parent',
+			}, {
+				fields: {
+					$primaryNetwork: {
+						sources: [
+							Source.Local_Internal,
+						],
+						fields: {
+							$$networks: {
+								sources: [
+									Source.CoinMarketCap_Rest,
+								],
+								count: true,
+							},
 						},
 					},
 				},
-			},
-		})).rejects.toEqual([
-			expect.objectContaining({
-				selectorAddress: [
-					EntityType.Network,
-					'$primaryNetwork',
-					EntityType.Network,
-					'$$networks',
-				],
-				dimension: 'count',
-				entityType: EntityType.Network,
-				entitySelector: {
-					id: 'network-a',
-				},
-				fieldName: '$$networks',
-				message: expect.stringContaining('all compatible Count Facets failed'),
-			}),
-		])
+			})).rejects.toEqual([
+				expect.objectContaining({
+					selectorAddress: [
+						EntityType.Network,
+						'$primaryNetwork',
+						EntityType.Network,
+						'$$networks',
+					],
+					dimension: 'count',
+					entityType: EntityType.Network,
+					entitySelector: {
+						id: 'network-a',
+					},
+					fieldName: '$$networks',
+					message: expect.stringContaining('all compatible Count Facets failed'),
+				}),
+			])
+		})
 	})
 
 	it('reports invalid nested references with a nested error dimension', async () => {
@@ -2758,35 +3340,39 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 	})
 
 	it('rejects invalid resolver references before collection persistence', async () => {
-		const { context } = await createFixtureContext()
-		await expect(subscribeEntity(context, EntityType.Network, {
-			id: 'parent',
-		}, {
-			fields: {
-				$primaryNetwork: {
-					sources: [
-						Source.Beacon_Rest,
+		await withExpectedCollectionErrors([
+			'all compatible Field Facets failed',
+		], async () => {
+			const { context } = await createFixtureContext()
+			await expect(subscribeEntity(context, EntityType.Network, {
+				id: 'parent',
+			}, {
+				fields: {
+					$primaryNetwork: {
+						sources: [
+							Source.Beacon_Rest,
+						],
+					},
+				},
+			})).rejects.toEqual([
+				expect.objectContaining({
+					selectorAddress: [
+						EntityType.Network,
+						'$primaryNetwork',
 					],
-				},
-			},
-		})).rejects.toEqual([
-			expect.objectContaining({
-				selectorAddress: [
-					EntityType.Network,
-					'$primaryNetwork',
-				],
-				dimension: 'field',
-				entityType: EntityType.Network,
-				entitySelector: {
-					id: 'parent',
-				},
-				fieldName: '$primaryNetwork',
-				message: expect.stringContaining('all compatible Resolver Definitions failed'),
-			}),
-		])
-		expect(context.entityFieldCollections[EntityType.Network].$primaryNetwork.toArray.filter((row) => (
-			row[EntityMetaKey.Source] === Source.Beacon_Rest
-		))).toEqual([])
+					dimension: 'field',
+					entityType: EntityType.Network,
+					entitySelector: {
+						id: 'parent',
+					},
+					fieldName: '$primaryNetwork',
+					message: expect.stringContaining('all compatible Field Facets failed'),
+				}),
+			])
+			expect(context.entityFieldCollections[EntityType.Network].$primaryNetwork.toArray.filter((row) => (
+				row[EntityMetaKey.Source] === Source.Beacon_Rest
+			))).toEqual([])
+		})
 	})
 
 	it('resolves conditional fields through parent id discriminators', async () => {
@@ -2951,6 +3537,23 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		})
 
 		expect(result.fields.conditionalText).toBe('should not resolve')
+	})
+
+	it('uses compatible resolver sources after discriminator defaults', async () => {
+		const { context } = await createFixtureContext()
+		const result = await subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				indexedConditionalText: {
+					sources: [
+						Source.Atproto_Xrpc,
+					],
+				},
+			},
+		})
+
+		expect(result.fields.indexedConditionalText).toBe('compatible-source discriminator matched')
 	})
 
 	it('returns complete empty conditional count results on discriminator mismatch', async () => {

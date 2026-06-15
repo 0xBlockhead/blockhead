@@ -1,4 +1,3 @@
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -20,11 +19,11 @@ export default {
 				const {
 					getEpoch,
 				} = await import('$/sources/BeaconchaIn/Rest/queries.ts')
-				const epoch = await singleFlight(getEpoch)(
+				const epoch = await getEpoch(
 					context.publicEnv,
 					{
 						apiBase: beaconchaInApiBaseByExecutionChainId[Number($network.caip2.reference)],
-						epochSelector: epochSelector,
+						epoch: epochSelector,
 					},
 				)
 				if (epoch == null) {

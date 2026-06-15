@@ -1,4 +1,5 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -9,6 +10,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import type { CosmosSdkTxResponse } from '$/sources/CosmosSdk/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { CosmosNetworkSelector } from '$/schema/CosmosNetwork.ts'
@@ -22,14 +24,14 @@ import { CosmosGovernanceProposalSelector } from '$/schema/CosmosGovernancePropo
 import { CosmosDenomSelector } from '$/schema/CosmosDenom.ts'
 import { CosmosModuleSelector } from '$/schema/CosmosModule.ts'
 import { CosmosContractSelector } from '$/schema/CosmosContract.ts'
+import { schema } from '$/schema/index.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertCosmosHub = (network: NetworkId) => {
 	if (
-		!('caip2' in network)
-		|| network.caip2.namespace !== cosmosHubCaip2.namespace
-		|| network.caip2.reference !== cosmosHubCaip2.reference
+		stringify(network) !== stringify({ caip2: cosmosHubCaip2 })
+		&& stringify(network) !== stringify({ slug: 'cosmos' })
 	) {
 		throw new Error('CosmosSdk_Rest: unsupported network')
 	}
@@ -135,10 +137,10 @@ export default {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[CosmosNetworkSelector.Network]: async (entitySelector) => {
-				assertCosmosHub(entitySelector)
+				assertCosmosHub(entitySelector.$network)
 				return {
 					$network: {
-						[EntityMetaKey.Selector]: entitySelector,
+						[EntityMetaKey.Selector]: entitySelector.$network,
 					},
 					restEndpoints: [
 						{
@@ -482,7 +484,7 @@ export default {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[CosmosNetworkSelector.Network]: async (entitySelector) => {
-				assertCosmosHub(entitySelector)
+				assertCosmosHub(entitySelector.$network)
 				return [
 					{
 						url: cosmosHubRestBaseUrl,
@@ -502,11 +504,11 @@ export default {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[CosmosNetworkSelector.Network]: async (entitySelector) => {
-				assertCosmosHub(entitySelector)
+				assertCosmosHub(entitySelector.$network)
 				return [
 					{
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector,
+							[EntityMetaKey.Selector]: {
+							$network: entitySelector.$network,
 							timestampMs: Date.now(),
 						},
 					},
@@ -523,7 +525,7 @@ export default {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[CosmosNetworkSelector.Network]: async (entitySelector, context) => {
-				assertCosmosHub(entitySelector)
+				assertCosmosHub(entitySelector.$network)
 				const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				const latestBlock = await getLatestBlock({ restBaseUrl: cosmosHubRestBaseUrl })
 				const latestBlockHeight = BigInt(latestBlock.block.header.height)
@@ -534,7 +536,7 @@ export default {
 					),
 				}, (_value, blockOffset) => ({
 					[EntityMetaKey.Selector]: {
-						$network: entitySelector,
+						$network: entitySelector.$network,
 						height: latestBlockHeight - BigInt(blockOffset),
 					},
 					...(blockOffset === 0 && {
@@ -556,10 +558,10 @@ export default {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[CosmosNetworkSelector.Network]: async (entitySelector) => {
-				assertCosmosHub(entitySelector)
+				assertCosmosHub(entitySelector.$network)
 				const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				return cosmosValidatorRows(
-					entitySelector,
+					entitySelector.$network,
 					(await getValidators({ restBaseUrl: cosmosHubRestBaseUrl })).validators,
 				)
 			}
@@ -574,10 +576,10 @@ export default {
 			entityType: EntityType.CosmosNetwork,
 			resolve: {
 				[CosmosNetworkSelector.Network]: async (entitySelector) => {
-				assertCosmosHub(entitySelector)
+				assertCosmosHub(entitySelector.$network)
 				const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 				return cosmosProposalRows(
-					entitySelector,
+					entitySelector.$network,
 					(await getProposals({ restBaseUrl: cosmosHubRestBaseUrl })).proposals,
 				)
 			}

@@ -2,7 +2,6 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { type } from 'arktype'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
@@ -28,7 +27,7 @@ export default {
 			resolve: {
 				[XUserSelector.Id]: async ({ id }) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const response = await singleFlight(getUser)(id)
+				const response = await getUser(id)
 				const user = response.user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
 				const createdAt = Date.parse(user.joined ?? '')
@@ -97,7 +96,7 @@ export default {
 			resolve: {
 				[XPostSelector.Id]: async ({ id }) => {
 				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const response = await singleFlight(getStatus)(id)
+				const response = await getStatus(id)
 				const status = response.status
 				if (status?.type !== 'status' || status.id == null) {
 					throw new Error('X_FxEmbed_Rest: post not found')
@@ -163,7 +162,7 @@ export default {
 			resolve: {
 				[XUser_TimestampSelector.XUserTimestampMs]: async ({ $user }) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const user = (await singleFlight(getUser)($user.id)).user
+				const user = (await getUser($user.id)).user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
 				return {
 					followerCount: user.followers,
@@ -185,7 +184,7 @@ export default {
 			resolve: {
 				[XPost_TimestampSelector.XPostTimestampMs]: async ({ $post }) => {
 				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const status = (await singleFlight(getStatus)($post.id)).status
+				const status = (await getStatus($post.id)).status
 				if (status?.type !== 'status' || status.id == null) {
 					throw new Error('X_FxEmbed_Rest: post not found')
 				}
@@ -212,7 +211,7 @@ export default {
 				[XNetworkSelector.Scope]: async (_entitySelector, context) => {
 				const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
-				const statusSearchResponse = await singleFlight(searchStatuses)(limit)
+				const statusSearchResponse = await searchStatuses(limit)
 				return (
 					(statusSearchResponse.results ?? [])
 						.flatMap((status) => {
@@ -238,7 +237,7 @@ export default {
 				const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(searchStatuses)(limit)).results ?? [])
+					((await searchStatuses(limit)).results ?? [])
 						.flatMap((wirePost) => (
 							wirePost.type === 'status' && wirePost.id != null ?
 								[{
@@ -261,7 +260,7 @@ export default {
 			resolve: {
 				[XPostSelector.Id]: async (entitySelector) => {
 				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const status = (await singleFlight(getStatus)(entitySelector.id)).status
+				const status = (await getStatus(entitySelector.id)).status
 				if (status?.type !== 'status' || status.id == null) {
 					throw new Error('X_FxEmbed_Rest: post not found')
 				}
@@ -290,7 +289,7 @@ export default {
 			resolve: {
 				[XUserSelector.Id]: async ({ id }) => {
 				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const user = (await singleFlight(getUser)(id)).user
+				const user = (await getUser(id)).user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
 				return [
 					{
@@ -320,7 +319,7 @@ export default {
 				const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(getUserStatuses)(id, limit)).results ?? [])
+					((await getUserStatuses(id, limit)).results ?? [])
 						.flatMap((wirePost) => (
 							wirePost.type === 'status' && wirePost.id != null ?
 								[{

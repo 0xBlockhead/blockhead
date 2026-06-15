@@ -13,8 +13,8 @@ import { ZeroGStorageNodeSelector } from '$/schema/ZeroGStorageNode.ts'
 import { ZeroGDataBlobSelector } from '$/schema/ZeroGDataBlob.ts'
 import { ZeroGStorageLogEntrySelector } from '$/schema/ZeroGStorageLogEntry.ts'
 
-const assertZeroGMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
-	if (!('networkSlug' in network) || network.networkSlug !== '0g') {
+const assertZeroGMainnet = (network: { caip2: { namespace: string; reference: string } } | { slug: string }) => {
+	if (!('slug' in network) || network.slug !== '0g') {
 		throw new Error('ZeroGStorageScan_Rest: unsupported network')
 	}
 }
@@ -68,7 +68,7 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				[ZeroGNetworkSelector.Slug]: async (entitySelector) => {
 				assertZeroGMainnet(entitySelector)
 				const {
 					listStorageMiners,
@@ -205,7 +205,7 @@ export default {
 					$consensusNetwork: {
 						[EntityMetaKey.Selector]: {
 							$network: $network,
-							consensusNetworkId: 'networkSlug' in $network ? $network.networkSlug : $network.caip2.reference,
+							consensusNetworkId: 'slug' in $network ? $network.slug : $network.caip2.reference,
 						},
 					},
 					sizeBytes: BigInt(transaction.dataSize),
@@ -223,7 +223,7 @@ export default {
 						$consensusNetwork: {
 							[EntityMetaKey.Selector]: {
 								$network: $network,
-								consensusNetworkId: 'networkSlug' in $network ? $network.networkSlug : $network.caip2.reference,
+								consensusNetworkId: 'slug' in $network ? $network.slug : $network.caip2.reference,
 							},
 						},
 						sequenceNumber: BigInt(transaction.txSeq),
@@ -263,7 +263,7 @@ export default {
 					$consensusNetwork: {
 						[EntityMetaKey.Selector]: {
 							$network: $network,
-							consensusNetworkId: 'networkSlug' in $network ? $network.networkSlug : $network.caip2.reference,
+							consensusNetworkId: 'slug' in $network ? $network.slug : $network.caip2.reference,
 						},
 					},
 					sequenceNumber: BigInt(transaction.txSeq),
@@ -283,7 +283,7 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				[ZeroGNetworkSelector.Slug]: async (entitySelector) => {
 				assertZeroGMainnet(entitySelector)
 				return [
 					{
@@ -305,7 +305,7 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector, context) => {
+				[ZeroGNetworkSelector.Slug]: async (entitySelector, context) => {
 				assertZeroGMainnet(entitySelector)
 				const { listStorageMiners } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 				return (await listStorageMiners({
@@ -335,7 +335,7 @@ export default {
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector, context) => {
+				[ZeroGNetworkSelector.Slug]: async (entitySelector, context) => {
 				assertZeroGMainnet(entitySelector)
 				const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 				return (await listStorageTransactions({

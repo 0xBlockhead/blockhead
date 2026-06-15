@@ -23,9 +23,13 @@ type SidecarBlockEvent = {
 	extrinsicIndex?: number
 }
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string } | { $network: NetworkId }
 
 const assertPolkadotMainnet = (network: NetworkId) => {
+	if ('$network' in network) {
+		assertPolkadotMainnet(network.$network)
+		return
+	}
 	if (
 		!('caip2' in network)
 		|| network.caip2.namespace !== polkadotMainnetCaip2.namespace
@@ -65,7 +69,7 @@ export default {
 					$$extrinsics: block.extrinsics.map((extrinsic, extrinsicIndex) => ({
 						[EntityMetaKey.Selector]: {
 							$block: {
-								$network: entitySelector.$network,
+								$network: $network,
 								blockNumber: BigInt(block.number),
 								hash: block.hash,
 							},
@@ -77,14 +81,14 @@ export default {
 						...(extrinsic.signature?.signer != null && {
 							$signer: {
 								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
+									$network: $network,
 									accountId: extrinsic.signature.signer,
 								},
 							},
 						}),
 						$pallet: {
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								palletName: extrinsic.method.pallet,
 							},
 						},
@@ -111,7 +115,7 @@ export default {
 						return {
 							[EntityMetaKey.Selector]: {
 								$block: {
-									$network: entitySelector.$network,
+									$network: $network,
 									blockNumber: BigInt(block.number),
 									hash: block.hash,
 								},
@@ -121,7 +125,7 @@ export default {
 								$extrinsic: {
 									[EntityMetaKey.Selector]: {
 										$block: {
-											$network: entitySelector.$network,
+											$network: $network,
 											blockNumber: BigInt(block.number),
 											hash: block.hash,
 										},
@@ -131,7 +135,7 @@ export default {
 							}),
 							$pallet: {
 								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
+									$network: $network,
 									palletName,
 								},
 							},
@@ -160,7 +164,7 @@ export default {
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const block = await getBlock({
 					restBaseUrl: substrateSidecarDefaultLocalRestUrl,
-					blockId: $block.hash,
+					blockId: $block.blockNumber.toString(),
 				})
 				const extrinsic = block.extrinsics.at(extrinsicIndex)
 				if (extrinsic == null) {
@@ -209,7 +213,7 @@ export default {
 				const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const block = await getBlock({
 					restBaseUrl: substrateSidecarDefaultLocalRestUrl,
-					blockId: $block.hash,
+					blockId: $block.blockNumber.toString(),
 				})
 				const event: SidecarBlockEvent | undefined = [
 					...(block.onInitialize?.events ?? []),
@@ -293,7 +297,7 @@ export default {
 				assertPolkadotMainnet($network)
 				const { getRuntimeMetadata } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const pallet = (await getRuntimeMetadata({ restBaseUrl: substrateSidecarDefaultLocalRestUrl })).pallets
-					.find((runtimePallet) => runtimePallet.name === entitySelector.palletName)
+					.find((runtimePallet) => runtimePallet.name === palletName)
 				if (pallet == null) throw new Error(`SubstrateSidecar_Rest: pallet not found for ${palletName}`)
 				return {
 					index: pallet.index,
@@ -314,9 +318,9 @@ export default {
 				const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 				const validator = (await getStakingValidators({ restBaseUrl: substrateSidecarDefaultLocalRestUrl })).validators
 					?.find((stakingValidator) => (
-						stakingValidator.accountId === entitySelector.stashAccountId
-						|| stakingValidator.address === entitySelector.stashAccountId
-						|| stakingValidator.stashId === entitySelector.stashAccountId
+						stakingValidator.accountId === stashAccountId
+						|| stakingValidator.address === stashAccountId
+						|| stakingValidator.stashId === stashAccountId
 					))
 				if (validator == null) throw new Error(`SubstrateSidecar_Rest: validator not found for ${stashAccountId}`)
 				return {
@@ -361,13 +365,13 @@ export default {
 							[
 								{
 									[EntityMetaKey.Selector]: {
-										$network: entitySelector,
+										$network: entitySelector.$network,
 										stashAccountId,
 									},
 									...(validator.controllerId != null && {
 										$controller: {
 											[EntityMetaKey.Selector]: {
-												$network: entitySelector,
+												$network: entitySelector.$network,
 												accountId: validator.controllerId,
 											},
 										},
@@ -385,7 +389,9 @@ export default {
 			}
 		})({
 				fields: {
-			$$validators: (validators) => validators,
+			$$validators: (validators) => validators.map((validator) => ({
+				[EntityMetaKey.Selector]: validator[EntityMetaKey.Selector],
+			})),
 		},
 			}),
 
@@ -428,7 +434,7 @@ export default {
 				return block.extrinsics.map((extrinsic, extrinsicIndex) => ({
 					[EntityMetaKey.Selector]: {
 						$block: {
-							$network: entitySelector.$network,
+							$network: $network,
 							blockNumber: BigInt(block.number),
 							hash: block.hash,
 						},
@@ -440,14 +446,14 @@ export default {
 					...(extrinsic.signature?.signer != null && {
 						$signer: {
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								accountId: extrinsic.signature.signer,
 							},
 						},
 					}),
 					$pallet: {
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network: $network,
 							palletName: extrinsic.method.pallet,
 						},
 					},
@@ -492,7 +498,7 @@ export default {
 					return {
 						[EntityMetaKey.Selector]: {
 							$block: {
-								$network: entitySelector.$network,
+								$network: $network,
 								blockNumber: BigInt(block.number),
 								hash: block.hash,
 							},
@@ -502,7 +508,7 @@ export default {
 							$extrinsic: {
 								[EntityMetaKey.Selector]: {
 									$block: {
-										$network: entitySelector.$network,
+										$network: $network,
 										blockNumber: BigInt(block.number),
 										hash: block.hash,
 									},
@@ -512,7 +518,7 @@ export default {
 						}),
 						$pallet: {
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network: $network,
 								palletName,
 							},
 						},

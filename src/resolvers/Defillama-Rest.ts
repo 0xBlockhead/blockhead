@@ -87,7 +87,7 @@ export default {
 						[EntityMetaKey.Selector]: {
 							$market: $market,
 							timestampMs: priceRow.timestamp * 1000,
-							...(llamaId !== '' && { feedKey: llamaId }),
+							feedKey: llamaId,
 						},
 					},
 				]
@@ -95,7 +95,9 @@ export default {
 			}
 		})({
 				fields: {
-			$$quotes: (snapshot) => snapshot,
+			$$quotes: (snapshot) => snapshot.map((quote) => ({
+				[EntityMetaKey.Selector]: quote[EntityMetaKey.Selector],
+			})),
 		},
 			}),
 

@@ -4,7 +4,7 @@
 		params,
 	} = $props()
 
-	const entitySelector = $derived(
+	const selector = $derived(
 		params.reference.trim() === '' ?
 			undefined
 		:
@@ -21,7 +21,7 @@
 </script>
 
 
-{#if entitySelector !== undefined}
+{#if selector !== undefined}
 	<Page>
 		<SwarmResourceView
 			selector={selector}

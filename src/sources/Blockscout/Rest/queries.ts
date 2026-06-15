@@ -100,7 +100,7 @@ const blockscoutBlockWireAsRpcBlockHeader = (
 	...(wire.excess_blob_gas != null && { excessBlobGas: quantityHex(wire.excess_blob_gas) }),
 })
 
-const blockscoutTransactionWireAsRpcTransaction = (
+export const blockscoutTransactionWireAsRpcTransaction = (
 	wire: BlockscoutTransaction,
 ): RpcTransaction => ({
 	blockHash: wire.block_hash,
@@ -119,6 +119,18 @@ const blockscoutTransactionWireAsRpcTransaction = (
 	value: wire.value,
 })
 
+export const blockscoutTransactionWireAsRpcReceipt = (
+	tx: BlockscoutTransaction,
+	logs: NonNullable<RpcReceipt['logs']>,
+): RpcReceipt => ({
+	status: tx.status === 'ok' ? '0x1' : tx.status === 'error' ? '0x0' : undefined,
+	gasUsed: quantityHex(tx.gas_used),
+	effectiveGasPrice: quantityHex(tx.gas_price),
+	logs,
+	contractAddress: addressHash(tx.created_contract),
+	cumulativeGasUsed: quantityHex(tx.cumulative_gas_used),
+})
+
 const blockscoutTransactionLogWiresAsRpcReceiptLogs = (
 	logs: BlockscoutTransactionLog[],
 ): RpcLog[] => (
@@ -126,7 +138,7 @@ const blockscoutTransactionLogWiresAsRpcReceiptLogs = (
 		const logAddress = addressHash(log.address_hash)
 		return {
 			...(logAddress != null && { address: logAddress }),
-			...(log.topics != null && { topics: log.topics }),
+			...(log.topics != null && { topics: log.topics.flatMap((topic) => topic == null ? [] : [topic]) }),
 			...(log.data != null && { data: log.data }),
 			...(log.block_number != null && { blockNumber: `0x${log.block_number.toString(16)}` }),
 			...(log.transaction_hash != null && { transactionHash: log.transaction_hash }),
@@ -216,6 +228,19 @@ export const getBlockTransactions = async ({
 	return wire.items.map(blockscoutTransactionWireAsRpcTransaction)
 }
 
+export const getTransactionWireByHash = async ({
+	explorerOrigin,
+	txHash,
+}: {
+	explorerOrigin: string
+	txHash: `0x${string}`
+}): Promise<BlockscoutTransaction | null> => (
+	await getJson<BlockscoutTransaction | null>({
+		explorerOrigin,
+		path: `/transactions/${txHash}`,
+	})
+)
+
 export const getTransactionByHash = async ({
 	explorerOrigin,
 	txHash,
@@ -223,9 +248,9 @@ export const getTransactionByHash = async ({
 	explorerOrigin: string
 	txHash: `0x${string}`
 }): Promise<RpcTransaction | null> => {
-	const wire = await getJson<BlockscoutTransaction | null>({
+	const wire = await getTransactionWireByHash({
 		explorerOrigin,
-		path: `/transactions/${txHash}`,
+		txHash,
 	})
 	return wire != null ? blockscoutTransactionWireAsRpcTransaction(wire) : null
 }
@@ -364,13 +389,16 @@ export const getTransactionTokenTransfers = async ({
 	if (limit <= 0) return []
 	const normalized = hexLowerOfByteSize(txHash, 32)
 	if (normalized == null) return []
-	const wire = await getJson<BlockscoutPaginated<BlockscoutTokenTransfer>>({
-		explorerOrigin,
-		path: `/transactions/${normalized}/token-transfers`,
-		searchParams: {
-			items_count: blockscoutItemsCount(limit),
-		},
-	})
+	let wire: BlockscoutPaginated<BlockscoutTokenTransfer>
+	try {
+		wire = await getJson<BlockscoutPaginated<BlockscoutTokenTransfer>>({
+			explorerOrigin,
+			path: `/transactions/${normalized}/token-transfers`,
+		})
+	} catch (error) {
+		if (String(error).includes('422 Unprocessable Entity')) return []
+		throw error
+	}
 	return wire.items
 }
 
@@ -429,7 +457,7 @@ export const getTransactionLogs = async ({
 }: {
 	explorerOrigin: string
 	txHash: `0x${string}`
-}): Promise<RpcReceipt['logs']> => {
+}): Promise<NonNullable<RpcReceipt['logs']>> => {
 	const logs: NonNullable<RpcReceipt['logs']> = []
 	let nextPageParams: Record<string, string | number> | undefined
 	do {
@@ -451,22 +479,16 @@ export const getTransactionReceipt = async ({
 	explorerOrigin: string
 	txHash: `0x${string}`
 }): Promise<RpcReceipt | null> => {
-	const tx = await getJson<BlockscoutTransaction | null>({
+	const tx = await getTransactionWireByHash({
 		explorerOrigin,
-		path: `/transactions/${txHash}`,
+		txHash,
 	})
 	if (tx == null) return null
 	const logs = await getTransactionLogs({
 		explorerOrigin,
 		txHash,
 	})
-	return {
-		status: tx.status === 'ok' ? '0x1' : tx.status === 'error' ? '0x0' : undefined,
-		gasUsed: quantityHex(tx.gas_used),
-		effectiveGasPrice: quantityHex(tx.gas_price),
-		logs,
-		contractAddress: addressHash(tx.created_contract),
-	}
+	return blockscoutTransactionWireAsRpcReceipt(tx, logs)
 }
 
 export const normalizeAddressFromContractListWire = (
@@ -729,11 +751,7 @@ export const getUserOperationsByTransaction = async ({
 		},
 	})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
-	const items = raw.items
-	if (items.length === 0) {
-		throw new Error(`Blockscout_Rest: no user operations for transaction ${txHash}`)
-	}
-	return items
+	return raw.items
 }
 
 export const getUserOperationDetail = async ({

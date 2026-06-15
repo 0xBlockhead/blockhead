@@ -56,19 +56,19 @@ export default {
 			name: 'txHash',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'logIndex',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'transferIndex',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$from',

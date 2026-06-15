@@ -9,7 +9,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 
 export enum SolanaInstructionSelector {
-	SolanaTransactionInstructionIndexInnerInstructionIndex = 'solanaTransactionInstructionIndexInnerInstructionIndex',
+	SolanaTransactionInstructionPath = 'solanaTransactionInstructionPath',
 }
 
 export default {
@@ -20,11 +20,10 @@ export default {
 
 	selectors: [
 		{
-			name: SolanaInstructionSelector.SolanaTransactionInstructionIndexInnerInstructionIndex,
+			name: SolanaInstructionSelector.SolanaTransactionInstructionPath,
 			fields: [
 				'$transaction',
-				'instructionIndex',
-				'innerInstructionIndex',
+				'instructionPath',
 			],
 		},
 	],
@@ -34,6 +33,12 @@ export default {
 			name: '$transaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.SolanaTransaction,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'instructionPath',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number[]'),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

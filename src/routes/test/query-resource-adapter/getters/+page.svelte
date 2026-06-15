@@ -149,8 +149,5 @@
 
 		<dt>error</dt>
 		<dd data-testid="adapter-error">{resource.error === undefined ? '' : String(resource.error)}</dd>
-
-		<dt>status</dt>
-		<dd data-testid="adapter-status">{query.status ?? ''}</dd>
 	</dl>
 </section>

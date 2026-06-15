@@ -157,7 +157,7 @@ const getRegistryAddress = async ({
 	node: `0x${string}`
 	method: 'owner' | 'resolver'
 }) => {
-	const provider = getProviderForExecutionUrl({
+	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -191,7 +191,7 @@ const resolveAddr = async ({
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
-	const provider = getProviderForExecutionUrl({
+	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -227,7 +227,7 @@ const resolveText = async ({
 	node: `0x${string}`
 	key: string
 }) => {
-	const provider = getProviderForExecutionUrl({
+	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -258,7 +258,7 @@ const resolveContentHash = async ({
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
-	const provider = getProviderForExecutionUrl({
+	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -304,7 +304,7 @@ const resolveResolverAbiJson = async ({
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
-	const provider = getProviderForExecutionUrl({
+	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -356,7 +356,7 @@ const resolveMulticoinAddr = async ({
 	node: `0x${string}`
 	coinType: number
 }) => {
-	const provider = getProviderForExecutionUrl({
+	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -396,7 +396,7 @@ const resolveReverseName = async ({
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
-	const provider = getProviderForExecutionUrl({
+	const provider = await getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})

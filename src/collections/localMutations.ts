@@ -1,11 +1,6 @@
 import type { ActionType } from '$/constants/actions.ts'
 import type { WalletCandidate, WalletConnection } from '$/state/wallets/adapters/types.ts'
 import { createAction } from '$/lib/createAction.ts'
-import {
-	entityCollectionByEntityType,
-	entityFieldCollections,
-	entityFieldCountCollections,
-} from '$/routes/+layout.svelte'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -14,14 +9,57 @@ import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { stringify } from 'devalue'
 
-export const writeLocalWatchedEvmAccount = (accountEntitySelector: EntitySelector<typeof schema, EntityType.EvmAccount>) => {
-	entityCollectionByEntityType[EntityType.EvmAccount].utils.writeUpsert({
+type LocalWriteCollection = {
+	readonly utils: {
+		writeUpsert(row: object): void
+	}
+}
+
+type LocalDeleteCollection = {
+	delete(key: string): void
+}
+
+export type LocalMutationContext = {
+	readonly entityCollections: {
+		readonly [EntityType.BlockheadSession]: LocalWriteCollection
+		readonly [EntityType.BlockheadSessionAction]: LocalWriteCollection & LocalDeleteCollection
+		readonly [EntityType.BlockheadWallet]: LocalWriteCollection
+		readonly [EntityType.BlockheadWalletAccount]: LocalWriteCollection
+		readonly [EntityType.BlockheadWalletConnection]: LocalWriteCollection & LocalDeleteCollection
+		readonly [EntityType.EvmAccount]: LocalWriteCollection
+	}
+	readonly entityFieldCollections: {
+		readonly [EntityType._Global]: {
+			readonly $$actors: LocalWriteCollection
+			readonly $$blockheadSessions: LocalWriteCollection
+			readonly $$blockheadWallets: LocalWriteCollection
+			readonly $$blockheadWalletAccounts: LocalWriteCollection
+			readonly $$blockheadWalletConnections: LocalWriteCollection
+		}
+		readonly [EntityType.BlockheadSession]: {
+			readonly $$actions: LocalWriteCollection & LocalDeleteCollection
+			readonly name: LocalWriteCollection
+			readonly status: LocalWriteCollection
+		}
+	}
+	readonly entityFieldCountCollections: {
+		readonly [EntityType.BlockheadWalletConnection]: {
+			readonly $$connectedAccounts?: LocalWriteCollection & LocalDeleteCollection
+		}
+	}
+}
+
+export const writeLocalWatchedEvmAccount = (
+	context: LocalMutationContext,
+	accountEntitySelector: EntitySelector<typeof schema, EntityType.EvmAccount>,
+) => {
+	context.entityCollections[EntityType.EvmAccount].utils.writeUpsert({
 		[EntityMetaKey.Selector]: accountEntitySelector,
 		[EntityMetaKey.SelectorKey]: stringify(accountEntitySelector),
 		[EntityMetaKey.Source]: Source.Local_Internal,
 		[EntityMetaKey.Fields]: {},
 	})
-	entityFieldCollections[EntityType._Global].$$actors.utils.writeUpsert({
+	context.entityFieldCollections[EntityType._Global].$$actors.utils.writeUpsert({
 		fieldName: '$$actors',
 		[EntityMetaKey.ParentSelector]: { scope: '$$actors' },
 		[EntityMetaKey.ParentSelectorKey]: stringify({ scope: '$$actors' }),
@@ -35,27 +73,15 @@ export const writeLocalWatchedEvmAccount = (accountEntitySelector: EntitySelecto
 }
 
 export const writeLocalBlockheadSession = (
+	context: LocalMutationContext,
 	parentEntitySelector: EntitySelector<typeof schema, EntityType._Global>,
 	sessionName: string,
 ) => {
-	const now = Date.now()
 	const entitySelector = {
-		id: `session-${now}`,
+		id: `session-${Date.now()}`,
 	}
-	const fields = {
-		...(sessionName.trim() !== '' && { name: sessionName.trim() }),
-		status: BlockheadSessionStatus.Draft,
-		createdAt: now,
-		updatedAt: now,
-	}
-	entityCollectionByEntityType[EntityType.BlockheadSession].utils.writeUpsert({
-		[EntityMetaKey.Selector]: entitySelector,
-		[EntityMetaKey.SelectorKey]: stringify(entitySelector),
-		[EntityMetaKey.Source]: Source.Local_Internal,
-		[EntityMetaKey.Fields]: fields,
-		...fields,
-	})
-	entityFieldCollections[EntityType._Global].$$blockheadSessions.utils.writeUpsert({
+	writeLocalBlockheadSessionName(context, entitySelector, sessionName)
+	context.entityFieldCollections[EntityType._Global].$$blockheadSessions.utils.writeUpsert({
 		fieldName: '$$blockheadSessions',
 		[EntityMetaKey.ParentSelector]: parentEntitySelector,
 		[EntityMetaKey.ParentSelectorKey]: stringify(parentEntitySelector),
@@ -68,7 +94,46 @@ export const writeLocalBlockheadSession = (
 	})
 }
 
+export const writeLocalBlockheadSessionName = (
+	context: LocalMutationContext,
+	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
+	sessionName: string,
+) => {
+	const now = Date.now()
+	const fields = {
+		...(sessionName.trim() !== '' && { name: sessionName.trim() }),
+		status: BlockheadSessionStatus.Draft,
+		createdAt: now,
+		updatedAt: now,
+	}
+	context.entityCollections[EntityType.BlockheadSession].utils.writeUpsert({
+		[EntityMetaKey.Selector]: entitySelector,
+		[EntityMetaKey.SelectorKey]: stringify(entitySelector),
+		[EntityMetaKey.Source]: Source.Local_Internal,
+		[EntityMetaKey.Fields]: fields,
+		...fields,
+	})
+	if (fields.name != null)
+		context.entityFieldCollections[EntityType.BlockheadSession].name.utils.writeUpsert({
+			fieldName: 'name',
+			[EntityMetaKey.ParentSelector]: entitySelector,
+			[EntityMetaKey.ParentSelectorKey]: stringify(entitySelector),
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.Value]: fields.name,
+			valueKey: `Value:${stringify(fields.name)}`,
+		})
+	context.entityFieldCollections[EntityType.BlockheadSession].status.utils.writeUpsert({
+		fieldName: 'status',
+		[EntityMetaKey.ParentSelector]: entitySelector,
+		[EntityMetaKey.ParentSelectorKey]: stringify(entitySelector),
+		[EntityMetaKey.Source]: Source.Local_Internal,
+		[EntityMetaKey.Value]: fields.status,
+		valueKey: `Value:${stringify(fields.status)}`,
+	})
+}
+
 export const writeLocalBlockheadSessionAction = (
+	context: LocalMutationContext,
 	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	indexInSequence: number,
 	actionType: ActionType,
@@ -87,14 +152,14 @@ export const writeLocalBlockheadSessionAction = (
 		createdAt: now,
 		updatedAt: now,
 	}
-	entityCollectionByEntityType[EntityType.BlockheadSessionAction].utils.writeUpsert({
+	context.entityCollections[EntityType.BlockheadSessionAction].utils.writeUpsert({
 		[EntityMetaKey.Selector]: entitySelector,
 		[EntityMetaKey.SelectorKey]: stringify(entitySelector),
 		[EntityMetaKey.Source]: Source.Local_Internal,
 		[EntityMetaKey.Fields]: fields,
 		...fields,
 	})
-	entityFieldCollections[EntityType.BlockheadSession].$$actions.utils.writeUpsert({
+	context.entityFieldCollections[EntityType.BlockheadSession].$$actions.utils.writeUpsert({
 		fieldName: '$$actions',
 		[EntityMetaKey.ParentSelector]: sessionEntitySelector,
 		[EntityMetaKey.ParentSelectorKey]: stringify(sessionEntitySelector),
@@ -108,21 +173,23 @@ export const writeLocalBlockheadSessionAction = (
 }
 
 export const deleteLocalBlockheadSessionAction = (
+	context: LocalMutationContext,
 	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
 ) => {
-	entityFieldCollections[EntityType.BlockheadSession].$$actions.delete(stringify([
+	context.entityFieldCollections[EntityType.BlockheadSession].$$actions.delete(stringify([
 		Source.Local_Internal,
 		stringify(sessionEntitySelector),
 		`Entity:${stringify(stringify(entitySelector))}`,
 	]))
-	entityCollectionByEntityType[EntityType.BlockheadSessionAction].delete(stringify([
+	context.entityCollections[EntityType.BlockheadSessionAction].delete(stringify([
 		Source.Local_Internal,
 		stringify(entitySelector),
 	]))
 }
 
 export const updateLocalBlockheadSessionActionType = (
+	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
 	sessionAction: Pick<
 		Entity<typeof schema, EntityType.BlockheadSessionAction>,
@@ -139,7 +206,7 @@ export const updateLocalBlockheadSessionActionType = (
 		createdAt: sessionAction.createdAt,
 		updatedAt: Date.now(),
 	}
-	entityCollectionByEntityType[EntityType.BlockheadSessionAction].utils.writeUpsert({
+	context.entityCollections[EntityType.BlockheadSessionAction].utils.writeUpsert({
 		[EntityMetaKey.Selector]: entitySelector,
 		[EntityMetaKey.SelectorKey]: stringify(entitySelector),
 		[EntityMetaKey.Source]: Source.Local_Internal,
@@ -149,6 +216,7 @@ export const updateLocalBlockheadSessionActionType = (
 }
 
 export const writeLocalBlockheadWallet = (
+	context: LocalMutationContext,
 	candidate: WalletCandidate,
 ) => {
 	const entitySelector = {
@@ -163,14 +231,14 @@ export const writeLocalBlockheadWallet = (
 		...(candidate.rdns != null && { rdns: candidate.rdns }),
 		capabilities: candidate.capabilities,
 	}
-	entityCollectionByEntityType[EntityType.BlockheadWallet].utils.writeUpsert({
+	context.entityCollections[EntityType.BlockheadWallet].utils.writeUpsert({
 		[EntityMetaKey.Selector]: entitySelector,
 		[EntityMetaKey.SelectorKey]: stringify(entitySelector),
 		[EntityMetaKey.Source]: Source.Local_Internal,
 		[EntityMetaKey.Fields]: fields,
 		...fields,
 	})
-	entityFieldCollections[EntityType._Global].$$blockheadWallets.utils.writeUpsert({
+	context.entityFieldCollections[EntityType._Global].$$blockheadWallets.utils.writeUpsert({
 		fieldName: '$$blockheadWallets',
 		[EntityMetaKey.ParentSelector]: { scope: '$$blockheadWallets' },
 		[EntityMetaKey.ParentSelectorKey]: stringify({ scope: '$$blockheadWallets' }),
@@ -184,6 +252,7 @@ export const writeLocalBlockheadWallet = (
 }
 
 export const writeLocalBlockheadWalletAccount = (
+	context: LocalMutationContext,
 	account: WalletConnection['accounts'][number],
 ) => {
 	const entitySelector = {
@@ -206,14 +275,14 @@ export const writeLocalBlockheadWalletAccount = (
 		capabilities: account.capabilities,
 	}
 
-	entityCollectionByEntityType[EntityType.BlockheadWalletAccount].utils.writeUpsert({
+	context.entityCollections[EntityType.BlockheadWalletAccount].utils.writeUpsert({
 		[EntityMetaKey.Selector]: entitySelector,
 		[EntityMetaKey.SelectorKey]: stringify(entitySelector),
 		[EntityMetaKey.Source]: Source.Local_Internal,
 		[EntityMetaKey.Fields]: fields,
 		...fields,
 	})
-	entityFieldCollections[EntityType._Global].$$blockheadWalletAccounts.utils.writeUpsert({
+	context.entityFieldCollections[EntityType._Global].$$blockheadWalletAccounts.utils.writeUpsert({
 		fieldName: '$$blockheadWalletAccounts',
 		[EntityMetaKey.ParentSelector]: { scope: '$$blockheadWalletAccounts' },
 		[EntityMetaKey.ParentSelectorKey]: stringify({ scope: '$$blockheadWalletAccounts' }),
@@ -227,6 +296,7 @@ export const writeLocalBlockheadWalletAccount = (
 }
 
 export const writeLocalBlockheadWalletConnection = (
+	context: LocalMutationContext,
 	connection: WalletConnection,
 ) => {
 	const activeAccount = connection.accounts.at(0)
@@ -266,16 +336,16 @@ export const writeLocalBlockheadWalletConnection = (
 	}
 
 	for (const account of connection.accounts)
-		writeLocalBlockheadWalletAccount(account)
+		writeLocalBlockheadWalletAccount(context, account)
 
-	entityCollectionByEntityType[EntityType.BlockheadWalletConnection].utils.writeUpsert({
+	context.entityCollections[EntityType.BlockheadWalletConnection].utils.writeUpsert({
 		[EntityMetaKey.Selector]: entitySelector,
 		[EntityMetaKey.SelectorKey]: stringify(entitySelector),
 		[EntityMetaKey.Source]: Source.Local_Internal,
 		[EntityMetaKey.Fields]: fields,
 		...fields,
 	})
-	entityFieldCollections[EntityType._Global].$$blockheadWalletConnections.utils.writeUpsert({
+	context.entityFieldCollections[EntityType._Global].$$blockheadWalletConnections.utils.writeUpsert({
 		fieldName: '$$blockheadWalletConnections',
 		[EntityMetaKey.ParentSelector]: { scope: '$$blockheadWalletConnections' },
 		[EntityMetaKey.ParentSelectorKey]: stringify({ scope: '$$blockheadWalletConnections' }),
@@ -286,7 +356,7 @@ export const writeLocalBlockheadWalletConnection = (
 		},
 		valueKey: `Entity:${stringify(stringify(entitySelector))}`,
 	})
-	entityFieldCountCollections[EntityType.BlockheadWalletConnection].$$connectedAccounts?.utils.writeUpsert({
+	context.entityFieldCountCollections[EntityType.BlockheadWalletConnection].$$connectedAccounts?.utils.writeUpsert({
 		[EntityMetaKey.ParentSelector]: entitySelector,
 		[EntityMetaKey.ParentSelectorKey]: stringify(entitySelector),
 		[EntityMetaKey.Source]: Source.Local_Internal,
@@ -297,9 +367,10 @@ export const writeLocalBlockheadWalletConnection = (
 }
 
 export const deleteLocalBlockheadWalletConnection = (
+	context: LocalMutationContext,
 	walletId: string,
 ) => {
-	entityCollectionByEntityType[EntityType.BlockheadWalletConnection].delete(stringify([
+	context.entityCollections[EntityType.BlockheadWalletConnection].delete(stringify([
 		Source.Local_Internal,
 		stringify({
 			$wallet: {
@@ -307,7 +378,7 @@ export const deleteLocalBlockheadWalletConnection = (
 			},
 		}),
 	]))
-	entityFieldCountCollections[EntityType.BlockheadWalletConnection].$$connectedAccounts?.delete(stringify([
+	context.entityFieldCountCollections[EntityType.BlockheadWalletConnection].$$connectedAccounts?.delete(stringify([
 		Source.Local_Internal,
 		stringify({
 			$wallet: {

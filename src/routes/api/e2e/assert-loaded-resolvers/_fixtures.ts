@@ -18,6 +18,7 @@ import { ElementsPegDirection } from '$/schema/ElementsPeg.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
+import type { ResolverValue } from '$/resolvers/$resolvers.ts'
 import { schema } from '$/schema/index.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
@@ -245,7 +246,7 @@ const logos = {
 } as const
 
 const quilibrium = {
-	networkSlug: 'quilibrium',
+	slug: 'quilibrium',
 } as const
 
 const quilibriumNetwork = {
@@ -253,7 +254,7 @@ const quilibriumNetwork = {
 } as const
 
 const near = {
-	networkSlug: 'near',
+	slug: 'near',
 } as const
 
 const nearNetwork = {
@@ -309,7 +310,7 @@ const bitcoinCash = {
 } as const
 
 const zeroG = {
-	networkSlug: '0g',
+	slug: '0g',
 } as const
 
 const zeroGNetwork = {
@@ -385,19 +386,17 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 
 	[EntityType.EvmAccount]: actorMainnetVitalik,
 
-	[EntityType.EvmNetworkActorCoinBalance]: {
-		$actor: actorMainnetVitalik,
-		$coinInstance: coinInstanceUsdcMainnet,
-	},
-
-	[EntityType.EvmActorCoinAllowance]: {
-		$actorCoin: {
+		[EntityType.EvmNetworkActorCoinBalance]: {
 			$actor: actorMainnetVitalik,
-			$coinInstance: coinInstanceUsdcMainnet,
+			$contract: coinInstanceUsdcMainnet.$contract,
 		},
-		$spender: {
-			address: '0x0000000000000000000000000000000000000001',
-		},
+
+		[EntityType.EvmActorCoinAllowance]: {
+			$actor: actorMainnetVitalik,
+			$contract: coinInstanceUsdcMainnet.$contract,
+			$spender: {
+				address: '0x0000000000000000000000000000000000000001',
+			},
 		interopAddress: `${VITALIK_ADDRESS}:USDC:0x0000000000000000000000000000000000000001`,
 	},
 
@@ -547,11 +546,10 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		txHash: SAMPLE_BLOB_TX_HASH,
 		blobIndex: 0,
 	},
-	[EntityType.EvmBlock]: {
-		$network: mainnet,
-		blockNumber: 18_000_000n,
-		hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-	},
+		[EntityType.EvmBlock]: {
+			$network: mainnet,
+			blockNumber: 18_000_000n,
+		},
 	[EntityType.Erc4337SmartAccount]: {
 		$network: mainnet,
 		address: ERC4337_SMART_ACCOUNT_ADDRESS,
@@ -691,12 +689,10 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		id: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
 	},
 
-	[EntityType.Market]: ethUsdCatalogMarket,
-	[EntityType.MarketPrice]: {
-		$market: ethUsdCatalogMarket,
-		feedKey: 'e2e-probe-market-price',
-		$network: mainnet,
-	},
+		[EntityType.Market]: ethUsdCatalogMarket,
+		[EntityType.MarketPrice]: {
+			$market: ethUsdCatalogMarket,
+		},
 	[EntityType.Market_TimeInterval_Timestamp]: {
 		$market: ethUsdCatalogMarket,
 		timeInterval: { unit: MarketTimeIntervalUnit.Day, value: 7 },
@@ -883,8 +879,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 			$network: solana,
 			signature: 'e2eProbeSolanaSignature1111111111111111111111111111111',
 		},
-		instructionIndex: 0,
-		innerInstructionIndex: 0,
+		instructionPath: [0],
 	},
 	[EntityType.SolanaAccount]: {
 		$network: solana,
@@ -1392,12 +1387,12 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	},
 	[EntityType.ZeroGStorageNode]: {
 		$network: zeroGNetwork,
-		nodeId: 'e2e-probe-storage-node',
+		nodeId: '0x0000000000000000000000000000000000000000',
 	},
 	[EntityType.ZeroGStorageProof]: {
 		$storageNode: {
 			$network: zeroGNetwork,
-			nodeId: 'e2e-probe-storage-node',
+			nodeId: '0x0000000000000000000000000000000000000000',
 		},
 		proofId: 'e2e-probe-storage-proof',
 	},
@@ -1803,18 +1798,15 @@ export const parentEntitySelectorForResolverValuePart = (
 )
 
 
-export const entityFieldValueForAssert = <_Value>(
-	value: _Value,
-): _Value | {
-	[EntityMetaKey.Selector]: object
-	[EntityMetaKey.SelectorKey]: string
-} => (
+export const entityFieldValueForAssert = (
+	value: ResolverValue,
+): ResolverValue => (
 	value != null
 		&& typeof value === 'object'
+		&& !Array.isArray(value)
 		&& EntityMetaKey.Selector in value ?
 			({
-				// oxlint-disable-next-line typescript-eslint/consistent-type-assertions -- `in` narrows presence, but not the object-valued entity selector shape this test fixture requires.
-				[EntityMetaKey.Selector]: value[EntityMetaKey.Selector] as object,
+				[EntityMetaKey.Selector]: value[EntityMetaKey.Selector],
 				[EntityMetaKey.SelectorKey]: stringify(value[EntityMetaKey.Selector]),
 			})
 	:

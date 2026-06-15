@@ -3,7 +3,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	EntityMetaKey,
@@ -73,7 +72,7 @@ export default {
 				const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				const normalizedName = ensToString(ensNormalizeNode(name))
 				const matchingEnsDomain = (
-					await singleFlight(getName)({
+					await getName({
 						publicEnv: context.publicEnv,
 						name: normalizedName,
 					})
@@ -182,7 +181,7 @@ export default {
 					labelName: (ensName) => ensName.labelName,
 					labelhash: (ensName) => ensName.labelhash,
 					$parent: (ensName) => ensName.$parent,
-					$$subdomains: (ensName) => ensName.$$subdomains,
+					$$subdomains: (ensName) => ensName.$$subdomains ?? [],
 					subdomainCount: (ensName) => ensName.subdomainCount,
 					$subgraphResolvedActor: (ensName) => ensName.$subgraphResolvedActor,
 					$subgraphOwnerActor: (ensName) => ensName.$subgraphOwnerActor,
@@ -190,8 +189,8 @@ export default {
 					$wrappedOwnerActor: (ensName) => ensName.$wrappedOwnerActor,
 					wrappedExpiryDate: (ensName) => ensName.wrappedExpiryDate,
 					contentHash: (ensName) => ensName.contentHash,
-					resolverTextKeys: (ensName) => ensName.resolverTextKeys,
-					resolverCoinTypes: (ensName) => ensName.resolverCoinTypes,
+					resolverTextKeys: (ensName) => ensName.resolverTextKeys ?? [],
+					resolverCoinTypes: (ensName) => ensName.resolverCoinTypes ?? [],
 					ttl: (ensName) => ensName.ttl,
 					isMigrated: (ensName) => ensName.isMigrated,
 					createdAt: (ensName) => ensName.createdAt,
@@ -209,7 +208,7 @@ export default {
 				[EvmAccountSelector.AddressInteropAddress]: async ({ address }, context) => {
 				const { getDomainsByOwner } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				return (
-					(await singleFlight(getDomainsByOwner)({
+					(await getDomainsByOwner({
 						publicEnv: context.publicEnv,
 						owner: zeroExLowerCase(address),
 					}))
@@ -240,7 +239,7 @@ export default {
 				const limit = resolverContextRowLimit(context)
 				const query = normalizedEnsSearchQuery(querySelector)
 				return (
-					(await singleFlight(getDomainsContaining)({
+					(await getDomainsContaining({
 						publicEnv: context.publicEnv,
 						query,
 						limit,

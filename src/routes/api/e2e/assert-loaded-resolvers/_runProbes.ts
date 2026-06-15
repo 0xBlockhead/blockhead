@@ -19,6 +19,9 @@ import { schema } from '$/schema/index.ts'
 import {
 	indexResolvers,
 	type ResolverContext,
+	type ResolverPart,
+	type ResolverValue,
+	type SourceResolverDefinition,
 } from '$/resolvers/$resolvers.ts'
 import { resolvers } from '$/resolvers/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -73,6 +76,29 @@ const resolverContext = {
 	publicEnv: {},
 } satisfies ResolverContext
 
+type ResolverDefinitionProbe = Pick<
+	SourceResolverDefinition<
+		typeof schema,
+		Source,
+		SchemaEntityType<typeof schema>,
+		ResolverContext
+	>,
+	'entityType' | 'source' | 'resolve'
+> & {
+	index: number
+}
+
+type ResolverValuePartProbe = Pick<
+	ResolverPart<typeof schema, Source, ResolverContext>,
+	'entityType' | 'fieldName' | 'source'
+> & {
+	index: number
+	resolve: (
+		entitySelector: EntitySelector<typeof schema, SchemaEntityType<typeof schema>>,
+		context: ResolverContext,
+	) => ResolverValue | Promise<ResolverValue>
+}
+
 const probeTimeoutMs = 30_000
 
 const withProbeTimeout = async <_Value>(
@@ -97,42 +123,48 @@ const withProbeTimeout = async <_Value>(
 	}
 }
 
-const resolverDefinitionProbes = resolverDefinitions.map((resolver, index) => ({
-	...resolver,
-	index,
-}))
+const resolverDefinitionProbes: ResolverDefinitionProbe[] = []
+for (const [index, resolver] of resolverDefinitions.entries())
+	resolverDefinitionProbes.push({
+		index,
+		entityType: resolver.entityType,
+		source: resolver.source,
+		resolve: resolver.resolve,
+	})
 
-const resolverValuePartProbes = Object.values(resolverValuePartsByEntityTypeAndFieldName)
-	.flatMap((parts) => (
-		parts.flatMap((part, index) => (
-			part.select == null ?
-				[]
-			:
-				[{
-					index,
-					entityType: part.entityType,
-					fieldName: part.fieldName,
-					source: part.source,
-					resolve: async (
-						entitySelector: EntitySelector<typeof schema, SchemaEntityType<typeof schema>>,
-						context: ResolverContext,
-					) => {
+const resolverValuePartProbes: ResolverValuePartProbe[] = []
+for (const parts of Object.values(resolverValuePartsByEntityTypeAndFieldName))
+	for (const [index, part] of parts.entries()) {
+		if (part.select == null)
+			continue
+
+		const select = part.select
+		resolverValuePartProbes.push({
+			index,
+			entityType: part.entityType,
+			fieldName: part.fieldName,
+			source: part.source,
+			resolve: async (
+				entitySelector,
+				context,
+			) => {
 					const selectorName = validateEntitySelector(
 						schema,
 						entityDefinitionByType[part.entityType],
 						entitySelector,
 					).name
+					const resolve = part.resolver.resolve[selectorName]
 					if (
 						!(
 							part.parentSelectors
 							?? Object.keys(part.resolver.resolve)
 						).includes(selectorName)
-						|| part.resolver.resolve[selectorName] == null
+						|| resolve == null
 					)
 						throw new Error(`resolver probe skipped unsupported parent ${stringify(entitySelector)}`)
 
-					return part.select!(
-						await part.resolver.resolve[selectorName](
+					return select(
+						await resolve(
 							entitySelector,
 							context,
 						),
@@ -140,9 +172,8 @@ const resolverValuePartProbes = Object.values(resolverValuePartsByEntityTypeAndF
 						context,
 					)
 				},
-				}]
-		))
-	))
+		})
+	}
 
 
 export type AssertLoadedResolverProbeCase = {
@@ -185,12 +216,13 @@ const emptyCategoryBucket = (): AssertLoadedResolverProbeCategoryBucket => ({
 
 
 const emptyCategorySummary = (): AssertLoadedResolverProbeCategorySummary => (
-	Object.fromEntries(
-		assertLoadedResolverProbeCategories.map((category) => [
-			category,
-			emptyCategoryBucket(),
-		]),
-	) as AssertLoadedResolverProbeCategorySummary
+	{
+		catalog: emptyCategoryBucket(),
+		networkLive: emptyCategoryBucket(),
+		envGated: emptyCategoryBucket(),
+		knownUpstreamGap: emptyCategoryBucket(),
+		unsupportedField: emptyCategoryBucket(),
+	}
 )
 
 
@@ -204,14 +236,14 @@ const finalizeProbeCase = (
 
 const entityResolvePayloadEmptyForProbe = (
 	entityDefinition: EntityDefinition,
-	fields: unknown,
+	fields: ResolverValue,
 	source: Source,
 ): string | undefined => {
-	if (fields == null || typeof fields !== 'object' || Array.isArray(fields)) {
+	if (fields == null || typeof fields !== 'object')
 		return 'entity resolve did not return a fields object'
-	}
+	if (Array.isArray(fields))
+		return 'entity resolve did not return a fields object'
 
-	const record = fields as Record<string, unknown>
 	const requiredPrimitivesForSource = entityFieldDefinitions(entityDefinition).filter((field) => (
 		field.type === EntityFieldType.Primitive
 		&& field.cardinality === EntityFieldCardinality.One
@@ -219,7 +251,7 @@ const entityResolvePayloadEmptyForProbe = (
 	))
 
 	for (const field of requiredPrimitivesForSource) {
-		if (record[field.name] === undefined) {
+		if (!Object.hasOwn(fields, field.name)) {
 			return `entity resolve missing required field ${field.name}`
 		}
 	}
@@ -230,7 +262,7 @@ const entityResolvePayloadEmptyForProbe = (
 
 const fieldResolvePayloadEmptyForProbe = (
 	fieldDefinition: EntityFieldDefinition,
-	raw: unknown,
+	raw: ResolverValue,
 	source: Source,
 ): string | undefined => {
 	const isListField = (
@@ -270,111 +302,113 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 		}
 	}
 
-	const entityCases = await Promise.all(
-		resolverDefinitionProbes.map(async (resolver) => {
-			let entitySelector: Awaited<ReturnType<typeof resolveProbeEntitySelector>>
-			try {
-				entitySelector = await resolveProbeEntitySelector(resolver.entityType)
-			} catch (error) {
-				return finalizeProbeCase({
-					kind: 'entity',
-					key: `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`,
-					resolveRejected: true,
-					resolveError: error instanceof Error ? error.message : String(error),
-					assertThrew: false,
-				})
-			}
+	const entityCases: AssertLoadedResolverProbeCase[] = []
+	for (const resolver of resolverDefinitionProbes) {
+		let entitySelector: Awaited<ReturnType<typeof resolveProbeEntitySelector>>
+		try {
+			entitySelector = await resolveProbeEntitySelector(resolver.entityType)
+		} catch (error) {
+			entityCases.push(finalizeProbeCase({
+				kind: 'entity',
+				key: `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`,
+				resolveRejected: true,
+				resolveError: error instanceof Error ? error.message : String(error),
+				assertThrew: false,
+			}))
+			continue
+		}
 
-			const entityDef = entityDefinitionByType[resolver.entityType]
-			if (entityDef == null) {
-				throw new Error(`No entityDefinitionByType[${resolver.entityType}]`)
-			}
+		const entityDef = entityDefinitionByType[resolver.entityType]
+		if (entityDef == null) {
+			throw new Error(`No entityDefinitionByType[${resolver.entityType}]`)
+		}
 
-			const key = `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`
+		const key = `entity:${resolver.index}:${resolver.entityType}:${resolver.source}`
 
-			let fields: unknown
-			try {
-				const selectorName = validateEntitySelector(
-					schema,
-					entityDef,
-					entitySelector,
-				).name
-				if (
-					resolver.resolve[selectorName] == null
-				)
-					throw new Error(`resolver probe skipped unsupported entity ${stringify(entitySelector)}`)
-
-				fields = await withProbeTimeout(
-					key,
-					() => resolver.resolve[selectorName]!(
-						entitySelector,
-						{
-							...resolverContext,
-							publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
-						},
-					),
-				)
-			} catch (error) {
-				return finalizeProbeCase({
-					kind: 'entity',
-					key,
-					resolveRejected: true,
-					resolveError: error instanceof Error ? error.message : String(error),
-					assertThrew: false,
-				})
-			}
-
-			const emptyPayloadError = entityResolvePayloadEmptyForProbe(
+		let fields: ResolverValue
+		try {
+			const selectorName = validateEntitySelector(
+				schema,
 				entityDef,
-				fields,
-				resolver.source,
-			)
-			if (emptyPayloadError != null) {
-				return finalizeProbeCase({
-					kind: 'entity',
-					key,
-					resolveRejected: false,
-					assertThrew: true,
-					assertError: emptyPayloadError,
-				})
-			}
+				entitySelector,
+			).name
+			const resolve = resolver.resolve[selectorName]
+			if (resolve == null)
+				throw new Error(`resolver probe skipped unsupported entity ${stringify(entitySelector)}`)
 
-			const row = {
-				...(
-					fields != null && typeof fields === 'object' && !Array.isArray(fields) ?
-						fields
-					:
-						{}
+			fields = await withProbeTimeout(
+				key,
+				() => resolve(
+					entitySelector,
+					{
+						...resolverContext,
+						publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
+					},
 				),
-				[EntityMetaKey.Selector]: entitySelector,
-				[EntityMetaKey.SelectorKey]: stringify(entitySelector),
-				[EntityMetaKey.Source]: resolver.source,
-				[EntityMetaKey.Fields]: fields,
-			}
+			)
+		} catch (error) {
+			entityCases.push(finalizeProbeCase({
+				kind: 'entity',
+				key,
+				resolveRejected: true,
+				resolveError: error instanceof Error ? error.message : String(error),
+				assertThrew: false,
+			}))
+			continue
+		}
 
-			try {
-				assertResolverDefinitionResult(entityDef, row)
-			} catch (error) {
-				return finalizeProbeCase({
-					kind: 'entity',
-					key,
-					resolveRejected: false,
-					assertThrew: true,
-					assertError: error instanceof Error ? error.message : String(error),
-				})
-			}
-
-			return finalizeProbeCase({
+		const emptyPayloadError = entityResolvePayloadEmptyForProbe(
+			entityDef,
+			fields,
+			resolver.source,
+		)
+		if (emptyPayloadError != null) {
+			entityCases.push(finalizeProbeCase({
 				kind: 'entity',
 				key,
 				resolveRejected: false,
-				assertThrew: false,
-			})
-		}),
-	)
+				assertThrew: true,
+				assertError: emptyPayloadError,
+			}))
+			continue
+		}
 
-	const fieldCases = await Promise.all(
-		resolverValuePartProbes.map(async (fieldResolver) => {
+		const row = {
+			...(
+				fields != null && typeof fields === 'object' && !Array.isArray(fields) ?
+					fields
+				:
+					{}
+			),
+			[EntityMetaKey.Selector]: entitySelector,
+			[EntityMetaKey.SelectorKey]: stringify(entitySelector),
+			[EntityMetaKey.Source]: resolver.source,
+			[EntityMetaKey.Fields]: fields,
+		}
+
+		try {
+			assertResolverDefinitionResult(entityDef, row)
+		} catch (error) {
+			entityCases.push(finalizeProbeCase({
+				kind: 'entity',
+				key,
+				resolveRejected: false,
+				assertThrew: true,
+				assertError: error instanceof Error ? error.message : String(error),
+			}))
+			continue
+		}
+
+		entityCases.push(finalizeProbeCase({
+			kind: 'entity',
+			key,
+			resolveRejected: false,
+			assertThrew: false,
+		}))
+	}
+
+	const fieldCases: AssertLoadedResolverProbeCase[] = []
+	for (const fieldResolver of resolverValuePartProbes) {
 			const parentEntitySelector = parentEntitySelectorForResolverValuePart(fieldResolver.entityType)
 			const entityDef = entityDefinitionByType[fieldResolver.entityType]
 			if (entityDef == null) {
@@ -394,7 +428,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 				`field:${fieldResolver.index}:${fieldResolver.entityType}.${String(fieldResolver.fieldName)}:${fieldResolver.source}`
 			)
 
-			let raw: unknown
+			let raw: ResolverValue
 			try {
 				raw = await withProbeTimeout(
 					key,
@@ -407,13 +441,14 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 					),
 				)
 			} catch (error) {
-				return finalizeProbeCase({
+				fieldCases.push(finalizeProbeCase({
 					kind: 'field',
 					key,
 					resolveRejected: true,
 					resolveError: error instanceof Error ? error.message : String(error),
 					assertThrew: false,
-				})
+				}))
+				continue
 			}
 
 			const emptyPayloadError = fieldResolvePayloadEmptyForProbe(
@@ -422,20 +457,21 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 				fieldResolver.source,
 			)
 			if (emptyPayloadError != null) {
-				return finalizeProbeCase({
+				fieldCases.push(finalizeProbeCase({
 					kind: 'field',
 					key,
 					resolveRejected: false,
 					assertThrew: true,
 					assertError: emptyPayloadError,
-				})
+				}))
+				continue
 			}
 
-			const innerValues = (
+			const innerValues: ResolverValue[] = (
 				fieldDef.cardinality === EntityFieldCardinality.ZeroOrMany
 				|| fieldDef.cardinality === EntityFieldCardinality.Many ?
 					Array.isArray(raw) ?
-						raw
+						[...raw]
 					:
 						[]
 				: raw == null ?
@@ -467,15 +503,14 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 				}
 			}
 
-			return finalizeProbeCase({
+			fieldCases.push(finalizeProbeCase({
 				kind: 'field',
 				key,
 				resolveRejected: false,
 				assertThrew,
 				assertError,
-			})
-		}),
-	)
+			}))
+	}
 
 	const cases = [...entityCases, ...fieldCases]
 

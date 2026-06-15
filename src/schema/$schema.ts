@@ -17,7 +17,10 @@ export enum EntityFieldType {
 	EntitiesReference = 'EntitiesReference',
 }
 
-type SchemaType<_Value = unknown> = Type<_Value>
+type SchemaType<
+	_Value = unknown,
+	_Scope = any,
+> = Type<_Value, _Scope>
 
 export type EntityDefinition<
 	_EntityType extends string = string,
@@ -113,7 +116,7 @@ export type EntityFieldDefinition<_Source extends string = string> = (
 			entityType: string
 			cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
 		}
-	)
+		)
 )
 
 export type EntityFieldDefinitions<_EntityDefinition extends EntityDefinition> = (
@@ -134,20 +137,25 @@ type EntitySelectorFieldValue<
 	_Schema extends Schema,
 	_EntityDefinition extends EntityDefinition,
 	_FieldName extends string,
-> = EntityFieldDefinitions<_EntityDefinition> extends infer _FieldDefinition ?
+> = Extract<
+	EntityFieldDefinitions<_EntityDefinition>,
+	{ readonly name: `${_FieldName}` }
+> extends infer _FieldDefinition ?
 	_FieldDefinition extends {
-		name: _FieldName
-		type: EntityFieldType.Primitive
-		primitiveType: infer _PrimitiveType
+		readonly name: `${_FieldName}`
+		readonly type: EntityFieldType.Primitive
+		readonly primitiveType: infer _PrimitiveType
 	} ?
-		_PrimitiveType extends Type<infer _Value> ?
+		_PrimitiveType extends {
+			readonly infer: infer _Value
+		} ?
 			_Value
 		:
 			never
 	: _FieldDefinition extends {
-		name: _FieldName
-		type: EntityFieldType.EntityReference
-		entityType: infer _RefEntityType extends EntityType<_Schema>
+		readonly name: `${_FieldName}`
+		readonly type: EntityFieldType.EntityReference
+		readonly entityType: infer _RefEntityType extends EntityType<_Schema>
 	} ?
 		EntitySelector<_Schema, _RefEntityType>
 	:
@@ -162,8 +170,10 @@ type EntitySelectorFromDefinition<
 	_EntityDefinition extends EntityDefinition & {
 		readonly selectors: infer _Selectors extends readonly EntitySelectorDefinition[]
 	} ?
-		_Selectors[number] extends infer _Selector ?
-			_Selector extends {
+		{
+			readonly [
+				_SelectorIndex in keyof _Selectors
+			]: _Selectors[_SelectorIndex] extends {
 				readonly fields: infer _Fields extends readonly string[]
 			} ?
 				{
@@ -173,11 +183,10 @@ type EntitySelectorFromDefinition<
 				}
 			:
 				never
-		:
-			never
+		}[number]
 	:
 		never
-)
+	)
 
 export type EntitySelectorForSelectorName<
 	_Schema extends Schema,
@@ -431,9 +440,9 @@ type NonConditionalScalarPrimitiveFieldName<
 	{ when: EntityFieldCondition }
 > extends infer _Field ?
 	_Field extends {
-		name: infer _FieldName extends string
-		type: EntityFieldType.Primitive
-		primitiveType: Type<string | number>
+		readonly name: infer _FieldName extends string
+		readonly type: EntityFieldType.Primitive
+		readonly primitiveType: SchemaType<string | number>
 	} ?
 		_FieldName
 	:
@@ -448,14 +457,14 @@ type NonConditionalIndexedPrimitiveFieldName<
 	{ when: EntityFieldCondition }
 > extends infer _Field ?
 	_Field extends {
-		name: infer _FieldName extends string
-		type: EntityFieldType.Primitive
-		primitiveType: Type<string | number | readonly (string | number)[]>
-		cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne
+		readonly name: infer _FieldName extends string
+		readonly type: EntityFieldType.Primitive
+		readonly primitiveType: SchemaType<string | number | readonly (string | number)[]>
+		readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne
 	} ?
 		_Field['cardinality'] extends EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany ?
 			_FieldName
-		: _Field['primitiveType'] extends Type<readonly (string | number)[]> ?
+		: _Field['primitiveType'] extends SchemaType<readonly (string | number)[]> ?
 			_FieldName
 		:
 			never
@@ -469,9 +478,9 @@ type ScalarPrimitiveFieldValue<
 	_FieldName extends string,
 > = _Fields[number] extends infer _Field ?
 	_Field extends {
-		name: _FieldName
-		type: EntityFieldType.Primitive
-		primitiveType: Type<infer _Value extends string | number>
+		readonly name: _FieldName
+		readonly type: EntityFieldType.Primitive
+		readonly primitiveType: SchemaType<infer _Value extends string | number>
 	} ?
 		_Value
 	:
@@ -484,10 +493,10 @@ type IndexedPrimitiveFieldItemValue<
 	_FieldName extends string,
 > = _Fields[number] extends infer _Field ?
 	_Field extends {
-		name: _FieldName
-		type: EntityFieldType.Primitive
-		primitiveType: Type<infer _Value>
-		cardinality: EntityFieldCardinality
+		readonly name: _FieldName
+		readonly type: EntityFieldType.Primitive
+		readonly primitiveType: SchemaType<infer _Value, infer _Scope>
+		readonly cardinality: EntityFieldCardinality
 	} ?
 		_Field['cardinality'] extends EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany ?
 			_Value extends string | number ?
@@ -565,7 +574,15 @@ export type EntityDefinitionByType<_Schema extends Schema> = {
 export type EntitySelector<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = EntitySelectorFromDefinition<_Schema, EntityDefinitionByType<_Schema>[_EntityType]>
+> = (
+	EntitySelectorFromDefinition<_Schema, EntityDefinitionByType<_Schema>[_EntityType]>
+	| (
+		[EntityType<_Schema>] extends [_EntityType] ?
+			object
+		:
+			never
+	)
+)
 
 export type EntitySelectorName<
 	_Schema extends Schema,
@@ -682,28 +699,39 @@ export type EntityReferenceValue<
 	_EntityType extends EntityType<_Schema>,
 > = {
 	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
-	readonly [EntityMetaKey.SelectorKey]: string
-}
+	readonly [EntityMetaKey.SelectorKey]?: string
+} & Partial<EntityFieldValues<_Schema, _EntityType>>
+
+type EntityFieldSingleResolvedValueFromDefinition<
+	_Schema extends Schema,
+	_FieldDefinition extends EntityFieldDefinition,
+> = (
+	_FieldDefinition extends {
+		readonly type: EntityFieldType.Primitive
+		readonly primitiveType: infer _PrimitiveType extends SchemaType
+	} ?
+		_PrimitiveType['infer']
+	: _FieldDefinition extends {
+		readonly type: EntityFieldType.EntityReference
+		readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+	} ?
+		EntityReferenceValue<_Schema, _ReferencedEntityType>
+	: _FieldDefinition extends {
+		readonly type: EntityFieldType.EntitiesReference
+		readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+	} ?
+		EntityReferenceValue<_Schema, _ReferencedEntityType>
+	:
+		never
+)
 
 export type EntityFieldSingleResolvedValue<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_FieldName extends string,
 > = (
-	EntityFieldDefinitionByName<_Schema, _EntityType, Extract<_FieldName, EntityFieldName<_Schema, _EntityType>>> extends {
-		readonly type: EntityFieldType.Primitive
-	} ?
-		EntityFieldValue<_Schema, _EntityType, Extract<_FieldName, EntityFieldName<_Schema, _EntityType>>>
-	: EntityFieldDefinitionByName<_Schema, _EntityType, Extract<_FieldName, EntityFieldName<_Schema, _EntityType>>> extends {
-		readonly type: EntityFieldType.EntityReference
-		readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
-	} ?
-		EntityReferenceValue<_Schema, _ReferencedEntityType>
-	: EntityFieldDefinitionByName<_Schema, _EntityType, Extract<_FieldName, EntityFieldName<_Schema, _EntityType>>> extends {
-		readonly type: EntityFieldType.EntitiesReference
-		readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
-	} ?
-		EntityReferenceValue<_Schema, _ReferencedEntityType>
+	_FieldName extends EntityFieldName<_Schema, _EntityType> ?
+		EntityFieldSingleResolvedValueFromDefinition<_Schema, EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName>>
 	:
 		never
 )
@@ -818,8 +846,8 @@ export type EntityFieldDefinitionByEntityTypeAndName<_Schema extends Schema> = {
 				_FieldName in EntityFieldName<_Schema, _EntityType>
 			]: EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName>
 		}
-	)
-}
+		)
+	}
 
 export const indexSchema = <const _Schema extends Schema>(
 	schema: _Schema,

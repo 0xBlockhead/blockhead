@@ -48,7 +48,7 @@ export default {
 			name: 'interopAddress',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$primaryName',

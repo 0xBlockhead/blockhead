@@ -12,10 +12,10 @@ import { ZeroGStorageNodeSelector } from '$/schema/ZeroGStorageNode.ts'
 import { ZeroGDataBlobSelector } from '$/schema/ZeroGDataBlob.ts'
 import { ZeroGDataChunkSelector } from '$/schema/ZeroGDataChunk.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const assertZeroGMainnet = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug['0g'].slug) {
+	if (!('slug' in network) || network.slug !== networkBySlug['0g'].slug) {
 		throw new Error('ZeroGStorageNode_JsonRpc: unsupported network')
 	}
 }

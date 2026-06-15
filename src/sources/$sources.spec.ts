@@ -1,10 +1,24 @@
 import { describe, expect, it } from 'vitest'
 import { type as arktype } from 'arktype'
+import {
+	existsSync,
+	globSync,
+	readFileSync,
+} from 'node:fs'
+import {
+	dirname,
+	join,
+	resolve,
+} from 'node:path'
 
 import { indexSourceProviders } from '$/sources/$sources.ts'
 import type { SourceProviderDefinition } from '$/sources/$sources.ts'
+import { executionEndpoints } from '$/constants/ExecutionEndpoints.ts'
+import { TransportType } from '$/constants/TransportType.ts'
+import Voltaire from '$/sources/Voltaire/index.ts'
+import { sourceProviders as appSourceProviders } from '$/sources/index.ts'
 
-const sourceProviders = [
+const fixtureSourceProviders = [
 	{
 		provider: 'ProviderWithEnv',
 		label: 'Provider with env',
@@ -73,7 +87,7 @@ const sourceProviders = [
 describe('source provider registry', () => {
 	it('gates providers and sources by env schemas and rejects empty strings', () => {
 		const indexed = indexSourceProviders(
-			sourceProviders,
+			fixtureSourceProviders,
 			{
 				PUBLIC_PROVIDER_KEY: 'provider-secret',
 				PUBLIC_SOURCE_KEY: 'source-secret',
@@ -84,25 +98,19 @@ describe('source provider registry', () => {
 			},
 		)
 
-		expect(indexed.sources.map((sourceDefinition) => sourceDefinition.source)).toEqual([
-			'ProviderOnlySource',
-			'ProviderAndSourceEnvSource',
-			'SourceOnlyEnvSource',
-			'OpenSource',
-		])
 		expect([...indexed.enabledSources]).toEqual([
 			'ProviderOnlySource',
 			'ProviderAndSourceEnvSource',
 			'SourceOnlyEnvSource',
 			'OpenSource',
 		])
-		expect(indexed.sourceBySource.ProviderDisabledSource).toBeUndefined()
-		expect(indexed.sourceBySource.FailingSourceEnvSource).toBeUndefined()
+		expect(indexed.resolverPublicEnvBySource.has('ProviderDisabledSource')).toBe(false)
+		expect(indexed.resolverPublicEnvBySource.has('FailingSourceEnvSource')).toBe(false)
 	})
 
 	it('passes full public env only to sources without provider or source env schema', () => {
 		const indexed = indexSourceProviders(
-			sourceProviders,
+			fixtureSourceProviders,
 			{
 				PUBLIC_PROVIDER_KEY: 'provider-secret',
 				PUBLIC_SOURCE_KEY: 'source-secret',
@@ -113,7 +121,7 @@ describe('source provider registry', () => {
 			},
 		)
 
-		expect(indexed.resolverPublicEnv).toEqual({
+		expect(indexed.resolverPublicEnvBySource.get('OpenSource')).toEqual({
 			PUBLIC_PROVIDER_KEY: 'provider-secret',
 			PUBLIC_SOURCE_KEY: 'source-secret',
 			PUBLIC_SOURCE_ONLY_KEY: 'source-only-secret',
@@ -121,12 +129,11 @@ describe('source provider registry', () => {
 			PUBLIC_FAILING_PROVIDER_KEY: 'failing-provider-secret',
 			PUBLIC_EXTRA_KEY: 'extra-public',
 		})
-		expect(indexed.resolverPublicEnvBySource.get('OpenSource')).toBe(indexed.resolverPublicEnv)
 	})
 
 	it('passes provider env to inherited sources and merged env to source-specific sources', () => {
 		const indexed = indexSourceProviders(
-			sourceProviders,
+			fixtureSourceProviders,
 			{
 				PUBLIC_PROVIDER_KEY: 'provider-secret',
 				PUBLIC_SOURCE_KEY: 'source-secret',
@@ -147,5 +154,116 @@ describe('source provider registry', () => {
 		expect(indexed.resolverPublicEnvBySource.get('SourceOnlyEnvSource')).toEqual({
 			PUBLIC_SOURCE_ONLY_KEY: 'source-only-secret',
 		})
+	})
+
+	it('keeps provider origins canonical and non-conflicting', () => {
+		const corsEnabledByOrigin = new Map<string, boolean>()
+
+		for (const sourceProvider of appSourceProviders) {
+			for (const { origin, corsEnabled } of sourceProvider.origins ?? []) {
+				expect(new URL(origin).origin, `${sourceProvider.provider}: ${origin}`).toBe(origin)
+				expect(origin, String(sourceProvider.provider)).not.toMatch(/[/?#]$/)
+				expect(
+					corsEnabledByOrigin.get(origin) ?? corsEnabled,
+					`${sourceProvider.provider}: ${origin}`,
+				).toBe(corsEnabled)
+				corsEnabledByOrigin.set(origin, corsEnabled)
+			}
+		}
+	})
+
+	it('keeps Voltaire origins aligned with catalog HTTP execution endpoints', () => {
+		expect(new Set(Voltaire.origins.map((entry) => entry.origin))).toEqual(
+			new Set(
+				executionEndpoints
+					.filter((entry) => entry.transportType === TransportType.Http)
+					.map((entry) => new URL(entry.url).origin),
+			),
+		)
+	})
+
+	it('derives the proxy allow-list from source provider origins', () => {
+		const hooksSource = readFileSync(join(process.cwd(), 'src', 'hooks.server.ts'), 'utf8')
+
+		expect(hooksSource).toMatch(/\bsourceProviders\.flatMap\(\(provider\) =>/)
+		expect(hooksSource).toMatch(/\(provider\.origins \?\? \[\]\)\.map\(\(entry\) => entry\.origin\)/)
+		expect(hooksSource).not.toMatch(/\bnew Set\(\s*\[/)
+	})
+
+	it('keeps generated OpenAPI sources reproducible from checked-in schema manifests', () => {
+		expect(readFileSync(join(process.cwd(), 'package.json'), 'utf8')).toMatch(/"sources:openapi": "pnpm exec tsx scripts\/openapi-source\.ts"/)
+
+		for (const manifestFile of globSync('src/sources/*/OpenApi/schema-source.ts')) {
+			const manifestSource = readFileSync(manifestFile, 'utf8')
+			const schemaFile = manifestSource.match(/schemaFile:\s*'([^']+)'/)?.[1]
+			const typesFile = manifestSource.match(/typesFile:\s*'([^']+)'/)?.[1]
+			const sourceIndex = readFileSync(resolve(dirname(manifestFile), 'index.ts'), 'utf8')
+			const sourceName = sourceIndex.match(/\bsource:\s*Source\.([A-Za-z0-9_]+)/)?.[1]
+
+			if (schemaFile == null)
+				throw new Error(`${manifestFile}: missing schemaFile`)
+			if (typesFile == null)
+				throw new Error(`${manifestFile}: missing typesFile`)
+			if (sourceName == null)
+				throw new Error(`${manifestFile}: missing Source enum registration in index.ts`)
+
+			expect(existsSync(resolve(dirname(manifestFile), schemaFile))).toBe(true)
+			expect(existsSync(resolve(dirname(manifestFile), typesFile))).toBe(true)
+			expect(existsSync(resolve(dirname(manifestFile), 'client.ts'))).toBe(true)
+			expect(existsSync(resolve(dirname(manifestFile), 'queries.ts'))).toBe(true)
+			expect(existsSync(resolve(dirname(manifestFile), 'types.ts'))).toBe(true)
+			expect(existsSync(resolve(dirname(manifestFile), 'index.ts'))).toBe(true)
+			expect(
+				appSourceProviders.flatMap((provider) => provider.sources).some((source) => (
+					source.source === sourceName
+				)),
+			).toBe(true)
+		}
+
+		for (const typesFile of globSync('src/sources/*/OpenApi/openapi.d.ts')) {
+			expect(existsSync(resolve(dirname(typesFile), 'schema-source.ts'))).toBe(true)
+		}
+	})
+
+	it('keeps generated GraphQL sources reproducible from checked-in schema manifests', () => {
+		expect(readFileSync(join(process.cwd(), 'package.json'), 'utf8')).toMatch(/"sources:graphql": "pnpm exec tsx scripts\/graphql-source\.ts"/)
+
+		for (const manifestFile of globSync('src/sources/**/Graphql/**/schema-source.ts')) {
+			const manifestSource = readFileSync(manifestFile, 'utf8')
+			const schemaFile = manifestSource.match(/schemaFile:\s*'([^']+)'/)?.[1]
+			const outputFile = manifestSource.match(/outputFile:\s*'([^']+)'/)?.[1]
+			const patchFile = manifestSource.match(/patchFile:\s*'([^']+)'/)?.[1]
+			const sourceIndex = readFileSync(
+				resolve(
+					manifestFile.slice(0, manifestFile.indexOf('/Graphql/') + '/Graphql'.length),
+					'index.ts',
+				),
+				'utf8',
+			)
+			const sourceName = sourceIndex.match(/\bsource:\s*Source\.([A-Za-z0-9_]+)/)?.[1]
+
+			if (schemaFile == null)
+				throw new Error(`${manifestFile}: missing schemaFile`)
+			if (outputFile == null)
+				throw new Error(`${manifestFile}: missing outputFile`)
+			if (sourceName == null)
+				throw new Error(`${manifestFile}: missing Source enum registration in index.ts`)
+
+			expect(existsSync(resolve(dirname(manifestFile), schemaFile))).toBe(true)
+			expect(existsSync(resolve(dirname(manifestFile), outputFile))).toBe(true)
+			if (patchFile != null)
+				expect(existsSync(resolve(dirname(manifestFile), patchFile))).toBe(true)
+			expect(existsSync(resolve(dirname(manifestFile), 'client.ts'))).toBe(true)
+			expect(existsSync(resolve(dirname(manifestFile), 'queries.ts'))).toBe(true)
+			expect(
+				appSourceProviders.flatMap((provider) => provider.sources).some((source) => (
+					source.source === sourceName
+				)),
+			).toBe(true)
+		}
+
+		for (const outputFile of globSync('src/sources/**/Graphql/**/graphql-env.d.ts')) {
+			expect(existsSync(resolve(dirname(outputFile), 'schema-source.ts'))).toBe(true)
+		}
 	})
 })

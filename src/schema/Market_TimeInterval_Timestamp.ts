@@ -61,7 +61,7 @@ export default {
 			name: 'feedKey',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$parentMarket',

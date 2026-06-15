@@ -320,12 +320,14 @@ test.describe('TanStack DB persistence', () => {
 		expect(warmProductEvents.map((event) => event.collection.kind)).toEqual(expect.arrayContaining([
 			'Entity',
 			'Field',
+			'Count',
 		]))
 		expect(
 			warmProductPersistenceLoadEvents.map((event) => `${event.collectionId}:${event.decision}`),
 		).toEqual(expect.arrayContaining([
 			'Entity:EvmNetwork:hydrated-rows',
 			'Field:EvmNetwork:$$rpcUrls:hydrated-rows',
+			'Count:EvmNetwork:$$rpcUrls:hydrated-rows',
 		]))
 		expect(warmProductPersistenceLoadEvents.every((event) => event.decision === 'hydrated-rows')).toBe(true)
 		expect(warmProductRemoteLoads.map((event) => `${event.collectionId}:${event.loadedKey}`)).toEqual([])

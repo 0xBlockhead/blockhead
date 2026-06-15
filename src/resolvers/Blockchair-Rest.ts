@@ -5,8 +5,11 @@ import {
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import type {
 	BlockchairBitcoinLikeChain,
 	BlockchairBitcoinLikeBlock,
@@ -19,21 +22,28 @@ import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { UtxoInputSelector } from '$/schema/UtxoInput.ts'
 import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const blockchairChain = (
 	network: NetworkId,
 ): BlockchairBitcoinLikeChain => {
-	if (!('caip2' in network)) throw new Error('Blockchair_Rest: unsupported UTXO network')
+	const caip2 = (
+		'caip2' in network ?
+			network.caip2
+		:
+			networkBySlug[network.slug]?.caip2
+	)
+	if (caip2 == null)
+		throw new Error('Blockchair_Rest: unsupported UTXO network')
 	if (
-		network.caip2.namespace === 'bip122'
-		&& network.caip2.reference === '000000000019d6689c085ae165831e93'
+		caip2.namespace === 'bip122'
+		&& caip2.reference === '000000000019d6689c085ae165831e93'
 	) return 'bitcoin'
-	if (network.caip2.namespace === 'bip122' && network.caip2.reference === '00040fe8ec8471911baa1db1266ea15') return 'zcash'
-	if (network.caip2.namespace === 'bip122' && network.caip2.reference === '12a765e31ffd4059bada1e25190f6e98') return 'litecoin'
-	if (network.caip2.namespace === 'bip122' && network.caip2.reference === '1a91e3dace36e2be3bf030a65679fe82') return 'dogecoin'
-	if (network.caip2.namespace === 'bip122' && network.caip2.reference === '000000000000000000651ef99cb9fcbe') return 'bitcoin-cash'
-	throw new Error(`Blockchair_Rest: unsupported UTXO network ${network.caip2.namespace}:${network.caip2.reference}`)
+	if (caip2.namespace === 'bip122' && caip2.reference === '00040fe8ec8471911baa1db1266ea15') return 'zcash'
+	if (caip2.namespace === 'bip122' && caip2.reference === '12a765e31ffd4059bada1e25190f6e98') return 'litecoin'
+	if (caip2.namespace === 'bip122' && caip2.reference === '1a91e3dace36e2be3bf030a65679fe82') return 'dogecoin'
+	if (caip2.namespace === 'bip122' && caip2.reference === '000000000000000000651ef99cb9fcbe') return 'bitcoin-cash'
+	throw new Error(`Blockchair_Rest: unsupported UTXO network ${caip2.namespace}:${caip2.reference}`)
 }
 
 const firstDashboardRow = <_Row>(dashboardRows: Record<string, _Row>, subject: string) => {
@@ -97,7 +107,7 @@ const utxoTransactionRow = (
 })
 
 const getTransactionDashboard = async ({ $network, txId }: {
-	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+	$network: NetworkId
 	txId: string
 }) => {
 	const { getBitcoinLikeTransactionDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
@@ -120,10 +130,10 @@ export default {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[UtxoNetworkSelector.Network]: async (entitySelector) => {
-				blockchairChain(entitySelector)
+				blockchairChain(entitySelector.$network)
 				return {
 					$network: {
-						[EntityMetaKey.Selector]: entitySelector,
+						[EntityMetaKey.Selector]: entitySelector.$network,
 					},
 				}
 			}
@@ -203,7 +213,6 @@ export default {
 			}
 		})({
 				fields: {
-			$block: (transaction) => transaction.$block,
 			version: (transaction) => transaction.version,
 			lockTime: (transaction) => transaction.lockTime,
 			sizeBytes: (transaction) => transaction.sizeBytes,
@@ -254,7 +263,7 @@ export default {
 			$spentOutput: (input) => input.$spentOutput,
 			scriptSigAsm: (input) => input.scriptSigAsm,
 			sequence: (input) => input.sequence,
-			witness: (input) => input.witness,
+			witness: (input) => input.witness ?? [],
 		},
 			}),
 
@@ -303,9 +312,9 @@ export default {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[UtxoNetworkSelector.Network]: async (entitySelector) => {
-				blockchairChain(entitySelector)
+				blockchairChain(entitySelector.$network)
 				return {
-					[EntityMetaKey.Selector]: entitySelector,
+					[EntityMetaKey.Selector]: entitySelector.$network,
 				}
 			}
 			}
@@ -319,10 +328,10 @@ export default {
 			entityType: EntityType.UtxoNetwork,
 			resolve: {
 				[UtxoNetworkSelector.Network]: async (entitySelector) => {
-				const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
-				const stats = (await getBitcoinLikeStats({
-					chain: blockchairChain(entitySelector),
-				})).data
+					const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
+					const stats = (await getBitcoinLikeStats({
+						chain: blockchairChain(entitySelector.$network),
+					})).data
 				const bestBlockHeight = bigintFromNumber(stats.best_block_height)
 				const blockCount = bigintFromNumber(stats.blocks)
 				const transactionCount = bigintFromNumber(stats.transactions)
@@ -333,10 +342,10 @@ export default {
 				const bestBlockTimeMs = timestampMsFromBlockchairTime(stats.best_block_time)
 				return [
 					{
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector,
-							timestampMs: bestBlockTimeMs ?? Date.now(),
-						},
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
+								timestampMs: bestBlockTimeMs ?? Date.now(),
+							},
 						...(bestBlockHeight != null && { bestBlockHeight }),
 						...(stats.best_block_hash != null && { bestBlockHash: stats.best_block_hash }),
 						...(bestBlockTimeMs != null && { bestBlockTimeMs }),
@@ -369,13 +378,13 @@ export default {
 				[UtxoNetworkSelector.Network]: async (entitySelector, context) => {
 				const { getBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
 				return (await getBlocks<BlockchairBitcoinLikeBlock>({
-					chain: blockchairChain(entitySelector),
+					chain: blockchairChain(entitySelector.$network),
 					params: {
 						sort: 'id(desc)',
 						limit: resolverContextRowLimit(context),
 					},
 				})).data.map((block) => utxoBlockRow(
-					entitySelector,
+					entitySelector.$network,
 					block,
 				))
 			}
@@ -392,13 +401,13 @@ export default {
 				[UtxoNetworkSelector.Network]: async (entitySelector, context) => {
 				const { getTransactions } = await import('$/sources/Blockchair/Rest/queries.ts')
 				return (await getTransactions<BlockchairBitcoinLikeTransaction>({
-					chain: blockchairChain(entitySelector),
+					chain: blockchairChain(entitySelector.$network),
 					params: {
 						sort: 'id(desc)',
 						limit: resolverContextRowLimit(context),
 					},
 				})).data.map((transaction) => utxoTransactionRow(
-					entitySelector,
+					entitySelector.$network,
 					transaction,
 				))
 			}
@@ -423,11 +432,11 @@ export default {
 					).data,
 					hash,
 				)
-				return dashboard.transactions.map((transaction) => ({
-					[EntityMetaKey.Selector]: {
-						$network: entitySelector.$network,
-						txId: transaction.hash,
-					},
+					return dashboard.transactions.map((transaction) => ({
+						[EntityMetaKey.Selector]: {
+							$network,
+							txId: transaction.hash,
+						},
 					version: transaction.version,
 					lockTime: transaction.lock_time,
 					sizeBytes: transaction.size,

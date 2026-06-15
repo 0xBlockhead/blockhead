@@ -18,10 +18,10 @@ import { TronBlockSelector } from '$/schema/TronBlock.ts'
 import { TronTransactionSelector } from '$/schema/TronTransaction.ts'
 import { TronAccountSelector } from '$/schema/TronAccount.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const assertTronMainnet = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug.tron.slug) {
+	if (!('slug' in network) || network.slug !== networkBySlug.tron.slug) {
 		throw new Error('TronSolidityNode_Rest: unsupported network')
 	}
 }
@@ -47,12 +47,6 @@ const transactionFields = (
 	const amountSun = bigintFromNumberOrString(value?.amount)
 	return {
 		...(info?.blockNumber != null && {
-			$block: {
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					height: BigInt(info.blockNumber),
-				},
-			},
 			blockHeight: BigInt(info.blockNumber),
 		}),
 		timestampMs: info?.blockTimeStamp ?? transaction.raw_data?.timestamp,
@@ -89,9 +83,7 @@ const transactionFields = (
 		}),
 		assetName: value?.asset_name,
 		rawDataHex: transaction.raw_data_hex,
-		...(transaction.signature != null && {
-			signatures: transaction.signature,
-		}),
+		signatures: transaction.signature ?? [],
 	}
 }
 
@@ -102,6 +94,9 @@ const blockFields = (
 	const rawBlock = block.block_header?.raw_data
 	if (rawBlock?.number == null) {
 		throw new Error('TronSolidityNode_Rest: block is missing height')
+	}
+	if (block.blockID == null) {
+		throw new Error('TronSolidityNode_Rest: block is missing hash')
 	}
 	return {
 		hash: block.blockID,
@@ -208,7 +203,6 @@ export default {
 			}
 		})({
 				fields: {
-			$block: (transaction) => transaction.$block,
 			blockHeight: (transaction) => transaction.blockHeight,
 			timestampMs: (transaction) => transaction.timestampMs,
 			expirationTimestampMs: (transaction) => transaction.expirationTimestampMs,

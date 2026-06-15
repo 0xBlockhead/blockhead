@@ -23,9 +23,6 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const solanaInstruction = subscribe(EntityType.SolanaInstruction, selector, ({ fields: { $program: true, parsedType: true, data: true, $$accounts: true } }))
-
-
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -38,14 +35,14 @@
 <EntityView
 	entityType={EntityType.SolanaInstruction}
 	entitySelector={selector}
-	title={`Instruction #${selector.instructionIndex.toString()}`}
-	idDragPlainText={selector.instructionIndex.toString()}
+	title={`Instruction #${selector.instructionPath.join('.')}`}
+	idDragPlainText={selector.instructionPath.join('.')}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.instructionIndex.toString()}
+			#{selector.instructionPath.join('.')}
 		</span>
 	{/snippet}
 
@@ -60,8 +57,8 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={solanaInstruction}
-			placeholderText={`Loading Solana Instruction...`}
+			resource={subscribe(EntityType.SolanaInstruction, selector, ({ fields: { $program: true, parsedType: true, data: true, $$accounts: true } }))}
+			placeholderText="Loading Solana Instruction..."
 		>
 			{#snippet children(solanaInstruction)}
 				<dl>

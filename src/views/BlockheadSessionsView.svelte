@@ -15,7 +15,7 @@
 	// Context
 	import { writeLocalBlockheadSession } from '$/collections/localMutations.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { appClient, subscribe } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -49,7 +49,7 @@
 
 	// Actions
 	const createSession = () => {
-		writeLocalBlockheadSession(entityFieldReference.selector, sessionName)
+		writeLocalBlockheadSession(appClient, entityFieldReference.selector, sessionName)
 		sessionName = ''
 	}
 

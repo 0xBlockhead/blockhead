@@ -69,15 +69,7 @@ export default {
 					block: hash,
 				})
 				return {
-					hash: wireBlock.data.block?.hash,
-					...(height > 0n && {
-						$parent: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								height: height - 1n,
-							},
-						},
-					}),
+					hash,
 					...(wireBlock.data.block?.time != null && {
 						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),
@@ -87,7 +79,6 @@ export default {
 		})({
 				fields: {
 				hash: (block) => block.hash,
-				$parent: (block) => block.$parent,
 				timestampMs: (block) => block.timestampMs,
 			},
 			}),
@@ -101,21 +92,11 @@ export default {
 					blockchain: threeXplBlockchain($network),
 					transaction: txHash,
 				})
-				return {
-					...(wireTransaction.data.transaction?.block != null && {
-						$block: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								height: BigInt(wireTransaction.data.transaction.block),
-							},
-						},
-					}),
-				}
+				return {}
 			}
 			},
 		})({
 				fields: {
-				$block: (transaction) => transaction.$block,
 			},
 			}),
 
@@ -129,15 +110,7 @@ export default {
 					block: hash,
 				})
 				return {
-					hash: wireBlock.data.block?.hash,
-					...(height > 0n && {
-						$parent: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								height: height - 1n,
-							},
-						},
-					}),
+					hash,
 					...(wireBlock.data.block?.time != null && {
 						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),
@@ -147,7 +120,6 @@ export default {
 		})({
 				fields: {
 				hash: (block) => block.hash,
-				$parent: (block) => block.$parent,
 				timestampMs: (block) => block.timestampMs,
 			},
 			}),
@@ -162,24 +134,13 @@ export default {
 					block: hash,
 				})
 				return {
-					...(wireBlock.data.block?.hash != null && {
-						hash: wireBlock.data.block.hash,
-					}),
-					...(blockNumber > 0n && {
-						$parent: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								blockNumber: blockNumber - 1n,
-							},
-						},
-					}),
+					hash,
 				}
 			}
 			},
 		})({
 				fields: {
 				hash: (block) => block.hash,
-				$parent: (block) => block.$parent,
 			},
 			}),
 
@@ -208,7 +169,10 @@ export default {
 			},
 		})({
 			fields: {
-				blockHash: (block) => block.blockHash,
+				blockHash: (block) => {
+					if (block.blockHash == null) throw new Error('ThreeXpl_Rest: Solana block missing block hash')
+					return block.blockHash
+				},
 				timestampMs: (block) => block.timestampMs,
 				transactionCount: (block) => block.transactionCount,
 			},
@@ -252,15 +216,7 @@ export default {
 					block: hash,
 				})
 				return {
-					hash: wireBlock.data.block?.hash,
-					...(height > 0n && {
-						$parent: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								height: height - 1n,
-							},
-						},
-					}),
+					hash,
 					...(wireBlock.data.block?.time != null && {
 						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),
@@ -271,7 +227,6 @@ export default {
 		})({
 				fields: {
 				hash: (block) => block.hash,
-				$parent: (block) => block.$parent,
 				timestampMs: (block) => block.timestampMs,
 				transactionCount: (block) => block.transactionCount,
 			},
@@ -320,7 +275,7 @@ export default {
 					block: hash,
 				})
 				return {
-					hash: wireBlock.data.block?.hash,
+					hash,
 					...(wireBlock.data.block?.time != null && {
 						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),
@@ -345,21 +300,11 @@ export default {
 					blockchain: threeXplBlockchain($network),
 					transaction: txId,
 				})
-				return {
-					...(wireTransaction.data.transaction?.block != null && {
-						$block: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								height: BigInt(wireTransaction.data.transaction.block),
-							},
-						},
-					}),
-				}
+				return {}
 			}
 			},
 		})({
 				fields: {
-				$block: (transaction) => transaction.$block,
 			},
 			}),
 

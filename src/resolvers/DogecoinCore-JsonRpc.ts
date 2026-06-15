@@ -13,7 +13,7 @@ import { Source } from '$/sources/Source.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 
-const assertDogecoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
+const assertDogecoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string } | { slug: string }) => {
 	if (
 		!('caip2' in network)
 		|| network.caip2.namespace !== dogecoinMainnetCaip2.namespace
@@ -69,14 +69,14 @@ export default {
 						typeof transaction === 'string' ?
 							{
 								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
+									$network,
 									txId: transaction,
 								},
 							}
 						:
 							{
 								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
+									$network,
 									txId: transaction.txid,
 								},
 								version: transaction.version,

@@ -59,19 +59,19 @@ export default {
 			name: 'fid',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'channelId',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'viewerFid',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'label',

@@ -1,4 +1,5 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -10,7 +11,9 @@ import { TransportType } from '$/constants/TransportType.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { PolkadotRpcBlock } from '$/sources/Polkadot/JsonRpc/types.ts'
 import { PolkadotNetworkSelector } from '$/schema/PolkadotNetwork.ts'
@@ -18,13 +21,12 @@ import { PolkadotNetwork_TimestampSelector } from '$/schema/PolkadotNetwork_Time
 import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
 import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertPolkadotMainnet = (network: NetworkId) => {
 	if (
-		!('caip2' in network)
-		|| network.caip2.namespace !== polkadotMainnetCaip2.namespace
-		|| network.caip2.reference !== polkadotMainnetCaip2.reference
+		stringify(network) !== stringify({ caip2: polkadotMainnetCaip2 })
+		&& stringify(network) !== stringify({ slug: 'polkadot' })
 	) {
 		throw new Error('Polkadot_JsonRpc: unsupported network')
 	}
@@ -35,12 +37,14 @@ const blockNumberFromHeader = (header: { number: string }) => BigInt(header.numb
 const polkadotExtrinsicRows = (
 	network: NetworkId,
 	block: PolkadotRpcBlock,
+	hash: string,
 ) => (
 	block.block.extrinsics.map((_extrinsic, extrinsicIndex) => ({
 		[EntityMetaKey.Selector]: {
 			$block: {
 				$network: network,
 				blockNumber: blockNumberFromHeader(block.block.header),
+				hash,
 			},
 			extrinsicIndex,
 		},
@@ -55,10 +59,10 @@ export default {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
 				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
-				assertPolkadotMainnet(entitySelector)
+				assertPolkadotMainnet(entitySelector.$network)
 				return {
 					$network: {
-						[EntityMetaKey.Selector]: entitySelector,
+						[EntityMetaKey.Selector]: entitySelector.$network,
 					},
 					rpcEndpoints: [
 						{
@@ -166,6 +170,7 @@ export default {
 					$$extrinsics: polkadotExtrinsicRows(
 						$network,
 						block,
+						hash,
 					),
 				}
 			}
@@ -184,7 +189,7 @@ export default {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
 				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
-				assertPolkadotMainnet(entitySelector)
+				assertPolkadotMainnet(entitySelector.$network)
 				return [
 					{
 						url: polkadotMainnetRpcUrl,
@@ -204,11 +209,11 @@ export default {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
 				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
-				assertPolkadotMainnet(entitySelector)
+				assertPolkadotMainnet(entitySelector.$network)
 				return [
 					{
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector,
+							[EntityMetaKey.Selector]: {
+							$network: entitySelector.$network,
 							timestampMs: Date.now(),
 						},
 					},
@@ -225,7 +230,7 @@ export default {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: {
 				[PolkadotNetworkSelector.Network]: async (entitySelector, context) => {
-				assertPolkadotMainnet(entitySelector)
+				assertPolkadotMainnet(entitySelector.$network)
 				const {
 					getFinalizedHead,
 					getHeader,
@@ -237,12 +242,13 @@ export default {
 				}))
 				return Array.from({
 					length: Math.min(
+						1,
 						Number(finalizedBlockNumber + 1n),
 						resolverContextRowLimit(context),
 					),
 				}, (_value, blockOffset) => ({
 					[EntityMetaKey.Selector]: {
-						$network: entitySelector,
+						$network: entitySelector.$network,
 						blockNumber: finalizedBlockNumber - BigInt(blockOffset),
 						...(blockOffset === 0 && {
 							hash: finalizedBlockHash,
@@ -301,6 +307,7 @@ export default {
 						rpcUrl: polkadotMainnetRpcUrl,
 						blockHash: hash,
 					}),
+					hash,
 				)
 			}
 			}

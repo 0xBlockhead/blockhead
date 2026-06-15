@@ -84,7 +84,7 @@ export default {
 			name: 'toAddress',
 			type: EntityFieldType.Primitive,
 			primitiveType: EvmAddress,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$$steps',

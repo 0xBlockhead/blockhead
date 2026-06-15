@@ -2,7 +2,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -43,7 +42,7 @@ export default {
 					throw new Error('PolkadotRfcs_Github: proposal resolver only supports Polkadot Fellowship RFCs')
 				}
 				const { getMarkdownText } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
-				const text = await singleFlight(getMarkdownText)({ number: number })
+				const text = await getMarkdownText({ number: number })
 				return {
 					documentCategory: 'RFC',
 					documentTitle: text.match(/^#\s*(.+)$/m)?.[1]?.trim(),

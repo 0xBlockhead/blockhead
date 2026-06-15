@@ -14,7 +14,10 @@
 	// Types/constants
 	import type { Snippet } from 'svelte'
 
-	import { serializeError } from '$/lib/errors.ts'
+	import {
+		normalizeBoundaryError,
+		serializeError,
+	} from '$/lib/errors.ts'
 	import {
 		type QueryResourceError,
 		type SvelteKitResource,
@@ -27,7 +30,7 @@
 		Pending,
 		Failed,
 		placeholderText = 'Loading…',
-		resource: resourceRaw,
+		resource,
 		layout = Layout.Inline,
 	}: {
 		children: Snippet<[data: Data]>
@@ -40,49 +43,40 @@
 		resource: SvelteKitResource<Data>
 		layout?: Layout
 	} = $props()
+
+
+	// Components
+	import Boundary from '$/components/Boundary.svelte'
 </script>
 
 
-{#if resourceRaw.error !== undefined}
-	{@render FailedFallback(
-		resourceRaw.error,
-		() => {},
-	)}
-{:else if resourceRaw.current !== undefined}
-	{@render children(resourceRaw.current)}
-{:else}
-	{@render PendingFallback()}
-{/if}
-
-{#snippet PendingFallback()}
+{#snippet PendingContent()}
 	{#if Pending}
 		{@render Pending()}
+	{:else if layout === Layout.Inline}
+		<span
+			data-tag
+			data-text="muted"
+			class="loading inline-placeholder"
+			aria-busy="true"
+			aria-label={placeholderText}
+		>
+			•••
+		</span>
 	{:else}
-		{#if layout === Layout.Inline}
-			<span
-				data-tag
-				data-text="muted"
-				class="loading inline-placeholder"
-				aria-busy="true"
-				aria-label={typeof placeholderText === 'string' ? placeholderText : 'Loading…'}
-			>
-				•••
-			</span>
-		{:else}
-			<div
-				data-card
-				data-text="muted"
-				class="loading"
-			>
-				<p>{typeof placeholderText === 'string' ? placeholderText : 'Loading…'}</p>
-			</div>
-		{/if}
+		<div
+			data-card
+			data-text="muted"
+			class="loading"
+		>
+			<p>{placeholderText}</p>
+		</div>
 	{/if}
 {/snippet}
 
-{#snippet FailedFallback(
-	error,
-	retry,
+{#snippet FailedContent(
+	error: QueryResourceError,
+	retry: () => void,
 )}
 	{#if Failed}
 		{@render Failed(
@@ -103,6 +97,33 @@
 		</div>
 	{/if}
 {/snippet}
+
+<Boundary boundaryKey={placeholderText}>
+	{#if resource.error !== undefined}
+		{@render FailedContent(
+			resource.error,
+			() => {},
+		)}
+	{:else if resource.ready && resource.current !== undefined}
+		{@render children(resource.current)}
+	{:else}
+		{@render PendingContent()}
+	{/if}
+
+	{#snippet Pending()}
+		{@render PendingContent()}
+	{/snippet}
+
+	{#snippet Failed(
+		error,
+		retry,
+	)}
+		{@render FailedContent(
+			normalizeBoundaryError(error),
+			retry,
+		)}
+	{/snippet}
+</Boundary>
 
 
 <style>

@@ -11,7 +11,7 @@
 
 	// Context
 	import { updateLocalBlockheadSessionActionType } from '$/collections/localMutations.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { appClient, subscribe } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -56,6 +56,7 @@
 		actionType: ActionType,
 	) => {
 		updateLocalBlockheadSessionActionType(
+			appClient,
 			selector,
 			sessionAction,
 			actionType,

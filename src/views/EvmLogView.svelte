@@ -5,7 +5,6 @@
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -19,12 +18,7 @@
 
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]', {
-			caip2Namespace: selector.$network.caip2.namespace,
-			caip2Reference: selector.$network.caip2.reference,
-			transactionId: selector.txHash,
-			logIndex: String(selector.logIndex),
-		}),
+		href,
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -51,12 +45,11 @@
 		>
 	> = $props()
 
-	const log = subscribe(EntityType.EvmLog,
-		selector,
-		({ sources: [
-				Source.Blockscout_Rest,
-				Source.Voltaire_JsonRpc,
-			], fields: { topics: true, ...(open && ({ data: true, $emitter: true, $$tokenTransfers: true })) } }),
+	const log = $derived(
+		subscribe(EntityType.EvmLog,
+			selector,
+			({ fields: { topics: true, ...(open && ({ data: true, $emitter: true, $$tokenTransfers: true })) } }),
+		),
 	)
 
 
@@ -74,7 +67,12 @@
 <EntityView
 	entityType={EntityType.EvmLog}
 	entitySelector={selector}
-	href={href}
+	href={href ?? resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]', {
+		caip2Namespace: selector.$network.caip2.namespace,
+		caip2Reference: selector.$network.caip2.reference,
+		transactionId: selector.txHash,
+		logIndex: String(selector.logIndex),
+	})}
 	{layout}
 	bind:open
 	{collapsible}
@@ -183,7 +181,7 @@
 															format={TruncatedValueFormat.Abbr}
 														/>
 													{:else}
-														<a data-text="font-monospace" href={getEvmTopicPath(topicHex)}>
+														<a data-text="font-monospace" href={resolve(getEvmTopicPath(topicHex))}>
 															<TruncatedValue
 																value={topic}
 																format={TruncatedValueFormat.Abbr}

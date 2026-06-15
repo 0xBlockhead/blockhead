@@ -2,7 +2,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -60,7 +59,7 @@ export default {
 				if (realm !== SpecificationRealm.Bitcoin || category !== ProposalCategory.Bip) {
 					throw new Error('BitcoinBips_Github: proposal resolver only supports Bitcoin BIPs')
 				}
-				const text = await singleFlight(getProposalMediaWikiText)({ number: number })
+				const text = await getProposalMediaWikiText({ number: number })
 				if (text.trim() === '') throw new Error('BitcoinBips_Github: empty proposal text')
 				return {
 					documentCategory: bipMetadataValue(text, 'Type'),

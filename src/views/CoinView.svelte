@@ -20,6 +20,7 @@
 
 
 	// Context
+	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
@@ -29,9 +30,12 @@
 		selector,
 		href = resolve('/(assets)/(coins)/coin/[coinId]', {
 			coinId: selector.coinId,
-			}),
+		}),
 		layout,
-		open = $bindable(true),
+		open = $bindable(
+			layout === EntityLayout.SummaryDetails
+			&& !(getIsInsideEntityList() ?? false),
+		),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
@@ -68,17 +72,47 @@
 
 
 	const coin = $derived(
-		subscribe(EntityType.Coin,
+		subscribe(
+			EntityType.Coin,
 			selector,
-			({ sources: [...catalogCoinIdentitySources], fields: { $logo: true, decimals: true, name: true, symbol: true, marketCapRank: true, marketCapUsd: ({ sources: catalogCoinIdentitySources }), ...(open && ({ $$timestamps: ({ sources: [
+			{
+				sources: open ?
+					[...catalogCoinIdentitySources]
+				:
+					[
+						Source.Constants_Internal,
+					],
+				fields: {
+					symbol: true,
+					...(open && {
+						$logo: true,
+						decimals: true,
+						name: true,
+						marketCapRank: true,
+						marketCapUsd: {
+							sources: catalogCoinIdentitySources,
+						},
+						$$timestamps: {
+							sources: [
 							Source.Blockscout_Rest,
-						], limit: 8 }) })), ...(open && ({ $$coinInstances: ({ sources: [
-							Source.Constants_Internal,
-							Source.Coingecko_Rest,
-						] }), $$bridgeCapabilities: ({ sources: [
-							Source.Constants_Internal,
-							Source.Lifi_Rest,
-						] }) })) } }),
+							],
+							limit: 8,
+						},
+						$$coinInstances: {
+							sources: [
+								Source.Constants_Internal,
+								Source.Coingecko_Rest,
+							],
+						},
+						$$bridgeCapabilities: {
+							sources: [
+								Source.Constants_Internal,
+								Source.Lifi_Rest,
+							],
+						},
+					}),
+				},
+			},
 		),
 	)
 
@@ -109,18 +143,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Icon()}
-		<ResourceBoundary
-			resource={coin}
-		>
-			{#snippet children(coin)}
-				{#if coin.fields.$logo?.[EntityMetaKey.Selector].url !== undefined}
-					<IconComponent
-						src={coin.fields.$logo[EntityMetaKey.Selector].url}
-						alt={coin.fields.symbol ?? coin.fields.name ?? selector.coinId}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				resource={coin}
+			>
+				{#snippet children(coin)}
+					{#if coin.fields.$logo?.[EntityMetaKey.Selector].url !== undefined}
+						<IconComponent
+							src={coin.fields.$logo[EntityMetaKey.Selector].url}
+							alt={coin.fields.symbol ?? coin.fields.name ?? selector.coinId}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
@@ -130,14 +166,18 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={coin}
-			placeholderText="Loading…"
-		>
-			{#snippet children(coin)}
-				{formatCoinHeadingLabel(coin.fields, selector.coinId)}
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				resource={coin}
+				placeholderText="Loading…"
+			>
+				{#snippet children(coin)}
+					{formatCoinHeadingLabel(coin.fields, selector.coinId)}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			{selector.coinId}
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

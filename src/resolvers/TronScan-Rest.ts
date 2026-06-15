@@ -23,10 +23,10 @@ import { TronContractSelector } from '$/schema/TronContract.ts'
 import { TronTokenSelector } from '$/schema/TronToken.ts'
 import { TronTokenTransferSelector } from '$/schema/TronTokenTransfer.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const assertTronMainnet = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== 'tron') {
+	if (!('slug' in network) || network.slug !== 'tron') {
 		throw new Error('TronScan_Rest: unsupported network')
 	}
 }
@@ -68,7 +68,11 @@ const accountReference = (
 const blockFieldsFromTronScanBlock = (
 	network: NetworkId,
 	block: TronScanBlock,
-) => ({
+) => {
+	if (block.hash == null)
+		throw new Error('TronScan_Rest: block is missing hash')
+
+	return {
 	hash: block.hash,
 	...(block.number > 0 && block.parentHash != null && {
 		$parent: {
@@ -92,7 +96,8 @@ const blockFieldsFromTronScanBlock = (
 	txTrieRoot: block.txTrieRoot,
 	version: block.version,
 	transactionCount: block.transactionCount ?? block.nrOfTrx,
-})
+	}
+}
 
 const transactionFieldsFromTronScanTransaction = (
 	network: NetworkId,
@@ -237,7 +242,10 @@ const tokenTransferFieldsFromTronScanTransfer = (
 	transfer: TronScanTrc20Transfer,
 	transferIndex: number,
 ) => {
-	const transactionId = transfer.transaction_id ?? transfer.transactionHash ?? ''
+	const transactionId = transfer.transaction_id ?? transfer.transactionHash
+	if (transactionId == null)
+		throw new Error('TronScan_Rest: token transfer is missing transaction id')
+
 	const tokenId = (
 		transfer.contract_address
 		?? transfer.contractAddress
@@ -507,10 +515,10 @@ export default {
 							[
 								{
 									[EntityMetaKey.Selector]: {
-										$network: entitySelector.$network,
+										$network,
 										tokenId,
 									},
-									...tokenFieldsFromTronScanToken(entitySelector.$network, token),
+									...tokenFieldsFromTronScanToken($network, token),
 								},
 							]
 					)
@@ -558,7 +566,7 @@ export default {
 					?? []
 				).map((transfer, transferIndex) => (
 					tokenTransferFieldsFromTronScanTransfer(
-						entitySelector.$network,
+						$network,
 						transfer,
 						transferIndex,
 					)

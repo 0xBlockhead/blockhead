@@ -97,7 +97,7 @@ export default {
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.MevBuilder,
 			resolve: {
-				[MevBuilderSelector.EvmNetworkBuilderPubkey]: async ({ $network }) => {
+				[MevBuilderSelector.EvmNetworkBuilderPubkey]: async ({ $network, builderPubkey }) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 				const chainId = Number($network.caip2.reference)
@@ -105,7 +105,7 @@ export default {
 				for (const { host } of mevRelayHosts.filter((mevRelayHost) => mevRelayHost.chainId === chainId)) {
 					deliveredPayloadCount += (
 						(await getProposerPayloadDeliveredForRelayHost(host, { limit: 200 }))
-							.filter((payload) => (payload.builder_pubkey ?? payload.builderPubkey) === entitySelector.builderPubkey)
+							.filter((payload) => (payload.builder_pubkey ?? payload.builderPubkey) === builderPubkey)
 							.length
 					)
 				}
@@ -211,7 +211,9 @@ export default {
 				}
 				return [...seen].map((builderPubkey) => ({
 					[EntityMetaKey.Selector]: {
-						$network: entitySelector,
+						$network: {
+							caip2,
+						},
 						builderPubkey,
 					},
 				}))

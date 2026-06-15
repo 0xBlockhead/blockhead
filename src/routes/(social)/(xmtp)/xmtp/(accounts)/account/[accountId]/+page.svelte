@@ -8,7 +8,7 @@
 	let {
 		params,
 	} = $props()
-	const entitySelector = $derived(
+	const selector = $derived(
 		((address) => (
 			address instanceof arktype.errors ?
 				undefined
@@ -24,7 +24,7 @@
 
 
 <Page>
-	{#if entitySelector}
+	{#if selector}
 		<EvmAccountView
 			selector={selector}
 		/>

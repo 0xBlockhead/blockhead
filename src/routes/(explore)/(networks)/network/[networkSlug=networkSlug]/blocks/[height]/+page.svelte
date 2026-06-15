@@ -31,7 +31,7 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{@const entitySelector = { networkSlug: network.fields.slug }}
+			{@const selector = { networkSlug: network.fields.slug }}
 			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
 				<UtxoBlockView selector={{ $network: selector, height: BigInt(params.height) }} />
 			{:else if network.fields.namespace === NetworkNamespace.Cosmos}

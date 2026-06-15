@@ -3,7 +3,6 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { regex } from 'arkregex'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -41,7 +40,7 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 	const byLedger = await Promise.all(
 		ledgers.map(async ({ ledger, category: cat }) => ({
 			category: cat,
-			data: await singleFlight(getContents)({ ledger }),
+			data: await getContents({ ledger }),
 		})),
 	)
 	const specificationProposals: {
@@ -93,7 +92,7 @@ export default {
 				) {
 					throw new Error('EthereumEips_Github: proposal resolver only supports Ethereum EIPs/ERCs')
 				}
-				const text = await singleFlight(getProposalMarkdownText)({
+				const text = await getProposalMarkdownText({
 					ledger: category === ProposalCategory.Erc ? 'erc' : 'eip',
 					number: number,
 				})

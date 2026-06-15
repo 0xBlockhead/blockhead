@@ -92,7 +92,7 @@ export default {
 			marketCapUsd: (snapshot) => snapshot.marketCapUsd,
 			fdvUsd: (snapshot) => snapshot.fdvUsd,
 			pairCreatedAtMs: (snapshot) => snapshot.pairCreatedAtMs,
-			dexscreenerLabels: (snapshot) => snapshot.dexscreenerLabels,
+			dexscreenerLabels: (snapshot) => snapshot.dexscreenerLabels ?? [],
 			dexId: (snapshot) => snapshot.dexId,
 			dexscreenerPairUrl: (snapshot) => snapshot.dexscreenerPairUrl,
 			baseTokenPriceUsd: (snapshot) => snapshot.baseTokenPriceUsd,

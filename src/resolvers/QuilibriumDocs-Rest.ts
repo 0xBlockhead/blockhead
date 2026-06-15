@@ -42,7 +42,7 @@ export default {
 		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
-				[QuilibriumNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				[QuilibriumNetworkSelector.Slug]: async (entitySelector) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				return {
 					docsEndpoints: [
@@ -85,7 +85,7 @@ export default {
 				if (realm !== SpecificationRealm.Quilibrium || category !== ProposalCategory.ProtocolDocument) {
 					throw new Error('QuilibriumDocs_Rest: proposal resolver only supports Quilibrium protocol documents')
 				}
-				const document = (await quilibriumDocumentRows()).find((quilibriumDocument) => quilibriumDocument[EntityMetaKey.Selector].number === entitySelector.number)
+				const document = (await quilibriumDocumentRows()).find((quilibriumDocument) => quilibriumDocument[EntityMetaKey.Selector].number === number)
 				if (document == null) throw new Error(`QuilibriumDocs_Rest: document not found ${number.toString()}`)
 				return document
 			}
@@ -102,7 +102,7 @@ export default {
 		defineResolver(Source.QuilibriumDocs_Rest, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
-				[QuilibriumNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				[QuilibriumNetworkSelector.Slug]: async (entitySelector) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				return {
 					[EntityMetaKey.Selector]: {

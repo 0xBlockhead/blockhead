@@ -14,7 +14,7 @@ import { networkFields } from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
 export enum NearNetworkSelector {
-	NetworkSlug = 'networkSlug',
+	Slug = 'slug',
 }
 
 
@@ -32,20 +32,20 @@ export default {
 
 	selectors: [
 		{
-			name: NearNetworkSelector.NetworkSlug,
+			name: NearNetworkSelector.Slug,
 			fields: [
-				'networkSlug',
+				'slug',
 			],
 		},
 	],
 
 	fields: [
 		{
-			name: 'networkSlug',
+			name: 'slug',
 			type: EntityFieldType.Primitive,
 			primitiveType: type.unit('near'),
 			cardinality: EntityFieldCardinality.One,
-		},		networkFields[0],
+		},
 		networkFields[1],
 		networkFields[2],
 		networkFields[3],

@@ -22,7 +22,7 @@ import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { ElementsAssetSelector } from '$/schema/ElementsAsset.ts'
 import { ElementsNetworkSelector } from '$/schema/ElementsNetwork.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const esploraRestBaseUrlForNetwork = (network: NetworkId) => {
 	if (
@@ -32,7 +32,7 @@ const esploraRestBaseUrlForNetwork = (network: NetworkId) => {
 	)
 		return bitcoinMainnetEsploraRestBaseUrl
 
-	if ('networkSlug' in network && network.networkSlug === liquidNetworkId.networkSlug)
+	if ('slug' in network && network.slug === liquidNetworkId.slug)
 		return liquidMainnetEsploraRestBaseUrl
 
 	throw new Error('Esplora_Rest: unsupported network')
@@ -65,7 +65,9 @@ const elementsAssetRowFromWire = (
 	asset: EsploraAsset,
 ) => ({
 	[EntityMetaKey.Selector]: {
-		$network,
+		$network: {
+			$network,
+		},
 		assetId: asset.asset_id,
 	},
 	...elementsAssetFieldsFromWire(asset),
@@ -134,14 +136,12 @@ export default {
 					txId: txId,
 				})
 				return {
-					...(transaction.status.block_height != null && {
+					...(transaction.status.block_height != null && transaction.status.block_hash != null && {
 						$block: {
 							[EntityMetaKey.Selector]: {
 								$network: $network,
 								height: BigInt(transaction.status.block_height),
-								...(transaction.status.block_hash != null && {
-									hash: transaction.status.block_hash,
-								}),
+								hash: transaction.status.block_hash,
 							},
 						},
 					}),
@@ -175,8 +175,8 @@ export default {
 			resolve: {
 				[ElementsAssetSelector.ElementsNetworkAssetId]: async ({ $network, assetId }) => {
 				if (
-					!('networkSlug' in $network)
-					|| $network.networkSlug !== liquidNetworkId.networkSlug
+						!('slug' in $network)
+						|| $network.slug !== liquidNetworkId.slug
 				)
 					throw new Error('Esplora_Rest: unsupported Elements network')
 
@@ -208,12 +208,12 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
-				[ElementsNetworkSelector.Network]: async (entitySelector) => {
-				if (
-					!('networkSlug' in entitySelector)
-					|| entitySelector.networkSlug !== liquidNetworkId.networkSlug
-				)
-					throw new Error('Esplora_Rest: unsupported Elements network')
+					[ElementsNetworkSelector.Network]: async ({ $network }) => {
+					if (
+						!('slug' in $network)
+						|| $network.slug !== liquidNetworkId.slug
+					)
+						throw new Error('Esplora_Rest: unsupported Elements network')
 
 				const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
 				const asset = await getAsset({
@@ -226,18 +226,20 @@ export default {
 			}
 		})({
 				fields: {
-			$nativeAsset: (snapshot) => snapshot,
+			$nativeAsset: (snapshot) => ({
+				[EntityMetaKey.Selector]: snapshot[EntityMetaKey.Selector],
+			}),
 		},
 			}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
-				[ElementsNetworkSelector.Network]: async (entitySelector, context) => {
-				if (
-					!('networkSlug' in entitySelector)
-					|| entitySelector.networkSlug !== liquidNetworkId.networkSlug
-				)
+					[ElementsNetworkSelector.Network]: async ({ $network }, context) => {
+					if (
+						!('slug' in $network)
+						|| $network.slug !== liquidNetworkId.slug
+					)
 					throw new Error('Esplora_Rest: unsupported Elements network')
 
 				const { listRegistryAssets } = await import('$/sources/Esplora/Rest/queries.ts')
@@ -250,7 +252,9 @@ export default {
 			}
 		})({
 				fields: {
-			$$assets: (snapshot) => snapshot,
+			$$assets: (snapshot) => snapshot.map((asset) => ({
+				[EntityMetaKey.Selector]: asset[EntityMetaKey.Selector],
+			})),
 		},
 			}),
 	],

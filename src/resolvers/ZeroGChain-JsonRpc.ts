@@ -25,8 +25,8 @@ const assertZeroGMainnetChain = (network: { caip2: { namespace: string; referenc
 	}
 }
 
-const assertZeroGMainnet = (network: { networkSlug: string }) => {
-	if (network.networkSlug !== '0g') {
+const assertZeroGMainnet = (network: { slug: string }) => {
+	if (network.slug !== '0g') {
 		throw new Error('ZeroGChain_JsonRpc: unsupported network')
 	}
 }
@@ -267,7 +267,7 @@ export default {
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				[ZeroGNetworkSelector.Slug]: async (entitySelector) => {
 				assertZeroGMainnet(entitySelector)
 				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 				const block = await getBlockByNumber({
@@ -306,7 +306,7 @@ export default {
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector, context) => {
+				[ZeroGNetworkSelector.Slug]: async (entitySelector, context) => {
 				assertZeroGMainnet(entitySelector)
 				const { getBlockNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 				const headBlockNumber = BigInt(await getBlockNumber())
@@ -348,7 +348,7 @@ export default {
 					:
 						[{
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network,
 								txHash,
 							},
 						}]

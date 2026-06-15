@@ -1,3 +1,6 @@
+import type { EvmAddress } from '$/schema/ZeroExHex.ts'
+
+
 export type ZeroGStorageNodeNetworkProtocolVersion = {
 	major: number
 	minor: number
@@ -6,7 +9,7 @@ export type ZeroGStorageNodeNetworkProtocolVersion = {
 
 export type ZeroGStorageNodeNetworkIdentity = {
 	chainId: number
-	flowAddress: string
+	flowAddress: typeof EvmAddress.infer
 	p2pProtocolVersion: ZeroGStorageNodeNetworkProtocolVersion
 }
 

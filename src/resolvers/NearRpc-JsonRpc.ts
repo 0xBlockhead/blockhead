@@ -35,8 +35,8 @@ import { NearValidatorSelector } from '$/schema/NearValidator.ts'
 
 const nearMainnetRpcUrl = nearMainnetRpcEndpoints[0].url
 
-const assertNearMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
-	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug.near.slug) {
+const assertNearMainnet = (network: { caip2: { namespace: string; reference: string } } | { slug: string }) => {
+	if (!('slug' in network) || network.slug !== networkBySlug.near.slug) {
 		throw new Error('NearRpc_JsonRpc: unsupported network')
 	}
 }
@@ -84,7 +84,7 @@ const nearAccessKeyFields = (accessKey: NearRpcAccessKey) => ({
 })
 
 const nearExecutionOutcomeFields = (
-	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+	network: { caip2: { namespace: string; reference: string } } | { slug: string },
 	executionOutcome: NearRpcExecutionOutcome,
 ) => ({
 	status: (
@@ -109,7 +109,7 @@ const nearExecutionOutcomeFields = (
 })
 
 const nearReceiptFields = (
-	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+	network: { caip2: { namespace: string; reference: string } } | { slug: string },
 	receipt: NearRpcReceipt,
 ) => ({
 	$predecessor: {
@@ -145,7 +145,7 @@ const nearValidatorFields = (validator: NearRpcValidator) => ({
 })
 
 const nearTransactionFields = (
-	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+	network: { caip2: { namespace: string; reference: string } } | { slug: string },
 	transactionStatus: NearRpcTransactionStatus,
 ) => ({
 	$signer: {
@@ -192,7 +192,7 @@ const nearTransactionFields = (
 })
 
 const getNearTransactionStatus = async ({ $network, hash, signerAccountId }: {
-	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+	$network: { caip2: { namespace: string; reference: string } } | { slug: string }
 	hash: string
 	signerAccountId?: string
 }) => {
@@ -237,12 +237,12 @@ export default {
 					timestampMs: Number(BigInt(wireBlock.header.timestamp_nanosec) / 1_000_000n),
 					$$chunks: wireBlock.chunks.map((chunk) => ({
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network,
 							chunkHash: chunk.chunk_hash,
 						},
 						$block: {
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network,
 								height: BigInt(wireBlock.header.height),
 								hash: wireBlock.header.hash,
 							},
@@ -278,19 +278,19 @@ export default {
 					gasUsed: BigInt(wireChunk.header.gas_used),
 					$$transactions: wireChunk.transactions.map((transaction) => ({
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network,
 							hash: transaction.hash,
 							signerAccountId: transaction.signer_id,
 						},
 						$signer: {
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network,
 								accountId: transaction.signer_id,
 							},
 						},
 						$receiver: {
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network,
 								accountId: transaction.receiver_id,
 							},
 						},
@@ -298,7 +298,7 @@ export default {
 						$$actions: transaction.actions.map((action, actionIndex) => ({
 							[EntityMetaKey.Selector]: {
 								$transaction: {
-									$network: entitySelector.$network,
+									$network,
 									hash: transaction.hash,
 									signerAccountId: transaction.signer_id,
 								},
@@ -366,7 +366,7 @@ export default {
 				const executionOutcome = [
 					transactionStatus.transaction_outcome,
 					...transactionStatus.receipts_outcome,
-				].find((outcome) => outcome.id === entitySelector.outcomeId)
+				].find((outcome) => outcome.id === outcomeId)
 				if (executionOutcome == null) {
 					throw new Error(`NearRpc_JsonRpc: execution outcome ${outcomeId} not found for ${$transaction.hash}`)
 				}
@@ -495,7 +495,7 @@ export default {
 				const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 				const validator = (await getValidators({
 					rpcUrl: nearMainnetRpcUrl,
-				})).current_validators.find((nearValidator) => nearValidator.account_id === entitySelector.accountId)
+				})).current_validators.find((nearValidator) => nearValidator.account_id === accountId)
 				if (validator == null) throw new Error(`NearRpc_JsonRpc: validator ${accountId} not found`)
 				return nearValidatorFields(validator)
 			}
@@ -515,7 +515,7 @@ export default {
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
-				[NearNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				[NearNetworkSelector.Slug]: async (entitySelector) => {
 				assertNearMainnet(entitySelector)
 				const {
 				getBlock,
@@ -576,7 +576,7 @@ export default {
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
-				[NearNetworkSelector.NetworkSlug]: async (entitySelector, context) => {
+				[NearNetworkSelector.Slug]: async (entitySelector, context) => {
 				assertNearMainnet(entitySelector)
 				const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 				const headBlock = await getBlock({
@@ -609,7 +609,7 @@ export default {
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
-				[NearNetworkSelector.NetworkSlug]: async (entitySelector, context) => {
+				[NearNetworkSelector.Slug]: async (entitySelector, context) => {
 				assertNearMainnet(entitySelector)
 				const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 				return (await getValidators({
@@ -641,10 +641,13 @@ export default {
 					rpcUrl: nearMainnetRpcUrl,
 					accountId: accountId,
 				})).keys.map((key) => ({
-					[EntityMetaKey.Selector]: {
-						$account: entitySelector,
-						publicKey: key.public_key,
-					},
+						[EntityMetaKey.Selector]: {
+							$account: {
+								$network,
+								accountId,
+							},
+							publicKey: key.public_key,
+						},
 					...nearAccessKeyFields(key.access_key),
 				}))
 			}

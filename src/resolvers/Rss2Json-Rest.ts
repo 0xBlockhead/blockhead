@@ -2,7 +2,6 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
 import {
@@ -26,7 +25,7 @@ export default {
 				const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
 				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
-				const response = await singleFlight(getFeed)(
+				const response = await getFeed(
 					feedUrl,
 					1,
 					context.publicEnv,
@@ -60,7 +59,7 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssItem,
 			resolve: {
-				[RssItemSelector.FeedUrlGuid]: async ({ feedUrl: feedUrlSelector }, context) => {
+				[RssItemSelector.FeedUrlGuid]: async ({ feedUrl: feedUrlSelector, guid }, context) => {
 				const {
 					normalizeRssFeedUrl,
 					rssItemGuidFromParts,
@@ -69,9 +68,9 @@ export default {
 				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
 				const feedItem = (
-					(await singleFlight(getFeed)(feedUrl, 50, context.publicEnv)).items ?? []
+					(await getFeed(feedUrl, 50, context.publicEnv)).items ?? []
 				).find((candidate) => (
-					rssItemGuidFromParts(candidate.guid, candidate.link, candidate.title) === entitySelector.guid
+					rssItemGuidFromParts(candidate.guid, candidate.link, candidate.title) === guid
 				))
 				if (feedItem == null) throw new Error('Rss2Json_Rest: feed item not found')
 				const title = optionalNonemptyString(feedItem.title)
@@ -126,7 +125,7 @@ export default {
 				const refs: { [EntityMetaKey.Selector]: { feedUrl: string, guid: string } }[] = []
 				for (const seedFeed of rssNetworkSeedFeeds) {
 					const feedUrl = normalizeRssFeedUrl(seedFeed.feedUrl)
-					for (const feedItem of (await singleFlight(getFeed)(
+					for (const feedItem of (await getFeed(
 						feedUrl,
 						perFeedLimit,
 						context.publicEnv,
@@ -163,7 +162,7 @@ export default {
 				const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(getFeed)(feedUrl, limit, context.publicEnv)).items ?? [])
+					((await getFeed(feedUrl, limit, context.publicEnv)).items ?? [])
 						.map((feedItem) => ({
 							[EntityMetaKey.Selector]: {
 								feedUrl,

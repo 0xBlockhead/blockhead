@@ -2,8 +2,8 @@ import type { QueryClient } from '@tanstack/query-core'
 import { extractSimpleComparisons, parseOrderByExpression } from '@tanstack/db'
 import type { LoadSubsetOptions } from '@tanstack/db'
 
-import { EntityFieldCardinality, EntityMetaKey, entityFieldConditionKey, entityFieldDefinitions } from '$/schema/$schema.ts'
-import type { EntityFieldName, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType, EntityMetaKey, entityFieldConditionKey, entityFieldDefinitions } from '$/schema/$schema.ts'
+import type { EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValue, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export type ResolverValue =
@@ -37,9 +37,56 @@ export type LoadSubsetKeyValue =
 
 export type LoadSubsetKeyObject = { readonly [key: string]: LoadSubsetKeyValue }
 
+type ResolverEntityReferenceValue<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = ResolverObject & {
+	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
+}
+
+type ResolverFieldSingleValue<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FieldName extends EntityFieldName<_Schema, _EntityType>,
+> = (
+	EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+		readonly type: EntityFieldType.Primitive
+	} ?
+		EntityFieldSingleResolvedValue<_Schema, _EntityType, _FieldName>
+	: EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+		readonly type: EntityFieldType.EntityReference | EntityFieldType.EntitiesReference
+		readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+	} ?
+		ResolverEntityReferenceValue<_Schema, _ReferencedEntityType>
+	:
+		never
+)
+
+export type ResolverFieldValue<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FieldName extends EntityFieldName<_Schema, _EntityType>,
+> = (
+	EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+		readonly cardinality: EntityFieldCardinality.One
+	} ?
+		ResolverFieldSingleValue<_Schema, _EntityType, _FieldName>
+	: EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+		readonly cardinality: EntityFieldCardinality.ZeroOrOne
+	} ?
+		ResolverFieldSingleValue<_Schema, _EntityType, _FieldName> | undefined
+	: EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+		readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+	} ?
+		readonly ResolverFieldSingleValue<_Schema, _EntityType, _FieldName>[]
+	:
+		never
+)
+
 type ResolverSelect<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
+	_FieldName extends EntityFieldName<_Schema, _EntityType>,
 	_Snapshot,
 	_Context extends ResolverContext,
 > = {
@@ -47,7 +94,7 @@ type ResolverSelect<
 		snapshot: _Snapshot,
 		entitySelector: EntitySelector<_Schema, _EntityType>,
 		context: _Context,
-	): ResolverValue
+	): ResolverFieldValue<_Schema, _EntityType, _FieldName>
 }['select']
 
 type ResolverCount<
@@ -66,6 +113,7 @@ type ResolverCount<
 type ResolverSelectCandidate<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
+	_FieldName extends EntityFieldName<_Schema, _EntityType>,
 	_Snapshot,
 	_Context extends ResolverContext,
 > = {
@@ -73,7 +121,7 @@ type ResolverSelectCandidate<
 		snapshot: _Snapshot,
 		entitySelector: EntitySelector<_Schema, _EntityType>,
 		context: _Context,
-	): ResolverValue | Promise<ResolverValue>
+	): ResolverFieldValue<_Schema, _EntityType, _FieldName> | Promise<ResolverFieldValue<_Schema, _EntityType, _FieldName>>
 }['select']
 
 type ResolverCountCandidate<
@@ -216,7 +264,8 @@ export const parseResolverSubset = (
 	} catch (error) {
 		throw new Error(`Resolver Subset Parser unsupported orderBy LoadSubsetOptions: ${String(error)}`)
 	}
-	const sources = filters.flatMap((filter) => {
+	const sourceFilters = filters.filter((filter) => filter.fieldPath[0] === EntityMetaKey.Source)
+	const sources = sourceFilters.flatMap((filter) => {
 		if (filter.fieldPath[0] !== EntityMetaKey.Source)
 			return []
 		if (filter.operator === 'eq') {
@@ -236,7 +285,7 @@ export const parseResolverSubset = (
 			offset: request.offset,
 			cursor: request.cursor == null ? undefined : plainLoadSubsetKeyValue(request.cursor),
 		},
-		sources: sources.length === 0 ? undefined : sources,
+		sources: sourceFilters.length === 0 ? undefined : sources,
 		selectorKeys: filters.flatMap((filter) => {
 			if (filter.fieldPath[0] !== EntityMetaKey.SelectorKey)
 				return []
@@ -266,31 +315,67 @@ export const parseResolverSubset = (
 
 export const fieldLoadedSubsetKey = (
 	request: LoadSubsetOptions,
-): LoadSubsetKeyObject => ({
-	...(request.where != null && {
-		where: plainLoadSubsetKeyValue(request.where),
-	}),
-	...(request.orderBy != null && {
-		orderBy: plainLoadSubsetKeyValue(request.orderBy),
-	}),
-	...(request.limit != null && {
-		limit: request.limit,
-	}),
-	...(request.offset != null && {
-		offset: request.offset,
-	}),
-	...(request.cursor != null && {
-		cursor: plainLoadSubsetKeyValue(request.cursor),
-	}),
-})
+): LoadSubsetKeyObject => {
+	const resolverSubset = parseResolverSubset(request)
+	const filters = resolverSubset.filters.map((filter) => ({
+		fieldPath: filter.fieldPath,
+		operator: filter.operator,
+		value: (
+			Array.isArray(filter.value) ?
+				filter.value.toSorted((left, right) => String(left).localeCompare(String(right)))
+			:
+				filter.value
+		),
+	})).toSorted((left, right) => (
+		`${left.fieldPath.join('.')}:${left.operator}:${String(left.value)}`
+			.localeCompare(`${right.fieldPath.join('.')}:${right.operator}:${String(right.value)}`)
+	))
+	const pagination = Object.fromEntries(Object.entries(resolverSubset.pagination).filter(([, value]) => value !== undefined))
+	return {
+		...(filters.length !== 0 && {
+			filters,
+		}),
+		...(resolverSubset.sorts.length !== 0 && {
+			sorts: resolverSubset.sorts,
+		}),
+		...(Object.keys(pagination).length !== 0 && {
+			pagination,
+		}),
+	}
+}
 
 export const countLoadedSubsetKey = (
 	request: LoadSubsetOptions,
-): LoadSubsetKeyObject => ({
-	...(request.where != null && {
-		where: plainLoadSubsetKeyValue(request.where),
-	}),
-})
+): LoadSubsetKeyObject => {
+	const resolverSubset = parseResolverSubset({
+		where: request.where,
+	})
+	const filters = resolverSubset.filters.flatMap((filter) => (
+		filter.fieldPath[0] === EntityMetaKey.Source
+		|| filter.fieldPath[0] === EntityMetaKey.ParentSelectorKey
+		|| filter.fieldPath[0] === 'filterKey' ?
+			[{
+				fieldPath: filter.fieldPath,
+				operator: filter.operator,
+				value: (
+					Array.isArray(filter.value) ?
+						filter.value.toSorted((left, right) => String(left).localeCompare(String(right)))
+					:
+						filter.value
+				),
+			}]
+		:
+			[]
+	)).toSorted((left, right) => (
+		`${left.fieldPath.join('.')}:${left.operator}:${String(left.value)}`
+			.localeCompare(`${right.fieldPath.join('.')}:${right.operator}:${String(right.value)}`)
+	))
+	return {
+		...(filters.length !== 0 && {
+			filters,
+		}),
+	}
+}
 
 /** When hydrate/live-query omits `LIMIT`, list field resolvers still need a cap. */
 export const defaultResolverContextRowLimit = 64
@@ -366,33 +451,36 @@ export type FieldSelector<
 	_Snapshot,
 	_Context extends ResolverContext = ResolverContext,
 > = (
-	| ResolverSelect<_Schema, _EntityType, _Snapshot, _Context>
-	| {
-		readonly parentSelectors?: readonly string[]
-		readonly select?: ResolverSelect<_Schema, _EntityType, _Snapshot, _Context>
-		readonly resolveCount?: ResolverCount<_Schema, _EntityType, _Snapshot, _Context>
-		readonly resolveLive?: {
-			readonly start: (
-				context: ResolveLivePublisherContext<_Schema, _EntityType> & {
-					readonly field: ResolveLiveFieldHandle<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>
-				},
-			) => void | (() => void) | Promise<void | (() => void)>
+	_FieldName extends EntityFieldName<_Schema, _EntityType> ?
+		| ResolverSelect<_Schema, _EntityType, _FieldName, _Snapshot, _Context>
+		| {
+			readonly parentSelectors?: readonly string[]
+			readonly select?: ResolverSelect<_Schema, _EntityType, _FieldName, _Snapshot, _Context>
+			readonly resolveCount?: ResolverCount<_Schema, _EntityType, _Snapshot, _Context>
+			readonly resolveLive?: {
+				readonly start: (
+					context: ResolveLivePublisherContext<_Schema, _EntityType> & {
+						readonly field: ResolveLiveFieldHandle<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>
+					},
+				) => void | (() => void) | Promise<void | (() => void)>
+			}
+			readonly partial?: boolean
 		}
-		readonly partial?: boolean
-	}
+	:
+		never
 )
 
 type ResolverResolve<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_Context extends ResolverContext,
+	_Snapshot,
 > = {
 	resolve(
 		entitySelector: EntitySelector<_Schema, _EntityType>,
 		context: _Context,
-	): ResolverValue | Promise<ResolverValue>
+	): _Snapshot | Promise<_Snapshot>
 }['resolve']
-
 
 export type SourceResolverDefinition<
 	_Schema extends Schema = Schema,
@@ -406,41 +494,61 @@ export type SourceResolverDefinition<
 	readonly entityType: _EntityType
 	readonly resolve: Partial<Record<
 		string,
-		ResolverResolve<_Schema, _EntityType, _Context>
+		ResolverResolve<_Schema, _EntityType, _Context, _Snapshot>
 	>>
 	readonly fields: Partial<Record<
 		string,
 		FieldSelector<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>, _Snapshot, _Context>
-	>>
+	>> & Partial<{
+		readonly [
+			_FieldName in EntityFieldName<_Schema, _EntityType>
+		]: FieldSelector<_Schema, _EntityType, _FieldName, _Snapshot, _Context>
+	}>
 	readonly resolveLive?: ResolveLivePublishers<_Schema, _EntityType>
 }
 
 export type SourceResolverDefinitionCandidate<
 	_Schema extends Schema = Schema,
 	_Source extends string = string,
-	_EntityType extends EntityType<_Schema> = EntityType<_Schema>,
+	_EntityType extends string = EntityType<_Schema>,
 	_Context extends ResolverContext = ResolverContext,
 	_Snapshot = ResolverValue,
-> = Omit<
-	SourceResolverDefinition<_Schema, _Source, _EntityType, _Context, _Snapshot>,
-	'resolve' | 'fields'
-> & {
-	readonly resolve: Partial<Record<string, ResolverResolve<_Schema, _EntityType, _Context>>>
+> = {
+	readonly definitionIndex: number
+	readonly source: _Source
+	readonly entityType: _EntityType
+	readonly resolve: Partial<Record<string, ResolverResolve<_Schema, Extract<_EntityType, EntityType<_Schema>>, _Context, _Snapshot>>>
 	readonly fields: Partial<Record<
 		string,
-		| ResolverSelectCandidate<_Schema, _EntityType, _Snapshot, _Context>
+		| FieldSelector<_Schema, Extract<_EntityType, EntityType<_Schema>>, EntityFieldName<_Schema, Extract<_EntityType, EntityType<_Schema>>>, _Snapshot, _Context>
+		| ((
+			snapshot: _Snapshot,
+			entitySelector: EntitySelector<_Schema, Extract<_EntityType, EntityType<_Schema>>>,
+			context: _Context,
+		) => ResolverValue | Promise<ResolverValue>)
 		| {
 			readonly parentSelectors?: readonly string[]
-			readonly select?: ResolverSelectCandidate<_Schema, _EntityType, _Snapshot, _Context>
-			readonly resolveCount?: ResolverCountCandidate<_Schema, _EntityType, _Snapshot, _Context>
+			readonly select?: (
+				snapshot: _Snapshot,
+				entitySelector: EntitySelector<_Schema, Extract<_EntityType, EntityType<_Schema>>>,
+				context: _Context,
+			) => ResolverValue | Promise<ResolverValue>
+			readonly resolveCount?: ResolverCountCandidate<_Schema, Extract<_EntityType, EntityType<_Schema>>, _Snapshot, _Context>
 			readonly resolveLive?: {
 				readonly start: (
-					context: ResolveLivePublisherContext<_Schema, _EntityType> & {
-						readonly field: ResolveLiveFieldHandle<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>
+					context: ResolveLivePublisherContext<_Schema, Extract<_EntityType, EntityType<_Schema>>> & {
+						readonly field: ResolveLiveFieldHandle<_Schema, Extract<_EntityType, EntityType<_Schema>>, EntityFieldName<_Schema, Extract<_EntityType, EntityType<_Schema>>>>
 					},
 				) => void | (() => void) | Promise<void | (() => void)>
 			}
 			readonly partial?: boolean
+		}
+	>>
+	readonly resolveLive?: Partial<Record<
+		string,
+		{
+			readonly publishes: Partial<Record<string, true>>
+			readonly start: (context: ResolveLivePublisherContext<_Schema, EntityType<_Schema>>) => void | (() => void) | Promise<void | (() => void)>
 		}
 	>>
 }
@@ -460,7 +568,7 @@ export type ResolverPart<
 		snapshot: ResolverValue,
 		entitySelector: EntitySelector<_Schema, EntityType<_Schema>>,
 		context: _Context,
-	) => ResolverValue
+	) => ResolverFieldValue<_Schema, EntityType<_Schema>, EntityFieldName<_Schema, EntityType<_Schema>>>
 	readonly resolveCount?: (
 		snapshot: ResolverValue,
 		entitySelector: EntitySelector<_Schema, EntityType<_Schema>>,
@@ -491,27 +599,13 @@ export type ResolverIndexes<
 	_Source extends string = string,
 	_Context extends ResolverContext = ResolverContext,
 > = {
-	readonly resolverDefinitionsByEntityType: Partial<{
-		readonly [
-			_EntityType in EntityType<_Schema>
-		]: readonly SourceResolverDefinition<_Schema, _Source, _EntityType, _Context>[]
-	}>
+	readonly resolverDefinitionsByEntityType: Partial<Record<string, readonly SourceResolverDefinition<_Schema, _Source, EntityType<_Schema>, _Context>[]>>
 	readonly resolverParts: readonly ResolverPart<_Schema, _Source, _Context>[]
-	readonly resolverValuePartsByEntityTypeAndFieldName: Partial<{
-		readonly [_EntityType in EntityType<_Schema>]: readonly ResolverPart<_Schema, _Source, _Context>[]
-	}>
-	readonly resolverCountPartsByEntityTypeAndFieldName: Partial<{
-		readonly [_EntityType in EntityType<_Schema>]: readonly ResolverPart<_Schema, _Source, _Context>[]
-	}>
-	readonly resolverLivePartsByEntityTypeAndFieldName: Partial<{
-		readonly [_EntityType in EntityType<_Schema>]: readonly ResolverPart<_Schema, _Source, _Context>[]
-	}>
-	readonly resolverRootLivePartsByEntityType: Partial<{
-		readonly [_EntityType in EntityType<_Schema>]: readonly ResolverRootLivePart<_Schema, _Source, _Context>[]
-	}>
-	readonly resolverDiscriminatorPartsByEntityTypeAndConditionKey: Partial<{
-		readonly [_EntityType in EntityType<_Schema>]: Partial<Record<string, readonly ResolverPart<_Schema, _Source, _Context>[]>>
-	}>
+	readonly resolverValuePartsByEntityTypeAndFieldName: Partial<Record<string, readonly ResolverPart<_Schema, _Source, _Context>[]>>
+	readonly resolverCountPartsByEntityTypeAndFieldName: Partial<Record<string, readonly ResolverPart<_Schema, _Source, _Context>[]>>
+	readonly resolverLivePartsByEntityTypeAndFieldName: Partial<Record<string, readonly ResolverPart<_Schema, _Source, _Context>[]>>
+	readonly resolverRootLivePartsByEntityType: Partial<Record<string, readonly ResolverRootLivePart<_Schema, _Source, _Context>[]>>
+	readonly resolverDiscriminatorPartsByEntityTypeAndConditionKey: Partial<Record<string, Partial<Record<string, readonly ResolverPart<_Schema, _Source, _Context>[]>>>>
 	readonly resolverPartsKey: (entityType: string, fieldName: string) => string
 }
 
@@ -532,9 +626,11 @@ export type SourceResolverModule<
 export const validateResolverDefinitions = <
 	_Schema extends Schema,
 	_Source extends string,
+	const _CandidateEntityType extends string,
+	_Context extends ResolverContext,
 >(
 	schema: _Schema,
-	resolverDefinitions: readonly SourceResolverDefinitionCandidate<_Schema, _Source>[],
+	resolverDefinitions: readonly SourceResolverDefinitionCandidate<_Schema, _Source, _CandidateEntityType, _Context>[],
 ) => {
 	const fieldDefinitionByEntityTypeAndFieldName = Object.fromEntries(
 		schema.map((entityDefinition) => [
@@ -604,6 +700,9 @@ export const validateResolverDefinitions = <
 		}
 
 		for (const publisher of Object.values(resolver.resolveLive ?? {})) {
+			if (publisher == null)
+				continue
+
 			for (const liveFieldName of Object.keys(publisher.publishes)) {
 				if (!(liveFieldName in fieldDefinitionByEntityTypeAndFieldName[resolver.entityType]))
 					throw new Error(`${resolver.source}:${resolver.entityType} references unknown live field ${liveFieldName}`)

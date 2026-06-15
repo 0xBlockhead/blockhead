@@ -2,6 +2,7 @@ import { WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 import {
 	deleteLocalBlockheadWalletConnection,
+	type LocalMutationContext,
 	writeLocalBlockheadWallet,
 	writeLocalBlockheadWalletConnection,
 } from '$/collections/localMutations.ts'
@@ -25,7 +26,9 @@ type WalletRuntime = {
 	destroy(): void
 }
 
-const createWalletRuntimeState = (): WalletRuntime => {
+const createWalletRuntimeState = (
+	context: LocalMutationContext,
+): WalletRuntime => {
 	const cleanupByWalletId = new SvelteMap<string, () => void>()
 	const adapterByWalletId = new SvelteMap<string, WalletAdapter>()
 	const adapterCleanups: (() => void)[] = []
@@ -39,7 +42,7 @@ const createWalletRuntimeState = (): WalletRuntime => {
 			...connections.filter((candidate) => candidate.walletId !== connection.walletId),
 			connection,
 		]
-		writeLocalBlockheadWalletConnection(connection)
+		writeLocalBlockheadWalletConnection(context, connection)
 	}
 
 	const adapters = [
@@ -64,7 +67,7 @@ const createWalletRuntimeState = (): WalletRuntime => {
 			candidates = [...candidatesByAdapterId.values()].flat()
 
 			for (const candidate of nextCandidates)
-				writeLocalBlockheadWallet(candidate)
+				writeLocalBlockheadWallet(context, candidate)
 		}))
 
 	const connect = async (walletId: string) => {
@@ -113,7 +116,7 @@ const createWalletRuntimeState = (): WalletRuntime => {
 		cleanupByWalletId.delete(walletId)
 		adapterByWalletId.get(walletId)?.disconnect(walletId)
 		connections = connections.filter((connection) => connection.walletId !== walletId)
-		deleteLocalBlockheadWalletConnection(walletId)
+		deleteLocalBlockheadWalletConnection(context, walletId)
 	}
 
 	return {
@@ -141,10 +144,12 @@ const createWalletRuntimeState = (): WalletRuntime => {
 
 let walletRuntime = $state<WalletRuntime | null>(null)
 
-export const mountWalletConnectionRuntime = () => {
+export const mountWalletConnectionRuntime = (
+	context: LocalMutationContext,
+) => {
 	if (walletRuntime != null) return walletRuntime
 
-	walletRuntime = createWalletRuntimeState()
+	walletRuntime = createWalletRuntimeState(context)
 
 	return walletRuntime
 }

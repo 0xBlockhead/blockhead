@@ -1,4 +1,3 @@
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -28,7 +27,7 @@ const blobscanBlobDetail = async ({ $network, blobIndex, txHash }: {
 	const { getBlobDetail } = await import(
 		'$/sources/Blobscan/Rest/queries.ts'
 	)
-	return singleFlight(getBlobDetail)({
+	return getBlobDetail({
 		blobIndex: blobIndex,
 		chainId: await blobscanChainId($network),
 		txHash: txHash,

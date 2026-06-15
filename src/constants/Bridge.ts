@@ -75,7 +75,7 @@ export type BridgeToolDefinition = {
 	componentToolKeys?: string[]
 }
 
-type BridgeToolRow = BridgeToolDefinition & {
+export type BridgeToolRow = BridgeToolDefinition & {
 	key: string
 	assetOutcome: BridgeAssetOutcome
 }

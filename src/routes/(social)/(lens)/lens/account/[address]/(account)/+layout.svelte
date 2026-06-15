@@ -10,7 +10,7 @@
 	const address = $derived(
 		page.params.address ?? '',
 	)
-	const entitySelector = $derived.by(() => {
+	const selector = $derived.by(() => {
 		const raw = decodeURIComponent(address).trim()
 		if (raw.startsWith('legacy:'))
 			return { legacyProfileId: raw.slice('legacy:'.length) }

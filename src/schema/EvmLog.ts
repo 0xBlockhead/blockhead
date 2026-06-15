@@ -21,7 +21,7 @@ const evmLogBaseFields = [
 		name: 'txHash',
 		type: EntityFieldType.Primitive,
 		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Voltaire_JsonRpc,
 			Source.Blockscout_Rest,
@@ -31,7 +31,7 @@ const evmLogBaseFields = [
 		name: 'logIndex',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Voltaire_JsonRpc,
 			Source.Blockscout_Rest,

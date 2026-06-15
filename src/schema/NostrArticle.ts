@@ -54,12 +54,6 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'pubkey',
-			type: EntityFieldType.Primitive,
-			primitiveType: NostrPubkey,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
 			name: 'title',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),

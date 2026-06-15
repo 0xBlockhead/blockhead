@@ -139,6 +139,7 @@ export type BlockscoutTransaction = {
 	block_hash?: string
 	block_number?: number
 	created_contract?: BlockscoutAddress | null
+	cumulative_gas_used?: string
 	from?: BlockscoutAddress
 	gas_limit?: string
 	gas_price?: string
@@ -171,7 +172,7 @@ export type BlockscoutTransactionLog = {
 	data?: string
 	index?: number
 	smart_contract?: BlockscoutAddress | null
-	topics?: string[]
+	topics?: (string | null)[]
 	transaction_hash?: string
 }
 

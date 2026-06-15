@@ -3,7 +3,6 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { regex } from 'arkregex'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -54,7 +53,7 @@ export default {
 					throw new Error('SolanaSimds_Github: unsupported proposal id')
 				}
 				const { getProposalMarkdownText } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				const text = await singleFlight(getProposalMarkdownText)({ number: number })
+				const text = await getProposalMarkdownText({ number: number })
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
 				return {
@@ -82,7 +81,7 @@ export default {
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
 				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				return solanaSimdProposalRows(await singleFlight(getProposalContents)())
+				return solanaSimdProposalRows(await getProposalContents())
 			}
 			}
 		})({
@@ -100,7 +99,7 @@ export default {
 					throw new Error('SolanaSimds_Github: $$proposals only supports SpecificationRealm.Solana')
 				}
 				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				return solanaSimdProposalRows(await singleFlight(getProposalContents)())
+				return solanaSimdProposalRows(await getProposalContents())
 			}
 			}
 		})({
@@ -118,7 +117,7 @@ export default {
 					throw new Error('SolanaSimds_Github: $$proposals only supports Solana SIMD proposal kind')
 				}
 				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				return solanaSimdProposalRows(await singleFlight(getProposalContents)())
+				return solanaSimdProposalRows(await getProposalContents())
 			}
 			}
 		})({

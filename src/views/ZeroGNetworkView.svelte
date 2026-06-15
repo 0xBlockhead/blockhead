@@ -33,7 +33,7 @@
 
 	const zeroGNetwork = subscribe(EntityType.ZeroGNetwork,
 		{
-			networkSlug: '0g',
+			slug: '0g',
 		},
 		({ sources: [
 				Source.Constants_Internal,
@@ -166,7 +166,7 @@
 					entityFieldReference={{
 						entityType: EntityType.ZeroGNetwork,
 						selector: {
-							networkSlug: '0g',
+							slug: '0g',
 						},
 						fieldName: '$$blocks',
 					}}
@@ -182,7 +182,7 @@
 					entityFieldReference={{
 						entityType: EntityType.ZeroGNetwork,
 						selector: {
-							networkSlug: '0g',
+							slug: '0g',
 						},
 						fieldName: '$$timestamps',
 					}}
@@ -219,7 +219,7 @@
 					id={`${id}-list`}
 					listEntityType={EntityType.ZeroGNetwork}
 					parentEntitySelector={{
-						networkSlug: '0g',
+						slug: '0g',
 					}}
 					parentEntityType={EntityType.ZeroGNetwork}
 					title={label}
@@ -251,7 +251,7 @@
 					entityFieldReference={{
 						entityType: EntityType.ZeroGNetwork,
 						selector: {
-							networkSlug: '0g',
+							slug: '0g',
 						},
 						fieldName: '$$dataBlobs',
 					}}
@@ -266,7 +266,7 @@
 					entityFieldReference={{
 						entityType: EntityType.ZeroGNetwork,
 						selector: {
-							networkSlug: '0g',
+							slug: '0g',
 						},
 						fieldName: '$$storageNodes',
 					}}

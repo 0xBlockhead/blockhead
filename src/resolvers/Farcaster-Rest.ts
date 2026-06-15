@@ -4,7 +4,6 @@ import {
 import { farcasterNetworkFieldValues, farcasterPlaceholderIconUrlFragments } from '$/constants/Social/Farcaster.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -62,8 +61,8 @@ export default {
 			resolve: {
 				[FarcasterUserSelector.Fid]: async (entitySelector) => {
 				const { getPrimaryAddress } = await import('$/sources/Farcaster/Rest/queries.ts')
-				const ethRaw = await singleFlight(getPrimaryAddress)({ fid: entitySelector.fid })
-				const solRaw = await singleFlight(getPrimaryAddress)({
+				const ethRaw = await getPrimaryAddress({ fid: entitySelector.fid })
+				const solRaw = await getPrimaryAddress({
 					fid: entitySelector.fid,
 					protocol: 'solana',
 				})
@@ -144,7 +143,7 @@ export default {
 			resolve: {
 				[FarcasterChannelSelector.Id]: async ({ id }) => {
 				const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
-				const channel = await singleFlight(getChannel)(id)
+				const channel = await getChannel(id)
 				if (channel == null) throw new Error('Farcaster_Rest: channel not found')
 				const name = optionalNonemptyString(channel.name) ?? channel.id
 				const url = optionalNonemptyString(channel.url)
@@ -275,14 +274,11 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
-				[FarcasterCastSelector.UsernameHashPrefix]: async (entitySelector) => {
-				if (!('username' in entitySelector) || !('hashPrefix' in entitySelector)) {
-					throw new Error('Farcaster_Rest: cast id requires username and hash prefix')
-				}
+				[FarcasterCastSelector.UsernameHashPrefix]: async ({ username, hashPrefix }) => {
 				const { getCastByUsernameAndHashPrefix } = await import('$/sources/Farcaster/Rest/queries.ts')
-				const cast = await singleFlight(getCastByUsernameAndHashPrefix)({
-					username: entitySelector.username,
-					castHashPrefix: entitySelector.hashPrefix,
+				const cast = await getCastByUsernameAndHashPrefix({
+					username,
+					castHashPrefix: hashPrefix,
 				})
 				const hash = optionalNonemptyString(cast?.hash)
 				if (
@@ -293,7 +289,7 @@ export default {
 					throw new Error('Farcaster_Rest: cast not found')
 				}
 				const castHash = zeroXLowerHexCastHash(hash)
-				if (!castHash.startsWith(zeroXLowerHexCastHash(entitySelector.hashPrefix))) {
+				if (!castHash.startsWith(zeroXLowerHexCastHash(hashPrefix))) {
 					throw new Error('Farcaster_Rest: cast hash prefix mismatch')
 				}
 				const timestamp = farcasterCastTimestampMs(cast.timestamp)
@@ -303,8 +299,8 @@ export default {
 				return {
 					fid: cast.author.fid,
 					hash: castHash,
-					username: entitySelector.username,
-					hashPrefix: zeroXLowerHexCastHash(entitySelector.hashPrefix),
+					username,
+					hashPrefix: zeroXLowerHexCastHash(hashPrefix),
 					$author: {
 						[EntityMetaKey.Selector]: {
 							fid: cast.author.fid,
@@ -363,46 +359,18 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
-				[FarcasterFeedSelector.Trending]: async ({ channelId, fid, variant }) => (
-				variant === 'trending' ?
-					{ label: 'Trending' }
-				: variant === 'byUser' ?
-					{ label: `FID ${String(fid)}` }
-				: variant === 'byChannel' ?
-					{ label: channelId }
-				:
-					{ label: 'Following' }
-			),
-[FarcasterFeedSelector.ByUser]: async ({ channelId, fid, variant }) => (
-				variant === 'trending' ?
-					{ label: 'Trending' }
-				: variant === 'byUser' ?
-					{ label: `FID ${String(fid)}` }
-				: variant === 'byChannel' ?
-					{ label: channelId }
-				:
-					{ label: 'Following' }
-			),
-[FarcasterFeedSelector.ByChannel]: async ({ channelId, fid, variant }) => (
-				variant === 'trending' ?
-					{ label: 'Trending' }
-				: variant === 'byUser' ?
-					{ label: `FID ${String(fid)}` }
-				: variant === 'byChannel' ?
-					{ label: channelId }
-				:
-					{ label: 'Following' }
-			),
-[FarcasterFeedSelector.Following]: async ({ channelId, fid, variant }) => (
-				variant === 'trending' ?
-					{ label: 'Trending' }
-				: variant === 'byUser' ?
-					{ label: `FID ${String(fid)}` }
-				: variant === 'byChannel' ?
-					{ label: channelId }
-				:
-					{ label: 'Following' }
-			)
+				[FarcasterFeedSelector.Trending]: async () => ({
+					label: 'Trending',
+				}),
+				[FarcasterFeedSelector.ByUser]: async ({ fid }) => ({
+					label: `FID ${String(fid)}`,
+				}),
+				[FarcasterFeedSelector.ByChannel]: async ({ channelId }) => ({
+					label: channelId,
+				}),
+				[FarcasterFeedSelector.Following]: async () => ({
+					label: 'Following',
+				})
 			},
 		})({
 				fields: {
@@ -500,7 +468,7 @@ export default {
 			resolve: {
 				[FarcasterNetworkSelector.Scope]: async () => {
 				const { getAllChannels } = await import('$/sources/Farcaster/Rest/queries.ts')
-				return (await singleFlight(getAllChannels)())
+				return (await getAllChannels())
 					.map((farcasterChannel) => ({
 						[EntityMetaKey.Selector]: {
 							id: farcasterChannel.id,

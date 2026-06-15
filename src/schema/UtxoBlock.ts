@@ -8,6 +8,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 
 export enum UtxoBlockSelector {
+	NetworkHeight = 'networkHeight',
 	NetworkHeightHash = 'networkHeightHash',
 }
 
@@ -18,6 +19,13 @@ export default {
 	labelPlural: 'UTXO Blocks',
 
 	selectors: [
+		{
+			name: UtxoBlockSelector.NetworkHeight,
+			fields: [
+				'$network',
+				'height',
+			],
+		},
 		{
 			name: UtxoBlockSelector.NetworkHeightHash,
 			fields: [
@@ -45,7 +53,7 @@ export default {
 			name: 'hash',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$parent',

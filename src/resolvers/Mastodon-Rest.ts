@@ -4,7 +4,6 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
 import {
 	EntityMetaKey,
@@ -166,11 +165,14 @@ const activityPubActorFieldsFromMastodonAccount = (
 	const activityStreamsUri = optionalNonemptyString(account.uri)
 	const website = optionalNonemptyString(account.website ?? undefined)
 	const createdAt = optionalTimestampMs(account.created_at)
+	if (acct == null)
+		throw new Error('Mastodon_Rest: ActivityPub actor account missing acct')
+
 	return {
 		instanceOrigin,
 		localAccountId: String(account.id),
 		...(username != null && { username }),
-		...(acct != null && { acct }),
+		acct,
 		...(displayName != null && { displayName }),
 		...(note != null && { note }),
 		...((
@@ -225,7 +227,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(instanceOrigin)
-				const a = await singleFlight(getAccount)(publicEnv, localAccountId)
+				const a = await getAccount(publicEnv, localAccountId)
 				return activityPubActorFieldsFromMastodonAccount(
 					a,
 					instanceOrigin,
@@ -236,7 +238,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(instanceOrigin)
-				const a = await singleFlight(getAccount)(publicEnv, acct)
+				const a = await getAccount(publicEnv, acct)
 				return activityPubActorFieldsFromMastodonAccount(
 					a,
 					instanceOrigin,
@@ -276,7 +278,7 @@ export default {
 					getStatus,
 				} = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(instanceOrigin)
-				const s = await singleFlight(getStatus)(publicEnv, localStatusId)
+				const s = await getStatus(publicEnv, localStatusId)
 				return activityPubNoteFieldsFromMastodonStatus(s, instanceOrigin)
 			}
 			},
@@ -294,7 +296,7 @@ export default {
 				spoilerText: (note) => note.spoilerText,
 				statusUrl: (note) => note.statusUrl,
 				activityStreamsUri: (note) => note.activityStreamsUri,
-				$$media: (note) => note.$$media,
+				$$media: (note) => note.$$media ?? [],
 				$author: (note) => note.$author,
 				$inReplyTo: (note) => note.$inReplyTo,
 				$reblogOf: (note) => note.$reblogOf,
@@ -308,10 +310,13 @@ export default {
 				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches($actor.instanceOrigin)
-				if (!('localAccountId' in $actor))
-					throw new Error('Mastodon_Rest: ActivityPubActor_Timestamp acct lookup is unsupported')
-
-				const account = await singleFlight(getAccount)(publicEnv, $actor.localAccountId)
+				const account = await getAccount(
+					publicEnv,
+					'localAccountId' in $actor ?
+						$actor.localAccountId
+					:
+						$actor.acct,
+				)
 				return {
 					...(account.followers_count != null && { followersCount: account.followers_count }),
 					...(account.following_count != null && { followingCount: account.following_count }),
@@ -337,7 +342,7 @@ export default {
 					getStatus,
 				} = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches($note.instanceOrigin)
-				const status = await singleFlight(getStatus)(publicEnv, $note.localStatusId)
+				const status = await getStatus(publicEnv, $note.localStatusId)
 				return {
 					...(status.favourites_count != null && { favouriteCount: status.favourites_count }),
 					...(status.reblogs_count != null && { reblogCount: status.reblogs_count }),
@@ -358,7 +363,7 @@ export default {
 				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
 				const publicEnv = context.publicEnv
 				const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
-				const instance = await singleFlight(getInstance)(publicEnv)
+				const instance = await getInstance(publicEnv)
 				return optionalNonemptyString(instance.title)
 			}
 			},
@@ -374,7 +379,7 @@ export default {
 				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
 				const publicEnv = context.publicEnv
 				const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
-				const instance = await singleFlight(getInstance)(publicEnv)
+				const instance = await getInstance(publicEnv)
 				return (
 					optionalNonemptyString(instance.description)
 					?? optionalNonemptyString(instance.short_description)
@@ -393,7 +398,7 @@ export default {
 				[ActivityPubNetworkSelector.Scope]: async (_entitySelector, context) => {
 				const publicEnv = context.publicEnv
 				const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
-				const instance = await singleFlight(getInstance)(publicEnv)
+				const instance = await getInstance(publicEnv)
 				return optionalNonemptyString(instance.version)
 			}
 			},
@@ -412,7 +417,7 @@ export default {
 				const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					(await singleFlight(listPublicTimeline)(publicEnv, limit))
+					(await listPublicTimeline(publicEnv, limit))
 						.flatMap((status) => {
 							const localAccountId = mastodonLocalAccountId(status.account)
 							if (localAccountId == null) return []
@@ -441,7 +446,7 @@ export default {
 				const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
 				const limit = resolverContextRowLimit(context)
 				return (
-					(await singleFlight(listPublicTimeline)(publicEnv, limit))
+					(await listPublicTimeline(publicEnv, limit))
 						.flatMap((status) => (
 							status.id == null ?
 								[]
@@ -471,7 +476,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(instanceOrigin)
-				const account = await singleFlight(getAccount)(publicEnv, localAccountId)
+				const account = await getAccount(publicEnv, localAccountId)
 				return [
 					{
 						[EntityMetaKey.Selector]: {
@@ -491,7 +496,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const { assertInstanceMatches, getAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(instanceOrigin)
-				const account = await singleFlight(getAccount)(publicEnv, acct)
+				const account = await getAccount(publicEnv, acct)
 				return [
 					{
 						[EntityMetaKey.Selector]: {
@@ -523,7 +528,7 @@ export default {
 				assertInstanceMatches(instanceOrigin)
 				const limit = resolverContextRowLimit(context)
 				return (
-					(await singleFlight(listAccountStatuses)(publicEnv, localAccountId, limit))
+					(await listAccountStatuses(publicEnv, localAccountId, limit))
 						.flatMap((s) => (
 							s.id == null ?
 								[]
@@ -556,7 +561,7 @@ export default {
 					getStatus,
 				} = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entitySelector.instanceOrigin)
-				const status = await singleFlight(getStatus)(publicEnv, entitySelector.localStatusId)
+				const status = await getStatus(publicEnv, entitySelector.localStatusId)
 				return [
 					{
 						[EntityMetaKey.Selector]: {
@@ -586,11 +591,11 @@ export default {
 					getStatusContext,
 				} = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(instanceOrigin)
-				const { ancestors = [], descendants = [] } = await singleFlight(getStatusContext)(publicEnv, localStatusId)
+				const { ancestors = [], descendants = [] } = await getStatusContext(publicEnv, localStatusId)
 				return (
 					[...ancestors, ...descendants]
 						.flatMap((s) => (
-							s.id == null || String(s.id) === entitySelector.localStatusId ?
+							s.id == null || String(s.id) === localStatusId ?
 								[]
 							:
 								[

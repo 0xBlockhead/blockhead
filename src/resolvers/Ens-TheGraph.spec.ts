@@ -22,10 +22,6 @@ vi.mock('$/sources/TheGraph/Graphql/Ens/queries.ts', () => ({
 	getDomainsByOwner,
 }))
 
-vi.mock('$/lib/singleFlight.ts', () => ({
-	singleFlight: <Fn extends (...args: never[]) => unknown>(fn: Fn) => fn,
-}))
-
 const { default: ensTheGraphResolvers } = await import('$/resolvers/Ens-TheGraph.ts')
 
 const ensNameResolver = ensTheGraphResolvers.resolvers.find((
@@ -41,6 +37,12 @@ const ensNamesOwnedResolver = ensTheGraphResolvers.resolvers.find((
 	resolver.entityType === EntityType.EvmAccount
 	&& resolver.fields.$$ensNamesOwned != null
 ))
+
+if (ensNameResolver == null)
+	throw new Error('Ens-TheGraph spec missing EnsName resolver')
+
+if (ensNamesOwnedResolver == null)
+	throw new Error('Ens-TheGraph spec missing EvmAccount $$ensNamesOwned resolver')
 
 const resolverContext = {
 	filters: [],
@@ -172,7 +174,10 @@ describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 		])
 
 			const resolvedEntity = await ensNamesOwnedResolver.resolve[EvmAccountSelector.AddressInteropAddress](
-				{ address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045' },
+				{
+					address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+					interopAddress: 'eip155:1:0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+				},
 				resolverContext,
 			)
 

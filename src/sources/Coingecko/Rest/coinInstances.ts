@@ -59,10 +59,10 @@ const lifiCoinKeyForInstance = (
 ) => {
 	const chainId = Number(instanceId.$network.caip2.reference)
 	const address = (
-		instanceId.type === CoinInstanceType.NativeCurrency ?
-			NATIVE_TOKEN_ADDRESS
-		:
+		'$contract' in instanceId ?
 			instanceId.$contract.address
+		:
+			NATIVE_TOKEN_ADDRESS
 	)
 	return lookup.get(`${chainId}:${address.toLowerCase()}`)
 }

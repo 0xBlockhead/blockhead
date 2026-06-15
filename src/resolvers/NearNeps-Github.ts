@@ -3,7 +3,6 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -44,7 +43,7 @@ export default {
 					throw new Error('NearNeps_Github: proposal resolver only supports NEAR NEPs')
 				}
 				const { getMarkdownText } = await import('$/sources/NearNeps/Github/queries.ts')
-				const text = await singleFlight(getMarkdownText)({ number: number })
+				const text = await getMarkdownText({ number: number })
 				const frontmatter = parseFrontmatter(text)
 				const body = stripFrontmatter(text)
 				return {

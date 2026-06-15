@@ -1,4 +1,3 @@
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	NetworkEnvironment,
 	NetworkNamespace,
@@ -20,12 +19,12 @@ export default {
 		defineResolver(Source.Superchain_Github, {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
+				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-				const networks = await singleFlight(fetchNetworks)()
-				const network = networks.find((candidate) => candidate.chainId === Number(entitySelector.caip2.reference))
-				if (network == null) return {}
+				const networks = await fetchNetworks()
+				const network = networks.find((candidate) => candidate.chainId === Number(caip2.reference))
+				if (network == null) throw new Error(`Superchain_Github: network not found for eip155:${caip2.reference}`)
 				return {
 					name: network.name,
 					namespace: NetworkNamespace.Evm,
@@ -101,7 +100,7 @@ export default {
 					superchainSepoliaIdentifier,
 				} = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-				const networks = await singleFlight(fetchNetworks)()
+				const networks = await fetchNetworks()
 				const namespaceFilter = (
 					Number(caip2.reference) === 1 ?
 						superchainMainnetIdentifier
@@ -111,7 +110,7 @@ export default {
 						undefined
 				)
 				return networks.flatMap((network) => (
-					network.parentChainId !== Number(entitySelector.caip2.reference)
+					network.parentChainId !== Number(caip2.reference)
 					|| (
 						namespaceFilter != null
 						&& network.namespace !== namespaceFilter
@@ -138,11 +137,11 @@ export default {
 			defineResolver(Source.Superchain_Github, {
 				entityType: EntityType.EvmNetwork,
 				resolve: {
-					[EvmNetworkSelector.Caip2]: async (entitySelector) => {
-					const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
+					[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 					const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-					const networks = await singleFlight(fetchNetworks)()
-					const network = networks.find((candidate) => candidate.chainId === Number(entitySelector.caip2.reference))
+					const networks = await fetchNetworks()
+					const network = networks.find((candidate) => candidate.chainId === Number(caip2.reference))
 					if (network == null || network.namespace !== superchainMainnetIdentifier) return []
 					return networks.flatMap((candidate) => (
 						candidate.namespace === superchainMainnetIdentifier

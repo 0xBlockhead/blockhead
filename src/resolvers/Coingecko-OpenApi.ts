@@ -41,7 +41,7 @@ import { CurrencySelector } from '$/schema/Currency.ts'
 import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
 
 const coingeckoOpenApiDerivativeTickerForMarket = async (
-	{ $marketVenue }: EntitySelector<typeof schema, EntityType.Market>,
+	market: EntitySelector<typeof schema, EntityType.Market>,
 	context: SourceResolverContext<Source.Coingecko_OpenApi>,
 ) => {
 	const { coingeckoDerivativesExchangeIdByMarketVenueId } = await import(
@@ -50,12 +50,12 @@ const coingeckoOpenApiDerivativeTickerForMarket = async (
 	const { derivativeTickerMatchesMarket } = await import('$/sources/Coingecko/marketKind.ts')
 	const exchangeId = (
 		coingeckoDerivativesExchangeIdByMarketVenueId[
-			$marketVenue.marketVenueId
+			market.$marketVenue.marketVenueId
 		]
 	)
 	if (exchangeId == null) {
 		throw new Error(
-			`Coingecko_OpenApi: derivatives exchange not mapped for venue ${$marketVenue.marketVenueId}`,
+			`Coingecko_OpenApi: derivatives exchange not mapped for venue ${market.$marketVenue.marketVenueId}`,
 		)
 	}
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
@@ -70,14 +70,14 @@ const coingeckoOpenApiDerivativeTickerForMarket = async (
 	})
 	const ticker = exchange?.tickers?.find((exchangeTicker) => (
 		derivativeTickerMatchesMarket(
-			entitySelector,
+			market,
 			exchangeTicker,
 			catalogCoinIdByCoingeckoIdMap,
 		)
 	))
 	if (ticker == null) {
 		throw new Error(
-			`Coingecko_OpenApi: no derivative ticker for ${$marketVenue.marketVenueId} market`,
+			`Coingecko_OpenApi: no derivative ticker for ${market.$marketVenue.marketVenueId} market`,
 		)
 	}
 	return ticker
@@ -174,7 +174,7 @@ export default {
 		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey]: async ({ $market, timeInterval }, context) => {
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey]: async ({ $market, timeInterval, timestampMs: timestampMsSelector, feedKey }, context) => {
 				if ($market.marketKind !== MarketKind.Spot) {
 					throw new Error('Coingecko_OpenApi: OHLC is spot-only')
 				}
@@ -198,13 +198,14 @@ export default {
 					days: timeInterval.value,
 				})
 				const ohlcCandle = ohlcCandles.find(([timestampMs]) => (
-					Math.floor(timestampMs) === entitySelector.timestampMs
+					Math.floor(timestampMs) === timestampMsSelector
 				))
 				if (ohlcCandle == null) throw new Error('Coingecko_OpenApi: OHLC candle not found for timestamp')
 				return (
 					candleFromOhlc(
 						$market,
 						timeInterval,
+						feedKey,
 						ohlcCandle,
 					)
 				)
@@ -216,10 +217,7 @@ export default {
 				high: (timestamp) => timestamp.high,
 				low: (timestamp) => timestamp.low,
 				close: (timestamp) => timestamp.close,
-				volume: (timestamp) => timestamp.volume,
 				quoteVolume: (timestamp) => timestamp.quoteVolume,
-				tradeCount: (timestamp) => timestamp.tradeCount,
-				vwap: (timestamp) => timestamp.vwap,
 			},
 			}),
 		defineResolver(Source.Coingecko_OpenApi, {
@@ -391,7 +389,7 @@ export default {
 				const lim = resolverContextRowLimit(context)
 				return (
 					catalogSpotMarketsWithCoinAsQuote
-						.filter((catalogMarket) => catalogMarket.quoteCoinId === entitySelector.coinId)
+						.filter((catalogMarket) => catalogMarket.quoteCoinId === coinId)
 						.map((catalogMarket) => catalogMarket.marketId)
 						.filter((marketId) => (
 							idByCoinId[marketId.$base.$coin.coinId] != null
@@ -473,6 +471,7 @@ export default {
 						...candlesFromOhlc(
 							entitySelector,
 							timeInterval,
+							coingeckoId,
 							ohlcCandles,
 						),
 					)
@@ -518,7 +517,7 @@ export default {
 			resolve: {
 				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
 				const markets = catalogSpotMarketsWithCurrencyAsBase
-						.filter((catalogMarket) => catalogMarket.iso4217 === entitySelector.iso4217)
+						.filter((catalogMarket) => catalogMarket.iso4217 === iso4217)
 						.map((catalogMarket) => ({
 							[EntityMetaKey.Selector]: catalogMarket.marketId,
 						}))
@@ -562,6 +561,7 @@ export default {
 						[EntityMetaKey.Selector]: {
 							$market: $market,
 							timestampMs: spot.lastUpdatedAtSec * 1000,
+							feedKey: coingeckoId,
 						},
 					},
 				]

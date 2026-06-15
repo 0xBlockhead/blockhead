@@ -4,12 +4,10 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -33,20 +31,8 @@
 		never
 	> = $props()
 
-	const calldata = subscribe(EntityType.EvmCalldata,
-		selector,
-		{
-			sources: [
-				Source.Local_Internal,
-			],
-			fields: {},
-		},
-	)
-
-
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -104,22 +90,15 @@
 				</dd>
 			</div>
 			{#if open}
-				<ResourceBoundary
-					placeholderText="Loading calldata…"
-					resource={calldata}
-				>
-					{#snippet children(calldata)}
-						<div>
-							<dt>Hex</dt>
-							<dd>
-								<TruncatedValue
-									format={TruncatedValueFormat.Visual}
-									value={selector.hex}
-								/>
-							</dd>
-						</div>
-					{/snippet}
-				</ResourceBoundary>
+				<div>
+					<dt>Hex</dt>
+					<dd>
+						<TruncatedValue
+							format={TruncatedValueFormat.Visual}
+							value={selector.hex}
+						/>
+					</dd>
+				</div>
 			{/if}
 			</dl>
 		</div>

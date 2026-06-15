@@ -9,6 +9,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 
 export enum NearTransactionSelector {
+	NetworkHash = 'networkHash',
 	NetworkHashSignerAccountId = 'networkHashSignerAccountId',
 }
 
@@ -19,6 +20,13 @@ export default {
 	labelPlural: 'NEAR Transactions',
 
 	selectors: [
+		{
+			name: NearTransactionSelector.NetworkHash,
+			fields: [
+				'$network',
+				'hash',
+			],
+		},
 		{
 			name: NearTransactionSelector.NetworkHashSignerAccountId,
 			fields: [
@@ -46,7 +54,7 @@ export default {
 			name: 'signerAccountId',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$signer',

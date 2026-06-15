@@ -224,8 +224,7 @@
 		data-row="align-center wrap"
 	>
 		{@render CardSummaryHeader({
-			showCollapsedContent: true,
-			contentOpen: true,
+			showCollapsedContent: false,
 		})}
 
 		{#if showTypeAnnotation}
@@ -285,7 +284,7 @@
 			{#snippet Summary({ open })}
 				{@render CardSummaryHeader({
 					summaryOpen: open ?? false,
-					showCollapsedContent: true,
+					showCollapsedContent: !(isInsideEntityList ?? false),
 				})}
 			{/snippet}
 

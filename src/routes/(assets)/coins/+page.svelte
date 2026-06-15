@@ -23,6 +23,5 @@
 		}}
 		id="coins"
 		limit={120}
-		marketsOpen
 	/>
 </Page>

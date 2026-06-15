@@ -12,10 +12,10 @@ import { QuilibriumAccountSelector } from '$/schema/QuilibriumAccount.ts'
 import { QuilibriumPendingTransactionSelector } from '$/schema/QuilibriumPendingTransaction.ts'
 import { QuilibriumNetworkSelector } from '$/schema/QuilibriumNetwork.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const assertQuilibriumMainnet = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== 'quilibrium') {
+	if (!('slug' in network) || network.slug !== 'quilibrium') {
 		throw new Error('QuilibriumNodeRpc_Grpc: unsupported network')
 	}
 }
@@ -96,12 +96,12 @@ export default {
 		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: {
-				[QuilibriumNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				[QuilibriumNetworkSelector.Slug]: async (entitySelector) => {
 				assertQuilibriumMainnet(entitySelector)
 				return {
 					[EntityMetaKey.Selector]: {
 						$network: {
-							networkSlug: entitySelector.networkSlug,
+							slug: entitySelector.slug,
 						},
 						shardKey: 'master',
 					},

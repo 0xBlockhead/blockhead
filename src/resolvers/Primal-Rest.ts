@@ -3,7 +3,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { nostrNetworkSeedProfiles } from '$/constants/Social/Nostr.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import {
 	optionalTimestampMs,
@@ -205,34 +204,38 @@ const articleRefFromEvent = (event: PrimalNostrEvent) => (
 const profileFieldValuesFromMetadata = (
 	metadata: PrimalNostrProfileMetadata | undefined,
 	profileEvent: PrimalNostrEvent | undefined,
-) => ({
-	...(normalizePubkey(profileEvent?.pubkey) != null && {
-		pubkey: normalizePubkey(profileEvent?.pubkey),
-	}),
-	displayName: optionalNonemptyString(metadata?.display_name ?? metadata?.name),
-	about: optionalNonemptyString(metadata?.about),
-	nip05: optionalNonemptyString(metadata?.nip05),
-	lud16: optionalNonemptyString(metadata?.lud16),
-	lud06: optionalNonemptyString(metadata?.lud06),
-	website: optionalNonemptyString(metadata?.website),
-	...(timestampMsFromUnixSeconds(profileEvent?.created_at) != null && {
-		metadataUpdatedAt: timestampMsFromUnixSeconds(profileEvent?.created_at),
-	}),
-	...((
-		iconMedia,
-	) => (
-		iconMedia != null && {
-			$icon: iconMedia,
-		}
-	))(mediaFromUrl(optionalNonemptyString(metadata?.picture), MediaType.Image)),
-	...((
-		bannerMedia,
-	) => (
-		bannerMedia != null && {
-			$banner: bannerMedia,
-		}
-	))(mediaFromUrl(optionalNonemptyString(metadata?.banner), MediaType.Image)),
-})
+) => {
+	const pubkey = normalizePubkey(profileEvent?.pubkey)
+	if (pubkey == null)
+		throw new Error('Primal_Rest: invalid profile pubkey')
+
+	return {
+		pubkey,
+		displayName: optionalNonemptyString(metadata?.display_name ?? metadata?.name),
+		about: optionalNonemptyString(metadata?.about),
+		nip05: optionalNonemptyString(metadata?.nip05),
+		lud16: optionalNonemptyString(metadata?.lud16),
+		lud06: optionalNonemptyString(metadata?.lud06),
+		website: optionalNonemptyString(metadata?.website),
+		...(timestampMsFromUnixSeconds(profileEvent?.created_at) != null && {
+			metadataUpdatedAt: timestampMsFromUnixSeconds(profileEvent?.created_at),
+		}),
+		...((
+			iconMedia,
+		) => (
+			iconMedia != null && {
+				$icon: iconMedia,
+			}
+		))(mediaFromUrl(optionalNonemptyString(metadata?.picture), MediaType.Image)),
+		...((
+			bannerMedia,
+		) => (
+			bannerMedia != null && {
+				$banner: bannerMedia,
+			}
+		))(mediaFromUrl(optionalNonemptyString(metadata?.banner), MediaType.Image)),
+	}
+}
 
 const noteFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
@@ -277,12 +280,12 @@ const repostFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 	if (!isNostrRepostKind(kind)) throw new Error('Primal_Rest: not a repost event')
 	const eventPubkey = normalizePubkey(event.pubkey)
 	if (eventPubkey == null) throw new Error('Primal_Rest: invalid event pubkey')
+	const eventId = normalizeEventId(String(event.id))
+	if (eventId == null) throw new Error('Primal_Rest: invalid repost event id')
 	const repostedArticle = articleRefFromAddressableCoordinate(tagValueFromTags(event.tags, 'a'))
 	return (
 		((repostedEventId) => ({
-			...(normalizeEventId(String(event.id)) != null && {
-				eventId: normalizeEventId(String(event.id)),
-			}),
+			eventId,
 			kind,
 			pubkey: eventPubkey,
 			...(event.tags != null && { tags: event.tags }),
@@ -336,12 +339,15 @@ const repostFieldValuesFromTargetEvent = (
 const reactionFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
 	if (eventPubkey == null) throw new Error('Primal_Rest: invalid event pubkey')
+	const eventId = normalizeEventId(String(event.id))
+	if (eventId == null) throw new Error('Primal_Rest: invalid reaction event id')
 	const targetArticle = articleRefFromAddressableCoordinate(tagValueFromTags(event.tags, 'a'))
 	const targetEventId = reactionTargetEventIdFromTags(event.tags)
+	if (targetArticle == null && targetEventId == null)
+		throw new Error('Primal_Rest: reaction missing target event id')
+
 	return {
-		...(normalizeEventId(String(event.id)) != null && {
-			eventId: normalizeEventId(String(event.id)),
-		}),
+		eventId,
 		kind: 7,
 		pubkey: eventPubkey,
 		...(event.tags != null && { tags: event.tags }),
@@ -406,13 +412,15 @@ const articlePublishedAtMs = (event: PrimalNostrEvent) => (
 const articleFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
 	if (eventPubkey == null) throw new Error('Primal_Rest: invalid event pubkey')
+	const identifier = tagValueFromTags(event.tags, 'd')
+	if (identifier == null)
+		throw new Error('Primal_Rest: article missing identifier')
+
 	return (
 		((publishedAt) => ({
 			kind: 30023,
 			pubkey: eventPubkey,
-			...(tagValueFromTags(event.tags, 'd') != null && {
-				identifier: tagValueFromTags(event.tags, 'd'),
-			}),
+			identifier,
 			title: optionalNonemptyString(tagValueFromTags(event.tags, 'title')),
 			summary: optionalNonemptyString(tagValueFromTags(event.tags, 'summary')),
 			imageUrl: optionalNonemptyString(tagValueFromTags(event.tags, 'image')),
@@ -590,10 +598,10 @@ export default {
 				[NostrProfileSelector.CanonicalPubkey]: async ({ pubkey: pubkeySelector }, context) => {
 				const { getProfile } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
-				const wire = await singleFlight(getProfile)(publicEnv, pubkeySelector)
+				const wire = await getProfile(publicEnv, pubkeySelector)
 				const event = profileEventFromWire(wire)
 				if (event == null) throw new Error('Primal_Rest: profile not found')
-				const pubkey = normalizePubkey(event.pubkeySelector ?? pubkeySelector)
+				const pubkey = normalizePubkey(event.pubkey ?? pubkeySelector)
 				if (pubkey == null || pubkey !== pubkeySelector) {
 					throw new Error('Primal_Rest: profile pubkey mismatch')
 				}
@@ -625,7 +633,7 @@ export default {
 				[NostrNoteSelector.CanonicalEventId]: async ({ eventId: eventIdSelector }, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
-				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, eventIdSelector))
+				const event = eventFromWire(await getEventById(publicEnv, eventIdSelector))
 				if (event == null || event.kind !== 1) {
 					throw new Error('Primal_Rest: note not found')
 				}
@@ -657,7 +665,7 @@ export default {
 				[NostrRepostSelector.CanonicalEventId]: async ({ eventId: eventIdSelector }, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
-				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, eventIdSelector))
+				const event = eventFromWire(await getEventById(publicEnv, eventIdSelector))
 				if (event == null || !isNostrRepostKind(event.kind)) {
 					throw new Error('Primal_Rest: repost not found')
 				}
@@ -670,7 +678,7 @@ export default {
 				const targetEventId = values.$repostedNote[EntityMetaKey.Selector].eventId
 				return repostFieldValuesFromTargetEvent(
 					values,
-					eventFromWire(await singleFlight(getEventById)(publicEnv, targetEventId)),
+					eventFromWire(await getEventById(publicEnv, targetEventId)),
 				)
 			}
 			},
@@ -694,7 +702,7 @@ export default {
 				[NostrReactionSelector.CanonicalEventId]: async ({ eventId: eventIdSelector }, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
-				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, eventIdSelector))
+				const event = eventFromWire(await getEventById(publicEnv, eventIdSelector))
 				if (event == null || event.kind !== 7) {
 					throw new Error('Primal_Rest: reaction not found')
 				}
@@ -705,7 +713,7 @@ export default {
 				const values = reactionFieldValuesFromEvent(event)
 				if (values.$targetNote != null && values.$targetArticle == null) {
 					const targetEvent = eventFromWire(
-						await singleFlight(getEventById)(
+						await getEventById(
 							publicEnv,
 							values.$targetNote[EntityMetaKey.Selector].eventId,
 						),
@@ -743,7 +751,7 @@ export default {
 				const limit = resolverContextRowLimit(context)
 				const event = (
 					eventsFromTimelineResponse(
-						await singleFlight(getProfileArticles)(publicEnv, pubkey, limit),
+						await getProfileArticles(publicEnv, pubkey, limit),
 					)
 						.find((noteEvent) => (
 							noteEvent.kind === 30023
@@ -834,7 +842,7 @@ export default {
 				const limit = resolverContextRowLimit(context)
 				return (
 					eventsFromTimelineResponse(
-						await singleFlight(getProfileNotes)(publicEnv, pubkey, limit),
+						await getProfileNotes(publicEnv, pubkey, limit),
 					)
 						.flatMap((event) => (
 							event.kind !== 1 || normalizeEventId(event.id) == null ?
@@ -864,7 +872,7 @@ export default {
 				const limit = resolverContextRowLimit(context)
 				return (
 					eventsFromTimelineResponse(
-						await singleFlight(getProfileReposts)(publicEnv, pubkey, limit),
+						await getProfileReposts(publicEnv, pubkey, limit),
 					)
 						.flatMap((event) => (
 							!isNostrRepostKind(event.kind) || normalizeEventId(event.id) == null ?
@@ -894,7 +902,7 @@ export default {
 				const limit = resolverContextRowLimit(context)
 				return (
 					eventsFromTimelineResponse(
-						await singleFlight(getProfileArticles)(publicEnv, pubkey, limit),
+						await getProfileArticles(publicEnv, pubkey, limit),
 					)
 						.flatMap((event) => articleRefFromEvent(event))
 				)
@@ -915,7 +923,7 @@ export default {
 				const limit = resolverContextRowLimit(context)
 				return (
 					eventsFromTimelineResponse(
-						await singleFlight(getNoteReplies)(publicEnv, eventId, limit),
+						await getNoteReplies(publicEnv, eventId, limit),
 					)
 						.flatMap((event) => (
 							event.kind !== 1 || normalizeEventId(event.id) == null ?
@@ -945,7 +953,7 @@ export default {
 				const limit = resolverContextRowLimit(context)
 				return (
 					eventsFromTimelineResponse(
-						await singleFlight(getNoteReactions)(publicEnv, eventId, limit),
+						await getNoteReactions(publicEnv, eventId, limit),
 					)
 						.flatMap((event) => (
 							event.kind !== 7 || normalizeEventId(event.id) == null ?
@@ -972,7 +980,7 @@ export default {
 				[NostrNoteSelector.CanonicalEventId]: async ({ eventId }, context) => {
 				const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 				const publicEnv = context.publicEnv
-				const event = eventFromWire(await singleFlight(getEventById)(publicEnv, eventId))
+				const event = eventFromWire(await getEventById(publicEnv, eventId))
 				if (event == null || event.kind !== 1) {
 					throw new Error('Primal_Rest: note not found for reply target')
 				}

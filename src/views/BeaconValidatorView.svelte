@@ -50,23 +50,18 @@
 
 	const validator = subscribe(EntityType.BeaconValidator,
 		selector,
-		(
-			open ?
-				{
-					sources: [
-						Source.Beacon_Rest,
-					],
-					fields: {
-						balanceGwei: true,
-						effectiveBalanceGwei: true,
-						pubkey: true,
-						slashed: true,
-						status: true,
-					},
-				}
-			:
-				{ fields: {} }
-		),
+		{
+			sources: [
+				Source.Beacon_Rest,
+			],
+			fields: {
+				balanceGwei: true,
+				effectiveBalanceGwei: true,
+				pubkey: true,
+				slashed: true,
+				status: true,
+			},
+		},
 	)
 
 

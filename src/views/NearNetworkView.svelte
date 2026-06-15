@@ -68,7 +68,7 @@
 	{layout}
 >
 	{#snippet Value()}
-		<span>{selector.networkSlug}</span>
+		<span>{selector.slug}</span>
 	{/snippet}
 
 	{#snippet Title()}

@@ -5,6 +5,7 @@ import {
 	zebraDefaultLocalRpcUrl,
 	zcashMainnetCaip2,
 } from '$/constants/BitcoinNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -15,11 +16,17 @@ import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { UtxoInputSelector } from '$/schema/UtxoInput.ts'
 import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
 
-const assertZcashMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
+
+const assertZcashMainnet = (network: NetworkId) => {
 	if (
-		!('caip2' in network)
-		|| network.caip2.namespace !== zcashMainnetCaip2.namespace
-		|| network.caip2.reference !== zcashMainnetCaip2.reference
+		'caip2' in network ?
+			(
+				network.caip2.namespace !== zcashMainnetCaip2.namespace
+				|| network.caip2.reference !== zcashMainnetCaip2.reference
+			)
+		:
+			network.slug !== networkBySlug.zcash.slug
 	) {
 		throw new Error('Zebra_JsonRpc: unsupported Zcash network')
 	}
@@ -28,7 +35,7 @@ const assertZcashMainnet = (network: { caip2: { namespace: string; reference: st
 const valueSatsFromZec = (valueZec: number) => BigInt(Math.round(valueZec * 100_000_000))
 
 const getTransaction = async ({ $network, txId }: {
-	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+	$network: NetworkId
 	txId: string
 }) => {
 	assertZcashMainnet($network)
@@ -82,14 +89,14 @@ export default {
 						typeof transaction === 'string' ?
 							{
 								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
+									$network,
 									txId: transaction,
 								},
 							}
 						:
 							{
 								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
+									$network,
 									txId: transaction.txid,
 								},
 								version: transaction.version,
@@ -235,7 +242,7 @@ export default {
 			coinbaseScript: (snapshot) => snapshot.coinbaseScript,
 			scriptSigAsm: (snapshot) => snapshot.scriptSigAsm,
 			sequence: (snapshot) => snapshot.sequence,
-			witness: (snapshot) => snapshot.witness,
+			witness: (snapshot) => snapshot.witness ?? [],
 		},
 			}),
 

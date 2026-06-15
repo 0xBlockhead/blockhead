@@ -26,16 +26,19 @@
 		}
 	} = $props()
 
-	const transaction = subscribe(EntityType.EvmTransaction,
+	const transaction = $derived(subscribe(EntityType.EvmTransaction,
 		{
 			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			txHash: ZeroExHex.assert(params.transactionId ?? ''),
 		},
-		({ sources: [
+		({
+			sources: [
 				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
-			], fields: { $block: true } }),
-	)
+			],
+			fields: { $block: true },
+		}),
+	))
 
 
 	// Components
@@ -47,7 +50,7 @@
 
 
 <ParentPageCollapsible
-	title={'Blocks'}
+	title="Blocks"
 	href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/blocks', params)}
 	id={stringify({ ...{ caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } }, scope: 'blocks' })}
 >
@@ -77,7 +80,7 @@
 					{/snippet}
 
 					<ParentPageCollapsible
-						title={'Transactions'}
+						title="Transactions"
 						href={resolve(
 							`/network//block/${String(blockEntitySelector.blockNumber)}/transactions`,
 						)}
@@ -91,7 +94,7 @@
 				</ParentPageCollapsible>
 			{:else}
 				<ParentPageCollapsible
-					title={'Transactions'}
+					title="Transactions"
 					href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/transactions', params)}
 					id={stringify({ ...{ caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } }, scope: 'transactions' })}
 				>

@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
+	import { writeLocalBlockheadSessionName } from '$/collections/localMutations.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
+	import { SpecificationRealm } from '$/constants/SpecificationProposal.ts'
 	import {
 		type TanStackLiveQuerySnapshot,
 		type SvelteKitResource,
 		TanStackLiveQueryResource,
 	} from '$/lib/db/queryResource.svelte.ts'
-	import { SpecificationRealm } from '$/constants/SpecificationProposal.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	let cachedBoundaryOpen = $state(
@@ -48,7 +49,11 @@
 	let showRealSubscribedScalarResource = $state(false)
 	let showRealSubscribedResource = $state(false)
 	let showRealSubscribedCountResource = $state(false)
-	const remotePromise = Promise.resolve('Remote subscribed value')
+	let resolveRemotePromise: (value: string) => void = () => {}
+	let resolveQueryTaggedPromise: (value: string) => void = () => {}
+	const remotePromise = new Promise<string>((resolve) => {
+		resolveRemotePromise = resolve
+	})
 	const remoteResource = {
 		then: remotePromise.then.bind(remotePromise),
 		catch: remotePromise.catch.bind(remotePromise),
@@ -67,8 +72,9 @@
 		},
 		[Symbol.toStringTag]: 'RemoteResource',
 	}
-	const queryTaggedPromise = Promise.resolve('Query tagged value')
-	const partiallyReadyPromise = Promise.resolve('Partially ready value')
+	const queryTaggedPromise = new Promise<string>((resolve) => {
+		resolveQueryTaggedPromise = resolve
+	})
 	const queryTaggedResource = {
 		then: queryTaggedPromise.then.bind(queryTaggedPromise),
 		catch: queryTaggedPromise.catch.bind(queryTaggedPromise),
@@ -87,25 +93,7 @@
 		},
 		[Symbol.toStringTag]: 'Query',
 	}
-	const partiallyReadyResource = {
-		then: partiallyReadyPromise.then.bind(partiallyReadyPromise),
-		catch: partiallyReadyPromise.catch.bind(partiallyReadyPromise),
-		finally: partiallyReadyPromise.finally.bind(partiallyReadyPromise),
-		get current() {
-			return 'Partially ready value'
-		},
-		get error() {
-			return undefined
-		},
-		get ready() {
-			return false
-		},
-		get loading() {
-			return true
-		},
-		[Symbol.toStringTag]: 'RemoteResource',
-	}
-	const failedPromise = Promise.reject('Boundary failure')
+	const failedPromise = Promise.reject(new Error('Boundary failure'))
 	failedPromise.catch(() => {})
 	const failedResource = {
 		then: failedPromise.then.bind(failedPromise),
@@ -141,6 +129,7 @@
 	) => {
 		remoteValue = value
 		remoteReady = true
+		resolveRemotePromise(value)
 	}
 
 	const applyQueryTaggedValue = (
@@ -148,12 +137,24 @@
 	) => {
 		queryTaggedValue = value
 		queryTaggedReady = true
+		resolveQueryTaggedPromise(value)
+	}
+
+	const applyRealSubscribedLabelValue = (
+		value: string,
+	) => {
+		writeLocalBlockheadSessionName(appClient, {
+			id: 'e2e-probe-session',
+		}, value)
 	}
 
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import {
+		appClient,
+		subscribe,
+	} from '$/routes/+layout.svelte'
 </script>
 
 
@@ -194,7 +195,7 @@
 		placeholderText="Loading subscribed value"
 	>
 		{#snippet children(value)}
-			<p>{value}</p>
+			<p data-testid="subscribed-boundary-value">{value}</p>
 		{/snippet}
 	</ResourceBoundary>
 
@@ -222,27 +223,35 @@
 		Show real subscribeEntity count boundary
 	</button>
 
+	<button onclick={() => applyRealSubscribedLabelValue('Boundary Session')}>
+		Seed real subscribeEntity scalar field
+	</button>
+
+	<button onclick={() => applyRealSubscribedLabelValue('Updated Boundary Session')}>
+		Update real subscribeEntity scalar field
+	</button>
+
 	{#if showRealSubscribedScalarResource}
 		<ResourceBoundary
 			resource={subscribe(
-				EntityType.SpecificationRealm,
+				EntityType.BlockheadSession,
 				{
-					realm: SpecificationRealm.Ethereum,
+					id: 'e2e-probe-session',
 				},
 				{
 					sources: [
-						Source.Constants_Internal,
+						Source.Local_Internal,
 					],
 					fields: {
-						label: true,
-						slug: true,
+						name: true,
+						status: true,
 					},
 				},
 			)}
 			placeholderText="Loading real subscribeEntity scalar value"
 		>
 			{#snippet children(value)}
-				<p data-testid="real-resource-boundary-scalars">{value.fields.label}:{value.fields.slug}</p>
+				<p data-testid="real-resource-boundary-scalars">{value.fields.name}:{value.fields.status}</p>
 			{/snippet}
 		</ResourceBoundary>
 	{/if}
@@ -316,7 +325,7 @@
 		placeholderText="Loading query resource value"
 	>
 		{#snippet children(value)}
-			<p>{value}</p>
+			<p data-testid="query-tagged-boundary-value">{value}</p>
 		{/snippet}
 	</ResourceBoundary>
 </section>
@@ -338,7 +347,7 @@
 			{/snippet}
 
 			{#snippet Failed(error)}
-				<p data-testid="failed-resource-message">{String(error)}</p>
+				<p data-testid="failed-resource-message">{error instanceof Error ? error.message : String(error)}</p>
 			{/snippet}
 		</ResourceBoundary>
 	{/if}
@@ -360,20 +369,7 @@
 		placeholderText="Loading remote value"
 	>
 		{#snippet children(value)}
-			<p>{value}</p>
-		{/snippet}
-	</ResourceBoundary>
-</section>
-
-<section>
-	<h2>Partially ready resource boundary</h2>
-
-	<ResourceBoundary
-		resource={partiallyReadyResource}
-		placeholderText="Loading partially ready value"
-	>
-		{#snippet children(value)}
-			<p>{value}</p>
+			<p data-testid="remote-boundary-value">{value}</p>
 		{/snippet}
 	</ResourceBoundary>
 </section>

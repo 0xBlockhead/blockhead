@@ -13,7 +13,7 @@ import { Source } from '$/sources/Source.ts'
 import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
 import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string } | { slug: string }
 
 const assertPolkadotMainnet = (network: NetworkId) => {
 	if (

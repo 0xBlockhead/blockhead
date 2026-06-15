@@ -178,7 +178,7 @@ export default {
 			}
 		})({
 				fields: {
-			$$marketsWithCoinAsQuote: (snapshot) => snapshot,
+			$$marketsWithCoinAsQuote: () => [],
 		},
 			}),
 
@@ -214,7 +214,7 @@ export default {
 			resolve: {
 				[CurrencySelector.Iso4217]: async ({ iso4217 }) => {
 				const markets = catalogSpotMarketsWithCurrencyAsBase
-					.filter((catalogMarket) => catalogMarket.iso4217 === entitySelector.iso4217)
+					.filter((catalogMarket) => catalogMarket.iso4217 === iso4217)
 					.map((catalogMarket) => ({
 						[EntityMetaKey.Selector]: catalogMarket.marketId,
 					}))
@@ -255,6 +255,7 @@ export default {
 						[EntityMetaKey.Selector]: {
 							$market: $market,
 							timestampMs: Date.now(),
+							feedKey: market.ticker,
 						},
 					},
 				]

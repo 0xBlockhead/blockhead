@@ -1,9 +1,11 @@
 import { type } from 'arktype'
 
-import { bridgeToolByKey } from '$/constants/Bridge.ts'
+import {
+	bridgeToolByKey,
+	type BridgeToolRow,
+} from '$/constants/Bridge.ts'
 import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
 	type SourceResolverContext,
@@ -28,6 +30,7 @@ import { _GlobalSelector } from '$/schema/_Global.ts'
 import { CoinBridgeCapabilitySelector } from '$/schema/CoinBridgeCapability.ts'
 import { BridgeRouteSelector } from '$/schema/BridgeRoute.ts'
 import { BridgeRouteStepSelector } from '$/schema/BridgeRouteStep.ts'
+import type { BridgeRouteStepFields } from '$/sources/Lifi/Rest/routes.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
 import { EvmCoinInstanceSelector } from '$/schema/EvmCoinInstance.ts'
 
@@ -162,7 +165,7 @@ const coinBridgeCapabilityRowsForCoin = async (
 	return fetchCoinBridgeCapabilityRowsForCoin(
 		coinId,
 		context.publicEnv,
-		await singleFlight(fetchTools)(),
+		await fetchTools(),
 	)
 }
 
@@ -175,7 +178,7 @@ export default {
 			resolve: {
 				[EvmNetworkSelector.Caip2]: async (entitySelector, context) => {
 				const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
-					const lifiChain = (await singleFlight(fetchChains)()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entitySelector.caip2.reference))
+					const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entitySelector.caip2.reference))
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
 				return networkEntityFieldsFromLifiChain(lifiChain)
 			}
@@ -191,13 +194,13 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.CoinBridgeCapability,
 			resolve: {
-				[CoinBridgeCapabilitySelector.EvmCoinInstanceEvmCoinInstanceToolKey]: async ({ toolKey }) => {
+				[CoinBridgeCapabilitySelector.EvmCoinInstanceEvmCoinInstanceToolKey]: async ({ toolKey }): Promise<{ toolKey: string } & Omit<BridgeToolRow, 'key'>> => {
 				const coinBridgeCapabilityFields = bridgeToolByKey[toolKey]
 				if (coinBridgeCapabilityFields == null) {
 					throw new Error(`Lifi_Rest: unknown LI.FI tool key ${toolKey}`)
 				}
 				return {
-					toolKey: toolKey,
+					toolKey: coinBridgeCapabilityFields.key,
 					...coinBridgeCapabilityFields,
 				}
 			}
@@ -219,7 +222,11 @@ export default {
 				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
 				)
-				return (await singleFlight(fetchBridgeRouteBundleForQuoteId)(entitySelector)).routeFields
+				const bundle = await fetchBridgeRouteBundleForQuoteId(entitySelector)
+				return {
+					...bundle.routeFields,
+					$$steps: bundle.steps,
+				}
 			}
 			},
 		})({
@@ -239,11 +246,11 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRouteStep,
 			resolve: {
-				[BridgeRouteStepSelector.BridgeRouteIndex]: async ({ $route, index }) => {
+				[BridgeRouteStepSelector.BridgeRouteIndex]: async ({ $route, index }): Promise<Omit<BridgeRouteStepFields, typeof EntityMetaKey.Selector>> => {
 				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
 				)
-				const bundle = await singleFlight(fetchBridgeRouteBundleForQuoteId)($route)
+				const bundle = await fetchBridgeRouteBundleForQuoteId($route)
 				const step = bundle.steps[index]
 				if (step == null) {
 					throw new Error(
@@ -274,7 +281,7 @@ export default {
 			resolve: {
 				[_GlobalSelector.Scope]: async () => {
 				const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
-				return (await singleFlight(fetchChains)()).chains.map(networkEntityFieldsFromLifiChain)
+				return (await fetchChains()).chains.map(networkEntityFieldsFromLifiChain)
 			}
 			},
 		})({
@@ -391,7 +398,7 @@ export default {
 				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
 				)
-				return (await singleFlight(fetchBridgeRouteBundleForQuoteId)(entitySelector)).steps
+				return (await fetchBridgeRouteBundleForQuoteId(entitySelector)).steps
 			}
 			},
 		})({
@@ -405,7 +412,7 @@ export default {
 			resolve: {
 				[EvmNetworkSelector.Caip2]: async (entitySelector, _context) => {
 				const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
-					const lifiChain = (await singleFlight(fetchChains)()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entitySelector.caip2.reference))
+					const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entitySelector.caip2.reference))
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog for block explorer URLs')
 				return urlEntitiesFromBlockExplorerCatalog(
 					blockExplorerLikeFromExplorersAndInfoUrl({

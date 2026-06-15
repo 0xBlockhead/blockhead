@@ -12,8 +12,8 @@ import { NearAccountSelector } from '$/schema/NearAccount.ts'
 import { NearBlockSelector } from '$/schema/NearBlock.ts'
 import { NearTransactionSelector } from '$/schema/NearTransaction.ts'
 
-const assertNearMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
-	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug.near.slug) {
+const assertNearMainnet = (network: { caip2: { namespace: string; reference: string } } | { slug: string }) => {
+	if (!('slug' in network) || network.slug !== networkBySlug.near.slug) {
 		throw new Error('NearBlocks_Rest: unsupported network')
 	}
 }
@@ -61,6 +61,7 @@ export default {
 					block: hash,
 				})).blocks?.[0]
 				if (block == null) throw new Error(`NearBlocks_Rest: block ${hash} not found`)
+				if (block.block_hash == null) throw new Error(`NearBlocks_Rest: block ${hash} missing block hash`)
 				return {
 					hash: block.block_hash,
 					...(block.prev_block_hash != null && height > 0n && {
@@ -122,8 +123,8 @@ export default {
 					$$actions: transaction.actions?.map((action, actionIndex) => ({
 						[EntityMetaKey.Selector]: {
 							$transaction: {
-								$network: entitySelector.$network,
-								hash: entitySelector.hash,
+								$network,
+								hash,
 								...(transaction.signer_account_id != null && {
 									signerAccountId: transaction.signer_account_id,
 								}),
@@ -163,7 +164,7 @@ export default {
 			$receiver: (snapshot) => snapshot.$receiver,
 			nonce: (snapshot) => snapshot.nonce,
 			$$actions: (snapshot) => snapshot.$$actions,
-			$$executionOutcomes: (snapshot) => snapshot.$$executionOutcomes,
+			$$executionOutcomes: (snapshot) => snapshot.$$executionOutcomes ?? [],
 		},
 			}),
 	],

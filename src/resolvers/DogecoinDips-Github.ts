@@ -1,7 +1,6 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -40,7 +39,7 @@ export default {
 				if (realm !== SpecificationRealm.Dogecoin || category !== ProposalCategory.Dip) {
 					throw new Error('DogecoinDips_Github: proposal resolver only supports Dogecoin DIPs')
 				}
-				const text = await singleFlight(getMediaWikiText)({ number: number })
+				const text = await getMediaWikiText({ number: number })
 				if (text.trim() === '') throw new Error('DogecoinDips_Github: empty proposal text')
 				return {
 					documentCategory: dipMetadataValue(text, 'Type'),

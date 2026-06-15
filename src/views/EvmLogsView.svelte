@@ -9,10 +9,14 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
 	// Context
 	import { subscribe } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		entityFieldReference,
@@ -38,13 +42,12 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
 
 	// Components
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmLogView from '$/views/EvmLogView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EvmTopicView from '$/views/EvmTopicView.svelte'
 </script>
 
 
@@ -72,25 +75,6 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Blockscout_Rest,
-							Source.Voltaire_JsonRpc,
-						],
-					},
-				} }),
-			)}
-			{@const logs = derive(
-				parent,
-				(parent) => (
-					[...(parent.fields[entityFieldReference.fieldName]?.values ?? [])]
-						.map((value) => ({
-							value,
-						}))
-				),
-			)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
@@ -98,7 +82,28 @@
 				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
 				getSortValue={(line) => line.value[EntityMetaKey.Selector].logIndex}
 				placeholderText="Loading receipt logs…"
-				resource={logs}
+				resource={derive(
+					subscribe(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+						{
+							fields: {
+								[entityFieldReference.fieldName]: {
+									sources: [
+										Source.Blockscout_Rest,
+										Source.Voltaire_JsonRpc,
+									],
+								},
+							},
+						},
+					),
+					(parent) => (
+						[...(parent.fields.$$logs?.values ?? [])]
+							.map((value) => ({
+								value,
+							}))
+					),
+				)}
 				{title}
 				href={EntitiesListProps.href ?? ''}
 				id={`${EntitiesListProps.id ?? 'receipt-logs'}:items`}
@@ -114,14 +119,37 @@
 				{#snippet Item({ item })}
 					{@const line = item.value}
 					{@const logId = line[EntityMetaKey.Selector]}
-					<EvmLogView
-						selector={logId}
+					<EntityView
+						entityType={EntityType.EvmLog}
+						entitySelector={logId}
 						layout={EntityLayout.Summary}
-						open={false}
 						collapsible={false}
-						showParentTransaction={false}
 						showTypeAnnotation={false}
-					/>
+					>
+						{#snippet Value()}
+							<span data-badge="small">
+								#{logId.logIndex}
+							</span>
+						{/snippet}
+
+						{#snippet Title()}
+							<span data-row="wrap gap-2 align-baseline">
+								<span data-row="inline align-center gap-2 wrap">
+									<span>Receipt log </span>
+									<span data-badge="small">
+										#{logId.logIndex}
+									</span>
+								</span>
+								{#if line.topics[0]?.startsWith('0x')}
+									<EvmTopicView
+										selector={{ hex: normalizeEvmTopicHex(line.topics[0]) }}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								{/if}
+							</span>
+						{/snippet}
+					</EntityView>
 				{/snippet}
 			</EntitiesList>
 		{/if}

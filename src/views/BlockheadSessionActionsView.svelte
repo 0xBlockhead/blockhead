@@ -19,7 +19,7 @@
 		writeLocalBlockheadSessionAction,
 	} from '$/collections/localMutations.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { appClient, subscribe } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -56,6 +56,7 @@
 	// Actions
 	const writeSessionAction = (indexInSequence: number) => {
 		writeLocalBlockheadSessionAction(
+			appClient,
 			entityFieldReference.selector,
 			indexInSequence,
 			actionType,
@@ -166,6 +167,7 @@
 					<button
 						type="button"
 						onclick={() => deleteLocalBlockheadSessionAction(
+							appClient,
 							entityFieldReference.selector,
 							envelope.value[EntityMetaKey.Selector],
 						)}

@@ -53,7 +53,7 @@ export default {
 			name: 'txHash',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
 			],
@@ -62,7 +62,7 @@ export default {
 			name: 'blobIndex',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
 			],

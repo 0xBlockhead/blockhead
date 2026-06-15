@@ -10,7 +10,6 @@ import {
 import { evmAbiFromJsonString } from '$/lib/evmAbi.ts'
 import { hexLowerOfByteSize, with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import type { StreamBlock } from '@tevm/voltaire/block'
 import { stringify } from 'devalue'
 import {
@@ -25,7 +24,6 @@ import {
 } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
@@ -50,7 +48,7 @@ import { EvmContractSelector } from '$/schema/EvmContract.ts'
 
 type EvmNetworkId = {
 	caip2: {
-		namespace: 'eip155'
+		namespace: string
 		reference: string
 	}
 }
@@ -513,9 +511,9 @@ export default {
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
 
-				const voltaireBlockWire = await singleFlight(getBlockByNumberForRpcUrl)({
+				const voltaireBlockWire = await getBlockByNumberForRpcUrl({
 					...jsonRpcTransport,
-					blockNumberSelector: blockNumberSelector,
+					blockNumber: blockNumberSelector,
 					fullTransactions: false,
 				})
 				if (voltaireBlockWire == null) throw new Error('Voltaire_JsonRpc: block not returned from RPC')
@@ -643,9 +641,9 @@ export default {
 								[EntityMetaKey.Selector]: {
 									$network: $network,
 									blockNumber: parentBlockNumber,
-									hash: parentBlockHash,
 								},
 								number: parentBlockNumber,
+								hash: parentBlockHash,
 							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 						}),
 					...(miner != null && {
@@ -674,7 +672,7 @@ export default {
 				const chainId = chainIdFromEvmNetworkId(entitySelector.$network)
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-				const tx = await singleFlight(getTransactionByHashForRpcUrl)({
+				const tx = await getTransactionByHashForRpcUrl({
 					...jsonRpcTransport,
 					txHash: entitySelector.txHash,
 				})
@@ -736,14 +734,14 @@ export default {
 				for (const jsonRpcTransport of jsonRpcTransports) {
 					if (jsonRpcTransport.transportType !== TransportType.Http) continue
 					try {
-						const feeHistory = await singleFlight(getFeeHistory)({
+						const feeHistory = await getFeeHistory({
 							rpcUrl: jsonRpcTransport.rpcUrl,
 							blockCount: 1,
 							newestBlock: entitySelector.blockNumber,
 							rewardPercentiles: [50],
 						})
 						const headBlockNumber = nonNegativeBigIntFromHex(
-							await singleFlight(getBlockNumber)({
+							await getBlockNumber({
 								rpcUrl: jsonRpcTransport.rpcUrl,
 							}),
 						)
@@ -755,13 +753,13 @@ export default {
 						let maxPriorityFeePerGas: bigint | undefined
 						if (isHeadBlock) {
 							legacyGasPrice = nonNegativeBigIntFromHex(
-								await singleFlight(getGasPrice)({
+								await getGasPrice({
 									rpcUrl: jsonRpcTransport.rpcUrl,
 								}),
 							)
 							try {
 								maxPriorityFeePerGas = nonNegativeBigIntFromHex(
-									await singleFlight(getMaxPriorityFeePerGas)({
+									await getMaxPriorityFeePerGas({
 										rpcUrl: jsonRpcTransport.rpcUrl,
 									}),
 								)
@@ -810,7 +808,7 @@ export default {
 				for (const jsonRpcTransport of jsonRpcTransports) {
 					if (jsonRpcTransport.transportType !== TransportType.Http) continue
 					try {
-						const status = await singleFlight(getTxpoolStatus)({
+						const status = await getTxpoolStatus({
 							rpcUrl: jsonRpcTransport.rpcUrl,
 						})
 						return {
@@ -845,7 +843,7 @@ export default {
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
 				const normalizedName = normalizeEnsName(name)
-				const resolution = await singleFlight(resolveEnsForwardForRpcUrl)({
+				const resolution = await resolveEnsForwardForRpcUrl({
 					...jsonRpcTransport,
 					name: normalizedName,
 					textKeys: [...ensTextRecordKeys],
@@ -891,17 +889,14 @@ export default {
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmActorCoinAllowance,
-			resolve: {
-				[EvmActorCoinAllowanceSelector.EvmNetworkActorCoinBalanceEvmAccountInteropAddress]: async ({ $actorCoin, $spender }) => {
-				const { getCall } = await import('$/sources/Evm/JsonRpc/queries.ts')
-				if ($actorCoin.$coinInstance.type !== CoinInstanceType.Erc20Token) {
-					throw new Error('Voltaire_JsonRpc: EvmActorCoinAllowance only supports ERC-20 coin instances')
-				}
-				const chainId = chainIdFromEvmNetworkId($actorCoin.$coinInstance.$network)
-				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
-				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-				const tokenContract = $actorCoin.$coinInstance.$contract.address
-				const owner = hexLowerOfByteSize($actorCoin.$actor.address, 20)
+				resolve: {
+					[EvmActorCoinAllowanceSelector.EvmAccountEvmContractSpenderInteropAddress]: async ({ $actor, $contract, $spender }) => {
+						const { getCall } = await import('$/sources/Evm/JsonRpc/queries.ts')
+						const chainId = chainIdFromEvmNetworkId($contract.$network)
+						const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
+						if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
+						const tokenContract = $contract.address
+					const owner = hexLowerOfByteSize($actor.address, 20)
 				const spender = hexLowerOfByteSize($spender.address, 20)
 				if (owner == null || spender == null) {
 					throw new Error('Voltaire_JsonRpc: EvmActorCoinAllowance owner or spender address not normalized')
@@ -921,18 +916,33 @@ export default {
 						(() => {
 							throw new Error('Voltaire_JsonRpc: eth_call allowance returned non-hex')
 						})()
-				)
-				return {
-					allowance,
-					lastChecked: Date.now(),
-				}
+					)
+					return {
+						$actor,
+						$contract,
+						$actorCoin: {
+							[EntityMetaKey.Selector]: {
+								$actor,
+								$contract,
+							},
+						},
+						allowance,
+						lastChecked: Date.now(),
+					}
 			}
 			},
-		})({
-			fields: {
-				allowance: (allowance) => allowance.allowance,
-				lastChecked: (allowance) => allowance.lastChecked,
-			},
+			})({
+				fields: {
+					$actor: (allowance) => ({
+						[EntityMetaKey.Selector]: allowance.$actor,
+					}),
+					$contract: (allowance) => ({
+						[EntityMetaKey.Selector]: allowance.$contract,
+					}),
+					$actorCoin: (allowance) => allowance.$actorCoin,
+					allowance: (allowance) => allowance.allowance,
+					lastChecked: (allowance) => allowance.lastChecked,
+				},
 			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
@@ -949,9 +959,9 @@ export default {
 				const chainId = chainIdFromEvmNetworkId($network)
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-				const voltaireTransactionWire = await singleFlight(getTransactionByHashForRpcUrl)({
+				const voltaireTransactionWire = await getTransactionByHashForRpcUrl({
 					...jsonRpcTransport,
-					txHashSelector: txHashSelector,
+					txHash: txHashSelector,
 				})
 				if (voltaireTransactionWire == null) throw new Error('Voltaire_JsonRpc: transaction not returned from RPC')
 				const jsonRpcTransaction = getRpcTx(voltaireTransactionWire, txHashSelector)
@@ -980,6 +990,9 @@ export default {
 					:
 						undefined
 				)
+				if (from == null)
+					throw new Error('Voltaire_JsonRpc: transaction is missing from address')
+
 				const to = (
 					jsonRpcTransaction.to != null ?
 						hexLowerOfByteSize(jsonRpcTransaction.to, 20)
@@ -1011,13 +1024,11 @@ export default {
 								number: containingBlockNumber,
 							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 						}),
-					...(from != null && {
-							$from: {
-								[EntityMetaKey.Selector]: {
-									address: from,
-								},
-							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
-						}),
+					$from: {
+						[EntityMetaKey.Selector]: {
+							address: from,
+						},
+					} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 					...(to != null && {
 							$to: {
 								[EntityMetaKey.Selector]: {
@@ -1121,7 +1132,7 @@ export default {
 					),
 				}
 				const receiptWire = (
-					await singleFlight(getTransactionReceiptForRpcUrl)({
+					await getTransactionReceiptForRpcUrl({
 						...jsonRpcTransport,
 						txHash: txHash,
 					})
@@ -1133,7 +1144,7 @@ export default {
 					:
 						undefined
 				)
-				const rawCallTrace = await singleFlight(debugTraceTransactionForRpcUrl)({
+				const rawCallTrace = await debugTraceTransactionForRpcUrl({
 					...jsonRpcTransport,
 					txHash: txHash,
 				})
@@ -1186,7 +1197,7 @@ export default {
 						address != null && {
 							$contract: {
 								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
+									$network,
 									address,
 								},
 							} satisfies Entity<typeof schema, EntityType.EvmContract>,
@@ -1223,7 +1234,7 @@ export default {
 				const chainId = chainIdFromEvmNetworkId(entitySelector.$network)
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-				const receiptWire = await singleFlight(getTransactionReceiptForRpcUrl)({
+				const receiptWire = await getTransactionReceiptForRpcUrl({
 					...jsonRpcTransport,
 					txHash: entitySelector.txHash,
 				})
@@ -1237,7 +1248,7 @@ export default {
 			},
 		})({
 				fields: {
-				topics: (entity) => entity.topics,
+				topics: (entity) => entity.topics ?? [],
 				$emitter: (entity) => entity.$emitter,
 			},
 			}),
@@ -1323,7 +1334,7 @@ export default {
 							recentBlockDepth = 16,
 						) => {
 							const { getRecentBlockWiresForRpcUrl } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-							const { wires } = await singleFlight(getRecentBlockWiresForRpcUrl)({
+							const { wires } = await getRecentBlockWiresForRpcUrl({
 								...jsonRpcTransport,
 								recentBlockDepth,
 							})
@@ -1444,18 +1455,7 @@ export default {
 					},
 				},
 			},
-		})({
-				fields: {
-				blockHeight: (entity) => entity,
-				gasPrice: (entity) => entity,
-				baseFeePerGas: (entity) => entity,
-				gasUsedRatio: (entity) => entity,
-				$$gasFeeBlocks: (entity) => entity,
-				$$txpoolTimestamps: (entity) => entity,
-				$$blocks: (entity) => entity,
-				$$blobs: (entity) => entity,
-			},
-			}),
+		})(),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmAccount,
@@ -1469,7 +1469,7 @@ export default {
 				const chainId = ensEthereumChainId
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-				const ensNameFromReverseLookup = await singleFlight(resolveEnsReverseForRpcUrl)({
+				const ensNameFromReverseLookup = await resolveEnsReverseForRpcUrl({
 					...jsonRpcTransport,
 					address: address,
 				})
@@ -1500,7 +1500,7 @@ export default {
 				const errors: string[] = []
 				for (const jsonRpcTransport of jsonRpcTransports) {
 					try {
-						return await singleFlight(getChainHeadNumberForRpcUrl)(jsonRpcTransport)
+						return await getChainHeadNumberForRpcUrl(jsonRpcTransport)
 					} catch (error) {
 						errors.push(`${jsonRpcTransport.rpcUrl} (${jsonRpcTransport.transportType}): ${errorMessage(error)}`)
 						continue
@@ -1529,7 +1529,7 @@ export default {
 					if (jsonRpcTransport.transportType !== TransportType.Http) continue
 					try {
 						const value = nonNegativeBigIntFromHex(
-							await singleFlight(getGasPrice)({
+							await getGasPrice({
 								rpcUrl: jsonRpcTransport.rpcUrl,
 							}),
 						)
@@ -1564,7 +1564,7 @@ export default {
 				for (const jsonRpcTransport of jsonRpcTransports) {
 					try {
 						const baseFeePerGas = nonNegativeBigIntFromHex(
-							(await singleFlight(getBlockByNumberForRpcUrl)({
+							(await getBlockByNumberForRpcUrl({
 								...jsonRpcTransport,
 								blockNumber: 'latest',
 								fullTransactions: false,
@@ -1599,7 +1599,7 @@ export default {
 				const errors: string[] = []
 				for (const jsonRpcTransport of jsonRpcTransports) {
 					try {
-						const block = await singleFlight(getBlockByNumberForRpcUrl)({
+						const block = await getBlockByNumberForRpcUrl({
 							...jsonRpcTransport,
 							blockNumber: 'latest',
 							fullTransactions: false,
@@ -1636,7 +1636,7 @@ export default {
 				for (const jsonRpcTransport of jsonRpcTransports) {
 					if (jsonRpcTransport.transportType !== TransportType.Http) continue
 					try {
-						const feeHistory = await singleFlight(getFeeHistory)({
+						const feeHistory = await getFeeHistory({
 							rpcUrl: jsonRpcTransport.rpcUrl,
 							blockCount,
 							newestBlock: 'latest',
@@ -1686,7 +1686,7 @@ export default {
 				} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainIdFromEvmNetworkId(entitySelector))
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-				const { blockNumbers, wires } = await singleFlight(getRecentBlockWiresForRpcUrl)({
+				const { blockNumbers, wires } = await getRecentBlockWiresForRpcUrl({
 					...jsonRpcTransport,
 					recentBlockDepth: subsetRowLimit,
 				})
@@ -1725,7 +1725,7 @@ export default {
 				} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainIdFromEvmNetworkId(entitySelector))
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-				const head = await singleFlight(getChainHeadNumberForRpcUrl)(jsonRpcTransport)
+				const head = await getChainHeadNumberForRpcUrl(jsonRpcTransport)
 				const depth = Math.min(Math.max(1, subsetRowLimit), 8)
 				const blockNumbers = (
 					Array.from({ length: depth }, (_, i) => head - BigInt(i))
@@ -1733,7 +1733,7 @@ export default {
 				)
 				const evmBlobs: Entity<typeof schema, EntityType.EvmBlob>[] = []
 				for (const blockNumber of blockNumbers) {
-					const w = await singleFlight(getBlockByNumberForRpcUrl)({
+					const w = await getBlockByNumberForRpcUrl({
 						...jsonRpcTransport,
 						blockNumber,
 						fullTransactions: true,
@@ -1760,7 +1760,7 @@ export default {
 				const chainId = chainIdFromEvmNetworkId($network)
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-				const tx = await singleFlight(getTransactionByHashForRpcUrl)({
+				const tx = await getTransactionByHashForRpcUrl({
 					...jsonRpcTransport,
 					txHash: txHash,
 				})
@@ -1788,7 +1788,7 @@ export default {
 				} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainIdFromEvmNetworkId($network))
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-				const receiptWire = await singleFlight(getTransactionReceiptForRpcUrl)({
+				const receiptWire = await getTransactionReceiptForRpcUrl({
 					...jsonRpcTransport,
 					txHash: txHash,
 				})
@@ -1797,8 +1797,8 @@ export default {
 					(receipt?.logs ?? [])
 						.flatMap((log) => {
 							const id = evmLogEntitySelectorFromWire({
-								$network: entitySelector.$network,
-								txHash: entitySelector.txHash,
+								$network,
+								txHash,
 								log,
 							})
 							return id == null ?
@@ -1828,7 +1828,7 @@ export default {
 				} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainIdFromEvmNetworkId($network))
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-				const voltaireBlockWire = await singleFlight(getBlockByNumberForRpcUrl)({
+				const voltaireBlockWire = await getBlockByNumberForRpcUrl({
 					...jsonRpcTransport,
 					blockNumber: blockNumber,
 					fullTransactions: false,
@@ -1862,7 +1862,7 @@ export default {
 				if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
 				let ensNameFromReverseLookup: string | undefined
 				try {
-					ensNameFromReverseLookup = (await singleFlight(resolveEnsReverseForRpcUrl)({
+					ensNameFromReverseLookup = (await resolveEnsReverseForRpcUrl({
 						...jsonRpcTransport,
 						address: address,
 					})) ?? undefined
@@ -1873,7 +1873,7 @@ export default {
 				const normalizedPrimaryName = normalizeEnsName(ensNameFromReverseLookup)
 				let textRecords: Awaited<ReturnType<typeof resolveEnsForwardForRpcUrl>>['textRecords']
 				try {
-					;({ textRecords } = await singleFlight(resolveEnsForwardForRpcUrl)({
+					;({ textRecords } = await resolveEnsForwardForRpcUrl({
 					...jsonRpcTransport,
 					name: normalizedPrimaryName,
 					textKeys: [...ensTextRecordKeys],
@@ -1927,9 +1927,9 @@ export default {
 							address: address,
 							depth,
 							getStorageAt: (slotQuantityHex) => (
-								singleFlight(getStorageAt)({
+								getStorageAt({
 									rpcUrl: jsonRpcTransport.rpcUrl,
-									address: entitySelector.address,
+									address,
 									slotQuantityHex,
 									blockTag: 'latest',
 								})
@@ -1962,7 +1962,7 @@ export default {
 				for (const jsonRpcTransport of jsonRpcTransports) {
 					if (jsonRpcTransport.transportType !== TransportType.Http) continue
 					try {
-						const codeHex = await singleFlight(getCode)({
+						const codeHex = await getCode({
 							rpcUrl: jsonRpcTransport.rpcUrl,
 							address: address,
 							blockTag: 'latest',
@@ -1995,7 +1995,7 @@ export default {
 				for (const jsonRpcTransport of jsonRpcTransports) {
 					if (jsonRpcTransport.transportType !== TransportType.Http) continue
 					try {
-						const codeHex = await singleFlight(getCode)({
+						const codeHex = await getCode({
 							rpcUrl: jsonRpcTransport.rpcUrl,
 							address: address,
 							blockTag: 'latest',

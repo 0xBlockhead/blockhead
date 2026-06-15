@@ -85,7 +85,7 @@ export default {
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey]: async ({ $market, timeInterval }, _context) => {
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey]: async ({ $market, timeInterval, timestampMs: timestampMsSelector, feedKey }, _context) => {
 				if ($market.marketKind !== MarketKind.Spot) {
 					throw new Error('Defillama_OpenApi: OHLC is spot-only')
 				}
@@ -106,14 +106,15 @@ export default {
 					days: timeInterval.value,
 				})
 				const ohlcCandle = ohlcCandles.find(([timestampMs]) => (
-					Math.floor(timestampMs) === entitySelector.timestampMs
+					Math.floor(timestampMs) === timestampMsSelector
 				))
 				if (ohlcCandle == null) throw new Error('Defillama_OpenApi: OHLC candle not found for timestamp')
 				return (
 					candleFromOhlc(
 						$market,
 						timeInterval,
-					ohlcCandle,
+						feedKey,
+						ohlcCandle,
 					)
 				)
 			}
@@ -124,10 +125,7 @@ export default {
 				high: (timestamp) => timestamp.high,
 				low: (timestamp) => timestamp.low,
 				close: (timestamp) => timestamp.close,
-				volume: (timestamp) => timestamp.volume,
 				quoteVolume: (timestamp) => timestamp.quoteVolume,
-				tradeCount: (timestamp) => timestamp.tradeCount,
-				vwap: (timestamp) => timestamp.vwap,
 			},
 			}),
 
@@ -231,7 +229,7 @@ export default {
 				}
 				return (
 					catalogSpotMarketsWithCoinAsQuote
-						.filter((catalogMarket) => catalogMarket.quoteCoinId === entitySelector.coinId)
+						.filter((catalogMarket) => catalogMarket.quoteCoinId === coinId)
 						.map((catalogMarket) => catalogMarket.marketId)
 						.filter((marketId) => (
 							defillamaCurrentPriceIdByCoinId[marketId.$base.$coin.coinId] != null
@@ -280,7 +278,7 @@ export default {
 			resolve: {
 				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
 				const markets = catalogSpotMarketsWithCurrencyAsBase
-						.filter((catalogMarket) => catalogMarket.iso4217 === entitySelector.iso4217)
+						.filter((catalogMarket) => catalogMarket.iso4217 === iso4217)
 						.map((catalogMarket) => ({
 							[EntityMetaKey.Selector]: catalogMarket.marketId,
 						}))
@@ -333,6 +331,7 @@ export default {
 						...candlesFromOhlc(
 							entitySelector,
 							timeInterval,
+							llamaId,
 							ohlcCandles,
 						),
 					)
@@ -374,7 +373,7 @@ export default {
 						[EntityMetaKey.Selector]: {
 							$market: $market,
 							timestampMs: priceRow.timestamp * 1000,
-							...(llamaId !== '' && { feedKey: llamaId }),
+							feedKey: llamaId,
 						},
 					},
 				]
@@ -382,7 +381,9 @@ export default {
 			},
 		})({
 				fields: {
-				$$quotes: (quotes) => quotes,
+				$$quotes: (quotes) => quotes.map((quote) => ({
+					[EntityMetaKey.Selector]: quote[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 

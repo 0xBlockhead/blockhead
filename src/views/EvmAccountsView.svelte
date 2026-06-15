@@ -16,7 +16,7 @@
 
 	// Context
 	import { writeLocalWatchedEvmAccount } from '$/collections/localMutations.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { appClient, subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -59,7 +59,7 @@
 			return
 		}
 
-		writeLocalWatchedEvmAccount({
+		writeLocalWatchedEvmAccount(appClient, {
 			address: parsedAddress,
 		})
 		watchAddressInput = ''

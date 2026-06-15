@@ -1,12 +1,12 @@
 // Types/constants
 import { type as arktype } from 'arktype'
-import type { Type } from 'arktype'
 
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	entityFieldDefinitions,
 	EntityMetaKey,
+	validateEntitySelector,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
@@ -15,23 +15,6 @@ import { Source } from '$/sources/Source.ts'
 
 
 const sourceValues = new Set<string>(Object.values(Source))
-
-const allEntitySelectorArktypes = schema.map((definition) => definition.id) as readonly Type[]
-
-
-const idMatchesSomeEntity = (idValue: unknown): boolean => (
-	allEntitySelectorArktypes.some((idType) => (
-		!(idType(idValue) instanceof arktype.errors)
-	))
-)
-
-
-const assertValidEntitySelectorUnion = (idValue: unknown, path: string): void => {
-	if (!idMatchesSomeEntity(idValue)) {
-		throw new Error(`${path}: not a valid entity selector for any registered entity type`)
-	}
-}
-
 
 const isEntityCollectionRowShape = (value: object): boolean => {
 	const o = value as Record<string, unknown>
@@ -73,7 +56,7 @@ const isCompactEntityRefShape = (value: object): boolean => {
 const assertEntityCollectionRowShellGeneric = (
 	record: Record<string, unknown>,
 	path: string,
-	idValidator: (idValue: unknown, idPath: string) => void,
+	selectorValidator: (selectorValue: unknown, selectorPath: string) => void,
 ): void => {
 	if (typeof record[EntityMetaKey.SelectorKey] !== 'string') {
 		throw new Error(`${path}: ${EntityMetaKey.SelectorKey} must be a string`)
@@ -89,7 +72,7 @@ const assertEntityCollectionRowShellGeneric = (
 		throw new Error(`${path}: ${EntityMetaKey.Fields} must be an object`)
 	}
 
-	idValidator(record[EntityMetaKey.Selector], `${path}.${EntityMetaKey.Selector}`)
+	selectorValidator(record[EntityMetaKey.Selector], `${path}.${EntityMetaKey.Selector}`)
 }
 
 
@@ -146,7 +129,20 @@ const walkLoadedValue = (
 		assertEntityCollectionRowShellGeneric(
 			record,
 			path,
-			assertValidEntitySelectorUnion,
+			(selectorValue, selectorPath) => {
+				if (selectorValue == null || typeof selectorValue !== 'object' || Array.isArray(selectorValue))
+					throw new Error(`${selectorPath}: must be an entity selector object`)
+
+				if (!schema.some((definition) => {
+					try {
+						validateEntitySelector(schema, definition, selectorValue)
+						return true
+					} catch {
+						return false
+					}
+				}))
+					throw new Error(`${selectorPath}: not a valid entity selector for any registered entity type`)
+			},
 		)
 		walkLoadedValue(record[EntityMetaKey.Fields], `${path}.${EntityMetaKey.Fields}`, seen)
 		for (const key of Object.keys(record)) {
@@ -166,7 +162,21 @@ const walkLoadedValue = (
 		if (typeof record[EntityMetaKey.SelectorKey] !== 'string') {
 			throw new Error(`${path}: ${EntityMetaKey.SelectorKey} must be a string`)
 		}
-		assertValidEntitySelectorUnion(record[EntityMetaKey.Selector], `${path}.${EntityMetaKey.Selector}`)
+		const selector = record[EntityMetaKey.Selector]
+		if (
+			selector == null
+			|| typeof selector !== 'object'
+			|| Array.isArray(selector)
+			|| !schema.some((definition) => {
+				try {
+					validateEntitySelector(schema, definition, selector)
+					return true
+				} catch {
+					return false
+				}
+			})
+		)
+			throw new Error(`${path}.${EntityMetaKey.Selector}: not a valid entity selector for any registered entity type`)
 		for (const key of Object.keys(record)) {
 			if (key === EntityMetaKey.Selector || key === EntityMetaKey.SelectorKey) continue
 			walkLoadedValue(record[key], `${path}.${key}`, seen)
@@ -260,19 +270,14 @@ export const assertResolverDefinitionResult = (
 		throw new Error(`${path}: expected a collection row (${EntityMetaKey.Selector}, ${EntityMetaKey.Fields}, …)`)
 	}
 
-	const idOut = entityDefinition.id(record[EntityMetaKey.Selector])
-	if (idOut instanceof arktype.errors) {
-		throw new Error(`${path}.${EntityMetaKey.Selector}: ${idOut.summary}`)
-	}
-
 	assertEntityCollectionRowShellGeneric(
 		record,
 		path,
-		(_idValue, idPath) => {
-			const out = entityDefinition.id(_idValue)
-			if (out instanceof arktype.errors) {
-				throw new Error(`${idPath}: ${out.summary}`)
-			}
+		(selectorValue, selectorPath) => {
+			if (selectorValue == null || typeof selectorValue !== 'object' || Array.isArray(selectorValue))
+				throw new Error(`${selectorPath}: must be an entity selector object`)
+
+			validateEntitySelector(schema, entityDefinition, selectorValue)
 		},
 	)
 

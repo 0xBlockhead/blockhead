@@ -1,35 +1,47 @@
 import { expect, test } from '@playwright/test'
 
 import {
-	e2eEvmExplorerRoutePaths,
-	SAMPLE_TX_HASH,
-} from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
-
-import {
+	assertMainSettled,
 	collectIssues,
+	countRequestsMatching,
 	installChainlistRpcsJsonStub,
 } from '../_e2eBrowserHelpers.ts'
 
+const transactionWithReceiptLogs = (
+	'0x31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca'
+)
+
 
 test.describe('Evm transaction logs', () => {
-	test('transaction page: logs carousel heading', async ({ page }) => {
+	test('transaction page renders receipt logs without per-log refetches', async ({ page }) => {
 		test.setTimeout(300_000)
 		await installChainlistRpcsJsonStub(page)
 		const issues = collectIssues(page)
-		await page.goto(e2eEvmExplorerRoutePaths.networkTransaction, { waitUntil: 'domcontentloaded' })
-		await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
-		const logsCarousel = page.locator(`[id="${SAMPLE_TX_HASH}:carousel-logs"]`)
-		await expect(logsCarousel).toBeAttached({ timeout: 120_000 })
-		await expect(logsCarousel.getByText('Logs', { exact: true })).toBeAttached()
-		await expect(page.locator(`[id="${SAMPLE_TX_HASH}:logs"]`)).toBeAttached({ timeout: 120_000 })
-		expect(
-			issues.filter((issue) => (
-				!(
-					issue.includes('https://eth.blockscout.com/api/v2/transactions/')
-					&& (issue.includes('status of 404') || issue.includes('status of 422'))
-				)
-			)),
-			issues.join('\n'),
-		).toEqual([])
+		const transactionRequest = countRequestsMatching(page, (url, method) => {
+			const decoded = decodeURIComponent(url)
+			return (
+				method === 'GET'
+				&& new RegExp(`/api/v2/transactions/${transactionWithReceiptLogs}(?:[?#]|$)`).test(decoded)
+			)
+		})
+		const logsRequest = countRequestsMatching(page, (url, method) => {
+			const decoded = decodeURIComponent(url)
+			return (
+				method === 'GET'
+				&& new RegExp(`/api/v2/transactions/${transactionWithReceiptLogs}/logs(?:[?#]|$)`).test(decoded)
+			)
+		})
+
+		await page.goto(`/network/eip155:1/tx/${transactionWithReceiptLogs}`, { waitUntil: 'load' })
+		await assertMainSettled(page, 120_000)
+		await expect(page.getByText('Receipt log #981')).toBeVisible({ timeout: 120_000 })
+		await expect(page.getByText('Receipt log #982')).toBeVisible({ timeout: 120_000 })
+
+		transactionRequest.detach()
+		logsRequest.detach()
+
+		expect(transactionRequest.get(), transactionRequest.urls.join('\n')).toBe(1)
+		expect(logsRequest.get(), logsRequest.urls.join('\n')).toBe(1)
+		expect(issues, issues.join('\n')).toEqual([])
 	})
 })

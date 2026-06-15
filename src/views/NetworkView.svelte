@@ -30,11 +30,23 @@
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { name: true, slug: true, caip2: true, namespace: true, environment: true } }),
+	const network = $derived(
+		subscribe(
+			EntityType.Network,
+			selector,
+			{
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					name: true,
+					slug: true,
+					caip2: true,
+					namespace: true,
+					environment: true,
+				},
+			},
+		),
 	)
 
 
@@ -108,14 +120,14 @@
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Bitcoin || networkNamespace === NetworkNamespace.BitcoinCash || networkNamespace === NetworkNamespace.Litecoin || networkNamespace === NetworkNamespace.Dogecoin || networkNamespace === NetworkNamespace.Zcash}
+		{:else if networkNamespace === NetworkNamespace.Bitcoin || networkNamespace === NetworkNamespace.BitcoinCash || networkNamespace === NetworkNamespace.Litecoin || networkNamespace === NetworkNamespace.Dogecoin || networkNamespace === NetworkNamespace.Zcash}
 			<UtxoNetworkView
 				selector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Solana && networkCaip2 != null}
+		{:else if networkNamespace === NetworkNamespace.Solana && networkCaip2 != null}
 			<SolanaNetworkView
 				selector={{
 					caip2: {
@@ -127,63 +139,63 @@
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Cosmos}
+		{:else if networkNamespace === NetworkNamespace.Cosmos}
 			<CosmosNetworkView
 				selector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Filecoin}
+		{:else if networkNamespace === NetworkNamespace.Filecoin}
 			<FilecoinNetworkView
 				selector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Polkadot}
+		{:else if networkNamespace === NetworkNamespace.Polkadot}
 			<PolkadotNetworkView
 				selector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Monero}
+		{:else if networkNamespace === NetworkNamespace.Monero}
 			<MoneroNetworkView
 				selector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Near}
+		{:else if networkNamespace === NetworkNamespace.Near}
 			<NearNetworkView
 				selector={{ networkSlug: 'near' }}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Tron}
+		{:else if networkNamespace === NetworkNamespace.Tron}
 			<TronNetworkView
 				selector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Hyperliquid}
+		{:else if networkNamespace === NetworkNamespace.Hyperliquid}
 			<HyperliquidNetworkView
 				selector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Bittensor}
+		{:else if networkNamespace === NetworkNamespace.Bittensor}
 			<BittensorNetworkView
 				selector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Lightning}
+		{:else if networkNamespace === NetworkNamespace.Lightning}
 			<LightningNetworkView
 				selector={{
 					$network: networkSelector,
@@ -192,21 +204,21 @@
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.ZeroG}
+		{:else if networkNamespace === NetworkNamespace.ZeroG}
 			<ZeroGNetworkView
 				selector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Logos}
+		{:else if networkNamespace === NetworkNamespace.Logos}
 			<LogosNetworkView
 				selector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
-				{:else if networkNamespace === NetworkNamespace.Quilibrium}
+		{:else if networkNamespace === NetworkNamespace.Quilibrium}
 			<QuilibriumNetworkView
 				selector={networkSelector}
 				href={networkHref}
@@ -216,35 +228,35 @@
 		{:else}
 			<EntityView
 				entityType={EntityType.Network}
-			entitySelector={networkSelector}
+				entitySelector={networkSelector}
 				href={networkHref}
 				bind:open
 				{layout}
 			>
 
-		{#snippet Title()}
-			{row.fields.name}
-		{/snippet}
+				{#snippet Title()}
+					{row.fields.name}
+				{/snippet}
 
-		{#snippet Content()}
-			<dl>
-				{#if row.fields.caip2 != null}
-					<div>
-						<dt>CAIP-2</dt>
-						<dd>
-							{row.fields.caip2.namespace}:{row.fields.caip2.reference}
-						</dd>
-					</div>
-				{/if}
+				{#snippet Content()}
+					<dl>
+						{#if row.fields.caip2 != null}
+							<div>
+								<dt>CAIP-2</dt>
+								<dd>
+									{row.fields.caip2.namespace}:{row.fields.caip2.reference}
+								</dd>
+							</div>
+						{/if}
 
-				{#if row.fields.environment !== undefined}
-					<div>
-						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[row.fields.environment].label}</dd>
-					</div>
-				{/if}
-			</dl>
-		{/snippet}
+						{#if row.fields.environment !== undefined}
+							<div>
+								<dt>Environment</dt>
+								<dd>{networkEnvironmentByEnvironment[row.fields.environment].label}</dd>
+							</div>
+						{/if}
+					</dl>
+				{/snippet}
 			</EntityView>
 		{/if}
 	{/snippet}

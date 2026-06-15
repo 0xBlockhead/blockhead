@@ -55,7 +55,7 @@ export default {
 				} = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 				const keyset = (await getMintKeysets({
 					mintUrl: $mint.mintUrl,
-				})).keysets.find((row) => row.id === entitySelector.keysetId)
+				})).keysets.find((row) => row.id === keysetId)
 				if (keyset == null)
 					throw new Error(`CashuMint_Rest: keyset not found for ${keysetId}`)
 
@@ -63,7 +63,7 @@ export default {
 					mintUrl: $mint.mintUrl,
 					keysetId: keysetId,
 				})
-				const keysByAmount = keys.keysets.find((row) => row.id === entitySelector.keysetId)?.keys
+				const keysByAmount = keys.keysets.find((row) => row.id === keysetId)?.keys
 
 				return {
 					unit: keyset.unit,
@@ -95,7 +95,7 @@ export default {
 					.slice(0, resolverContextRowLimit(context))
 					.map((keyset) => ({
 						[EntityMetaKey.Selector]: {
-							$mint: entitySelector,
+							$mint: { mintUrl },
 							keysetId: keyset.id,
 						},
 						unit: keyset.unit,

@@ -209,7 +209,7 @@ export const getProviderForExecutionUrl = async ({
 	const {
 		getHttpProvider,
 		getWebsocketProvider,
-	} = await import('$/lib/voltaire.ts')
+	} = await import('$/sources/Voltaire/JsonRpc/provider.ts')
 	return (
 		transportType === TransportType.WebSocket ?
 			getWebsocketProvider(url)

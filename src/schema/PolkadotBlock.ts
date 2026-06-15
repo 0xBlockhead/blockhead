@@ -8,6 +8,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 
 export enum PolkadotBlockSelector {
+	NetworkBlockNumber = 'networkBlockNumber',
 	NetworkBlockNumberHash = 'networkBlockNumberHash',
 }
 
@@ -18,6 +19,13 @@ export default {
 	labelPlural: 'Polkadot Blocks',
 
 	selectors: [
+		{
+			name: PolkadotBlockSelector.NetworkBlockNumber,
+			fields: [
+				'$network',
+				'blockNumber',
+			],
+		},
 		{
 			name: PolkadotBlockSelector.NetworkBlockNumberHash,
 			fields: [
@@ -45,7 +53,7 @@ export default {
 			name: 'hash',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$parent',

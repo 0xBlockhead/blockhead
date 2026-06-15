@@ -14,13 +14,16 @@
 		subscribeEntity,
 		type SubscribeSelection,
 	} from '$/client/$client.svelte.ts'
-	import { BLOCKHEAD_WA_SQLITE_DATABASE_NAME } from '$/constants/Persistence.ts'
+	import {
+		BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION,
+		BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
+	} from '$/constants/Persistence.ts'
 	import { resolvers } from '$/resolvers/index.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { EntitySelector, EntityType as EntityTypeName } from '$/schema/$schema.ts'
 	import { sourceProviders } from '$/sources/index.ts'
 
-	const appClient = client({
+	export const appClient = client({
 		schema,
 		sourceProviders,
 	})({
@@ -39,6 +42,7 @@
 				databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
 			}),
 		}),
+		schemaVersion: BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION,
 	})
 
 	if (typeof window !== 'undefined' && '__blockheadPersistenceProbe' in window)
@@ -90,10 +94,6 @@
 		})
 
 	export const subscribe = appClient.subscribe
-	export const entityCollectionByEntityType = appClient.entityCollections
-	export const entityFieldCollections = appClient.entityFieldCollections
-	export const entityFieldCountCollections = appClient.entityFieldCountCollections
-	export const entityCollectionsQueryClient = appClient.queryClient
 </script>
 
 
@@ -121,7 +121,7 @@
 	} = $props()
 
 	$effect(() => (
-		mountWalletConnectionRuntime().destroy
+		mountWalletConnectionRuntime(appClient).destroy
 	))
 
 	// Components

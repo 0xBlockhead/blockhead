@@ -2,7 +2,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -50,7 +49,7 @@ export default {
 					throw new Error('CosmosAdrs_Github: proposal resolver only supports Cosmos SDK ADRs')
 				}
 				const { getMarkdownText } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-				const text = await singleFlight(getMarkdownText)({ number: number })
+				const text = await getMarkdownText({ number: number })
 				return {
 					documentCategory: 'ADR',
 					documentTitle: markdownTitle(text),

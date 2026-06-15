@@ -26,10 +26,10 @@ const bitcoinMainnet = {
 	caip2: bitcoinMainnetCaip2,
 } as const
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const assertLightningNetwork = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== lightningNetworkId.networkSlug) {
+	if (!('slug' in network) || network.slug !== lightningNetworkId.slug) {
 		throw new Error('LightningMempoolSpace_Rest: unsupported Lightning network')
 	}
 }
@@ -371,7 +371,7 @@ export default {
 					})
 				).slice(0, resolverContextRowLimit(context)).map((channel) => ({
 					[EntityMetaKey.Selector]: {
-						$network: entitySelector.$network,
+						$network,
 						channelId: channel.id,
 					},
 					shortChannelId: channel.short_id ?? undefined,

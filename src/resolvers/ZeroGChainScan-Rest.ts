@@ -9,10 +9,10 @@ import { Source } from '$/sources/Source.ts'
 import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
 import { ZeroGConsensusNetworkSelector } from '$/schema/ZeroGConsensusNetwork.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const assertZeroGMainnet = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== '0g') {
+	if (!('slug' in network) || network.slug !== '0g') {
 		throw new Error('ZeroGChainScan_Rest: unsupported network')
 	}
 }
@@ -24,7 +24,7 @@ export default {
 		defineResolver(Source.ZeroGChainScan_Rest, {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
-				[ZeroGNetworkSelector.NetworkSlug]: async (entitySelector) => {
+				[ZeroGNetworkSelector.Slug]: async (entitySelector) => {
 				assertZeroGMainnet(entitySelector)
 				return {
 					$consensusNetwork: {
@@ -47,7 +47,7 @@ export default {
 			resolve: {
 				[ZeroGConsensusNetworkSelector.NetworkConsensusNetworkId]: async ({ $network, consensusNetworkId }) => {
 				assertZeroGMainnet($network)
-				if (consensusNetworkId !== '0g-chain' && consensusNetworkId !== ('networkSlug' in $network ? $network.networkSlug : $network.caip2.reference)) {
+				if (consensusNetworkId !== '0g-chain' && consensusNetworkId !== ('slug' in $network ? $network.slug : $network.caip2.reference)) {
 					throw new Error(`ZeroGChainScan_Rest: unsupported consensus network ${consensusNetworkId}`)
 				}
 				const { getInfo } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')

@@ -50,12 +50,6 @@
 		>
 	> = $props()
 
-	const transfer = subscribe(EntityType.EvmInternalTransfer,
-		selector,
-		({ sources: [Source.Blockscout_Rest], fields: { value: true, $from: true, $to: true, ...(open && ({ callType: true, success: true, $createdContract: true })) } }),
-	)
-
-
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -95,6 +89,10 @@
 	{/snippet}
 
 	{#snippet Content()}
+		{@const transfer = subscribe(EntityType.EvmInternalTransfer,
+			selector,
+			({ sources: [Source.Blockscout_Rest], fields: { value: true, $from: true, $to: true, ...(open && ({ callType: true, success: true, $createdContract: true })) } }),
+		)}
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={transfer}

@@ -69,9 +69,64 @@ export type RouteBoundaryReport = {
 	issues: string[]
 }
 
+export type ProductCollectionSyncEvent = {
+	collection:
+		| {
+			kind: 'Entity'
+			entityType: string
+			id: string
+		}
+		| {
+			kind: 'Field' | 'Count'
+			entityType: string
+			fieldName: string
+			id: string
+		}
+	key: string
+}
+
+export type ProductCollectionSizes = {
+	loadedSubsets: number
+	entities: Record<string, number>
+	fields: Record<string, Record<string, number>>
+	counts: Record<string, Record<string, number>>
+}
+
+export type ProductSubscribeError = {
+	selectorAddress: readonly string[]
+	dimension: string
+	entityType: string
+	fieldName?: string
+	message: string
+}
+
+export type ClientProbeResource<_Result> = Promise<_Result> & {
+	readonly current: _Result | undefined
+	readonly error: readonly ProductSubscribeError[] | undefined
+	readonly loading: boolean
+	readonly ready: boolean
+	subscribe: (listener: () => void) => () => void
+}
+
+export type ProductProbePayload = {
+	fields: {
+		name?: string
+		$$rpcUrls?: {
+			values: readonly object[]
+			totalCount?: number
+		}
+	}
+}
+
 export type BlockheadClientProbe = {
+	events: {
+		collectionSync: ProductCollectionSyncEvent[]
+	}
 	collectionSizes: () => {
-		fields: Partial<Record<string, Partial<Record<string, number>>>>
+		loadedSubsets: number
+		entities: Record<string, number>
+		fields: Record<string, Record<string, number>>
+		counts: Record<string, Record<string, number>>
 	}
 	queryStates: () => {
 		key: string[]
@@ -79,6 +134,11 @@ export type BlockheadClientProbe = {
 		fetchStatus: string
 		error?: string
 	}[]
+	read: (
+		entityType: string,
+		entitySelector: object,
+		selection: object,
+	) => ClientProbeResource<ProductProbePayload>
 }
 
 export type BlockheadPersistenceProbeDecision = (

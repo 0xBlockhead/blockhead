@@ -32,19 +32,14 @@
 
 	const relay = subscribe(EntityType.MevRelay,
 		selector,
-		(
-			open ?
-				{
-					sources: [
-						Source.Constants_Internal,
-					],
-					fields: {
-						url: true,
-					},
-				}
-			:
-				{ fields: {} }
-		),
+		{
+			sources: [
+				Source.Constants_Internal,
+			],
+			fields: {
+				url: true,
+			},
+		},
 	)
 
 

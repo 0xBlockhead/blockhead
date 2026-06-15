@@ -5,7 +5,6 @@ import { toBytes } from '@tevm/voltaire/Hex'
 import { evmAbiFromJsonString } from '$/lib/evmAbi.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { hexLowerOfByteSize, with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -54,7 +53,7 @@ import { EvmContractSelector } from '$/schema/EvmContract.ts'
 
 type EvmNetworkId = {
 	caip2: {
-		namespace: 'eip155'
+		namespace: string
 		reference: string
 	}
 }
@@ -172,7 +171,7 @@ const evmLogEntitySelectorFromWire = ({
 const evmLogEntityFromIdAndWire = (
 	entitySelector: Entity<typeof schema, EntityType.EvmLog>[typeof EntityMetaKey.Selector],
 	log: RpcLog,
-): Entity<typeof schema, EntityType.EvmLog> => {
+) => {
 	const address = hexLowerOfByteSize(log.address ?? '', 20)
 	const blockHash = hexLowerOfByteSize(log.blockHash ?? '', 32)
 	const blockNumber = evmRpcQuantityToBigInt(log.blockNumber)
@@ -312,7 +311,7 @@ const evmInternalTransferEntityFromWire = ({
 	$network: EvmNetworkId
 	txHash: `0x${string}`
 	wire: BlockscoutInternalTransaction
-}): Entity<typeof schema, EntityType.EvmInternalTransfer> | undefined => {
+}) => {
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 	const internalIndex = wire.index
 	if (normalizedTxHash == null || internalIndex == null || internalIndex < 0) return undefined
@@ -362,7 +361,7 @@ const evmInternalTransferEntitySelectorsFromBlockscoutWires = ({
 	$network: EvmNetworkId
 	txHash: `0x${string}`
 	wires: readonly BlockscoutInternalTransaction[]
-}): Entity<typeof schema, EntityType.EvmInternalTransfer>[] => (
+}) => (
 	wires.flatMap((wire) => {
 		const entity = evmInternalTransferEntityFromWire({
 			$network,
@@ -379,7 +378,7 @@ const evmInternalTransferEntitySelectorsFromBlockscoutAddresss = ({
 }: {
 	$network: EvmNetworkId
 	wires: readonly BlockscoutInternalTransaction[]
-}): Entity<typeof schema, EntityType.EvmInternalTransfer>[] => {
+}) => {
 	const wiresByTxHash = new Map<string, BlockscoutInternalTransaction[]>()
 	for (const wire of wires) {
 		const txHash = hexLowerOfByteSize(wire.transaction_hash ?? '', 32)
@@ -467,7 +466,7 @@ const evmTokenTransferEntityFromFields = ({
 	tokenSymbol?: string
 	tokenName?: string
 	tokenDecimals?: number
-}): Entity<typeof schema, EntityType.EvmTokenTransfer> => ({
+}) => ({
 	[EntityMetaKey.Selector]: {
 		$network,
 		txHash,
@@ -525,7 +524,7 @@ const evmTokenTransferEntityFromWire = ({
 	txHash: `0x${string}`
 	wire: BlockscoutTokenTransfer
 	transferIndex?: number
-}): Entity<typeof schema, EntityType.EvmTokenTransfer> | undefined => {
+}) => {
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 	const logIndex = transferIndex ?? blockscoutLogIndexFromWire(wire.log_index)
 	if (normalizedTxHash == null || logIndex == null) return undefined
@@ -572,7 +571,7 @@ const evmTokenTransferEntitySelectorsFromBlockscoutWires = ({
 	$network: EvmNetworkId
 	txHash: `0x${string}`
 	wires: readonly BlockscoutTokenTransfer[]
-}): Entity<typeof schema, EntityType.EvmTokenTransfer>[] => (
+}) => (
 	wires.flatMap((wire) => {
 		const entity = evmTokenTransferEntityFromWire({
 			$network,
@@ -589,7 +588,7 @@ const evmTokenTransferEntitySelectorsFromBlockscoutAddresss = ({
 }: {
 	$network: EvmNetworkId
 	wires: readonly BlockscoutTokenTransfer[]
-}): Entity<typeof schema, EntityType.EvmTokenTransfer>[] => {
+}) => {
 	const wiresByTxHash = new Map<string, BlockscoutTokenTransfer[]>()
 	for (const wire of wires) {
 		const txHash = hexLowerOfByteSize(wire.transaction_hash ?? '', 32)
@@ -692,7 +691,7 @@ const blockscoutStatsForChain = async (
 		blockscoutRestV2AtExplorerOrigin,
 	})
 	if (origin == null) return null
-	return singleFlight(getStats)({ explorerOrigin: origin })
+	return getStats({ explorerOrigin: origin })
 }
 
 const blockscoutStatsForNativeCoinId = async (
@@ -833,64 +832,56 @@ export default {
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				[EvmBlockSelector.EvmNetworkBlockNumber]: async ({ $network, blockNumber }) => {
-				const {
-					blockscoutExplorerOriginForChain,
-					blockscoutRestV2AtExplorerOrigin,
-				} = await import('$/sources/Blockscout/Rest/constants.ts')
-				const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
-				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
-					chainId: chainIdFromEvmNetworkId($network),
-					blockscoutExplorerOriginForChain,
-					blockscoutRestV2AtExplorerOrigin,
-				})
-				if (origin == null) {
-					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
-				}
-				const header = await singleFlight(getBlockByNumber)({
-					explorerOrigin: origin,
-					blockNumber: blockNumber,
-				})
-				if (header == null) {
-					throw new Error('Blockscout_Rest: block header not returned for EvmBlock')
-				}
-				const evmBlockEntityFromRpcHeaderWire = ({
-					chainId,
-					blockNumber,
-					wire,
-				}: {
-					chainId: number
-					blockNumber: bigint
-					wire: RpcBlockHeader
-				}): Entity<typeof schema, EntityType.EvmBlock> => {
+					const {
+						blockscoutExplorerOriginForChain,
+						blockscoutRestV2AtExplorerOrigin,
+					} = await import('$/sources/Blockscout/Rest/constants.ts')
+					const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
+					const chainId = chainIdFromEvmNetworkId($network)
+					const origin = blockscoutV2ExplorerOriginWhenRestSupported({
+						chainId,
+						blockscoutExplorerOriginForChain,
+						blockscoutRestV2AtExplorerOrigin,
+					})
+					if (origin == null) {
+						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
+					}
+					const header = await getBlockByNumber({
+						explorerOrigin: origin,
+						blockNumber: blockNumber,
+					})
+					if (header == null) {
+						throw new Error('Blockscout_Rest: block header not returned for EvmBlock')
+					}
 					const parentBlockNumber = blockNumber > 0n ? blockNumber - 1n : undefined
 					const blockHash = (
-						wire.hash != null ?
-							hexLowerOfByteSize(wire.hash, 32)
+						header.hash != null ?
+							hexLowerOfByteSize(header.hash, 32)
 						:
 							undefined
 					)
 					const parentBlockHash = (
-						wire.parentHash != null ?
-							hexLowerOfByteSize(wire.parentHash, 32)
+						header.parentHash != null ?
+							hexLowerOfByteSize(header.parentHash, 32)
 						:
 							undefined
 					)
 					const timestampSeconds = (
-						wire.timestamp != null ? ((parsed) => (
+						header.timestamp != null ? ((parsed) => (
 							Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
 								parsed
 							:
 								NaN
-						))(Number(wire.timestamp))
+						))(Number(header.timestamp))
 						:
 							NaN
 					)
 					const gasUsed = (
-						wire.gasUsed != null ? ((value) => (
+						header.gasUsed != null ? ((value) => (
 							value == null || value < 0n ? undefined : value
 						))((() => {
 							try {
-								return BigInt(wire.gasUsed)
+								return BigInt(header.gasUsed)
 							} catch {
 								return undefined
 							}
@@ -899,11 +890,11 @@ export default {
 							undefined
 					)
 					const gasLimit = (
-						wire.gasLimit != null ? ((value) => (
+						header.gasLimit != null ? ((value) => (
 							value == null || value < 0n ? undefined : value
 						))((() => {
 							try {
-								return BigInt(wire.gasLimit)
+								return BigInt(header.gasLimit)
 							} catch {
 								return undefined
 							}
@@ -912,11 +903,11 @@ export default {
 							undefined
 					)
 					const baseFeePerGas = (
-						wire.baseFeePerGas != null ? ((value) => (
+						header.baseFeePerGas != null ? ((value) => (
 							value == null || value < 0n ? undefined : value
 						))((() => {
 							try {
-								return BigInt(wire.baseFeePerGas)
+								return BigInt(header.baseFeePerGas)
 							} catch {
 								return undefined
 							}
@@ -925,11 +916,11 @@ export default {
 							undefined
 					)
 					const blobGasUsed = (
-						wire.blobGasUsed != null ? ((value) => (
+						header.blobGasUsed != null ? ((value) => (
 							value == null || value < 0n ? undefined : value
 						))((() => {
 							try {
-								return BigInt(wire.blobGasUsed)
+								return BigInt(header.blobGasUsed)
 							} catch {
 								return undefined
 							}
@@ -938,11 +929,11 @@ export default {
 							undefined
 					)
 					const excessBlobGas = (
-						wire.excessBlobGas != null ? ((value) => (
+						header.excessBlobGas != null ? ((value) => (
 							value == null || value < 0n ? undefined : value
 						))((() => {
 							try {
-								return BigInt(wire.excessBlobGas)
+								return BigInt(header.excessBlobGas)
 							} catch {
 								return undefined
 							}
@@ -951,8 +942,8 @@ export default {
 							undefined
 					)
 					const miner = (
-						wire.miner != null ?
-							hexLowerOfByteSize(wire.miner, 20)
+						header.miner != null ?
+							hexLowerOfByteSize(header.miner, 20)
 						:
 							undefined
 					)
@@ -971,7 +962,7 @@ export default {
 						baseFeePerGas,
 						blobGasUsed,
 						excessBlobGas,
-						transactionCount: (wire.transactions ?? []).length,
+						transactionCount: (header.transactions ?? []).length,
 					}
 					return {
 						...base,
@@ -980,26 +971,20 @@ export default {
 									[EntityMetaKey.Selector]: {
 										$network: evmNetworkIdFromChainId(chainId),
 										blockNumber: parentBlockNumber,
-										hash: parentBlockHash,
 									},
+									hash: parentBlockHash,
 									number: parentBlockNumber,
 								} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 							}),
-							...(miner != null && {
-									$miner: {
-										[EntityMetaKey.Selector]: {
-											address: miner,
-										},
+						...(miner != null && {
+								$miner: {
+									[EntityMetaKey.Selector]: {
+										address: miner,
 									},
-								}),
-						}
+								},
+							}),
 					}
-				return evmBlockEntityFromRpcHeaderWire({
-					chainId: chainIdFromEvmNetworkId($network),
-					blockNumber: blockNumber,
-					wire: header,
-				})
-			}
+				}
 			},
 		})({
 			fields: {
@@ -1015,7 +1000,7 @@ export default {
 				excessBlobGas: (block) => block.excessBlobGas,
 				transactionCount: (block) => block.transactionCount,
 			},
-			}),
+		}),
 
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
@@ -1026,8 +1011,10 @@ export default {
 					blockscoutRestV2AtExplorerOrigin,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const {
-					getTransactionByHash,
-					getTransactionReceipt,
+					blockscoutTransactionWireAsRpcReceipt,
+					blockscoutTransactionWireAsRpcTransaction,
+					getTransactionLogs,
+					getTransactionWireByHash,
 				} = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
 					chainId: chainIdFromEvmNetworkId($network),
@@ -1037,13 +1024,14 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
 				}
-				const jsonRpcTransaction = await singleFlight(getTransactionByHash)({
+				const blockscoutTransaction = await getTransactionWireByHash({
 					explorerOrigin: origin,
-					txHashSelector: txHashSelector,
+					txHash: txHashSelector,
 				})
-				if (jsonRpcTransaction == null) {
+				if (blockscoutTransaction == null) {
 					throw new Error('Blockscout_Rest: transaction not returned for EvmTransaction')
 				}
+				const jsonRpcTransaction = blockscoutTransactionWireAsRpcTransaction(blockscoutTransaction)
 				const networkChainId = chainIdFromEvmNetworkId($network)
 				const containingBlockNumber = (
 					jsonRpcTransaction.blockNumber != null ? ((value) => (
@@ -1210,12 +1198,16 @@ export default {
 						}
 					),
 				}
-				const receipt = await singleFlight(getTransactionReceipt)({
+				const receiptLogs = await getTransactionLogs({
 					explorerOrigin: origin,
 					txHash: txHash,
 				})
+				const receipt = blockscoutTransactionWireAsRpcReceipt(
+					blockscoutTransaction,
+					receiptLogs,
+				)
 				const createdContractAddress = (
-					receipt?.contractAddress != null ?
+					receipt.contractAddress != null ?
 						hexLowerOfByteSize(receipt.contractAddress, 20)
 					:
 						undefined
@@ -1229,10 +1221,9 @@ export default {
 						input: jsonRpcTransaction.input,
 						createdContractAddress,
 					}),
-					...(receipt == null && { executionStatus: EvmTransactionExecutionStatus.Pending }),
-					...(Number(receipt?.status) === 1 && { executionStatus: EvmTransactionExecutionStatus.Success }),
-					...(Number(receipt?.status) === 0 && { executionStatus: EvmTransactionExecutionStatus.Failed }),
-					...(receipt?.gasUsed != null && ((value) => (
+					...(Number(receipt.status) === 1 && { executionStatus: EvmTransactionExecutionStatus.Success }),
+					...(Number(receipt.status) === 0 && { executionStatus: EvmTransactionExecutionStatus.Failed }),
+					...(receipt.gasUsed != null && ((value) => (
 						value != null
 						&& !(value < 0n)
 						&& { gasUsed: value }
@@ -1243,7 +1234,7 @@ export default {
 							return undefined
 						}
 					})())),
-					...(receipt?.cumulativeGasUsed != null && ((value) => (
+					...(receipt.cumulativeGasUsed != null && ((value) => (
 						value != null
 						&& !(value < 0n)
 						&& { cumulativeGasUsed: value }
@@ -1254,7 +1245,7 @@ export default {
 							return undefined
 						}
 					})())),
-					...(receipt?.effectiveGasPrice != null && ((value) => (
+					...(receipt.effectiveGasPrice != null && ((value) => (
 						value != null
 						&& !(value < 0n)
 						&& { effectiveGasPrice: value }
@@ -1265,24 +1256,42 @@ export default {
 							return undefined
 						}
 					})())),
-					...(receipt?.contractAddress != null && ((address) => (
+					...(receipt.contractAddress != null && ((address) => (
 						address != null && {
 							$contract: {
 								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
+									$network,
 									address,
 								},
 							} satisfies Entity<typeof schema, EntityType.EvmContract>,
 						}
 					))(createdContractAddress)),
+					$$logs: (
+						(receipt.logs ?? [])
+							.flatMap((log) => {
+								const id = evmLogEntitySelectorFromWire({
+									$network,
+									txHash,
+									log,
+								})
+								return id == null ?
+									[]
+								:
+									[evmLogEntityFromIdAndWire(id, log)]
+							})
+					),
 					traceUnavailable: true,
 				}
 				}
 			},
 			})({
 				fields: {
-					$block: (transaction) => transaction.$block,
-					$from: (transaction) => transaction.$from,
+					$from: (transaction) => {
+						if (transaction.$from == null)
+							throw new Error('Blockscout_Rest: transaction is missing from address')
+
+						return transaction.$from
+					},
 					$to: (transaction) => transaction.$to,
 					$contract: (transaction) => transaction.$contract,
 					transactionIndex: (transaction) => transaction.transactionIndex,
@@ -1291,7 +1300,12 @@ export default {
 					input: (transaction) => transaction.input,
 					gas: (transaction) => transaction.gas,
 					kind: (transaction) => transaction.kind,
-					envelopeType: (transaction) => transaction.envelopeType,
+					envelopeType: (transaction) => {
+						if (transaction.envelopeType == null)
+							throw new Error('Blockscout_Rest: transaction has unsupported envelope type')
+
+						return transaction.envelopeType
+					},
 					executionStatus: (transaction) => transaction.executionStatus,
 					gasPrice: (transaction) => transaction.gasPrice,
 					gasUsed: (transaction) => transaction.gasUsed,
@@ -1299,6 +1313,7 @@ export default {
 					effectiveGasPrice: (transaction) => transaction.effectiveGasPrice,
 					maxFeePerGas: (transaction) => transaction.maxFeePerGas,
 					maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
+					$$logs: (transaction) => transaction.$$logs,
 					traceUnavailable: (transaction) => transaction.traceUnavailable,
 				},
 			}),
@@ -1311,7 +1326,7 @@ export default {
 					blockscoutExplorerOriginForChain,
 					blockscoutRestV2AtExplorerOrigin,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
-				const { getTransactionReceipt } = await import('$/sources/Blockscout/Rest/queries.ts')
+				const { getTransactionLogs } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
 					chainId: chainIdFromEvmNetworkId(entitySelector.$network),
 					blockscoutExplorerOriginForChain,
@@ -1320,11 +1335,11 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
 				}
-				const receipt = await singleFlight(getTransactionReceipt)({
+				const logs = await getTransactionLogs({
 					explorerOrigin: origin,
 					txHash: entitySelector.txHash,
 				})
-				const log = findReceiptLogWireForEvmLogId(receipt?.logs, entitySelector.logIndex)
+				const log = findReceiptLogWireForEvmLogId(logs, entitySelector.logIndex)
 				if (log == null) {
 					throw new Error('Blockscout_Rest: receipt log not found for EvmLog')
 				}
@@ -1361,7 +1376,7 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
 				}
-				const wires = await singleFlight(getTransactionTokenTransfers)({
+				const wires = await getTransactionTokenTransfers({
 					explorerOrigin: origin,
 					txHash: entitySelector.txHash,
 					limit: blockscoutV2ItemsCountMax,
@@ -1385,9 +1400,9 @@ export default {
 			})({
 				fields: {
 					standard: (transfer) => transfer.standard,
-					txHash: (transfer) => transfer.txHash,
-					logIndex: (transfer) => transfer.logIndex,
-					transferIndex: (transfer) => transfer.transferIndex,
+					txHash: (transfer) => transfer[EntityMetaKey.Selector].txHash,
+					logIndex: (transfer) => transfer[EntityMetaKey.Selector].logIndex,
+					transferIndex: (transfer) => transfer[EntityMetaKey.Selector].transferIndex,
 					$from: (transfer) => transfer.$from,
 					$to: (transfer) => transfer.$to,
 					$tokenContract: (transfer) => transfer.$tokenContract,
@@ -1418,7 +1433,7 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
 				}
-				const wires = await singleFlight(getTransactionInternalTransactions)({
+				const wires = await getTransactionInternalTransactions({
 					explorerOrigin: origin,
 					txHash: entitySelector.txHash,
 					limit: blockscoutV2ItemsCountMax,
@@ -1440,8 +1455,8 @@ export default {
 			},
 		})({
 			fields: {
-				txHash: (transfer) => transfer.txHash,
-				internalIndex: (transfer) => transfer.internalIndex,
+				txHash: (transfer) => transfer[EntityMetaKey.Selector].txHash,
+				internalIndex: (transfer) => transfer[EntityMetaKey.Selector].internalIndex,
 				$from: (transfer) => transfer.$from,
 				$to: (transfer) => transfer.$to,
 				value: (transfer) => transfer.value,
@@ -1468,7 +1483,7 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
 				}
-				const wire = await singleFlight(getErc4337SmartAccountDetail)({
+				const wire = await getErc4337SmartAccountDetail({
 					explorerOrigin: origin,
 					address: entitySelector.address,
 				})
@@ -1520,7 +1535,7 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
 				}
-				const wire = await singleFlight(getErc4337BundlerDetail)({
+				const wire = await getErc4337BundlerDetail({
 					explorerOrigin: origin,
 					address: address,
 				})
@@ -1553,7 +1568,7 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
 				}
-				const wire = await singleFlight(getErc4337PaymasterDetail)({
+				const wire = await getErc4337PaymasterDetail({
 					explorerOrigin: origin,
 					address: entitySelector.address,
 				})
@@ -1590,7 +1605,7 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
 				}
-				const wire = await singleFlight(getErc4337AccountFactoryDetail)({
+				const wire = await getErc4337AccountFactoryDetail({
 					explorerOrigin: origin,
 					address: entitySelector.address,
 				})
@@ -1629,7 +1644,7 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
 				}
-				const wire = await singleFlight(getUserOperationDetail)({
+				const wire = await getUserOperationDetail({
 					explorerOrigin: origin,
 					hash: hash,
 				})
@@ -2072,7 +2087,7 @@ export default {
 					throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 
 				return blockscoutCountFromDecimalString(
-					(await singleFlight(getAddressCounters)({
+					(await getAddressCounters({
 						explorerOrigin: origin,
 						address,
 					})).transactions_count,
@@ -2099,7 +2114,7 @@ export default {
 					throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 
 				return blockscoutCountFromDecimalString(
-					(await singleFlight(getAddressCounters)({
+					(await getAddressCounters({
 						explorerOrigin: origin,
 						address,
 					})).token_transfers_count,
@@ -2121,7 +2136,7 @@ export default {
 				[EvmBlockSelector.EvmNetworkBlockNumber]: async ({ $network, blockNumber }) => {
 				const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
-				const header = await singleFlight(getBlockByNumber)({
+				const header = await getBlockByNumber({
 					explorerOrigin: origin,
 					blockNumber: blockNumber,
 				})
@@ -2342,7 +2357,7 @@ export default {
 								:
 									[{
 										[EntityMetaKey.Selector]: {
-											$network: evmNetworkIdFromChainId(chainIdFromEvmNetworkId(entitySelector.$network)),
+											$network: evmNetworkIdFromChainId(chainIdFromEvmNetworkId($network)),
 											txHash,
 										},
 									}]
@@ -2441,16 +2456,10 @@ export default {
 					address,
 					limit,
 				})
-				const entities = (
-					evmInternalTransferEntitySelectorsFromBlockscoutAddresss({
-						$network: $network,
-						wires,
-					})
-						.map((entity) => ({
-							[EntityMetaKey.Selector]: entity[EntityMetaKey.Selector],
-						}))
-				)
-				return entities
+				return evmInternalTransferEntitySelectorsFromBlockscoutAddresss({
+					$network: $network,
+					wires,
+				})
 			}
 			},
 		})({
@@ -2470,7 +2479,7 @@ export default {
 			},
 		})({
 				fields: {
-				$$erc20TokenAllowances: (entity) => entity,
+				$$erc20TokenAllowances: () => [],
 			},
 			}),
 
@@ -2506,7 +2515,7 @@ export default {
 					if (txHash == null) continue
 					let wires: BlockscoutTokenTransfer[]
 					try {
-						wires = await singleFlight(getTransactionTokenTransfers)({
+						wires = await getTransactionTokenTransfers({
 							explorerOrigin: origin,
 							txHash,
 							limit: blockscoutV2ItemsCountMax,
@@ -2565,7 +2574,7 @@ export default {
 					if (txHash == null) continue
 					let wires: BlockscoutTokenTransfer[]
 					try {
-						wires = await singleFlight(getTransactionTokenTransfers)({
+						wires = await getTransactionTokenTransfers({
 							explorerOrigin: origin,
 							txHash,
 							limit: blockscoutV2ItemsCountMax,
@@ -2968,6 +2977,7 @@ export default {
 						[EntityMetaKey.Selector]: {
 							$market: $market,
 							timestampMs,
+							feedKey: coinId,
 						},
 					},
 				]
@@ -2976,51 +2986,6 @@ export default {
 		})({
 				fields: {
 				$$quotes: (entity) => entity,
-			},
-			}),
-
-		defineResolver(Source.Blockscout_Rest, {
-			entityType: EntityType.EvmTransaction,
-			resolve: {
-				[EvmTransactionSelector.EvmNetworkTxHash]: async ({ $network, txHash }) => {
-				const {
-					blockscoutExplorerOriginForChain,
-					blockscoutRestV2AtExplorerOrigin,
-				} = await import('$/sources/Blockscout/Rest/constants.ts')
-				const { getTransactionReceipt } = await import('$/sources/Blockscout/Rest/queries.ts')
-				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
-					chainId: chainIdFromEvmNetworkId($network),
-					blockscoutExplorerOriginForChain,
-					blockscoutRestV2AtExplorerOrigin,
-				})
-				if (origin == null) {
-					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
-				}
-				const receipt = await singleFlight(getTransactionReceipt)({
-					explorerOrigin: origin,
-					txHash: txHash,
-				})
-				return (
-					(receipt?.logs ?? [])
-						.flatMap((log) => {
-							const id = evmLogEntitySelectorFromWire({
-								$network: entitySelector.$network,
-								txHash: entitySelector.txHash,
-								log,
-							})
-							return id == null ?
-									[]
-							:
-									[{
-										[EntityMetaKey.Selector]: id,
-									}]
-						})
-				)
-			}
-			},
-		})({
-				fields: {
-				$$logs: (entity) => entity,
 			},
 			}),
 
@@ -3046,7 +3011,7 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
 				}
-				const wires = await singleFlight(getTransactionTokenTransfers)({
+				const wires = await getTransactionTokenTransfers({
 					explorerOrigin: origin,
 					txHash: txHash,
 					limit,
@@ -3091,7 +3056,7 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
 				}
-				const wires = await singleFlight(getTransactionInternalTransactions)({
+				const wires = await getTransactionInternalTransactions({
 					explorerOrigin: origin,
 					txHash: txHash,
 					limit,
@@ -3102,9 +3067,6 @@ export default {
 						txHash: txHash,
 						wires,
 					})
-						.map((entity) => ({
-							[EntityMetaKey.Selector]: entity[EntityMetaKey.Selector],
-						}))
 				)
 			}
 			},
@@ -3140,7 +3102,7 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
 				}
-				const wires = await singleFlight(getUserOperationsByTransaction)({
+				const wires = await getUserOperationsByTransaction({
 					explorerOrigin: origin,
 					txHash: txHash,
 					limit,
@@ -3156,8 +3118,8 @@ export default {
 							[]
 						:
 							[{
-								[EntityMetaKey.Selector]: {
-									$network: entitySelector.$network,
+									[EntityMetaKey.Selector]: {
+									$network,
 									hash: hashRaw,
 								},
 							} satisfies Entity<typeof schema, EntityType.EvmUserOperation>]
@@ -3193,7 +3155,7 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
 				}
-				const wires = await singleFlight(getBlockTransactions)({
+				const wires = await getBlockTransactions({
 					explorerOrigin: origin,
 					blockNumber: blockNumber,
 					limit,
@@ -3211,7 +3173,7 @@ export default {
 							:
 								[{
 									[EntityMetaKey.Selector]: {
-										$network: evmNetworkIdFromChainId(chainIdFromEvmNetworkId(entitySelector.$network)),
+										$network: evmNetworkIdFromChainId(chainIdFromEvmNetworkId($network)),
 										txHash,
 									},
 								}]
@@ -3235,7 +3197,7 @@ export default {
 				if (address == null) {
 					throw new Error('Blockscout_Rest: address not normalized')
 				}
-				const details = await singleFlight(getAddressDetails)({
+				const details = await getAddressDetails({
 					explorerOrigin: origin,
 					address,
 				})
@@ -3266,7 +3228,7 @@ export default {
 				if (address == null) {
 					throw new Error('Blockscout_Rest: address not normalized')
 				}
-				const details = await singleFlight(getAddressDetails)({
+				const details = await getAddressDetails({
 					explorerOrigin: origin,
 					address,
 				})
@@ -3298,7 +3260,7 @@ export default {
 				if (address == null) {
 					throw new Error('Blockscout_Rest: address not normalized')
 				}
-				const details = await singleFlight(getAddressDetails)({
+				const details = await getAddressDetails({
 					explorerOrigin: origin,
 					address,
 				})
@@ -3315,7 +3277,7 @@ export default {
 					}
 				}
 				const { getContractSourceCodeRow } = await import('$/sources/Blockscout/Rest/queries.ts')
-				const sourceRow = await singleFlight(getContractSourceCodeRow)({
+				const sourceRow = await getContractSourceCodeRow({
 					explorerOrigin: origin,
 					address,
 				})
@@ -3347,7 +3309,7 @@ export default {
 				if (address == null) {
 					throw new Error('Blockscout_Rest: address not normalized')
 				}
-				const abi = await singleFlight(getContractAbiJsonString)({
+				const abi = await getContractAbiJsonString({
 					explorerOrigin: origin,
 					address,
 				})
@@ -3370,7 +3332,7 @@ export default {
 				if (address == null) {
 					throw new Error('Blockscout_Rest: address not normalized')
 				}
-				const codeHex = await singleFlight(getCode)({
+				const codeHex = await getCode({
 					explorerOrigin: origin,
 					address,
 				})
@@ -3394,7 +3356,7 @@ export default {
 				if (address == null) {
 					throw new Error('Blockscout_Rest: address not normalized')
 				}
-				const codeHex = await singleFlight(getCode)({
+				const codeHex = await getCode({
 					explorerOrigin: origin,
 					address,
 				})
@@ -3434,7 +3396,7 @@ export default {
 					address,
 					depth,
 					getStorageAt: (slotQuantityHex) => (
-						singleFlight(getStorageAt)({
+						getStorageAt({
 							explorerOrigin: origin,
 							address,
 							slotQuantityHex,

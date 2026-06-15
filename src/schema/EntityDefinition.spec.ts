@@ -6,11 +6,13 @@ import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	EntityMetaKey,
+	entityFieldDefinitions,
 	entitySelectorsFromFields,
 	validateEntitySelector,
 	type EntityDefinition,
 	type Schema,
 } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 
 enum ParentSelector {
 	Slug = 'slug',
@@ -271,6 +273,41 @@ describe('entity selectors', () => {
 						...(/\n\t\tdurable:/u.test(source) ? [`${fileName}: durable`] : []),
 					]
 				}),
+		).toEqual([])
+	})
+
+	it('keeps every concrete selector field represented as an ordinary field definition', () => {
+		expect(
+			schema.flatMap((entityDefinition) => {
+				const fieldNames = new Set(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => fieldDefinition.name))
+				return entityDefinition.selectors.flatMap((selector) => (
+					selector.fields.flatMap((fieldName) => (
+						fieldNames.has(fieldName) ?
+							[]
+						:
+							[`${entityDefinition.entityType}.${selector.name}.${fieldName}`]
+					))
+				))
+			}),
+		).toEqual([])
+	})
+
+	it('keeps every concrete selector field required', () => {
+		expect(
+			schema.flatMap((entityDefinition) => {
+				const fieldDefinitionByName = Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
+					fieldDefinition.name,
+					fieldDefinition,
+				]))
+				return entityDefinition.selectors.flatMap((selector) => (
+					selector.fields.flatMap((fieldName) => (
+						fieldDefinitionByName[fieldName]?.cardinality === EntityFieldCardinality.One ?
+							[]
+						:
+							[`${entityDefinition.entityType}.${selector.name}.${fieldName}`]
+					))
+				))
+			}),
 		).toEqual([])
 	})
 })

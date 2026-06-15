@@ -2,7 +2,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { evmAbiFromJsonValue } from '$/lib/evmAbi.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -70,11 +69,11 @@ const sourcifySourceFilesFromLookup = (
 )
 
 const getSourcifyContractLookupForEntitySelector = async ({ $network, address }: {
-	$network: { caip2: { namespace: 'eip155', reference: string } }
+	$network: { caip2: { namespace: string, reference: string } }
 	address: `0x${string}`
 }) => {
 	const { getContractLookup } = await import('$/sources/Sourcify/Rest/queries.ts')
-	return singleFlight(getContractLookup)({
+	return getContractLookup({
 		chainId: Number($network.caip2.reference),
 		address: address,
 	})
@@ -88,7 +87,7 @@ export default {
 			entityType: EntityType.EvmContractVerification,
 			resolve: {
 				[EvmContractVerificationSelector.EvmContract]: async (entitySelector) => {
-				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
+				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector.$contract)
 				if (contractLookup == null) throw new Error('Sourcify_Rest: contract not verified')
 				return {
 					...(contractLookup.match != null && contractLookup.match !== '' && { match: contractLookup.match }),
@@ -130,7 +129,7 @@ export default {
 			entityType: EntityType.EvmContractCompilation,
 			resolve: {
 				[EvmContractCompilationSelector.EvmContract]: async (entitySelector) => {
-				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
+				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector.$contract)
 				if (contractLookup == null) throw new Error('Sourcify_Rest: compilation not verified')
 				const language = contractLookup.metadata?.language ?? contractLookup.compilation?.language
 				const compiler = (
@@ -180,7 +179,7 @@ export default {
 			entityType: EntityType.EvmContractSourceBundle,
 			resolve: {
 				[EvmContractSourceBundleSelector.EvmContract]: async (entitySelector) => {
-				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
+				const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector.$contract)
 				if (contractLookup == null) throw new Error('Sourcify_Rest: source bundle not verified')
 				return {
 					files: sourcifySourceFilesFromLookup(contractLookup),
@@ -219,7 +218,9 @@ export default {
 				[EvmContractSelector.EvmNetworkAddress]: async (entitySelector) => {
 				if (await getSourcifyContractLookupForEntitySelector(entitySelector) == null) return undefined
 				return {
-					[EntityMetaKey.Selector]: entitySelector,
+					[EntityMetaKey.Selector]: {
+						$contract: entitySelector,
+					},
 				}
 			}
 			}

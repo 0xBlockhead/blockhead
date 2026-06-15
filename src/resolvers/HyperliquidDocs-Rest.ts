@@ -55,7 +55,7 @@ export default {
 				if (realm !== SpecificationRealm.Hyperliquid || category !== ProposalCategory.Hip) {
 					throw new Error('HyperliquidDocs_Rest: proposal resolver only supports Hyperliquid HIPs')
 				}
-				const proposal = (await hyperliquidHipRows()).find((hyperliquidHip) => hyperliquidHip[EntityMetaKey.Selector].number === entitySelector.number)
+				const proposal = (await hyperliquidHipRows()).find((hyperliquidHip) => hyperliquidHip[EntityMetaKey.Selector].number === number)
 				if (proposal == null) throw new Error(`HyperliquidDocs_Rest: HIP not found ${number.toString()}`)
 				return proposal
 			}

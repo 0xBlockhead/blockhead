@@ -17,27 +17,21 @@
 	let {
 		selector,
 		id,
-		open = true,
 		CollapsibleProps = {},
 	}: {
 		selector: EntitySelector<typeof schema, EntityType.EvmTransaction>
 		id: string
-		open?: boolean
 		CollapsibleProps?: ComponentProps<typeof EvmInternalTransfersView>['CollapsibleProps']
 	} = $props()
 
-	const evmTransaction = subscribe(EntityType.EvmTransaction,
-		selector,
-		({ sources: [
-				Source.Blockscout_Rest,
-				Source.Voltaire_JsonRpc,
-			], fields: { value: true, $from: true, $to: true, ...(open ? ({ $$tokenTransfers: ({ sources: [
-							Source.Blockscout_Rest,
-							Source.Voltaire_JsonRpc,
-						] }), $$internalTransfers: ({ sources: [
-							Source.Blockscout_Rest,
-							Source.Voltaire_JsonRpc,
-						] }) }) : ({  })) } }),
+	const evmTransaction = $derived(
+		subscribe(EntityType.EvmTransaction,
+			selector,
+			({ sources: [
+					Source.Blockscout_Rest,
+					Source.Voltaire_JsonRpc,
+				], fields: { value: true, $from: true, $to: true } }),
+		)
 	)
 
 

@@ -17,7 +17,7 @@ import { FilecoinMessageSelector } from '$/schema/FilecoinMessage.ts'
 import { FilecoinActorSelector } from '$/schema/FilecoinActor.ts'
 import { FilecoinMinerSelector } from '$/schema/FilecoinMiner.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string } | { slug: string }
 
 const assertFilecoinMainnet = (network: NetworkId) => {
 	if (
@@ -36,7 +36,7 @@ export default {
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinTipset,
 			resolve: {
-				[FilecoinTipsetSelector.NetworkHeightTipsetKey]: async ({ $network, height }) => {
+				[FilecoinTipsetSelector.NetworkHeightTipsetKey]: async ({ $network, height, tipsetKey }) => {
 				assertFilecoinMainnet($network)
 				const {
 					getBlock,
@@ -70,15 +70,19 @@ export default {
 					timestampMs: tipset.timestamp * 1000,
 					$$blocks: tipset.blocks.map((block) => ({
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network,
 							cid: block.cid,
 						},
 						$tipset: {
-							[EntityMetaKey.Selector]: entitySelector,
+							[EntityMetaKey.Selector]: {
+								$network,
+								height,
+								tipsetKey,
+							},
 						},
 						$miner: {
 							[EntityMetaKey.Selector]: {
-								$network: entitySelector.$network,
+								$network,
 								minerAddress: block.miner,
 							},
 						},
@@ -196,7 +200,7 @@ export default {
 				const { getAddress } = await import('$/sources/Filfox/Rest/queries.ts')
 				const address = await getAddress({
 					restBaseUrl: filfoxMainnetRestBaseUrl,
-					addressSelector: addressSelector,
+					address: addressSelector,
 				})
 				return {
 					balanceAttoFil: BigInt(address.balance),
@@ -265,18 +269,18 @@ export default {
 					pageSize: resolverContextRowLimit(context),
 				})).messages.map((message) => ({
 					[EntityMetaKey.Selector]: {
-						$network: entitySelector.$network,
+						$network,
 						cid: message.cid,
 					},
 					$from: {
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network,
 							address: message.from,
 						},
 					},
 					$to: {
 						[EntityMetaKey.Selector]: {
-							$network: entitySelector.$network,
+							$network,
 							address: message.to,
 						},
 					},

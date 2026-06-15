@@ -8,6 +8,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 
 export enum TronBlockSelector {
+	NetworkHeight = 'networkHeight',
 	NetworkHeightHash = 'networkHeightHash',
 }
 import { Source } from '$/sources/Source.ts'
@@ -24,6 +25,13 @@ export default {
 	labelPlural: 'TRON Blocks',
 
 	selectors: [
+		{
+			name: TronBlockSelector.NetworkHeight,
+			fields: [
+				'$network',
+				'height',
+			],
+		},
 		{
 			name: TronBlockSelector.NetworkHeightHash,
 			fields: [
@@ -51,7 +59,7 @@ export default {
 			name: 'hash',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 			defaultSources: tronPublicBlockSources,
 		},
 		{

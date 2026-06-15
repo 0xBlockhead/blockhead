@@ -4,7 +4,7 @@
 			params,
 		} = $props()
 
-		const entitySelector = $derived(
+		const selector = $derived(
 			decodeURIComponent(params.did).startsWith('did:') ?
 				{ did: decodeURIComponent(params.did) }
 			:

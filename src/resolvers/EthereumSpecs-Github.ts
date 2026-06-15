@@ -1,4 +1,3 @@
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { ethereumReferenceForkMetadataChainIds } from '$/constants/EthereumSpecs.ts'
 import {
 	defineResolver,
@@ -33,7 +32,7 @@ export default {
 					)
 				}
 				const { fetchConsensusSpecsConfigYaml } = await import('$/sources/EthereumSpecs/Github/queries.ts')
-				return singleFlight(fetchConsensusSpecsConfigYaml)({ preset })
+				return fetchConsensusSpecsConfigYaml({ preset })
 			}
 			}
 		})({
@@ -46,13 +45,13 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
-				if (!ethereumReferenceForkMetadataChainIds.some((chainId) => chainId === Number(entitySelector.caip2.reference))) {
+				if (!ethereumReferenceForkMetadataChainIds.some((chainId) => chainId === Number(caip2.reference))) {
 					throw new Error(
 						`EthereumSpecs_Github: go-ethereum params unsupported for chain ${String(Number(caip2.reference))}`,
 					)
 				}
 				const { fetchGoEthereumParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')
-				return singleFlight(fetchGoEthereumParamsConfigGo)()
+				return fetchGoEthereumParamsConfigGo()
 			}
 			}
 		})({
@@ -72,7 +71,7 @@ export default {
 				const filename = networkUpgrade.executionSpecsPinnedMarkdownFilename
 				if (filename == null) return undefined
 				const { fetchExecutionSpecsMainnetUpgradeMarkdown } = await import('$/sources/EthereumSpecs/Github/queries.ts')
-				return singleFlight(fetchExecutionSpecsMainnetUpgradeMarkdown)({ filename })
+				return fetchExecutionSpecsMainnetUpgradeMarkdown({ filename })
 			}
 			}
 		})({

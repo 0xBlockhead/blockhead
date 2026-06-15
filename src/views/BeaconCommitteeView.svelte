@@ -32,19 +32,14 @@
 
 	const committee = subscribe(EntityType.BeaconCommittee,
 		selector,
-		(
-			open ?
-				{
-					sources: [
-						Source.Beacon_Rest,
-					],
-					fields: {
-						validatorIndices: true,
-					},
-				}
-			:
-				{ fields: {} }
-		),
+		{
+			sources: [
+				Source.Beacon_Rest,
+			],
+			fields: {
+				validatorIndices: true,
+			},
+		},
 	)
 
 

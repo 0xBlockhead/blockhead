@@ -26,10 +26,10 @@ import { LightningInvoiceSelector } from '$/schema/LightningInvoice.ts'
 import { LightningPaymentSelector } from '$/schema/LightningPayment.ts'
 import { LightningHtlcSelector } from '$/schema/LightningHtlc.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const assertLightningNetwork = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== lightningNetworkId.networkSlug) {
+	if (!('slug' in network) || network.slug !== lightningNetworkId.slug) {
 		throw new Error('LightningLnd_Rest: unsupported Lightning network')
 	}
 }
@@ -252,11 +252,12 @@ export default {
 						networkAddresses: info.uris ?? [],
 					}
 				}
-				if (!channels.some((channel) => channel.remote_pubkey === entitySelector.publicKey)) {
+				if (!channels.some((channel) => channel.remote_pubkey === publicKey)) {
 					throw new Error(`LightningLnd_Rest: node not found ${publicKey}`)
 				}
 				return {
-					channelCount: channels.filter((channel) => channel.remote_pubkey === entitySelector.publicKey).length,
+					channelCount: channels.filter((channel) => channel.remote_pubkey === publicKey).length,
+					networkAddresses: [],
 				}
 			}
 			},
@@ -275,7 +276,7 @@ export default {
 				[LightningChannelSelector.NetworkChannelId]: async ({ $network, channelId }, context) => {
 				assertLightningNetwork($network)
 				const info = await lndInfo(context)
-				const channel = (await lndChannels(context)).find((channel) => channel.chan_id === entitySelector.channelId)
+				const channel = (await lndChannels(context)).find((channel) => channel.chan_id === channelId)
 				if (channel == null) {
 					throw new Error(`LightningLnd_Rest: channel not found ${channelId}`)
 				}
@@ -307,7 +308,7 @@ export default {
 				const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
 				const invoice = (
 					(await listInvoices(lndTransport(context))).invoices ?? []
-				).find((invoice) => invoicePaymentHash(invoice) === entitySelector.paymentHash)
+				).find((invoice) => invoicePaymentHash(invoice) === paymentHash)
 				if (invoice == null) {
 					throw new Error(`LightningLnd_Rest: invoice not found ${paymentHash}`)
 				}
@@ -338,7 +339,7 @@ export default {
 				const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
 				const payment = (
 					(await listPayments(lndTransport(context))).payments ?? []
-				).find((payment) => payment.payment_hash === entitySelector.paymentHash)
+				).find((payment) => payment.payment_hash === paymentHash)
 				if (payment == null) {
 					throw new Error(`LightningLnd_Rest: payment not found ${paymentHash}`)
 				}
@@ -363,7 +364,7 @@ export default {
 			resolve: {
 				[LightningHtlcSelector.LightningChannelHtlcIndex]: async ({ $channel, htlcIndex }, context) => {
 				assertLightningNetwork($channel.$network)
-				const channel = (await lndChannels(context)).find((channel) => channel.chan_id === entitySelector.$channel.channelId)
+				const channel = (await lndChannels(context)).find((channel) => channel.chan_id === $channel.channelId)
 				if (channel == null) {
 					throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
 				}
@@ -406,7 +407,9 @@ export default {
 			},
 		})({
 				fields: {
-				$$nodes: (nodes) => nodes,
+				$$nodes: (nodes) => nodes.map((node) => ({
+					[EntityMetaKey.Selector]: node[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 
@@ -423,7 +426,9 @@ export default {
 			},
 		})({
 				fields: {
-				$$channels: (channels) => channels,
+				$$channels: (channels) => channels.map((channel) => ({
+					[EntityMetaKey.Selector]: channel[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 
@@ -448,7 +453,9 @@ export default {
 			},
 		})({
 				fields: {
-				$$invoices: (invoices) => invoices,
+				$$invoices: (invoices) => invoices.map((invoice) => ({
+					[EntityMetaKey.Selector]: invoice[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 
@@ -468,20 +475,22 @@ export default {
 			},
 		})({
 				fields: {
-				$$payments: (payments) => payments,
+				$$payments: (payments) => payments.map((payment) => ({
+					[EntityMetaKey.Selector]: payment[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
 			resolve: {
-				[LightningNodeSelector.NetworkPublicKey]: async ({ $network }, context) => {
+				[LightningNodeSelector.NetworkPublicKey]: async ({ $network, publicKey }, context) => {
 				assertLightningNetwork($network)
 				const info = await lndInfo(context)
 				return (await lndChannels(context))
 					.filter((channel) => (
-						entitySelector.publicKey === info.identity_pubkey
-						|| entitySelector.publicKey === channel.remote_pubkey
+						publicKey === info.identity_pubkey
+						|| publicKey === channel.remote_pubkey
 					))
 					.slice(0, resolverContextRowLimit(context))
 					.map((channel) => channelFieldsFromLndChannel(channel, info.identity_pubkey))
@@ -489,7 +498,9 @@ export default {
 			},
 		})({
 				fields: {
-				$$channels: (channels) => channels,
+				$$channels: (channels) => channels.map((channel) => ({
+					[EntityMetaKey.Selector]: channel[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 
@@ -498,7 +509,7 @@ export default {
 			resolve: {
 				[LightningChannelSelector.NetworkChannelId]: async ({ $network, channelId }, context) => {
 				assertLightningNetwork($network)
-				const channel = (await lndChannels(context)).find((channel) => channel.chan_id === entitySelector.channelId)
+				const channel = (await lndChannels(context)).find((channel) => channel.chan_id === channelId)
 				if (channel == null) {
 					throw new Error(`LightningLnd_Rest: channel not found ${channelId}`)
 				}
@@ -509,7 +520,9 @@ export default {
 			},
 		})({
 				fields: {
-				$$htlcs: (htlcs) => htlcs,
+				$$htlcs: (htlcs) => htlcs.map((htlc) => ({
+					[EntityMetaKey.Selector]: htlc[EntityMetaKey.Selector],
+				})),
 			},
 			}),
 	],

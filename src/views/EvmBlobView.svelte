@@ -18,11 +18,11 @@
 	let {
 		routeChildren,
 		selector,
-			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blobs)/blob/[transactionId]/[blobIndex]', {
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blobs)/blob/[transactionId]/[blobIndex]', {
 			...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
 			transactionId: selector.txHash,
-				blobIndex: selector.blobIndex.toString(),
-			}),
+			blobIndex: selector.blobIndex.toString(),
+		}),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
@@ -38,14 +38,28 @@
 		>
 	> = $props()
 
-	const blob = $derived(subscribe(EntityType.EvmBlob,
-		selector,
-		({ fields: { kzgCommitment: ({ sources: [
-						Source.Blobscan_Rest,
-					] }), blobDataStorageReferences: ({ sources: [
-						Source.Blobscan_Rest,
-					] }) } }),
-	))
+	const blob = $derived(
+		open ?
+			subscribe(EntityType.EvmBlob,
+				selector,
+				({
+					fields: {
+						kzgCommitment: {
+							sources: [
+								Source.Blobscan_Rest,
+							],
+						},
+						blobDataStorageReferences: {
+							sources: [
+								Source.Blobscan_Rest,
+							],
+						},
+					},
+				}),
+			)
+		:
+			undefined
+	)
 
 
 	// (Derived)
@@ -84,25 +98,27 @@
 
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
-				<span data-badge="small">
-			#{String(selector.blobIndex)}
-		</span>
+			<span data-badge="small">
+				#{String(selector.blobIndex)}
+			</span>
 
-			<ResourceBoundary
-				resource={blob}
-				placeholderText="Loading blob…"
-			>
-				{#snippet children(blob)}
-					{#if blob.fields.kzgCommitment !== undefined}
-						<small>
-							<TruncatedValue
-								value={blob.fields.kzgCommitment}
-								format={TruncatedValueFormat.Abbr}
-							/>
-						</small>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			{#if blob !== undefined}
+				<ResourceBoundary
+					resource={blob}
+					placeholderText="Loading blob…"
+				>
+					{#snippet children(blob)}
+						{#if blob.fields.kzgCommitment !== undefined}
+							<small>
+								<TruncatedValue
+									value={blob.fields.kzgCommitment}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							</small>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 		</span>
 	{/snippet}
 
@@ -130,63 +146,67 @@
 			<div>
 				<dt>KZG commitment</dt>
 				<dd data-column="gap-1">
-					<ResourceBoundary
-						resource={blob}
-						placeholderText="Loading blob…"
-					>
-						{#snippet children(blob)}
-							{#if blob.fields.kzgCommitment !== undefined}
-								<div data-row="wrap align-start gap-2">
-									<TruncatedValue
-										format={TruncatedValueFormat.Visual}
-										value={blob.fields.kzgCommitment}
-									/>
-									{#if true}
-										<Tooltip
-											contentProps={{ side: 'top' }}
-											Content={BlobscanIndexerPayloadTooltip}
-										>
-											<abbr
-												class="entity-heading-tip"
-												aria-label="Blobscan indexer payload"
-											>ⓘ</abbr>
-										</Tooltip>
+					{#if blob !== undefined}
+						<ResourceBoundary
+							resource={blob}
+							placeholderText="Loading blob…"
+						>
+							{#snippet children(blob)}
+								{#if blob.fields.kzgCommitment !== undefined}
+									<div data-row="wrap align-start gap-2">
+										<TruncatedValue
+											format={TruncatedValueFormat.Visual}
+											value={blob.fields.kzgCommitment}
+										/>
+										{#if true}
+											<Tooltip
+												contentProps={{ side: 'top' }}
+												Content={BlobscanIndexerPayloadTooltip}
+											>
+												<abbr
+													class="entity-heading-tip"
+													aria-label="Blobscan indexer payload"
+												>ⓘ</abbr>
+											</Tooltip>
 
-										{#snippet BlobscanIndexerPayloadTooltip()}
-											<p><code>GET /blobs/:versionedHash</code> data from the Blobscan REST API. Only on chains their indexer hosts.</p>
-										{/snippet}
-									{/if}
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+											{#snippet BlobscanIndexerPayloadTooltip()}
+												<p><code>GET /blobs/:versionedHash</code> data from the Blobscan REST API. Only on chains their indexer hosts.</p>
+											{/snippet}
+										{/if}
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
 				</dd>
 			</div>
 			<div>
 				<dt>Blob storage</dt>
 				<dd>
-					<ResourceBoundary
-						resource={blob}
-						placeholderText="Loading blob storage references…"
-					>
-						{#snippet children(blob)}
-							{#if blob.fields.blobDataStorageReferences?.length}
-								<ul>
-									{#each blob.fields.blobDataStorageReferences as reference (
-										`${reference.storage}:${reference.reference}`
-							)}
-										<li>
-											<span>{reference.storage}</span>
-											<TruncatedValue
-												value={reference.reference}
-										format={TruncatedValueFormat.Visual}
-											/>
-										</li>
-									{/each}
-								</ul>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{#if blob !== undefined}
+						<ResourceBoundary
+							resource={blob}
+							placeholderText="Loading blob storage references…"
+						>
+							{#snippet children(blob)}
+								{#if blob.fields.blobDataStorageReferences?.length}
+									<ul>
+										{#each blob.fields.blobDataStorageReferences as reference (
+											`${reference.storage}:${reference.reference}`
+										)}
+											<li>
+												<span>{reference.storage}</span>
+												<TruncatedValue
+													value={reference.reference}
+													format={TruncatedValueFormat.Visual}
+												/>
+											</li>
+										{/each}
+									</ul>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
 				</dd>
 			</div>
 
@@ -194,7 +214,7 @@
 				<div>
 					<dt>Transaction</dt>
 					<dd>
-							<a href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+						<a href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
 								...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
 								transactionId: selector.txHash,
 							})}>
@@ -216,7 +236,7 @@
 			sectionIdPrefix={blobSelectorKey}
 			sections={[
 				{ id: 'blob-semantics', label: 'Blob primer' },
-					{ id: 'page-content', label: 'Route' },
+				{ id: 'page-content', label: 'Route' },
 			]}
 			id={`${blobSelectorKey}:carousel-blob`}
 			data-card
@@ -253,6 +273,6 @@
 					{@render routeChildren()}
 				{/if}
 			{/snippet}
-	</CollapsibleTabs>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

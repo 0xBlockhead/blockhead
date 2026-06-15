@@ -33,7 +33,7 @@
 
 	const quilibriumNetwork = subscribe(EntityType.QuilibriumNetwork,
 		{
-			networkSlug: 'quilibrium',
+			slug: 'quilibrium',
 		},
 		({ sources: [
 				Source.QuilibriumDocs_Rest,

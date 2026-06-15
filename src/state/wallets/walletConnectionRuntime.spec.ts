@@ -122,8 +122,13 @@ describe('wallet connection runtime normalization', () => {
 		const fieldDeletes: string[] = []
 		const countDeletes: string[] = []
 
-		vi.doMock('$/routes/+layout.svelte', () => ({
-			entityCollectionByEntityType: {
+		const context = {
+			entityCollections: {
+				[EntityType.BlockheadSession]: {
+					utils: {
+						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+					},
+				},
 				[EntityType.BlockheadSessionAction]: {
 					delete: (key: string) => entityDeletes.push(key),
 					utils: {
@@ -146,6 +151,11 @@ describe('wallet connection runtime normalization', () => {
 						writeUpsert: (row: MockRow) => entityUpserts.push(row),
 					},
 				},
+				[EntityType.EvmAccount]: {
+					utils: {
+						writeUpsert: (row: MockRow) => entityUpserts.push(row),
+					},
+				},
 			},
 			entityFieldCollections: {
 				[EntityType.BlockheadSession]: {
@@ -155,8 +165,28 @@ describe('wallet connection runtime normalization', () => {
 							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
 						},
 					},
+					name: {
+						utils: {
+							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
+						},
+					},
+					status: {
+						utils: {
+							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
+						},
+					},
 				},
 				[EntityType._Global]: {
+					$$actors: {
+						utils: {
+							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
+						},
+					},
+					$$blockheadSessions: {
+						utils: {
+							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
+						},
+					},
 					$$blockheadWallets: {
 						utils: {
 							writeUpsert: (row: MockRow) => fieldUpserts.push(row),
@@ -184,7 +214,7 @@ describe('wallet connection runtime normalization', () => {
 					},
 				},
 			},
-		}))
+		}
 
 		const {
 			deleteLocalBlockheadSessionAction,
@@ -195,13 +225,14 @@ describe('wallet connection runtime normalization', () => {
 		} = await import('$/collections/localMutations.ts')
 
 		writeLocalBlockheadSessionAction(
+			context,
 			{
 				id: 'session-1',
 			},
 			0,
 			ActionType.Swap,
 		)
-		writeLocalBlockheadWallet({
+		writeLocalBlockheadWallet(context, {
 			id: 'eip6963:com.example.wallet',
 			name: 'Example Wallet',
 			icon: 'data:image/svg+xml,example',
@@ -212,7 +243,7 @@ describe('wallet connection runtime normalization', () => {
 				WalletCapability.Connect,
 			],
 		})
-		writeLocalBlockheadWalletConnection({
+		writeLocalBlockheadWalletConnection(context, {
 			walletId: 'eip6963:com.example.wallet',
 			status: BlockheadConnectionStatus.Connected,
 			protocol: WalletProtocol.Eip6963,
@@ -232,6 +263,7 @@ describe('wallet connection runtime normalization', () => {
 			],
 		})
 		deleteLocalBlockheadSessionAction(
+			context,
 			{
 				id: 'session-1',
 			},
@@ -240,7 +272,7 @@ describe('wallet connection runtime normalization', () => {
 				actionId: 'action-1',
 			},
 		)
-		deleteLocalBlockheadWalletConnection('eip6963:com.example.wallet')
+		deleteLocalBlockheadWalletConnection(context, 'eip6963:com.example.wallet')
 
 		const sessionSelectorKey = stringify({ id: 'session-1' })
 		const deletedSessionActionSelectorKey = stringify({

@@ -109,19 +109,7 @@ export const indexSourceProviders = <
 		})
 	})
 
-	const sources = enabledSourceEntries.map((entry) => entry.sourceDefinition)
-
 	return {
-		sourceProviderByProvider: Object.fromEntries(sourceProviders.map((sourceProvider) => [
-			sourceProvider.provider,
-			sourceProvider,
-		])),
-		sourceBySource: Object.fromEntries(sources.map((sourceDefinition) => [
-			sourceDefinition.source,
-			sourceDefinition,
-		])),
-		resolverPublicEnv,
-		sources,
 		resolverPublicEnvBySource: new Map(
 			enabledSourceEntries.map((entry) => ([
 				entry.sourceDefinition.source,
@@ -129,7 +117,7 @@ export const indexSourceProviders = <
 			])),
 		),
 		enabledSources: new Set(
-			sources.map((sourceDefinition) => sourceDefinition.source),
+			enabledSourceEntries.map((entry) => entry.sourceDefinition.source),
 		),
 	}
 }

@@ -13,10 +13,10 @@ import { LightningNodeSelector } from '$/schema/LightningNode.ts'
 import { LightningChannelSelector } from '$/schema/LightningChannel.ts'
 import { LightningNetworkSelector } from '$/schema/LightningNetwork.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
 
 const assertLightningNetwork = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== lightningNetworkId.networkSlug) {
+	if (!('slug' in network) || network.slug !== lightningNetworkId.slug) {
 		throw new Error('Amboss_Graphql: unsupported Lightning network')
 	}
 }
@@ -89,7 +89,7 @@ export default {
 
 				return {
 					[EntityMetaKey.Selector]: {
-						$network: lightningNetworkId,
+						$network,
 						channelId: edge.long_channel_id,
 					},
 					shortChannelId: edge.short_channel_id,
@@ -111,7 +111,7 @@ export default {
 					...(edgeInfo?.node1_pub != null && {
 						$node0: {
 							[EntityMetaKey.Selector]: {
-								$network: lightningNetworkId,
+								$network,
 								publicKey: edgeInfo.node1_pub,
 							},
 						},
@@ -119,7 +119,7 @@ export default {
 					...(edgeInfo?.node2_pub != null && {
 						$node1: {
 							[EntityMetaKey.Selector]: {
-								$network: lightningNetworkId,
+								$network,
 								publicKey: edgeInfo.node2_pub,
 							},
 						},
@@ -152,7 +152,7 @@ export default {
 					.slice(0, resolverContextRowLimit(context))
 					.map((publicKey) => ({
 						[EntityMetaKey.Selector]: {
-							$network: lightningNetworkId,
+							$network,
 							publicKey,
 						},
 					}))

@@ -8,7 +8,8 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 
 export enum EvmNetworkActorCoinBalanceSelector {
-	EvmAccountEvmCoinInstance = 'evmAccountEvmCoinInstance',
+	EvmAccountNativeCoinInstance = 'evmAccountNativeCoinInstance',
+	EvmAccountErc20CoinInstance = 'evmAccountErc20CoinInstance',
 }
 
 export default {
@@ -19,10 +20,17 @@ export default {
 
 	selectors: [
 		{
-			name: EvmNetworkActorCoinBalanceSelector.EvmAccountEvmCoinInstance,
+			name: EvmNetworkActorCoinBalanceSelector.EvmAccountNativeCoinInstance,
 			fields: [
 				'$actor',
-				'$coinInstance',
+				'$network',
+			],
+		},
+		{
+			name: EvmNetworkActorCoinBalanceSelector.EvmAccountErc20CoinInstance,
+			fields: [
+				'$actor',
+				'$contract',
 			],
 		},
 	],
@@ -32,6 +40,18 @@ export default {
 			name: '$actor',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmAccount,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmNetwork,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$contract',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

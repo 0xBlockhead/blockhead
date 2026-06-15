@@ -82,75 +82,66 @@
 					'asc',
 				],
 			] as const satisfies DeclarativeOrderBy<ActivityPubNoteOrderFieldRow>}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				(
-					fieldOpen ?
-						{
-							fields: {
-								[entityFieldReference.fieldName]: {
-									sources: [
-										Source.Mastodon_Rest,
-										Source.Fedi_Rest,
-									],
-									orderBy: [...activityPubNoteOrderBy],
-									limit: limit,
-								},
+			{#if fieldOpen}
+				{@const parent = subscribe(entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						fields: {
+							[entityFieldReference.fieldName]: {
+								sources: [
+									Source.Mastodon_Rest,
+									Source.Fedi_Rest,
+								],
+								orderBy: [...activityPubNoteOrderBy],
+								limit: limit,
 							},
-						}
-					:
-						{ fields: {} }
-				),
-			)}
-			{#key `${stringify(entityFieldReference.selector)}-${limit}-${fieldOpen}-${orderByCreatedAt}`}
-				<ResourceBoundary
-					resource={parent}
-					placeholderText={(
-						fieldOpen ?
-							placeholderText
-						:
-							'Facet idle—no timeline request.'
-					)}
-				>
-					{#snippet children(parent)}
-						<EntitiesList
-							collapsible={false}
-							showSummary={false}
-							entityType={EntityType.ActivityPubNote}
-							id={`${id}-items`}
-							{title}
-							open={true}
-							getKey={(activityPubNote) => stringify(activityPubNote[EntityMetaKey.Selector])}
-							placeholderText={(
-								fieldOpen ?
-									placeholderText
-								:
-									'Facet idle—no timeline request.'
-							)}
-							items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">
-									No notes yet.
-								</p>
-							{/snippet}
+						},
+					},
+				)}
+				{#key `${stringify(entityFieldReference.selector)}-${limit}-${orderByCreatedAt}`}
+					<ResourceBoundary
+						resource={parent}
+						placeholderText={placeholderText}
+					>
+						{#snippet children(parent)}
+							<EntitiesList
+								collapsible={false}
+								showSummary={false}
+								entityType={EntityType.ActivityPubNote}
+								id={`${id}-items`}
+								{title}
+								open={true}
+								getKey={(activityPubNote) => stringify(activityPubNote[EntityMetaKey.Selector])}
+								{placeholderText}
+								items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
+							>
+								{#snippet Empty()}
+									<p data-text="muted">
+										No notes yet.
+									</p>
+								{/snippet}
 
-							{#snippet Item({ item })}
-								{@const noteId = item[EntityMetaKey.Selector]}
-								<ActivityPubNoteView
-									selector={{
-										instanceOrigin: noteId.instanceOrigin,
-										localStatusId: noteId.localStatusId,
-									}}
-									layout={EntityLayout.Summary}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							{/snippet}
-						</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
-			{/key}
+								{#snippet Item({ item })}
+									{@const noteId = item[EntityMetaKey.Selector]}
+									<ActivityPubNoteView
+										selector={{
+											instanceOrigin: noteId.instanceOrigin,
+											localStatusId: noteId.localStatusId,
+										}}
+										layout={EntityLayout.Summary}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/snippet}
+							</EntitiesList>
+						{/snippet}
+					</ResourceBoundary>
+				{/key}
+			{:else}
+				<p data-text="muted">
+					Facet idle—no timeline request.
+				</p>
+			{/if}
 		{/if}
 	{/snippet}
 </EntitiesList>

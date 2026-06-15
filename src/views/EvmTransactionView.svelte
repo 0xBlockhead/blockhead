@@ -52,13 +52,18 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const evmTransaction = subscribe(EntityType.EvmTransaction,
-		selector,
-		({ sources: [
-				Source.Blockscout_Rest,
-				Source.Voltaire_JsonRpc,
-				Source.ZeroGChain_JsonRpc,
-			], fields: { $block: true, $from: true, $to: true, $contract: true, value: true, kind: true, envelopeType: true, executionStatus: true, gasUsed: true, input: true, ...(open && ({ nonce: true, transactionIndex: true, gas: true, gasPrice: true, effectiveGasPrice: true })) } }),
+	const evmTransaction = $derived(
+		open ?
+			subscribe(EntityType.EvmTransaction,
+				selector,
+				({ sources: [
+						Source.Blockscout_Rest,
+						Source.Voltaire_JsonRpc,
+						Source.ZeroGChain_JsonRpc,
+					], fields: { $block: true, $from: true, $to: true, $contract: true, value: true, kind: true, envelopeType: true, executionStatus: true, gasUsed: true, input: true, nonce: true, transactionIndex: true, gas: true, gasPrice: true, effectiveGasPrice: true } }),
+			)
+		:
+			undefined
 	)
 
 
@@ -122,255 +127,257 @@
 	{/snippet}
 
 	{#snippet Content({ open })}
-		<ResourceBoundary
-			resource={evmTransaction}
-			placeholderText="Loading transaction…"
-		>
-			{#snippet children(transaction)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Kind</dt>
-						<dd>{evmTransactionKindByKind[transaction.fields.kind]?.label ?? String(transaction.fields.kind)}</dd>
-					</div>
-
-					<div>
-						<dt>Value</dt>
-						<dd>
-							{#if transaction.fields.value !== undefined}
-								<NumberValue value={transaction.fields.value} />
-							{/if}
-						</dd>
-					</div>
-
-					<div>
-						<dt>Status</dt>
-						<dd>
-							{#if transaction.fields.executionStatus !== undefined}
-								{evmTransactionExecutionStatusByExecutionStatus[transaction.fields.executionStatus]?.label ?? String(transaction.fields.executionStatus)}
-							{/if}
-						</dd>
-					</div>
-
-					<div>
-						<dt>Gas used</dt>
-						<dd>
-							{#if transaction.fields.gasUsed !== undefined}
-								<NumberValue value={transaction.fields.gasUsed} />
-							{/if}
-						</dd>
-					</div>
-
-					<div>
-						<dt>Block</dt>
-						<dd>
-							{#if transaction.fields.$block?.[EntityMetaKey.Selector].blockNumber !== undefined}
-								<EvmBlockView
-									selector={transaction.fields.$block[EntityMetaKey.Selector]}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
-						</dd>
-					</div>
-
-					<div>
-						<dt>From</dt>
-						<dd>
-							{#if transaction.fields.$from?.[EntityMetaKey.Selector].address !== undefined}
-								<EvmNetworkAccountView
-									selector={{
-										$network: selector.$network,
-										$actor: transaction.fields.$from[EntityMetaKey.Selector],
-									}}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
-						</dd>
-					</div>
-
-					<div>
-						<dt>To</dt>
-						<dd>
-							{#if transaction.fields.$to?.[EntityMetaKey.Selector].address !== undefined}
-								<EvmNetworkAccountView
-									selector={{
-										$network: selector.$network,
-										$actor: transaction.fields.$to[EntityMetaKey.Selector],
-									}}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
-						</dd>
-					</div>
-
-					<div>
-						<dt>Contract</dt>
-						<dd>
-							{#if transaction.fields.$contract?.[EntityMetaKey.Selector].address !== undefined}
-								<EvmContractView
-									selector={transaction.fields.$contract[EntityMetaKey.Selector]}
-									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							{/if}
-						</dd>
-					</div>
-
-					{#if open}
+		{#if open && evmTransaction !== undefined}
+			<ResourceBoundary
+				resource={evmTransaction}
+				placeholderText="Loading transaction…"
+			>
+				{#snippet children(transaction)}
+					<dl data-column-item="center">
 						<div>
-							<dt>Nonce</dt>
+							<dt>Kind</dt>
+							<dd>{evmTransactionKindByKind[transaction.fields.kind]?.label ?? String(transaction.fields.kind)}</dd>
+						</div>
+
+						<div>
+							<dt>Value</dt>
 							<dd>
-								{#if transaction.fields.nonce !== undefined}
-									{String(transaction.fields.nonce)}
+								{#if transaction.fields.value !== undefined}
+									<NumberValue value={transaction.fields.value} />
 								{/if}
 							</dd>
 						</div>
-					{/if}
 
-					{#if open}
 						<div>
-							<dt>Position in block</dt>
+							<dt>Status</dt>
 							<dd>
-								{#if transaction.fields.transactionIndex !== undefined}
-									{String(transaction.fields.transactionIndex)}
+								{#if transaction.fields.executionStatus !== undefined}
+									{evmTransactionExecutionStatusByExecutionStatus[transaction.fields.executionStatus]?.label ?? String(transaction.fields.executionStatus)}
 								{/if}
 							</dd>
 						</div>
-					{/if}
 
-					{#if open}
 						<div>
-							<dt>Gas limit</dt>
+							<dt>Gas used</dt>
 							<dd>
-								{#if transaction.fields.gas !== undefined}
-									<NumberValue value={transaction.fields.gas} />
+								{#if transaction.fields.gasUsed !== undefined}
+									<NumberValue value={transaction.fields.gasUsed} />
 								{/if}
 							</dd>
 						</div>
-					{/if}
 
-					{#if open}
 						<div>
-							<dt>Gas price</dt>
+							<dt>Block</dt>
 							<dd>
-								{#if transaction.fields.gasPrice !== undefined}
-									<NumberValue value={transaction.fields.gasPrice} />
-								{/if}
-							</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Transaction envelope type</dt>
-							<dd>
-								{#if transaction.fields.envelopeType !== undefined}
-									{evmTransactionEnvelopeTypeByEnvelopeType[transaction.fields.envelopeType]?.label ?? String(transaction.fields.envelopeType)}
-								{/if}
-							</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Max fee / priority fee</dt>
-							<dd data-row="wrap align-center gap-2">
-								{#if (
-									(
-										transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
-										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
-										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
-									)
-									&& transaction.fields.maxFeePerGas !== undefined
-								)}
-									<span>
-										max{' '}
-										<NumberValue value={transaction.fields.maxFeePerGas} />
-									</span>
-								{/if}
-								{#if (
-									(
-										transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
-										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
-										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
-									)
-									&& transaction.fields.maxPriorityFeePerGas !== undefined
-								)}
-									<span>
-										priority{' '}
-										<NumberValue value={transaction.fields.maxPriorityFeePerGas} />
-									</span>
-								{/if}
-								{#if (
-									(
-										transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
-										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
-										|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
-									)
-									&& transaction.fields.maxFeePerGas === undefined
-									&& transaction.fields.maxPriorityFeePerGas === undefined
-								)}
-									<span data-text="muted">Caps not indexed</span>
-								{/if}
-							</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Effective gas price</dt>
-							<dd>
-								{#if transaction.fields.effectiveGasPrice !== undefined}
-									<NumberValue value={transaction.fields.effectiveGasPrice} />
-								{/if}
-							</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Input data</dt>
-							<dd>
-								{#if transaction.fields.input !== undefined}
-									<TruncatedValue
-										value={transaction.fields.input}
-										format={TruncatedValueFormat.Abbr}
+								{#if transaction.fields.$block?.[EntityMetaKey.Selector].blockNumber !== undefined}
+									<EvmBlockView
+										selector={transaction.fields.$block[EntityMetaKey.Selector]}
+										layout={EntityLayout.Value}
+										open={false}
 									/>
 								{/if}
 							</dd>
 						</div>
-					{/if}
 
-					{#if open}
-						{#if (
-							transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
-							&& transaction.fields.blobGasUsed !== undefined
-						)}
+						<div>
+							<dt>From</dt>
+							<dd>
+								{#if transaction.fields.$from?.[EntityMetaKey.Selector].address !== undefined}
+									<EvmNetworkAccountView
+										selector={{
+											$network: selector.$network,
+											$actor: transaction.fields.$from[EntityMetaKey.Selector],
+										}}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								{/if}
+							</dd>
+						</div>
+
+						<div>
+							<dt>To</dt>
+							<dd>
+								{#if transaction.fields.$to?.[EntityMetaKey.Selector].address !== undefined}
+									<EvmNetworkAccountView
+										selector={{
+											$network: selector.$network,
+											$actor: transaction.fields.$to[EntityMetaKey.Selector],
+										}}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								{/if}
+							</dd>
+						</div>
+
+						<div>
+							<dt>Contract</dt>
+							<dd>
+								{#if transaction.fields.$contract?.[EntityMetaKey.Selector].address !== undefined}
+									<EvmContractView
+										selector={transaction.fields.$contract[EntityMetaKey.Selector]}
+										layout={EntityLayout.Value}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/if}
+							</dd>
+						</div>
+
+						{#if open}
 							<div>
-								<dt>Blob gas used</dt>
+								<dt>Nonce</dt>
 								<dd>
-									<NumberValue value={transaction.fields.blobGasUsed} />
+									{#if transaction.fields.nonce !== undefined}
+										{String(transaction.fields.nonce)}
+									{/if}
 								</dd>
 							</div>
 						{/if}
-						{#if (
-							transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
-							&& transaction.fields.maxFeePerBlobGas !== undefined
-						)}
+
+						{#if open}
 							<div>
-								<dt>Max fee per blob gas</dt>
+								<dt>Position in block</dt>
 								<dd>
-									<NumberValue value={transaction.fields.maxFeePerBlobGas} />
+									{#if transaction.fields.transactionIndex !== undefined}
+										{String(transaction.fields.transactionIndex)}
+									{/if}
 								</dd>
 							</div>
 						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+
+						{#if open}
+							<div>
+								<dt>Gas limit</dt>
+								<dd>
+									{#if transaction.fields.gas !== undefined}
+										<NumberValue value={transaction.fields.gas} />
+									{/if}
+								</dd>
+							</div>
+						{/if}
+
+						{#if open}
+							<div>
+								<dt>Gas price</dt>
+								<dd>
+									{#if transaction.fields.gasPrice !== undefined}
+										<NumberValue value={transaction.fields.gasPrice} />
+									{/if}
+								</dd>
+							</div>
+						{/if}
+
+						{#if open}
+							<div>
+								<dt>Transaction envelope type</dt>
+								<dd>
+									{#if transaction.fields.envelopeType !== undefined}
+										{evmTransactionEnvelopeTypeByEnvelopeType[transaction.fields.envelopeType]?.label ?? String(transaction.fields.envelopeType)}
+									{/if}
+								</dd>
+							</div>
+						{/if}
+
+						{#if open}
+							<div>
+								<dt>Max fee / priority fee</dt>
+								<dd data-row="wrap align-center gap-2">
+									{#if (
+										(
+											transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
+											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
+										)
+										&& transaction.fields.maxFeePerGas !== undefined
+									)}
+										<span>
+											max
+											<NumberValue value={transaction.fields.maxFeePerGas} />
+										</span>
+									{/if}
+									{#if (
+										(
+											transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
+											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
+										)
+										&& transaction.fields.maxPriorityFeePerGas !== undefined
+									)}
+										<span>
+											priority
+											<NumberValue value={transaction.fields.maxPriorityFeePerGas} />
+										</span>
+									{/if}
+									{#if (
+										(
+											transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
+											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
+										)
+										&& transaction.fields.maxFeePerGas === undefined
+										&& transaction.fields.maxPriorityFeePerGas === undefined
+									)}
+										<span data-text="muted">Caps not indexed</span>
+									{/if}
+								</dd>
+							</div>
+						{/if}
+
+						{#if open}
+							<div>
+								<dt>Effective gas price</dt>
+								<dd>
+									{#if transaction.fields.effectiveGasPrice !== undefined}
+										<NumberValue value={transaction.fields.effectiveGasPrice} />
+									{/if}
+								</dd>
+							</div>
+						{/if}
+
+						{#if open}
+							<div>
+								<dt>Input data</dt>
+								<dd>
+									{#if transaction.fields.input !== undefined}
+										<TruncatedValue
+											value={transaction.fields.input}
+											format={TruncatedValueFormat.Abbr}
+										/>
+									{/if}
+								</dd>
+							</div>
+						{/if}
+
+						{#if open}
+							{#if (
+								transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
+								&& transaction.fields.blobGasUsed !== undefined
+							)}
+								<div>
+									<dt>Blob gas used</dt>
+									<dd>
+										<NumberValue value={transaction.fields.blobGasUsed} />
+									</dd>
+								</div>
+							{/if}
+							{#if (
+								transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
+								&& transaction.fields.maxFeePerBlobGas !== undefined
+							)}
+								<div>
+									<dt>Max fee per blob gas</dt>
+									<dd>
+										<NumberValue value={transaction.fields.maxFeePerBlobGas} />
+									</dd>
+								</div>
+							{/if}
+						{/if}
+					</dl>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Details()}
@@ -398,26 +405,27 @@
 					CollapsibleProps={{ canToggle: false }}
 					{selector}
 					id={`${txSelectorKey}:movements`}
-					open={true}
 				/>
 			{/snippet}
 
 			{#snippet SectionCall({ id: _callId, label: _callLabel })}
-				<ResourceBoundary
-					resource={evmTransaction}
-					placeholderText="Loading transaction input…"
-				>
-					{#snippet children(transaction)}
-						{#if transaction.fields.input != null}
-							<EvmTransactionInputDecode
-								input={transaction.fields.input}
-								open={true}
-							/>
-						{:else}
-							<p data-text="muted">No calldata on this transaction.fields.</p>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+				{#if evmTransaction !== undefined}
+					<ResourceBoundary
+						resource={evmTransaction}
+						placeholderText="Loading transaction input…"
+					>
+						{#snippet children(transaction)}
+							{#if transaction.fields.input != null}
+								<EvmTransactionInputDecode
+									input={transaction.fields.input}
+									open={true}
+								/>
+							{:else}
+								<p data-text="muted">No calldata on this transaction.fields.</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/if}
 			{/snippet}
 
 			{#snippet SectionEvents({ id: _eventsId, label: _eventsLabel })}
@@ -469,30 +477,32 @@
 			{/snippet}
 
 			{#snippet SectionBlobs({ id: _blobsId, label: _blobsLabel })}
-				<ResourceBoundary
-					resource={evmTransaction}
-					placeholderText=""
-				>
-					{#snippet children(transaction)}
-						{#if transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob}
-							<EvmBlobsView
-								CollapsibleProps={{ canToggle: false }}
-								entityFieldReference={{
-									entityType: EntityType.EvmTransaction,
-									selector,
-									fieldName: '$$blobs',
-								}}
-								href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
-										...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
-										transactionId: selector.txHash,
-									})}
-								id={`${txSelectorKey}:blobs`}
-								open={true}
-								title="Blob sidecars"
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+				{#if evmTransaction !== undefined}
+					<ResourceBoundary
+						resource={evmTransaction}
+						placeholderText=""
+					>
+						{#snippet children(transaction)}
+							{#if transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob}
+								<EvmBlobsView
+									CollapsibleProps={{ canToggle: false }}
+									entityFieldReference={{
+										entityType: EntityType.EvmTransaction,
+										selector,
+										fieldName: '$$blobs',
+									}}
+									href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+											...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+											transactionId: selector.txHash,
+										})}
+									id={`${txSelectorKey}:blobs`}
+									open={true}
+									title="Blob sidecars"
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/if}
 			{/snippet}
 
 			{#snippet SectionUserOperations({ id: _userOpsId, label: _userOpsLabel })}
@@ -504,7 +514,7 @@
 						fieldName: '$$userOperations',
 					}}
 					id={`${txSelectorKey}:user-operations`}
-					open={true}
+					open={false}
 					title="User operations"
 				/>
 			{/snippet}

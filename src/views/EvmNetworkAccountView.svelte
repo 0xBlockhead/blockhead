@@ -46,61 +46,68 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const evmNetworkAccountDetailAnchorKey = stringify(selector)
+	const evmNetworkAccountDetailAnchorKey = $derived(stringify(selector))
 
-	const network = subscribe(EntityType.EvmNetwork,
-		selector.$network,
-		({ sources: [
-				Source.Constants_Internal,
-				...(open ?
-					[
-						Source.Chainlist_Rest,
-						Source.EthereumLists_Rest,
-						Source.Lifi_Rest,
-					]
-				:
-					[]
-				),
-			], fields: { name: true, $icon: ({ sources: [
+	const network = $derived(
+		subscribe(EntityType.EvmNetwork,
+			selector.$network,
+			({ sources: [
 					Source.Constants_Internal,
-					Source.Chainlist_Rest,
-				] }) } }),
+					...(open ?
+						[
+							Source.Chainlist_Rest,
+							Source.EthereumLists_Rest,
+							Source.Lifi_Rest,
+						]
+					:
+						[]
+					),
+				], fields: { name: true, $icon: ({ sources: [
+						Source.Constants_Internal,
+						Source.Chainlist_Rest,
+					] }) } }),
+		),
 	)
 
-	const actor = subscribe(EntityType.EvmAccount,
-		selector.$actor,
-		({ sources: [
-				Source.Voltaire_JsonRpc,
-			], fields: { $primaryName: true, $icon: true } }),
+	const actor = $derived(
+		subscribe(EntityType.EvmAccount,
+			selector.$actor,
+			({ sources: [
+					Source.Voltaire_JsonRpc,
+				], fields: { $primaryName: true, $icon: true } }),
+		),
 	)
 
-	const evmNetworkAccount = subscribe(EntityType.EvmNetworkAccount,
-		selector,
-		open ?
+	const evmNetworkAccount = $derived(
+		subscribe(EntityType.EvmNetworkAccount,
+			selector,
 			{
-				sources: [
-					Source.Blockscout_Rest,
-				],
+				...(open && {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				}),
 				fields: {
-					$$ownedCoins: {
-						sources: [
-							Source.Allium_Rest,
-						],
-					},
-					isContract: true,
-					$$transactions: true,
-					$$tokenTransfers: true,
-					$$internalTransfers: true,
-					transactionCount: true,
-					tokenTransferCount: true,
-					firstTransactionAt: true,
-					lastTransactionAt: true,
-					nftCount: true,
-					contractPositions: true,
+					...(open && {
+						$$ownedCoins: {
+							sources: [
+								Source.Allium_Rest,
+							],
+						},
+						isContract: true,
+						$$transactions: true,
+						$$tokenTransfers: true,
+						$$internalTransfers: true,
+						transactionCount: true,
+						tokenTransferCount: true,
+						firstTransactionAt: true,
+						lastTransactionAt: true,
+						nftCount: true,
+						contractPositions: true,
+					}),
 				},
-			}
-		:
-			{ fields: {} },
+			},
+		),
 	)
 
 

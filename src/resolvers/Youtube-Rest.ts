@@ -3,7 +3,6 @@ import { type } from 'arktype'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
@@ -55,7 +54,7 @@ export default {
 			resolve: {
 				[YouTubeChannelSelector.ChannelId]: async ({ channelId }, context) => {
 				const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
-				const d = (await singleFlight(getChannel)(context.publicEnv, channelId))
+				const d = (await getChannel(context.publicEnv, channelId))
 					.items?.[0]
 				if (d == null) throw new Error('Youtube_Rest: channel not found')
 				const customUrl = optionalNonemptyString(d.snippet?.customUrl)
@@ -110,7 +109,7 @@ export default {
 			resolve: {
 				[YouTubeVideoSelector.VideoId]: async ({ videoId }, context) => {
 				const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
-				const d = (await singleFlight(getVideo)(context.publicEnv, videoId))
+				const d = (await getVideo(context.publicEnv, videoId))
 					.items?.[0]
 				if (d == null) throw new Error('Youtube_Rest: video not found')
 				const channelId = optionalNonemptyString(d.snippet?.channelId)
@@ -212,7 +211,7 @@ export default {
 			resolve: {
 				[YouTubePlaylistSelector.PlaylistId]: async ({ playlistId }, context) => {
 				const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
-				const d = (await singleFlight(getPlaylist)(context.publicEnv, playlistId))
+				const d = (await getPlaylist(context.publicEnv, playlistId))
 					.items?.[0]
 				if (d == null) throw new Error('Youtube_Rest: playlist not found')
 				const channelId = optionalNonemptyString(d.snippet?.channelId)
@@ -262,11 +261,11 @@ export default {
 					getCommentThread,
 				} = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = context.publicEnv
-				const d = (await singleFlight(getComment)(publicEnv, commentId))
+				const d = (await getComment(publicEnv, commentId))
 					.items?.[0]
 				if (d == null) throw new Error('Youtube_Rest: comment not found')
 				const snippet = d.snippet
-				const videoId = optionalNonemptyString(snippet?.videoIdSelector) ?? videoIdSelector
+				const videoId = optionalNonemptyString(snippet?.videoId) ?? videoIdSelector
 				const parentId = optionalNonemptyString(snippet?.parentId)
 				const authorChannelId = (
 					typeof snippet?.authorChannelId === 'string' ?
@@ -276,7 +275,7 @@ export default {
 				)
 				const thread = (
 					parentId == null ?
-						(await singleFlight(getCommentThread)(publicEnv, commentId))
+						(await getCommentThread(publicEnv, commentId))
 							.items?.[0]
 					:
 						undefined
@@ -336,7 +335,7 @@ export default {
 			resolve: {
 				[YouTubeChannel_TimestampSelector.YouTubeChannelTimestampMs]: async ({ $channel }, context) => {
 				const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
-				const channel = (await singleFlight(getChannel)(context.publicEnv, $channel.channelId))
+				const channel = (await getChannel(context.publicEnv, $channel.channelId))
 					.items?.[0]
 				if (channel == null) throw new Error('Youtube_Rest: channel not found')
 				return {
@@ -365,7 +364,7 @@ export default {
 			resolve: {
 				[YouTubeVideo_TimestampSelector.YouTubeVideoTimestampMs]: async ({ $video }, context) => {
 				const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
-				const video = (await singleFlight(getVideo)(context.publicEnv, $video.videoId))
+				const video = (await getVideo(context.publicEnv, $video.videoId))
 					.items?.[0]
 				if (video == null) throw new Error('Youtube_Rest: video not found')
 				return {
@@ -398,12 +397,12 @@ export default {
 					getCommentThread,
 				} = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = context.publicEnv
-				const comment = (await singleFlight(getComment)(publicEnv, $comment.commentId))
+				const comment = (await getComment(publicEnv, $comment.commentId))
 					.items?.[0]
 				if (comment == null) throw new Error('Youtube_Rest: comment not found')
 				const thread = (
 					optionalNonemptyString(comment.snippet?.parentId) == null ?
-						(await singleFlight(getCommentThread)(publicEnv, $comment.commentId))
+						(await getCommentThread(publicEnv, $comment.commentId))
 							.items?.[0]
 					:
 						undefined
@@ -428,7 +427,7 @@ export default {
 			resolve: {
 				[YouTubePlaylist_TimestampSelector.YouTubePlaylistTimestampMs]: async ({ $playlist }, context) => {
 				const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
-				const playlist = (await singleFlight(getPlaylist)(context.publicEnv, $playlist.playlistId))
+				const playlist = (await getPlaylist(context.publicEnv, $playlist.playlistId))
 					.items?.[0]
 				if (playlist == null) throw new Error('Youtube_Rest: playlist not found')
 				return {
@@ -451,7 +450,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listPopularVideos)(publicEnv, limit)).items ?? [])
+					((await listPopularVideos(publicEnv, limit)).items ?? [])
 						.flatMap((video) => {
 							const channelId = optionalNonemptyString(video.snippet?.channelId)
 							if (channelId == null) return []
@@ -476,7 +475,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listPopularVideos)(publicEnv, limit)).items ?? [])
+					((await listPopularVideos(publicEnv, limit)).items ?? [])
 						.flatMap((video) => (
 							video.id == null ?
 								[]
@@ -507,13 +506,13 @@ export default {
 					const channelIds: string[] = [
 						...youtubeNetworkSeedChannels.map(({ channelId }) => channelId),
 					]
-				for (const video of ((await singleFlight(listPopularVideos)(publicEnv, limit)).items ?? [])) {
+				for (const video of ((await listPopularVideos(publicEnv, limit)).items ?? [])) {
 					const channelId = optionalNonemptyString(video.snippet?.channelId)
 					if (channelId != null) channelIds.push(channelId)
 				}
 				const refs: { [EntityMetaKey.Selector]: { playlistId: string } }[] = []
 				for (const channelId of channelIds) {
-					for (const playlist of ((await singleFlight(listChannelPlaylists)(publicEnv, channelId, limit)).items ?? [])) {
+					for (const playlist of ((await listChannelPlaylists(publicEnv, channelId, limit)).items ?? [])) {
 						const playlistId = optionalNonemptyString(playlist.id)
 						if (playlistId == null) continue
 						refs.push({
@@ -537,7 +536,7 @@ export default {
 			resolve: {
 				[YouTubeChannelSelector.ChannelId]: async (entitySelector, context) => {
 				const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
-				const channel = (await singleFlight(getChannel)(context.publicEnv, entitySelector.channelId))
+				const channel = (await getChannel(context.publicEnv, entitySelector.channelId))
 					.items?.[0]
 				if (channel == null) throw new Error('Youtube_Rest: channel not found')
 				return [
@@ -573,7 +572,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(searchChannelVideos)(publicEnv, channelId, limit)).items ?? [])
+					((await searchChannelVideos(publicEnv, channelId, limit)).items ?? [])
 						.flatMap((video) => (
 							video.id?.videoId == null ?
 								[]
@@ -596,7 +595,7 @@ export default {
 			resolve: {
 				[YouTubeChannelSelector.ChannelId]: async ({ channelId }, context) => {
 				const { getChannel } = await import('$/sources/Youtube/Rest/queries.ts')
-				const channel = (await singleFlight(getChannel)(context.publicEnv, channelId))
+				const channel = (await getChannel(context.publicEnv, channelId))
 					.items?.[0]
 				if (channel == null) throw new Error('Youtube_Rest: channel not found')
 				const count = Number(channel.statistics?.videoCount)
@@ -621,7 +620,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listChannelPlaylists)(publicEnv, channelId, limit)).items ?? [])
+					((await listChannelPlaylists(publicEnv, channelId, limit)).items ?? [])
 						.flatMap((video) => (
 							video.id == null ?
 								[]
@@ -644,7 +643,7 @@ export default {
 			resolve: {
 				[YouTubePlaylistSelector.PlaylistId]: async (entitySelector, context) => {
 				const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
-				const playlist = (await singleFlight(getPlaylist)(context.publicEnv, entitySelector.playlistId))
+				const playlist = (await getPlaylist(context.publicEnv, entitySelector.playlistId))
 					.items?.[0]
 				if (playlist == null) throw new Error('Youtube_Rest: playlist not found')
 				return [
@@ -674,7 +673,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listPlaylistItems)(publicEnv, playlistId, limit)).items ?? [])
+					((await listPlaylistItems(publicEnv, playlistId, limit)).items ?? [])
 						.flatMap((video) => (
 							((videoId) => (
 								videoId == null ?
@@ -702,7 +701,7 @@ export default {
 			resolve: {
 				[YouTubePlaylistSelector.PlaylistId]: async ({ playlistId }, context) => {
 				const { getPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
-				const playlist = (await singleFlight(getPlaylist)(context.publicEnv, playlistId))
+				const playlist = (await getPlaylist(context.publicEnv, playlistId))
 					.items?.[0]
 				if (playlist == null) throw new Error('Youtube_Rest: playlist not found')
 				if (playlist.contentDetails?.itemCount == null || playlist.contentDetails.itemCount < 0)
@@ -723,7 +722,7 @@ export default {
 			resolve: {
 				[YouTubeVideoSelector.VideoId]: async (entitySelector, context) => {
 				const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
-				const video = (await singleFlight(getVideo)(context.publicEnv, entitySelector.videoId))
+				const video = (await getVideo(context.publicEnv, entitySelector.videoId))
 					.items?.[0]
 				if (video == null) throw new Error('Youtube_Rest: video not found')
 				return [
@@ -767,7 +766,7 @@ export default {
 				}[] = []
 				let pageToken: string | undefined
 				while (refs.length < limit) {
-					const page = await singleFlight(listCommentThreads)(
+					const page = await listCommentThreads(
 						publicEnv,
 						videoId,
 						limit - refs.length,
@@ -805,7 +804,7 @@ export default {
 			resolve: {
 				[YouTubeVideoSelector.VideoId]: async ({ videoId }, context) => {
 				const { getVideo } = await import('$/sources/Youtube/Rest/queries.ts')
-				const video = (await singleFlight(getVideo)(context.publicEnv, videoId))
+				const video = (await getVideo(context.publicEnv, videoId))
 					.items?.[0]
 				if (video == null) throw new Error('Youtube_Rest: video not found')
 				const count = Number(video.statistics?.commentCount)
@@ -831,12 +830,12 @@ export default {
 					getCommentThread,
 				} = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = context.publicEnv
-				const comment = (await singleFlight(getComment)(publicEnv, entitySelector.commentId))
+				const comment = (await getComment(publicEnv, entitySelector.commentId))
 					.items?.[0]
 				if (comment == null) throw new Error('Youtube_Rest: comment not found')
 				const thread = (
 					optionalNonemptyString(comment.snippet?.parentId) == null ?
-						(await singleFlight(getCommentThread)(publicEnv, entitySelector.commentId))
+						(await getCommentThread(publicEnv, entitySelector.commentId))
 							.items?.[0]
 					:
 						undefined
@@ -869,20 +868,20 @@ export default {
 					listCommentReplies,
 				} = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = context.publicEnv
-				const parent = (await singleFlight(getComment)(publicEnv, commentIdSelector))
+				const parent = (await getComment(publicEnv, commentIdSelector))
 					.items?.[0]
 				if (parent?.snippet?.parentId != null && parent.snippet.parentId !== '') return []
 				const limit = resolverContextRowLimit(context)
 				const refs: {
 					[EntityMetaKey.Selector]: {
 						videoId: string
-						commentIdSelector: string
+						commentId: string
 					}
 					publishedAtMs?: number
 				}[] = []
 				let pageToken: string | undefined
 				while (refs.length < limit) {
-					const page = await singleFlight(listCommentReplies)(
+					const page = await listCommentReplies(
 						publicEnv,
 						commentIdSelector,
 						limit - refs.length,
@@ -922,11 +921,11 @@ export default {
 					getCommentThread,
 				} = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = context.publicEnv
-				const comment = (await singleFlight(getComment)(publicEnv, commentId))
+				const comment = (await getComment(publicEnv, commentId))
 					.items?.[0]
 				if (comment == null) throw new Error('Youtube_Rest: comment not found')
 				if (optionalNonemptyString(comment.snippet?.parentId) != null) return 0
-				const thread = (await singleFlight(getCommentThread)(publicEnv, commentId))
+				const thread = (await getCommentThread(publicEnv, commentId))
 					.items?.[0]
 				if (thread?.snippet?.totalReplyCount == null || thread.snippet.totalReplyCount < 0)
 					throw new Error('Youtube_Rest: comment reply count not found')

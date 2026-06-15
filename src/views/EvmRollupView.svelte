@@ -24,27 +24,22 @@
 
 	const rollup = subscribe(EntityType.EvmRollup,
 		selector,
-		(
-			open ?
-				{
-					sources: [
-						Source.L2Beat_Rest,
-					],
-					fields: {
-						$settlementNetwork: true,
-						name: true,
-						slug: true,
-						type: true,
-						category: true,
-						hostChain: true,
-						isArchived: true,
-						isUpcoming: true,
-						isUnderReview: true,
-					},
-				}
-			:
-				{ fields: {} }
-		),
+		{
+			sources: [
+				Source.L2Beat_Rest,
+			],
+			fields: {
+				$settlementNetwork: true,
+				name: true,
+				slug: true,
+				type: true,
+				category: true,
+				hostChain: true,
+				isArchived: true,
+				isUpcoming: true,
+				isUnderReview: true,
+			},
+		},
 	)
 
 

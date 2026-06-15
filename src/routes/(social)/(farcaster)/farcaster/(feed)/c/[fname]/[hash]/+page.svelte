@@ -8,7 +8,7 @@
 	let {
 		params,
 	} = $props()
-	const entitySelector = $derived(
+	const selector = $derived(
 		((hashPrefix) => (
 			hashPrefix instanceof arktype.errors ?
 				undefined
@@ -27,7 +27,7 @@
 
 
 <Page>
-	{#if entitySelector}
+	{#if selector}
 		<FarcasterCastView
 			variant="feed"
 			selector={selector}

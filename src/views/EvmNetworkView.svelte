@@ -4,8 +4,6 @@
 		consensusProtocolByProtocol,
 	} from '$/constants/EvmNetwork.ts'
 
-	import { catalogCoinUsdMarketIdByCoinId } from '$/constants/MarketCatalog.ts'
-
 	import {
 		NetworkEnvironment,
 		NetworkNamespace,
@@ -69,18 +67,24 @@
 		beaconRestBaseByExecutionChainId[chainId]?.consensusProtocol,
 	)
 
+	const showNetworkDetails = $derived(
+		layout !== EntityLayout.SummaryInline,
+	)
+
 	const networkCurrentUpgrade = $derived(
 		subscribe(
 			EntityType.EvmNetwork,
 			networkSelector,
 			{
 				fields: {
-					blockHeight: {
-						sources: [
-							Source.Voltaire_JsonRpc,
-						],
-					},
-					$$upgrades: true,
+					...(showNetworkDetails && {
+						blockHeight: {
+							sources: [
+								Source.Voltaire_JsonRpc,
+							],
+						},
+						$$upgrades: true,
+					}),
 				},
 			},
 		)
@@ -92,12 +96,14 @@
 			networkSelector,
 			{
 				fields: {
-					$$blocks: {
-						sources: [
-							Source.Voltaire_JsonRpc,
-						],
-						limit: 16,
-					},
+					...(showNetworkDetails && {
+						$$blocks: {
+							sources: [
+								Source.Voltaire_JsonRpc,
+							],
+							limit: 16,
+						},
+					}),
 				},
 			},
 		)
@@ -109,7 +115,7 @@
 			networkSelector,
 			{
 				fields: {
-					...(layout === EntityLayout.SummaryDetails && separateConsensusProtocol != null && {
+					...(showNetworkDetails && layout === EntityLayout.SummaryDetails && separateConsensusProtocol != null && {
 						$$beaconSlots: {
 							sources: [
 								Source.Beacon_Rest,
@@ -128,12 +134,14 @@
 			networkSelector,
 			{
 				fields: {
-					$$gasEstimateTimestamps: {
-						sources: [
-							Source.Etherscan_Rest,
-						],
-						limit: 1,
-					},
+					...(showNetworkDetails && layout === EntityLayout.SummaryDetails && {
+						$$gasEstimateTimestamps: {
+							sources: [
+								Source.Etherscan_Rest,
+							],
+							limit: 1,
+						},
+					}),
 				},
 			},
 		)
@@ -172,63 +180,69 @@
 	const network = $derived(
 		subscribe(EntityType.EvmNetwork,
 			networkSelector,
-			({ sources: [
-				Source.Constants_Internal,
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-				Source.Superchain_Github,
-				Source.Lifi_Rest,
-				...(
-					open ?
-						[
-							Source.MevRelay_Rest,
-						]
-					:
-						[]
-				),
-			], fields: { name: true, $$siblingShardNetworks: true, namespace: true, environment: true, consensusEndpoints: true, $icon: true, $nativeCoin: true, $nativeCoinInstance: true, shortName: true, registryStatus: true, slip44: true, peeringId: true, $$blockExplorerUrls: ({ sources: [
-					Source.Chainlist_Rest,
-					Source.EthereumLists_Rest,
-					Source.Lifi_Rest,
-				] }), $$faucetUrls: true, $$bridges: ({ sources: [
-					Source.Chainlist_Rest,
-					Source.EthereumLists_Rest,
-				] }), $rollup: ({ sources: [
-					Source.L2Beat_Rest,
-				] }), $$settledRollups: ({ sources: [
-					Source.L2Beat_Rest,
-				] }), $$upgrades: true, $$executionUpgrades: true, $$consensusUpgrades: true, consensusProtocol: ({ sources: [
-					Source.Constants_Internal,
-				] }), $parent: true, $$childLayers: true, $$testnets: ({ sources: [
-								Source.Superchain_Github,
-								Source.Chainlist_Rest,
-							] }), $mainnet: ({ sources: [
-								Source.Superchain_Github,
-								Source.Chainlist_Rest,
-							] }), ...(open && ({ $$gasFeeBlocks: ({ sources: [
-						Source.Voltaire_JsonRpc,
-					], limit: 64 }), $$gasEstimateTimestamps: ({ sources: [
-						Source.Etherscan_Rest,
-					], limit: 64 }), $$txpoolTimestamps: ({ sources: [
-						Source.Voltaire_JsonRpc,
-					], limit: 64 }), $$mevProposerPayloadDelivered: ({ sources: [
-						Source.MevRelay_Rest,
-					], limit: 32 }), $$beaconFinalityTimestamps: ({ sources: [
-						Source.Beacon_Rest,
-					], limit: 1 }), $$beaconValidators: ({ sources: [
-						Source.Beacon_Rest,
-					], limit: 48 }), $$erc4337SmartAccounts: ({ sources: [
-						Source.Blockscout_Rest,
-					], limit: 16 }), $$userOperations: ({ sources: [
-						Source.Blockscout_Rest,
-					], limit: 16 }), $$erc20TokenTransfers: ({ sources: [
-						Source.Blockscout_Rest,
-					], limit: 16 }), $$nftTokenTransfers: ({ sources: [
-						Source.Blockscout_Rest,
-					], limit: 16 }) })) } }),
+			({ sources: (
+				showNetworkDetails ?
+					[
+						Source.Constants_Internal,
+						Source.Chainlist_Rest,
+						Source.EthereumLists_Rest,
+						Source.Superchain_Github,
+						Source.Lifi_Rest,
+					]
+				:
+					[
+						Source.Constants_Internal,
+					]
+			), fields: {
+				name: true,
+				...(showNetworkDetails && {
+					$$siblingShardNetworks: true,
+					namespace: true,
+					environment: true,
+					consensusEndpoints: true,
+					$icon: true,
+					$nativeCoin: true,
+					$nativeCoinInstance: true,
+					shortName: true,
+					registryStatus: true,
+					slip44: true,
+					peeringId: true,
+					$$blockExplorerUrls: ({ sources: [
+						Source.Chainlist_Rest,
+						Source.EthereumLists_Rest,
+						Source.Lifi_Rest,
+					] }),
+					$$faucetUrls: true,
+					$$bridges: ({ sources: [
+						Source.Chainlist_Rest,
+						Source.EthereumLists_Rest,
+					] }),
+					$rollup: ({ sources: [
+						Source.L2Beat_Rest,
+					] }),
+					$$settledRollups: ({ sources: [
+						Source.L2Beat_Rest,
+					] }),
+					$$upgrades: true,
+					$$executionUpgrades: true,
+					$$consensusUpgrades: true,
+					consensusProtocol: ({ sources: [
+						Source.Constants_Internal,
+					] }),
+					$parent: true,
+					$$childLayers: true,
+					$$testnets: ({ sources: [
+						Source.Superchain_Github,
+						Source.Chainlist_Rest,
+					] }),
+					$mainnet: ({ sources: [
+						Source.Superchain_Github,
+						Source.Chainlist_Rest,
+					] }),
+				}),
+			} }),
 		)
 	)
-
 
 	// (Derived)
 	const resolvedHref = $derived(
@@ -290,7 +304,6 @@
 	import EvmNetworksView from '$/views/EvmNetworksView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import NetworksView from '$/views/NetworksView.svelte'
-	import MarketPriceView from '$/views/MarketPriceView.svelte'
 	import MevBuildersView from '$/views/MevBuildersView.svelte'
 	import MevRelaysView from '$/views/MevRelaysView.svelte'
 	import MevRelay_ProposerPayloadDeliveredRowsView from '$/views/MevRelay_ProposerPayloadDeliveredRowsView.svelte'
@@ -532,67 +545,43 @@
 				</div>
 			{/if}
 
-			<div>
-				<dt>Gas fee estimate</dt>
-				<dd>
-					<ResourceBoundary
-						resource={networkGasEstimate}
-						placeholderText="Loading gas estimate…"
-					>
-						{#snippet Pending()}
-							<span data-text="muted">—</span>
-						{/snippet}
-
-						{#snippet children(network)}
-							{@const gasEstimateSelector = (
-								network.fields.$$gasEstimateTimestamps?.values
-									.toSorted((leftTimestamp, rightTimestamp) => (
-										rightTimestamp[EntityMetaKey.Selector].timestampMs
-											- leftTimestamp[EntityMetaKey.Selector].timestampMs
-									))[0]
-									?.[EntityMetaKey.Selector]
-							)}
-							{#if gasEstimateSelector !== undefined}
-								<EvmNetwork_GasEstimate_TimestampView
-									selector={gasEstimateSelector}
-									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							{:else}
+			{#if layout === EntityLayout.SummaryDetails}
+				<div>
+					<dt>Gas fee estimate</dt>
+					<dd>
+						<ResourceBoundary
+							resource={networkGasEstimate}
+							placeholderText="Loading gas estimate…"
+						>
+							{#snippet Pending()}
 								<span data-text="muted">—</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+							{/snippet}
 
-			<div>
-				<dt>Native currency price</dt>
-				<dd>
-					<ResourceBoundary
-						resource={network}
-						placeholderText="Loading native currency…"
-					>
-						{#snippet children(network)}
-							{#if (
-								network.fields.$nativeCoin
-								&& catalogCoinUsdMarketIdByCoinId[network.fields.$nativeCoin[EntityMetaKey.Selector].coinId as keyof typeof catalogCoinUsdMarketIdByCoinId] !== undefined
-							)}
-								<MarketPriceView
-									selector={{
-										$market: catalogCoinUsdMarketIdByCoinId[network.fields.$nativeCoin[EntityMetaKey.Selector].coinId as keyof typeof catalogCoinUsdMarketIdByCoinId],
-									}}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">—</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+							{#snippet children(network)}
+								{@const gasEstimateSelector = (
+									network.fields.$$gasEstimateTimestamps?.values
+										.toSorted((leftTimestamp, rightTimestamp) => (
+											rightTimestamp[EntityMetaKey.Selector].timestampMs
+												- leftTimestamp[EntityMetaKey.Selector].timestampMs
+										))[0]
+										?.[EntityMetaKey.Selector]
+								)}
+								{#if gasEstimateSelector !== undefined}
+									<EvmNetwork_GasEstimate_TimestampView
+										selector={gasEstimateSelector}
+										layout={EntityLayout.Value}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{:else}
+									<span data-text="muted">—</span>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
 		</dl>
 
 		<dl data-column-item="center">
@@ -791,6 +780,7 @@
 	{#snippet Details({})}
 		<CollapsibleTabs
 			id={`${networkSelectorKey}:carousel-execution`}
+			open={false}
 			sectionIdPrefix={networkSelectorKey}
 			sections={[
 				{ id: 'execution-upgrades', label: 'Upgrades' },
@@ -923,6 +913,7 @@
 			{#if separateConsensusProtocol === ConsensusProtocol.EthereumBeacon}
 				<CollapsibleTabs
 					id={`${networkSelectorKey}:carousel-consensus`}
+					open={false}
 					sectionIdPrefix={networkSelectorKey}
 					sections={[
 						{ id: 'consensus-upgrades', label: 'Upgrades' },
@@ -1129,6 +1120,7 @@
 
 			<CollapsibleTabs
 				id={`${networkSelectorKey}:carousel-data-availability`}
+				open={false}
 				sectionIdPrefix={networkSelectorKey}
 				sections={[
 					{ id: 'data-availability-blobs', label: 'Blobs' },
@@ -1162,6 +1154,7 @@
 
 			<CollapsibleTabs
 				id={`${networkSelectorKey}:carousel-contracts-accounts`}
+				open={false}
 				sectionIdPrefix={networkSelectorKey}
 				sections={[
 					{ id: 'contracts-accounts-precompiles', label: 'Precompiles' },
@@ -1278,6 +1271,7 @@
 				{#snippet children(network)}
 					<CollapsibleTabs
 						id={`${networkSelectorKey}:carousel-assets`}
+						open={false}
 						sectionIdPrefix={networkSelectorKey}
 							sections={[
 								{ id: 'assets-native-coin', label: 'Native coin' },
@@ -1441,6 +1435,7 @@
 
 			<CollapsibleTabs
 				id={`${networkSelectorKey}:carousel-resources`}
+				open={false}
 				sectionIdPrefix={networkSelectorKey}
 				sections={[
 					{ id: 'resources-faucets', label: 'Faucets' },
@@ -1499,6 +1494,7 @@
 				{#snippet children(network)}
 					<CollapsibleTabs
 						id={`${networkSelectorKey}:carousel-topology`}
+						open={false}
 						sectionIdPrefix={networkSelectorKey}
 						sections={[
 							{ id: 'topology-upgrades', label: 'Upgrades' },

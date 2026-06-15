@@ -5,6 +5,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
@@ -43,6 +44,9 @@
 			{
 				fields: {
 					[entityFieldReference.fieldName]: {
+						sources: [
+							Source.Voltaire_JsonRpc,
+						],
 						limit: 16,
 					},
 				},

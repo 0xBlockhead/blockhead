@@ -2,7 +2,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -60,7 +59,7 @@ export default {
 				if (realm !== SpecificationRealm.Zcash || category !== ProposalCategory.Zip) {
 					throw new Error('ZcashZips_Github: proposal resolver only supports Zcash ZIPs')
 				}
-				const text = await singleFlight(getProposalRstText)({ number: number })
+				const text = await getProposalRstText({ number: number })
 				if (text.trim() === '') throw new Error('ZcashZips_Github: empty proposal text')
 				return {
 					documentCategory: zipMetadataValue(text, 'Category'),

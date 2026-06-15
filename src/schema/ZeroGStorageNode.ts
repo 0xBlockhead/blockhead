@@ -7,6 +7,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 export enum ZeroGStorageNodeSelector {
 	NetworkNodeId = 'networkNodeId',
@@ -38,7 +39,7 @@ export default {
 		{
 			name: 'nodeId',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: EvmAddress,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

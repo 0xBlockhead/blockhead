@@ -2,6 +2,8 @@
 	// Types/constants
 	import type { Snippet } from 'svelte'
 
+	import type { QueryResourceError } from '$/lib/db/queryResource.svelte.ts'
+
 
 	// State
 	let {
@@ -13,7 +15,7 @@
 		children?: Snippet
 		Pending?: Snippet
 		Failed?: Snippet<[
-			error: unknown,
+			error: QueryResourceError,
 			retry: () => void,
 		]>
 		boundaryKey?: string

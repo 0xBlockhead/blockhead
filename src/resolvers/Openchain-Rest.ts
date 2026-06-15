@@ -1,7 +1,6 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { EvmSelectorSelector } from '$/schema/EvmSelector.ts'
@@ -18,7 +17,7 @@ export default {
 				[EvmSelectorSelector.Hex]: async ({ hex }) => {
 				const { getFunctionEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
-					signatures: (await singleFlight(getFunctionEntries)({ hex: hex })).map(
+					signatures: (await getFunctionEntries({ hex: hex })).map(
 						(signatureEntry) => signatureEntry.name,
 					),
 				}
@@ -36,7 +35,7 @@ export default {
 				[EvmTopicSelector.Hex]: async ({ hex }) => {
 				const { getEventEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
-					signatures: (await singleFlight(getEventEntries)({ hex: hex })).map(
+					signatures: (await getEventEntries({ hex: hex })).map(
 						(signatureEntry) => signatureEntry.name,
 					),
 				}
@@ -54,7 +53,7 @@ export default {
 				[EvmErrorSelector.Hex]: async ({ hex }) => {
 				const { getErrorEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
-					signatures: (await singleFlight(getErrorEntries)({ hex: hex })).map(
+					signatures: (await getErrorEntries({ hex: hex })).map(
 						(signatureEntry) => signatureEntry.name,
 					),
 				}

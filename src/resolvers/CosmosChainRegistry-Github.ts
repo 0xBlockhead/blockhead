@@ -110,7 +110,7 @@ export default {
 				const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
 				const asset = (await getAssetList({
 					chainName: chainNameForNetwork($network),
-				})).assets.find((registryAsset) => registryAsset.base === entitySelector.assetKey)
+				})).assets.find((registryAsset) => registryAsset.base === assetKey)
 				if (asset == null) throw new Error(`CosmosChainRegistry_Github: asset not found for ${assetKey}`)
 				return assetInstanceFields(asset)
 			}

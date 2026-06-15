@@ -55,7 +55,7 @@ const attach = { timeout: 120_000 } as const
 test.describe('/coins routes', () => {
 	test.describe.configure({ timeout: 180_000 })
 
-	test('coins list renders catalog and hub carousels', async ({ page }, testInfo) => {
+	test('coins list renders catalog with closed heavy hubs', async ({ page }, testInfo) => {
 		testInfo.setTimeout(180_000)
 		const { step } = setupFailFast(page)
 
@@ -74,13 +74,9 @@ test.describe('/coins routes', () => {
 		await step(expect(page.locator('#coins .coins-view-collapsible-markets')).toBeAttached(attach))
 		await step(expect(page.locator('#coins .coins-view-collapsible-deployments')).toBeAttached(attach))
 		await step(expect(page.locator('#coins a[data-scroll-marker-label="Spot quote index"]').first()).toBeAttached(attach))
-		await step(expect(page.locator('#coins [id="coins:prices-spot"] a[href*="/market/"]').first()).toBeAttached(attach))
-		await step(expect(page.locator('#coins [id="coins:ohlc-candles-preview"]').getByText('OHLC', { exact: false }).first()).toBeAttached(attach))
-		await step(expect(
-			page.locator('#coins [id="coins:markets-index"] a[href*="/market/"]').first().or(
-				page.locator('#coins [id="coins:markets-index"]').getByText('No markets in this context yet.'),
-			),
-		).toBeAttached(attach))
+		await step(expect(page.locator('#coins [id="coins:prices-spot"]')).toHaveCount(0))
+		await step(expect(page.locator('#coins [id="coins:ohlc-candles-preview"]')).toHaveCount(0))
+		await step(expect(page.locator('#coins [id="coins:markets-index"]')).toHaveCount(0))
 	})
 
 	test('coin detail ETH renders markets and deployments', async ({ page }, testInfo) => {

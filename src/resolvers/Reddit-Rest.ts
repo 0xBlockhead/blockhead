@@ -2,7 +2,6 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { timestampMsFromUnixSeconds } from '$/lib/time.ts'
 import {
@@ -95,7 +94,7 @@ export default {
 			resolve: {
 				[RedditSubredditSelector.Name]: async ({ name }, context) => {
 				const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
-				const subredditAbout = (await singleFlight(getSubredditAbout)(context.publicEnv, name)).data
+				const subredditAbout = (await getSubredditAbout(context.publicEnv, name)).data
 				return {
 					title: optionalNonemptyString(subredditAbout.title),
 					publicDescription: optionalNonemptyString(subredditAbout.public_description),
@@ -135,7 +134,7 @@ export default {
 			resolve: {
 				[RedditLinkSelector.Fullname]: async ({ fullname }, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, fullname))
+				const redditThing = (await getInfo(context.publicEnv, fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't3') throw new Error('Reddit_Rest: link not found')
@@ -183,7 +182,7 @@ export default {
 			resolve: {
 				[RedditCommentSelector.Fullname]: async ({ fullname }, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, fullname))
+				const redditThing = (await getInfo(context.publicEnv, fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't1') throw new Error('Reddit_Rest: comment not found')
@@ -228,7 +227,7 @@ export default {
 			resolve: {
 				[RedditSubreddit_TimestampSelector.RedditSubredditTimestampMs]: async ({ $subreddit }, context) => {
 				const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
-				const subredditAbout = (await singleFlight(getSubredditAbout)(context.publicEnv, $subreddit.name)).data
+				const subredditAbout = (await getSubredditAbout(context.publicEnv, $subreddit.name)).data
 				return {
 					...(subredditAbout.subscribers != null && { subscriberCount: subredditAbout.subscribers }),
 					...(subredditAbout.active_user_count != null && {
@@ -249,7 +248,7 @@ export default {
 			resolve: {
 				[RedditLink_TimestampSelector.RedditLinkTimestampMs]: async ({ $link }, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, $link.fullname))
+				const redditThing = (await getInfo(context.publicEnv, $link.fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't3') throw new Error('Reddit_Rest: link not found')
@@ -273,7 +272,7 @@ export default {
 			resolve: {
 				[RedditComment_TimestampSelector.RedditCommentTimestampMs]: async ({ $comment }, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, $comment.fullname))
+				const redditThing = (await getInfo(context.publicEnv, $comment.fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't1') throw new Error('Reddit_Rest: comment not found')
@@ -295,7 +294,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listPopularLinks)(publicEnv, limit)).data.children ?? [])
+					((await listPopularLinks(publicEnv, limit)).data.children ?? [])
 						.flatMap((child) => {
 							if (child.kind !== 't3') return []
 							const name = optionalNonemptyString(child.data.subreddit)
@@ -321,7 +320,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listPopularLinks)(publicEnv, limit)).data.children ?? [])
+					((await listPopularLinks(publicEnv, limit)).data.children ?? [])
 						.flatMap((child) => (
 							child.kind !== 't3' || child.data.name == null ?
 								[]
@@ -346,7 +345,7 @@ export default {
 			resolve: {
 				[RedditSubredditSelector.Name]: async (entitySelector, context) => {
 				const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
-				const data = (await singleFlight(getSubredditAbout)(context.publicEnv, entitySelector.name)).data
+				const data = (await getSubredditAbout(context.publicEnv, entitySelector.name)).data
 				return [
 					{
 						[EntityMetaKey.Selector]: {
@@ -373,7 +372,7 @@ export default {
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
 				return (
-					((await singleFlight(listSubredditLinks)(publicEnv, name, limit)).data.children ?? [])
+					((await listSubredditLinks(publicEnv, name, limit)).data.children ?? [])
 						.flatMap((child) => (
 							child.kind !== 't3' || child.data.name == null ?
 								[]
@@ -398,7 +397,7 @@ export default {
 			resolve: {
 				[RedditLinkSelector.Fullname]: async (entitySelector, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entitySelector.fullname))
+				const redditThing = (await getInfo(context.publicEnv, entitySelector.fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't3') throw new Error('Reddit_Rest: link not found')
@@ -431,7 +430,7 @@ export default {
 				const limit = resolverContextRowLimit(context)
 				const articleId = redditLinkArticleIdFromFullname(fullname)
 				return (
-					((await singleFlight(getLinkCommentsByArticleId)(publicEnv, articleId, limit))[1]?.data.children ?? [])
+					((await getLinkCommentsByArticleId(publicEnv, articleId, limit))[1]?.data.children ?? [])
 						.flatMap((child) => (
 							child.kind === 't1' && child.data.name != null ?
 								[{ [EntityMetaKey.Selector]: { fullname: child.data.name } }]
@@ -452,7 +451,7 @@ export default {
 			resolve: {
 				[RedditLinkSelector.Fullname]: async ({ fullname }, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, fullname))
+				const redditThing = (await getInfo(context.publicEnv, fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't3') throw new Error('Reddit_Rest: link not found')
@@ -474,7 +473,7 @@ export default {
 			resolve: {
 				[RedditCommentSelector.Fullname]: async (entitySelector, context) => {
 				const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-				const redditThing = (await singleFlight(getInfo)(context.publicEnv, entitySelector.fullname))
+				const redditThing = (await getInfo(context.publicEnv, entitySelector.fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't1') throw new Error('Reddit_Rest: comment not found')
@@ -502,7 +501,7 @@ export default {
 				const { getInfo, getLinkCommentsByArticleId } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = context.publicEnv
 				const limit = resolverContextRowLimit(context)
-				const redditThing = (await singleFlight(getInfo)(publicEnv, fullname))
+				const redditThing = (await getInfo(publicEnv, fullname))
 					.data
 					.children[0]
 				if (redditThing.kind !== 't1') {
@@ -514,7 +513,7 @@ export default {
 				}
 				const articleId = redditLinkArticleIdFromFullname(linkId)
 				const byParent = redditDirectReplyRefsByParentFromCommentForest(
-					((await singleFlight(getLinkCommentsByArticleId)(publicEnv, articleId, limit))[1]?.data.children ?? []),
+					((await getLinkCommentsByArticleId(publicEnv, articleId, limit))[1]?.data.children ?? []),
 				)
 				return byParent.get(fullname) ?? []
 			}

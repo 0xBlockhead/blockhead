@@ -1,6 +1,5 @@
 import { type } from 'arktype'
 import EvmNetworkActorCoinBalance from '$/schema/EvmNetworkActorCoinBalance.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -13,7 +12,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 export enum EvmActorCoinAllowanceSelector {
-	EvmNetworkActorCoinBalanceEvmAccountInteropAddress = 'evmNetworkActorCoinBalanceEvmAccountInteropAddress',
+	EvmAccountEvmContractSpenderInteropAddress = 'evmAccountEvmContractSpenderInteropAddress',
 }
 
 
@@ -27,9 +26,10 @@ export default {
 
 	selectors: [
 		{
-			name: EvmActorCoinAllowanceSelector.EvmNetworkActorCoinBalanceEvmAccountInteropAddress,
+			name: EvmActorCoinAllowanceSelector.EvmAccountEvmContractSpenderInteropAddress,
 			fields: [
-				'$actorCoin',
+				'$actor',
+				'$contract',
 				'$spender',
 				'interopAddress',
 			],
@@ -37,6 +37,18 @@ export default {
 	],
 
 	fields: [
+		{
+			name: '$actor',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$contract',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$actorCoin',
 			type: EntityFieldType.EntityReference,
@@ -53,7 +65,7 @@ export default {
 			name: 'interopAddress',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'allowance',
@@ -88,29 +100,18 @@ export const toEvmActorCoinAllowanceEntitySelector = (
 	tokenContract: `0x${string}`,
 	spenderAddress: `0x${string}`,
 ): EntitySelector<typeof schema, EntityType.EvmActorCoinAllowance> => ({
-	$actorCoin: {
-		$actor: {
-			address,
-			interopAddress: address,
-		},
-		$coinInstance: {
-			$network: {
-				caip2: {
-					namespace: 'eip155' as const,
-					reference: String(chainId),
-				},
-			},
-			type: CoinInstanceType.Erc20Token,
-			$contract: {
-				$network: {
-					caip2: {
-						namespace: 'eip155' as const,
-						reference: String(chainId),
-					},
-				},
-				address: tokenContract,
+	$actor: {
+		address,
+		interopAddress: address,
+	},
+	$contract: {
+		$network: {
+			caip2: {
+				namespace: 'eip155' as const,
+				reference: String(chainId),
 			},
 		},
+		address: tokenContract,
 	},
 	$spender: {
 		address: spenderAddress,

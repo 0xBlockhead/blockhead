@@ -4,13 +4,11 @@
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -34,20 +32,8 @@
 		never
 	> = $props()
 
-	const calldata = subscribe(EntityType.EvmCalldata,
-		selector,
-		{
-			sources: [
-				Source.Voltaire_JsonRpc,
-			],
-			fields: {},
-		},
-	)
-
-
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -83,15 +69,10 @@
 	{/snippet}
 
 	{#snippet Content({})}
-		<ResourceBoundary
-			placeholderText="Loading calldata…"
-			resource={calldata}
-		>
-			{#snippet children(calldata)}
-				<div data-column="gap-1">
-				<dl data-column-item="center">
-					<div>
-						<dt>Contract call data length</dt>
+		<div data-column="gap-1">
+			<dl data-column-item="center">
+				<div>
+					<dt>Contract call data length</dt>
 						<dd>{String((selector.hex.length - 2) / 2)} bytes</dd>
 					</div>
 					{#if open}
@@ -106,8 +87,6 @@
 						</div>
 					{/if}
 				</dl>
-				</div>
-			{/snippet}
-		</ResourceBoundary>
+		</div>
 	{/snippet}
 </EntityView>

@@ -70,28 +70,16 @@ export const proxyFetch: typeof fetch = async (input, init) => {
 	)
 }
 
-export type CorsAwareFetchOptions =
-	| {
-		/** Provider-scoped rows — `corsEnabled` for `url`’s origin is read from here (single definition with `hooks` allow-list). */
-		origins: readonly SourceOrigin[]
-		init?: RequestInit
-		retry?: RetryOptions
-	}
-	| {
-		/** Escape hatch when the URL is not listed on a provider (ad-hoc RPC, arbitrary Blockscout host, …). */
-		corsEnabled: boolean
-		init?: RequestInit
-		retry?: RetryOptions
-	}
+export type CorsAwareFetchOptions = {
+	/** Provider-scoped rows — `corsEnabled` for `url`’s origin is read from here (single definition with `hooks` allow-list). */
+	origins: readonly SourceOrigin[]
+	init?: RequestInit
+	retry?: RetryOptions
+}
 
 const resolveCorsEnabled = (url: string, options: CorsAwareFetchOptions): boolean => (
-	'corsEnabled' in options ?
-		options.corsEnabled
-	:
-		(
-			options.origins.find((entry) => entry.origin === new URL(url).origin)?.corsEnabled ??
-			false
-		)
+	options.origins.find((entry) => entry.origin === new URL(url).origin)?.corsEnabled ??
+	false
 )
 
 const doFetch = async (

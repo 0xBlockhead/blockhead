@@ -59,7 +59,7 @@ export default {
 			name: 'txHash',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$block',
