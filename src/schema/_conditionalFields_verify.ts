@@ -33,6 +33,12 @@ const baseFields = [
 		cardinality: EntityFieldCardinality.Many,
 	},
 	{
+		name: 'indexedKinds',
+		type: EntityFieldType.Primitive,
+		primitiveType: type.valueOf(VerifyType).array(),
+		cardinality: EntityFieldCardinality.One,
+	},
+	{
 		name: '$ref',
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
@@ -46,6 +52,17 @@ const _condition = conditionalOn(
 	[
 		VerifyType.A,
 	]
+)
+
+const _indexedCondition = conditionalOn(
+	baseFields,
+	'indexedKinds',
+	[
+		VerifyType.A,
+	],
+	{
+		itemIndex: 0,
+	}
 )
 
 const fieldsWithConditional = [
@@ -70,6 +87,14 @@ conditionalOn(baseFields, 'optionalKind', [VerifyType.A])
 
 // @ts-expect-error discriminator must be singular
 conditionalOn(baseFields, 'manyKinds', [VerifyType.A])
+
+// @ts-expect-error indexed discriminator must specify item index
+conditionalOn(baseFields, 'indexedKinds', [VerifyType.A])
+
+// @ts-expect-error scalar discriminator cannot specify item index
+conditionalOn(baseFields, 'kind', [VerifyType.A], {
+	itemIndex: 0,
+})
 
 // @ts-expect-error discriminator cannot itself be conditional
 conditionalOn(fieldsWithConditional, 'conditional', ['value'])

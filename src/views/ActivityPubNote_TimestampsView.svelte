@@ -17,12 +17,17 @@
 		id,
 		title = 'Metric snapshots',
 		open = $bindable(false),
+		sources = [
+			Source.Mastodon_Rest,
+			Source.Fedi_Rest,
+		],
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActivityPubNote_Timestamp>
 		href: string
 		id: string
 		title?: string
 		open?: boolean
+		sources?: readonly Source[]
 	} = $props()
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
@@ -51,14 +56,8 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Mastodon_Rest,
-						Source.Fedi_Rest,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Mastodon_Rest,
-							Source.Fedi_Rest,
-						],
+				entityFieldReference.selector,({ sources, fields: { [entityFieldReference.fieldName]: {
+						sources,
 						limit: 64,
 					},
 				} }),

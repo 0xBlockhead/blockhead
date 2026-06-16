@@ -28,6 +28,10 @@
 		fieldOpen = true,
 		CollapsibleProps = {},
 		href,
+		sources = [
+			Source.Mastodon_Rest,
+			Source.Fedi_Rest,
+		],
 	}: {
 		id: string
 		limit?: number
@@ -39,6 +43,7 @@
 		fieldOpen?: boolean
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 		href?: ComponentProps<typeof EntitiesList>['href']
+		sources?: readonly Source[]
 	} = $props()
 
 
@@ -77,10 +82,7 @@
 					{
 						fields: {
 							[entityFieldReference.fieldName]: {
-								sources: [
-									Source.Mastodon_Rest,
-									Source.Fedi_Rest,
-								],
+								sources,
 								orderBy: [
 									[
 										({ fieldRow }) => fieldRow.localStatusId,

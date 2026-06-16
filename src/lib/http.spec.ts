@@ -8,6 +8,8 @@ import {
 import {
 	corsFetch,
 	fetchFailedMessage,
+	getJson,
+	getText,
 	jsonErrorHintFromResponse,
 	throwHttpError,
 } from '$/lib/http.ts'
@@ -99,6 +101,100 @@ describe('HTTP error helpers', () => {
 					signal: expect.any(AbortSignal),
 				})
 			)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('uses direct browser fetch for registered CORS-enabled provider origins', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('ok'))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+		try {
+			await corsFetch('https://registered.example/data', {
+				origins: [{
+					origin: 'https://registered.example',
+					corsEnabled: true,
+				}],
+			})
+			expect(fetchMock).toHaveBeenCalledWith(
+				'https://registered.example/data',
+				expect.objectContaining({
+					signal: expect.any(AbortSignal),
+				})
+			)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('does not require source origin metadata for same-origin relative URLs', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('ok'))
+		vi.stubGlobal('fetch', fetchMock)
+		try {
+			await corsFetch('/api/local', {
+				origins: [],
+			})
+			expect(fetchMock).toHaveBeenCalledWith(
+				'/api/local',
+				expect.objectContaining({
+					signal: expect.any(AbortSignal),
+				})
+			)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('retries provider 429 responses within the source-aware fetch path', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(new Response('rate limited', {
+				status: 429,
+				headers: {
+					'retry-after': '0',
+				},
+			}))
+			.mockResolvedValueOnce(new Response('ok'))
+		vi.stubGlobal('fetch', fetchMock)
+		try {
+			await expect(corsFetch('https://registered.example/data', {
+				origins: [{
+					origin: 'https://registered.example',
+					corsEnabled: true,
+				}],
+				retry: {
+					maxRetries: 1,
+				},
+			})).resolves.toHaveProperty('ok', true)
+			expect(fetchMock).toHaveBeenCalledTimes(2)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('preserves provider HTTP failures through JSON and text helpers', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(jsonResponse({
+				message: 'json failed',
+			}, 500))
+			.mockResolvedValueOnce(new Response('nope', {
+				status: 502,
+				statusText: 'Bad Gateway',
+			}))
+		vi.stubGlobal('fetch', fetchMock)
+		try {
+			await expect(getJson('https://registered.example/json', {
+				origins: [{
+					origin: 'https://registered.example',
+					corsEnabled: true,
+				}],
+			})).rejects.toThrow('Fetch failed (500 Internal Server Error) for https://registered.example/json: json failed')
+			await expect(getText('https://registered.example/text', {
+				origins: [{
+					origin: 'https://registered.example',
+					corsEnabled: true,
+				}],
+			})).rejects.toThrow('Fetch failed (502 Bad Gateway) for https://registered.example/text')
 		} finally {
 			vi.unstubAllGlobals()
 		}

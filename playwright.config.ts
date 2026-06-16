@@ -27,8 +27,8 @@ export default defineConfig({
 					command: './node_modules/.bin/dotenvx run -f .env.local -- ./node_modules/.bin/vite dev --host 127.0.0.1',
 					url: baseURL,
 					timeout: 240_000,
-					/** Dedicated server (`PLAYWRIGHT_DEDICATED_SERVER=1`): avoids stale reused Vite client chunks when another dev PID left `.svelte-kit/generated` mid-HMR (stop the dev server first if port 5173 is taken). */
-					reuseExistingServer: process.env.PLAYWRIGHT_DEDICATED_SERVER !== '1',
+					/** Opt-in reuse only: stale Vite/SvelteKit generated route state makes route-settlement failures non-deterministic. */
+					reuseExistingServer: process.env.PLAYWRIGHT_REUSE_EXISTING_SERVER === '1',
 				},
 			}),
 	testMatch: '**/*.e2e.{ts,js}',

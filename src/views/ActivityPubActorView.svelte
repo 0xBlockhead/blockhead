@@ -4,6 +4,8 @@
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { fediInstanceBySlug } from '$/constants/Fedi.ts'
+	import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -41,16 +43,19 @@
 
 	const idKey = $derived(stringify(selector))
 
+	const sources = $derived(
+		selector.instanceOrigin === mastodonInstanceByKey.mastodon_social.origin ?
+			[Source.Mastodon_Rest]
+		: selector.instanceOrigin === fediInstanceBySlug.fosstodon.origin ?
+			[Source.Fedi_Rest]
+		:
+			[]
+	)
+
 	const actor = $derived(
 		subscribe(EntityType.ActivityPubActor,
 			selector,
-			({ sources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			], fields: { localAccountId: true, username: true, acct: true, displayName: true, $icon: true, ...(open ? ({ note: true, profileUrl: true, activityStreamsUri: true, website: true, $$timestamps: ({ sources: [
-							Source.Mastodon_Rest,
-							Source.Fedi_Rest,
-						], limit: 1 }), createdAt: true, bot: true, locked: true, $headerImage: true }) : ({  })) } }),
+			({ sources, fields: { localAccountId: true, username: true, acct: true, displayName: true, $icon: true, ...(open ? ({ note: true, profileUrl: true, activityStreamsUri: true, website: true, $$timestamps: ({ sources, limit: 1 }), createdAt: true, bot: true, locked: true, $headerImage: true }) : ({  })) } }),
 		),
 	)
 
@@ -355,7 +360,7 @@
 									entityType: EntityType.ActivityPubActor,
 									selector: {
 										instanceOrigin: selector.instanceOrigin,
-										localAccountId: actor.fields.localAccountId,
+										localAccountId: 'localAccountId' in selector ? selector.localAccountId : actor.fields.localAccountId,
 									},
 									fieldName: '$$notes',
 								}}
@@ -363,6 +368,7 @@
 								id={`${idKey}:activity-notes-activityPubActors`}
 								orderByCreatedAt="desc"
 								placeholderText="Loading Mastodon outbox statuses…"
+								{sources}
 								title="Outbox"
 							/>
 						{/snippet}
@@ -380,15 +386,16 @@
 									entityType: EntityType.ActivityPubActor,
 									selector: {
 										instanceOrigin: selector.instanceOrigin,
-										localAccountId: actor.fields.localAccountId,
+										localAccountId: 'localAccountId' in selector ? selector.localAccountId : actor.fields.localAccountId,
 									},
 									fieldName: '$$timestamps',
 								}}
 								href={resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
 									instanceOrigin: encodeURIComponent(selector.instanceOrigin),
-									localAccountId: actor.fields.localAccountId,
+									localAccountId: 'localAccountId' in selector ? selector.localAccountId : actor.fields.localAccountId,
 								})}
 								id={`${idKey}:metric-snapshots`}
+								{sources}
 								title="Metric snapshots"
 							/>
 						{/snippet}

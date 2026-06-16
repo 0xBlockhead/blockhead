@@ -4,6 +4,8 @@
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { fediInstanceBySlug } from '$/constants/Fedi.ts'
+	import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 	import { mastodonVisibilityByVisibility } from '$/constants/Social/MastodonVisibility.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -46,6 +48,15 @@
 
 	const idKey = $derived(stringify(selector))
 
+	const sources = $derived(
+		selector.instanceOrigin === mastodonInstanceByKey.mastodon_social.origin ?
+			[Source.Mastodon_Rest]
+		: selector.instanceOrigin === fediInstanceBySlug.fosstodon.origin ?
+			[Source.Fedi_Rest]
+		:
+			[]
+	)
+
 	let contentWarningRevealed = $state(false)
 
 	$effect(() => {
@@ -58,10 +69,7 @@
 			EntityType.ActivityPubNote,
 			selector,
 			({
-				sources: [
-					Source.Mastodon_Rest,
-					Source.Fedi_Rest,
-				],
+				sources,
 				fields: {
 					content: true,
 					createdAt: true,
@@ -72,10 +80,7 @@
 						$inReplyTo: true,
 						$reblogOf: true,
 						$$timestamps: {
-							sources: [
-								Source.Mastodon_Rest,
-								Source.Fedi_Rest,
-							],
+							sources,
 							limit: 1,
 						},
 						visibility: true,
@@ -523,6 +528,7 @@
 					fieldOpen={_open}
 					orderByCreatedAt="asc"
 					placeholderText="Loading conversation…"
+					{sources}
 					title="Thread"
 				/>
 			{/snippet}
@@ -536,6 +542,7 @@
 					}}
 					href={href}
 					id={`${idKey}:metric-snapshots`}
+					{sources}
 					title="Metric snapshots"
 				/>
 			{/snippet}

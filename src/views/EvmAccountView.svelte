@@ -28,7 +28,8 @@
 		selector,
 		href = resolve('/account/[address]', { address: selector.address }),
 		title = 'Account',
-		open = $bindable(true),
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
@@ -36,6 +37,7 @@
 			selector: EntitySelector<typeof schema, EntityType.EvmAccount>
 			title?: string
 			href?: string
+			layout?: EntityLayout
 			open?: boolean
 			collapsible?: boolean
 		},
@@ -200,6 +202,7 @@
 	entitySelector={selector}
 	href={href}
 	{title}
+	{layout}
 	bind:open
 	{collapsible}
 	{...EntityViewProps}

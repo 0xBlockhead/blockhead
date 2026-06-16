@@ -144,6 +144,10 @@ describe('client resolver architecture', () => {
 			broadType,
 			'\\b',
 		].join(''))
+		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
+
+		expect(clientSource).not.toMatch(/\bas EntityFieldResolvedValue\b/)
+
 		for (const filePath of [
 			join(srcPath, 'schema', '$schema.ts'),
 			join(srcPath, 'sources', '$sources.ts'),
@@ -503,7 +507,32 @@ describe('client resolver architecture', () => {
 
 			expect(source, filePath).not.toMatch(/\bsingleFlight\b/)
 			expect(source, filePath).not.toMatch(/\$\/lib\/singleFlight\.ts/)
+			expect(source, filePath).not.toMatch(/\b(?:dedupe|memoize|memoized|cached[A-Z]\w*|cacheOnce|once[A-Z]\w*)\b/)
 		}
+	})
+
+	it('keeps resolver modules from waterfalling through product read surfaces', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			&& basename(path) !== '$resolvers.ts'
+			&& basename(path) !== 'index.ts'
+		))) {
+			const source = scannedSourceByFilePath[filePath]
+
+			expect(source, filePath).not.toMatch(/\$\/client\/\$client\.svelte\.ts/)
+			expect(source, filePath).not.toMatch(/\b(?:resolveEntity|resolveSnapshot|subscribeEntity)\b/)
+			expect(source, filePath).not.toMatch(/\bresolver\.resolve\(/)
+		}
+	})
+
+	it('keeps Constants_Internal resolvers as checked-in catalog projection only', () => {
+		const source = scannedSourceByFilePath[join(srcPath, 'resolvers', 'Constants.ts')]
+
+		expect(source).not.toMatch(/\$\/sources\/.*\/(?:client|queries|types)\.ts/)
+		expect(source).not.toMatch(/\$\/lib\/http\.ts/)
+		expect(source).not.toMatch(/\b(?:fetch|XMLHttpRequest|EventSource|corsFetch|getJson|getText)\s*\(/)
+		expect(source).not.toMatch(/\bcontext\.publicEnv\b/)
+		expect(source).not.toMatch(/\b(?:backfill|enrich|hydrateCatalog|runtimeCatalog)\b/)
 	})
 
 	it('keeps CoinGecko and LI.FI source modules from composing each other directly', () => {

@@ -427,6 +427,31 @@ describe('entity selectors', () => {
 			).toEqual([])
 	})
 
+	it('keeps indexed conditional discriminators on required primitive arrays', () => {
+		expect(
+			schema.flatMap((entityDefinition) => {
+				const fieldDefinitionByName = Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
+					fieldDefinition.name,
+					fieldDefinition,
+				]))
+				return entityFieldDefinitions(entityDefinition).flatMap((fieldDefinition) => {
+					if (fieldDefinition.when?.itemIndex == null)
+						return []
+
+					const discriminator = fieldDefinitionByName[fieldDefinition.when.fieldName]
+					return (
+						discriminator.type === EntityFieldType.Primitive
+						&& discriminator.cardinality === EntityFieldCardinality.One
+						&& !(discriminator.primitiveType(fieldDefinition.when.values) instanceof arktype.errors) ?
+							[]
+						:
+							[`${entityDefinition.entityType}.${fieldDefinition.name}.${fieldDefinition.when.fieldName}`]
+					)
+				})
+			})
+			).toEqual([])
+	})
+
 	it('keeps provisional network identifiers out of canonical CAIP-2 modeling', () => {
 		const provisionalNetworkNamespaces = new Set([
 			NetworkNamespace.Bittensor,

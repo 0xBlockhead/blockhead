@@ -15,5 +15,6 @@
 <Page>
 	<EvmAccountView
 		selector={data.selector}
+		open={false}
 	/>
 </Page>

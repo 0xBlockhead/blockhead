@@ -433,9 +433,9 @@ const materializeResolverFieldValue = <
 	schema: _Schema,
 	fieldDefinition: EntityFieldDefinition,
 	value: _Value
-): EntityFieldResolvedValue<_Schema, _EntityType, _FieldName> => {
+) => {
 	if (fieldDefinition.type === EntityFieldType.Primitive || value == null)
-		return value as EntityFieldResolvedValue<_Schema, _EntityType, _FieldName>
+		return value
 
 	const referenceEntityDefinition = schema.find((entityDefinition) => entityDefinition.entityType === fieldDefinition.entityType)
 	if (referenceEntityDefinition == null)
@@ -461,7 +461,7 @@ const materializeResolverFieldValue = <
 				...item,
 				[EntityMetaKey.SelectorKey]: entitySelectorKey(schema, referenceEntityDefinition, item[EntityMetaKey.Selector]),
 			}
-		}) as EntityFieldResolvedValue<_Schema, _EntityType, _FieldName>
+		})
 	}
 
 	if (
@@ -481,7 +481,7 @@ const materializeResolverFieldValue = <
 			referenceEntityDefinition,
 			value[EntityMetaKey.Selector]
 		),
-	} as EntityFieldResolvedValue<_Schema, _EntityType, _FieldName>
+	}
 }
 
 const countFilterKey = (
