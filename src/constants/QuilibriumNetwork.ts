@@ -3,23 +3,6 @@ import { TransportType } from '$/constants/TransportType.ts'
 
 // Constants
 
-export const quilibriumDocsEndpoints = [
-	{
-		url: 'https://docs.quilibrium.com',
-		transportType: TransportType.Http,
-		providerName: 'Quilibrium docs',
-	},
-	{
-		url: 'https://quilibrium.com',
-		transportType: TransportType.Http,
-		providerName: 'Quilibrium',
-	},
-] as const satisfies readonly {
-	url: string
-	transportType: TransportType
-	providerName: string
-}[]
-
 export const quilibriumNodeInterfaces = [
 	{
 		label: 'Node gRPC',

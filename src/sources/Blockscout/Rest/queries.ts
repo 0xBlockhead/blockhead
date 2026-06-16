@@ -1,8 +1,8 @@
 /**
- * Blockscout REST v2 reads. `queries.ts` is the entry resolvers use; it composes
- * `$/sources/Blockscout/Rest/client.ts` and wire normalization.
- * @see https://docs.blockscout.com/devs/apis/rest
- */
+	* Blockscout REST v2 reads. `queries.ts` is the entry resolvers use; it composes
+	* `$/sources/Blockscout/Rest/client.ts` and wire normalization.
+	* @see https://docs.blockscout.com/devs/apis/rest
+	*/
 
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { corsFetch } from '$/lib/http.ts'
@@ -15,6 +15,7 @@ import {
 import { type Type, type as arktype } from 'arktype'
 
 import type {
+	BlockscoutErrorEnvelope,
 	BlockscoutErc4337RegistryEntry,
 	BlockscoutAddressCounters,
 	BlockscoutAddressDetails,
@@ -29,6 +30,7 @@ import type {
 	BlockscoutUserOperationDetail,
 	BlockscoutUserOperationListItem,
 } from '$/sources/Blockscout/Rest/types.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const blockscoutStatsWireSchema = arktype({
 	'average_block_time?': 'number',
@@ -71,12 +73,12 @@ const timestampHex = (timestamp: string | undefined) => {
 const blockscoutItemsCount = (limit: number) => (
 	Math.min(
 		Math.max(Number.isFinite(limit) ? limit : 0, 0),
-		blockscoutV2ItemsCountMax,
+		blockscoutV2ItemsCountMax
 	)
 )
 
 const addressHash = (
-	wire: string | BlockscoutBlock['miner']   | BlockscoutTransaction['to']   | BlockscoutTransactionLog['address_hash'] | BlockscoutSmartContractForList['address_hash'] | undefined,
+	wire: string | BlockscoutBlock['miner']   | BlockscoutTransaction['to']   | BlockscoutTransactionLog['address_hash'] | BlockscoutSmartContractForList['address_hash'] | undefined
 ) => (
 	typeof wire === 'string' ?
 		wire
@@ -85,7 +87,7 @@ const addressHash = (
 )
 
 const blockscoutBlockWireAsRpcBlockHeader = (
-	wire: BlockscoutBlock,
+	wire: BlockscoutBlock
 ): RpcBlockHeader => ({
 	number: `0x${wire.height.toString(16)}`,
 	hash: wire.hash,
@@ -101,7 +103,7 @@ const blockscoutBlockWireAsRpcBlockHeader = (
 })
 
 export const blockscoutTransactionWireAsRpcTransaction = (
-	wire: BlockscoutTransaction,
+	wire: BlockscoutTransaction
 ): RpcTransaction => ({
 	blockHash: wire.block_hash,
 	blockNumber: wire.block_number != null ? `0x${wire.block_number.toString(16)}` : undefined,
@@ -121,7 +123,7 @@ export const blockscoutTransactionWireAsRpcTransaction = (
 
 export const blockscoutTransactionWireAsRpcReceipt = (
 	tx: BlockscoutTransaction,
-	logs: NonNullable<RpcReceipt['logs']>,
+	logs: NonNullable<RpcReceipt['logs']>
 ): RpcReceipt => ({
 	status: tx.status === 'ok' ? '0x1' : tx.status === 'error' ? '0x0' : undefined,
 	gasUsed: quantityHex(tx.gas_used),
@@ -132,7 +134,7 @@ export const blockscoutTransactionWireAsRpcReceipt = (
 })
 
 const blockscoutTransactionLogWiresAsRpcReceiptLogs = (
-	logs: BlockscoutTransactionLog[],
+	logs: BlockscoutTransactionLog[]
 ): RpcLog[] => (
 	logs.map((log) => {
 		const logAddress = addressHash(log.address_hash)
@@ -148,11 +150,11 @@ const blockscoutTransactionLogWiresAsRpcReceiptLogs = (
 )
 
 /**
- * Blockscout REST **`GET …/api/v2/stats`** — aggregated UI/market stats when enabled on the instance.
- * Not every deployment exposes this route; callers treat failures as optional enrichment.
- *
- * @see https://docs.blockscout.com/devs/apis/rest/stats-api
- */
+	* Blockscout REST **`GET …/api/v2/stats`** — aggregated UI/market stats when enabled on the instance.
+	* Not every deployment exposes this route; callers treat failures as optional enrichment.
+	*
+	* @see https://docs.blockscout.com/devs/apis/rest/stats-api
+	*/
 export const getStats = async ({
 	explorerOrigin,
 }: {
@@ -168,9 +170,9 @@ export const getStats = async ({
 		if (!res.ok) return null
 		const validated = blockscoutStatsWireSchema(await res.json())
 		return validated instanceof arktype.errors ?
-				null
-			:
-				validated
+			null
+		:
+			validated
 	} catch {
 		return null
 	}
@@ -298,7 +300,7 @@ export const getAddressTransactions = async ({
 
 /** Unique normalized tx hashes (`32`-byte lower-case `0x` hex) from transfer/internal wires. */
 export const getUniqueTransactionHashesFromWires = (
-	items: readonly { transaction_hash?: string | undefined }[],
+	items: readonly { transaction_hash?: string | undefined }[]
 ): `0x${string}`[] => {
 	const seen = new Set<string>()
 	const out: `0x${string}`[] = []
@@ -323,9 +325,8 @@ export const getAddressDetails = async ({
 	address: `0x${string}`
 }): Promise<BlockscoutAddressDetails> => {
 	const normalized = hexLowerOfByteSize(address, 20)
-	if (normalized == null) {
+	if (normalized == null)
 		throw new Error('Blockscout address detail: invalid address')
-	}
 	return getJson<BlockscoutAddressDetails>({
 		explorerOrigin,
 		path: `/addresses/${normalized}`,
@@ -341,9 +342,8 @@ export const getAddressCounters = async ({
 	address: `0x${string}`
 }): Promise<BlockscoutAddressCounters> => {
 	const normalized = hexLowerOfByteSize(address, 20)
-	if (normalized == null) {
+	if (normalized == null)
 		throw new Error('Blockscout address counters: invalid address')
-	}
 	return getJson<BlockscoutAddressCounters>({
 		explorerOrigin,
 		path: `/addresses/${normalized}/counters`,
@@ -492,7 +492,7 @@ export const getTransactionReceipt = async ({
 }
 
 export const normalizeAddressFromContractListWire = (
-	w: BlockscoutSmartContractForList,
+	w: BlockscoutSmartContractForList
 ): `0x${string}` | null => {
 	const h = addressHash(w.address ?? w.address_hash)
 	if (h == null || h === '') return null
@@ -519,11 +519,10 @@ export const getSmartContracts = async ({
 }
 
 const blockscoutLegacyAbiFromWire = (
-	wire: import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatus,
+	wire: import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatus
 ): string | null => {
-	if (wire.status === '1' && typeof wire.result === 'string' && wire.result.trim()) {
+	if (wire.status === '1' && typeof wire.result === 'string' && wire.result.trim())
 		return wire.result
-	}
 	if (wire.status !== '1' || !Array.isArray(wire.result)) return null
 	const row = wire.result[0]
 	const abi = row.ABI
@@ -630,37 +629,41 @@ export const getStorageAt = async ({
 	return result ?? null
 }
 
-const assertBlockscoutWireNoErrorPayload = (
-	wire: unknown,
-	debugLabel: string,
-) => {
-	if (wire !== null && typeof wire === 'object' && 'error' in wire) {
-		const rawErr = (wire as { error?: unknown }).error
-		if (rawErr != null && rawErr !== false && `${rawErr}`.length > 0) {
-			throw new Error(`${debugLabel}: ${String(rawErr)}`)
-		}
-	}
-	if (wire !== null && typeof wire === 'object' && 'errors' in wire) {
-		const rawErr = (wire as { errors?: unknown }).errors
-		if (rawErr != null && rawErr !== false && `${rawErr}`.length > 0) {
-			throw new Error(`${debugLabel}: errors ${JSON.stringify(rawErr)}`)
-		}
-	}
+const blockscoutErrorText = (error: JsonValue | undefined) => (
+	error == null || error === false || String(error).length === 0 ?
+		undefined
+	:
+		typeof error === 'string' ?
+			error
+		:
+			typeof error === 'number' || typeof error === 'bigint' || typeof error === 'boolean' ?
+				String(error)
+			:
+				JSON.stringify(error)
+)
+
+const assertBlockscoutWireNoErrorPayload = (wire: BlockscoutErrorEnvelope, debugLabel: string) => {
+	const error = blockscoutErrorText(wire.error)
+	if (error != null)
+		throw new Error(`${debugLabel}: ${error}`)
+
+	const errors = blockscoutErrorText(wire.errors)
+	if (errors != null)
+		throw new Error(`${debugLabel}: errors ${errors}`)
 }
 
 /**
- * ERC-4337 registry on Blockscout (`/proxy/account-abstraction/*`).
- * Detail paths require a `0x`-prefixed hash.
- */
+	* ERC-4337 registry on Blockscout (`/proxy/account-abstraction/*`).
+	* Detail paths require a `0x`-prefixed hash.
+	*/
 const blockscoutErc4337PathHash = (
 	value: `0x${string}`,
 	byteSize: 20 | 32,
-	label: string,
+	label: string
 ) => {
 	const normalized = hexLowerOfByteSize(value, byteSize)
-	if (normalized == null) {
+	if (normalized == null)
 		throw new Error(`${label}: invalid hash`)
-	}
 	return normalized
 }
 
@@ -673,18 +676,17 @@ const getBlockscoutErc4337TopRegistryList = async ({
 	limit: number
 	relativePath: string
 }): Promise<BlockscoutErc4337RegistryEntry[]> => {
-	if (limit <= 0) {
+	if (limit <= 0)
 		throw new Error(`Blockscout GET ${relativePath}: limit must be positive`)
-	}
 	const raw = await getJson<
-		BlockscoutPaginated<BlockscoutErc4337RegistryEntry> & { error?: unknown }
-	>({
-		explorerOrigin,
-		path: relativePath,
-		searchParams: {
-			page_size: blockscoutItemsCount(limit),
-		},
-	})
+		BlockscoutPaginated<BlockscoutErc4337RegistryEntry> & BlockscoutErrorEnvelope
+		>({
+			explorerOrigin,
+			path: relativePath,
+			searchParams: {
+				page_size: blockscoutItemsCount(limit),
+			},
+		})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
 	return raw.items
 }
@@ -700,7 +702,7 @@ const getBlockscoutErc4337RegistryDetail = async ({
 }): Promise<BlockscoutErc4337RegistryEntry> => {
 	const normalized = blockscoutErc4337PathHash(address, 20, 'Blockscout ERC-4337 registry detail')
 	const path = `${relativePath}/${normalized}`
-	const raw = await getJson<BlockscoutErc4337RegistryEntry & { error?: unknown }>({
+	const raw = await getJson<BlockscoutErc4337RegistryEntry & BlockscoutErrorEnvelope>({
 		explorerOrigin,
 		path,
 	})
@@ -717,14 +719,14 @@ export const getUserOperationsPage = async ({
 }): Promise<BlockscoutUserOperationListItem[]> => {
 	const relativePath = '/proxy/account-abstraction/operations'
 	const raw = await getJson<
-		BlockscoutPaginated<BlockscoutUserOperationListItem> & { error?: unknown }
-	>({
-		explorerOrigin,
-		path: relativePath,
-		searchParams: {
-			page_size: blockscoutItemsCount(limit),
-		},
-	})
+		BlockscoutPaginated<BlockscoutUserOperationListItem> & BlockscoutErrorEnvelope
+		>({
+			explorerOrigin,
+			path: relativePath,
+			searchParams: {
+				page_size: blockscoutItemsCount(limit),
+			},
+		})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
 	return raw.items
 }
@@ -741,15 +743,15 @@ export const getUserOperationsByTransaction = async ({
 	const normalized = blockscoutErc4337PathHash(txHash, 32, 'Blockscout user operations by transaction')
 	const relativePath = '/proxy/account-abstraction/operations'
 	const raw = await getJson<
-		BlockscoutPaginated<BlockscoutUserOperationListItem> & { error?: unknown }
-	>({
-		explorerOrigin,
-		path: relativePath,
-		searchParams: {
-			page_size: blockscoutItemsCount(limit),
-			transaction_hash: normalized,
-		},
-	})
+		BlockscoutPaginated<BlockscoutUserOperationListItem> & BlockscoutErrorEnvelope
+		>({
+			explorerOrigin,
+			path: relativePath,
+			searchParams: {
+				page_size: blockscoutItemsCount(limit),
+				transaction_hash: normalized,
+			},
+		})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
 	return raw.items
 }
@@ -764,11 +766,11 @@ export const getUserOperationDetail = async ({
 	const normalized = blockscoutErc4337PathHash(hash, 32, 'Blockscout user operation detail')
 	const path = `/proxy/account-abstraction/operations/${normalized}`
 	const raw = await getJson<
-		BlockscoutUserOperationDetail & { error?: unknown }
-	>({
-		explorerOrigin,
-		path,
-	})
+		BlockscoutUserOperationDetail & BlockscoutErrorEnvelope
+		>({
+			explorerOrigin,
+			path,
+		})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${path}`)
 	return raw
 }

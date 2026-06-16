@@ -14,7 +14,6 @@ export enum MarketVenueSelector {
 }
 
 
-
 export default {
 	entityType: EntityType.MarketVenue,
 

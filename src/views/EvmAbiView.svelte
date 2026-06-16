@@ -11,10 +11,6 @@
 		abi: EvmAbiEntry[] | undefined
 		emptyText?: string
 	} = $props()
-
-
-	// Functions
-	import { evmAbiEntrySignature } from '$/lib/evmAbi.ts'
 </script>
 
 
@@ -26,7 +22,16 @@
 			{#each abi as entry, index (String(index))}
 				<li>
 					<span data-text="annotation">{entry.type}</span>
-					<code>{evmAbiEntrySignature(entry)}</code>
+					<code>{
+						entry.name != null && entry.name !== '' ?
+							`${entry.name}(${(entry.inputs ?? []).map((input) => (
+								`${input.type}${input.indexed ? ' indexed' : ''}`
+							)).join(', ')})`
+						: (entry.inputs ?? []).length ?
+							`(${(entry.inputs ?? []).map((input) => input.type).join(', ')})`
+						:
+							entry.type
+					}</code>
 					{#if entry.stateMutability != null}
 						<span data-text="muted">{entry.stateMutability}</span>
 					{/if}

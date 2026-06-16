@@ -119,7 +119,7 @@ type ResolverCall = {
 
 const withExpectedCollectionErrors = async (
 	expectedMessages: readonly string[],
-	run: () => Promise<void>,
+	run: () => Promise<void>
 ) => {
 	const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 	const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -222,7 +222,7 @@ const fixtureEntityDefinition = {
 				'kind',
 				[
 					FixtureKind.Enabled,
-				],
+				]
 			),
 		},
 		{
@@ -235,7 +235,7 @@ const fixtureEntityDefinition = {
 				'id',
 				[
 					'parent',
-				],
+				]
 			),
 		},
 		{
@@ -251,7 +251,7 @@ const fixtureEntityDefinition = {
 				],
 				{
 					itemIndex: 1,
-				},
+				}
 			),
 		},
 		{
@@ -264,7 +264,7 @@ const fixtureEntityDefinition = {
 				'kind',
 				[
 					FixtureKind.Enabled,
-				],
+				]
 			),
 		},
 	],
@@ -281,7 +281,7 @@ const assertConditionalResultUnion = (
 				readonly count: true
 			}
 		}
-	}>,
+	}>
 ) => {
 	if (result.fields.kind === FixtureKind.Enabled) {
 		const totalCount: number | undefined = result.fields.conditionalTags.totalCount
@@ -307,7 +307,7 @@ const fixtureReference = (
 	id: string,
 	name: string,
 	rank: number,
-	category = 'public',
+	category = 'public'
 ): FixtureNetworkReference => ({
 	[EntityMetaKey.Selector]: {
 		id,
@@ -323,7 +323,7 @@ const fixtureReference = (
 })
 
 const fixtureReferenceValueKey = (
-	reference: FixtureNetworkReference,
+	reference: FixtureNetworkReference
 ) => `Entity:${stringify(reference[EntityMetaKey.SelectorKey])}`
 
 const fixtureSnapshots = {
@@ -426,7 +426,7 @@ const fixtureSnapshots = {
 } as const satisfies Record<string, FixtureSnapshot>
 
 const snapshotForEntitySelector = (
-	entitySelector: FixtureEntitySelector,
+	entitySelector: FixtureEntitySelector
 ) => (
 	'id' in entitySelector ?
 		Object.values(fixtureSnapshots).find((snapshot) => snapshot.id === entitySelector.id)
@@ -439,7 +439,7 @@ const createResolver = (
 	definitionIndex: number,
 	source: Source,
 	resolve: SourceResolverDefinition<typeof fixtureSchema, Source>['resolve'],
-	fields: SourceResolverDefinition<typeof fixtureSchema, Source>['fields'],
+	fields: SourceResolverDefinition<typeof fixtureSchema, Source>['fields']
 ): SourceResolverDefinition<typeof fixtureSchema, Source> => ({
 	definitionIndex,
 	source,
@@ -453,10 +453,10 @@ const createResolve = (
 	definitionIndex: number,
 	source: Source,
 	selectorName: string,
-	mode?: 'fail' | 'unsupported' | 'where',
+	mode?: 'fail' | 'unsupported' | 'where'
 ) => async (
 	entitySelector: FixtureEntitySelector,
-	context: ResolverContext,
+	context: ResolverContext
 ) => {
 	calls.push({
 		definitionIndex,
@@ -493,7 +493,7 @@ const fixtureResolverIndexes = (
 	calls: ResolverCall[],
 	liveStarts: FixtureLiveStart[] = [],
 	rootLiveStarts: FixtureRootLiveStart[] = [],
-	liveCleanups: string[] = [],
+	liveCleanups: string[] = []
 ): ResolverIndexes<typeof fixtureSchema> => {
 	const resolverDefinitions = [
 		createResolver(calls, 0, Source.Local_Internal, {
@@ -782,8 +782,8 @@ const fixtureResolverIndexes = (
 				},
 			],
 		})),
-		new Set(resolverDefinitions.map((resolver) => resolver.source)),
-	).resolverIndexes
+		new Set(resolverDefinitions.map((resolver) => resolver.source))
+		).resolverIndexes
 }
 
 const createFixtureContext = async () => {
@@ -829,7 +829,7 @@ const createFixtureContext = async () => {
 const fieldWhere = (
 	context: EntityCollectionsContext<typeof fixtureSchema>,
 	fieldName: '$$networks',
-	category = 'public',
+	category = 'public'
 ) => {
 	const query = new BaseQueryBuilder()
 		.from({
@@ -849,7 +849,7 @@ const networkIds = (
 		readonly fields: {
 			readonly $$networks: true
 		}
-	}>>>,
+	}>>>
 ) => result.fields.$$networks.values.map((value) => value.id)
 
 
@@ -1026,6 +1026,33 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		expect(resource.current?.fields.name).toBe('Parent')
 	})
 
+	it('does not start collection work until the resource is observed', async () => {
+		const { context } = await createFixtureContext()
+		const resource = subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			fields: {
+				name: true,
+				$$networks: {
+					count: true,
+				},
+			},
+		})
+
+		await new Promise((resolve) => setTimeout(resolve, 0))
+
+		expect(context.queryClient.getQueryCache().getAll()).toEqual([])
+		expect(context.events.collectionSync).toEqual([])
+
+		expect(resource.loading).toBe(true)
+		await expect.poll(() => context.events.collectionSync.map((event) => event.collection.kind)).toEqual(expect.arrayContaining([
+			'Field',
+			'Count',
+		]))
+		await resource
+		expect(resource.current?.fields.name).toBe('Parent')
+	})
+
 	it('rejects and exposes selected field collection errors on the resource', async () => {
 		await withExpectedCollectionErrors([
 			'all compatible Field Facets failed',
@@ -1092,11 +1119,11 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				entity[EntityMetaKey.SelectorKey] === entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
 					slug: 'parent-slug',
 				})
-			)),
-		).toMatchObject({
-			[EntityMetaKey.Source]: Source.Coingecko_Rest,
-			name: 'Slug Parent',
-		})
+			))
+			).toMatchObject({
+				[EntityMetaKey.Source]: Source.Coingecko_Rest,
+				name: 'Slug Parent',
+			})
 	})
 
 	it('reuses derived selector rows for later selector-equivalent entity requests', async () => {
@@ -1403,7 +1430,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				})),
 				inArray(entity[EntityMetaKey.Source], [
 					Source.Local_Internal,
-				]),
+				])
 			),
 		})
 		await expect.poll(() => context.events.collectionSync.some((event) => (
@@ -1490,81 +1517,510 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		expect(calls.length).toBeGreaterThan(0)
 	})
 
-	it('does not let implicit-source loaded markers hide missing compatible sources', async () => {
-		const firstContext = await createFixtureContext()
-		await subscribeEntity(firstContext.context, EntityType.Network, {
-			id: 'parent',
-		}, {
-			fields: {
-				$$networks: {
-					count: true,
-				},
-			},
+	it('records the same remote branch it uses when persisted row counts are incomplete', async () => {
+		const persistenceEvents: NonNullable<Window['__blockheadPersistenceProbe']> = []
+		vi.stubGlobal('window', {
+			__blockheadPersistenceProbe: persistenceEvents,
 		})
-		await expect.poll(() => firstContext.context.queryClient.isFetching()).toBe(0)
-
-		const entityLoadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
-			row.collectionId === `Entity:${EntityType.Network}`
-			&& row.rowCount > 0
-		))
-		const fieldLoadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
-			row.collectionId === `Field:${EntityType.Network}:$$networks`
-			&& row.rowCount > 0
-		))
-		const countLoadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
-			row.collectionId === `Count:${EntityType.Network}:$$networks`
-			&& row.rowCount > 0
-		))
-		if (
-			entityLoadedSubset == null
-			|| fieldLoadedSubset == null
-			|| countLoadedSubset == null
-		)
-			throw new Error('expected implicit-source loaded markers')
-
-		const { context, calls } = await createFixtureContext()
-		await subscribeEntity(context, EntityType.Network, {
-			id: 'parent',
-		}, {
-			sources: [
-				Source.Local_Internal,
-			],
-			fields: {
-				$$networks: {
-					sources: [
+		try {
+			const firstContext = await createFixtureContext()
+			await subscribeEntity(firstContext.context, EntityType.Network, {
+				id: 'parent',
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					$$networks: {
+						sources: [
+							Source.Local_Internal,
+						],
+						count: true,
+					},
+				},
+			})
+			await expect.poll(() => firstContext.context.queryClient.isFetching()).toBe(0)
+			const firstParentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+				id: 'parent',
+			})
+			const firstEntitySubscription = firstContext.context.entityCollections[EntityType.Network].subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (entity) => and(
+					eq(entity[EntityMetaKey.SelectorKey], firstParentSelectorKey),
+					inArray(entity[EntityMetaKey.Source], [
 						Source.Local_Internal,
-					],
-					count: true,
-				},
-			},
-		})
-		await expect.poll(() => context.queryClient.isFetching()).toBe(0)
-		await context.loadedSubsets.insert({
-			...entityLoadedSubset,
-			rowCount: 1,
-		}).isPersisted.promise
-		await context.loadedSubsets.insert({
-			...fieldLoadedSubset,
-			rowCount: 1,
-		}).isPersisted.promise
-		await context.loadedSubsets.insert({
-			...countLoadedSubset,
-			rowCount: 1,
-		}).isPersisted.promise
-		calls.splice(0)
+					])
+				),
+			})
+			await expect.poll(() => firstContext.context.entityCollections[EntityType.Network].toArray.some((entity) => (
+				entity[EntityMetaKey.SelectorKey] === firstParentSelectorKey
+				&& entity[EntityMetaKey.Source] === Source.Local_Internal
+			))).toBe(true)
+			firstEntitySubscription.unsubscribe()
 
-		await subscribeEntity(context, EntityType.Network, {
-			id: 'parent',
-		}, {
-			fields: {
-				$$networks: {
-					count: true,
-				},
-			},
-		})
-		await expect.poll(() => context.queryClient.isFetching()).toBe(0)
+			const { context, calls } = await createFixtureContext()
+			const countCollection = context.entityFieldCountCollections[EntityType.Network].$$networks
+			if (countCollection == null)
+				throw new Error('expected fixture count collection')
 
-		expect(calls.some((call) => call.source !== Source.Local_Internal)).toBe(true)
+			expect(context.queryClient.getQueryCache().getAll()).toHaveLength(0)
+			const parentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+				id: 'parent',
+			})
+			const entitySubscription = context.entityCollections[EntityType.Network].subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (entity) => and(
+					eq(entity[EntityMetaKey.SelectorKey], parentSelectorKey),
+					inArray(entity[EntityMetaKey.Source], [
+						Source.Local_Internal,
+					])
+				),
+			})
+			const fieldSubscription = context.entityFieldCollections[EntityType.Network].$$networks.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (field) => and(
+					eq(field[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+					inArray(field[EntityMetaKey.Source], [
+						Source.Local_Internal,
+					])
+				),
+			})
+			const countSubscription = countCollection.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (count) => and(
+					eq(count[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+					inArray(count[EntityMetaKey.Source], [
+						Source.Local_Internal,
+					])
+				),
+			})
+			await expect.poll(() => context.events.collectionSync.length).toBeGreaterThanOrEqual(3)
+			entitySubscription.unsubscribe()
+			fieldSubscription.unsubscribe()
+			countSubscription.unsubscribe()
+			context.queryClient.clear()
+			expect(context.queryClient.getQueryCache().getAll()).toHaveLength(0)
+			for (const entity of firstContext.context.entityCollections[EntityType.Network].toArray)
+				context.entityCollections[EntityType.Network].utils.writeUpsert(entity)
+			for (const field of firstContext.context.entityFieldCollections[EntityType.Network].$$networks.toArray)
+				context.entityFieldCollections[EntityType.Network].$$networks.utils.writeUpsert(field)
+			for (const count of firstContext.context.entityFieldCountCollections[EntityType.Network].$$networks?.toArray ?? [])
+				countCollection.utils.writeUpsert(count)
+			for (const loadedSubset of firstContext.context.loadedSubsets.toArray.filter((row) => (
+				[
+					`Entity:${EntityType.Network}`,
+					`Field:${EntityType.Network}:$$networks`,
+					`Count:${EntityType.Network}:$$networks`,
+				].includes(row.collectionId)
+			))) {
+				const loadedSubsetKey = stringify([
+					loadedSubset.collectionId,
+					loadedSubset.loadedKey,
+				])
+				if (context.loadedSubsets.has(loadedSubsetKey))
+					await context.loadedSubsets.update(loadedSubsetKey, (row) => {
+						row.rowCount = loadedSubset.rowCount + 100
+					}).isPersisted.promise
+				else
+					await context.loadedSubsets.insert({
+						...loadedSubset,
+						rowCount: loadedSubset.rowCount + 100,
+					}).isPersisted.promise
+			}
+			persistenceEvents.splice(0)
+
+			await subscribeEntity(context, EntityType.Network, {
+				id: 'parent',
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					$$networks: {
+						sources: [
+							Source.Local_Internal,
+						],
+						count: true,
+					},
+				},
+			})
+			await expect.poll(() => context.queryClient.isFetching()).toBe(0)
+
+			expect(calls.length).toBeGreaterThan(0)
+			const loadSubsetDecisions = persistenceEvents.flatMap((event) => (
+				event.kind === 'loadSubset' ?
+					[`${event.collectionId}:${event.decision}`]
+				:
+					[]
+			))
+			expect(loadSubsetDecisions).toEqual(expect.arrayContaining([
+				`Entity:${EntityType.Network}:remote`,
+				`Field:${EntityType.Network}:$$networks:remote`,
+				`Count:${EntityType.Network}:$$networks:remote`,
+			]))
+			expect(loadSubsetDecisions).not.toEqual(expect.arrayContaining([
+				`Entity:${EntityType.Network}:hydrated-rows`,
+				`Field:${EntityType.Network}:$$networks:hydrated-rows`,
+				`Count:${EntityType.Network}:$$networks:hydrated-rows`,
+			]))
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('records hydrated-row decisions for complete persisted field and count rows in a fresh query-cache-empty client', async () => {
+		const persistenceEvents: NonNullable<Window['__blockheadPersistenceProbe']> = []
+		vi.stubGlobal('window', {
+			__blockheadPersistenceProbe: persistenceEvents,
+		})
+		try {
+			const firstContext = await createFixtureContext()
+			await subscribeEntity(firstContext.context, EntityType.Network, {
+				id: 'parent',
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					$$networks: {
+						sources: [
+							Source.Local_Internal,
+						],
+						count: true,
+					},
+				},
+			})
+			await expect.poll(() => firstContext.context.queryClient.isFetching()).toBe(0)
+			const firstParentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+				id: 'parent',
+			})
+			const firstEntitySubscription = firstContext.context.entityCollections[EntityType.Network].subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (entity) => and(
+					eq(entity[EntityMetaKey.SelectorKey], firstParentSelectorKey),
+					inArray(entity[EntityMetaKey.Source], [
+						Source.Local_Internal,
+					])
+				),
+			})
+			await expect.poll(() => firstContext.context.entityCollections[EntityType.Network].toArray.some((entity) => (
+				entity[EntityMetaKey.SelectorKey] === firstParentSelectorKey
+				&& entity[EntityMetaKey.Source] === Source.Local_Internal
+			))).toBe(true)
+			firstEntitySubscription.unsubscribe()
+
+			const { context } = await createFixtureContext()
+			const countCollection = context.entityFieldCountCollections[EntityType.Network].$$networks
+			if (countCollection == null)
+				throw new Error('expected fixture count collection')
+
+			const parentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+				id: 'parent',
+			})
+			const entitySubscription = context.entityCollections[EntityType.Network].subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (entity) => and(
+					eq(entity[EntityMetaKey.SelectorKey], parentSelectorKey),
+					inArray(entity[EntityMetaKey.Source], [
+						Source.Local_Internal,
+					])
+				),
+			})
+			const fieldSubscription = context.entityFieldCollections[EntityType.Network].$$networks.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (field) => and(
+					eq(field[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+					inArray(field[EntityMetaKey.Source], [
+						Source.Local_Internal,
+					])
+				),
+			})
+			const countSubscription = countCollection.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (count) => and(
+					eq(count[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+					inArray(count[EntityMetaKey.Source], [
+						Source.Local_Internal,
+					])
+				),
+			})
+			await expect.poll(() => context.events.collectionSync.length).toBeGreaterThanOrEqual(3)
+			entitySubscription.unsubscribe()
+			fieldSubscription.unsubscribe()
+			countSubscription.unsubscribe()
+			context.queryClient.clear()
+			expect(context.queryClient.getQueryCache().getAll()).toHaveLength(0)
+			for (const entity of firstContext.context.entityCollections[EntityType.Network].toArray)
+				context.entityCollections[EntityType.Network].utils.writeUpsert(entity)
+			for (const field of firstContext.context.entityFieldCollections[EntityType.Network].$$networks.toArray)
+				context.entityFieldCollections[EntityType.Network].$$networks.utils.writeUpsert(field)
+			for (const count of firstContext.context.entityFieldCountCollections[EntityType.Network].$$networks?.toArray ?? [])
+				countCollection.utils.writeUpsert(count)
+			for (const loadedSubset of firstContext.context.loadedSubsets.toArray) {
+				const loadedSubsetKey = stringify([
+					loadedSubset.collectionId,
+					loadedSubset.loadedKey,
+				])
+				if (context.loadedSubsets.has(loadedSubsetKey))
+					await context.loadedSubsets.update(loadedSubsetKey, (row) => {
+						row.rowCount = loadedSubset.rowCount
+					}).isPersisted.promise
+				else
+					await context.loadedSubsets.insert(loadedSubset).isPersisted.promise
+			}
+			persistenceEvents.splice(0)
+
+			const result = await subscribeEntity(context, EntityType.Network, {
+				id: 'parent',
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					$$networks: {
+						sources: [
+							Source.Local_Internal,
+						],
+						count: true,
+					},
+				},
+			})
+			await expect.poll(() => context.queryClient.isFetching()).toBe(0)
+
+			expect(networkIds(result)).toEqual(expect.arrayContaining([
+				'network-a',
+				'network-b',
+				'network-c',
+			]))
+			expect(result.fields.$$networks.totalCount).toBe(3)
+			expect(persistenceEvents.flatMap((event) => (
+				event.kind === 'loadSubset' ?
+					[`${event.collectionId}:${event.decision}`]
+				:
+					[]
+			))).toEqual(expect.arrayContaining([
+				`Field:${EntityType.Network}:$$networks:hydrated-rows`,
+				`Count:${EntityType.Network}:$$networks:hydrated-rows`,
+			]))
+			expect(persistenceEvents.some((event) => (
+				event.kind === 'loadSubset'
+				&& event.decision === 'remote'
+				&& [
+					`Field:${EntityType.Network}:$$networks`,
+					`Count:${EntityType.Network}:$$networks`,
+				].includes(event.collectionId)
+			))).toBe(false)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('records loaded-marker decisions for persisted zero-row field and count subsets', async () => {
+		const persistenceEvents: NonNullable<Window['__blockheadPersistenceProbe']> = []
+		vi.stubGlobal('window', {
+			__blockheadPersistenceProbe: persistenceEvents,
+		})
+		try {
+			const firstContext = await createFixtureContext()
+			const firstCountCollection = firstContext.context.entityFieldCountCollections[EntityType.Network].$$networks
+			if (firstCountCollection == null)
+				throw new Error('expected fixture count collection')
+
+			const firstParentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+				id: 'parent',
+			})
+			const firstFieldSubscription = firstContext.context.entityFieldCollections[EntityType.Network].$$networks.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (field) => and(
+					eq(field[EntityMetaKey.ParentSelectorKey], firstParentSelectorKey),
+					inArray(field[EntityMetaKey.Source], [
+						Source.Amboss_Graphql,
+					])
+				),
+			})
+			const firstCountSubscription = firstCountCollection.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (count) => and(
+					eq(count[EntityMetaKey.ParentSelectorKey], firstParentSelectorKey),
+					inArray(count[EntityMetaKey.Source], [
+						Source.Amboss_Graphql,
+					])
+				),
+			})
+			firstFieldSubscription.requestSnapshot()
+			firstCountSubscription.requestSnapshot()
+			await expect.poll(() => firstContext.context.events.collectionSync.filter((event) => (
+				event.collection.kind === 'Field'
+				|| event.collection.kind === 'Count'
+			)).length).toBeGreaterThanOrEqual(2)
+			await expect.poll(() => firstContext.context.queryClient.isFetching()).toBe(0)
+			firstFieldSubscription.unsubscribe()
+			firstCountSubscription.unsubscribe()
+
+			const fieldLoadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
+				row.collectionId === `Field:${EntityType.Network}:$$networks`
+				&& row.rowCount === 0
+			))
+			const countLoadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
+				row.collectionId === `Count:${EntityType.Network}:$$networks`
+				&& row.rowCount === 0
+			))
+			if (
+				fieldLoadedSubset == null
+				|| countLoadedSubset == null
+			)
+				throw new Error('expected zero-row field and count loaded markers')
+
+			const { context, calls } = await createFixtureContext()
+			const countCollection = context.entityFieldCountCollections[EntityType.Network].$$networks
+			if (countCollection == null)
+				throw new Error('expected fixture count collection')
+
+			await context.loadedSubsets.insert(fieldLoadedSubset).isPersisted.promise
+			await context.loadedSubsets.insert(countLoadedSubset).isPersisted.promise
+			persistenceEvents.splice(0)
+			const parentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+				id: 'parent',
+			})
+			const fieldSubscription = context.entityFieldCollections[EntityType.Network].$$networks.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (field) => and(
+					eq(field[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+					inArray(field[EntityMetaKey.Source], [
+						Source.Amboss_Graphql,
+					])
+				),
+			})
+			const countSubscription = countCollection.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (count) => and(
+					eq(count[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+					inArray(count[EntityMetaKey.Source], [
+						Source.Amboss_Graphql,
+					])
+				),
+			})
+			fieldSubscription.requestSnapshot()
+			countSubscription.requestSnapshot()
+			await expect.poll(() => context.events.collectionSync.filter((event) => (
+				event.collection.kind === 'Field'
+				|| event.collection.kind === 'Count'
+			)).length).toBeGreaterThanOrEqual(2)
+			await expect.poll(() => context.queryClient.isFetching()).toBe(0)
+
+			expect(context.entityFieldCollections[EntityType.Network].$$networks.toArray).toEqual([])
+			expect(countCollection.toArray).toEqual([])
+			expect(calls).toEqual([])
+			expect(persistenceEvents.flatMap((event) => (
+				event.kind === 'loadSubset' ?
+					[`${event.collectionId}:${event.decision}`]
+				:
+					[]
+			))).toEqual(expect.arrayContaining([
+				`Field:${EntityType.Network}:$$networks:loaded-marker`,
+				`Count:${EntityType.Network}:$$networks:loaded-marker`,
+			]))
+			fieldSubscription.unsubscribe()
+			countSubscription.unsubscribe()
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('does not let implicit-source loaded markers hide missing compatible sources', async () => {
+		const persistenceEvents: NonNullable<Window['__blockheadPersistenceProbe']> = []
+		vi.stubGlobal('window', {
+			__blockheadPersistenceProbe: persistenceEvents,
+		})
+		try {
+			const firstContext = await createFixtureContext()
+			await subscribeEntity(firstContext.context, EntityType.Network, {
+				id: 'parent',
+			}, {
+				fields: {
+					$$networks: {
+						count: true,
+					},
+				},
+			})
+			await expect.poll(() => firstContext.context.queryClient.isFetching()).toBe(0)
+
+			const entityLoadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
+				row.collectionId === `Entity:${EntityType.Network}`
+				&& row.rowCount > 0
+			))
+			const fieldLoadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
+				row.collectionId === `Field:${EntityType.Network}:$$networks`
+				&& row.rowCount > 0
+			))
+			const countLoadedSubset = firstContext.context.loadedSubsets.toArray.find((row) => (
+				row.collectionId === `Count:${EntityType.Network}:$$networks`
+				&& row.rowCount > 0
+			))
+			if (
+				entityLoadedSubset == null
+				|| fieldLoadedSubset == null
+				|| countLoadedSubset == null
+			)
+				throw new Error('expected implicit-source loaded markers')
+
+			const { context, calls } = await createFixtureContext()
+			await subscribeEntity(context, EntityType.Network, {
+				id: 'parent',
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					$$networks: {
+						sources: [
+							Source.Local_Internal,
+						],
+						count: true,
+					},
+				},
+			})
+			await expect.poll(() => context.queryClient.isFetching()).toBe(0)
+			await context.loadedSubsets.insert({
+				...entityLoadedSubset,
+				rowCount: 1,
+			}).isPersisted.promise
+			await context.loadedSubsets.insert({
+				...fieldLoadedSubset,
+				rowCount: 1,
+			}).isPersisted.promise
+			await context.loadedSubsets.insert({
+				...countLoadedSubset,
+				rowCount: 1,
+			}).isPersisted.promise
+			calls.splice(0)
+			persistenceEvents.splice(0)
+
+			await subscribeEntity(context, EntityType.Network, {
+				id: 'parent',
+			}, {
+				fields: {
+					$$networks: {
+						count: true,
+					},
+				},
+			})
+			await expect.poll(() => context.queryClient.isFetching()).toBe(0)
+
+			expect(calls.some((call) => call.source !== Source.Local_Internal)).toBe(true)
+			expect(persistenceEvents.flatMap((event) => (
+				event.kind === 'loadSubset' ?
+					[`${event.collectionId}:${event.decision}`]
+				:
+					[]
+			))).toEqual(expect.arrayContaining([
+				`Entity:${EntityType.Network}:remote`,
+				`Field:${EntityType.Network}:$$networks:remote`,
+				`Count:${EntityType.Network}:$$networks:remote`,
+			]))
+		} finally {
+			vi.unstubAllGlobals()
+		}
 	})
 
 	it('resolves requested selectors through derived parent selectors at the field and count collection boundary', async () => {
@@ -1582,7 +2038,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				]),
 				inArray(fieldRow[EntityMetaKey.Source], [
 					Source.Local_Internal,
-				]),
+				])
 			),
 		})
 		const countCollection = context.entityFieldCountCollections[EntityType.Network].$$networks
@@ -1602,7 +2058,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				]),
 				inArray(count[EntityMetaKey.Source], [
 					Source.Local_Internal,
-				]),
+				])
 			),
 		})
 
@@ -1772,6 +2228,137 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		expect(calls).toEqual([])
 	})
 
+	it('hydrates completed subsets in a fresh client without TanStack Query cache entries', async () => {
+		const firstContext = await createFixtureContext()
+		const first = await subscribeEntity(firstContext.context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			sources: [
+				Source.Constants_Internal,
+				Source.Dune_Rest,
+				Source.Local_Internal,
+			],
+			fields: {
+				$$networks: {
+					sources: [
+						Source.Constants_Internal,
+						Source.Dune_Rest,
+					],
+					count: true,
+				},
+			},
+		})
+		await expect.poll(() => firstContext.context.queryClient.isFetching()).toBe(0)
+
+		expect(networkIds(first)).toEqual(expect.arrayContaining([
+			'network-a',
+			'network-d',
+		]))
+		expect(first.fields.$$networks.totalCount).toBe(2)
+
+		const secondContext = await createFixtureContext()
+		const countCollection = secondContext.context.entityFieldCountCollections[EntityType.Network].$$networks
+		if (countCollection == null)
+			throw new Error('expected fixture count collection')
+
+		const parentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+			id: 'parent',
+		})
+		const parentSlugSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+			slug: 'parent-slug',
+		})
+		expect(secondContext.context.queryClient.getQueryCache().getAll()).toHaveLength(0)
+		const entitySubscription = secondContext.context.entityCollections[EntityType.Network].subscribeChanges(() => {}, {
+			includeInitialState: true,
+			where: (entity) => and(
+				inArray(entity[EntityMetaKey.SelectorKey], [
+					parentSelectorKey,
+					parentSlugSelectorKey,
+				]),
+				inArray(entity[EntityMetaKey.Source], [
+					Source.Constants_Internal,
+					Source.Dune_Rest,
+					Source.Local_Internal,
+				])
+			),
+		})
+		const fieldSubscription = secondContext.context.entityFieldCollections[EntityType.Network].$$networks.subscribeChanges(() => {}, {
+			includeInitialState: true,
+			where: (field) => and(
+				inArray(field[EntityMetaKey.ParentSelectorKey], [
+					parentSelectorKey,
+					parentSlugSelectorKey,
+				]),
+				inArray(field[EntityMetaKey.Source], [
+					Source.Constants_Internal,
+					Source.Dune_Rest,
+					Source.Local_Internal,
+				])
+			),
+		})
+		const countSubscription = countCollection.subscribeChanges(() => {}, {
+			includeInitialState: true,
+			where: (count) => and(
+				inArray(count[EntityMetaKey.ParentSelectorKey], [
+					parentSelectorKey,
+					parentSlugSelectorKey,
+				]),
+				inArray(count[EntityMetaKey.Source], [
+					Source.Constants_Internal,
+					Source.Dune_Rest,
+					Source.Local_Internal,
+				])
+			),
+		})
+		await expect.poll(() => (
+			secondContext.context.events.collectionSync.filter((event) => (
+				event.collection.kind === 'Entity'
+				|| event.collection.kind === 'Field'
+			)).length
+		)).toBeGreaterThanOrEqual(2)
+		for (const entity of firstContext.context.entityCollections[EntityType.Network].toArray)
+			secondContext.context.entityCollections[EntityType.Network].utils.writeUpsert(entity)
+		for (const field of firstContext.context.entityFieldCollections[EntityType.Network].$$networks.toArray)
+			secondContext.context.entityFieldCollections[EntityType.Network].$$networks.utils.writeUpsert(field)
+		for (const count of firstContext.context.entityFieldCountCollections[EntityType.Network].$$networks?.toArray ?? [])
+			countCollection.utils.writeUpsert(count)
+		for (const loadedSubset of firstContext.context.loadedSubsets.toArray)
+			await secondContext.context.loadedSubsets.insert(loadedSubset).isPersisted.promise
+		const loadedSubsetCount = secondContext.context.loadedSubsets.size
+		secondContext.calls.splice(0)
+
+		const second = await subscribeEntity(secondContext.context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			sources: [
+				Source.Constants_Internal,
+				Source.Dune_Rest,
+				Source.Local_Internal,
+			],
+			fields: {
+				$$networks: {
+					sources: [
+						Source.Constants_Internal,
+						Source.Dune_Rest,
+					],
+					count: true,
+				},
+			},
+		})
+		await expect.poll(() => secondContext.context.queryClient.isFetching()).toBe(0)
+
+		expect(networkIds(second)).toEqual(expect.arrayContaining([
+			'network-a',
+			'network-d',
+		]))
+		expect(second.fields.$$networks.totalCount).toBe(2)
+		expect(secondContext.calls).toEqual([])
+		expect(secondContext.context.loadedSubsets.size).toBe(loadedSubsetCount)
+		entitySubscription.unsubscribe()
+		fieldSubscription.unsubscribe()
+		countSubscription.unsubscribe()
+	})
+
 	it('uses field-local source priority for scalar entity and field rows', async () => {
 		const { context } = await createFixtureContext()
 		const result = await subscribeEntity(context, EntityType.Network, {
@@ -1919,7 +2506,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 	})
 
 	it('keeps Source Priority as merge semantics while preserving declarative display order and window', async () => {
-		const { context } = await createFixtureContext()
+		const { context, calls } = await createFixtureContext()
 		const result = await subscribeEntity(context, EntityType.Network, {
 			id: 'parent',
 		}, {
@@ -1944,6 +2531,15 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 			'green',
 			'blue',
 		])
+		expect(calls.some((call) => (
+			call.source === Source.Local_Internal
+			&& call.context.pagination.limit === 3
+			&& call.context.pagination.offset === 0
+			&& !('where' in call.context)
+			&& !('orderBy' in call.context)
+			&& !('limit' in call.context)
+			&& !('cursor' in call.context)
+		))).toBe(true)
 	})
 
 	it('keeps complete-superset fallback subordinate to TanStack filtering', async () => {
@@ -2028,7 +2624,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 					inArray(fieldRow[EntityMetaKey.Source], [
 						Source.Etherscan_Rest,
 					]),
-					where,
+					where
 				),
 			})
 
@@ -2049,7 +2645,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				})),
 				inArray(entity[EntityMetaKey.Source], [
 					Source.Amboss_Graphql,
-				]),
+				])
 			),
 		})
 
@@ -2074,7 +2670,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				inArray(entity[EntityMetaKey.Source], [
 					Source.Local_Internal,
 					Source.Defillama_Rest,
-				]),
+				])
 			),
 		})
 
@@ -2099,7 +2695,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 					})),
 					inArray(entity[EntityMetaKey.Source], [
 						Source.Defillama_Rest,
-					]),
+					])
 				),
 			})
 
@@ -2121,7 +2717,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				})),
 				inArray(fieldRow[EntityMetaKey.Source], [
 					Source.Amboss_Graphql,
-				]),
+				])
 			),
 		})
 
@@ -2142,7 +2738,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				eq(fieldRow[EntityMetaKey.ParentSelectorKey], entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
 					id: 'parent',
 				})),
-				eq(fieldRow[EntityMetaKey.Source], Source.Local_Internal),
+				eq(fieldRow[EntityMetaKey.Source], Source.Local_Internal)
 			),
 		})
 
@@ -2172,7 +2768,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				inArray(fieldRow[EntityMetaKey.Source], [
 					Source.Local_Internal,
 					Source.Allium_Rest,
-				]),
+				])
 			),
 		})
 
@@ -2199,7 +2795,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 					})),
 					inArray(fieldRow[EntityMetaKey.Source], [
 						Source.Allium_Rest,
-					]),
+					])
 				),
 			})
 
@@ -2224,7 +2820,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				eq(fieldRow[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
 				inArray(fieldRow[EntityMetaKey.Source], [
 					Source.Amboss_Graphql,
-				]),
+				])
 			),
 		})
 
@@ -2250,7 +2846,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				inArray(fieldRow[EntityMetaKey.Source], [
 					Source.Amboss_Graphql,
 					Source.Allium_Rest,
-				]),
+				])
 			),
 		})
 
@@ -2279,7 +2875,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				})),
 				inArray(count[EntityMetaKey.Source], [
 					Source.Amboss_Graphql,
-				]),
+				])
 			),
 		})
 
@@ -2307,7 +2903,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				inArray(count[EntityMetaKey.Source], [
 					Source.Local_Internal,
 					Source.CoinMarketCap_Rest,
-				]),
+				])
 			),
 		})
 
@@ -2338,7 +2934,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 					})),
 					inArray(count[EntityMetaKey.Source], [
 						Source.CoinMarketCap_Rest,
-					]),
+					])
 				),
 			})
 
@@ -2352,60 +2948,64 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		})
 	})
 
-	it('keeps hydrated count rows when a later compatible source refresh fails', async () => {
-		const { context, calls } = await createFixtureContext()
-		const collection = context.entityFieldCountCollections[EntityType.Network].$$networks
-		if (collection == null)
-			throw new Error('expected fixture count collection')
+	it('keeps hydrated count rows visible while recording a later compatible source refresh failure', async () => {
+		await withExpectedCollectionErrors([
+			'all compatible Count Facets failed',
+		], async () => {
+			const { context, calls } = await createFixtureContext()
+			const collection = context.entityFieldCountCollections[EntityType.Network].$$networks
+			if (collection == null)
+				throw new Error('expected fixture count collection')
 
-		const parentSelector = {
-			id: 'parent',
-		}
-		const parentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, parentSelector)
-		const warmSubscription = collection.subscribeChanges(() => {}, {
-			includeInitialState: true,
-			where: (count) => and(
-				eq(count[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-				inArray(count[EntityMetaKey.Source], [
-					Source.Amboss_Graphql,
-				]),
-			),
+			const parentSelector = {
+				id: 'parent',
+			}
+			const parentSelectorKey = entitySelectorKey(fixtureSchema, fixtureEntityDefinition, parentSelector)
+			const warmSubscription = collection.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (count) => and(
+					eq(count[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+					inArray(count[EntityMetaKey.Source], [
+						Source.Amboss_Graphql,
+					])
+				),
+			})
+
+			await expect.poll(() => context.events.collectionSync.some((event) => (
+				event.collection.kind === 'Count'
+			))).toBe(true)
+			collection.utils.writeUpsert({
+				fieldName: '$$networks',
+				filterKey: stringify(countLoadedSubsetKey({})),
+				[EntityMetaKey.ParentSelector]: parentSelector,
+				[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
+				[EntityMetaKey.Source]: Source.Amboss_Graphql,
+				[EntityMetaKey.Value]: 17,
+			})
+			warmSubscription.unsubscribe()
+			calls.splice(0)
+
+			const refreshSubscription = collection.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (count) => and(
+					eq(count[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+					inArray(count[EntityMetaKey.Source], [
+						Source.Amboss_Graphql,
+						Source.CoinMarketCap_Rest,
+					])
+				),
+			})
+
+			await expect.poll(() => calls.some((call) => call.source === Source.CoinMarketCap_Rest)).toBe(true)
+			expect(collection.toArray.some((row) => (
+				row[EntityMetaKey.Source] === Source.Amboss_Graphql
+				&& row[EntityMetaKey.Value] === 17
+			))).toBe(true)
+			expect(context.queryClient.getQueryCache().getAll().some((query) => (
+				String(query.state.error).includes('all compatible Count Facets failed')
+			))).toBe(true)
+			refreshSubscription.unsubscribe()
 		})
-
-		await expect.poll(() => context.events.collectionSync.some((event) => (
-			event.collection.kind === 'Count'
-		))).toBe(true)
-		collection.utils.writeUpsert({
-			fieldName: '$$networks',
-			filterKey: stringify(countLoadedSubsetKey({})),
-			[EntityMetaKey.ParentSelector]: parentSelector,
-			[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
-			[EntityMetaKey.Source]: Source.Amboss_Graphql,
-			[EntityMetaKey.Value]: 17,
-		})
-		warmSubscription.unsubscribe()
-		calls.splice(0)
-
-		const refreshSubscription = collection.subscribeChanges(() => {}, {
-			includeInitialState: true,
-			where: (count) => and(
-				eq(count[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-				inArray(count[EntityMetaKey.Source], [
-					Source.Amboss_Graphql,
-					Source.CoinMarketCap_Rest,
-				]),
-			),
-		})
-
-		await expect.poll(() => calls.some((call) => call.source === Source.CoinMarketCap_Rest)).toBe(true)
-		expect(collection.toArray.some((row) => (
-			row[EntityMetaKey.Source] === Source.Amboss_Graphql
-			&& row[EntityMetaKey.Value] === 17
-		))).toBe(true)
-		expect(context.queryClient.getQueryCache().getAll().some((query) => (
-			String(query.state.error).includes('all compatible Count Facets failed')
-		))).toBe(false)
-		refreshSubscription.unsubscribe()
 	})
 
 	it('applies source priority to duplicate identities without collapsing duplicate resolver parts', async () => {
@@ -2749,6 +3349,219 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 		))).toBe(false)
 	})
 
+	for (const projectionCase of [
+		{
+			name: 'field-local source priority does not preload root source rows',
+			run: async () => {
+				const { context } = await createFixtureContext()
+				const result = await subscribeEntity(context, EntityType.Network, {
+					id: 'parent',
+				}, {
+					sources: [
+						Source.Local_Internal,
+					],
+					fields: {
+						name: {
+							sources: [
+								Source.Constants_Internal,
+								Source.Local_Internal,
+							],
+						},
+					},
+				})
+
+				expect(result.fields.name).toBe('Constants Parent')
+				expect(context.entityCollections[EntityType.Network].toArray.some((entity) => (
+					entity[EntityMetaKey.Source] === Source.Constants_Internal
+					&& entity[EntityMetaKey.SelectorKey] === entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+						id: 'parent',
+					})
+				))).toBe(false)
+			},
+		},
+		{
+			name: 'count rows outrank fallback counts and are not summed',
+			run: async () => {
+				const { context } = await createFixtureContext()
+				const result = await subscribeEntity(context, EntityType.Network, {
+					id: 'parent',
+				}, {
+					fields: {
+						$$networks: {
+							sources: [
+								Source.Constants_Internal,
+								Source.Local_Internal,
+							],
+							count: true,
+						},
+					},
+				})
+
+				expect(result.fields.$$networks.totalCount).toBe(2)
+				expect(result.fields.$$networks.values.map((network) => network.id)).toEqual(expect.arrayContaining([
+					'network-a',
+					'network-d',
+				]))
+				expect(context.entityFieldCountCollections[EntityType.Network].$$networks?.toArray.map((row) => [
+					row[EntityMetaKey.Source],
+					row[EntityMetaKey.Value],
+				])).toEqual(expect.arrayContaining([
+					[
+						Source.Constants_Internal,
+						2,
+					],
+					[
+						Source.Local_Internal,
+						3,
+					],
+				]))
+			},
+		},
+		{
+			name: 'selected nested refs project values plus selected child entities only',
+			run: async () => {
+				const { context } = await createFixtureContext()
+				const result = await subscribeEntity(context, EntityType.Network, {
+					id: 'parent',
+				}, {
+					fields: {
+						$$networks: {
+							sources: [
+								Source.Blockscout_Rest,
+							],
+							fields: {
+								name: {
+									sources: [
+										Source.Local_Internal,
+									],
+								},
+								tags: {
+									sources: [
+										Source.Local_Internal,
+									],
+									count: true,
+								},
+							},
+						},
+					},
+				})
+
+				expect(Object.keys(result.fields.$$networks).toSorted()).toEqual([
+					'entities',
+					'values',
+				])
+				expect(result.fields.$$networks.values.map((network) => network.id)).toEqual([
+					'network-a',
+					'network-b',
+					'network-c',
+				])
+				expect(result.fields.$$networks.entities.map((entity) => [
+					entity.fields.name,
+					entity.fields.tags.totalCount,
+				])).toEqual([
+					[
+						'Network A',
+						2,
+					],
+					[
+						'Network B',
+						1,
+					],
+					[
+						'Network C',
+						0,
+					],
+				])
+			},
+		},
+		{
+			name: 'conditional discriminator projection returns a typed matched branch',
+			run: async () => {
+				const { context } = await createFixtureContext()
+				const result = await subscribeEntity(context, EntityType.Network, {
+					id: 'parent',
+				}, {
+					fields: {
+						conditionalTags: {
+							sources: [
+								Source.Local_Internal,
+							],
+							count: true,
+						},
+					},
+				})
+
+				expect(result.fields.kind).toBe(FixtureKind.Enabled)
+				if (result.fields.kind !== FixtureKind.Enabled)
+					throw new Error('expected enabled conditional branch')
+
+				expect(Object.keys(result.fields.conditionalTags).toSorted()).toEqual([
+					'totalCount',
+					'values',
+				])
+				expect(result.fields.conditionalTags.values).toEqual([])
+				expect(result.fields.conditionalTags.totalCount).toBe(0)
+			},
+		},
+		{
+			name: 'compatible resolver failures keep successful values visible',
+			run: async () => {
+				const { context } = await createFixtureContext()
+				const result = await subscribeEntity(context, EntityType.Network, {
+					id: 'parent',
+				}, {
+					fields: {
+						tags: {
+							sources: [
+								Source.Local_Internal,
+								Source.Primal_Rest,
+							],
+							count: true,
+						},
+					},
+				})
+
+				expect(result.fields.tags.values).toEqual(expect.arrayContaining([
+					'red',
+					'green',
+					'blue',
+				]))
+				expect(result.fields.tags.totalCount).toBeUndefined()
+				expect(result.errors).toEqual([])
+			},
+		},
+		{
+			name: 'many-field projection exposes no stale list wrappers',
+			run: async () => {
+				const { context } = await createFixtureContext()
+				const result = await subscribeEntity(context, EntityType.Network, {
+					id: 'parent',
+				}, {
+					fields: {
+						tags: {
+							sources: [
+								Source.Local_Internal,
+							],
+						},
+					},
+				})
+
+				expect(Object.keys(result.fields.tags).toSorted()).toEqual([
+					'values',
+				])
+				expect(result.fields.tags).not.toHaveProperty('value')
+				expect(result.fields.tags).not.toHaveProperty('result')
+				expect(result.fields.tags).not.toHaveProperty('selector')
+				expect(result.fields.tags.values).toEqual(expect.arrayContaining([
+					'red',
+					'green',
+					'blue',
+				]))
+			},
+		},
+	] as const)
+		it(`projects subscribe invariant matrix: ${projectionCase.name}`, projectionCase.run)
+
 	it('keeps subscribed subscribeEntity resources live over collection writes', async () => {
 		const { context } = await createFixtureContext()
 		const resource = subscribeEntity(context, EntityType.Network, {
@@ -2946,7 +3759,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				eq(fieldRow[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
 				inArray(fieldRow[EntityMetaKey.Source], [
 					Source.Amboss_Graphql,
-				]),
+				])
 			),
 		})
 
@@ -3055,7 +3868,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 
 		const syncCount = (
 			kind: 'Field' | 'Count',
-			fieldName: '$$networks' | 'tags',
+			fieldName: '$$networks' | 'tags'
 		) => context.events.collectionSync.filter((event) => (
 			event.collection.kind === kind
 			&& event.collection.fieldName === fieldName
@@ -3290,7 +4103,7 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 				})),
 				inArray(fieldRow[EntityMetaKey.Source], [
 					Source.Amboss_Graphql,
-				]),
+				])
 			),
 		})
 

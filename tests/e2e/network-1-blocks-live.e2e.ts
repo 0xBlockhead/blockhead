@@ -14,7 +14,7 @@ const pageErrors = (issues: string[]) => (
 )
 
 const readBlocksDiagnostics = (
-	page: Page,
+	page: Page
 ) => page.evaluate(() => {
 	const probe = window.__blockheadClientProbe
 	if (probe == null)
@@ -27,7 +27,7 @@ const readBlocksDiagnostics = (
 })
 
 const readFieldSyncs = (
-	page: Page,
+	page: Page
 ) => page.evaluate(() => {
 	const probe = window.__blockheadClientProbe
 	if (probe == null)
@@ -46,7 +46,7 @@ const readFieldSyncs = (
 
 const assertOnlyRouteOwnedEvmNetworkFields = async (
 	page: Page,
-	routeOwnedFieldName: string,
+	routeOwnedFieldName: string
 ) => {
 	const fieldNames = (await readFieldSyncs(page)).flatMap((fieldSync) => (
 		fieldSync.entityType === 'EvmNetwork' ?
@@ -99,7 +99,7 @@ const assertNoFieldSyncs = async (
 	forbiddenFieldSyncs: {
 		entityType: string
 		fieldName: string
-	}[],
+	}[]
 ) => {
 	const fieldSyncs = await readFieldSyncs(page)
 	expect(fieldSyncs.filter((fieldSync) => (
@@ -115,7 +115,7 @@ const openEvmNetworkRoute = async (
 	pathname: string,
 	options: {
 		settle?: boolean
-	} = {},
+	} = {}
 ) => {
 	await installPersistenceProbe(page)
 	await installChainlistRpcsJsonStub(page)
@@ -140,7 +140,7 @@ const openEvmNetworkRoute = async (
 }
 
 const assertNoAccountAbstractionListRequests = (
-	requestUrls: string[],
+	requestUrls: string[]
 ) => {
 	expect(requestUrls.filter((url) => (
 		url.includes('/proxy/account-abstraction/accounts')
@@ -151,7 +151,7 @@ const assertNoAccountAbstractionListRequests = (
 }
 
 const assertNoAccountActivityRequests = (
-	requestUrls: string[],
+	requestUrls: string[]
 ) => {
 	expect(requestUrls.filter((url) => (
 		url.includes('/addresses/')
@@ -203,7 +203,7 @@ test.describe('EVM network nested routes only start route-owned field collection
 
 		expect(
 			pageErrors(issues),
-			pageErrors(issues).join('\n'),
+			pageErrors(issues).join('\n')
 		).toEqual([])
 	})
 
@@ -239,7 +239,7 @@ test.describe('EVM network nested routes only start route-owned field collection
 
 		expect(
 			pageErrors(issues),
-			pageErrors(issues).join('\n'),
+			pageErrors(issues).join('\n')
 		).toEqual([])
 	})
 
@@ -250,7 +250,7 @@ test.describe('EVM network nested routes only start route-owned field collection
 		} = await openEvmNetworkRoute(
 			page,
 			'/network/eip155:1/tx/0x31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca',
-			{ settle: false },
+			{ settle: false }
 		)
 
 		await expect(page.locator('#main')).toBeVisible()

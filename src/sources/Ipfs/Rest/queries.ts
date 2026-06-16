@@ -1,59 +1,16 @@
+import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
 import { corsFetch, jsonErrorHintFromResponse } from '$/lib/http.ts'
+import {
+	ipfsNamespaceForTarget,
+	trimIpfsSlashes,
+} from '$/lib/ipfs.ts'
 import Ipfs from '$/sources/Ipfs/index.ts'
-import { gatewayUrls } from '$/sources/Ipfs/Rest/constants.ts'
 import type {
 	IpfsBrowseResult,
 	IpfsNamespace,
-	ParsedIpfsBrowseInput,
 } from '$/sources/Ipfs/Rest/types.ts'
 
-const ipfsBrowseUriPattern = /^(ipfs|ipns):\/\/([^/?#]+)((?:\/[^?#]*)?)(?:[?#].*)?$/i
-const ipfsBrowseGatewayPattern = /^https?:\/\/[^/]+\/(ipfs|ipns)\/([^/?#]+)((?:\/[^?#]*)?)(?:[?#].*)?$/i
 const gatewayUrlLastSegment = /([^/]+)$/
-
-const trimSlashes = (value: string) => (
-	value.replace(/^\/+|\/+$/g, '')
-)
-
-const namespaceFromString = (value: string | undefined): IpfsNamespace | undefined => (
-	value === 'ipfs' || value === 'ipns' ?
-		value
-	:
-		undefined
-)
-
-export const parseBrowseInput = (value: string): ParsedIpfsBrowseInput => {
-	const trimmedValue = value.trim()
-	const uriMatch = ipfsBrowseUriPattern.exec(trimmedValue)
-	if (uriMatch != null) {
-		return {
-			namespace: namespaceFromString(uriMatch[1].toLowerCase()),
-			target: trimSlashes(uriMatch[2]),
-			contentPath: trimSlashes(uriMatch[3]),
-		}
-	}
-
-	const gatewayMatch = ipfsBrowseGatewayPattern.exec(trimmedValue)
-	if (gatewayMatch != null) {
-		return {
-			namespace: namespaceFromString(gatewayMatch[1].toLowerCase()),
-			target: trimSlashes(gatewayMatch[2]),
-			contentPath: trimSlashes(gatewayMatch[3]),
-		}
-	}
-
-	return {
-		target: trimSlashes(trimmedValue),
-		contentPath: '',
-	}
-}
-
-export const getNamespaceForTarget = (target: string): IpfsNamespace => (
-	/^(Qm[1-9A-HJ-NP-Za-km-z]{44}|bafy[a-z2-7]+|bafk[a-z2-7]+)$/i.test(target.trim()) ?
-		'ipfs'
-	:
-		'ipns'
-)
 
 const resolvedIpfsNamespace = ({
 	target,
@@ -62,7 +19,7 @@ const resolvedIpfsNamespace = ({
 	target: string
 	namespace?: IpfsNamespace
 }): IpfsNamespace => (
-	namespace ?? getNamespaceForTarget(target)
+	namespace ?? ipfsNamespaceForTarget(target)
 )
 
 export const getGatewayUrl = ({
@@ -76,8 +33,8 @@ export const getGatewayUrl = ({
 	contentPath?: string
 	gatewayOrigin: string
 }): string => {
-	const trimmedTarget = trimSlashes(target.trim())
-	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
+	const trimmedTarget = trimIpfsSlashes(target.trim())
+	const trimmedPath = trimIpfsSlashes(contentPath?.trim() ?? '')
 	return `${gatewayOrigin}/${resolvedIpfsNamespace({
 		target: trimmedTarget,
 		namespace,
@@ -95,15 +52,15 @@ export const fetchBrowseResult = async ({
 	contentPath?: string
 	signal?: AbortSignal
 }): Promise<IpfsBrowseResult> => {
-	const trimmedTarget = trimSlashes(target.trim())
-	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
+	const trimmedTarget = trimIpfsSlashes(target.trim())
+	const trimmedPath = trimIpfsSlashes(contentPath?.trim() ?? '')
 	const resolvedNamespace = resolvedIpfsNamespace({
 		target: trimmedTarget,
 		namespace,
 	})
 	const failures: string[] = []
 
-	for (const gatewayOrigin of gatewayUrls) {
+	for (const { origin: gatewayOrigin } of ipfsPublicGateways) {
 		const gatewayUrl = getGatewayUrl({
 			namespace: resolvedNamespace,
 			target: trimmedTarget,
@@ -121,13 +78,13 @@ export const fetchBrowseResult = async ({
 				hint ?
 					`${gatewayOrigin} (${response.status}): ${hint}`
 				:
-					`${gatewayOrigin} (${response.status} ${response.statusText})`,
+					`${gatewayOrigin} (${response.status} ${response.statusText})`
 			)
 			continue
 		}
 
-		const { parseIpfsContentResponse } = await import('$/lib/contentType.ts')
-		const parsedContent = await parseIpfsContentResponse({
+		const { parseContentResponse } = await import('$/sources/contentResponse.ts')
+		const parsedContent = await parseContentResponse({
 			response,
 			fileName: gatewayUrlLastSegment.exec(gatewayUrl)?.[1],
 		})
@@ -149,6 +106,6 @@ export const fetchBrowseResult = async ({
 	}
 
 	throw new Error(
-		`Unable to load ${resolvedNamespace}://${trimmedTarget}${trimmedPath ? `/${trimmedPath}` : ''} from public gateways: ${failures.join('; ')}`,
+		`Unable to load ${resolvedNamespace}://${trimmedTarget}${trimmedPath ? `/${trimmedPath}` : ''} from public gateways: ${failures.join('; ')}`
 	)
 }

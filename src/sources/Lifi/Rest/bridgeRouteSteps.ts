@@ -13,7 +13,7 @@ const NATIVE_LIFI_TOKEN_ADDRESSES = new Set([
 ])
 
 export const coinInstanceRefFromLifiToken = (
-	token: LifiToken | undefined,
+	token: LifiToken | undefined
 ) => (
 	token == null ?
 		undefined
@@ -47,7 +47,7 @@ export const coinInstanceRefFromLifiToken = (
 
 
 export const bridgeRouteStepMechanicsFromToolKey = (
-	toolKey: string | undefined,
+	toolKey: string | undefined
 ) => {
 	if (toolKey == null || toolKey.trim() === '') {
 		return {}
@@ -56,7 +56,7 @@ export const bridgeRouteStepMechanicsFromToolKey = (
 }
 
 export const lifiToolKeyFromQuoteStep = (
-	step: LifiQuoteStepLike,
+	step: LifiQuoteStepLike
 ) => (
 	step.tool.trim()
 	|| step.toolDetails?.key?.trim()
@@ -66,7 +66,7 @@ export const lifiToolKeyFromQuoteStep = (
 export const bridgeRouteStepEntityFieldsFromLifiQuoteStep = (
 	routeId: EntitySelector<typeof schema, EntityType.BridgeRoute>,
 	index: number,
-	step: LifiQuoteStepLike,
+	step: LifiQuoteStepLike
 ) => {
 	const toolKey = lifiToolKeyFromQuoteStep(step)
 	const fromTokenRef = coinInstanceRefFromLifiToken(step.action.fromToken)

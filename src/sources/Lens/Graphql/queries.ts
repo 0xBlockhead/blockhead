@@ -337,7 +337,7 @@ export const queryAccount = async (
 		| { address: `0x${string}` }
 		| { localName: string }
 		| { legacyProfileId: string }
-	),
+	)
 ) => {
 	const accountResponse = await (
 		'address' in entitySelector ?
@@ -346,7 +346,7 @@ export const queryAccount = async (
 				LensAccountByAddressDocument,
 				{
 					address: entitySelector.address,
-				},
+				}
 			)
 		: 'localName' in entitySelector ?
 			queryLens(
@@ -354,7 +354,7 @@ export const queryAccount = async (
 				LensAccountByLocalNameDocument,
 				{
 					localName: entitySelector.localName,
-				},
+				}
 			)
 		:
 			queryLens(
@@ -362,7 +362,7 @@ export const queryAccount = async (
 				LensAccountByLegacyProfileIdDocument,
 				{
 					legacyProfileId: entitySelector.legacyProfileId,
-				},
+				}
 			)
 	)
 
@@ -375,7 +375,7 @@ export const queryAccount = async (
 					LensAccountStatsDocument,
 					{
 						address: accountResponse.account.address,
-					},
+					}
 				)
 			:
 				{}
@@ -385,21 +385,21 @@ export const queryAccount = async (
 
 export const queryPost = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
-	postId: string,
+	postId: string
 ) => (
 	queryLens(
 		publicEnv,
 		LensPostDocument,
 		{
 			post: postId,
-		},
+		}
 	)
 )
 
 export const queryPostsByAuthor = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
 	address: `0x${string}`,
-	pageSize: 'TEN' | 'FIFTY' = 'TEN',
+	pageSize: 'TEN' | 'FIFTY' = 'TEN'
 ) => (
 	queryLens(
 		publicEnv,
@@ -407,27 +407,27 @@ export const queryPostsByAuthor = async (
 		{
 			address,
 			pageSize,
-		},
+		}
 	)
 )
 
 export const queryLatestPosts = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
-	pageSize: 'TEN' | 'FIFTY' = 'TEN',
+	pageSize: 'TEN' | 'FIFTY' = 'TEN'
 ) => (
 	queryLens(
 		publicEnv,
 		LensLatestPostsDocument,
 		{
 			pageSize,
-		},
+		}
 	)
 )
 
 export const queryPostComments = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
 	postId: string,
-	pageSize: 'TEN' | 'FIFTY' = 'TEN',
+	pageSize: 'TEN' | 'FIFTY' = 'TEN'
 ) => (
 	queryLens(
 		publicEnv,
@@ -435,6 +435,6 @@ export const queryPostComments = async (
 		{
 			post: postId,
 			pageSize,
-		},
+		}
 	)
 )

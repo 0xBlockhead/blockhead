@@ -30,7 +30,7 @@
 		Pending,
 		Failed,
 		placeholderText = 'Loading…',
-		resource,
+		resource: resourceRaw,
 		layout = Layout.Inline,
 	}: {
 		children: Snippet<[data: Data]>
@@ -44,9 +44,6 @@
 		layout?: Layout
 	} = $props()
 
-
-	// Components
-	import Boundary from '$/components/Boundary.svelte'
 </script>
 
 
@@ -98,23 +95,18 @@
 	{/if}
 {/snippet}
 
-<Boundary boundaryKey={placeholderText}>
-	{#if resource.error !== undefined}
-		{@render FailedContent(
-			resource.error,
-			() => {},
-		)}
-	{:else if resource.ready && resource.current !== undefined}
-		{@render children(resource.current)}
-	{:else}
-		{@render PendingContent()}
-	{/if}
+<svelte:boundary
+	onerror={(error) => {
+		console.error('[blockhead:boundary:uncaught]', placeholderText, error)
+	}}
+>
+	{@render children(await resourceRaw)}
 
-	{#snippet Pending()}
+	{#snippet pending()}
 		{@render PendingContent()}
 	{/snippet}
 
-	{#snippet Failed(
+	{#snippet failed(
 		error,
 		retry,
 	)}
@@ -123,7 +115,7 @@
 			retry,
 		)}
 	{/snippet}
-</Boundary>
+</svelte:boundary>
 
 
 <style>

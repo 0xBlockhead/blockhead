@@ -13,14 +13,14 @@
 		params,
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
+	const network = $derived(subscribe(EntityType.Network,
 		{
-			networkSlug: params.networkSlug,
+			slug: params.networkSlug,
 		},
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { namespace: true, slug: true } }),
-	)
+	))
 
 
 	// Components
@@ -38,7 +38,9 @@
 					entityFieldReference={{
 						entityType: EntityType.CosmosNetwork,
 						selector: {
-							networkSlug: network.fields.slug,
+							$network: {
+								slug: network.fields.slug,
+							},
 						},
 						fieldName: '$$governanceProposals',
 					}}

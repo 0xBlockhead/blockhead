@@ -7,9 +7,11 @@
 
 	import {
 		MarketAssetKind,
+	} from '$/constants/Market.ts'
+	import {
 		marketCatalogFieldSources,
 		marketSpotPriceSources,
-	} from '$/constants/Market.ts'
+	} from '$/sources/Source.ts'
 
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'

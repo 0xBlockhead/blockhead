@@ -13,7 +13,7 @@ export enum YouTubeCommentSelector {
 
 
 const YouTubeVideoId = type(
-	'/^[A-Za-z0-9_-]{11}$/' as type.cast<string>,
+	'/^[A-Za-z0-9_-]{11}$/' as type.cast<string>
 )
 
 export default {
@@ -67,18 +67,6 @@ export default {
 			name: '$author',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.YouTubeChannel,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'likeCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'replyCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

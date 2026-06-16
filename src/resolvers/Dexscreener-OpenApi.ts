@@ -21,224 +21,204 @@ export default {
 			entityType: EntityType.LiquidityPool,
 			resolve: {
 				[LiquidityPoolSelector.EvmNetworkId]: async ({ $network, id }) => {
-				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
-				const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
+					const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
+					const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 
-				const chainId = Number($network.caip2.reference)
-				const apiChainId = apiChainIdByChainId[chainId]
-				if (apiChainId == null) {
-					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
-				}
-				const latestDexPair = (
-					(await getLatestPairs({
-						chainId: apiChainId,
-						pairId: id,
-					})).pairs?.[0]
-				)
+					const chainId = Number($network.caip2.reference)
+					const apiChainId = apiChainIdByChainId[chainId]
+					if (apiChainId == null)
+						throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
 
-				if (latestDexPair == null) {
-					throw new Error('Dexscreener_OpenApi: liquidity pool / pair not found for id')
-				}
+					const latestDexPair = (
+						(await getLatestPairs({
+							chainId: apiChainId,
+							pairId: id,
+						})).pairs?.[0]
+					)
 
-				const baseTokenAddress = hexLowerOfByteSize(latestDexPair.baseToken?.address ?? '', 20)
-				const quoteTokenAddress = hexLowerOfByteSize(latestDexPair.quoteToken?.address ?? '', 20)
-				return {
-					...(baseTokenAddress != null && {
-						$baseToken: {
-							[EntityMetaKey.Selector]: {
-								$network: {
-									caip2: { namespace: 'eip155' as const, reference: String(chainId) },
+					if (latestDexPair == null)
+						throw new Error('Dexscreener_OpenApi: liquidity pool / pair not found for id')
+
+					const baseTokenAddress = hexLowerOfByteSize(latestDexPair.baseToken?.address ?? '', 20)
+					const quoteTokenAddress = hexLowerOfByteSize(latestDexPair.quoteToken?.address ?? '', 20)
+					return {
+						...(baseTokenAddress != null && {
+							$baseToken: {
+								[EntityMetaKey.Selector]: {
+									$network: {
+										caip2: { namespace: 'eip155' as const, reference: String(chainId) },
+									},
+									address: EvmAddress.assert(baseTokenAddress),
 								},
-								address: EvmAddress.assert(baseTokenAddress),
 							},
-						},
-					}),
-					...(quoteTokenAddress != null && {
-						$quoteToken: {
-							[EntityMetaKey.Selector]: {
-								$network: {
-									caip2: { namespace: 'eip155' as const, reference: String(chainId) },
+						}),
+						...(quoteTokenAddress != null && {
+							$quoteToken: {
+								[EntityMetaKey.Selector]: {
+									$network: {
+										caip2: { namespace: 'eip155' as const, reference: String(chainId) },
+									},
+									address: EvmAddress.assert(quoteTokenAddress),
 								},
-								address: EvmAddress.assert(quoteTokenAddress),
 							},
-						},
-					}),
-					...(latestDexPair.baseToken?.symbol != null && { baseTokenSymbol: latestDexPair.baseToken.symbol }),
-					...(latestDexPair.quoteToken?.symbol != null && { quoteTokenSymbol: latestDexPair.quoteToken.symbol }),
-					...(latestDexPair.volume?.h24 != null && { volumeUSD: latestDexPair.volume.h24 }),
-					...(latestDexPair.liquidity?.usd != null && { totalValueLockedUSD: latestDexPair.liquidity.usd }),
-					...(latestDexPair.marketCap != null && { marketCapUsd: latestDexPair.marketCap }),
-					...(latestDexPair.fdv != null && { fdvUsd: latestDexPair.fdv }),
-					...(latestDexPair.pairCreatedAt != null && { pairCreatedAtMs: latestDexPair.pairCreatedAt }),
-					...(latestDexPair.labels != null && { dexscreenerLabels: latestDexPair.labels }),
-					...(latestDexPair.dexId != null && latestDexPair.dexId !== '' && { dexId: latestDexPair.dexId }),
-					...(latestDexPair.url != null && latestDexPair.url !== '' && { dexscreenerPairUrl: latestDexPair.url }),
-					...(latestDexPair.priceUsd != null && { baseTokenPriceUsd: latestDexPair.priceUsd }),
-					...(latestDexPair.priceNative != null && { baseTokenPriceQuote: latestDexPair.priceNative }),
-					...(latestDexPair.priceChange?.h24 != null && { priceChangePercent24h: latestDexPair.priceChange.h24 }),
-					...(latestDexPair.txns?.h24.buys != null && { transactionBuys24h: latestDexPair.txns.h24.buys }),
-					...(latestDexPair.txns?.h24.sells != null && { transactionSells24h: latestDexPair.txns.h24.sells }),
+						}),
+						...(latestDexPair.baseToken?.symbol != null && { baseTokenSymbol: latestDexPair.baseToken.symbol }),
+						...(latestDexPair.quoteToken?.symbol != null && { quoteTokenSymbol: latestDexPair.quoteToken.symbol }),
+						...(latestDexPair.pairCreatedAt != null && { pairCreatedAtMs: latestDexPair.pairCreatedAt }),
+						...(latestDexPair.labels != null && { dexscreenerLabels: latestDexPair.labels }),
+						...(latestDexPair.dexId != null && latestDexPair.dexId !== '' && { dexId: latestDexPair.dexId }),
+						...(latestDexPair.url != null && latestDexPair.url !== '' && { dexscreenerPairUrl: latestDexPair.url }),
+					}
 				}
-			}
 			}
 		})({
-				fields: {
-			$baseToken: (snapshot) => snapshot.$baseToken,
-			$quoteToken: (snapshot) => snapshot.$quoteToken,
-			baseTokenSymbol: (snapshot) => snapshot.baseTokenSymbol,
-			quoteTokenSymbol: (snapshot) => snapshot.quoteTokenSymbol,
-			volumeUSD: (snapshot) => snapshot.volumeUSD,
-			totalValueLockedUSD: (snapshot) => snapshot.totalValueLockedUSD,
-			marketCapUsd: (snapshot) => snapshot.marketCapUsd,
-			fdvUsd: (snapshot) => snapshot.fdvUsd,
-			pairCreatedAtMs: (snapshot) => snapshot.pairCreatedAtMs,
-			dexscreenerLabels: (snapshot) => snapshot.dexscreenerLabels ?? [],
-			dexId: (snapshot) => snapshot.dexId,
-			dexscreenerPairUrl: (snapshot) => snapshot.dexscreenerPairUrl,
-			baseTokenPriceUsd: (snapshot) => snapshot.baseTokenPriceUsd,
-			baseTokenPriceQuote: (snapshot) => snapshot.baseTokenPriceQuote,
-			priceChangePercent24h: (snapshot) => snapshot.priceChangePercent24h,
-			transactionBuys24h: (snapshot) => snapshot.transactionBuys24h,
-			transactionSells24h: (snapshot) => snapshot.transactionSells24h,
-		},
-			}),
+			fields: {
+				$baseToken: (snapshot) => snapshot.$baseToken,
+				$quoteToken: (snapshot) => snapshot.$quoteToken,
+				baseTokenSymbol: (snapshot) => snapshot.baseTokenSymbol,
+				quoteTokenSymbol: (snapshot) => snapshot.quoteTokenSymbol,
+				pairCreatedAtMs: (snapshot) => snapshot.pairCreatedAtMs,
+				dexscreenerLabels: (snapshot) => snapshot.dexscreenerLabels ?? [],
+				dexId: (snapshot) => snapshot.dexId,
+				dexscreenerPairUrl: (snapshot) => snapshot.dexscreenerPairUrl,
+			},
+		}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: {
 				[LiquidityPool_TimestampSelector.LiquidityPoolTimestampMsFeedKey]: async ({ $liquidityPool }) => {
-				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
-				const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
+					const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
+					const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 
-				const chainId = Number($liquidityPool.$network.caip2.reference)
-				const apiChainId = apiChainIdByChainId[chainId]
-				if (apiChainId == null) {
-					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
-				}
-				const latestDexPair = (
-					(await getLatestPairs({
-						chainId: apiChainId,
-						pairId: $liquidityPool.id,
-					})).pairs?.[0]
-				)
+					const chainId = Number($liquidityPool.$network.caip2.reference)
+					const apiChainId = apiChainIdByChainId[chainId]
+					if (apiChainId == null)
+						throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
 
-				if (latestDexPair == null) {
-					throw new Error('Dexscreener_OpenApi: liquidity pool / pair not found for timestamp id')
-				}
+					const latestDexPair = (
+						(await getLatestPairs({
+							chainId: apiChainId,
+							pairId: $liquidityPool.id,
+						})).pairs?.[0]
+					)
 
-				return {
-					...(latestDexPair.priceUsd != null && { priceUsd: latestDexPair.priceUsd }),
-					...(latestDexPair.priceNative != null && { priceNative: latestDexPair.priceNative }),
-					...(latestDexPair.liquidity?.usd != null && { liquidityUsd: latestDexPair.liquidity.usd }),
-					...(latestDexPair.volume?.h24 != null && { volumeUsd24h: latestDexPair.volume.h24 }),
-					...(latestDexPair.priceChange?.h24 != null && { priceChangePercent24h: latestDexPair.priceChange.h24 }),
-					...(latestDexPair.txns?.h24.buys != null && { transactionBuys24h: latestDexPair.txns.h24.buys }),
-					...(latestDexPair.txns?.h24.sells != null && { transactionSells24h: latestDexPair.txns.h24.sells }),
-					...(latestDexPair.marketCap != null && { marketCapUsd: latestDexPair.marketCap }),
-					...(latestDexPair.fdv != null && { fdvUsd: latestDexPair.fdv }),
-					transport: 'Dexscreener OpenAPI',
+					if (latestDexPair == null)
+						throw new Error('Dexscreener_OpenApi: liquidity pool / pair not found for timestamp id')
+
+					return {
+						...(latestDexPair.priceUsd != null && { priceUsd: latestDexPair.priceUsd }),
+						...(latestDexPair.priceNative != null && { priceNative: latestDexPair.priceNative }),
+						...(latestDexPair.liquidity?.usd != null && { liquidityUsd: latestDexPair.liquidity.usd }),
+						...(latestDexPair.volume?.h24 != null && { volumeUsd24h: latestDexPair.volume.h24 }),
+						...(latestDexPair.priceChange?.h24 != null && { priceChangePercent24h: latestDexPair.priceChange.h24 }),
+						...(latestDexPair.txns?.h24.buys != null && { transactionBuys24h: latestDexPair.txns.h24.buys }),
+						...(latestDexPair.txns?.h24.sells != null && { transactionSells24h: latestDexPair.txns.h24.sells }),
+						...(latestDexPair.marketCap != null && { marketCapUsd: latestDexPair.marketCap }),
+						...(latestDexPair.fdv != null && { fdvUsd: latestDexPair.fdv }),
+						transport: 'Dexscreener OpenAPI',
+					}
 				}
-			}
 			}
 		})({
-				fields: {
-			priceUsd: (snapshot) => snapshot.priceUsd,
-			priceNative: (snapshot) => snapshot.priceNative,
-			liquidityUsd: (snapshot) => snapshot.liquidityUsd,
-			volumeUsd24h: (snapshot) => snapshot.volumeUsd24h,
-			priceChangePercent24h: (snapshot) => snapshot.priceChangePercent24h,
-			transactionBuys24h: (snapshot) => snapshot.transactionBuys24h,
-			transactionSells24h: (snapshot) => snapshot.transactionSells24h,
-			marketCapUsd: (snapshot) => snapshot.marketCapUsd,
-			fdvUsd: (snapshot) => snapshot.fdvUsd,
-			transport: (snapshot) => snapshot.transport,
-		},
-			}),
+			fields: {
+				priceUsd: (snapshot) => snapshot.priceUsd,
+				priceNative: (snapshot) => snapshot.priceNative,
+				liquidityUsd: (snapshot) => snapshot.liquidityUsd,
+				volumeUsd24h: (snapshot) => snapshot.volumeUsd24h,
+				priceChangePercent24h: (snapshot) => snapshot.priceChangePercent24h,
+				transactionBuys24h: (snapshot) => snapshot.transactionBuys24h,
+				transactionSells24h: (snapshot) => snapshot.transactionSells24h,
+				marketCapUsd: (snapshot) => snapshot.marketCapUsd,
+				fdvUsd: (snapshot) => snapshot.fdvUsd,
+				transport: (snapshot) => snapshot.transport,
+			},
+		}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_entitySelector, context) => {
-				const { numericChainIdByDexscreenerApiChainLabel } = await import(
-					'$/sources/Dexscreener/OpenApi/constants.ts',
-				)
-				const { getPairSearch } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
-				const liquidityPools = (
-					((await getPairSearch({ q: 'WETH USDC uniswap' })).pairs ?? [])
-						.flatMap((pair) => {
-							const chainId = (
-								pair.chainId != null && pair.chainId !== '' ?
-									numericChainIdByDexscreenerApiChainLabel[pair.chainId]
-								:
-									undefined
-							)
-							const pairId = hexLowerOfByteSize(pair.pairAddress ?? '', 20)
+					const { numericChainIdByDexscreenerApiChainLabel } = await import(
+						'$/sources/Dexscreener/OpenApi/constants.ts'
+					)
+					const { getPairSearch } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
+					const liquidityPools = (
+						((await getPairSearch({ q: 'WETH USDC uniswap' })).pairs ?? [])
+							.flatMap((pair) => {
+								const chainId = (
+									pair.chainId != null && pair.chainId !== '' ?
+										numericChainIdByDexscreenerApiChainLabel[pair.chainId]
+									:
+										undefined
+								)
+								const pairId = hexLowerOfByteSize(pair.pairAddress ?? '', 20)
 
-							return (
-								chainId == null || pairId == null ?
-									[]
+								return (
+									chainId == null || pairId == null ?
+										[]
 								:
-									[{
-										[EntityMetaKey.Selector]: {
-											$network: {
-												caip2: { namespace: 'eip155' as const, reference: String(chainId) },
+										[{
+											[EntityMetaKey.Selector]: {
+												$network: {
+													caip2: { namespace: 'eip155' as const, reference: String(chainId) },
+												},
+												id: pairId,
 											},
-											id: pairId,
-										},
-									}]
-							)
-						})
-						.filter((liquidityPool, index, liquidityPools) => (
-							liquidityPools.findIndex((otherLiquidityPool) => (
-								otherLiquidityPool[EntityMetaKey.Selector].id === liquidityPool[EntityMetaKey.Selector].id
-								&& otherLiquidityPool[EntityMetaKey.Selector].$network.caip2.reference
-									=== liquidityPool[EntityMetaKey.Selector].$network.caip2.reference
-							)) === index
-						))
-				)
+										}]
+								)
+							})
+							.filter((liquidityPool, index, liquidityPools) => (
+								liquidityPools.findIndex((otherLiquidityPool) => (
+									otherLiquidityPool[EntityMetaKey.Selector].id === liquidityPool[EntityMetaKey.Selector].id
+									&& otherLiquidityPool[EntityMetaKey.Selector].$network.caip2.reference
+										=== liquidityPool[EntityMetaKey.Selector].$network.caip2.reference
+								)) === index
+							))
+					)
 
-				if (liquidityPools.length === 0)
-					throw new Error('Dexscreener_OpenApi: pair search "WETH USDC uniswap" returned no liquidity pools')
+					if (liquidityPools.length === 0)
+						throw new Error('Dexscreener_OpenApi: pair search "WETH USDC uniswap" returned no liquidity pools')
 
-				return liquidityPools.slice(0, resolverContextRowLimit(context))
-			}
-			}
+					return liquidityPools.slice(0, resolverContextRowLimit(context))
+				}
+			},
 		})({
-				fields: {
-			$$liquidityPools: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				$$liquidityPools: (snapshot) => snapshot,
+			},
+		}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool,
 			resolve: {
 				[LiquidityPoolSelector.EvmNetworkId]: async (entitySelector) => [
-				{
-					[EntityMetaKey.Selector]: {
-						$liquidityPool: entitySelector,
-						timestampMs: Date.now(),
-						feedKey: 'dexscreener',
+					{
+						[EntityMetaKey.Selector]: {
+							$liquidityPool: entitySelector,
+							timestampMs: Date.now(),
+							feedKey: 'dexscreener',
+						},
 					},
-				},
-			]
-			}
+				],
+			},
 		})({
-				fields: {
-			$$timestamps: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				$$timestamps: (snapshot) => snapshot,
+			},
+		}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: {
 				[LiquidityPool_TimestampSelector.LiquidityPoolTimestampMsFeedKey]: async ({ $liquidityPool }) => ({
-				[EntityMetaKey.Selector]: $liquidityPool,
-			})
-			}
+					[EntityMetaKey.Selector]: $liquidityPool,
+				}),
+			},
 		})({
-				fields: {
-			$parentLiquidityPool: (snapshot) => snapshot,
-		},
-			}),
+			fields: {
+				$parentLiquidityPool: (snapshot) => snapshot,
+			},
+		}),
 	],
 }

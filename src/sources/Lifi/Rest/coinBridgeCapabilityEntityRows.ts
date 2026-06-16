@@ -13,12 +13,12 @@ type CoinInstanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmCo
 type CoinBridgeCapabilityEntitySelector = EntitySelector<typeof schema, EntityType.CoinBridgeCapability>
 
 const bridgeToolsCatalogKeys = new Set<string>(
-	Object.keys(bridgeToolByKey).map((key) => String(key)),
+	Object.keys(bridgeToolByKey).map((key) => String(key))
 )
 
 export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 	instanceIds: readonly { [EntityMetaKey.Selector]: CoinInstanceEntitySelector }[],
-	tools: readonly LifiBridgeTool[],
+	tools: readonly LifiBridgeTool[]
 ) => {
 	const instanceByChainId: Partial<Record<number, CoinInstanceEntitySelector>> = {}
 

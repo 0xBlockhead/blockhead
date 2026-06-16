@@ -1,8 +1,8 @@
 import { getJson } from '$/lib/http.ts'
-import { optionalPublicEnvString } from '$/lib/sources.ts'
+import { optionalPublicEnvString } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { mastodonApiBase } from '$/sources/Mastodon/Rest/constants.ts'
+import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 import Mastodon from '$/sources/Mastodon/index.ts'
 
 const qs = (o: Record<string, string | undefined>) => {
@@ -28,9 +28,9 @@ const authHeaders = (publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>): Recor
 export const mastodonGet = async <T>(
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	path: string,
-	search?: Record<string, string | undefined>,
+	search?: Record<string, string | undefined>
 ) => (
-	getJson<T>(`${mastodonApiBase}${path}${qs(search ?? {})}`, {
+	getJson<T>(`${mastodonInstanceByKey.mastodon_social.origin}/api/v1${path}${qs(search ?? {})}`, {
 		origins: Mastodon.origins,
 		init: { headers: authHeaders(publicEnv) },
 	})

@@ -24,13 +24,13 @@ const splitIdentifier = (identifier: string): {
 const fetchSuperchainChainList = async (): Promise<SuperchainChainListEntry[]> => (
 	getJson<SuperchainChainListEntry[]>(
 		`${origin}${chainListPath}`,
-		{ origins: Superchain.origins },
+		{ origins: Superchain.origins }
 	)
 )
 
 const resolveParentChainId = (
 	chain: SuperchainChainListEntry,
-	chainByIdentifier: Map<string, SuperchainChainListEntry>,
+	chainByIdentifier: Map<string, SuperchainChainListEntry>
 ): number | undefined => {
 	const parentChain = chain.parent?.chain
 	if (parentChain == null || parentChain.length === 0) return undefined
@@ -49,7 +49,7 @@ const resolveParentChainId = (
 
 const toSuperchainNetwork = (
 	chain: SuperchainChainListEntry,
-	chainByIdentifier: Map<string, SuperchainChainListEntry>,
+	chainByIdentifier: Map<string, SuperchainChainListEntry>
 ): SuperchainNetwork => {
 	const { namespace, slug } = splitIdentifier(chain.identifier)
 	return {
@@ -60,7 +60,7 @@ const toSuperchainNetwork = (
 		slug,
 		...(chain.parent != null && { parentType: chain.parent.type }),
 		...((parentChainId) => parentChainId != null && { parentChainId })(
-			resolveParentChainId(chain, chainByIdentifier),
+			resolveParentChainId(chain, chainByIdentifier)
 		),
 	}
 }
@@ -71,7 +71,7 @@ export const fetchNetworks = async (): Promise<SuperchainNetwork[]> => {
 		chainList.map((chain) => [
 			chain.identifier,
 			chain,
-		]),
+		])
 	)
 	return chainList
 		.map((chain) => toSuperchainNetwork(chain, chainByIdentifier))

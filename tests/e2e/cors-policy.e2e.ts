@@ -43,7 +43,7 @@ const startPath = process.env.E2E_START_PATH?.trim()
 /** After `#main` + alerts settle, wait for in-flight resolver HTTP to finish (CORS logs often lag paint). */
 const waitForPageFetchSettle = async (
 	page: Page,
-	violationCount: () => number,
+	violationCount: () => number
 ) => {
 	await assertMainSettled(page, settleTimeoutMs)
 
@@ -69,7 +69,7 @@ const assertNoCorsViolations = async (
 	page: Page,
 	violations: string[],
 	path: string,
-	testInfo: TestInfo,
+	testInfo: TestInfo
 ) => {
 	if (violations.length === 0) return
 
@@ -82,7 +82,7 @@ const assertNoCorsViolations = async (
 
 	expect(
 		uniqueViolations,
-		`CORS policy violations on ${path}:\n${uniqueViolations.join('\n')}`,
+		`CORS policy violations on ${path}:\n${uniqueViolations.join('\n')}`
 	).toEqual([])
 }
 
@@ -135,7 +135,7 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 				})
 				await expect(
 					page.locator('#main'),
-					`#main missing after goto ${path} (final URL: ${page.url()})`,
+					`#main missing after goto ${path} (final URL: ${page.url()})`
 				).toBeVisible({ timeout: settleTimeoutMs })
 				await waitForPageFetchSettle(page, () => violations.length)
 				await assertNoCorsViolations(page, violations, path, testInfo)

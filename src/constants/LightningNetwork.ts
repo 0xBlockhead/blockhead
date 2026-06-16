@@ -1,7 +1,17 @@
 // Constants
+export const lightningNetworks = [
+	{
+		slug: 'lightning',
+		mempoolSpaceRestBaseUrl: 'https://mempool.space/api/v1/lightning',
+	},
+] as const satisfies readonly {
+	slug: 'lightning'
+	mempoolSpaceRestBaseUrl: string
+}[]
 
-export const lightningNetworkId = {
-	slug: 'lightning',
-} as const
 
-export const lightningMempoolSpaceRestBaseUrl = 'https://mempool.space/api/v1/lightning'
+// Lookups
+
+export const lightningNetworkBySlug = {
+	lightning: lightningNetworks[0],
+}

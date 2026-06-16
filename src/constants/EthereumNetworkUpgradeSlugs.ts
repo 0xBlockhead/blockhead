@@ -49,19 +49,19 @@ export const ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId = Object.from
 	ethereumNetworkMarketingNetworkUpgradeSlugs.map((row) => [
 		row.upgradeId,
 		row,
-	]),
+	])
 )
 
 export const networkExecutionUpgradeSlugByUpgradeId = Object.fromEntries(
 	ethereumNetworkMarketingNetworkExecutionUpgradeSlugs.map((row) => [
 		row.upgradeId,
 		row,
-	]),
+	])
 )
 
 export const networkConsensusUpgradeSlugByUpgradeId = Object.fromEntries(
 	ethereumNetworkMarketingNetworkConsensusUpgradeSlugs.map((row) => [
 		row.upgradeId,
 		row,
-	]),
+	])
 )

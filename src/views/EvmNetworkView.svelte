@@ -78,10 +78,11 @@
 			{
 				fields: {
 					...(showNetworkDetails && {
-						blockHeight: {
+						$$timestamps: {
 							sources: [
 								Source.Voltaire_JsonRpc,
 							],
+							limit: 1,
 						},
 						$$upgrades: true,
 					}),
@@ -391,13 +392,14 @@
 						{/snippet}
 
 						{#snippet children(network)}
+							{@const headBlockHeight = network.fields.$$timestamps.values.at(0)?.blockHeight}
 							{@const upgradeSelector = (
 								network.fields.$$upgrades?.values
 									.filter((upgrade) => (
 										upgrade.activationBlock !== undefined
 										&& (
-											network.fields.blockHeight === undefined
-											|| upgrade.activationBlock <= network.fields.blockHeight
+											headBlockHeight === undefined
+											|| upgrade.activationBlock <= headBlockHeight
 										)
 									))
 									.toSorted((leftUpgrade, rightUpgrade) => (

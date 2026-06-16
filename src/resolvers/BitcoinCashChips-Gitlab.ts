@@ -46,7 +46,7 @@ const chipRowsByNumber = async (tree: BitcoinCashChipsGitlabTree) => {
 						path: gitlabTreeEntry.path,
 					},
 				]
-			}),
+			})
 	)
 }
 

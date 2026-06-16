@@ -36,7 +36,7 @@ export const idByCoinId: Partial<Record<CoinId, number>> = Object.fromEntries(
 		.map((entry) => [
 			entry.coinId,
 			entry.wireId,
-		]),
+		])
 )
 
 export const coinIdByWireId: Partial<Record<number, CoinId>> = Object.fromEntries(
@@ -44,7 +44,7 @@ export const coinIdByWireId: Partial<Record<number, CoinId>> = Object.fromEntrie
 		.map((entry) => [
 			entry.wireId,
 			entry.coinId,
-		]),
+		])
 )
 
 export const coinmarketcapCatalogCoinIds: readonly CoinId[] = catalog.map((entry) => entry.coinId)

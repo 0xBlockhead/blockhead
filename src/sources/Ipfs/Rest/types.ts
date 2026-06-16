@@ -1,4 +1,6 @@
-export type IpfsNamespace = 'ipfs' | 'ipns'
+import type { IpfsNamespace } from '$/lib/ipfs.ts'
+
+export type { IpfsNamespace }
 
 export type IpfsBrowseResult = {
 	namespace: IpfsNamespace
@@ -13,10 +15,4 @@ export type IpfsBrowseResult = {
 	displayType: 'text' | 'image' | 'video' | 'audio' | 'json' | 'xml' | 'pdf' | 'iframe' | 'binary'
 	isContentTypeInferred: boolean
 	text?: string
-}
-
-export type ParsedIpfsBrowseInput = {
-	namespace?: IpfsNamespace
-	target: string
-	contentPath: string
 }

@@ -10,7 +10,7 @@ export const rssFetchFeed = async (feedUrl: string) => (
 			normalizeRssFeedUrl(feedUrl),
 			{
 				origins: Rss.origins,
-			},
-		),
+			}
+		)
 	) satisfies ParsedRssFeed
 )

@@ -72,16 +72,6 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const activityPubNoteOrderBy = [
-				[
-					({ fieldRow }) => fieldRow.localStatusId,
-					orderByCreatedAt,
-				],
-				[
-					({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
-					'asc',
-				],
-			] as const satisfies DeclarativeOrderBy<ActivityPubNoteOrderFieldRow>}
 			{#if fieldOpen}
 				{@const parent = subscribe(entityFieldReference.entityType,
 					entityFieldReference.selector,
@@ -92,8 +82,17 @@
 									Source.Mastodon_Rest,
 									Source.Fedi_Rest,
 								],
-								orderBy: [...activityPubNoteOrderBy],
-								limit: limit,
+								orderBy: [
+									[
+										({ fieldRow }) => fieldRow.localStatusId,
+										orderByCreatedAt,
+									],
+									[
+										({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
+										'asc',
+									],
+								] as const satisfies DeclarativeOrderBy<ActivityPubNoteOrderFieldRow>,
+								limit,
 							},
 						},
 					},
@@ -122,11 +121,10 @@
 								{/snippet}
 
 								{#snippet Item({ item })}
-									{@const noteId = item[EntityMetaKey.Selector]}
 									<ActivityPubNoteView
 										selector={{
-											instanceOrigin: noteId.instanceOrigin,
-											localStatusId: noteId.localStatusId,
+											instanceOrigin: item[EntityMetaKey.Selector].instanceOrigin,
+											localStatusId: item[EntityMetaKey.Selector].localStatusId,
 										}}
 										layout={EntityLayout.Summary}
 										open={false}

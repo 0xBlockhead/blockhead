@@ -1,5 +1,4 @@
 import { throwHttpError } from '$/lib/http.ts'
-import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { coingeckoRestFetch } from '$/sources/Coingecko/Rest/client.ts'
@@ -8,6 +7,14 @@ import type {
 	CoingeckoCoin,
 	CoingeckoCoinWithMarketData,
 } from '$/sources/Coingecko/Rest/types.ts'
+
+type OhlcCandle = readonly [
+	timestampMs: number,
+	open: number,
+	high: number,
+	low: number,
+	close: number,
+]
 
 /** Includes `market_data` so entity resolvers can attach rank / market cap without a second request. */
 const coingeckoCoinMetadataQuery = (
@@ -30,13 +37,13 @@ const coingeckoCoinMarketSpotQuery = (
 
 export const getCoin = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
-	coingeckoId: string,
+	coingeckoId: string
 ): Promise<CoingeckoCoin | undefined> => {
 	if (coingeckoId.trim() === '') return undefined
 
 	const res = await coingeckoRestFetch(
 		publicEnv,
-		`/coins/${encodeURIComponent(coingeckoId)}?${coingeckoCoinMetadataQuery}`,
+		`/coins/${encodeURIComponent(coingeckoId)}?${coingeckoCoinMetadataQuery}`
 	)
 
 	if (res.status === 404) return undefined
@@ -46,13 +53,13 @@ export const getCoin = async (
 }
 
 /**
- * Spot USD + as-of from `GET /coins/{id}` with `market_data` (replaces a separate `/simple/price` call
- * when platforms / CAIP-19 for the same coin are needed).
- * @see https://docs.coingecko.com/reference/coins-id
- */
+	* Spot USD + as-of from `GET /coins/{id}` with `market_data` (replaces a separate `/simple/price` call
+	* when platforms / CAIP-19 for the same coin are needed).
+	* @see https://docs.coingecko.com/reference/coins-id
+	*/
 export const getCoinMarketSpot = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
-	coingeckoId: string,
+	coingeckoId: string
 ): Promise<{
 	coin: CoingeckoCoinWithMarketData
 	usd: number
@@ -64,7 +71,7 @@ export const getCoinMarketSpot = async (
 
 	const res = await coingeckoRestFetch(
 		publicEnv,
-		`/coins/${encodeURIComponent(coingeckoId)}?${coingeckoCoinMarketSpotQuery}`,
+		`/coins/${encodeURIComponent(coingeckoId)}?${coingeckoCoinMarketSpotQuery}`
 	)
 
 	if (res.status === 404) return undefined
@@ -72,15 +79,13 @@ export const getCoinMarketSpot = async (
 
 	const coin = await res.json<CoingeckoCoinWithMarketData>()
 	const usd = coin.market_data?.current_price?.usd
-	if (typeof usd !== 'number' || !Number.isFinite(usd)) {
+	if (typeof usd !== 'number' || !Number.isFinite(usd))
 		return undefined
-	}
 	const marketCapUsd = coin.market_data?.market_cap?.usd
 	const volume24hUsd = coin.market_data?.total_volume?.usd
 	const lastUpdatedAtSec = Date.parse(String(coin.market_data?.last_updated ?? '')) / 1000
-	if (!Number.isFinite(lastUpdatedAtSec)) {
+	if (!Number.isFinite(lastUpdatedAtSec))
 		return undefined
-	}
 	return {
 		coin,
 		usd,
@@ -103,14 +108,14 @@ export const getCoinByAssetPlatformContract = async ({
 
 	const res = await coingeckoRestFetch(
 		publicEnv,
-		`/coins/${encodeURIComponent(assetPlatformId)}/contract/${contractAddress.toLowerCase()}?${coingeckoCoinMetadataQuery}`,
+		`/coins/${encodeURIComponent(assetPlatformId)}/contract/${contractAddress.toLowerCase()}?${coingeckoCoinMetadataQuery}`
 	)
 
 	if (res.status === 404) return undefined
 	if (!res.ok)
 		await throwHttpError(
 			`CoinGecko /coins/${assetPlatformId}/contract/${contractAddress}`,
-			res,
+			res
 		)
 
 	return res.json<CoingeckoCoin>()
@@ -118,14 +123,14 @@ export const getCoinByAssetPlatformContract = async ({
 
 export const getAssetPlatformById = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
-	platformId: string,
+	platformId: string
 ): Promise<CoingeckoAssetPlatform | undefined> => {
 	const platforms = await fetchAssetPlatforms(publicEnv)
 	return platforms.find((p) => p.id === platformId)
 }
 
 export const fetchAssetPlatforms = async (
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
 ): Promise<CoingeckoAssetPlatform[]> => {
 	const res = await coingeckoRestFetch(publicEnv, '/asset_platforms')
 
@@ -137,7 +142,7 @@ export const fetchAssetPlatforms = async (
 
 export const getCoinWithAssetPlatforms = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
-	coingeckoId: string,
+	coingeckoId: string
 ): Promise<{
 	coin: CoingeckoCoin | undefined
 	assetPlatforms: CoingeckoAssetPlatform[]
@@ -146,18 +151,20 @@ export const getCoinWithAssetPlatforms = async (
 		getCoin(publicEnv, coingeckoId),
 		fetchAssetPlatforms(publicEnv),
 	])
-	return { coin, assetPlatforms }
+	return {
+		coin,
+		assetPlatforms,
+	}
 }
 
 export const findAssetPlatformByChainId = async (
 	_publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
-	chainId: number,
+	chainId: number
 ): Promise<CoingeckoAssetPlatform | undefined> => {
 	const { coingeckoAssetPlatformIdByChainId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const platformId = coingeckoAssetPlatformIdByChainId[chainId]
-	if (platformId == null) {
+	if (platformId == null)
 		return undefined
-	}
 	return {
 		id: platformId,
 		name: platformId,
@@ -176,7 +183,7 @@ export const getSimplePriceUsd = async ({
 
 	const res = await coingeckoRestFetch(
 		publicEnv,
-		`/simple/price?ids=${encodeURIComponent(coingeckoId)}&vs_currencies=usd&include_last_updated_at=true`,
+		`/simple/price?ids=${encodeURIComponent(coingeckoId)}&vs_currencies=usd&include_last_updated_at=true`
 	)
 
 	if (res.status === 404) return undefined
@@ -221,7 +228,7 @@ export const getCoinsMarketsPage = async ({
 
 	const res = await coingeckoRestFetch(
 		publicEnv,
-		`/coins/markets?${searchParams.toString()}`,
+		`/coins/markets?${searchParams.toString()}`
 	)
 
 	if (!res.ok) await throwHttpError('CoinGecko /coins/markets', res)
@@ -248,7 +255,7 @@ export const getCoinOhlc = async ({
 
 	const res = await coingeckoRestFetch(
 		publicEnv,
-		`/coins/${encodeURIComponent(coingeckoId)}/ohlc?${searchParams.toString()}`,
+		`/coins/${encodeURIComponent(coingeckoId)}/ohlc?${searchParams.toString()}`
 	)
 
 	if (res.status === 404) return []

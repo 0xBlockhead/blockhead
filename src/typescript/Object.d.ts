@@ -8,7 +8,7 @@ interface ObjectConstructor {
 			[key: symbol]: readonly unknown[] | undefined
 		},
 	>(
-		object: _Object,
+		object: _Object
 	): Array<Exclude<_Object[keyof _Object], undefined>>
 
 	values<_Object extends object>(object: _Object): Array<_Object[keyof _Object]>
@@ -20,7 +20,7 @@ interface ObjectConstructor {
 			[key: symbol]: readonly unknown[] | undefined
 		},
 	>(
-		object: _Object,
+		object: _Object
 	): Array<{
 		[_Key in keyof _Object]-?: (
 			Exclude<_Object[_Key], undefined> extends never ?
@@ -31,13 +31,13 @@ interface ObjectConstructor {
 	}[keyof _Object]>
 
 	entries<_Object extends object>(
-		object: _Object,
+		object: _Object
 	): Array<{ [_Key in keyof _Object]-?: readonly [_Key, _Object[_Key]] }[keyof _Object]>
 
 	fromEntries<
 		const _Entries extends readonly (readonly [PropertyKey, unknown])[],
 	>(
-		entries: _Entries,
+		entries: _Entries
 	): {
 		[_Entry in _Entries[number] as _Entry[0]]: Extract<
 			_Entries[number],
@@ -46,7 +46,7 @@ interface ObjectConstructor {
 	}
 
 	fromEntries<_Key extends PropertyKey, _Value>(
-		entries: ReadonlyArray<readonly [_Key, _Value]>,
+		entries: ReadonlyArray<readonly [_Key, _Value]>
 	): Record<_Key, _Value>
 
 	groupBy<
@@ -57,8 +57,8 @@ interface ObjectConstructor {
 		items: _Items,
 		keySelector: <_Item extends _Items[number]>(
 			item: _Item,
-			index: number,
-		) => _Item[_Discriminant] & _Bucket,
+			index: number
+		) => _Item[_Discriminant] & _Bucket
 	): {
 		[_BucketValue in _Bucket]?: Extract<
 			_Items[number],
@@ -75,7 +75,7 @@ interface ObjectConstructor {
 		_KRet extends PropertyKey,
 	>(
 		items: _Items,
-		keySelector: (item: _Items[number], index: number) => _KRet,
+		keySelector: (item: _Items[number], index: number) => _KRet
 	): {
 		[_Bucket in _KRet]?: _Items[number][]
 	} & {

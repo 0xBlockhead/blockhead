@@ -520,7 +520,7 @@ export const bridgeToolByKey = Object.fromEntries(
 	bridgeTools.map((bridgeTool) => [
 		bridgeTool.key,
 		bridgeTool,
-	]),
+	])
 )
 
 export const bridgeRails = [
@@ -633,47 +633,47 @@ export const bridgeRailById = Object.fromEntries(
 	bridgeRails.map((bridgeRail) => [
 		bridgeRail.railId,
 		bridgeRail,
-	]),
+	])
 )
 
 export const bridgeSettlementModelBySettlementModel = Object.fromEntries(
 	bridgeSettlementModels.map((row) => [
 		row.settlementModel,
 		row,
-	]),
+	])
 )
 
 export const bridgeVerificationModelByVerificationModel = Object.fromEntries(
 	bridgeVerificationModels.map((row) => [
 		row.verificationModel,
 		row,
-	]),
+	])
 )
 
 export const bridgeAssetOutcomeByAssetOutcome = Object.fromEntries(
 	bridgeAssetOutcomes.map((row) => [
 		row.assetOutcome,
 		row,
-	]),
+	])
 )
 
 export const coinInstanceRepresentationByRepresentation = Object.fromEntries(
 	coinInstanceRepresentations.map((row) => [
 		row.representation,
 		row,
-	]),
+	])
 )
 
 export const bridgeRouteStepTypeByWire = Object.fromEntries(
 	bridgeRouteStepTypes.map((row) => [
 		row.stepType,
 		row,
-	]),
+	])
 )
 
 export const bridgeRouteTagByTag = Object.fromEntries(
 	bridgeRouteTags.map((row) => [
 		row.tag,
 		row,
-	]),
+	])
 )

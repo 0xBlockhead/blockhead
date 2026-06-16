@@ -1,9 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
@@ -27,7 +28,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: typeof BeaconEpochSchema.id.infer
+			selector: EntitySelector<typeof schema, EntityType.BeaconEpoch>
 			href?: string
 			layout?: EntityLayout
 			title?: string
@@ -39,13 +40,13 @@
 		>
 	> = $props()
 
-	const epoch = subscribe(EntityType.BeaconEpoch,
+	const epoch = $derived(subscribe(EntityType.BeaconEpoch,
 		selector,
 		({ sources: [
 				Source.Beacon_Rest,
 				Source.BeaconchaIn_Rest,
 			], fields: { startSlot: true, endSlot: true, ...(open && ({ slotCount: true, finalized: true, globalParticipationRate: true, validatorsCount: true, attestationsCount: true, attesterSlashingsCount: true, proposerSlashingsCount: true, withdrawalsCount: true })) } }),
-	)
+	))
 
 
 	// (Derived)

@@ -19,11 +19,11 @@ import type {
  */
 export const getCurrentPrices = async (
 	coins: string[],
-	options?: GetDefillamaCurrentPricesOptions,
+	options?: GetDefillamaCurrentPricesOptions
 ): Promise<DefiLlamaCurrentPricesResponse> => (
 	getCurrentPricesOpenApi(
 		coins,
-		options,
+		options
 	)
 )
 
@@ -37,7 +37,7 @@ export const getProCurrentPrices = async ({
 }: GetProDefillamaCurrentPricesArgs): Promise<DefiLlamaCurrentPricesResponse> => {
 	if (coins.length === 0) return { coins: {} }
 	const url = new URL(
-		`${proBaseUrl}/${encodeURIComponent(apiKey)}/coins/prices/current/${coins.join(',')}`,
+		`${proBaseUrl}/${encodeURIComponent(apiKey)}/coins/prices/current/${coins.join(',')}`
 	)
 	if (searchWidthOption != null) url.searchParams.set('searchWidth', searchWidthOption)
 	const res = await corsFetch(url.href, { origins: Defillama.origins  })

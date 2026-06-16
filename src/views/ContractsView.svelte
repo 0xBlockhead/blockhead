@@ -68,7 +68,7 @@
 		{#if open}
 			{@const network = subscribe(EntityType.EvmNetwork,
 				entityFieldReference.selector,
-				({ fields: { blockHeight: ({ sources: [Source.Voltaire_JsonRpc] }), $$contracts: ({ sources: [Source.Blockscout_Rest] }) } }),
+				({ fields: { $$contracts: ({ sources: [Source.Blockscout_Rest] }) } }),
 			)}
 			{@const contracts = derive(
 				network,

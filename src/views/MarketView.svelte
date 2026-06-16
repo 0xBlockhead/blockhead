@@ -7,9 +7,9 @@
 	import {
 		MarketAssetKind,
 		MarketKind,
-		marketDerivativeObservationSources,
 		marketKindByMarketKind,
 	} from '$/constants/Market.ts'
+	import { marketDerivativeObservationSources } from '$/sources/Source.ts'
 
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'

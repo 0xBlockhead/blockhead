@@ -11,17 +11,17 @@ import type { PageLoad } from './$types.ts'
 
 
 export const load: PageLoad = ({ params }) => {
-	let entitySelector
+	let selector
 	try {
-		entitySelector = parseEntitySelector(
+		selector = parseEntitySelector(
 			schema,
 			BridgeRouteSchema,
-			parse(decodeURIComponent(params.routeId)),
+			parse(decodeURIComponent(params.routeId))
 		)
 	} catch {
 		error(404, 'Invalid bridge route')
 	}
-	if (entitySelector instanceof arktype.errors) error(404, 'Invalid bridge route')
+	if (selector instanceof arktype.errors) error(404, 'Invalid bridge route')
 
-	return { entitySelector }
+	return { selector }
 }

@@ -17,12 +17,12 @@ type ShemnonPrecompile = {
 }
 
 const numericScheduleKey = (
-	key: string,
+	key: string
 ): key is `${number}` => /^\d+$/.test(key)
 
 const glob = import.meta.glob<{ default: ShemnonSchedule | ShemnonPrecompile }>(
 	'/src/data/precompiles/*.json',
-	{ eager: true },
+	{ eager: true }
 )
 const entries = Object.entries(glob).map(([path, mod]) => ({
 	path,
@@ -121,7 +121,7 @@ export const syncedPrecompilesByChainId = precompilesByChainId
 /** Precompiles active at or before blockNumber; end-state when blockNumber is undefined. */
 export const getPrecompilesActiveAtBlock = (
 	chainId: number,
-	blockNumber: number | undefined,
+	blockNumber: number | undefined
 ): PrecompileEntry[] => {
 	const schedule = syncedScheduleByChainId.get(chainId)
 	if (schedule == null) {
@@ -142,7 +142,7 @@ export const getPrecompilesActiveAtBlock = (
 /** Precompiles introduced at the given block (from schedule). Returns [] if no schedule or no entry for that block. */
 export function getPrecompilesIntroducedAtBlock(
 	chainId: number,
-	blockNumber: number,
+	blockNumber: number
 ): PrecompileEntry[] {
 	const schedule = syncedScheduleByChainId.get(chainId)
 	if (!schedule) return []

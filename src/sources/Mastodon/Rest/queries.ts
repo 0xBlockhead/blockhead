@@ -1,7 +1,7 @@
 import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { mastodonGet } from '$/sources/Mastodon/Rest/client.ts'
-import { mastodonInstanceOrigin } from '$/sources/Mastodon/Rest/constants.ts'
+import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 import type {
 	MastodonApiV1Account,
 	MastodonApiV1Context,
@@ -11,7 +11,7 @@ import type {
 
 export const getAccount = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
-	localAccountId: string,
+	localAccountId: string
 ) => (
 	localAccountId.includes('@') ?
 		mastodonGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct: localAccountId })
@@ -21,14 +21,14 @@ export const getAccount = async (
 
 export const getStatus = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
-	localStatusId: string,
+	localStatusId: string
 ) => (
 	mastodonGet<MastodonApiV1Status>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}`)
 )
 
 export const getStatusContext = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
-	localStatusId: string,
+	localStatusId: string
 ) => (
 	mastodonGet<MastodonApiV1Context>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}/context`)
 )
@@ -36,7 +36,7 @@ export const getStatusContext = async (
 export const listAccountStatuses = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	localAccountId: string,
-	limit: number,
+	limit: number
 ) => {
 	if (localAccountId.includes('@')) {
 		const a = await mastodonGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct: localAccountId })
@@ -44,35 +44,34 @@ export const listAccountStatuses = async (
 		return mastodonGet<MastodonApiV1Status[]>(
 			publicEnv,
 			`/accounts/${encodeURIComponent(String(a.id))}/statuses`,
-			{ limit: String(Math.min(80, Math.max(1, limit))) },
+			{ limit: String(Math.min(80, Math.max(1, limit))) }
 		)
 	}
 	return mastodonGet<MastodonApiV1Status[]>(
 		publicEnv,
 		`/accounts/${encodeURIComponent(localAccountId)}/statuses`,
-		{ limit: String(Math.min(80, Math.max(1, limit))) },
+		{ limit: String(Math.min(80, Math.max(1, limit))) }
 	)
 }
 
 export const getInstance = async (
-	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>
 ) => (
 	mastodonGet<MastodonApiV1Instance>(publicEnv, '/instance')
 )
 
 export const listPublicTimeline = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
-	limit: number,
+	limit: number
 ) => (
 	mastodonGet<MastodonApiV1Status[]>(
 		publicEnv,
 		'/timelines/public',
-		{ limit: String(Math.min(80, Math.max(1, limit))) },
+		{ limit: String(Math.min(80, Math.max(1, limit))) }
 	)
 )
 
 export const assertInstanceMatches = (instanceOrigin: string) => {
-	if (new URL(instanceOrigin).origin !== new URL(mastodonInstanceOrigin).origin) {
+	if (new URL(instanceOrigin).origin !== new URL(mastodonInstanceByKey.mastodon_social.origin).origin)
 		throw new Error('Mastodon_Rest: entity instance does not match configured Mastodon instance')
-	}
 }

@@ -99,5 +99,5 @@ export const consensusMechanismById = Object.fromEntries(
 	consensusMechanisms.map((row) => [
 		row.consensusMechanismId,
 		row,
-	]),
+	])
 )

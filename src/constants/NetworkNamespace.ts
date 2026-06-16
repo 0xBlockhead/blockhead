@@ -259,5 +259,5 @@ export const networkNamespaceByNamespace = Object.fromEntries(
 	networkNamespaces.map((row) => [
 		row.namespace,
 		row,
-	]),
+	])
 )

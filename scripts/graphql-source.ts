@@ -52,7 +52,7 @@ const discoverModules = async (filter?: string): Promise<string[]> => {
 
 const normalizeGraphqlSchemaText = (schemaText: string) => {
 	const missingDeclarations = theGraphScalarDeclarations.filter(
-		(declaration) => !schemaText.includes(declaration),
+		(declaration) => !schemaText.includes(declaration)
 	)
 	return (
 		missingDeclarations.length === 0 ?
@@ -60,6 +60,11 @@ const normalizeGraphqlSchemaText = (schemaText: string) => {
 		:
 			`${missingDeclarations.join('\n')}\n\n${schemaText}`
 	)
+}
+
+const readGeneratedOutput = async (outputFile: string) => {
+	const output = await readFile(outputFile, 'utf8')
+	return output.endsWith('\n') ? output : `${output}\n`
 }
 
 const downloadSchemaText = async (schemaUrl: string) => {
@@ -74,7 +79,7 @@ const downloadSchemaText = async (schemaUrl: string) => {
 				query: getIntrospectionQuery(),
 			}),
 		})
-	if (!response.ok) {
+		if (!response.ok) {
 			throw new Error(`Failed to download schema: ${response.status} ${response.statusText}`)
 		}
 		const {
@@ -87,10 +92,10 @@ const downloadSchemaText = async (schemaUrl: string) => {
 			}[]
 		} = await response.json()
 		if (data == null) {
-		throw new Error(
+			throw new Error(
 				`Failed to introspect schema: ${
 					errors?.[0]?.message ?? 'missing data'
-				}`,
+				}`
 			)
 		}
 		return printSchema(buildClientSchema(data))
@@ -129,7 +134,7 @@ const syncModule = async (sourceModule: string) => {
 				patchFile == null ? undefined : await readFile(patchFile, 'utf8'),
 			]
 				.filter((part) => part != null)
-				.join('\n\n'),
+				.join('\n\n')
 		)
 		await writeFile(
 			tempTsconfigFile,
@@ -147,18 +152,88 @@ const syncModule = async (sourceModule: string) => {
 					},
 				},
 				null,
-				'\t',
-			),
+				'\t'
+			)
 		)
 		await generateOutput({ output: outputFile, tsconfig: tempTsconfigFile })
+		await writeFile(outputFile, await readGeneratedOutput(outputFile))
 	} finally {
 		await rm(tempDir, { recursive: true, force: true })
 	}
 	console.log(`Generated ${sourceModule} types`)
 }
 
-const [filterArg] = process.argv.slice(2).filter((a) => a !== '--')
-const modules = await discoverModules(filterArg)
+const checkModule = async (sourceModule: string) => {
+	console.log(`Checking ${sourceModule}`)
+	const manifestFile = resolve(sourcesDir, sourceModule, 'schema-source.ts')
+	const mod = await import(pathToFileURL(manifestFile).href)
+	const manifest = mod.schemaSource as GraphqlSchemaSource | undefined
+	if (manifest == null) throw new Error(`Missing \`schemaSource\` export in ${manifestFile}`)
+
+	const schemaFile = resolve(dirname(manifestFile), manifest.schemaFile)
+	const outputFile = resolve(dirname(manifestFile), manifest.outputFile)
+	const patchFile =
+		manifest.patchFile == null ? undefined : resolve(dirname(manifestFile), manifest.patchFile)
+	const tempDir = await mkdtemp(join(tmpdir(), 'blockhead-graphql-'))
+	const tempSchemaFile = join(tempDir, 'schema.graphql')
+	const tempOutputFile = join(tempDir, 'graphql-env.d.ts')
+	const tempTsconfigFile = join(tempDir, 'tsconfig.json')
+
+	try {
+		await writeFile(
+			tempSchemaFile,
+			[
+				await readFile(schemaFile, 'utf8'),
+				patchFile == null ? undefined : await readFile(patchFile, 'utf8'),
+			]
+				.filter((part) => part != null)
+				.join('\n\n')
+		)
+		await writeFile(
+			tempTsconfigFile,
+			JSON.stringify(
+				{
+					extends: relative(tempDir, resolve(rootDir, 'tsconfig.json')),
+					compilerOptions: {
+						plugins: [
+							{
+								name: 'gql.tada/ts-plugin',
+								schema: tempSchemaFile,
+								tadaOutputLocation: tempOutputFile,
+							},
+						],
+					},
+				},
+				null,
+				'\t'
+			)
+		)
+		await generateOutput({ output: tempOutputFile, tsconfig: tempTsconfigFile })
+
+		const [
+			actual,
+			expected,
+		] = await Promise.all([
+			readGeneratedOutput(tempOutputFile),
+			readFile(outputFile, 'utf8'),
+		])
+
+		if (actual !== expected)
+			throw new Error(`${sourceModule}: generated GraphQL types drift from checked-in ${outputFile}`)
+	} finally {
+		await rm(tempDir, { recursive: true, force: true })
+	}
+}
+
+const [
+	modeOrFilter,
+	filterAfterMode,
+] = process.argv.slice(2).filter((arg) => arg !== '--')
+const check = modeOrFilter === 'check'
+const modules = await discoverModules(check ? filterAfterMode : modeOrFilter)
 for (const sourceModule of modules) {
-	await syncModule(sourceModule)
+	if (check)
+		await checkModule(sourceModule)
+	else
+		await syncModule(sourceModule)
 }

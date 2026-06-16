@@ -17,7 +17,6 @@ export enum LensAccountSelector {
 }
 
 
-
 export default {
 	entityType: EntityType.LensAccount,
 
@@ -78,18 +77,6 @@ export default {
 		},
 		{
 			name: 'createdAt',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'followerCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'followingCount',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

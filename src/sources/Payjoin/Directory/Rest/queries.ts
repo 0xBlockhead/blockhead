@@ -22,7 +22,7 @@ export const getOhttpKeyConfigBase64 = async ({
 					accept: 'application/ohttp-keys',
 				},
 			},
-		},
+		}
 	)
 	await throwIfHttpNotOk(response, url)
 	return Buffer.from(await response.arrayBuffer()).toString('base64')

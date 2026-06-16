@@ -39,16 +39,12 @@ const lensGraphqlUrls = [
 ] as const
 
 export const queryLens = async <
-	_Result extends {
-		[key: string]: any
-	},
-	_Variables extends {
-		[key: string]: any
-	},
+	_Result extends object,
+	_Variables extends object,
 >(
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
 	document: TadaDocumentNode<_Result, _Variables>,
-	variables?: _Variables,
+	variables?: _Variables
 ): Promise<_Result> => {
 	const apiKey = publicEnv.PUBLIC_LENS_API_KEY
 	const trimmedApiKey = (
@@ -76,9 +72,8 @@ export const queryLens = async <
 				},
 			})
 
-			if (out.errors?.[0]?.message != null) {
+			if (out.errors?.[0]?.message != null)
 				throw new Error(`Lens_Graphql: ${out.errors[0].message}`)
-			}
 
 			return out.data
 		}

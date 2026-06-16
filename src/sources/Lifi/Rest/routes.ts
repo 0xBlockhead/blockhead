@@ -35,7 +35,7 @@ export type BridgeRouteResolverBundle = {
 }
 
 const bridgeRouteQuoteIdToRequest = (
-	quoteId: BridgeRouteQuoteId,
+	quoteId: BridgeRouteQuoteId
 ): LifiQuoteRequest => ({
 	fromChain: quoteId.fromChainId,
 	toChain: quoteId.toChainId,
@@ -49,7 +49,7 @@ const bridgeRouteQuoteIdToRequest = (
 
 export const fetchLifiQuoteStep = async (
 	params: LifiQuoteRequest,
-	options?: { baseUrl?: string },
+	options?: { baseUrl?: string }
 ): Promise<LifiQuoteStep> => {
 	const search = new URLSearchParams({
 		fromChain: String(params.fromChain),
@@ -70,7 +70,7 @@ export const fetchLifiQuoteStep = async (
 const parseLifiQuoteAmountBigInt = (
 	value: string | undefined,
 	label: string,
-	fallback?: string,
+	fallback?: string
 ) => {
 	const raw = (value ?? fallback ?? '').trim()
 	if (!/^\d+$/.test(raw)) {
@@ -80,7 +80,7 @@ const parseLifiQuoteAmountBigInt = (
 }
 
 const usdSumFromCostRows = (
-	rows: readonly { amountUSD?: string }[] | undefined,
+	rows: readonly { amountUSD?: string }[] | undefined
 ) => (
 	(rows ?? [])
 		.reduce((sum, row) => {
@@ -95,7 +95,7 @@ const estimatedCostUsdFromQuoteStep = (step: LifiQuoteStep) => (
 )
 
 const lifiQuoteStepsForRoute = (
-	step: LifiQuoteStep,
+	step: LifiQuoteStep
 ): LifiQuoteStepLike[] => (
 	step.includedSteps != null && step.includedSteps.length > 0 ?
 		step.includedSteps
@@ -105,33 +105,33 @@ const lifiQuoteStepsForRoute = (
 
 const bridgeRouteBundleFromQuoteStep = (
 	quoteId: BridgeRouteQuoteId,
-	step: LifiQuoteStep,
+	step: LifiQuoteStep
 ): BridgeRouteResolverBundle => {
 	const fromAmount = parseLifiQuoteAmountBigInt(
 		step.action.fromAmount,
 		'from',
-		String(quoteId.fromAmount),
+		String(quoteId.fromAmount)
 	)
 	const toAmount = parseLifiQuoteAmountBigInt(
 		step.estimate?.toAmount
 		?? step.action.toAmount,
-		'to',
+		'to'
 	)
 	const toAmountMin = parseLifiQuoteAmountBigInt(
 		step.estimate?.toAmountMin
 		?? step.estimate?.toAmount
 		?? step.action.toAmount,
-		'toAmountMin',
+		'toAmountMin'
 	)
 
 	return {
 		routeFields: {
-				$fromNetwork: {
-					[EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(step.action.fromChainId) } },
-				},
-				$toNetwork: {
-					[EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(step.action.toChainId) } },
-				},
+			$fromNetwork: {
+				[EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(step.action.fromChainId) } },
+			},
+			$toNetwork: {
+				[EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(step.action.toChainId) } },
+			},
 			fromAmount,
 			toAmount,
 			toAmountMin,
@@ -146,27 +146,8 @@ const bridgeRouteBundleFromQuoteStep = (
 }
 
 export const fetchBridgeRouteBundleForQuoteId = async (
-	quoteId: BridgeRouteQuoteId,
+	quoteId: BridgeRouteQuoteId
 ): Promise<BridgeRouteResolverBundle> => {
 	const step = await fetchLifiQuoteStep(bridgeRouteQuoteIdToRequest(quoteId))
 	return bridgeRouteBundleFromQuoteStep(quoteId, step)
-}
-
-export const resolveBridgeRouteBundleForQuoteId = (
-	quoteId: BridgeRouteQuoteId,
-) => (
-	fetchBridgeRouteBundleForQuoteId(quoteId)
-)
-
-export const resolveBridgeRouteStepFieldsForEntitySelector = async (
-	entitySelector: EntitySelector<typeof schema, EntityType.BridgeRouteStep>,
-) => {
-	const bundle = await resolveBridgeRouteBundleForQuoteId(entitySelector.$route)
-	const step = bundle.steps[entitySelector.index]
-	if (step == null) {
-		throw new Error(
-			`Lifi_Rest: BridgeRouteStep index ${entitySelector.index} missing on quote route`,
-		)
-	}
-	return step
 }

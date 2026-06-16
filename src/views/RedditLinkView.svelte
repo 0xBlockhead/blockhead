@@ -37,18 +37,30 @@
 		>
 	> = $props()
 
-	const link = subscribe(EntityType.RedditLink,
-		selector,
-		({ sources: [
+	const link = $derived(
+		subscribe(
+			EntityType.RedditLink,
+			selector,
+			({ sources: [
 				Source.Reddit_Rest,
 				Source.Reddit_PublicJson,
-			], fields: { title: true, selftext: true, url: true, permalink: true, author: true, score: true, commentCount: true, $$timestamps: ({ sources: [
+			], fields: {
+				title: true,
+				selftext: true,
+				url: true,
+				permalink: true,
+				author: true,
+				$$timestamps: ({ sources: [
 					Source.Reddit_Rest,
 					Source.Reddit_PublicJson,
-				], limit: 1 }), createdAt: true, $subreddit: true } }),
+				], limit: 1 }),
+				createdAt: true,
+				$subreddit: true,
+			} }),
+		)
 	)
 
-	const idKey = stringify(selector)
+	const idKey = $derived(stringify(selector))
 
 
 	// Components
@@ -137,11 +149,11 @@
 						metrics={[
 							{
 								label: 'Score',
-								value: link.fields.$$timestamps[0]?.score ?? link.fields.score,
+								value: link.fields.$$timestamps.values.at(0)?.score,
 							},
 							{
 								label: 'Comments',
-								value: link.fields.$$timestamps[0]?.commentCount ?? link.fields.commentCount,
+								value: link.fields.$$timestamps.values.at(0)?.commentCount,
 							},
 						]}
 					/>
@@ -201,10 +213,10 @@
 	})}
 		<CollapsibleTabs
 			sectionIdPrefix={idKey}
-				sections={collapsibleTabsSections([
-					{ id: 'comments', label: 'Top-level comments' },
-					{ id: 'metric-snapshots', label: 'Metrics' },
-				])}
+			sections={collapsibleTabsSections([
+				{ id: 'comments', label: 'Top-level comments' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
 			id={`${idKey}:carousel-comments`}
 			data-card
 		>
@@ -246,5 +258,5 @@
 				/>
 			{/snippet}
 		</CollapsibleTabs>
-		{/snippet}
-	</EntityView>
+	{/snippet}
+</EntityView>

@@ -1,4 +1,5 @@
-import { glob, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { glob, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
@@ -22,7 +23,7 @@ type OpenApiSchemaSource = {
 
 const rootDir = resolve(
 	dirname(fileURLToPath(import.meta.url)),
-	'..',
+	'..'
 )
 const sourcesDir = join(rootDir, 'src/sources')
 
@@ -45,7 +46,7 @@ const loadSchemaSource = async (provider: string): Promise<{
 	const manifestFile = resolve(
 		sourcesDir,
 		provider,
-		'OpenApi/schema-source.ts',
+		'OpenApi/schema-source.ts'
 	)
 	const module = await import(pathToFileURL(manifestFile).href)
 	const manifest = module.schemaSource as OpenApiSchemaSource | undefined
@@ -64,7 +65,7 @@ const loadSchemaSource = async (provider: string): Promise<{
 
 /** Upstream specs (e.g. Coinpaprika) may reuse operationIds; openapi-typescript requires uniqueness. */
 const dedupeOpenApiOperationIds = (
-	spec: Record<string, unknown>,
+	spec: Record<string, unknown>
 ): Record<string, unknown> => {
 	const paths = spec.paths
 	if (paths == null || typeof paths !== 'object') return spec
@@ -138,7 +139,7 @@ const downloadSchema = async ({
 	await mkdir(dirname(schemaFile), { recursive: true })
 	await writeFile(
 		schemaFile,
-		await response.text(),
+		await response.text()
 	)
 
 	console.log(`Downloaded schema to ${schemaFile}`)
@@ -154,12 +155,39 @@ const generateTypes = async ({
 	await mkdir(dirname(typesFile), { recursive: true })
 
 	const output = await openapiTS(
-		await parseSchema(schemaFile),
+		await parseSchema(schemaFile)
 	)
 
 	await writeFile(typesFile, astToString(output))
 
 	console.log(`Generated types at ${typesFile}`)
+}
+
+const checkTypes = async (provider: string) => {
+	console.log(`Checking ${provider}`)
+	const { schemaFile, typesFile } = await loadSchemaSource(provider)
+	const tempDir = await mkdtemp(join(tmpdir(), 'blockhead-openapi-'))
+	const tempTypesFile = join(tempDir, 'openapi.d.ts')
+
+	try {
+		await generateTypes({
+			schemaFile,
+			typesFile: tempTypesFile,
+		})
+
+		const [
+			actual,
+			expected,
+		] = await Promise.all([
+			readFile(tempTypesFile, 'utf8'),
+			readFile(typesFile, 'utf8'),
+		])
+
+		if (actual !== expected)
+			throw new Error(`${provider}: generated OpenAPI types drift from checked-in ${typesFile}`)
+	} finally {
+		await rm(tempDir, { recursive: true, force: true })
+	}
 }
 
 const syncProvider = async (provider: string) => {
@@ -175,5 +203,14 @@ const syncProvider = async (provider: string) => {
 	})
 }
 
-const [filterArg] = process.argv.slice(2).filter((arg) => arg !== '--')
-for (const provider of await discoverProviders(filterArg)) await syncProvider(provider)
+const [
+	modeOrFilter,
+	filterAfterMode,
+] = process.argv.slice(2).filter((arg) => arg !== '--')
+const check = modeOrFilter === 'check'
+for (const provider of await discoverProviders(check ? filterAfterMode : modeOrFilter)) {
+	if (check)
+		await checkTypes(provider)
+	else
+		await syncProvider(provider)
+}

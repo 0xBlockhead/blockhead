@@ -3,10 +3,10 @@ import {
 	defineResolver,
 	type SourceResolverContext,
 } from '$/resolvers/defineResolver.ts'
-import { lightningNetworkId } from '$/constants/LightningNetwork.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
 import { LightningHtlcDirection } from '$/schema/LightningHtlc.ts'
@@ -26,12 +26,14 @@ import { LightningInvoiceSelector } from '$/schema/LightningInvoice.ts'
 import { LightningPaymentSelector } from '$/schema/LightningPayment.ts'
 import { LightningHtlcSelector } from '$/schema/LightningHtlc.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
+type NetworkId = { caip2: {
+	namespace: string
+	reference: string
+} } | { slug: string }
 
 const assertLightningNetwork = (network: NetworkId) => {
-	if (!('slug' in network) || network.slug !== lightningNetworkId.slug) {
+	if (!('slug' in network) || network.slug !== 'lightning')
 		throw new Error('LightningLnd_Rest: unsupported Lightning network')
-	}
 }
 
 const bigintFromWire = (value: string | null | undefined): bigint | undefined => (
@@ -66,34 +68,40 @@ const channelPointParts = (channelPoint: string) => {
 const channelStatusFromLndChannel = (channel: LndChannel): LightningChannelStatus => (
 	channel.active === true ?
 		LightningChannelStatus.Active
-	: channel.active === false ?
-		LightningChannelStatus.Inactive
 	:
-		LightningChannelStatus.Unknown
+		channel.active === false ?
+			LightningChannelStatus.Inactive
+		:
+			LightningChannelStatus.Unknown
 )
 
 const invoiceStateFromLnd = (state: string | null | undefined): LightningInvoiceState => (
 	state === 'OPEN' ?
 		LightningInvoiceState.Open
-	: state === 'SETTLED' ?
-		LightningInvoiceState.Settled
-	: state === 'CANCELED' ?
-		LightningInvoiceState.Canceled
-	: state === 'ACCEPTED' ?
-		LightningInvoiceState.Accepted
 	:
-		LightningInvoiceState.Unknown
+		state === 'SETTLED' ?
+			LightningInvoiceState.Settled
+		:
+			state === 'CANCELED' ?
+				LightningInvoiceState.Canceled
+			:
+				state === 'ACCEPTED' ?
+				LightningInvoiceState.Accepted
+			:
+				LightningInvoiceState.Unknown
 )
 
 const paymentStatusFromLnd = (status: string | null | undefined): LightningPaymentStatus => (
 	status === 'IN_FLIGHT' ?
 		LightningPaymentStatus.InFlight
-	: status === 'SUCCEEDED' ?
-		LightningPaymentStatus.Succeeded
-	: status === 'FAILED' ?
-		LightningPaymentStatus.Failed
 	:
-		LightningPaymentStatus.Unknown
+		status === 'SUCCEEDED' ?
+			LightningPaymentStatus.Succeeded
+		:
+			status === 'FAILED' ?
+				LightningPaymentStatus.Failed
+			:
+				LightningPaymentStatus.Unknown
 )
 
 const lndTransport = (context: SourceResolverContext<Source.LightningLnd_Rest>) => ({
@@ -103,24 +111,30 @@ const lndTransport = (context: SourceResolverContext<Source.LightningLnd_Rest>) 
 
 const channelFieldsFromLndChannel = (
 	channel: LndChannel,
-	localPublicKey?: string,
+	localPublicKey?: string
 ) => ({
 	[EntityMetaKey.Selector]: {
-		$network: lightningNetworkId,
+		$network: {
+			slug: 'lightning',
+		},
 		channelId: channel.chan_id,
 	},
 	status: channelStatusFromLndChannel(channel),
 	...(localPublicKey != null && {
 		$node0: {
 			[EntityMetaKey.Selector]: {
-				$network: lightningNetworkId,
+				$network: {
+					slug: 'lightning',
+				},
 				publicKey: localPublicKey,
 			},
 		},
 	}),
 	$node1: {
 		[EntityMetaKey.Selector]: {
-			$network: lightningNetworkId,
+			$network: {
+				slug: 'lightning',
+			},
 			publicKey: channel.remote_pubkey,
 		},
 	},
@@ -140,7 +154,9 @@ const invoicePaymentHash = (invoice: LndInvoice): string | undefined => (
 
 const invoiceFieldsFromLndInvoice = (invoice: LndInvoice) => ({
 	[EntityMetaKey.Selector]: {
-		$network: lightningNetworkId,
+		$network: {
+			slug: 'lightning',
+		},
 		paymentHash: invoicePaymentHash(invoice) ?? '',
 	},
 	paymentRequest: invoice.payment_request,
@@ -158,7 +174,9 @@ const invoiceFieldsFromLndInvoice = (invoice: LndInvoice) => ({
 
 const paymentFieldsFromLndPayment = (payment: LndPayment) => ({
 	[EntityMetaKey.Selector]: {
-		$network: lightningNetworkId,
+		$network: {
+			slug: 'lightning',
+		},
 		paymentHash: payment.payment_hash,
 	},
 	paymentRequest: payment.payment_request,
@@ -177,11 +195,13 @@ const paymentFieldsFromLndPayment = (payment: LndPayment) => ({
 const htlcFieldsFromLndHtlc = (
 	channel: LndChannel,
 	htlc: LndHtlc,
-	htlcIndex: number,
+	htlcIndex: number
 ) => ({
 	[EntityMetaKey.Selector]: {
 		$channel: {
-			$network: lightningNetworkId,
+			$network: {
+				slug: 'lightning',
+			},
 			channelId: channel.chan_id,
 		},
 		htlcIndex,
@@ -216,75 +236,69 @@ export default {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[LightningNetworkSelector.Network]: async ({ $network }) => {
-				assertLightningNetwork($network)
-				return {
-					name: 'Lightning Network',
-					$settlementNetwork: {
-						[EntityMetaKey.Selector]: {
-							caip2: {
-								namespace: 'bip122',
-								reference: '000000000019d6689c085ae165831e93',
+					assertLightningNetwork($network)
+					return {
+						name: 'Lightning Network',
+						$settlementNetwork: {
+							[EntityMetaKey.Selector]: {
+								caip2: networkBySlug.bitcoin.caip2,
 							},
 						},
-					},
+					}
 				}
-			}
 			},
 		})({
-				fields: {
+			fields: {
 				name: (network) => network.name,
 				$settlementNetwork: (network) => network.$settlementNetwork,
 			},
-			}),
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
 			resolve: {
 				[LightningNodeSelector.NetworkPublicKey]: async ({ $network, publicKey }, context) => {
-				assertLightningNetwork($network)
-				const info = await lndInfo(context)
-				const channels = await lndChannels(context)
-				if (publicKey === info.identity_pubkey) {
+					assertLightningNetwork($network)
+					const info = await lndInfo(context)
+					const channels = await lndChannels(context)
+					if (publicKey === info.identity_pubkey)
+						return {
+							alias: info.alias,
+							color: info.color,
+							channelCount: (info.num_active_channels ?? 0) + (info.num_inactive_channels ?? 0),
+							networkAddresses: info.uris ?? [],
+						}
+					if (!channels.some((channel) => channel.remote_pubkey === publicKey))
+						throw new Error(`LightningLnd_Rest: node not found ${publicKey}`)
 					return {
-						alias: info.alias,
-						color: info.color,
-						channelCount: (info.num_active_channels ?? 0) + (info.num_inactive_channels ?? 0),
-						networkAddresses: info.uris ?? [],
+						channelCount: channels.filter((channel) => channel.remote_pubkey === publicKey).length,
+						networkAddresses: [],
 					}
 				}
-				if (!channels.some((channel) => channel.remote_pubkey === publicKey)) {
-					throw new Error(`LightningLnd_Rest: node not found ${publicKey}`)
-				}
-				return {
-					channelCount: channels.filter((channel) => channel.remote_pubkey === publicKey).length,
-					networkAddresses: [],
-				}
-			}
 			},
 		})({
-				fields: {
+			fields: {
 				alias: (node) => node.alias,
 				color: (node) => node.color,
 				channelCount: (node) => node.channelCount,
 				networkAddresses: (node) => node.networkAddresses,
 			},
-			}),
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				[LightningChannelSelector.NetworkChannelId]: async ({ $network, channelId }, context) => {
-				assertLightningNetwork($network)
-				const info = await lndInfo(context)
-				const channel = (await lndChannels(context)).find((channel) => channel.chan_id === channelId)
-				if (channel == null) {
-					throw new Error(`LightningLnd_Rest: channel not found ${channelId}`)
+					assertLightningNetwork($network)
+					const info = await lndInfo(context)
+					const channel = (await lndChannels(context)).find((channel) => channel.chan_id === channelId)
+					if (channel == null)
+						throw new Error(`LightningLnd_Rest: channel not found ${channelId}`)
+					return channelFieldsFromLndChannel(channel, info.identity_pubkey)
 				}
-				return channelFieldsFromLndChannel(channel, info.identity_pubkey)
-			}
 			},
 		})({
-				fields: {
+			fields: {
 				status: (channel) => channel.status,
 				$node0: (channel) => channel.$node0,
 				$node1: (channel) => channel.$node1,
@@ -298,25 +312,24 @@ export default {
 				private: (channel) => channel.private,
 				initiator: (channel) => channel.initiator,
 			},
-			}),
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningInvoice,
 			resolve: {
 				[LightningInvoiceSelector.NetworkPaymentHash]: async ({ $network, paymentHash }, context) => {
-				assertLightningNetwork($network)
-				const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
-				const invoice = (
-					(await listInvoices(lndTransport(context))).invoices ?? []
-				).find((invoice) => invoicePaymentHash(invoice) === paymentHash)
-				if (invoice == null) {
-					throw new Error(`LightningLnd_Rest: invoice not found ${paymentHash}`)
+					assertLightningNetwork($network)
+					const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
+					const invoice = (
+						(await listInvoices(lndTransport(context))).invoices ?? []
+					).find((invoice) => invoicePaymentHash(invoice) === paymentHash)
+					if (invoice == null)
+						throw new Error(`LightningLnd_Rest: invoice not found ${paymentHash}`)
+					return invoiceFieldsFromLndInvoice(invoice)
 				}
-				return invoiceFieldsFromLndInvoice(invoice)
-			}
 			},
 		})({
-				fields: {
+			fields: {
 				paymentRequest: (invoice) => invoice.paymentRequest,
 				memo: (invoice) => invoice.memo,
 				valueMsat: (invoice) => invoice.valueMsat,
@@ -329,25 +342,24 @@ export default {
 				addIndex: (invoice) => invoice.addIndex,
 				settleIndex: (invoice) => invoice.settleIndex,
 			},
-			}),
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningPayment,
 			resolve: {
 				[LightningPaymentSelector.NetworkPaymentHash]: async ({ $network, paymentHash }, context) => {
-				assertLightningNetwork($network)
-				const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
-				const payment = (
-					(await listPayments(lndTransport(context))).payments ?? []
-				).find((payment) => payment.payment_hash === paymentHash)
-				if (payment == null) {
-					throw new Error(`LightningLnd_Rest: payment not found ${paymentHash}`)
+					assertLightningNetwork($network)
+					const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
+					const payment = (
+						(await listPayments(lndTransport(context))).payments ?? []
+					).find((payment) => payment.payment_hash === paymentHash)
+					if (payment == null)
+						throw new Error(`LightningLnd_Rest: payment not found ${paymentHash}`)
+					return paymentFieldsFromLndPayment(payment)
 				}
-				return paymentFieldsFromLndPayment(payment)
-			}
 			},
 		})({
-				fields: {
+			fields: {
 				paymentRequest: (payment) => payment.paymentRequest,
 				valueMsat: (payment) => payment.valueMsat,
 				feeMsat: (payment) => payment.feeMsat,
@@ -357,173 +369,172 @@ export default {
 				preimage: (payment) => payment.preimage,
 				paymentIndex: (payment) => payment.paymentIndex,
 			},
-			}),
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningHtlc,
 			resolve: {
 				[LightningHtlcSelector.LightningChannelHtlcIndex]: async ({ $channel, htlcIndex }, context) => {
-				assertLightningNetwork($channel.$network)
-				const channel = (await lndChannels(context)).find((channel) => channel.chan_id === $channel.channelId)
-				if (channel == null) {
-					throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
+					assertLightningNetwork($channel.$network)
+					const channel = (await lndChannels(context)).find((channel) => channel.chan_id === $channel.channelId)
+					if (channel == null)
+						throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
+					const htlc = (channel.pending_htlcs ?? []).at(htlcIndex)
+					if (htlc == null)
+						throw new Error(`LightningLnd_Rest: HTLC not found ${$channel.channelId}:${htlcIndex}`)
+					return htlcFieldsFromLndHtlc(channel, htlc, htlcIndex)
 				}
-				const htlc = (channel.pending_htlcs ?? []).at(htlcIndex)
-				if (htlc == null) {
-					throw new Error(`LightningLnd_Rest: HTLC not found ${$channel.channelId}:${htlcIndex}`)
-				}
-				return htlcFieldsFromLndHtlc(channel, htlc, htlcIndex)
-			}
 			},
 		})({
-				fields: {
+			fields: {
 				direction: (htlc) => htlc.direction,
 				amountMsat: (htlc) => htlc.amountMsat,
 				expiryHeight: (htlc) => htlc.expiryHeight,
 				hashLock: (htlc) => htlc.hashLock,
 				state: (htlc) => htlc.state,
 			},
-			}),
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[LightningNetworkSelector.Network]: async ({ $network }, context) => {
-				assertLightningNetwork($network)
-				const info = await lndInfo(context)
-				return [
-					{
-						[EntityMetaKey.Selector]: {
-							$network: lightningNetworkId,
-							publicKey: info.identity_pubkey,
+					assertLightningNetwork($network)
+					const info = await lndInfo(context)
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$network: {
+									slug: 'lightning',
+								},
+								publicKey: info.identity_pubkey,
+							},
+							alias: info.alias,
+							color: info.color,
+							channelCount: (info.num_active_channels ?? 0) + (info.num_inactive_channels ?? 0),
+							networkAddresses: info.uris ?? [],
 						},
-						alias: info.alias,
-						color: info.color,
-						channelCount: (info.num_active_channels ?? 0) + (info.num_inactive_channels ?? 0),
-						networkAddresses: info.uris ?? [],
-					},
-				]
-			}
+					]
+				}
 			},
 		})({
-				fields: {
+			fields: {
 				$$nodes: (nodes) => nodes.map((node) => ({
 					[EntityMetaKey.Selector]: node[EntityMetaKey.Selector],
 				})),
 			},
-			}),
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[LightningNetworkSelector.Network]: async ({ $network }, context) => {
-				assertLightningNetwork($network)
-				const info = await lndInfo(context)
-				return (await lndChannels(context))
-					.slice(0, resolverContextRowLimit(context))
-					.map((channel) => channelFieldsFromLndChannel(channel, info.identity_pubkey))
-			}
+					assertLightningNetwork($network)
+					const info = await lndInfo(context)
+					return (await lndChannels(context))
+						.slice(0, resolverContextRowLimit(context))
+						.map((channel) => channelFieldsFromLndChannel(channel, info.identity_pubkey))
+				}
 			},
 		})({
-				fields: {
+			fields: {
 				$$channels: (channels) => channels.map((channel) => ({
 					[EntityMetaKey.Selector]: channel[EntityMetaKey.Selector],
 				})),
 			},
-			}),
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[LightningNetworkSelector.Network]: async ({ $network }, context) => {
-				assertLightningNetwork($network)
-				const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
-				return (
-					(await listInvoices({
-						...lndTransport(context),
-						numMaxInvoices: resolverContextRowLimit(context),
-					})).invoices ?? []
-				).flatMap((invoice) => (
-					invoicePaymentHash(invoice) == null ?
-						[]
-					:
-						[invoiceFieldsFromLndInvoice(invoice)]
-				))
-			}
+					assertLightningNetwork($network)
+					const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
+					return (
+						(await listInvoices({
+							...lndTransport(context),
+							numMaxInvoices: resolverContextRowLimit(context),
+						})).invoices ?? []
+					).flatMap((invoice) => (
+						invoicePaymentHash(invoice) == null ?
+							[]
+						:
+							[invoiceFieldsFromLndInvoice(invoice)]
+					))
+				}
 			},
 		})({
-				fields: {
+			fields: {
 				$$invoices: (invoices) => invoices.map((invoice) => ({
 					[EntityMetaKey.Selector]: invoice[EntityMetaKey.Selector],
 				})),
 			},
-			}),
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[LightningNetworkSelector.Network]: async ({ $network }, context) => {
-				assertLightningNetwork($network)
-				const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
-				return (
-					(await listPayments({
-						...lndTransport(context),
-						maxPayments: resolverContextRowLimit(context),
-					})).payments ?? []
-				).map(paymentFieldsFromLndPayment)
-			}
+					assertLightningNetwork($network)
+					const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
+					return (
+						(await listPayments({
+							...lndTransport(context),
+							maxPayments: resolverContextRowLimit(context),
+						})).payments ?? []
+					).map(paymentFieldsFromLndPayment)
+				}
 			},
 		})({
-				fields: {
+			fields: {
 				$$payments: (payments) => payments.map((payment) => ({
 					[EntityMetaKey.Selector]: payment[EntityMetaKey.Selector],
 				})),
 			},
-			}),
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
 			resolve: {
 				[LightningNodeSelector.NetworkPublicKey]: async ({ $network, publicKey }, context) => {
-				assertLightningNetwork($network)
-				const info = await lndInfo(context)
-				return (await lndChannels(context))
-					.filter((channel) => (
+					assertLightningNetwork($network)
+					const info = await lndInfo(context)
+					return (await lndChannels(context))
+						.filter((channel) => (
 						publicKey === info.identity_pubkey
 						|| publicKey === channel.remote_pubkey
-					))
-					.slice(0, resolverContextRowLimit(context))
-					.map((channel) => channelFieldsFromLndChannel(channel, info.identity_pubkey))
-			}
+						))
+						.slice(0, resolverContextRowLimit(context))
+						.map((channel) => channelFieldsFromLndChannel(channel, info.identity_pubkey))
+				}
 			},
 		})({
-				fields: {
+			fields: {
 				$$channels: (channels) => channels.map((channel) => ({
 					[EntityMetaKey.Selector]: channel[EntityMetaKey.Selector],
 				})),
 			},
-			}),
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				[LightningChannelSelector.NetworkChannelId]: async ({ $network, channelId }, context) => {
-				assertLightningNetwork($network)
-				const channel = (await lndChannels(context)).find((channel) => channel.chan_id === channelId)
-				if (channel == null) {
-					throw new Error(`LightningLnd_Rest: channel not found ${channelId}`)
+					assertLightningNetwork($network)
+					const channel = (await lndChannels(context)).find((channel) => channel.chan_id === channelId)
+					if (channel == null)
+						throw new Error(`LightningLnd_Rest: channel not found ${channelId}`)
+					return (channel.pending_htlcs ?? []).map((htlc, htlcIndex) => (
+						htlcFieldsFromLndHtlc(channel, htlc, htlcIndex)
+					))
 				}
-				return (channel.pending_htlcs ?? []).map((htlc, htlcIndex) => (
-					htlcFieldsFromLndHtlc(channel, htlc, htlcIndex)
-				))
-			}
 			},
 		})({
-				fields: {
+			fields: {
 				$$htlcs: (htlcs) => htlcs.map((htlc) => ({
 					[EntityMetaKey.Selector]: htlc[EntityMetaKey.Selector],
 				})),
 			},
-			}),
+		}),
 	],
 }

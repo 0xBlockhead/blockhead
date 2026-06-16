@@ -59,7 +59,7 @@ const pathPattern = (
 
 const collectRouteBoundaryReport = async (
 	page: import('@playwright/test').Page,
-	pathname: string,
+	pathname: string
 ) => {
 	await resetBoundaryProbe(page)
 	for (let attempt = 1; attempt <= 3; attempt++) {
@@ -95,13 +95,13 @@ const collectRouteBoundaryReport = async (
 		page.url(),
 		mainVisible,
 		updates,
-		snapshot,
+		snapshot
 	)
 }
 
 const attachBoundaryArtifacts = async (
 	testInfo: import('@playwright/test').TestInfo,
-	reports: RouteBoundaryReport[],
+	reports: RouteBoundaryReport[]
 ) => {
 	const summary = formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames)
 	console.log(`\n--- boundary updates ---\n${summary}`)
@@ -125,7 +125,7 @@ const assertBoundaryReports = (reports: RouteBoundaryReport[]) => {
 		issueRoutes.map((report) => (
 			`${report.pathname}\n  ${report.issues.join('\n  ')}`
 		)),
-		formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames),
+		formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames)
 	).toEqual([])
 }
 
@@ -133,7 +133,7 @@ const withRouteTimeout = async (
 	pathname: string,
 	index: number,
 	total: number,
-	collect: Promise<RouteBoundaryReport>,
+	collect: Promise<RouteBoundaryReport>
 ) => {
 	const timeoutMs = settleTimeoutMs + gotoLoadTimeoutMs + 60_000
 	return Promise.race([
@@ -141,7 +141,7 @@ const withRouteTimeout = async (
 		new Promise<never>((_, reject) => {
 			setTimeout(() => {
 				reject(new Error(
-					`boundary route timeout after ${timeoutMs}ms at ${pathname} (${index + 1}/${total})`,
+					`boundary route timeout after ${timeoutMs}ms at ${pathname} (${index + 1}/${total})`
 				))
 			}, timeoutMs)
 		}),
@@ -199,7 +199,7 @@ test.describe('boundary updates (every +page route)', () => {
 					pathname,
 					index,
 					pageUrls.length,
-					collectRouteBoundaryReport(page, pathname),
+					collectRouteBoundaryReport(page, pathname)
 				))
 			})
 		}

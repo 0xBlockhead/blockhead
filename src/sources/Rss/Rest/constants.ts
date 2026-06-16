@@ -6,7 +6,7 @@ export const rssFeedOrigins: readonly SourceOrigin[] = [
 	...new Set(
 		rssNetworkSeedFeeds.map((feed) => (
 			new URL(feed.feedUrl).origin
-		)),
+		))
 	),
 ].map((origin) => ({
 	origin,
@@ -20,7 +20,7 @@ export const normalizeRssFeedUrl = (feedUrl: string) => (
 export const rssItemGuidFromParts = (
 	guid: string | undefined,
 	link: string | undefined,
-	title: string | undefined,
+	title: string | undefined
 ) => (
 	guid?.trim()
 	|| link?.trim()

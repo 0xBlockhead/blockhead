@@ -22,3 +22,11 @@ export const isJsonString = (value: JsonValue): value is string => (
 export const isJsonArray = (value: JsonValue): value is readonly JsonValue[] => (
 	Array.isArray(value)
 )
+
+export const jsonMessage = (value: JsonValue | undefined): string | undefined => {
+	if (!isJsonObject(value) || !isJsonString(value.message))
+		return undefined
+
+	const trimmed = value.message.trim()
+	return trimmed === '' ? undefined : trimmed
+}

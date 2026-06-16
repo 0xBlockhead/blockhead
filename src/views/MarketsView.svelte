@@ -8,7 +8,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { MarketKind } from '$/constants/Market.ts'
-	import { marketCatalogFieldSources } from '$/constants/Market.ts'
+	import { marketCatalogFieldSources } from '$/sources/Source.ts'
 	import type { MarketVenueId } from '$/constants/MarketVenue.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'

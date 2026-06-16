@@ -16,7 +16,7 @@ const corsOptions = {
 } as const
 
 const contractAddressFromWire = (
-	value: string | null | undefined,
+	value: string | null | undefined
 ): `0x${string}` | undefined => (
 	hexLowerOfByteSize(value ?? '', 20)
 )
@@ -25,7 +25,7 @@ const listRowFromWire = (
 	row: Eip8004ScanAgentsListResponse['data'] extends (infer Item)[] | undefined ?
 		Item
 	:
-		never,
+		never
 ): NormalizedEip8004ScanAgent | undefined => {
 	const chainId = row.chain_id
 	const tokenId = String(row.token_id).trim()
@@ -49,7 +49,7 @@ const listRowFromWire = (
 }
 
 const contactEndpointFromDetail = (
-	row: NonNullable<Eip8004ScanAgentDetailResponse['data']>,
+	row: NonNullable<Eip8004ScanAgentDetailResponse['data']>
 ): string | undefined => (
 	Object.values(row.services ?? {})
 		.map((service) => service.endpoint?.trim())
@@ -57,7 +57,7 @@ const contactEndpointFromDetail = (
 )
 
 const agentUriFromDetail = (
-	row: NonNullable<Eip8004ScanAgentDetailResponse['data']>,
+	row: NonNullable<Eip8004ScanAgentDetailResponse['data']>
 ): string | undefined => {
 	const offchainUri = row.raw_metadata?.offchain_uri?.trim()
 	if (offchainUri != null && offchainUri !== '') {

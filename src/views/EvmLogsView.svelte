@@ -1,8 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -26,10 +26,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<
-				typeof schema,
-				EntityType.EvmLog
-			>
+			entityFieldReference: {
+				entityType: EntityType.EvmTransaction
+				selector: EntitySelector<typeof schema, EntityType.EvmTransaction>
+				fieldName: '$$logs'
+			}
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -93,14 +94,20 @@
 										Source.Blockscout_Rest,
 										Source.Voltaire_JsonRpc,
 									],
+									fields: {
+										topics: true,
+									},
 								},
 							},
 						},
 					),
 					(parent) => (
-						[...(parent.fields.$$logs?.values ?? [])]
-							.map((value) => ({
-								value,
+						[...(parent.fields.$$logs?.entities ?? [])]
+							.map((entity) => ({
+								value: {
+									[EntityMetaKey.Selector]: entity.entitySelector,
+									topics: entity.fields.topics,
+								},
 							}))
 					),
 				)}

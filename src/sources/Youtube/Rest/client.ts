@@ -7,7 +7,7 @@ import { Source } from '$/sources/Source.ts'
 export const youtubeApiV3Get = async <T>(
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	path: `/${string}`,
-	params: Record<string, string>,
+	params: Record<string, string>
 ) => {
 	const key = publicEnv.PUBLIC_YOUTUBE_API_KEY
 	if (typeof key !== 'string' || key.trim() === '') {

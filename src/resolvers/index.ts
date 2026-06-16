@@ -104,8 +104,6 @@ import ZcashZipsGithubResolvers from '$/resolvers/ZcashZips-Github.ts'
 import ZebraJsonRpcResolvers from '$/resolvers/Zebra-JsonRpc.ts'
 import ZeroGChainJsonRpcResolvers from '$/resolvers/ZeroGChain-JsonRpc.ts'
 import ZeroGChainScanRestResolvers from '$/resolvers/ZeroGChainScan-Rest.ts'
-import ZeroGDaNodeGrpcResolvers from '$/resolvers/ZeroGDaNode-Grpc.ts'
-import ZeroGDocsRestResolvers from '$/resolvers/ZeroGDocs-Rest.ts'
 import ZeroGStorageNodeJsonRpcResolvers from '$/resolvers/ZeroGStorageNode-JsonRpc.ts'
 import ZeroGStorageScanRestResolvers from '$/resolvers/ZeroGStorageScan-Rest.ts'
 
@@ -217,8 +215,6 @@ export const resolvers = (
 		ZebraJsonRpcResolvers,
 		ZeroGChainJsonRpcResolvers,
 		ZeroGChainScanRestResolvers,
-		ZeroGDaNodeGrpcResolvers,
-		ZeroGDocsRestResolvers,
 		ZeroGStorageNodeJsonRpcResolvers,
 		ZeroGStorageScanRestResolvers,
 	]

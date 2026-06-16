@@ -6,7 +6,7 @@ export function useContext<_Value>(key: ContextKey, getInitialValue?: () => _Val
 export function useContext<_Value>(key: ContextKey): _Value | undefined
 export function useContext<_Value>(
 	key: ContextKey,
-	getInitialValue?: () => _Value,
+	getInitialValue?: () => _Value
 ): _Value | undefined {
 	return (
 		hasContext(key) ?
@@ -20,7 +20,7 @@ export function useContext<_Value>(
 
 export const useGetSetContext = <_Value>(
 	key: ContextKey,
-	getInitialValue?: () => _Value,
+	getInitialValue?: () => _Value
 ) => ({
 	get: () => useContext<_Value>(key, getInitialValue),
 	set: (value: _Value) => setContext(key, value),

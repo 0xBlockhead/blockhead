@@ -30,7 +30,7 @@ export const fetchChainsJson = async (): Promise<EthereumListsChainJson[]> => {
 export const fetchIconSlugs = async (): Promise<Set<string>> => {
 	const result = await getJson<GithubTreeResponse>(
 		`${githubApiOrigin}/repos/ethereum-lists/chains/git/trees/master?recursive=1`,
-		{ origins: EthereumLists.origins },
+		{ origins: EthereumLists.origins }
 	)
 	return new Set(
 		(result.tree ?? [])
@@ -39,19 +39,19 @@ export const fetchIconSlugs = async (): Promise<Set<string>> => {
 					[row.path.slice('_data/icons/'.length, -'.json'.length)]
 				:
 					[]
-			)),
+			))
 	)
 }
 
 
 export const fetchIconJsonBySlug = async (
-	slug: string,
+	slug: string
 ): Promise<EthereumListsIconJson | undefined> => {
 	const trimmed = slug.trim()
 	if (trimmed.length === 0) return undefined
 	if (!(await fetchIconSlugs()).has(trimmed)) return undefined
 	return getJson<EthereumListsIconJson>(
 		`${origin}/icons/${encodeURIComponent(trimmed)}.json`,
-		{ origins: EthereumLists.origins },
+		{ origins: EthereumLists.origins }
 	)
 }

@@ -66,19 +66,19 @@ export const executionProtocolByProtocol = Object.fromEntries(
 	executionProtocols.map((row) => [
 		row.protocol,
 		row,
-	]),
+	])
 )
 
 export const consensusProtocolByProtocol = Object.fromEntries(
 	consensusProtocols.map((row) => [
 		row.protocol,
 		row,
-	]),
+	])
 )
 
 export const networkExecutionUpgradeLayerByLayer = Object.fromEntries(
 	networkExecutionUpgradeLayers.map((row) => [
 		row.layer,
 		row,
-	]),
+	])
 )

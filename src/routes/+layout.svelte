@@ -23,6 +23,12 @@
 	import type { EntitySelector, EntityType as EntityTypeName } from '$/schema/$schema.ts'
 	import { sourceProviders } from '$/sources/index.ts'
 
+	declare global {
+		interface Window {
+			__blockheadProductDataSchemaVersionOverride?: number
+		}
+	}
+
 	export const appClient = client({
 		schema,
 		sourceProviders,
@@ -41,8 +47,14 @@
 			database: await openBrowserWASQLiteOPFSDatabase({
 				databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
 			}),
+			schemaMismatchPolicy: 'reset',
 		}),
-		schemaVersion: BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION,
+		schemaVersion: (
+			typeof window !== 'undefined' ?
+				window.__blockheadProductDataSchemaVersionOverride ?? BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION
+			:
+				BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION
+		),
 	})
 
 	if (typeof window !== 'undefined' && '__blockheadPersistenceProbe' in window)

@@ -13,7 +13,7 @@ export enum RedditCommentSelector {
 
 
 const RedditCommentFullname = type(
-	'/^t1_[A-Za-z0-9]+$/' as type.cast<string>,
+	'/^t1_[A-Za-z0-9]+$/' as type.cast<string>
 )
 
 export default {
@@ -48,12 +48,6 @@ export default {
 			name: 'author',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'score',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

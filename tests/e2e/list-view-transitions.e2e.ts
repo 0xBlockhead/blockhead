@@ -16,21 +16,21 @@ const rowLabels = (page: Page) => (
 
 const assertNoViewTransitionPulse = async (
 	page: Page,
-	before: { f: number, s: number, u: number },
+	before: { f: number, s: number, u: number }
 ) => {
 	await expect.poll(
 		async () => await getViewTransitionSpy(page),
-		{ message: 'view transition spy should remain unchanged' },
+		{ message: 'view transition spy should remain unchanged' }
 	).toEqual(before)
 }
 
 const assertSingleViewTransitionPulse = async (
 	page: Page,
-	before: { f: number, s: number, u: number },
+	before: { f: number, s: number, u: number }
 ) => {
 	await expect.poll(
 		async () => await getViewTransitionSpy(page),
-		{ message: 'expected exactly one view transition pulse' },
+		{ message: 'expected exactly one view transition pulse' }
 	).toEqual({
 		f: before.f + 1,
 		s: before.s + 1,
@@ -40,13 +40,13 @@ const assertSingleViewTransitionPulse = async (
 
 const assertViewTransitionEnvironment = async (page: Page) => {
 	expect(
-		await page.evaluate(() => typeof document.startViewTransition === 'function'),
+		await page.evaluate(() => typeof document.startViewTransition === 'function')
 	).toBe(true)
 	expect(
-		await page.evaluate(() => document.visibilityState),
+		await page.evaluate(() => document.visibilityState)
 	).toBe('visible')
 	expect(
-		await page.evaluate(() => matchMedia('(prefers-reduced-motion: no-preference)').matches),
+		await page.evaluate(() => matchMedia('(prefers-reduced-motion: no-preference)').matches)
 	).toBe(true)
 }
 
@@ -61,7 +61,7 @@ test.describe('list view transitions (RefinableList demo)', () => {
 	const firstDataRowVtn = (page: Page) => (
 		page.evaluate(() => {
 			const li = document.querySelector<HTMLLIElement>(
-				'[data-e2e=list-vt-demo] ul.list li[data-list-item]:not([hidden])',
+				'[data-e2e=list-vt-demo] ul.list li[data-list-item]:not([hidden])'
 			)
 			if (!li) return ''
 			return getComputedStyle(li).getPropertyValue('view-transition-name').trim() || li.style.viewTransitionName
@@ -79,7 +79,7 @@ test.describe('list view transitions (RefinableList demo)', () => {
 		expect(await firstDataRowVtn(page)).toMatch(/list-item-/)
 		await expect.poll(
 			async () => await getViewTransitionSpy(page),
-			{ message: 'load should not trigger list view transitions' },
+			{ message: 'load should not trigger list view transitions' }
 		).toEqual({
 			f: 0,
 			s: 0,
@@ -118,7 +118,7 @@ test.describe('list view transitions (RefinableList demo)', () => {
 		await expect(rowLabels(page)).toHaveText([ 'Alpha', 'Bravo', 'Candle' ])
 		await expect.poll(
 			async () => await getViewTransitionSpy(page),
-			{ message: 'disabled route should stay quiet on load' },
+			{ message: 'disabled route should stay quiet on load' }
 		).toEqual({
 			f: 0,
 			s: 0,

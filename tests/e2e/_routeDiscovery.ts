@@ -66,7 +66,7 @@ const bracketExpressionToMatcherKey = (expression: string) => (
 const dynamicFixture = (
 	paramKey: string,
 	matcherKey: string | undefined,
-	staticSegments: readonly string[],
+	staticSegments: readonly string[]
 ) => {
 	if (paramKey.startsWith('...'))
 		return e2eRouteRestSegmentFixtures[paramKey.slice(3)] ?? 'index.html'
@@ -87,7 +87,7 @@ const expandMixedSegment = (
 		urlSegments: string[]
 		staticSegments: string[]
 		params: Record<string, string>
-	}[],
+	}[]
 ) => {
 	const parts = [...segment.matchAll(/\[([^\]]+)\]/g)]
 	let expandedContexts = contexts.map((context) => ({
@@ -111,7 +111,7 @@ const expandMixedSegment = (
 					e2eRouteParamFixtureVariantsForContext(
 					paramKey,
 					expandedContext.context.staticSegments,
-					expandedContext.context.params,
+					expandedContext.context.params
 				)
 			).map((fixture) => ({
 				context: {
@@ -137,7 +137,7 @@ const expandMixedSegment = (
 			...expandedContext.context.urlSegments,
 			encodeUrlSegment(
 				expandedContext.urlSegment
-				+ segment.slice(expandedContext.offset),
+				+ segment.slice(expandedContext.offset)
 			),
 		],
 	}))
@@ -170,7 +170,7 @@ const pageFileToPathname = (absPath: string) => {
 					...dynamicFixture(
 						bracketSegmentToParamKey(segment),
 						bracketSegmentToMatcherKey(segment),
-						context.staticSegments,
+						context.staticSegments
 					)
 						.split('/')
 						.filter(Boolean)
@@ -193,7 +193,7 @@ const pageFileToPathname = (absPath: string) => {
 					e2eRouteParamFixtureVariantsForContext(
 						paramKey,
 						context.staticSegments,
-						context.params,
+						context.params
 					)
 			).map((fixture) => ({
 				...context,

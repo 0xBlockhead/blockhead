@@ -35,16 +35,18 @@
 		>
 	> = $props()
 
-	const cast = subscribe(EntityType.FarcasterCast,
-		selector,
-		({ sources: [
+	const cast = $derived(
+		subscribe(EntityType.FarcasterCast,
+			selector,
+			({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
 				Source.Farcaster_Rest,
-			], fields: { fid: true, hash: true, username: true, hashPrefix: true, clientUrl: true, text: true, timestamp: true, parentUrl: true, mentions: true, likeCount: true, recastCount: true, replyCount: true, $$timestamps: ({ sources: [
+			], fields: { fid: true, hash: true, username: true, hashPrefix: true, clientUrl: true, text: true, timestamp: true, parentUrl: true, mentions: true, $$timestamps: ({ sources: [
 					Source.Neynar_Rest,
 					Source.Snapchain_Rest,
 				], limit: 1 }), threadHash: true, $author: ({ fields: { username: true, displayName: true, $icon: true } }), $parentCast: true, $postedViaApp: ({ fields: { username: true, displayName: true } }), $channel: true, ...(open ? ({ mentionedProfileFids: true, mentionedChannelIds: true, $$embeds: ({ fields: { url: true, title: true, description: true, quotedPreviewText: true, $embeddedCast: true, $icon: true } }) }) : ({  })) } }),
+		)
 	)
 
 
@@ -226,15 +228,15 @@
 						metrics={[
 							{
 								label: 'Likes',
-								value: cast.fields.$$timestamps[0]?.likeCount ?? cast.fields.likeCount,
+								value: cast.fields.$$timestamps?.values.at(0)?.likeCount,
 							},
 							{
 								label: 'Recasts',
-								value: cast.fields.$$timestamps[0]?.recastCount ?? cast.fields.recastCount,
+								value: cast.fields.$$timestamps?.values.at(0)?.recastCount,
 							},
 							{
 								label: 'Replies',
-								value: cast.fields.$$timestamps[0]?.replyCount ?? cast.fields.replyCount,
+								value: cast.fields.$$timestamps?.values.at(0)?.replyCount,
 							},
 						]}
 					/>

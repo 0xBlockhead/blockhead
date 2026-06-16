@@ -6,12 +6,13 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = getEvmTopicPath(selector.hex),
+		href: hrefProp,
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -36,14 +37,21 @@
 		>
 	> = $props()
 
-	import { getEvmTopicPath } from '$/lib/signature-paths.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const topic = subscribe(EntityType.EvmTopic,
-		selector,
-		({ sources: [
-				Source.Openchain_Rest,
-			], fields: { ...(open && ({ signatures: true })) } }),
+	const href = $derived(
+		hrefProp ?? resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+			hex: selector.hex,
+		}),
+	)
+
+	const topic = $derived(
+		subscribe(EntityType.EvmTopic,
+			selector,
+			({ sources: [
+					Source.Openchain_Rest,
+				], fields: { ...(open && ({ signatures: true })) } }),
+		),
 	)
 
 
@@ -98,7 +106,7 @@
 			<dl data-column-item="center">
 				{#if !summaryUsesHeading}
 					<div>
-							<dt>Topic</dt>
+						<dt>Topic</dt>
 						<dd>
 							<TruncatedValue
 								value={selector.hex}
@@ -108,34 +116,34 @@
 					</div>
 				{/if}
 				{#if contentOpen}
-				<ResourceBoundary
-					resource={topic}
-					placeholderText="Loading topic catalog signatures…"
-				>
-					{#snippet children(topic)}
-						{#if topic.fields.signatures?.length}
-							<div>
-								<dt>Signatures</dt>
-								<dd>
-									<ul>
-										{#each topic.fields.signatures as sig (sig)}
-											<li><code>{sig}</code></li>
-										{/each}
-									</ul>
-								</dd>
-							</div>
-						{:else}
-							<div>
-								<dt>Signatures</dt>
-								<dd>
-									<p data-text="muted">No catalog signatures matched this log topic hash.</p>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-		</dl>
+					<ResourceBoundary
+						resource={topic}
+						placeholderText="Loading topic catalog signatures…"
+					>
+						{#snippet children(topic)}
+							{#if topic.fields.signatures?.length}
+								<div>
+									<dt>Signatures</dt>
+									<dd>
+										<ul>
+											{#each topic.fields.signatures as sig (sig)}
+												<li><code>{sig}</code></li>
+											{/each}
+										</ul>
+									</dd>
+								</div>
+							{:else}
+								<div>
+									<dt>Signatures</dt>
+									<dd>
+										<p data-text="muted">No catalog signatures matched this log topic hash.</p>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/if}
+			</dl>
 		</div>
 	{/snippet}
 </EntityView>

@@ -74,9 +74,7 @@
 		{#if open}
 			{@const network = subscribe(EntityType.EvmNetwork,
 				entityFieldReference.selector,
-				({ fields: { blockHeight: ({ sources: [
-							Source.Voltaire_JsonRpc,
-						] }), [entityFieldReference.fieldName]: ({ sources: [
+				({ fields: { [entityFieldReference.fieldName]: ({ sources: [
 							Source.Blockscout_Rest,
 						], limit: 16 }) } }),
 			)}

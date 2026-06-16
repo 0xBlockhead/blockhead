@@ -3,11 +3,14 @@
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { MarketTimeInterval } from '$/constants/Market.ts'
-	import { marketOhlcCandleSources } from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import {
+		Source,
+		marketOhlcCandleSources,
+	} from '$/sources/Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
@@ -32,23 +35,24 @@
 		height?: string
 	} = $props()
 
-	import {
-		dedupeCandleEntitiesById,
-		marketTimeIntervalsEqual,
-	} from '$/lib/marketOhlcCandles.ts'
-
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const market = subscribe(entityFieldReference.entityType,
-		entityFieldReference.selector,({ sources: [
+	const market = subscribe(
+		entityFieldReference.entityType,
+		entityFieldReference.selector,
+		{
+			sources: [
 				Source.Constants_Internal,
 				...marketOhlcCandleSources,
-			], fields: { [entityFieldReference.fieldName]: {
-				sources: [...marketOhlcCandleSources],
-				limit: limit,
+			],
+			fields: {
+				[entityFieldReference.fieldName]: {
+					sources: [...marketOhlcCandleSources],
+					limit,
+				},
 			},
-		} }),
+		},
 	)
 
 	const marketTimeIntervalTimestamps = derive(
@@ -57,14 +61,21 @@
 			const marketTimeIntervalTimestamps: readonly Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
 				market.fields[entityFieldReference.fieldName]?.values ?? []
 			)
+			const seenSelectorKeys = new Set<string>()
 			return (
-				dedupeCandleEntitiesById(marketTimeIntervalTimestamps)
-					.filter((marketTimeIntervalTimestamp) => (
-						marketTimeIntervalsEqual(
-							marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval,
-							timeInterval,
+				marketTimeIntervalTimestamps
+					.filter((marketTimeIntervalTimestamp) => {
+						const selectorKey = stringify(marketTimeIntervalTimestamp[EntityMetaKey.Selector])
+						if (
+							seenSelectorKeys.has(selectorKey)
+							|| marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.unit !== timeInterval.unit
+							|| marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.value !== timeInterval.value
 						)
-					))
+							return false
+
+						seenSelectorKeys.add(selectorKey)
+						return true
+					})
 					.toSorted((left, right) => (
 						left[EntityMetaKey.Selector].timestampMs < right[EntityMetaKey.Selector].timestampMs ?
 							-1

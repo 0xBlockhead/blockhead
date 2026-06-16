@@ -1,6 +1,8 @@
-import type { ActionType } from '$/constants/actions.ts'
+import {
+	type ActionType,
+	actionTypeDefinitionByActionType,
+} from '$/constants/actions.ts'
 import type { WalletCandidate, WalletConnection } from '$/state/wallets/adapters/types.ts'
-import { createAction } from '$/lib/createAction.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -51,7 +53,7 @@ export type LocalMutationContext = {
 
 export const writeLocalWatchedEvmAccount = (
 	context: LocalMutationContext,
-	accountEntitySelector: EntitySelector<typeof schema, EntityType.EvmAccount>,
+	accountEntitySelector: EntitySelector<typeof schema, EntityType.EvmAccount>
 ) => {
 	context.entityCollections[EntityType.EvmAccount].utils.writeUpsert({
 		[EntityMetaKey.Selector]: accountEntitySelector,
@@ -75,7 +77,7 @@ export const writeLocalWatchedEvmAccount = (
 export const writeLocalBlockheadSession = (
 	context: LocalMutationContext,
 	parentEntitySelector: EntitySelector<typeof schema, EntityType._Global>,
-	sessionName: string,
+	sessionName: string
 ) => {
 	const entitySelector = {
 		id: `session-${Date.now()}`,
@@ -97,7 +99,7 @@ export const writeLocalBlockheadSession = (
 export const writeLocalBlockheadSessionName = (
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
-	sessionName: string,
+	sessionName: string
 ) => {
 	const now = Date.now()
 	const fields = {
@@ -136,7 +138,7 @@ export const writeLocalBlockheadSessionAction = (
 	context: LocalMutationContext,
 	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	indexInSequence: number,
-	actionType: ActionType,
+	actionType: ActionType
 ) => {
 	const now = Date.now()
 	const entitySelector = {
@@ -148,7 +150,10 @@ export const writeLocalBlockheadSessionAction = (
 			[EntityMetaKey.Selector]: sessionEntitySelector,
 		},
 		indexInSequence,
-		action: createAction(actionType),
+		action: {
+			type: actionType,
+			params: actionTypeDefinitionByActionType[actionType].params.assert({}),
+		},
 		createdAt: now,
 		updatedAt: now,
 	}
@@ -175,7 +180,7 @@ export const writeLocalBlockheadSessionAction = (
 export const deleteLocalBlockheadSessionAction = (
 	context: LocalMutationContext,
 	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
-	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
+	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
 ) => {
 	context.entityFieldCollections[EntityType.BlockheadSession].$$actions.delete(stringify([
 		Source.Local_Internal,
@@ -197,12 +202,15 @@ export const updateLocalBlockheadSessionActionType = (
 		| 'indexInSequence'
 		| 'createdAt'
 	>,
-	actionType: ActionType,
+	actionType: ActionType
 ) => {
 	const fields = {
 		$session: sessionAction.$session,
 		indexInSequence: sessionAction.indexInSequence,
-		action: createAction(actionType),
+		action: {
+			type: actionType,
+			params: actionTypeDefinitionByActionType[actionType].params.assert({}),
+		},
 		createdAt: sessionAction.createdAt,
 		updatedAt: Date.now(),
 	}
@@ -217,7 +225,7 @@ export const updateLocalBlockheadSessionActionType = (
 
 export const writeLocalBlockheadWallet = (
 	context: LocalMutationContext,
-	candidate: WalletCandidate,
+	candidate: WalletCandidate
 ) => {
 	const entitySelector = {
 		id: candidate.id,
@@ -253,7 +261,7 @@ export const writeLocalBlockheadWallet = (
 
 export const writeLocalBlockheadWalletAccount = (
 	context: LocalMutationContext,
-	account: WalletConnection['accounts'][number],
+	account: WalletConnection['accounts'][number]
 ) => {
 	const entitySelector = {
 		caip10: {
@@ -297,7 +305,7 @@ export const writeLocalBlockheadWalletAccount = (
 
 export const writeLocalBlockheadWalletConnection = (
 	context: LocalMutationContext,
-	connection: WalletConnection,
+	connection: WalletConnection
 ) => {
 	const activeAccount = connection.accounts.at(0)
 	const entitySelector = {
@@ -368,7 +376,7 @@ export const writeLocalBlockheadWalletConnection = (
 
 export const deleteLocalBlockheadWalletConnection = (
 	context: LocalMutationContext,
-	walletId: string,
+	walletId: string
 ) => {
 	context.entityCollections[EntityType.BlockheadWalletConnection].delete(stringify([
 		Source.Local_Internal,

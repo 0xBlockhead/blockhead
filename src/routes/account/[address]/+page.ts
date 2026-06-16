@@ -18,6 +18,6 @@ export const load: PageLoad = ({ params }) => {
 	if (address instanceof arktype.errors) error(404, 'Invalid account address')
 
 	return {
-		entitySelector: { address },
+		selector: { address },
 	}
 }

@@ -45,13 +45,13 @@ export type WalletAdapter = {
 	disconnect(walletId: string): void
 	subscribeConnection(
 		walletId: string,
-		updateConnection: (connection: WalletConnection) => void,
+		updateConnection: (connection: WalletConnection) => void
 	): () => void
 }
 
 export const optionalDiscoveredCandidate = (
 	available: boolean,
-	candidate: Pick<WalletCandidate, 'id' | 'name' | 'icon' | 'rdns'>,
+	candidate: Pick<WalletCandidate, 'id' | 'name' | 'icon' | 'rdns'>
 ) => (
 	available ?
 		[candidate]

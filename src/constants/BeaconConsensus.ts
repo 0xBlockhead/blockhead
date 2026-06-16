@@ -37,5 +37,5 @@ export const beaconRestBaseByExecutionChainId = Object.fromEntries(
 	beaconRestBases.map((beaconRow) => [
 		beaconRow.chainId,
 		beaconRow,
-	]),
+	])
 )

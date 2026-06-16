@@ -12,16 +12,10 @@ import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { getCoinWithAssetPlatforms } from '$/sources/Coingecko/Rest/queries.ts'
 import type { CoingeckoCoin } from '$/sources/Coingecko/Rest/types.ts'
-import type {
-	LifiToken,
-	LifiTokensResponse,
-} from '$/sources/Lifi/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { stringify } from 'devalue'
 
-
-const NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 type CoinInstanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmCoinInstance>
 
@@ -34,44 +28,10 @@ const isEvmContractAddress = (value: string) => (
 	/^0x[a-fA-F0-9]{40}$/.test(value.trim())
 )
 
-const lifiCoinKeyByChainIdAndAddress = (
-	tokensByChainId: LifiTokensResponse['tokens'],
-) => {
-	const lookup = new Map<string, string>()
-
-	for (const [chainIdString, tokens] of Object.entries(tokensByChainId)) {
-		for (const token of tokens) {
-			const coinKey = token.coinKey?.trim()
-			if (coinKey == null || coinKey === '') continue
-			lookup.set(
-				`${chainIdString}:${token.address.toLowerCase()}`,
-				coinKey,
-			)
-		}
-	}
-
-	return lookup
-}
-
-const lifiCoinKeyForInstance = (
-	instanceId: CoinInstanceEntitySelector,
-	lookup: ReadonlyMap<string, string>,
-) => {
-	const chainId = Number(instanceId.$network.caip2.reference)
-	const address = (
-		'$contract' in instanceId ?
-			instanceId.$contract.address
-		:
-			NATIVE_TOKEN_ADDRESS
-	)
-	return lookup.get(`${chainId}:${address.toLowerCase()}`)
-}
-
 const coinInstanceStubRowsFromCoingeckoCoin = (
 	coinId: CoinId,
 	coin: CoingeckoCoin,
-	chainIdByPlatformId: ReadonlyMap<string, number>,
-	lifiCoinKeyByAddress: ReadonlyMap<string, string>,
+	chainIdByPlatformId: ReadonlyMap<string, number>
 ) => {
 	const seenKeys = new Set<string>()
 	const rows: CoinInstanceStub[] = []
@@ -89,31 +49,17 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 		const key = stringify(instanceId)
 		if (seenKeys.has(key)) return
 		seenKeys.add(key)
-		const symbolTrimmed = (coin.symbol ).trim()
-		const lifiCoinKeyTrimmed = lifiCoinKeyForInstance(instanceId, lifiCoinKeyByAddress)?.trim()
-			const isNativeChain = (
-				nativeChainId != null
-				&& Number(instanceId.$network.caip2.reference) === nativeChainId
-			)
+		const symbolTrimmed = coin.symbol.trim()
+		const isNativeChain = (
+			nativeChainId != null
+			&& Number(instanceId.$network.caip2.reference) === nativeChainId
+		)
 		const representation = (
-			coinId === CoinId.USDC
-			&& lifiCoinKeyTrimmed != null
-			&& lifiCoinKeyTrimmed !== '' ?
-				(
-					/\.?e$/i.test(lifiCoinKeyTrimmed)
-					|| lifiCoinKeyTrimmed.toLowerCase() === 'usdce' ?
-						CoinInstanceRepresentation.BridgeWrapped
-					: lifiCoinKeyTrimmed.toUpperCase() === 'USDC' ?
-						CoinInstanceRepresentation.IssuerNative
-					:
-						CoinInstanceRepresentation.Unknown
-				)
-			: coinId === CoinId.USDC && /\.e$/i.test(symbolTrimmed) ?
+			coinId === CoinId.USDC && /\.e$/i.test(symbolTrimmed) ?
 				CoinInstanceRepresentation.BridgeWrapped
 			: coinId === CoinId.USDC ?
 				CoinInstanceRepresentation.IssuerNative
-			:
-				(
+			: (
 				coinId === CoinId.ETH
 				&& instanceId.type === CoinInstanceType.Erc20Token
 				&& isNativeChain === false
@@ -121,8 +67,7 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 				CoinInstanceRepresentation.CanonicalL2Native
 			: coinId === CoinId.ETH && symbolTrimmed.toUpperCase().startsWith('W') ?
 				CoinInstanceRepresentation.CanonicalL2Native
-			:
-				(
+			: (
 				coinId === CoinId.ETH
 				&& instanceId.type === CoinInstanceType.NativeCurrency
 			) ?
@@ -150,13 +95,13 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 		const chainId = chainIdByPlatformId.get(platformId)
 		if (chainId == null) continue
 
-			pushRow({
+		pushRow({
+			$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
+			type: CoinInstanceType.Erc20Token,
+			$contract: {
 				$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
-				type: CoinInstanceType.Erc20Token,
-				$contract: {
-					$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
-					address: EvmAddress.assert(address.toLowerCase()),
-				},
+				address: EvmAddress.assert(address.toLowerCase()),
+			},
 		})
 	}
 
@@ -165,7 +110,7 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 
 export const fetchCoinInstanceStubsForCoin = async (
 	coinId: EntitySelector<typeof schema, EntityType.Coin>['coinId'],
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
 ) => {
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const coingeckoId = idByCoinId[coinId]
@@ -182,59 +127,38 @@ export const fetchCoinInstanceStubsForCoin = async (
 			.map((platform) => [
 				platform.id,
 				platform.chain_identifier,
-			]),
+			])
 	)
-
-	let lifiCoinKeyByAddress = new Map<string, string>()
-
-	try {
-		const { fetchTokens } = await import('$/sources/Lifi/Rest/queries.ts')
-		const { tokens } = await fetchTokens({ chainTypes: 'EVM' })
-		lifiCoinKeyByAddress = lifiCoinKeyByChainIdAndAddress(tokens)
-	}
-	catch {
-		lifiCoinKeyByAddress = new Map()
-	}
 
 	return coinInstanceStubRowsFromCoingeckoCoin(
 		coinId,
 		coin,
-		chainIdByPlatformId,
-		lifiCoinKeyByAddress,
+		chainIdByPlatformId
 	)
 }
 
-const coinIdByInstanceKeyCaches = new Map<string, Map<string, CoinId>>()
-
 const coinIdByInstanceKeyForEnv = async (
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
 ) => {
-	const cacheKey = stringify(publicEnv)
-	const cached = coinIdByInstanceKeyCaches.get(cacheKey)
-	if (cached != null) {
-		return cached
-	}
-
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const map = new Map<string, CoinId>()
 
 	for (const coinId of Object.keys(idByCoinId)) {
 		const rows = await fetchCoinInstanceStubsForCoin(
 			coinId,
-			publicEnv,
+			publicEnv
 		)
 		for (const row of rows) {
 			map.set(stringify(row[EntityMetaKey.Selector]), coinId)
 		}
 	}
 
-	coinIdByInstanceKeyCaches.set(cacheKey, map)
 	return map
 }
 
 export const resolveCoinIdForCoinInstanceEntitySelector = async (
 	instanceId: CoinInstanceEntitySelector,
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
 ) => {
 	const map = await coinIdByInstanceKeyForEnv(publicEnv)
 	return map.get(stringify(instanceId)) ?? null
@@ -242,7 +166,7 @@ export const resolveCoinIdForCoinInstanceEntitySelector = async (
 
 export const resolveCoinInstanceRepresentation = async (
 	instanceId: CoinInstanceEntitySelector,
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
 ) => {
 	const coinId = await resolveCoinIdForCoinInstanceEntitySelector(instanceId, publicEnv)
 	if (coinId == null) return undefined
@@ -256,7 +180,7 @@ export const resolveCoinInstanceRepresentation = async (
 
 export const resolveCanonicalCoinInstanceEntitySelector = async (
 	instanceId: CoinInstanceEntitySelector,
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
 ) => {
 	const coinId = await resolveCoinIdForCoinInstanceEntitySelector(instanceId, publicEnv)
 	if (coinId == null) return undefined
@@ -269,10 +193,10 @@ export const resolveCanonicalCoinInstanceEntitySelector = async (
 	if (self == null) return undefined
 
 	if (self.representation === CoinInstanceRepresentation.BridgeWrapped) {
-			const issuerNative = rows.find((row) => (
-				row.representation === CoinInstanceRepresentation.IssuerNative
-				&& row[EntityMetaKey.Selector].$network.caip2.reference === '1'
-			))
+		const issuerNative = rows.find((row) => (
+			row.representation === CoinInstanceRepresentation.IssuerNative
+			&& row[EntityMetaKey.Selector].$network.caip2.reference === '1'
+		))
 		return issuerNative?.[EntityMetaKey.Selector]
 	}
 

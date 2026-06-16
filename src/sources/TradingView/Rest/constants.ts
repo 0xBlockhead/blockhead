@@ -23,7 +23,7 @@ export const tradingViewExchangeIdByMarketVenueId: Partial<Record<MarketVenueId,
 		.map(([exchangeId, marketVenueId]) => [
 			marketVenueId,
 			exchangeId,
-		]),
+		])
 )
 
 export const tradingViewMarketByCoinId = Object.fromEntries(
@@ -116,7 +116,7 @@ export const tradingViewMarketByCoinId = Object.fromEntries(
 						],
 					]
 			)
-		}),
+		})
 ) as Partial<Record<
 	CoinId,
 	{

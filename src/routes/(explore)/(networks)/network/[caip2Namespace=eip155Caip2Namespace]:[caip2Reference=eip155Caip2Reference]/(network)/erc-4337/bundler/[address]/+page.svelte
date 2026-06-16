@@ -14,6 +14,6 @@
 
 <Page>
 	<Erc4337BundlerView
-		selector={data.entitySelector}
+		selector={data.selector}
 	/>
 </Page>

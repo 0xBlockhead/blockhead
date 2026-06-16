@@ -161,7 +161,7 @@ export default {
 				],
 				{
 					itemIndex: 0,
-				},
+				}
 			),
 			defaultSources: [
 				Source.Blockscout_Rest,

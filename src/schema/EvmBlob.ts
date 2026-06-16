@@ -17,7 +17,7 @@ export enum EvmBlobSelector {
 
 
 const EvmBlobVersionedHash = type(
-	'/^0x01[0-9a-fA-F]{62}$/' as type.cast<`0x01${string}`>,
+	'/^0x01[0-9a-fA-F]{62}$/' as type.cast<`0x01${string}`>
 )
 
 const EvmBlobStorageReference = type({

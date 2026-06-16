@@ -37,18 +37,28 @@
 		>
 	> = $props()
 
-	const subreddit = subscribe(EntityType.RedditSubreddit,
-		selector,
-		({ sources: [
+	const subreddit = $derived(
+		subscribe(
+			EntityType.RedditSubreddit,
+			selector,
+			({ sources: [
 				Source.Reddit_Rest,
 				Source.Reddit_PublicJson,
-			], fields: { title: true, publicDescription: true, subscriberCount: true, activeUserCount: true, $$timestamps: ({ sources: [
+			], fields: {
+				title: true,
+				publicDescription: true,
+				$$timestamps: ({ sources: [
 					Source.Reddit_Rest,
 					Source.Reddit_PublicJson,
-				], limit: 1 }), createdAt: true, over18: true, $icon: true } }),
+				], limit: 1 }),
+				createdAt: true,
+				over18: true,
+				$icon: true,
+			} }),
+		)
 	)
 
-	const idKey = stringify(selector)
+	const idKey = $derived(stringify(selector))
 
 
 	// Components
@@ -136,11 +146,11 @@
 						metrics={[
 							{
 								label: 'Subscribers',
-								value: subreddit.fields.$$timestamps[0]?.subscriberCount ?? subreddit.fields.subscriberCount,
+								value: subreddit.fields.$$timestamps.values.at(0)?.subscriberCount,
 							},
 							{
 								label: 'Active users',
-								value: subreddit.fields.$$timestamps[0]?.activeUserCount ?? subreddit.fields.activeUserCount,
+								value: subreddit.fields.$$timestamps.values.at(0)?.activeUserCount,
 							},
 						]}
 					/>
@@ -172,10 +182,10 @@
 	})}
 		<CollapsibleTabs
 			sectionIdPrefix={idKey}
-				sections={collapsibleTabsSections([
-					{ id: 'links', label: 'Submissions' },
-					{ id: 'metric-snapshots', label: 'Metrics' },
-				])}
+			sections={collapsibleTabsSections([
+				{ id: 'links', label: 'Submissions' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
 			id={`${idKey}:carousel-posts`}
 			data-card
 		>
@@ -217,5 +227,5 @@
 				/>
 			{/snippet}
 		</CollapsibleTabs>
-		{/snippet}
-	</EntityView>
+	{/snippet}
+</EntityView>

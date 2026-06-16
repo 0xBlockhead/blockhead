@@ -13,7 +13,7 @@ describe('decodeEnsContentHash', () => {
 		expect(decoded).not.toBeNull()
 		expect(decoded?.codec).toBe('ipfs')
 		expect(decoded?.canonicalUri).toBe(
-			'ipfs://bafybeigmh3ka3rjswqvusb5vuiv3kzekwdwucl6xgbaysqiplnpdbpcp4q',
+			'ipfs://bafybeigmh3ka3rjswqvusb5vuiv3kzekwdwucl6xgbaysqiplnpdbpcp4q'
 		)
 	})
 
@@ -32,10 +32,18 @@ describe('ensContentHashBrowseHref', () => {
 
 	it('maps bzz URI to swarm resource href', () => {
 		const href = ensContentHashBrowseHref(
-			'bzz://0000000000000000000000000000000000000000000000000000000000000001',
+			'bzz://0000000000000000000000000000000000000000000000000000000000000001'
 		)
 		expect(href).toBe(
-			'/swarm/0000000000000000000000000000000000000000000000000000000000000001',
+			'/swarm/0000000000000000000000000000000000000000000000000000000000000001'
+		)
+	})
+
+	it('maps swarm URI paths to encoded swarm resource path hrefs', () => {
+		expect(ensContentHashBrowseHref(
+			'swarm://0000000000000000000000000000000000000000000000000000000000000001/docs/index.html'
+			)).toBe(
+			'/swarm/0000000000000000000000000000000000000000000000000000000000000001/path/docs/index.html'
 		)
 	})
 })

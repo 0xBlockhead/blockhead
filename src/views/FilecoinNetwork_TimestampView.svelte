@@ -19,11 +19,28 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = subscribe(EntityType.FilecoinNetwork_Timestamp,
-		selector,
-		({ sources: [
-				Source.Lotus_JsonRpc,
-			], fields: { headHeight: true, headTipsetKey: true, headBlockCount: true, headTimestampMs: true, networkVersion: true, lotusVersion: true, lotusAgent: true, blockDelaySeconds: true, totalRawBytePower: true, totalQualityAdjustedPower: true } }),
+	const snapshot = $derived(
+		subscribe(
+			EntityType.FilecoinNetwork_Timestamp,
+			selector,
+			{
+				sources: [
+					Source.Lotus_JsonRpc,
+				],
+				fields: {
+					headHeight: true,
+					headTipsetKey: true,
+					headBlockCount: true,
+					headTimestampMs: true,
+					networkVersion: true,
+					lotusVersion: true,
+					lotusAgent: true,
+					blockDelaySeconds: true,
+					totalRawBytePower: true,
+					totalQualityAdjustedPower: true,
+				},
+			},
+		),
 	)
 
 

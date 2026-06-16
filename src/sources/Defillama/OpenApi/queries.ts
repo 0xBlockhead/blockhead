@@ -1,12 +1,11 @@
 /**
- * DefiLlama OpenAPI-backed price queries sourced from the official schema.
- * `Rest/queries.ts` remains the compatibility surface for resolvers and any existing callers.
- * @see https://api-docs.defillama.com/
- * @see https://docs.llama.fi/coin-prices-api
- */
+	* DefiLlama OpenAPI-backed price queries sourced from the official schema.
+	* `Rest/queries.ts` remains the compatibility surface for resolvers and any existing callers.
+	* @see https://api-docs.defillama.com/
+	* @see https://docs.llama.fi/coin-prices-api
+	*/
 
 import { iconsOrigin } from '$/sources/Defillama/Rest/constants.ts'
-import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { getChartJson, getCurrentPricesJson } from '$/sources/Defillama/OpenApi/client.ts'
 import type {
 	DefillamaChartPricePoint,
@@ -18,10 +17,18 @@ import type {
 	DefiLlamaPriceData,
 } from '$/sources/Defillama/Rest/types.ts'
 
+type OhlcCandle = readonly [
+	timestampMs: number,
+	open: number,
+	high: number,
+	low: number,
+	close: number,
+]
+
 /** Match `coins` map key to the id we requested (`coingecko:ethereum`, etc.). */
 export const getCoinEntryFromResponse = <_Bucket>(
 	coins: Record<string, _Bucket> | undefined,
-	requestedCoinId: string,
+	requestedCoinId: string
 ): _Bucket | undefined => {
 	const map = coins ?? {}
 	if (map[requestedCoinId] != null) return map[requestedCoinId]
@@ -36,7 +43,7 @@ export const getCoinEntryFromResponse = <_Bucket>(
 }
 
 const normalizeCurrentPriceData = (
-	value: DefillamaOpenApiCurrentPrice | undefined,
+	value: DefillamaOpenApiCurrentPrice | undefined
 ): DefiLlamaPriceData | undefined => (
 	value?.price != null
 	&& value.timestamp != null ?
@@ -52,12 +59,12 @@ const normalizeCurrentPriceData = (
 )
 
 /**
- * `GET /prices/current/{coins}` — current prices for `{chain}:{address}` or `coingecko:{id}` ids.
- * @see https://docs.llama.fi/coin-prices-api
- */
+	* `GET /prices/current/{coins}` — current prices for `{chain}:{address}` or `coingecko:{id}` ids.
+	* @see https://docs.llama.fi/coin-prices-api
+	*/
 export const getCurrentPrices = async (
 	coins: string[],
-	options?: GetDefillamaCurrentPricesOptions,
+	options?: GetDefillamaCurrentPricesOptions
 ): Promise<DefiLlamaCurrentPricesResponse> => {
 	if (coins.length === 0) return { coins: {} }
 
@@ -71,20 +78,19 @@ export const getCurrentPrices = async (
 			coins.flatMap((requestedCoinId) => {
 				const wire = getCoinEntryFromResponse(response.coins, requestedCoinId)
 				const normalized = normalizeCurrentPriceData(wire)
-				return normalized == null ? [] : [[requestedCoinId, normalized] as const]
-			}),
+				return normalized == null ? [] : [[
+					requestedCoinId,
+					normalized,
+				] as const]
+			})
 		),
 	}
 }
 
 /**
- * Maps DefiLlama chart closes to CoinGecko `/coins/{id}/ohlc` tuples
- * `[timestampMs, open, high, low, close]` — Coingecko-shaped OHLC rows for candle entities.
- * Opens link prior close; high/low are min/max of that step (line-to-synthetic-OHLC).
- */
-/**
- * Daily chart points for `days` buckets (`period=1D`, `span=days`).
- */
+	* Daily chart points for `days` buckets (`period=1D`, `span=days`).
+	* Maps DefiLlama chart closes to `[timestampMs, open, high, low, close]` tuples.
+	*/
 export const getChartOhlcRows = async ({
 	llamaCoinId,
 	days,
@@ -121,15 +127,15 @@ export const getChartOhlcRows = async ({
 					)
 					const high = Math.max(open, close)
 					const low = Math.min(open, close)
-						return [
-							[
-								tMs,
-								open,
-								high,
-								low,
-								close,
-							],
-						]
+					return [
+						[
+							tMs,
+							open,
+							high,
+							low,
+							close,
+						],
+					]
 				})()
 		))
 	)
@@ -141,9 +147,9 @@ export const getChainIconUrl = (slug: string): string => (
 )
 
 /**
- * DeFiLlama chain slug keyed by EVM chain id.
- * Slugs match the lowercase `name` field from `/v2/chains`, which also routes `icons.llama.fi`.
- */
+	* DeFiLlama chain slug keyed by EVM chain id.
+	* Slugs match the lowercase `name` field from `/v2/chains`, which also routes `icons.llama.fi`.
+	*/
 export const getChainSlugByChainId: Partial<Record<number, string>> = {
 	1: 'ethereum',
 	10: 'optimism',

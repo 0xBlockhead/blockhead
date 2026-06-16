@@ -41,7 +41,7 @@ const fourbyteFunctionEntries = async (hex: `0x${string}`): Promise<OpenchainSig
 	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex4Query(hex) })
 	const json = await getJson<FourbyteSignaturesList>(
 		`${directoryBaseUrl}/signatures/?${searchParams}`,
-		{ origins: Openchain.origins },
+		{ origins: Openchain.origins }
 	)
 	return (json.results ?? []).map((row) => ({ name: row.text_signature }))
 }
@@ -50,7 +50,7 @@ const fourbyteEventEntries = async (hex: `0x${string}`): Promise<OpenchainSignat
 	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex32Query(hex) })
 	const json = await getJson<FourbyteSignaturesList>(
 		`${directoryBaseUrl}/event-signatures/?${searchParams}`,
-		{ origins: Openchain.origins },
+		{ origins: Openchain.origins }
 	)
 	return (json.results ?? []).map((row) => ({ name: row.text_signature }))
 }

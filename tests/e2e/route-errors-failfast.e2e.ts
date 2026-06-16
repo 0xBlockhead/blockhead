@@ -47,7 +47,7 @@ const withRouteTimeout = async (
 	pathname: string,
 	index: number,
 	total: number,
-	visit: Promise<void>,
+	visit: Promise<void>
 ) => {
 	const timeoutMs = routeViewSmokeTimeoutsMs.test + 30_000
 	await Promise.race([
@@ -55,7 +55,7 @@ const withRouteTimeout = async (
 		new Promise<never>((_, reject) => {
 			setTimeout(() => {
 				reject(new Error(
-					`route smoke timeout after ${timeoutMs}ms at ${pathname} (${index + 1}/${total})`,
+					`route smoke timeout after ${timeoutMs}ms at ${pathname} (${index + 1}/${total})`
 				))
 			}, timeoutMs)
 		}),
@@ -70,7 +70,7 @@ const isTransientDevLoadFailure = (message: string) => (
 const visitRouteFailFast = async (
 	page: import('@playwright/test').Page,
 	testInfo: import('@playwright/test').TestInfo,
-	pathname: string,
+	pathname: string
 ) => {
 	const attemptVisit = async () => {
 		const { step, flushArtifacts } = setupRouteViewSmokePage(page)
@@ -93,7 +93,7 @@ const visitRouteFailFast = async (
 			const message = e instanceof Error ? e.message : String(e)
 			throw new Error(
 				`route-errors-failfast stopped at ${pathname} (url=${page.url()}): ${message}`,
-				{ cause: e },
+				{ cause: e }
 			)
 		}
 	}
@@ -135,7 +135,7 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 					pathname,
 					index,
 					pageUrls.length,
-					visitRouteFailFast(page, testInfo, pathname),
+					visitRouteFailFast(page, testInfo, pathname)
 				)
 			})
 		}

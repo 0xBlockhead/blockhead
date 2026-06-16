@@ -30,7 +30,7 @@ const metadataVisionResponse = type.or(
 	type({
 		ok: type.unit(false),
 		message: 'string',
-	}),
+	})
 )
 
 /**
@@ -39,7 +39,7 @@ const metadataVisionResponse = type.or(
  * @see https://docs.metadata.vision
  */
 export const getOpenGraphWireForPublicHttpUrl = async (
-	publicHttpUrl: string,
+	publicHttpUrl: string
 ): Promise<MetadataVisionOpenGraphData> => {
 	const requestUrl = `${metadataVisionOrigin}/${publicHttpUrl}`
 	const json = await getJson(requestUrl, { origins: MetadataVision.origins  })

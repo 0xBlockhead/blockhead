@@ -129,24 +129,6 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: 'likeCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'recastCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'replyCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
 			name: '$$timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FarcasterCast_Timestamp,

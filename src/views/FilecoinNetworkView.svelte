@@ -18,25 +18,50 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.FilecoinNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { slug: true, name: true, environment: true, $$nativeAssets: true } }),
+	const network = $derived(
+		subscribe(
+			EntityType.Network,
+			selector.$network,
+			{
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					slug: true,
+					name: true,
+					environment: true,
+					$$nativeAssets: true,
+				},
+			},
+		),
 	)
 
-	const filecoinNetwork = subscribe(EntityType.FilecoinNetwork,
-		selector,
-		({ sources: [
-				Source.Lotus_JsonRpc,
-				Source.Filfox_Rest,
-			], fields: { $headTipset: true, $$timestamps: ({ limit: 1 }), rpcEndpoints: true } }),
+	const filecoinNetwork = $derived(
+		subscribe(
+			EntityType.FilecoinNetwork,
+			selector,
+			{
+				sources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
+				fields: {
+					$$timestamps: {
+						limit: 1,
+						fields: {
+							$headTipset: true,
+						},
+					},
+					rpcEndpoints: true,
+				},
+			},
+		),
 	)
 
 
@@ -63,7 +88,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector}
+	entitySelector={selector.$network}
 	{href}
 	bind:open
 	{layout}
@@ -102,14 +127,17 @@
 				<dl class="network-summary-head" data-column-item="center">
 					<ResourceBoundary resource={filecoinNetwork}>
 						{#snippet children(filecoinNetwork)}
-							{#if filecoinNetwork.fields.$headTipset != null}
+							{@const latestTimestamp = filecoinNetwork.fields.$$timestamps?.entities[0]}
+							{#if latestTimestamp != null}
 								<div>
 									<dt>Head tipset</dt>
 									<dd id="network-summary-head-block">
-										<FilecoinTipsetView
-											selector={filecoinNetwork.fields.$headTipset[EntityMetaKey.Selector]}
-											layout={EntityLayout.Value}
-										/>
+										{#if latestTimestamp.fields.$headTipset != null}
+											<FilecoinTipsetView
+												selector={latestTimestamp.fields.$headTipset[EntityMetaKey.Selector]}
+												layout={EntityLayout.Value}
+											/>
+										{/if}
 									</dd>
 								</div>
 							{/if}
@@ -121,12 +149,12 @@
 						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 					</div>
 
-						{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
-							<div>
-								<dt>Native assets</dt>
-								<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
-							</div>
-						{/if}
+					{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
+						<div>
+							<dt>Native assets</dt>
+							<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
+						</div>
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -217,16 +245,23 @@
 			{/snippet}
 
 			{#snippet SectionFilecoinMiners({ id, label }: { id: string, label: string })}
-				<FilecoinMinersView
-					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.FilecoinNetwork,
-						selector,
-						fieldName: '$$headMiners',
-					}}
-					id={`${id}-list`}
-					title={label}
-				/>
+				<ResourceBoundary resource={filecoinNetwork}>
+					{#snippet children(filecoinNetwork)}
+						{@const latestTimestamp = filecoinNetwork.fields.$$timestamps?.values.at(0)}
+						{#if latestTimestamp != null}
+							<FilecoinMinersView
+								CollapsibleProps={{ canToggle: false }}
+								entityFieldReference={{
+									entityType: EntityType.FilecoinNetwork_Timestamp,
+									selector: latestTimestamp[EntityMetaKey.Selector],
+									fieldName: '$$headMiners',
+								}}
+								id={`${id}-list`}
+								title={label}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/snippet}
 		</CollapsibleTabs>
 
@@ -250,7 +285,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -281,7 +316,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -299,7 +334,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

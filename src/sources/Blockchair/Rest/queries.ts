@@ -59,7 +59,7 @@ const commaPathIdentifiers = (identifiers: readonly string[]) => (
 const blockchairLimit = (limit: number | undefined) => (
 	Math.min(
 		Math.max(limit ?? blockchairDefaultLimit, 0),
-		blockchairMaxLimit,
+		blockchairMaxLimit
 	)
 )
 

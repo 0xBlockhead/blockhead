@@ -106,9 +106,49 @@ export enum Source {
 	Zebra_JsonRpc = 'Zebra_JsonRpc',
 	ZeroGChain_JsonRpc = 'ZeroGChain_JsonRpc',
 	ZeroGChainScan_Rest = 'ZeroGChainScan_Rest',
-	ZeroGDaNode_Grpc = 'ZeroGDaNode_Grpc',
-	ZeroGDocs_Rest = 'ZeroGDocs_Rest',
 	ZeroGStorageNode_JsonRpc = 'ZeroGStorageNode_JsonRpc',
 	ZeroGStorageScan_Rest = 'ZeroGStorageScan_Rest',
 }
 
+/** Resolvers that populate catalog `Coin` identity (symbol, name, rank, logo). */
+export const catalogCoinIdentitySources = [
+	Source.Constants_Internal,
+	Source.Coingecko_Rest,
+	Source.CoinMarketCap_Rest,
+	Source.Coinpaprika_OpenApi,
+] as const
+
+/** Resolvers for derivative-only `Market` observation fields (`fundingRate`, open interest, ...). */
+export const marketDerivativeObservationSources = [
+	Source.Coingecko_OpenApi,
+] as const
+
+/** Resolvers for `MarketPrice` / `$$marketPrices` (spot USD streams). */
+export const marketSpotPriceSources = [
+	Source.Constants_Internal,
+	Source.Coingecko_Rest,
+	Source.Coingecko_OpenApi,
+	Source.CoinMarketCap_Rest,
+	Source.Coinpaprika_OpenApi,
+	Source.Defillama_OpenApi,
+] as const
+
+/** Resolvers for `Market_TimeInterval_Timestamp` / `$$marketTimeIntervalTimestamps`. */
+export const marketOhlcCandleSources = [
+	Source.Coingecko_Rest,
+	Source.Coingecko_OpenApi,
+	Source.Defillama_OpenApi,
+	Source.Coinpaprika_OpenApi,
+	Source.CoinMarketCap_Rest,
+] as const
+
+/** Parent `$` sources when loading `$$markets` field lists. */
+export const marketCatalogFieldSources = [
+	Source.Constants_Internal,
+	Source.Coingecko_Rest,
+	Source.Coingecko_OpenApi,
+	Source.CoinMarketCap_Rest,
+	Source.Coinpaprika_OpenApi,
+	Source.Defillama_OpenApi,
+	Source.TradingView_Rest,
+] as const

@@ -13,6 +13,6 @@ export const stringify: typeof JSON.stringify = (
 			:
 				val
 		),
-		space,
+		space
 	)
 )

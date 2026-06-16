@@ -13,14 +13,14 @@
 		params,
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
+	const network = $derived(subscribe(EntityType.Network,
 		{
-			networkSlug: params.networkSlug,
+			slug: params.networkSlug,
 		},
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { caip2: true, namespace: true, slug: true } }),
-	)
+	))
 
 
 	// Components
@@ -36,7 +36,7 @@
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
 			{@const selector = network.fields.caip2 == null ?
-				{ networkSlug: network.fields.slug }
+				{ slug: network.fields.slug }
 			:
 				{ caip2: network.fields.caip2 }}
 			{@const href = resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions', {
@@ -46,7 +46,7 @@
 				<UtxoTransactionsView
 					entityFieldReference={{
 						entityType: EntityType.UtxoNetwork,
-						selector,
+						selector: { $network: selector },
 						fieldName: '$$transactions',
 					}}
 					{href}
@@ -71,7 +71,7 @@
 				<HyperliquidTransactionsView
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
-						selector,
+						selector: { $network: selector },
 						fieldName: '$$transactions',
 					}}
 					{href}

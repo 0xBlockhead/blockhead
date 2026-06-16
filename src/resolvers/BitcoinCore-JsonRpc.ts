@@ -2,8 +2,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	bitcoinCoreDefaultLocalRpcUrl,
-	bitcoinMainnetCaip2,
+	bitcoinNetworkBySlug,
 } from '$/constants/BitcoinNetwork.ts'
 import {
 	EntityMetaKey,
@@ -13,11 +12,14 @@ import { Source } from '$/sources/Source.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 
-const assertBitcoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string } | { slug: string }) => {
+const assertBitcoinMainnet = (network: { caip2: {
+	namespace: string
+	reference: string
+} } | { networkSlug: string } | { slug: string }) => {
 	if (
 		!('caip2' in network)
-		|| network.caip2.namespace !== bitcoinMainnetCaip2.namespace
-		|| network.caip2.reference !== bitcoinMainnetCaip2.reference
+		|| network.caip2.namespace !== bitcoinNetworkBySlug.bitcoin.caip2.namespace
+		|| network.caip2.reference !== bitcoinNetworkBySlug.bitcoin.caip2.reference
 	) {
 		throw new Error('BitcoinCore_JsonRpc: unsupported Bitcoin network')
 	}
@@ -31,116 +33,114 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
-				assertBitcoinMainnet($network)
-				const {
-					getBlock,
-					getBlockHash,
-				} = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
-				const block = await getBlock({
-					rpcUrl: bitcoinCoreDefaultLocalRpcUrl,
-					blockHash: hash,
-				})
-				if (typeof block === 'string') {
-					throw new Error('BitcoinCore_JsonRpc: expected verbose block')
-				}
-				return {
-					hash: block.hash,
-					...(block.previousblockhash != null && {
-						$parent: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								height: BigInt(block.height - 1),
-								hash: block.previousblockhash,
+					assertBitcoinMainnet($network)
+					const {
+						getBlock,
+						getBlockHash,
+					} = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
+					const block = await getBlock({
+						rpcUrl: bitcoinNetworkBySlug.bitcoin.bitcoinCoreRpcUrl,
+						blockHash: hash,
+					})
+					if (typeof block === 'string')
+						throw new Error('BitcoinCore_JsonRpc: expected verbose block')
+					return {
+						hash: block.hash,
+						...(block.previousblockhash != null && {
+							$parent: {
+								[EntityMetaKey.Selector]: {
+									$network: $network,
+									height: BigInt(block.height - 1),
+									hash: block.previousblockhash,
+								},
 							},
-						},
-					}),
-					timestampMs: block.time * 1000,
-					merkleRoot: block.merkleroot,
-					nonce: block.nonce,
-					difficulty: block.difficulty,
-					...(block.size != null && {
-						sizeBytes: block.size,
-					}),
-					...(block.weight != null && {
-						weightUnits: block.weight,
-					}),
-					transactionCount: block.nTx,
-					$$transactions: block.tx.map((transaction) => (
-						typeof transaction === 'string' ?
-							{
-								[EntityMetaKey.Selector]: {
-									$network,
-									txId: transaction,
-								},
-							}
-						:
-							{
-								[EntityMetaKey.Selector]: {
-									$network,
-									txId: transaction.txid,
-								},
-								version: transaction.version,
-								lockTime: transaction.locktime,
-								sizeBytes: transaction.size,
-								virtualSizeBytes: transaction.vsize,
-								weightUnits: transaction.weight,
-								isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-							}
-					)),
+						}),
+						timestampMs: block.time * 1000,
+						merkleRoot: block.merkleroot,
+						nonce: block.nonce,
+						difficulty: block.difficulty,
+						...(block.size != null && {
+							sizeBytes: block.size,
+						}),
+						...(block.weight != null && {
+							weightUnits: block.weight,
+						}),
+						transactionCount: block.nTx,
+						$$transactions: block.tx.map((transaction) => (
+							typeof transaction === 'string' ?
+								{
+									[EntityMetaKey.Selector]: {
+										$network,
+										txId: transaction,
+									},
+								}
+							:
+								{
+									[EntityMetaKey.Selector]: {
+										$network,
+										txId: transaction.txid,
+									},
+									version: transaction.version,
+									lockTime: transaction.locktime,
+									sizeBytes: transaction.size,
+									virtualSizeBytes: transaction.vsize,
+									weightUnits: transaction.weight,
+									isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+								}
+						)),
+					}
 				}
-			}
-			}
+			},
 		})({
-				fields: {
-			hash: (snapshot) => snapshot.hash,
-			$parent: (snapshot) => snapshot.$parent,
-			timestampMs: (snapshot) => snapshot.timestampMs,
-			merkleRoot: (snapshot) => snapshot.merkleRoot,
-			nonce: (snapshot) => snapshot.nonce,
-			difficulty: (snapshot) => snapshot.difficulty,
-			sizeBytes: (snapshot) => snapshot.sizeBytes,
-			weightUnits: (snapshot) => snapshot.weightUnits,
-			transactionCount: (snapshot) => snapshot.transactionCount,
-			$$transactions: (snapshot) => snapshot.$$transactions,
-		},
-			}),
+			fields: {
+				hash: (snapshot) => snapshot.hash,
+				$parent: (snapshot) => snapshot.$parent,
+				timestampMs: (snapshot) => snapshot.timestampMs,
+				merkleRoot: (snapshot) => snapshot.merkleRoot,
+				nonce: (snapshot) => snapshot.nonce,
+				difficulty: (snapshot) => snapshot.difficulty,
+				sizeBytes: (snapshot) => snapshot.sizeBytes,
+				weightUnits: (snapshot) => snapshot.weightUnits,
+				transactionCount: (snapshot) => snapshot.transactionCount,
+				$$transactions: (snapshot) => snapshot.$$transactions,
+			},
+		}),
 
 		defineResolver(Source.BitcoinCore_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[UtxoTransactionSelector.NetworkTxId]: async ({ $network, txId }) => {
-				assertBitcoinMainnet($network)
-				const { getRawTransaction } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
-				const transaction = await getRawTransaction({
-					rpcUrl: bitcoinCoreDefaultLocalRpcUrl,
-					txId: txId,
-				})
-				if (typeof transaction === 'string') {
-					throw new Error('BitcoinCore_JsonRpc: expected verbose transaction')
+					assertBitcoinMainnet($network)
+					const { getRawTransaction } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
+					const transaction = await getRawTransaction({
+						rpcUrl: bitcoinNetworkBySlug.bitcoin.bitcoinCoreRpcUrl,
+						txId: txId,
+					})
+					if (typeof transaction === 'string')
+						throw new Error('BitcoinCore_JsonRpc: expected verbose transaction')
+					return {
+						[EntityMetaKey.Selector]: {
+							$network: $network,
+							txId: transaction.txid,
+						},
+						version: transaction.version,
+						lockTime: transaction.locktime,
+						sizeBytes: transaction.size,
+						virtualSizeBytes: transaction.vsize,
+						weightUnits: transaction.weight,
+						isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+					}
 				}
-				return {
-					[EntityMetaKey.Selector]: {
-						$network: $network,
-						txId: transaction.txid,
-					},
-					version: transaction.version,
-					lockTime: transaction.locktime,
-					sizeBytes: transaction.size,
-					virtualSizeBytes: transaction.vsize,
-					weightUnits: transaction.weight,
-					isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-				}
-			}
-			}
+			},
 		})({
-				fields: {
-			version: (snapshot) => snapshot.version,
-			lockTime: (snapshot) => snapshot.lockTime,
-			sizeBytes: (snapshot) => snapshot.sizeBytes,
-			virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
-			weightUnits: (snapshot) => snapshot.weightUnits,
-			isCoinbase: (snapshot) => snapshot.isCoinbase,
-		},
-			}),
+			fields: {
+				version: (snapshot) => snapshot.version,
+				lockTime: (snapshot) => snapshot.lockTime,
+				sizeBytes: (snapshot) => snapshot.sizeBytes,
+				virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
+				weightUnits: (snapshot) => snapshot.weightUnits,
+				isCoinbase: (snapshot) => snapshot.isCoinbase,
+			},
+		}),
 	],
 }

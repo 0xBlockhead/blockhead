@@ -17,7 +17,7 @@
 	let {
 		selector,
 		href = resolve('/(assets)/(coins)/coin/[coinId]', {
-				coinId: selector.$coin.coinId,
+			coinId: selector.$coin.coinId,
 		}),
 		open = $bindable(true),
 		collapsible = true,
@@ -36,13 +36,27 @@
 		>
 	> = $props()
 
-	const coinTimestamp = subscribe(EntityType.Coin_Timestamp,
+	const coinTimestamp = $derived(subscribe(EntityType.Coin_Timestamp,
 		selector,
-		({ sources: [
+		{
+			sources: [
+				Source.Coingecko_Rest,
 				Source.Blockscout_Rest,
 				Source.Local_Internal,
-			], fields: { marketCap: true, change24hPercent: true, ...(open ? ({ totalSupply: true, transport: true, providerAssetId: true }) : ({  })) } }),
-	)
+			],
+			fields: {
+				marketCapRank: true,
+				marketCapUsd: true,
+				marketCap: true,
+				change24hPercent: true,
+				...(open && {
+					totalSupply: true,
+					transport: true,
+					providerAssetId: true,
+				}),
+			},
+		},
+	))
 
 
 	// Components
@@ -69,10 +83,10 @@
 			placeholderText="Loading snapshot…"
 		>
 			{#snippet children(coinTimestamp)}
-				{#if coinTimestamp.fields.marketCap !== undefined}
+				{#if coinTimestamp.fields.marketCapUsd !== undefined || coinTimestamp.fields.marketCap !== undefined}
 					<CurrencyAmount
 						currency="USD"
-						value={coinTimestamp.fields.marketCap}
+						value={coinTimestamp.fields.marketCapUsd ?? coinTimestamp.fields.marketCap ?? 0}
 					/>
 				{:else if coinTimestamp.fields.change24hPercent != null && Number.isFinite(coinTimestamp.fields.change24hPercent)}
 					<NumberValue
@@ -94,10 +108,10 @@
 			placeholderText="Loading snapshot…"
 		>
 			{#snippet children(coinTimestamp)}
-				{#if coinTimestamp.fields.marketCap !== undefined}
+				{#if coinTimestamp.fields.marketCapUsd !== undefined || coinTimestamp.fields.marketCap !== undefined}
 					<CurrencyAmount
 						currency="USD"
-						value={coinTimestamp.fields.marketCap}
+						value={coinTimestamp.fields.marketCapUsd ?? coinTimestamp.fields.marketCap ?? 0}
 					/>
 				{:else if coinTimestamp.fields.change24hPercent != null && Number.isFinite(coinTimestamp.fields.change24hPercent)}
 					<NumberValue
@@ -109,7 +123,7 @@
 						{selector.$coin.coinId}
 					</span>
 				{/if}
-	{/snippet}
+			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
@@ -129,13 +143,21 @@
 		>
 			{#snippet children(coinTimestamp)}
 				<dl data-column-item="center">
-					{#if coinTimestamp.fields.marketCap !== undefined}
+					{#if coinTimestamp.fields.marketCapRank != null && Number.isFinite(coinTimestamp.fields.marketCapRank)}
+						<div>
+							<dt>Market cap rank</dt>
+							<dd>
+								{String(coinTimestamp.fields.marketCapRank)}
+							</dd>
+						</div>
+					{/if}
+					{#if coinTimestamp.fields.marketCapUsd !== undefined || coinTimestamp.fields.marketCap !== undefined}
 						<div>
 							<dt>Market cap</dt>
 							<dd>
 								<CurrencyAmount
 									currency="USD"
-									value={coinTimestamp.fields.marketCap}
+									value={coinTimestamp.fields.marketCapUsd ?? coinTimestamp.fields.marketCap ?? 0}
 								/>
 							</dd>
 						</div>

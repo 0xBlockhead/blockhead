@@ -4,7 +4,7 @@
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { CoinId } from '$/constants/Coin.ts'
-	import { catalogCoinIdentitySources } from '$/constants/Market.ts'
+	import { catalogCoinIdentitySources } from '$/sources/Source.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,11 +15,7 @@
 	type CoinOrderFieldRow = {
 		marketCapRank?: number
 		marketCapUsd?: number
-		[EntityMetaKey.SelectorKey]: string
-		[EntityMetaKey.Value]: {
-			marketCapRank?: number
-			marketCapUsd?: number
-		}
+		valueKey: string
 	}
 
 
@@ -82,7 +78,7 @@
 			],
 			[
 				({ fieldRow }) => (
-					fieldRow[EntityMetaKey.SelectorKey]
+					fieldRow.valueKey
 				),
 				'asc',
 			],
@@ -130,7 +126,7 @@
 					entityFieldReference.selector,({ sources: catalogCoinIdentitySources, fields: { [entityFieldReference.fieldName]: {
 							sources: catalogCoinIdentitySources,
 							orderBy: [...globalCoinsFieldOrderBy],
-							limit: limit,
+							limit,
 						},
 					} }),
 				)}

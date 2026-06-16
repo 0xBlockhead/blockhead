@@ -12,7 +12,7 @@ export const load: PageLoad = ({ params }) => {
 
 	if (params.coinInstanceSlug === 'native') {
 		return {
-			entitySelector: {
+			selector: {
 				$network,
 				type: CoinInstanceType.NativeCurrency,
 			},
@@ -29,7 +29,7 @@ export const load: PageLoad = ({ params }) => {
 	if (address instanceof arktype.errors) error(404, 'Invalid token contract address')
 
 	return {
-		entitySelector: {
+		selector: {
 			$network,
 			type: CoinInstanceType.Erc20Token,
 			$contract: {

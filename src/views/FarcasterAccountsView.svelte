@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -38,12 +37,10 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BlockheadFarcasterAccountConnectionView from '$/views/BlockheadFarcasterAccountConnectionView.svelte'
 </script>
 
@@ -75,49 +72,47 @@
 		{#if open}
 			{@const global = subscribe(EntityType._Global,
 				entityFieldReference.selector,
-				({ sources: [Source.Local_Internal], fields: { $$blockheadFarcasterAccountConnections: true } }),
-			)}
-			{@const connections = derive(
-				global,
-					(global) => {
-						const connections: readonly Entity<typeof schema, EntityType.BlockheadFarcasterAccountConnection>[] = (
-							global.fields.$$blockheadFarcasterAccountConnections?.values ?? []
-						)
-						return (
-							connections.map((result) => ({
-							result,
-						}))
-						)
+				({
+					sources: [Source.Local_Internal],
+					fields: {
+						[entityFieldReference.fieldName]: true,
 					},
+				})
 			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BlockheadFarcasterAccountConnection}
-				id={`${id}-items`}
-				{title}
-				open={true}
-				getKey={(row) => row.result[EntityMetaKey.Selector].fid}
-				getSortValue={(row) => row.result[EntityMetaKey.Selector].fid}
+			<ResourceBoundary
+				resource={global}
 				placeholderText="Loading connected Farcaster accounts…"
-				resource={connections}
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No connected accounts yet.
-					</p>
-				{/snippet}
+				{#snippet children(global)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BlockheadFarcasterAccountConnection}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={global.fields[entityFieldReference.fieldName]?.values ?? []}
+						getKey={(connection) => connection[EntityMetaKey.Selector].fid}
+						getSortValue={(connection) => connection[EntityMetaKey.Selector].fid}
+						placeholderText="Loading connected Farcaster accounts…"
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No connected accounts yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					{@const fid = item.result[EntityMetaKey.Selector]}
-					<BlockheadFarcasterAccountConnectionView
-						selector={{ fid: fid.fid }}
-						layout={EntityLayout.Summary}
-						open={false}
-						title="Farcaster account"
-					/>
+						{#snippet Item({ item })}
+							<BlockheadFarcasterAccountConnectionView
+								selector={item[EntityMetaKey.Selector]}
+								layout={EntityLayout.Summary}
+								open={false}
+								title="Farcaster account"
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -1,6 +1,7 @@
 import { type } from 'arktype'
 import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
+import { NetworkNamespace } from '$/constants/Network.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import {
 	EntityFieldType,
@@ -44,8 +45,27 @@ export default {
 	fields: [
 		networkFields[0],
 		networkFields[1],
-		networkFields[2],
-		networkFields[3],
+		{
+			name: 'caip2',
+			type: EntityFieldType.Primitive,
+			primitiveType: type({
+				namespace: type.unit('eip155'),
+				reference: 'string',
+			}),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
+		},
+		{
+			name: 'namespace',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.unit(NetworkNamespace.Evm),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
+		},
 		{
 			name: '$nativeCoin',
 			type: EntityFieldType.EntityReference,
@@ -269,33 +289,6 @@ export default {
 			],
 		},
 		{
-			name: 'gasPrice',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
-		},
-		{
-			name: 'baseFeePerGas',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
-		},
-		{
-			name: 'gasUsedRatio',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
-		},
-		{
 			name: '$$blobs',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmBlob,
@@ -323,10 +316,10 @@ export default {
 			],
 		},
 		{
-			name: 'blockHeight',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmNetwork_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
 			],

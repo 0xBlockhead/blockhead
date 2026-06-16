@@ -42,18 +42,18 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const farcasterUserResource = subscribe(EntityType.FarcasterUser,
-		selector,
-		({ sources: [
+	const farcasterUserResource = $derived(
+		subscribe(EntityType.FarcasterUser,
+			selector,
+			({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
 				Source.Farcaster_Rest,
-			], fields: { displayName: true, username: true, bio: true, url: true, $primaryEvmAccount: true, followerCount: true, followingCount: true, $icon: true, $$verifiedAddresses: true, $$timestamps: ({ sources: [
+			], fields: { displayName: true, username: true, bio: true, url: true, $primaryEvmAccount: true, $icon: true, $$verifiedAddresses: true, $$timestamps: ({ sources: [
 					Source.Neynar_Rest,
 					Source.Snapchain_Rest,
 				], limit: 1 }) } }),
+		)
 	)
 
 
@@ -200,11 +200,11 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: farcasterUser.fields.$$timestamps[0]?.followerCount ?? farcasterUser.fields.followerCount,
+								value: farcasterUser.fields.$$timestamps?.values.at(0)?.followerCount,
 							},
 							{
 								label: 'Following',
-								value: farcasterUser.fields.$$timestamps[0]?.followingCount ?? farcasterUser.fields.followingCount,
+								value: farcasterUser.fields.$$timestamps?.values.at(0)?.followingCount,
 							},
 						]}
 					/>

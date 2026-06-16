@@ -15,7 +15,7 @@ export enum NostrProfileSelector {
 
 
 const NostrPubkey = type(
-	'/^[0-9a-f]{64}$/' as type.cast<string>,
+	'/^[0-9a-f]{64}$/' as type.cast<string>
 )
 
 export default {

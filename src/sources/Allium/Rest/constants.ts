@@ -21,5 +21,5 @@ export const apiChainByChainId: Partial<Record<number, string>> = Object.fromEnt
 		.map((entry) => [
 			entry.chainId,
 			entry.apiChain,
-		]),
+		])
 )

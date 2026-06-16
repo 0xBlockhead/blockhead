@@ -3,7 +3,7 @@ import type { PageLoad } from './$types.ts'
 
 export const load: PageLoad = ({ params }) => {
 	return {
-		entitySelector: {
+		selector: {
 			$network: {
 				caip2: {
 					namespace: params.caip2Namespace,

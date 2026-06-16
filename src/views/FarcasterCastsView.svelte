@@ -43,12 +43,10 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import FarcasterCastView from '$/views/FarcasterCastView.svelte'
 </script>
 
@@ -80,51 +78,55 @@
 		{#if open}
 			{@const parentFeed = subscribe(EntityType.FarcasterFeed,
 				entityFieldReference.selector,
-				({ sources: [
+				({
+					sources: [
 						import.meta.env.PUBLIC_NEYNAR_API_KEY?.trim() ?
 							Source.Neynar_Rest
 						:
 							Source.Snapchain_Rest,
-					], fields: { $$entries: ({ limit: limit }) } }),
+					],
+					fields: {
+						[entityFieldReference.fieldName]: {
+							limit,
+						},
+					},
+				})
 			)}
-			{@const casts = derive(
-				parentFeed,
-				(parentFeed) => (
-					[...(parentFeed.$$entries ?? [])]
-						.map((result) => ({
-							result,
-						}))
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.FarcasterCast}
-				id={`${id}-items`}
-				href={EntitiesListProps.href}
-				{title}
-				open={true}
-				getKey={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Selector])}
-				getSortValue={(farcasterCast) => stringify(farcasterCast.result[EntityMetaKey.Selector])}
+			<ResourceBoundary
+				resource={parentFeed}
 				placeholderText="Loading feed casts (Farcaster FID + cast hash)…"
-				resource={casts}
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No casts yet.
-					</p>
-				{/snippet}
+				{#snippet children(parentFeed)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.FarcasterCast}
+						id={`${id}-items`}
+						href={EntitiesListProps.href}
+						{title}
+						open={true}
+						items={parentFeed.fields[entityFieldReference.fieldName]?.values ?? []}
+						getKey={(farcasterCast) => stringify(farcasterCast[EntityMetaKey.Selector])}
+						getSortValue={(farcasterCast) => stringify(farcasterCast[EntityMetaKey.Selector])}
+						placeholderText="Loading feed casts (Farcaster FID + cast hash)…"
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No casts yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					{@const castId = item.result[EntityMetaKey.Selector]}
-					<FarcasterCastView
-						selector={castId}
-						layout={EntityLayout.Summary}
-						open={false}
-						variant="feed"
-					/>
+						{#snippet Item({ item })}
+							<FarcasterCastView
+								selector={item[EntityMetaKey.Selector]}
+								layout={EntityLayout.Summary}
+								open={false}
+								variant="feed"
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

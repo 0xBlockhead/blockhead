@@ -9,12 +9,14 @@
 	import {
 		MarketAssetKind,
 		MarketTimeIntervalUnit,
-		marketOhlcCandleSources,
 	} from '$/constants/Market.ts'
 
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
+	import {
+		Source,
+		marketOhlcCandleSources,
+	} from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 

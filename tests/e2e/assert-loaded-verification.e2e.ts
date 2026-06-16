@@ -131,12 +131,12 @@ test.describe('assertLoaded verification', () => {
 
 		expect(
 			resolverDefinitionCount,
-			'probe runner must report resolverDefinitionCount',
+			'probe runner must report resolverDefinitionCount'
 		).toBeGreaterThan(0)
 
 		expect(
 			resolverValuePartCount,
-			'probe runner must report resolverValuePartCount',
+			'probe runner must report resolverValuePartCount'
 		).toBeGreaterThan(0)
 
 		expect(body.conditionalScalarDiscriminatorCount).toBeGreaterThan(0)
@@ -154,7 +154,7 @@ test.describe('assertLoaded verification', () => {
 
 		expect(
 			cases.length,
-			'one case per entity resolver + one per field resolver',
+			'one case per entity resolver + one per field resolver'
 		).toBe(resolverDefinitionCount + resolverValuePartCount)
 
 		const entityCases = cases.filter((c) => c.kind === 'entity')
@@ -165,7 +165,7 @@ test.describe('assertLoaded verification', () => {
 
 		expect(
 			new Set(cases.map((c) => c.key)).size,
-			'case keys must be unique (one resolver per key)',
+			'case keys must be unique (one resolver per key)'
 		).toBe(cases.length)
 
 		for (const c of cases) {

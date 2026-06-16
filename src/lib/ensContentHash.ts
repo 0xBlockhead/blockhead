@@ -4,10 +4,6 @@ import {
 } from '@ensdomains/content-hash'
 
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
-import {
-	getResourceAddressFromInput,
-	getResourceHref,
-} from '$/sources/Swarm/Rest/queries.ts'
 
 
 export type EnsDecodedContentHash = {
@@ -19,6 +15,21 @@ export type EnsDecodedContentHash = {
 const isZeroContentHashHex = (hex: string) => (
 	/^0x0*$/i.test(hex)
 )
+
+const swarmResourceHrefFromInput = (value: string) => {
+	const match = /^(?:bzz|swarm):\/\/([^/?#]+)((?:\/[^?#]*)?)(?:[?#].*)?$/i.exec(value.trim())
+	if (match?.[1] == null)
+		return undefined
+
+	const reference = match[1]
+		.replace(/^0x/i, '')
+		.replace(/^\/+|\/+$/g, '')
+	if (reference === '')
+		return undefined
+
+	const contentPath = match[2].replace(/^\/+|\/+$/g, '')
+	return `/swarm/${encodeURIComponent(reference)}${contentPath === '' ? '' : `/path/${contentPath.split('/').map(encodeURIComponent).join('/')}`}`
+}
 
 export const decodeEnsContentHash = (encodedHex: string): EnsDecodedContentHash | null => {
 	const trimmed = encodedHex.trim()
@@ -62,19 +73,16 @@ export const ensContentHashBrowseHrefFromCanonicalUri = (canonicalUri: string) =
 	if (
 		trimmed.startsWith('bzz://')
 		|| trimmed.startsWith('swarm://')
-	) {
-		const address = getResourceAddressFromInput({ targetInput: trimmed })
-		return address == null ? undefined : getResourceHref(address)
-	}
+	)
+		return swarmResourceHrefFromInput(trimmed)
 
 	return undefined
 }
 
 export const ensContentHashBrowseHref = (contentHash: string) => {
 	const decoded = decodeEnsContentHash(contentHash)
-	if (decoded != null) {
+	if (decoded != null)
 		return ensContentHashBrowseHrefFromCanonicalUri(decoded.canonicalUri)
-	}
 
 	return ensContentHashBrowseHrefFromCanonicalUri(contentHash)
 }

@@ -98,5 +98,5 @@ export type QuilibriumGrpcUnaryCall = <
 		service: string
 		method: string
 		request: _Request
-	},
+	}
 ) => Promise<_Response>

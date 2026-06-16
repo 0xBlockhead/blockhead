@@ -31,7 +31,7 @@ export const getNode = ({
 				}
 			}
 		`),
-		{ pubkey: publicKey },
+		{ pubkey: publicKey }
 	).then((data) => data.getNode)
 )
 
@@ -65,7 +65,7 @@ export const getEdge = ({
 				}
 			}
 		`),
-		{ id: channelId },
+		{ id: channelId }
 	).then((data) => data.getEdge)
 )
 
@@ -75,6 +75,6 @@ export const getPopularNodePubkeys = () => (
 			query GetAmbossPopularNodes {
 				getPopularNodes
 			}
-		`),
+		`)
 	).then((data) => data.getPopularNodes)
 )

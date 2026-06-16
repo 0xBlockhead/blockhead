@@ -23,7 +23,7 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 		const rpcUrlRaw = await publicJsonRpcHttpUrlForChainE2e(1)
 		expect(
 			rpcUrlRaw,
-			'no HTTP JSON-RPC for chain 1 (ExecutionEndpoints / Chainlist)',
+			'no HTTP JSON-RPC for chain 1 (ExecutionEndpoints / Chainlist)'
 		).not.toBeNull()
 		if (rpcUrlRaw == null) {
 			throw new Error('no HTTP JSON-RPC for chain 1 (ExecutionEndpoints / Chainlist)')
@@ -32,7 +32,7 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 			page,
 			rpcUrlRaw,
 			3_000,
-			{ attempts: 8, betweenAttemptsMs: 4_000 },
+			{ attempts: 8, betweenAttemptsMs: 4_000 }
 		)
 		expect(
 			preflight.ok,
@@ -41,7 +41,7 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 			: 'detail' in preflight && preflight.detail != null ?
 				jsonStringifyForExpectMessage(preflight.detail)
 			:
-				jsonStringifyForExpectMessage(preflight),
+				jsonStringifyForExpectMessage(preflight)
 		).toBe(true)
 
 		await step(page.goto('/', { waitUntil: 'domcontentloaded' }))
@@ -100,7 +100,7 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 				message: 'collapsed summary head block should advance with chain',
 				timeout: 180_000,
 				intervals: [2_000, 3_000, 4_000, 5_000, 6_000],
-			},
+			}
 		).toBe(true))
 	})
 })

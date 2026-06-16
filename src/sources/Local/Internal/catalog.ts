@@ -139,7 +139,10 @@ export type NormalizedBlockheadSharedAddress = {
 
 export type NormalizedStateChannelAsset =
 	| { kind: 'native' }
-	| { kind: 'erc20', tokenAddress: string }
+	| {
+		kind: 'erc20'
+		tokenAddress: string
+	}
 
 export type NormalizedStateChannel = {
 	id: string
@@ -329,13 +332,24 @@ const probeBlockheadWalletConnection = {
 		{
 			namespace: 'eip155',
 			reference: '1',
-			methods: ['eth_accounts', 'eth_requestAccounts', 'personal_sign', 'eth_sendTransaction'],
-			events: ['accountsChanged', 'chainChanged'],
+			methods: [
+				'eth_accounts',
+				'eth_requestAccounts',
+				'personal_sign',
+				'eth_sendTransaction',
+			],
+			events: [
+				'accountsChanged',
+				'chainChanged',
+			],
 		},
 		{
 			namespace: 'solana',
 			reference: 'mainnet',
-			methods: ['signMessage', 'signTransaction'],
+			methods: [
+				'signMessage',
+				'signTransaction',
+			],
 			events: ['change'],
 		},
 	],
@@ -365,6 +379,13 @@ const probeBlockheadRoom = {
 
 const probeBlockheadSession = {
 	id: 'e2e-probe-session',
+	status: BlockheadSessionStatus.Draft,
+	createdAt: 0,
+	updatedAt: 0,
+} as const satisfies NormalizedBlockheadSession
+
+const probeBlockheadDirectSession = {
+	id: 'e2e-probe-direct-session',
 	status: BlockheadSessionStatus.Draft,
 	createdAt: 0,
 	updatedAt: 0,
@@ -485,7 +506,10 @@ const probeStateChannelStates = [
 				amount: 50_000_000_000_000_000n,
 			},
 		],
-		signatures: ['0x01', '0x02'],
+		signatures: [
+			'0x01',
+			'0x02',
+		],
 		isFinal: false,
 		timestamp: 2,
 	},
@@ -598,7 +622,10 @@ const defaultNormalizedLocalInternal: NormalizedLocalInternal = {
 	blockheadWallets: [probeBlockheadWallet],
 	blockheadWalletConnections: [probeBlockheadWalletConnection],
 	blockheadWalletAccounts: probeBlockheadWalletAccounts,
-	blockheadSessions: [probeBlockheadSession],
+	blockheadSessions: [
+		probeBlockheadSession,
+		probeBlockheadDirectSession,
+	],
 	blockheadSessionActions: [probeBlockheadSessionAction],
 	blockheadPanelTrees: [probeBlockheadPanelTree],
 	blockheadFarcasterAccountConnections: [
@@ -627,7 +654,7 @@ export const readNormalizedLocalInternal = (): NormalizedLocalInternal => (
 
 export const findNormalizedBridgeTransactionRow = (
 	catalog: NormalizedLocalInternal,
-	entitySelector: EntitySelector<typeof schema, EntityType.BridgeTransaction>,
+	entitySelector: EntitySelector<typeof schema, EntityType.BridgeTransaction>
 ): NormalizedBridgeTransaction | undefined => (
 	catalog.bridgeTransactions.find((row) => (
 		row.accountAddress === entitySelector.$account.address
@@ -639,19 +666,28 @@ export const findNormalizedBridgeTransactionRow = (
 
 
 export const coinInstanceIdForNormalizedStateChannelRow = (
-	row: NormalizedStateChannel,
+	row: NormalizedStateChannel
 ): EntitySelector<typeof schema, EntityType.EvmCoinInstance> => (
 	row.asset.kind === 'native' ?
 		{
-			$network: { caip2: { namespace: 'eip155', reference: String(row.chainId) } },
+			$network: { caip2: {
+				namespace: 'eip155',
+				reference: String(row.chainId),
+			} },
 			type: CoinInstanceType.NativeCurrency,
 		}
 	:
 		{
-			$network: { caip2: { namespace: 'eip155', reference: String(row.chainId) } },
+			$network: { caip2: {
+				namespace: 'eip155',
+				reference: String(row.chainId),
+			} },
 			type: CoinInstanceType.Erc20Token,
 			$contract: {
-				$network: { caip2: { namespace: 'eip155', reference: String(row.chainId) } },
+				$network: { caip2: {
+					namespace: 'eip155',
+					reference: String(row.chainId),
+				} },
 				address: EvmAddress.assert(row.asset.tokenAddress),
 			},
 		}

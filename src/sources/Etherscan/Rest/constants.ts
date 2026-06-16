@@ -45,5 +45,5 @@ export const supportedByChainId: Readonly<Record<number, true>> = supportedChain
 			[chainId]: true,
 		}
 	),
-	{} as Record<number, true>,
+	{} as Record<number, true>
 )

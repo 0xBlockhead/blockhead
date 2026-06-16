@@ -20,8 +20,8 @@ export default {
 				))(
 					await getUsage(
 						context.publicEnv,
-						{},
-					),
+						{}
+					)
 				)
 				if (
 					billingPeriod == null

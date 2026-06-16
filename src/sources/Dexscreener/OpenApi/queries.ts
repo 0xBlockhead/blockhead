@@ -18,7 +18,7 @@ export const getLatestPairs = async ({
 	pairId: string
 }) => (
 	await getDexscreenerJson<DexscreenerPairsResponse>(
-		`/latest/dex/pairs/${chainId}/${pairId}`,
+		`/latest/dex/pairs/${chainId}/${pairId}`
 	)
 )
 
@@ -30,7 +30,7 @@ export const getTokenPairs = async ({
 	tokenAddress: string
 }) => (
 	await getDexscreenerJson<DexscreenerTokenPairsResponse>(
-		`/token-pairs/v1/${chainId}/${tokenAddress}`,
+		`/token-pairs/v1/${chainId}/${tokenAddress}`
 	)
 )
 
@@ -40,6 +40,6 @@ export const getPairSearch = async ({
 	q: string
 }) => (
 	await getDexscreenerJson<DexscreenerSearchResponse>(
-		`/latest/dex/search?q=${encodeURIComponent(q)}`,
+		`/latest/dex/search?q=${encodeURIComponent(q)}`
 	)
 )

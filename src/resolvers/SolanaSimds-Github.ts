@@ -17,7 +17,7 @@ const solanaSimdProposalRows = async (
 	entries: {
 		type: string
 		name: string
-	}[],
+	}[]
 ) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	return entries.flatMap((githubContent) => {

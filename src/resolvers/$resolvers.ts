@@ -93,7 +93,7 @@ type ResolverSelect<
 	select(
 		snapshot: _Snapshot,
 		entitySelector: EntitySelector<_Schema, _EntityType>,
-		context: _Context,
+		context: _Context
 	): ResolverFieldValue<_Schema, _EntityType, _FieldName>
 }['select']
 
@@ -106,7 +106,7 @@ type ResolverCount<
 	resolveCount(
 		snapshot: _Snapshot,
 		entitySelector: EntitySelector<_Schema, _EntityType>,
-		context: _Context,
+		context: _Context
 	): number
 }['resolveCount']
 
@@ -120,8 +120,8 @@ type ResolverSelectCandidate<
 	select(
 		snapshot: _Snapshot,
 		entitySelector: EntitySelector<_Schema, _EntityType>,
-		context: _Context,
-	): ResolverFieldValue<_Schema, _EntityType, _FieldName> | Promise<ResolverFieldValue<_Schema, _EntityType, _FieldName>>
+		context: _Context
+	): ResolverFieldValue<_Schema, _EntityType, _FieldName>
 }['select']
 
 type ResolverCountCandidate<
@@ -133,8 +133,8 @@ type ResolverCountCandidate<
 	resolveCount(
 		snapshot: _Snapshot,
 		entitySelector: EntitySelector<_Schema, _EntityType>,
-		context: _Context,
-	): number | Promise<number>
+		context: _Context
+	): number
 }['resolveCount']
 
 type ResolverFilter = {
@@ -166,7 +166,7 @@ export type ResolverContext = ResolverSubset & {
 }
 
 const plainResolverFilterValue = (
-	value: unknown,
+	value: unknown
 ): ResolverFilterValue => {
 	if (
 		value == null
@@ -194,7 +194,7 @@ const plainResolverFilterValue = (
 
 export const plainLoadSubsetKeyValue = (
 	value: unknown,
-	seen = new WeakSet<object>(),
+	seen = new WeakSet<object>()
 ): LoadSubsetKeyValue => (
 	value == null ?
 		value
@@ -226,7 +226,7 @@ export const plainLoadSubsetKeyValue = (
 )
 
 export const parseResolverSubset = (
-	request: LoadSubsetOptions,
+	request: LoadSubsetOptions
 ): ResolverSubset => {
 	let filters: ResolverSubset['filters']
 	let sorts: ResolverSubset['sorts']
@@ -314,7 +314,7 @@ export const parseResolverSubset = (
 }
 
 export const fieldLoadedSubsetKey = (
-	request: LoadSubsetOptions,
+	request: LoadSubsetOptions
 ): LoadSubsetKeyObject => {
 	const resolverSubset = parseResolverSubset(request)
 	const filters = resolverSubset.filters.map((filter) => ({
@@ -345,7 +345,7 @@ export const fieldLoadedSubsetKey = (
 }
 
 export const countLoadedSubsetKey = (
-	request: LoadSubsetOptions,
+	request: LoadSubsetOptions
 ): LoadSubsetKeyObject => {
 	const resolverSubset = parseResolverSubset({
 		where: request.where,
@@ -381,7 +381,7 @@ export const countLoadedSubsetKey = (
 export const defaultResolverContextRowLimit = 64
 
 export const resolverContextRowLimit = (
-	context: ResolverContext,
+	context: ResolverContext
 ) => context.pagination.limit ?? defaultResolverContextRowLimit
 
 export type ResolveLiveFieldHandle<
@@ -439,7 +439,7 @@ export type ResolveLivePublishers<
 			]: true
 		}>
 		readonly start: (
-			context: ResolveLivePublisherContext<_Schema, _EntityType>,
+			context: ResolveLivePublisherContext<_Schema, _EntityType>
 		) => void | (() => void) | Promise<void | (() => void)>
 	}
 }
@@ -461,7 +461,7 @@ export type FieldSelector<
 				readonly start: (
 					context: ResolveLivePublisherContext<_Schema, _EntityType> & {
 						readonly field: ResolveLiveFieldHandle<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>
-					},
+					}
 				) => void | (() => void) | Promise<void | (() => void)>
 			}
 			readonly partial?: boolean
@@ -478,7 +478,7 @@ type ResolverResolve<
 > = {
 	resolve(
 		entitySelector: EntitySelector<_Schema, _EntityType>,
-		context: _Context,
+		context: _Context
 	): _Snapshot | Promise<_Snapshot>
 }['resolve']
 
@@ -524,21 +524,21 @@ export type SourceResolverDefinitionCandidate<
 		| ((
 			snapshot: _Snapshot,
 			entitySelector: EntitySelector<_Schema, Extract<_EntityType, EntityType<_Schema>>>,
-			context: _Context,
+			context: _Context
 		) => ResolverValue | Promise<ResolverValue>)
 		| {
 			readonly parentSelectors?: readonly string[]
 			readonly select?: (
 				snapshot: _Snapshot,
 				entitySelector: EntitySelector<_Schema, Extract<_EntityType, EntityType<_Schema>>>,
-				context: _Context,
+				context: _Context
 			) => ResolverValue | Promise<ResolverValue>
 			readonly resolveCount?: ResolverCountCandidate<_Schema, Extract<_EntityType, EntityType<_Schema>>, _Snapshot, _Context>
 			readonly resolveLive?: {
 				readonly start: (
 					context: ResolveLivePublisherContext<_Schema, Extract<_EntityType, EntityType<_Schema>>> & {
 						readonly field: ResolveLiveFieldHandle<_Schema, Extract<_EntityType, EntityType<_Schema>>, EntityFieldName<_Schema, Extract<_EntityType, EntityType<_Schema>>>>
-					},
+					}
 				) => void | (() => void) | Promise<void | (() => void)>
 			}
 			readonly partial?: boolean
@@ -567,12 +567,12 @@ export type ResolverPart<
 	readonly select?: (
 		snapshot: ResolverValue,
 		entitySelector: EntitySelector<_Schema, EntityType<_Schema>>,
-		context: _Context,
+		context: _Context
 	) => ResolverFieldValue<_Schema, EntityType<_Schema>, EntityFieldName<_Schema, EntityType<_Schema>>>
 	readonly resolveCount?: (
 		snapshot: ResolverValue,
 		entitySelector: EntitySelector<_Schema, EntityType<_Schema>>,
-		context: _Context,
+		context: _Context
 	) => number
 	readonly resolveLive?: {
 		readonly start: (context: ResolveLivePublisherContext<_Schema, EntityType<_Schema>> & {
@@ -630,7 +630,7 @@ export const validateResolverDefinitions = <
 	_Context extends ResolverContext,
 >(
 	schema: _Schema,
-	resolverDefinitions: readonly SourceResolverDefinitionCandidate<_Schema, _Source, _CandidateEntityType, _Context>[],
+	resolverDefinitions: readonly SourceResolverDefinitionCandidate<_Schema, _Source, _CandidateEntityType, _Context>[]
 ) => {
 	const fieldDefinitionByEntityTypeAndFieldName = Object.fromEntries(
 		schema.map((entityDefinition) => [
@@ -639,20 +639,23 @@ export const validateResolverDefinitions = <
 				entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
 					fieldDefinition.name,
 					fieldDefinition,
-				]),
+				])
 			),
-		]),
+		])
 	)
 	const entitySelectorNamesByEntityType = Object.fromEntries(
 		schema.map((entityDefinition) => [
 			entityDefinition.entityType,
 			new Set(entityDefinition.selectors.map((selector) => selector.name)),
-		]),
+		])
 	)
 
 	for (const resolver of resolverDefinitions) {
 		if (!schema.some((entityDefinition) => entityDefinition.entityType === resolver.entityType))
 			throw new Error(`${resolver.source}:${resolver.entityType} references unknown entity`)
+
+		if (Object.keys(resolver.fields).length === 0)
+			throw new Error(`${resolver.source}:${resolver.entityType} declares no fields`)
 
 		for (const selectorName of Object.keys(resolver.resolve)) {
 			if (!entitySelectorNamesByEntityType[resolver.entityType]?.has(selectorName))
@@ -706,6 +709,9 @@ export const validateResolverDefinitions = <
 			for (const liveFieldName of Object.keys(publisher.publishes)) {
 				if (!(liveFieldName in fieldDefinitionByEntityTypeAndFieldName[resolver.entityType]))
 					throw new Error(`${resolver.source}:${resolver.entityType} references unknown live field ${liveFieldName}`)
+
+				if (!(liveFieldName in resolver.fields))
+					throw new Error(`${resolver.source}:${resolver.entityType} publishes undeclared live field ${liveFieldName}`)
 			}
 		}
 	}
@@ -713,7 +719,7 @@ export const validateResolverDefinitions = <
 
 export const resolverPartsKey = (
 	entityType: string,
-	fieldName: string,
+	fieldName: string
 ) => `${entityType}${fieldName}`
 
 export const indexResolvers = <
@@ -723,7 +729,7 @@ export const indexResolvers = <
 >(
 	schema: _Schema,
 	resolverModules: readonly SourceResolverModule<_Schema, _Source, _Context>[],
-	enabledSources: ReadonlySet<_Source>,
+	enabledSources: ReadonlySet<_Source>
 ) => {
 	const resolverDefinitions: SourceResolverDefinition<_Schema, _Source, EntityType<_Schema>, _Context>[] = resolverModules
 		.filter((module) => enabledSources.has(module.source))
@@ -742,7 +748,7 @@ export const indexResolvers = <
 
 	const resolverDefinitionsByEntityType = Object.groupBy(
 		resolverDefinitions,
-		(resolver) => resolver.entityType,
+		(resolver) => resolver.entityType
 	)
 	const resolverParts: ResolverPart<_Schema, _Source, _Context>[] = []
 	for (const resolver of resolverDefinitions) {
@@ -782,22 +788,22 @@ export const indexResolvers = <
 		resolverParts.filter((resolverPart) => resolverPart.select != null),
 		(resolverPart) => resolverPartsKey(
 			resolverPart.entityType,
-			resolverPart.fieldName,
-		),
+			resolverPart.fieldName
+		)
 	)
 	const resolverCountPartsByEntityTypeAndFieldName = Object.groupBy(
 		resolverParts.filter((resolverPart) => resolverPart.resolveCount != null),
 		(resolverPart) => resolverPartsKey(
 			resolverPart.entityType,
-			resolverPart.fieldName,
-		),
+			resolverPart.fieldName
+		)
 	)
 	const resolverLivePartsByEntityTypeAndFieldName = Object.groupBy(
 		resolverParts.filter((resolverPart) => resolverPart.resolveLive != null),
 		(resolverPart) => resolverPartsKey(
 			resolverPart.entityType,
-			resolverPart.fieldName,
-		),
+			resolverPart.fieldName
+		)
 	)
 	const resolverRootLivePartsByEntityType = Object.groupBy(
 		resolverDefinitions.flatMap((resolver) => (
@@ -809,7 +815,7 @@ export const indexResolvers = <
 				entityType: resolver.entityType,
 			}))
 		)),
-		(part) => part.entityType,
+		(part) => part.entityType
 	)
 	const fieldNamesWithLiveResolverByEntityType = Object.fromEntries(
 		Object.entries(Object.groupBy(
@@ -829,12 +835,12 @@ export const indexResolvers = <
 						fieldName: resolverPart.fieldName,
 					})),
 			],
-			(liveField) => liveField.entityType,
+			(liveField) => liveField.entityType
 		))
 			.map(([entityType, liveFields]) => [
 				entityType,
 				[...new Set(liveFields.map((liveField) => liveField.fieldName))],
-			]),
+			])
 	)
 	const resolverDiscriminatorPartsByEntityTypeAndConditionKey = Object.fromEntries(
 		schema.map((entityDefinition) => [
@@ -853,9 +859,9 @@ export const indexResolvers = <
 									] ?? [],
 								]]
 						)
-					}),
+					})
 			),
-		]),
+		])
 	) satisfies Partial<
 		Record<string, Partial<Record<string, typeof resolverParts>>>
 	>

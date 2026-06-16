@@ -1,18 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
+	import type {
+		EntityFieldSingleResolvedValue,
+		EntitySelector,
+	} from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-
-	type NetworkTransportEndpoint = {
-		url: string
-		transportType: string
-		providerName?: string
-	}
 
 	type NetworkTransportEndpointFieldName =
 		| 'restEndpoints'
@@ -29,6 +26,12 @@
 		| EntityType.SolanaNetwork
 		| EntityType.TronNetwork
 		| EntityType.ZeroGNetwork
+
+	type NetworkTransportEndpoint = EntityFieldSingleResolvedValue<
+		typeof schema,
+		NetworkTransportEndpointEntityType,
+		NetworkTransportEndpointFieldName
+	>
 
 
 	// Context
@@ -93,7 +96,7 @@
 					fields: Object.fromEntries(
 						endpointFieldNames.map((fieldName) => [
 							fieldName,
-							true as const,
+							true,
 						]),
 					),
 				},
@@ -103,9 +106,7 @@
 				(parent): NetworkTransportEndpoint[] => (
 					endpointFieldNames.flatMap((fieldName) => {
 						const tses = parent.fields[fieldName]
-						return (
-							tses?.values as NetworkTransportEndpoint[] | undefined
-						) ?? []
+						return tses?.values ?? []
 					})
 				),
 			)}

@@ -1,7 +1,3 @@
-// Types
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
-
-
 // Constants
 export const mevRelayHosts = [
 	{
@@ -20,19 +16,3 @@ export const mevRelayHosts = [
 	chainId: number
 	host: string
 }[]
-
-
-// Lookups
-export const mevRelayHttpsOrigins = (
-	[...new Set(
-		mevRelayHosts.map((row) => (
-			`https://${row.host}`
-		)),
-	)]
-		.map((origin) => (
-			{
-				origin,
-				corsEnabled: false as const,
-			}
-		))
-) satisfies readonly SourceOrigin[]

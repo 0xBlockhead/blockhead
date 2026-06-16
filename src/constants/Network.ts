@@ -316,53 +316,24 @@ export const networkEnvironmentByEnvironment = Object.fromEntries(
 	networkEnvironments.map((row) => [
 		row.environment,
 		row,
-	]),
+	])
 )
 
 export const networkBySlug = Object.fromEntries(
 	networks.map((row) => [
 		row.slug,
 		row,
-	]),
+	])
 )
 
 export const networkByCaip2 = Object.fromEntries(
 	networks.flatMap((row) => (
 		!('caip2' in row) ?
 			[]
-	:
-		[[
+		:
+			[[
 				`${row.caip2.namespace}:${row.caip2.reference}`,
 				row,
 			]]
-	)),
-)
-
-export const caip2ByNetworkSlug = Object.fromEntries(
-	networks.flatMap((row) => (
-		!('caip2' in row) ?
-			[]
-	:
-		[[
-				row.slug,
-				row.caip2,
-			]]
-	)),
-)
-
-export const caip2NetworkNamespaceByNamespace = Object.fromEntries(
-	networks.flatMap((row) => (
-		!('caip2' in row) ?
-			[]
-		:
-			[[
-				row.caip2.namespace,
-				row.namespace,
-			]]
-	)),
-)
-
-export const networkResourceUrlsByNetworkSlug = Object.groupBy(
-	networkResourceUrls,
-	(row) => row.networkSlug,
+	))
 )

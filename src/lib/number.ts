@@ -9,11 +9,11 @@ type FormatValueOptions<ToParts extends boolean = false> = {
 
 export function formatValue(
 	value: number,
-	options: FormatValueOptions<true> & { toParts: true },
+	options: FormatValueOptions<true> & { toParts: true }
 ): Intl.NumberFormatPart[]
 export function formatValue(
 	value: number,
-	options?: FormatValueOptions<false>,
+	options?: FormatValueOptions<false>
 ): string
 export function formatValue(
 	value: number,
@@ -24,7 +24,7 @@ export function formatValue(
 		compactLargeValues = false,
 		locale,
 		toParts,
-	}: FormatValueOptions<boolean> = {},
+	}: FormatValueOptions<boolean> = {}
 ): string | Intl.NumberFormatPart[] {
 	try {
 		const formatter = new Intl.NumberFormat(
@@ -36,7 +36,7 @@ export function formatValue(
 			{
 				...(currency && {
 					currency,
-					style: 'currency' as const,
+					style: 'currency',
 				}),
 
 				...(showDecimalPlaces !== undefined && {
@@ -48,20 +48,10 @@ export function formatValue(
 
 				...(compactLargeValues
 					&& (
-						value >= 1e7 ?
+						value >= 1e4 ?
 							{
-								notation: 'compact' as const,
-								compactDisplay: 'short' as const,
-								...(showDecimalPlaces !== undefined && {
-									minimumSignificantDigits: 1,
-									maximumSignificantDigits:
-										((Math.log10(value) % 3) + 1) + showDecimalPlaces,
-								}),
-							}
-						: value >= 1e4 ?
-							{
-								notation: 'compact' as const,
-								compactDisplay: 'short' as const,
+								notation: 'compact',
+								compactDisplay: 'short',
 								...(showDecimalPlaces !== undefined && {
 									minimumSignificantDigits: 1,
 									maximumSignificantDigits:
@@ -72,7 +62,7 @@ export function formatValue(
 							undefined
 					)
 				),
-			},
+			} satisfies Intl.NumberFormatOptions
 		)
 
 		return (
@@ -84,7 +74,12 @@ export function formatValue(
 	} catch {
 		return (
 			toParts === true ?
-				[{ type: 'integer' as const, value: value.toString()  }]
+				[
+					{
+						type: 'integer',
+						value: value.toString(),
+					},
+				] satisfies Intl.NumberFormatPart[]
 			:
 				value.toString()
 		)

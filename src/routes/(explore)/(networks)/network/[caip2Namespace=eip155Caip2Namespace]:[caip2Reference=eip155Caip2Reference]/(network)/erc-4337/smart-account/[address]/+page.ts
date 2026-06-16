@@ -15,7 +15,7 @@ export const load: PageLoad = ({ params }) => {
 	const address = EvmAddress(raw)
 	if (address instanceof arktype.errors) error(404, 'Invalid address')
 	return {
-		entitySelector: {
+		selector: {
 			$network: { caip2: { namespace: params.caip2Namespace, reference: params.caip2Reference } },
 			address,
 		},

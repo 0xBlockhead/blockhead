@@ -1,8 +1,8 @@
 import { getJson } from '$/lib/http.ts'
-import { optionalPublicEnvString } from '$/lib/sources.ts'
+import { fediInstanceBySlug } from '$/constants/Fedi.ts'
+import { optionalPublicEnvString } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { fediApiBase } from '$/sources/Fedi/Rest/constants.ts'
 import Fedi from '$/sources/Fedi/index.ts'
 
 const qs = (o: Record<string, string | undefined>) => {
@@ -19,7 +19,7 @@ const authHeaders = (publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>): Record<st
 	const token = optionalPublicEnvString(publicEnv, 'PUBLIC_FEDI_ACCESS_TOKEN')
 	return (
 		token != null ?
-			{ Authorization: `Bearer ${token}` as const }
+			{ Authorization: `Bearer ${token}` }
 		:
 			{}
 	)
@@ -28,9 +28,9 @@ const authHeaders = (publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>): Record<st
 export const fediGet = async <T>(
 	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
 	path: string,
-	search?: Record<string, string | undefined>,
+	search?: Record<string, string | undefined>
 ) => (
-	getJson<T>(`${fediApiBase}${path}${qs(search ?? {})}`, {
+	getJson<T>(`${fediInstanceBySlug.fosstodon.origin}/api/v1${path}${qs(search ?? {})}`, {
 		origins: Fedi.origins,
 		init: { headers: authHeaders(publicEnv) },
 	})

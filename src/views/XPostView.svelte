@@ -34,9 +34,33 @@
 		>
 	> = $props()
 
-	const post = subscribe(EntityType.XPost,
-		selector,
-		({ fields: { text: true, createdAt: true, $author: ({ fields: { username: true, name: true } }), ...(open ? ({ likeCount: true, retweetCount: true, replyCount: true, quoteCount: true, $$timestamps: ({ limit: 1 }), conversationId: true, $replyToPost: true, $quotedPost: true, postUrl: true, $$media: true }) : ({  })) } }),
+	const post = $derived(
+		subscribe(
+			EntityType.XPost,
+			selector,
+			({
+				fields: {
+					text: true,
+					createdAt: true,
+					$author: {
+						fields: {
+							username: true,
+							name: true,
+						},
+					},
+					...(open && {
+						$$timestamps: {
+							limit: 1,
+						},
+						conversationId: true,
+						$replyToPost: true,
+						$quotedPost: true,
+						postUrl: true,
+						$$media: true,
+					}),
+				},
+			}),
+		)
 	)
 
 
@@ -81,13 +105,13 @@
 						startLength={88}
 						value={post.fields.text}
 					/>
-					{:else}
-						<TruncatedValue
-							value={selector.id}
-							format={TruncatedValueFormat.Visual}
-						/>
-					{/if}
-				{/snippet}
+				{:else}
+					<TruncatedValue
+						value={selector.id}
+						format={TruncatedValueFormat.Visual}
+					/>
+				{/if}
+			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
@@ -166,19 +190,19 @@
 							metrics={[
 								{
 									label: 'Likes',
-									value: post.fields.$$timestamps[0]?.likeCount ?? post.fields.likeCount,
+									value: post.fields.$$timestamps?.values.at(0)?.likeCount,
 								},
 								{
 									label: 'Reposts',
-									value: post.fields.$$timestamps[0]?.retweetCount ?? post.fields.retweetCount,
+									value: post.fields.$$timestamps?.values.at(0)?.retweetCount,
 								},
 								{
 									label: 'Replies',
-									value: post.fields.$$timestamps[0]?.replyCount ?? post.fields.replyCount,
+									value: post.fields.$$timestamps?.values.at(0)?.replyCount,
 								},
 								{
 									label: 'Quotes',
-									value: post.fields.$$timestamps[0]?.quoteCount ?? post.fields.quoteCount,
+									value: post.fields.$$timestamps?.values.at(0)?.quoteCount,
 								},
 							]}
 						/>
@@ -258,12 +282,12 @@
 	})}
 		<CollapsibleTabs
 			sectionIdPrefix={`x-post:${selector.id}`}
-				sections={collapsibleTabsSections([
-					{ id: 'author', label: 'Author' },
-					{ id: 'thread', label: 'Thread' },
-					{ id: 'media', label: 'Media' },
-					{ id: 'metric-snapshots', label: 'Metrics' },
-				])}
+			sections={collapsibleTabsSections([
+				{ id: 'author', label: 'Author' },
+				{ id: 'thread', label: 'Thread' },
+				{ id: 'media', label: 'Media' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
 			id={`x-post:${selector.id}:carousel`}
 			data-card
 		>
@@ -342,26 +366,26 @@
 
 			{#snippet SectionMedia()}
 				{#if _open}
-				<ResourceBoundary
-					resource={post}
-					placeholderText="Loading X post…"
-				>
-					{#snippet children(post)}
-						{#if (post.fields.$$media?.values.length ?? 0) > 0}
-							<div data-column="gap-3">
-								{#each post.fields.$$media.values as media (media[EntityMetaKey.Selector].url)}
-									<Media
-										alt=""
-										media={{ url: media[EntityMetaKey.Selector].url }}
-									/>
-								{/each}
-							</div>
-						{:else}
-							<p data-text="muted">
-								No media attachments on this post.fields.
-							</p>
-						{/if}
-					{/snippet}
+					<ResourceBoundary
+						resource={post}
+						placeholderText="Loading X post…"
+					>
+						{#snippet children(post)}
+							{#if (post.fields.$$media?.values.length ?? 0) > 0}
+								<div data-column="gap-3">
+									{#each post.fields.$$media.values as media (media[EntityMetaKey.Selector].url)}
+										<Media
+											alt=""
+											media={{ url: media[EntityMetaKey.Selector].url }}
+										/>
+									{/each}
+								</div>
+							{:else}
+								<p data-text="muted">
+									No media attachments on this post.fields.
+								</p>
+							{/if}
+						{/snippet}
 					</ResourceBoundary>
 				{/if}
 			{/snippet}
@@ -379,5 +403,5 @@
 				/>
 			{/snippet}
 		</CollapsibleTabs>
-		{/snippet}
-	</EntityView>
+	{/snippet}
+</EntityView>

@@ -14,10 +14,10 @@ const toQuery = (params: Record<string, string | number | undefined>) => {
 
 export const nostrBandGet = async <T>(
 	path: string,
-	params?: Record<string, string | number | undefined>,
+	params?: Record<string, string | number | undefined>
 ): Promise<T> => (
 	getJson<T>(
 		`${nostrBandApiBaseUrl}${path.startsWith('/') ? path : `/${path}`}${toQuery(params ?? {})}`,
-		{ origins: NostrBand.origins  },
+		{ origins: NostrBand.origins  }
 	)
 )

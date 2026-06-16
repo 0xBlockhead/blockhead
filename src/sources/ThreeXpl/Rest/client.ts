@@ -40,7 +40,7 @@ export const threeXplUrl = ({
 		pathSegments
 			.map((pathSegment) => encodeURIComponent(pathSegment))
 			.join('/'),
-		baseUrlByServer[server],
+		baseUrlByServer[server]
 	)
 	for (const [key, value] of Object.entries(searchParams ?? {})) {
 		if (value == null) continue
@@ -81,6 +81,6 @@ export const threeXplGetJson = async <T>({
 					},
 				},
 			}),
-		},
+		}
 	)
 )

@@ -35,13 +35,15 @@
 		>
 	> = $props()
 
-	const channel = subscribe(EntityType.FarcasterChannel,
-		selector,
-		({ sources: [
+	const channel = $derived(
+		subscribe(EntityType.FarcasterChannel,
+			selector,
+			({ sources: [
 				Source.Farcaster_Rest,
-			], fields: { name: true, url: true, description: true, $icon: true, createdAt: true, followerCount: true, memberCount: true, $$timestamps: ({ sources: [
+			], fields: { name: true, url: true, description: true, $icon: true, createdAt: true, $$timestamps: ({ sources: [
 					Source.Farcaster_Rest,
 				], limit: 1 }), pinnedCastHash: true, publicCasting: true, externalLinkTitle: true, externalLinkUrl: true, followedAt: true, ...(open ? ({ $headerImage: true, $lead: true, $moderator: true, $$moderators: true }) : ({  })) } }),
+		)
 	)
 
 
@@ -135,11 +137,11 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: channel.fields.$$timestamps[0]?.followerCount ?? channel.fields.followerCount,
+								value: channel.fields.$$timestamps?.values.at(0)?.followerCount,
 							},
 							{
 								label: 'Members',
-								value: channel.fields.$$timestamps[0]?.memberCount ?? channel.fields.memberCount,
+								value: channel.fields.$$timestamps?.values.at(0)?.memberCount,
 							},
 						]}
 					/>

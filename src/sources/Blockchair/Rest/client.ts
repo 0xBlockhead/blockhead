@@ -57,6 +57,6 @@ export const getBlockchairJson = <_Response>({
 		}),
 		{
 			origins: blockchairOrigins,
-		},
+		}
 	)
 )

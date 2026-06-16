@@ -28,7 +28,7 @@ export default {
 				const response = await getFeed(
 					feedUrl,
 					1,
-					context.publicEnv,
+					context.publicEnv
 				)
 				const feed = response.feed
 				if (feed == null) throw new Error('Rss2Json_Rest: feed not found')
@@ -128,7 +128,7 @@ export default {
 					for (const feedItem of (await getFeed(
 						feedUrl,
 						perFeedLimit,
-						context.publicEnv,
+						context.publicEnv
 					)).items ?? []) {
 						const guid = rssItemGuidFromParts(feedItem.guid, feedItem.link, feedItem.title)
 						refs.push({

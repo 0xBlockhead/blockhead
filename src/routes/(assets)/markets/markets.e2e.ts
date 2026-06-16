@@ -7,7 +7,7 @@ const marketKeyEthUsdBinance = encodeURIComponent(
 		$quote: { kind: 'Currency', $currency: { iso4217: 'USD' } },
 		$marketVenue: { marketVenueId: 'Binance' },
 		marketKind: 'Spot',
-	}),
+	})
 )
 
 const setupFailFast = (page: Page) => {

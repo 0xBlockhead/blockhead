@@ -5,6 +5,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
+	import { resolve } from '$app/paths'
 	import { untrack } from 'svelte'
 
 
@@ -13,27 +14,6 @@
 	import { afterNavigate, goto } from '$app/navigation'
 	import { page } from '$app/state'
 
-
-	// Functions
-	const normalizeHex4 = (hex: `0x${string}`): `0x${string}` => {
-		const digits = (
-			hex.toLowerCase().startsWith('0x') ?
-				hex.slice(2).toLowerCase()
-			:
-				hex.toLowerCase()
-		)
-		return `0x${digits.padStart(8, '0').slice(-8)}`
-	}
-
-	const normalizeHex32 = (hex: `0x${string}`): `0x${string}` => {
-		const digits = (
-			hex.toLowerCase().startsWith('0x') ?
-				hex.slice(2).toLowerCase()
-			:
-				hex.toLowerCase()
-		)
-		return `0x${digits.padStart(64, '0').slice(-64)}`
-	}
 
 	const hexFromParam = (value: string | null): string => {
 		if (!value) return ''
@@ -56,7 +36,7 @@
 		formatDecodedParamValue,
 	} from '$/lib/calldata-decode.ts'
 
-	import { getEvmSelectorPath, getEvmTopicPath } from '$/lib/signature-paths.ts'
+	import { normalizeEvmSelectorHex, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
 
 	const EMPTY_SIGNATURES: readonly string[] = []
 
@@ -134,11 +114,11 @@
 	)
 
 	const normalizedSelector = $derived(
-		selector ? normalizeHex4(selector) : null,
+		selector ? normalizeEvmSelectorHex(selector) : null,
 	)
 
 	const normalizedTopic = $derived(
-		topic ? normalizeHex32(topic) : null,
+		topic ? normalizeEvmTopicHex(topic) : null,
 	)
 
 
@@ -302,7 +282,9 @@
 									<EntityView
 										entityType={EntityType.EvmSelector}
 										entitySelector={{ hex: normalizedSelector }}
-										href={getEvmSelectorPath(normalizedSelector)}
+										href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+											hex: normalizedSelector,
+										})}
 									>
 									{#snippet Icon()}
 										<Icon
@@ -319,7 +301,9 @@
 										>
 												{#snippet children(row)}
 													<Heading>
-														<a href={getEvmSelectorPath(normalizedSelector)}>
+														<a href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+															hex: normalizedSelector,
+														})}>
 															{signatureForDecode ?? row.fields.signatures?.[0] ?? normalizedSelector}
 														</a>
 													</Heading>
@@ -401,7 +385,9 @@
 									<EntityView
 										entityType={EntityType.EvmTopic}
 										entitySelector={{ hex: normalizedTopic }}
-										href={getEvmTopicPath(normalizedTopic)}
+										href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+											hex: normalizedTopic,
+										})}
 									>
 									{#snippet Icon()}
 										<Icon
@@ -418,7 +404,9 @@
 										>
 												{#snippet children(row)}
 													<Heading>
-														<a href={getEvmTopicPath(normalizedTopic)}>
+														<a href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+															hex: normalizedTopic,
+														})}>
 															{eventSignatureForDecode ?? row.fields.signatures?.[0] ?? normalizedTopic}
 														</a>
 													</Heading>

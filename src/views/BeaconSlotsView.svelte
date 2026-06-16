@@ -68,7 +68,6 @@
 					entityFieldReference.entityType === EntityType.EvmNetwork ?
 						{
 							fields: {
-								blockHeight: { sources: [Source.Voltaire_JsonRpc] },
 								[entityFieldReference.fieldName]: { sources: [Source.Beacon_Rest] },
 							},
 						}

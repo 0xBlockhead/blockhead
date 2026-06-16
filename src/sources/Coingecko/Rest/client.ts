@@ -1,6 +1,6 @@
 import {
 	optionalPublicEnvString,
-} from '$/lib/sources.ts'
+} from '$/sources/$sources.ts'
 import { corsFetch } from '$/lib/http.ts'
 import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
@@ -13,7 +13,7 @@ import {
 export const coingeckoRestFetch = (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 	path: string,
-	init?: RequestInit,
+	init?: RequestInit
 ): Promise<Response> => {
 	const proApiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_COINGECKO_PRO_API_KEY')
 	const demoApiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_COINGECKO_DEMO_API_KEY')
@@ -22,12 +22,11 @@ export const coingeckoRestFetch = (
 	})
 
 	if (proApiKey != null) headers.set('x-cg-pro-api-key', proApiKey)
-	else if (demoApiKey != null) headers.set('x-cg-demo-api-key', demoApiKey)
+		else if (demoApiKey != null) headers.set('x-cg-demo-api-key', demoApiKey)
 
-	if (init?.headers != null) {
+	if (init?.headers != null)
 		new Headers(init.headers)
 			.forEach((value, key) => headers.set(key, value))
-	}
 
 	return corsFetch(
 		`${proApiKey != null ? proBaseUrl : demoBaseUrl}${path}`,
@@ -37,6 +36,6 @@ export const coingeckoRestFetch = (
 				...init,
 				headers,
 			},
-		},
+		}
 	)
 }

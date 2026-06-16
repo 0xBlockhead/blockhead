@@ -5,6 +5,7 @@ import type {
 	RpcReceipt,
 	RpcTransaction,
 } from '$/sources/Evm/JsonRpc/types.ts'
+import { zeroGMainnetRpcEndpoints } from '$/sources/ZeroG/Chain/JsonRpc/index.ts'
 import ZeroG from '$/sources/ZeroG/index.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -18,8 +19,6 @@ type ZeroGJsonRpcResponse<_Result> = {
 		data?: JsonValue
 	}
 }
-
-export const getMainnetRpcUrl = 'https://evmrpc.0g.ai'
 
 const quantityHex = (blockNumber: bigint | 'latest') => (
 	blockNumber === 'latest' ?
@@ -35,7 +34,7 @@ const zeroGJsonRpc = async <_Result>({
 	method: string
 	params: JsonValue[]
 }) => {
-	const response = await corsFetch(getMainnetRpcUrl, {
+	const response = await corsFetch(zeroGMainnetRpcEndpoints[0].url, {
 		origins: ZeroG.origins,
 		init: {
 			method: 'POST',

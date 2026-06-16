@@ -1,15 +1,15 @@
 /**
- * Primal HTTP API v1 API shapes.
- * @see https://api.primal.net/v1/profile/{id}
- * @see https://api.primal.net/v1/timeline/profile/notes
- * @see https://api.primal.net/v1/timeline/profile/reposts
- * @see https://api.primal.net/v1/timeline/profile/articles
- * @see https://api.primal.net/v1/timeline/thread
- * @see https://api.primal.net/v1/timeline/event/actions
- * @see https://api.primal.net/v1/search/events
- * @see https://api.primal.net/v1/search/users
- * @see https://api.primal.net/v1/events/{id}
- */
+	* Primal HTTP API v1 API shapes.
+	* @see https://api.primal.net/v1/profile/{id}
+	* @see https://api.primal.net/v1/timeline/profile/notes
+	* @see https://api.primal.net/v1/timeline/profile/reposts
+	* @see https://api.primal.net/v1/timeline/profile/articles
+	* @see https://api.primal.net/v1/timeline/thread
+	* @see https://api.primal.net/v1/timeline/event/actions
+	* @see https://api.primal.net/v1/search/events
+	* @see https://api.primal.net/v1/search/users
+	* @see https://api.primal.net/v1/events/{id}
+	*/
 
 /** NIP-01 profile metadata JSON (`kind:0` content object). */
 export type PrimalNostrProfileMetadata = {
@@ -33,6 +33,23 @@ export type PrimalNostrEvent = {
 	tags?: string[][]
 	sig?: string
 }
+
+export type PrimalPostBody =
+	| {
+		pubkey: string
+		limit: number
+	}
+	| {
+		event_id: string
+		kind?: number
+		limit: number
+	}
+	| {
+		query?: string
+		'#e'?: readonly string[]
+		kinds?: readonly number[]
+		limit: number
+	}
 
 /** GET /v1/profile/{id} */
 export type PrimalProfile = {

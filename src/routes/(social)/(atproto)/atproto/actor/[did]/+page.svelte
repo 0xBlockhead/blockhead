@@ -11,7 +11,7 @@
 </script>
 
 
-	<Page>
+<Page>
 		<AtprotoActorView
 			selector={
 				decodeURIComponent(params.did).startsWith('did:') ?

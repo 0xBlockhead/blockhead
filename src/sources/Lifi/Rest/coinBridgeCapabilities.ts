@@ -7,21 +7,14 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { fetchCoinInstanceStubsForCoin } from '$/sources/Coingecko/Rest/coinInstances.ts'
 import type { LifiToolsResponse } from '$/sources/Lifi/Rest/types.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/Source.ts'
 import { stringify } from 'devalue'
 
 
-
-export const fetchCoinBridgeCapabilityRowsForCoin = async (
-	coinId: EntitySelector<typeof schema, EntityType.Coin>['coinId'],
-	coingeckoPublicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
-	lifiTools: LifiToolsResponse,
+export const coinBridgeCapabilityRowsFromInstancesAndTools = (
+	instanceRows: Parameters<typeof coinBridgeCapabilityEntityRowsFromInstancesAndTools>[0],
+	lifiTools: LifiToolsResponse
 ) => {
-	const instanceRows = await fetchCoinInstanceStubsForCoin(coinId, coingeckoPublicEnv)
-
 	const { bridges } = lifiTools
 	return coinBridgeCapabilityEntityRowsFromInstancesAndTools(instanceRows, bridges)
 }
@@ -29,7 +22,7 @@ export const fetchCoinBridgeCapabilityRowsForCoin = async (
 export const filterCoinBridgeCapabilityRowsForInstance = (
 	rows: ReturnType<typeof coinBridgeCapabilityEntityRowsFromInstancesAndTools>,
 	instanceId: EntitySelector<typeof schema, EntityType.EvmCoinInstance>,
-	direction: 'inbound' | 'outbound',
+	direction: 'inbound' | 'outbound'
 ) => {
 	const instanceKey = stringify(instanceId)
 	const filtered = rows.filter((row) => (

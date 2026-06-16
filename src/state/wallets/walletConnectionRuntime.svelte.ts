@@ -27,7 +27,7 @@ type WalletRuntime = {
 }
 
 const createWalletRuntimeState = (
-	context: LocalMutationContext,
+	context: LocalMutationContext
 ): WalletRuntime => {
 	const cleanupByWalletId = new SvelteMap<string, () => void>()
 	const adapterByWalletId = new SvelteMap<string, WalletAdapter>()
@@ -145,7 +145,7 @@ const createWalletRuntimeState = (
 let walletRuntime = $state<WalletRuntime | null>(null)
 
 export const mountWalletConnectionRuntime = (
-	context: LocalMutationContext,
+	context: LocalMutationContext
 ) => {
 	if (walletRuntime != null) return walletRuntime
 

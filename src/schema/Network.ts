@@ -76,7 +76,7 @@ const evmNetworkCondition = conditionalOn(
 	'namespace',
 	[
 		NetworkNamespace.Evm,
-	],
+	]
 )
 
 export const networkFields = [
@@ -219,7 +219,7 @@ export const networkFieldByName = Object.fromEntries(
 	networkFields.map((field) => [
 		field.name,
 		field,
-	]),
+	])
 )
 
 export default {

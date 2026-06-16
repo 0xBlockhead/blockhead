@@ -25,7 +25,7 @@ const coingeckoSpotExchangeIdentifierByMarketVenueId = {
 
 
 export const marketVenueIdFromCoingeckoExchangeIdentifier = (
-	identifier: string | undefined,
+	identifier: string | undefined
 ): _MarketVenueId | null => {
 	if (identifier == null || identifier === '') {
 		return null
@@ -46,7 +46,7 @@ export const marketVenueIdFromCoingeckoExchangeIdentifier = (
 
 export const marketKindFromCoingeckoContractType = (
 	contractType: string | undefined,
-	expiredAt: string | null | undefined,
+	expiredAt: string | null | undefined
 ): MarketKind => (
 	contractType === 'futures' || (expiredAt != null && expiredAt !== '') ?
 		MarketKind.Futures
@@ -61,7 +61,7 @@ export const quoteCoingeckoTargetCoinIds = new Set([
 ])
 
 export const catalogCoinIdByCoingeckoId = (
-	idByCoinId: Partial<Record<CoinId, string>>,
+	idByCoinId: Partial<Record<CoinId, string>>
 ): Record<string, CoinId> => (
 	Object.fromEntries(
 		(
@@ -71,14 +71,14 @@ export const catalogCoinIdByCoingeckoId = (
 				[]
 			:
 				[[coingeckoId, catalogCoinId]]
-		)),
+		))
 	)
 )
 
 export const marketEntitySelectorFromCoingeckoDerivativesExchangeTicker = (
 	ticker: CoingeckoDerivativesExchangeTicker,
 	marketVenueId: MarketVenueId,
-	catalogCoinIdByCoingeckoIdMap: Record<string, CoinId>,
+	catalogCoinIdByCoingeckoIdMap: Record<string, CoinId>
 ): EntitySelector<typeof schema, EntityType.Market> | null => {
 	const baseCoinId = (
 		ticker.coin_id == null ?
@@ -109,7 +109,7 @@ export const marketEntitySelectorFromCoingeckoDerivativesExchangeTicker = (
 		},
 		marketKind: marketKindFromCoingeckoContractType(
 			ticker.contract_type,
-			ticker.expired_at,
+			ticker.expired_at
 		),
 	}
 }
@@ -117,7 +117,7 @@ export const marketEntitySelectorFromCoingeckoDerivativesExchangeTicker = (
 export const marketEntitySelectorFromCoingeckoSpotTicker = (
 	ticker: CoingeckoOpenApiCoinTicker,
 	catalogCoinId: CoinId,
-	catalogCoinIdByCoingeckoIdMap: Record<string, CoinId>,
+	catalogCoinIdByCoingeckoIdMap: Record<string, CoinId>
 ): EntitySelector<typeof schema, EntityType.Market> | null => {
 	const coingeckoBaseId = ticker.coin_id
 	if (
@@ -127,7 +127,7 @@ export const marketEntitySelectorFromCoingeckoSpotTicker = (
 		return null
 	}
 	const marketVenueId = marketVenueIdFromCoingeckoExchangeIdentifier(
-		ticker.market?.identifier,
+		ticker.market?.identifier
 	)
 	if (marketVenueId == null) {
 		return null
@@ -190,7 +190,7 @@ export const marketEntitySelectorFromCoingeckoSpotTicker = (
 export const derivativeTickerMatchesMarket = (
 	marketId: EntitySelector<typeof schema, EntityType.Market>,
 	ticker: CoingeckoDerivativesExchangeTicker,
-	catalogCoinIdByCoingeckoIdMap: Record<string, string>,
+	catalogCoinIdByCoingeckoIdMap: Record<string, string>
 ): boolean => (
 	marketId.$base.kind === MarketAssetKind.Coin
 	&& marketId.$quote.kind === MarketAssetKind.Currency
@@ -203,6 +203,6 @@ export const derivativeTickerMatchesMarket = (
 	)
 	&& marketKindFromCoingeckoContractType(
 		ticker.contract_type,
-		ticker.expired_at,
+		ticker.expired_at
 	) === marketId.marketKind
 )

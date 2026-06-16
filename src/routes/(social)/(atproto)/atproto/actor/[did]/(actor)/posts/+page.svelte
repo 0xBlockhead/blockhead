@@ -18,7 +18,7 @@
 	</script>
 
 
-	<Page>
+<Page>
 		<AtprotoActorView
 			selector={selector}
 		/>

@@ -18,7 +18,7 @@ export default {
 				const { getFunctionEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
 					signatures: (await getFunctionEntries({ hex: hex })).map(
-						(signatureEntry) => signatureEntry.name,
+						(signatureEntry) => signatureEntry.name
 					),
 				}
 			}
@@ -36,7 +36,7 @@ export default {
 				const { getEventEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
 					signatures: (await getEventEntries({ hex: hex })).map(
-						(signatureEntry) => signatureEntry.name,
+						(signatureEntry) => signatureEntry.name
 					),
 				}
 			}
@@ -54,7 +54,7 @@ export default {
 				const { getErrorEntries } = await import('$/sources/Openchain/Rest/queries.ts')
 				return {
 					signatures: (await getErrorEntries({ hex: hex })).map(
-						(signatureEntry) => signatureEntry.name,
+						(signatureEntry) => signatureEntry.name
 					),
 				}
 			}

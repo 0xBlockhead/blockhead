@@ -13,7 +13,7 @@ export enum RedditLinkSelector {
 
 
 const RedditLinkFullname = type(
-	'/^t3_[A-Za-z0-9]+$/' as type.cast<string>,
+	'/^t3_[A-Za-z0-9]+$/' as type.cast<string>
 )
 
 export default {
@@ -66,18 +66,6 @@ export default {
 			name: 'author',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'score',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'commentCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

@@ -1,7 +1,4 @@
-<script
-	module
-	lang="ts"
->
+<script module lang="ts">
 	import { SortDirection } from '$/lib/sort.ts'
 
 	export const parseRangeKey = (s: string): [number, number] => {

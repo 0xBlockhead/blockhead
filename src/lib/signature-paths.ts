@@ -1,6 +1,3 @@
-import { resolve } from '$app/paths'
-
-
 export const normalizeEvmSelectorHex = (hex: string): `0x${string}` => {
 	const digits = (
 		hex.toLowerCase().startsWith('0x') ?
@@ -20,26 +17,3 @@ export const normalizeEvmTopicHex = (hex: string): `0x${string}` => {
 	)
 	return `0x${digits.padStart(64, '0').slice(-64)}`
 }
-
-export const getEvmSelectorPath = (hex: string) => (
-	resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
-		hex: normalizeEvmSelectorHex(hex),
-	})
-)
-
-export const getEvmTopicPath = (hex: string) => (
-	resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
-		hex: normalizeEvmTopicHex(hex),
-	})
-)
-
-export const getEvmErrorPath = (hex: string) => (
-	resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
-		hex: (
-			hex.toLowerCase().startsWith('0x') ?
-				hex.toLowerCase()
-			:
-				`0x${hex.toLowerCase()}`
-		),
-	})
-)

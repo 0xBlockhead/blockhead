@@ -1,3 +1,5 @@
+import type { JsonValue } from '$/typescript/JsonValue.ts'
+
 export type BlockscoutAddress = {
 	hash?: string
 }
@@ -133,6 +135,11 @@ export type BlockscoutBlock = {
 export type BlockscoutPaginated<_Item> = {
 	items: _Item[]
 	next_page_params?: Record<string, string | number>
+}
+
+export type BlockscoutErrorEnvelope = {
+	error?: JsonValue
+	errors?: JsonValue
 }
 
 export type BlockscoutTransaction = {

@@ -130,7 +130,7 @@ export const getAccountTransactions = ({
 }) => (
 	getJson<TronGridAccountTransactions>(
 		`${base(restBaseUrl)}/v1/accounts/${address}/transactions?limit=${limit.toString()}`,
-		{ origins: TronGrid.origins  },
+		{ origins: TronGrid.origins  }
 	)
 )
 
@@ -183,6 +183,6 @@ export const getAccountTrc20Transfers = ({
 }) => (
 	getJson<TronGridTrc20Transfers>(
 		`${base(restBaseUrl)}/v1/accounts/${address}/transactions/trc20?limit=${limit.toString()}`,
-		{ origins: TronGrid.origins  },
+		{ origins: TronGrid.origins  }
 	)
 )

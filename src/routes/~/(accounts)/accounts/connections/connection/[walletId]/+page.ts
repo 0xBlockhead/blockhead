@@ -10,12 +10,12 @@ import type { PageLoad } from './$types.ts'
 
 
 export const load: PageLoad = ({ params }) => {
-	const entitySelector = parseEntitySelector(schema, BlockheadWalletConnectionSchema, {
+	const selector = parseEntitySelector(schema, BlockheadWalletConnectionSchema, {
 		$wallet: {
 			id: decodeURIComponent(params.walletId),
 		},
 	})
-	if (entitySelector instanceof arktype.errors) error(404, 'Invalid wallet connection')
+	if (selector instanceof arktype.errors) error(404, 'Invalid wallet connection')
 
-	return { entitySelector }
+	return { selector }
 }

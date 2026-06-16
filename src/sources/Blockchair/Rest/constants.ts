@@ -152,9 +152,9 @@ export const blockchairMaxLimit = 100
 // Lookups
 
 export const blockchairBitcoinLikeChainByChain = Object.fromEntries(
-	blockchairBitcoinLikeChains.map((chain) => [chain.chain, chain]),
+	blockchairBitcoinLikeChains.map((chain) => [chain.chain, chain])
 )
 
 export const blockchairEthereumLikeChainByChain = Object.fromEntries(
-	blockchairEthereumLikeChains.map((chain) => [chain.chain, chain]),
+	blockchairEthereumLikeChains.map((chain) => [chain.chain, chain])
 )

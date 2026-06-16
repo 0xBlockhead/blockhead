@@ -3,4 +3,3 @@
  * @see https://chainlist.org/rpcs.json
  */
 export const origin = 'https://chainlist.org'
-

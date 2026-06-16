@@ -36,14 +36,34 @@
 		>
 	> = $props()
 
-	const user = subscribe(EntityType.XUser,
-		selector,
-		({
-			...(!('id' in selector) && {
-				sources: [Source.X_FxEmbed_Rest],
-			}),
-			fields: { id: true, username: true, name: true, description: true, location: true, websiteUrl: true, verified: true, createdAt: true, followerCount: true, followingCount: true, tweetCount: true, listedCount: true, $$timestamps: ({ limit: 1 }), $icon: true, $profileBanner: true, $$posts: true },
-		}),
+	const user = $derived(
+		subscribe(
+			EntityType.XUser,
+			selector,
+			{
+				...(!('id' in selector) && {
+					sources: [
+						Source.X_FxEmbed_Rest,
+					],
+				}),
+				fields: {
+					id: true,
+					username: true,
+					name: true,
+					description: true,
+					location: true,
+					websiteUrl: true,
+					verified: true,
+					createdAt: true,
+					$$timestamps: {
+						limit: 1,
+					},
+					$icon: true,
+					$profileBanner: true,
+					$$posts: true,
+				},
+			},
+		),
 	)
 
 
@@ -161,19 +181,19 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: user.fields.$$timestamps[0]?.followerCount ?? user.fields.followerCount,
+									value: user.fields.$$timestamps?.values.at(0)?.followerCount,
 								},
 								{
 									label: 'Following',
-									value: user.fields.$$timestamps[0]?.followingCount ?? user.fields.followingCount,
+									value: user.fields.$$timestamps?.values.at(0)?.followingCount,
 								},
 								{
 									label: 'Posts',
-									value: user.fields.$$timestamps[0]?.tweetCount ?? user.fields.tweetCount,
+									value: user.fields.$$timestamps?.values.at(0)?.tweetCount,
 								},
 								{
 									label: 'Listed',
-									value: user.fields.$$timestamps[0]?.listedCount ?? user.fields.listedCount,
+									value: user.fields.$$timestamps?.values.at(0)?.listedCount,
 								},
 							]}
 						/>
@@ -272,11 +292,11 @@
 		{@const userSelectorKey = stringify(selector)}
 		<CollapsibleTabs
 			sectionIdPrefix={userSelectorKey}
-				sections={collapsibleTabsSections([
-					{ id: 'profile', label: 'Profile' },
-					{ id: 'posts', label: 'Posts' },
-					{ id: 'metric-snapshots', label: 'Metrics' },
-				])}
+			sections={collapsibleTabsSections([
+				{ id: 'profile', label: 'Profile' },
+				{ id: 'posts', label: 'Posts' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
 			id={`${userSelectorKey}:carousel-profile`}
 			data-card
 		>
@@ -373,5 +393,5 @@
 				</ResourceBoundary>
 			{/snippet}
 		</CollapsibleTabs>
-		{/snippet}
-	</EntityView>
+	{/snippet}
+</EntityView>

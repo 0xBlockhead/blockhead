@@ -30,7 +30,7 @@ export const fetchConsensusSpecsConfigYaml = async ({
 }) => (
 	getText(
 		consensusSpecsConfigYamlUrlByPreset[preset],
-		{ origins: EthereumSpecs.origins },
+		{ origins: EthereumSpecs.origins }
 	)
 )
 
@@ -38,7 +38,7 @@ export const fetchConsensusSpecsConfigYaml = async ({
 export const fetchGoEthereumParamsConfigGo = async () => (
 	getText(
 		goEthereumParamsConfigGoUrl,
-		{ origins: EthereumSpecs.origins },
+		{ origins: EthereumSpecs.origins }
 	)
 )
 
@@ -50,7 +50,6 @@ export const fetchExecutionSpecsMainnetUpgradeMarkdown = async ({
 }) => (
 	getText(
 		executionSpecsMainnetUpgradeMarkdownUrl(filename),
-		{ origins: EthereumSpecs.origins },
+		{ origins: EthereumSpecs.origins }
 	)
 )
-

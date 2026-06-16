@@ -3,9 +3,8 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { Hex } from '@tevm/voltaire/Hex'
-import { caip19Erc20, caip19Slip44 } from '$/lib/caip19.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { mediaFromUrl } from '$/lib/media.ts'
+import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -57,10 +56,7 @@ export default {
 						decimals: nativeCurrency.decimals,
 						$icon: undefined,
 						...(chain.slip44 != null && {
-							caip19: caip19Slip44(
-								Number($network.caip2.reference),
-								chain.slip44,
-							),
+							caip19: `eip155:${Number($network.caip2.reference)}/slip44:${chain.slip44}`,
 						}),
 					}
 				},
@@ -102,23 +98,20 @@ export default {
 							name: token.info.name,
 						}),
 						decimals: token.decimals,
-						caip19: caip19Erc20(
-							Number($network.caip2.reference),
-							$contract.address,
-						),
+						caip19: `eip155:${Number($network.caip2.reference)}/erc20:${$contract.address.toLowerCase()}`,
 						...((
-							iconMedia,
+							iconMedia
 						) => (
 							iconMedia != null && {
 								$icon: iconMedia,
 							}
 						))(
-							mediaFromUrl(token.attributes?.image_url == null ? undefined : String(token.attributes.image_url), MediaType.Image),
+							mediaFromUrl(token.attributes?.image_url == null ? undefined : String(token.attributes.image_url), MediaType.Image)
 						),
 					}
 				},
 			},
-			})({
+		})({
 			fields: {
 				coinId: (coinInstance) => coinInstance.coinId,
 				name: (coinInstance) => coinInstance.name,
@@ -127,7 +120,7 @@ export default {
 				caip19: (coinInstance) => coinInstance.caip19,
 				$icon: (coinInstance) => coinInstance.$icon,
 			},
-			}),
+		}),
 
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmNetworkActorCoinBalance,
@@ -149,7 +142,7 @@ export default {
 							.find((candidate) => (
 								candidate.token?.type === 'native'
 							))
-						)
+					)
 					const token = walletTokenBalance?.token
 					if (
 						walletTokenBalance == null
@@ -162,12 +155,12 @@ export default {
 
 					const balance = BigInt(walletTokenBalance.raw_balance_str ?? String(walletTokenBalance.raw_balance ?? 0))
 
-						return {
-							$network,
-							$contract: undefined,
-							$coinInstance: {
-								[EntityMetaKey.Selector]: {
-									$network,
+					return {
+						$network,
+						$contract: undefined,
+						$coinInstance: {
+							[EntityMetaKey.Selector]: {
+								$network,
 								type: CoinInstanceType.NativeCurrency,
 							},
 						},
@@ -178,11 +171,11 @@ export default {
 							&& Number.isFinite(token.price)
 							&& Number.isFinite(token.decimals)
 							&& token.decimals >= 0 ?
-								{
-									usdValue: (Number(balance) / 10 ** token.decimals) * token.price,
-								}
-							:
-								{}),
+							{
+								usdValue: (Number(balance) / 10 ** token.decimals) * token.price,
+							}
+						:
+							{}),
 					}
 				},
 				[EvmNetworkActorCoinBalanceSelector.EvmAccountErc20CoinInstance]: async ({ $actor, $contract }, context) => {
@@ -203,7 +196,7 @@ export default {
 								candidate.token?.type === 'evm_erc20'
 								&& candidate.token.address.toLowerCase() === $contract.address.toLowerCase()
 							))
-						)
+					)
 					const token = walletTokenBalance?.token
 					if (
 						walletTokenBalance == null
@@ -233,16 +226,16 @@ export default {
 							&& Number.isFinite(token.price)
 							&& Number.isFinite(token.decimals)
 							&& token.decimals >= 0 ?
-								{
-									usdValue: (Number(balance) / 10 ** token.decimals) * token.price,
-								}
-							:
-								{}),
+							{
+								usdValue: (Number(balance) / 10 ** token.decimals) * token.price,
+							}
+						:
+							{}),
 					}
 				},
 			},
-			})({
-				fields: {
+		})({
+			fields: {
 				$network: (balance) => ({
 					[EntityMetaKey.Selector]: balance.$network,
 				}),
@@ -251,12 +244,12 @@ export default {
 						EvmNetworkActorCoinBalanceSelector.EvmAccountErc20CoinInstance,
 					],
 					select: (balance) => {
-						if (balance.$contract == null)
+							if (balance.$contract == null)
 							throw new Error('Allium_Rest: ERC-20 balance is missing contract')
 
-						return {
-							[EntityMetaKey.Selector]: balance.$contract,
-						}
+							return {
+								[EntityMetaKey.Selector]: balance.$contract,
+							}
 					},
 				},
 				$coinInstance: (balance) => balance.$coinInstance,
@@ -271,34 +264,33 @@ export default {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: async ({ $actor, $network }, context) => {
-				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
-				const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
-				type EvmNetworkActorCoinBalanceEntitySelector = import('$/schema/$schema.ts').EntitySelector<
-					typeof import('$/schema/index.ts').schema,
-					EntityType.EvmNetworkActorCoinBalance
-				>
+					const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
+					const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
+					type EvmNetworkActorCoinBalanceEntitySelector = import('$/schema/$schema.ts').EntitySelector<
+						typeof import('$/schema/index.ts').schema,
+						EntityType.EvmNetworkActorCoinBalance
+					>
 
-				const apiChain = apiChainByChainId[Number($network.caip2.reference)]
-				if (apiChain == null) {
-					throw new Error(`Allium_Rest: chain ${Number($network.caip2.reference)} not supported for wallet balances`)
-				}
+					const apiChain = apiChainByChainId[Number($network.caip2.reference)]
+					if (apiChain == null)
+						throw new Error(`Allium_Rest: chain ${Number($network.caip2.reference)} not supported for wallet balances`)
 
-				return (
-					(await getLatestWalletBalances({
-						publicEnv: context.publicEnv,
-						address: $actor.address,
-						apiChain,
-						withLiquidityInfo: false,
-					}))
-						.items
-						.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balanceRow) => (
+					return (
+						(await getLatestWalletBalances({
+							publicEnv: context.publicEnv,
+							address: $actor.address,
+							apiChain,
+							withLiquidityInfo: false,
+						}))
+							.items
+							.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balanceRow) => (
 							balanceRow.token?.type === 'native' ?
-									[{
-										[EntityMetaKey.Selector]: {
-											$actor,
-											$network,
-										},
-									} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
+								[{
+									[EntityMetaKey.Selector]: {
+										$actor,
+										$network,
+									},
+								} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
 							:
 								(
 									balanceRow.token?.type === 'evm_erc20'
@@ -309,64 +301,64 @@ export default {
 										address == null ?
 											[]
 										:
-												[{
-													[EntityMetaKey.Selector]: {
-														$actor,
-														$contract: {
-															$network,
-															address,
-														},
+											[{
+												[EntityMetaKey.Selector]: {
+													$actor,
+													$contract: {
+														$network,
+														address,
 													},
-												} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
+												},
+											} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
 									))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
 								:
 									[]
-						))
-				)
-			}
-			}
+							))
+					)
+				}
+			},
 		})({
-				fields: {
-			$$ownedCoins: (ownedCoins) => ownedCoins,
-		},
-			}),
+			fields: {
+				$$ownedCoins: (ownedCoins) => ownedCoins,
+			},
+		}),
 
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
-				const { readNormalizedLocalInternal } = await import('$/sources/Local/Internal/catalog.ts')
-				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
-				const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
-				type EvmNetworkActorCoinBalanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+					const { readNormalizedLocalInternal } = await import('$/sources/Local/Internal/catalog.ts')
+					const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
+					const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
+					type EvmNetworkActorCoinBalanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 
-				const subsetRowLimit = resolverContextRowLimit(context)
-				const evmNetworkActorCoinBalanceRows: { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }[] = []
+					const subsetRowLimit = resolverContextRowLimit(context)
+					const evmNetworkActorCoinBalanceRows: { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }[] = []
 
-				for (const actor of readNormalizedLocalInternal().actors) {
-					if (evmNetworkActorCoinBalanceRows.length >= subsetRowLimit) break
-					for (const chainIdString of Object.keys(apiChainByChainId)) {
+					for (const actor of readNormalizedLocalInternal().actors) {
 						if (evmNetworkActorCoinBalanceRows.length >= subsetRowLimit) break
-						const chainId = Number(chainIdString)
-						const apiChain = apiChainByChainId[chainId]
-						const networkId = evmNetworkIdFromChainId(chainId)
-						if (apiChain == null) continue
-						evmNetworkActorCoinBalanceRows.push(
-							...(await getLatestWalletBalances({
-								publicEnv: context.publicEnv,
-								address: actor.address,
-								apiChain,
-								withLiquidityInfo: false,
-							}))
-								.items
-								.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balanceRow) => (
+						for (const chainIdString of Object.keys(apiChainByChainId)) {
+							if (evmNetworkActorCoinBalanceRows.length >= subsetRowLimit) break
+							const chainId = Number(chainIdString)
+							const apiChain = apiChainByChainId[chainId]
+							const networkId = evmNetworkIdFromChainId(chainId)
+							if (apiChain == null) continue
+							evmNetworkActorCoinBalanceRows.push(
+								...(await getLatestWalletBalances({
+									publicEnv: context.publicEnv,
+									address: actor.address,
+									apiChain,
+									withLiquidityInfo: false,
+								}))
+									.items
+									.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balanceRow) => (
 									balanceRow.token?.type === 'native' ?
-											[{
-												[EntityMetaKey.Selector]: {
-													$actor: { address: actor.address as `0x${string}` },
-													$network: networkId,
-												},
-											} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
+										[{
+											[EntityMetaKey.Selector]: {
+												$actor: { address: actor.address as `0x${string}` },
+												$network: networkId,
+											},
+										} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
 									:
 										(
 											balanceRow.token?.type === 'evm_erc20'
@@ -377,30 +369,30 @@ export default {
 												address == null ?
 													[]
 												:
-														[{
-															[EntityMetaKey.Selector]: {
-																$actor: { address: actor.address as `0x${string}` },
-																$contract: {
-																	$network: networkId,
-																	address,
-																},
+													[{
+														[EntityMetaKey.Selector]: {
+															$actor: { address: actor.address as `0x${string}` },
+															$contract: {
+																$network: networkId,
+																address,
 															},
-														} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
+														},
+													} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
 											))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
 										:
 											[]
-								)),
+									))
 						)
+						}
 					}
-				}
 
-				return evmNetworkActorCoinBalanceRows.slice(0, subsetRowLimit)
-			}
-			}
+					return evmNetworkActorCoinBalanceRows.slice(0, subsetRowLimit)
+				}
+			},
 		})({
-				fields: {
-			$$actorCoins: (actorCoins) => actorCoins,
-		},
-			}),
+			fields: {
+				$$actorCoins: (actorCoins) => actorCoins,
+			},
+		}),
 	],
 }

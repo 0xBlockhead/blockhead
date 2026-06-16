@@ -48,7 +48,7 @@ const rows = createCollection<Row, string>({
 
 const subsetOptions = (
 	query: object,
-	options: Omit<LoadSubsetOptions, 'where' | 'orderBy'> = {},
+	options: Omit<LoadSubsetOptions, 'where' | 'orderBy'> = {}
 ): LoadSubsetOptions => {
 	const ir = (query as { _getQuery(): IR.QueryIR })._getQuery()
 	const where = ir.where?.[0]
@@ -74,11 +74,11 @@ describe('ResolverSubset parser', () => {
 				]),
 				eq(row[EntityMetaKey.ParentSelectorKey], 'parent-a'),
 				eq(row.category, 'public'),
-				eq(row.nested.value, 7),
+				eq(row.nested.value, 7)
 			))
 			.orderBy(
 				({ row }) => row.rank,
-				'desc',
+				'desc'
 			)
 		const cursor = {
 			whereFrom: eq(1, 1),
@@ -173,12 +173,12 @@ describe('ResolverSubset parser', () => {
 					inArray(row[EntityMetaKey.ParentSelectorKey], [
 						'parent-a',
 						'parent-b',
-					]),
+					])
 				))
 				.orderBy(
 					({ row }) => row.category,
-					'asc',
-				),
+					'asc'
+				)
 		))).toMatchObject({
 			sorts: [
 				{
@@ -208,7 +208,7 @@ describe('ResolverSubset parser', () => {
 				.from({
 					row: rows,
 				})
-				.where(({ row }) => inArray(row[EntityMetaKey.Source], [])),
+				.where(({ row }) => inArray(row[EntityMetaKey.Source], []))
 		)).sources).toEqual([])
 	})
 
@@ -218,7 +218,7 @@ describe('ResolverSubset parser', () => {
 				.from({
 					row: rows,
 				})
-				.where(({ row }) => gt(row.rank, 1)),
+				.where(({ row }) => gt(row.rank, 1))
 		))).toThrow('Resolver Subset Parser unsupported where LoadSubsetOptions')
 	})
 
@@ -230,7 +230,7 @@ describe('ResolverSubset parser', () => {
 				})
 				.where(({ row }) => eq(row.nested, {
 					value: 7,
-				})),
+				}))
 		))).toThrow('Resolver Subset Parser unsupported where LoadSubsetOptions')
 	})
 
@@ -240,7 +240,7 @@ describe('ResolverSubset parser', () => {
 				.from({
 					row: rows,
 				})
-				.orderBy(({ row }) => add(row.rank, 1)),
+				.orderBy(({ row }) => add(row.rank, 1))
 		))).toThrow('Resolver Subset Parser unsupported orderBy LoadSubsetOptions')
 	})
 
@@ -259,11 +259,11 @@ describe('ResolverSubset parser', () => {
 						eq(row.filterKey, (index & 4) === 0 ? 'filter-a' : 'filter-b'),
 						eq(row.valueKey, (index & 64) === 0 ? 'value-a' : 'value-b'),
 						eq(row[EntityMetaKey.Value], (index & 128) === 0 ? 'A' : 'B'),
-						eq(row.category, (index & 256) === 0 ? 'public' : 'private'),
+						eq(row.category, (index & 256) === 0 ? 'public' : 'private')
 					))
 					.orderBy(
 						({ row }) => row.rank,
-						(index & 8) === 0 ? 'asc' : 'desc',
+						(index & 8) === 0 ? 'asc' : 'desc'
 					),
 				{
 					...((index & 16) !== 0 && {
@@ -276,7 +276,7 @@ describe('ResolverSubset parser', () => {
 							lastKey: 'cursor-key',
 						},
 					}),
-				},
+				}
 			)
 			fieldKeys.add(stringify(fieldLoadedSubsetKey(loadSubsetOptions)))
 			countKeys.add(stringify(countLoadedSubsetKey(loadSubsetOptions)))
@@ -300,11 +300,11 @@ describe('ResolverSubset parser', () => {
 					]),
 					eq(row.valueKey, 'value-a'),
 					eq(row[EntityMetaKey.Value], 'A'),
-					eq(row.filterKey, 'filter-a'),
+					eq(row.filterKey, 'filter-a')
 				))
 				.orderBy(
 					({ row }) => row.rank,
-					'desc',
+					'desc'
 				),
 			{
 				limit: 10,
@@ -314,7 +314,7 @@ describe('ResolverSubset parser', () => {
 					whereCurrent: eq(2, 2),
 					lastKey: 'cursor-key',
 				},
-			},
+			}
 		))).toEqual({
 			filters: [
 				{

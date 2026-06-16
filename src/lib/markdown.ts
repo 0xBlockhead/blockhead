@@ -98,7 +98,7 @@ const syndicationHtmlSanitizerOptions = {
 } satisfies SanitizeOptions
 
 export const syndicationHtmlToSafeHtml = (
-	htmlText: string | null | undefined,
+	htmlText: string | null | undefined
 ): string => {
 	const html = htmlText?.trim() ?? ''
 	if (html === '') return ''
@@ -106,7 +106,7 @@ export const syndicationHtmlToSafeHtml = (
 }
 
 export const markdownToHtml = (
-	markdownText: string | null | undefined,
+	markdownText: string | null | undefined
 ): string => {
 	const markdown = markdownText === undefined || markdownText === null ? '' : markdownText
 	try {

@@ -12,7 +12,7 @@ import { sveltekit } from '@sveltejs/kit/vite'
  */
 const tanstackBrowserSqliteSrc = fileURLToPath(new URL(
 	'node_modules/@tanstack/browser-db-sqlite-persistence/src/index.ts',
-	import.meta.url,
+	import.meta.url
 ))
 
 export default defineConfig({

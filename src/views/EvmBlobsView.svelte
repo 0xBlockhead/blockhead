@@ -72,10 +72,11 @@
 			{@const parent = subscribe(parentEntityType,
 				entityFieldReference.selector,({ fields: {
 					...(parentEntityType === EntityType.EvmNetwork && {
-						blockHeight: {
+						$$timestamps: {
 							sources: [
 								Source.Voltaire_JsonRpc,
 							],
+							limit: 1,
 						},
 					}),
 					[entityFieldReference.fieldName]: {

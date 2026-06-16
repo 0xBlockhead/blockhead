@@ -313,7 +313,7 @@ export default {
 				return Array.from({
 					length: Math.min(
 						Number(headBlockNumber + 1n),
-						resolverContextRowLimit(context),
+						resolverContextRowLimit(context)
 					),
 				}, (_value, blockOffset) => ({
 					[EntityMetaKey.Selector]: {

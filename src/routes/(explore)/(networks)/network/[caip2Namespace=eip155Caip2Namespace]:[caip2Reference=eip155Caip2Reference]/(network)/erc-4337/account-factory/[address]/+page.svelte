@@ -14,6 +14,6 @@
 
 <Page>
 	<Erc4337AccountFactoryView
-		selector={data.entitySelector}
+		selector={data.selector}
 	/>
 </Page>

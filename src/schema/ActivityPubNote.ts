@@ -16,7 +16,7 @@ export enum ActivityPubNoteSelector {
 
 
 const mastodonVisibilityPrimitive = type.or(
-	...mastodonVisibilities.map((visibility) => type.unit(visibility.visibility)),
+	...mastodonVisibilities.map((visibility) => type.unit(visibility.visibility))
 )
 
 export default {
@@ -76,24 +76,6 @@ export default {
 			name: 'activityStreamsUri',
 			type: EntityFieldType.Primitive,
 			primitiveType: UrlString,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'favouriteCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'reblogCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'replyCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

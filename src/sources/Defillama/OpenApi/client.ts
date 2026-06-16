@@ -8,7 +8,7 @@ import type {
 
 const withSearchWidth = (
 	url: URL,
-	searchWidth: string | undefined,
+	searchWidth: string | undefined
 ) => {
 	if (searchWidth != null) url.searchParams.set('searchWidth', searchWidth)
 	return url
@@ -28,9 +28,9 @@ export const getChartJson = async ({
 	const reqUrl = withSearchWidth(
 		new URL(
 			`/chart/${coins.map((coin) => encodeURIComponent(coin)).join(',')}`,
-			coinsBaseUrl,
+			coinsBaseUrl
 		),
-		searchWidth,
+		searchWidth
 	)
 	if (period != null) reqUrl.searchParams.set('period', period)
 	if (span != null) reqUrl.searchParams.set('span', String(span))
@@ -52,9 +52,9 @@ export const getCurrentPricesJson = async ({
 	const reqUrl = withSearchWidth(
 		new URL(
 			`/prices/current/${coins.map((coin) => encodeURIComponent(coin)).join(',')}`,
-			coinsBaseUrl,
+			coinsBaseUrl
 		),
-		searchWidth,
+		searchWidth
 	)
 	const response = await corsFetch(reqUrl.href, { origins: Defillama.origins  })
 

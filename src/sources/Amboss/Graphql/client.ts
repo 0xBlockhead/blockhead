@@ -23,15 +23,11 @@ type AmbossGqlResponse<_Result> = {
 }
 
 export const queryAmboss = async <
-	_Result extends {
-		[key: string]: any
-	},
-	_Variables extends {
-		[key: string]: any
-	},
+	_Result extends object,
+	_Variables extends object,
 >(
 	document: TadaDocumentNode<_Result, _Variables>,
-	variables?: _Variables,
+	variables?: _Variables
 ): Promise<_Result> => {
 	const out = await getJson<AmbossGqlResponse<_Result>>(graphqlUrl, {
 		origins: Amboss.origins,
@@ -48,9 +44,8 @@ export const queryAmboss = async <
 		},
 	})
 
-	if (out.errors?.[0]?.message != null) {
+	if (out.errors?.[0]?.message != null)
 		throw new Error(`Amboss_Graphql: ${out.errors[0].message}`)
-	}
 
 	return out.data
 }

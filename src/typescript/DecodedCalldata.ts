@@ -1,6 +1,10 @@
+import type { decodeParameters } from '@tevm/voltaire/Abi'
+
+export type DecodedAbiValue = ReturnType<typeof decodeParameters>[number]
+
 export type DecodedParam = {
 	type: string
-	value: unknown
+	value: DecodedAbiValue
 }
 
 export type DecodedCalldata = {

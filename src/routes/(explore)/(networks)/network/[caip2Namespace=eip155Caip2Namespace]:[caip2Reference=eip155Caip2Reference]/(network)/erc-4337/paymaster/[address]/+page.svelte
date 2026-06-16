@@ -14,6 +14,6 @@
 
 <Page>
 	<Erc4337PaymasterView
-		selector={data.entitySelector}
+		selector={data.selector}
 	/>
 </Page>

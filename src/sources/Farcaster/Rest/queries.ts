@@ -97,7 +97,7 @@ export const getUserThreadCasts = async ({
 			username,
 			castHashPrefix,
 			limit,
-		},
+		}
 	)
 )
 
@@ -149,7 +149,7 @@ export const getUserFollowingChannelsPage = ({
 }) => (
 	farcasterGet<FarcasterPage<{ channels: FarcasterChannel[] }>>(
 		'/v1/user-following-channels',
-		{ fid, cursor, limit },
+		{ fid, cursor, limit }
 	)
 )
 

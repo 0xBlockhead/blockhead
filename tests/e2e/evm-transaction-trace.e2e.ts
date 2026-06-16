@@ -25,7 +25,7 @@ test.describe('Evm transaction call trace', () => {
 		await expect(traceSection).toBeAttached({ timeout: 120_000 })
 		await expect(
 			traceSection.locator('ul[data-column]')
-				.or(traceSection.getByText(/Call trace unavailable/i)),
+				.or(traceSection.getByText(/Call trace unavailable/i))
 		).toBeAttached({ timeout: 120_000 })
 		expect(
 			issues.filter((issue) => (
@@ -34,7 +34,7 @@ test.describe('Evm transaction call trace', () => {
 					&& (issue.includes('status of 404') || issue.includes('status of 422'))
 				)
 			)),
-			issues.join('\n'),
+			issues.join('\n')
 		).toEqual([])
 	})
 })

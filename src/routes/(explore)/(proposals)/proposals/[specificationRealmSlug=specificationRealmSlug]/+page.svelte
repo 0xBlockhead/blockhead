@@ -7,7 +7,7 @@
 		params,
 	} = $props()
 
-	const entitySelector = $derived(
+	const selector = $derived(
 		params.specificationRealmSlug in specificationRealmBySlug ?
 			{
 				realm: specificationRealmBySlug[params.specificationRealmSlug]!.id,
@@ -24,9 +24,9 @@
 
 
 <Page>
-	{#if entitySelector !== undefined}
+	{#if selector !== undefined}
 		<SpecificationRealmView
-			selector={entitySelector}
+			selector={selector}
 			open
 		/>
 	{:else}

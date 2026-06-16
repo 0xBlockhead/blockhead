@@ -18,7 +18,7 @@ import type {
  * `GET /v1/chains` — supported chains (optional `chainTypes` e.g. `EVM,SVM`).
  */
 export async function fetchChains(
-	options?: FetchLifiChainsOptions,
+	options?: FetchLifiChainsOptions
 ): Promise<LifiChainsResponse> {
 	const params = new URLSearchParams()
 	if (options?.chainTypes != null && options.chainTypes !== '')
@@ -34,7 +34,7 @@ export async function fetchChains(
  * `GET /v1/tokens` — token lists keyed by chain id string under `tokens`.
  */
 export async function fetchTokens(
-	options?: FetchLifiTokensOptions,
+	options?: FetchLifiTokensOptions
 ): Promise<LifiTokensResponse> {
 	const params = new URLSearchParams()
 	if (options?.chains != null && options.chains !== '')
@@ -52,7 +52,7 @@ export async function fetchTokens(
 }
 
 export const findChainByChainId = async (
-	chainId: number,
+	chainId: number
 ): Promise<LifiChainsResponse['chains'][number] | undefined> => (
 	(await fetchChains()).chains.find((row) => row.id === chainId)
 )
@@ -62,7 +62,7 @@ export const findChainByChainId = async (
  * @see https://docs.li.fi/li.fi-api/li.fi-api/requesting-all-supported-tools
  */
 export async function fetchTools(
-	options?: { baseUrl?: string },
+	options?: { baseUrl?: string }
 ): Promise<LifiToolsResponse> {
 	const path = '/v1/tools'
 	const res = await lifiRestFetch(path, undefined, { baseUrl: options?.baseUrl })

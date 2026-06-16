@@ -1,4 +1,1 @@
-import type { ParamMatcher } from '@sveltejs/kit'
-
-
-export const match = ((param: string) => param === 'eip155') satisfies ParamMatcher
+export const match = (param: string): param is 'eip155' => param === 'eip155'

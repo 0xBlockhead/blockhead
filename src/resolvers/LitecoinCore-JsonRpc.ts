@@ -2,8 +2,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	litecoinCoreDefaultLocalRpcUrl,
-	litecoinMainnetCaip2,
+	bitcoinNetworkBySlug,
 } from '$/constants/BitcoinNetwork.ts'
 import {
 	EntityMetaKey,
@@ -13,11 +12,14 @@ import { Source } from '$/sources/Source.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 
-const assertLitecoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string } | { slug: string }) => {
+const assertLitecoinMainnet = (network: { caip2: {
+	namespace: string
+	reference: string
+} } | { networkSlug: string } | { slug: string }) => {
 	if (
 		!('caip2' in network)
-		|| network.caip2.namespace !== litecoinMainnetCaip2.namespace
-		|| network.caip2.reference !== litecoinMainnetCaip2.reference
+		|| network.caip2.namespace !== bitcoinNetworkBySlug.litecoin.caip2.namespace
+		|| network.caip2.reference !== bitcoinNetworkBySlug.litecoin.caip2.reference
 	) {
 		throw new Error('LitecoinCore_JsonRpc: unsupported Litecoin network')
 	}
@@ -31,116 +33,114 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
-				assertLitecoinMainnet($network)
-				const {
-					getBlock,
-					getBlockHash,
-				} = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
-				const block = await getBlock({
-					rpcUrl: litecoinCoreDefaultLocalRpcUrl,
-					blockHash: hash,
-				})
-				if (typeof block === 'string') {
-					throw new Error('LitecoinCore_JsonRpc: expected verbose block')
-				}
-				return {
-					hash: block.hash,
-					...(block.previousblockhash != null && {
-						$parent: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								height: BigInt(block.height - 1),
-								hash: block.previousblockhash,
+					assertLitecoinMainnet($network)
+					const {
+						getBlock,
+						getBlockHash,
+					} = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
+					const block = await getBlock({
+						rpcUrl: bitcoinNetworkBySlug.litecoin.litecoinCoreRpcUrl,
+						blockHash: hash,
+					})
+					if (typeof block === 'string')
+						throw new Error('LitecoinCore_JsonRpc: expected verbose block')
+					return {
+						hash: block.hash,
+						...(block.previousblockhash != null && {
+							$parent: {
+								[EntityMetaKey.Selector]: {
+									$network: $network,
+									height: BigInt(block.height - 1),
+									hash: block.previousblockhash,
+								},
 							},
-						},
-					}),
-					timestampMs: block.time * 1000,
-					merkleRoot: block.merkleroot,
-					nonce: block.nonce,
-					difficulty: block.difficulty,
-					...(block.size != null && {
-						sizeBytes: block.size,
-					}),
-					...(block.weight != null && {
-						weightUnits: block.weight,
-					}),
-					transactionCount: block.nTx,
-					$$transactions: block.tx.map((transaction) => (
-						typeof transaction === 'string' ?
-							{
-								[EntityMetaKey.Selector]: {
-									$network,
-									txId: transaction,
-								},
-							}
-						:
-							{
-								[EntityMetaKey.Selector]: {
-									$network,
-									txId: transaction.txid,
-								},
-								version: transaction.version,
-								lockTime: transaction.locktime,
-								sizeBytes: transaction.size,
-								virtualSizeBytes: transaction.vsize,
-								weightUnits: transaction.weight,
-								isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-							}
-					)),
+						}),
+						timestampMs: block.time * 1000,
+						merkleRoot: block.merkleroot,
+						nonce: block.nonce,
+						difficulty: block.difficulty,
+						...(block.size != null && {
+							sizeBytes: block.size,
+						}),
+						...(block.weight != null && {
+							weightUnits: block.weight,
+						}),
+						transactionCount: block.nTx,
+						$$transactions: block.tx.map((transaction) => (
+							typeof transaction === 'string' ?
+								{
+									[EntityMetaKey.Selector]: {
+										$network,
+										txId: transaction,
+									},
+								}
+							:
+								{
+									[EntityMetaKey.Selector]: {
+										$network,
+										txId: transaction.txid,
+									},
+									version: transaction.version,
+									lockTime: transaction.locktime,
+									sizeBytes: transaction.size,
+									virtualSizeBytes: transaction.vsize,
+									weightUnits: transaction.weight,
+									isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+								}
+						)),
+					}
 				}
-			}
-			}
+			},
 		})({
-				fields: {
-			hash: (snapshot) => snapshot.hash,
-			$parent: (snapshot) => snapshot.$parent,
-			timestampMs: (snapshot) => snapshot.timestampMs,
-			merkleRoot: (snapshot) => snapshot.merkleRoot,
-			nonce: (snapshot) => snapshot.nonce,
-			difficulty: (snapshot) => snapshot.difficulty,
-			sizeBytes: (snapshot) => snapshot.sizeBytes,
-			weightUnits: (snapshot) => snapshot.weightUnits,
-			transactionCount: (snapshot) => snapshot.transactionCount,
-			$$transactions: (snapshot) => snapshot.$$transactions,
-		},
-			}),
+			fields: {
+				hash: (snapshot) => snapshot.hash,
+				$parent: (snapshot) => snapshot.$parent,
+				timestampMs: (snapshot) => snapshot.timestampMs,
+				merkleRoot: (snapshot) => snapshot.merkleRoot,
+				nonce: (snapshot) => snapshot.nonce,
+				difficulty: (snapshot) => snapshot.difficulty,
+				sizeBytes: (snapshot) => snapshot.sizeBytes,
+				weightUnits: (snapshot) => snapshot.weightUnits,
+				transactionCount: (snapshot) => snapshot.transactionCount,
+				$$transactions: (snapshot) => snapshot.$$transactions,
+			},
+		}),
 
 		defineResolver(Source.LitecoinCore_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[UtxoTransactionSelector.NetworkTxId]: async ({ $network, txId }) => {
-				assertLitecoinMainnet($network)
-				const { getRawTransaction } = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
-				const transaction = await getRawTransaction({
-					rpcUrl: litecoinCoreDefaultLocalRpcUrl,
-					txId: txId,
-				})
-				if (typeof transaction === 'string') {
-					throw new Error('LitecoinCore_JsonRpc: expected verbose transaction')
+					assertLitecoinMainnet($network)
+					const { getRawTransaction } = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
+					const transaction = await getRawTransaction({
+						rpcUrl: bitcoinNetworkBySlug.litecoin.litecoinCoreRpcUrl,
+						txId: txId,
+					})
+					if (typeof transaction === 'string')
+						throw new Error('LitecoinCore_JsonRpc: expected verbose transaction')
+					return {
+						[EntityMetaKey.Selector]: {
+							$network: $network,
+							txId: transaction.txid,
+						},
+						version: transaction.version,
+						lockTime: transaction.locktime,
+						sizeBytes: transaction.size,
+						virtualSizeBytes: transaction.vsize,
+						weightUnits: transaction.weight,
+						isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+					}
 				}
-				return {
-					[EntityMetaKey.Selector]: {
-						$network: $network,
-						txId: transaction.txid,
-					},
-					version: transaction.version,
-					lockTime: transaction.locktime,
-					sizeBytes: transaction.size,
-					virtualSizeBytes: transaction.vsize,
-					weightUnits: transaction.weight,
-					isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-				}
-			}
-			}
+			},
 		})({
-				fields: {
-			version: (snapshot) => snapshot.version,
-			lockTime: (snapshot) => snapshot.lockTime,
-			sizeBytes: (snapshot) => snapshot.sizeBytes,
-			virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
-			weightUnits: (snapshot) => snapshot.weightUnits,
-			isCoinbase: (snapshot) => snapshot.isCoinbase,
-		},
-			}),
+			fields: {
+				version: (snapshot) => snapshot.version,
+				lockTime: (snapshot) => snapshot.lockTime,
+				sizeBytes: (snapshot) => snapshot.sizeBytes,
+				virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
+				weightUnits: (snapshot) => snapshot.weightUnits,
+				isCoinbase: (snapshot) => snapshot.isCoinbase,
+			},
+		}),
 	],
 }

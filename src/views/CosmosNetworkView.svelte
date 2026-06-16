@@ -18,25 +18,50 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.CosmosNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { slug: true, name: true, environment: true, $$nativeAssets: true } }),
+	const network = $derived(
+		subscribe(
+			EntityType.Network,
+			selector.$network,
+			{
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					slug: true,
+					name: true,
+					environment: true,
+					$$nativeAssets: true,
+				},
+			},
+		),
 	)
 
-	const cosmosNetwork = subscribe(EntityType.CosmosNetwork,
-		selector,
-		({ sources: [
-				Source.CosmosSdk_Rest,
-				Source.CometBft_Rest,
-			], fields: { $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1 }), restEndpoints: true } }),
+	const cosmosNetwork = $derived(
+		subscribe(
+			EntityType.CosmosNetwork,
+			selector,
+			{
+				sources: [
+					Source.CosmosSdk_Rest,
+					Source.CometBft_Rest,
+				],
+				fields: {
+					$$blocks: {
+						limit: 1,
+					},
+					$$timestamps: {
+						limit: 1,
+					},
+					restEndpoints: true,
+				},
+			},
+		),
 	)
 
 
@@ -64,7 +89,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector}
+	entitySelector={selector.$network}
 	{href}
 	bind:open
 	{layout}
@@ -101,18 +126,18 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-						<ResourceBoundary resource={cosmosNetwork}>
-							{#snippet children(cosmosNetwork)}
-								{@const block = cosmosNetwork.fields.$$blocks?.values.at(0)}
-								{#if block != null}
-									<div>
-										<dt>Head block</dt>
-										<dd id="network-summary-head-block">
-											<CosmosBlockView
-												selector={block[EntityMetaKey.Selector]}
-												layout={EntityLayout.Value}
-											/>
-										</dd>
+					<ResourceBoundary resource={cosmosNetwork}>
+						{#snippet children(cosmosNetwork)}
+							{@const block = cosmosNetwork.fields.$$blocks?.values.at(0)}
+							{#if block != null}
+								<div>
+									<dt>Head block</dt>
+									<dd id="network-summary-head-block">
+										<CosmosBlockView
+											selector={block[EntityMetaKey.Selector]}
+											layout={EntityLayout.Value}
+										/>
+									</dd>
 								</div>
 							{/if}
 						{/snippet}
@@ -123,13 +148,13 @@
 						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 					</div>
 
-						{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
-							<div>
-								<dt>Native asset</dt>
-								<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
-							</div>
-						{/if}
-					</dl>
+					{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
+						<div>
+							<dt>Native asset</dt>
+							<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
+						</div>
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -195,7 +220,7 @@
 					title={label}
 				/>
 			{/snippet}
-	</CollapsibleTabs>
+		</CollapsibleTabs>
 
 		<CollapsibleTabs
 			id={`${networkSelectorKey}:carousel-consensus`}
@@ -261,7 +286,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -292,7 +317,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -310,7 +335,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

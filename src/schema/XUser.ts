@@ -11,12 +11,11 @@ import { Source } from '$/sources/Source.ts'
 
 export enum XUserSelector {
 	Id = 'id',
+	Username = 'username',
 }
 
-
-
 const XId = type(
-	'/^\\d+$/' as type.cast<string>,
+	'/^\\d+$/' as type.cast<string>
 )
 
 export default {
@@ -32,6 +31,12 @@ export default {
 				'id',
 			],
 		},
+		{
+			name: XUserSelector.Username,
+			fields: [
+				'username',
+			],
+		},
 	],
 
 	fields: [
@@ -45,7 +50,7 @@ export default {
 			name: 'username',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'name',
@@ -57,24 +62,6 @@ export default {
 			name: 'description',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'followerCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'followingCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'tweetCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
@@ -118,12 +105,6 @@ export default {
 			defaultSources: [
 				Source.X_Rest,
 			],
-		},
-		{
-			name: 'listedCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$timestamps',

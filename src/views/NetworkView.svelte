@@ -2,7 +2,7 @@
 	// Types/constants
 	import {
 		NetworkNamespace,
-		caip2NetworkNamespaceByNamespace,
+		networkByCaip2,
 		networkEnvironmentByEnvironment,
 	} from '$/constants/Network.ts'
 
@@ -75,8 +75,8 @@
 	resource={network}
 >
 	{#snippet children(row)}
-		{@const networkCaip2 = row.fields.caip2 ?? ('caip2' in selector ? selector.caip2 : undefined)}
-		{@const networkSlug = row.fields.slug ?? ('networkSlug' in selector ? selector.networkSlug : undefined)}
+		{@const networkCaip2 = row.fields.caip2}
+		{@const networkSlug = row.fields.slug}
 		{@const networkHref = href ?? (
 			networkCaip2 == null ?
 				networkSlug == null ?
@@ -93,10 +93,7 @@
 		)}
 		{@const networkSelector = (
 			networkCaip2 == null ?
-				networkSlug == null ?
-					selector
-				:
-					{ networkSlug }
+				{ slug: networkSlug }
 			:
 				{ caip2: networkCaip2 }
 		)}
@@ -104,9 +101,7 @@
 			networkCaip2 == null ?
 				undefined
 			:
-				Object.entries(caip2NetworkNamespaceByNamespace)
-					.find(([caip2Namespace]) => caip2Namespace === networkCaip2.namespace)
-					?.[1]
+				networkByCaip2[`${networkCaip2.namespace}:${networkCaip2.reference}`]?.namespace
 		)}
 		{#if networkNamespace === NetworkNamespace.Evm && networkCaip2 != null}
 			<EvmNetworkView
@@ -122,7 +117,7 @@
 			/>
 		{:else if networkNamespace === NetworkNamespace.Bitcoin || networkNamespace === NetworkNamespace.BitcoinCash || networkNamespace === NetworkNamespace.Litecoin || networkNamespace === NetworkNamespace.Dogecoin || networkNamespace === NetworkNamespace.Zcash}
 			<UtxoNetworkView
-				selector={networkSelector}
+				selector={{ $network: networkSelector }}
 				href={networkHref}
 				bind:open
 				{layout}
@@ -141,56 +136,56 @@
 			/>
 		{:else if networkNamespace === NetworkNamespace.Cosmos}
 			<CosmosNetworkView
-				selector={networkSelector}
+				selector={{ $network: networkSelector }}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Filecoin}
 			<FilecoinNetworkView
-				selector={networkSelector}
+				selector={{ $network: networkSelector }}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Polkadot}
 			<PolkadotNetworkView
-				selector={networkSelector}
+				selector={{ $network: networkSelector }}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Monero}
 			<MoneroNetworkView
-				selector={networkSelector}
+				selector={{ $network: networkSelector }}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Near}
 			<NearNetworkView
-				selector={{ networkSlug: 'near' }}
+				selector={{ slug: 'near' }}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Tron}
 			<TronNetworkView
-				selector={networkSelector}
+				selector={{ $network: networkSelector }}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Hyperliquid}
 			<HyperliquidNetworkView
-				selector={networkSelector}
+				selector={{ $network: networkSelector }}
 				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if networkNamespace === NetworkNamespace.Bittensor}
 			<BittensorNetworkView
-				selector={networkSelector}
+				selector={{ $network: networkSelector }}
 				href={networkHref}
 				bind:open
 				{layout}

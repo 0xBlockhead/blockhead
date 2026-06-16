@@ -28,39 +28,39 @@ export const getUser = async (publicEnv: SourcePublicEnvFor<Source.X_Rest>, id: 
 		publicEnv,
 		`/users/${encodeURIComponent(id)}?${(
 			new URLSearchParams({ 'user.fields': userFields }).toString()
-		)}` as const,
+		)}` as const
 	)
 )
 
 export const getTweet = async (publicEnv: SourcePublicEnvFor<Source.X_Rest>, id: string) => (
 	xApiV2Get<XApiV2TweetResponse>(
 		publicEnv,
-		`/tweets/${encodeURIComponent(id)}?${tweetListQuery()}` as const,
+		`/tweets/${encodeURIComponent(id)}?${tweetListQuery()}` as const
 	)
 )
 
 export const listUserTweets = async (
 	publicEnv: SourcePublicEnvFor<Source.X_Rest>,
 	userId: string,
-	maxResults: number,
+	maxResults: number
 ) => (
 	xApiV2Get<XApiV2UserTweetsResponse>(
 		publicEnv,
 		`/users/${encodeURIComponent(userId)}/tweets?${tweetListQuery({
 			max_results: String(Math.min(100, Math.max(5, maxResults))),
-		})}` as const,
+		})}` as const
 	)
 )
 
 export const searchRecentTweets = async (
 	publicEnv: SourcePublicEnvFor<Source.X_Rest>,
-	maxResults: number,
+	maxResults: number
 ) => (
 	xApiV2Get<XApiV2SearchRecentTweetsResponse>(
 		publicEnv,
 		`/tweets/search/recent?${tweetListQuery({
 			query: 'lang:en -is:retweet',
 			max_results: String(Math.min(100, Math.max(10, maxResults))),
-		})}` as const,
+		})}` as const
 	)
 )

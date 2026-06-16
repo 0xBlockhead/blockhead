@@ -259,6 +259,7 @@ import LogosZoneSchema from '$/schema/LogosZone.ts'
 import LogosAccountSchema from '$/schema/LogosAccount.ts'
 import LogosTransactionSchema from '$/schema/LogosTransaction.ts'
 import EvmNetworkSchema from '$/schema/EvmNetwork.ts'
+import EvmNetwork_TimestampSchema from '$/schema/EvmNetwork_Timestamp.ts'
 import EvmNetworkBridgeSchema from '$/schema/EvmNetworkBridge.ts'
 import EvmRollupSchema from '$/schema/EvmRollup.ts'
 import OracleFeedSchema from '$/schema/OracleFeed.ts'
@@ -574,6 +575,7 @@ export const schema = [
 	LogosAccountSchema,
 	LogosTransactionSchema,
 	EvmNetworkSchema,
+	EvmNetwork_TimestampSchema,
 	EvmNetworkBridgeSchema,
 	EvmRollupSchema,
 	OracleFeedSchema,
@@ -641,5 +643,5 @@ export const entityDefinitionByType = Object.fromEntries(
 	schema.map((definition) => [
 		definition.entityType,
 		definition,
-	]),
+	])
 )

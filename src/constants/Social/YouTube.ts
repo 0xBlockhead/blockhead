@@ -1,20 +1,7 @@
-// Types
-
-import type { EntitySelector } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/EntityType.ts'
 import { YouTubeLiveBroadcastContent } from '$/schema/YouTubeVideo.ts'
-import { schema } from '$/schema/index.ts'
 
 
 // Constants
-export const youtubeNetworkFieldValues = {
-	docsUrl: 'https://developers.google.com/youtube/v3',
-	homeUrl: 'https://www.youtube.com',
-	protocolName: 'YouTube Data API',
-	registryLabel: 'Curated seed channels + live channel uploads',
-	topology: 'Constants seeds + live REST -> network -> channels / playlists -> videos',
-} as const
-
 /** Channel `channelId` is YouTube’s opaque UC… id (not @handle). */
 export const youtubeNetworkSeedChannels = [
 	{
@@ -23,7 +10,9 @@ export const youtubeNetworkSeedChannels = [
 	{
 		channelId: 'UCBR8-60-B28hp2BmDPdntcQ',
 	},
-] as const satisfies readonly EntitySelector<typeof schema, EntityType.YouTubeChannel>[]
+] as const satisfies readonly {
+	channelId: string
+}[]
 
 /** Playlist `playlistId` is YouTube’s opaque PL… or channel uploads UU… id. */
 export const youtubeNetworkSeedPlaylists = [
@@ -33,7 +22,9 @@ export const youtubeNetworkSeedPlaylists = [
 	{
 		playlistId: 'UUUCBR8-60-B28hp2BmDPdntcQ',
 	},
-] as const satisfies readonly EntitySelector<typeof schema, EntityType.YouTubePlaylist>[]
+] as const satisfies readonly {
+	playlistId: string
+}[]
 
 /** Video `videoId` is YouTube’s 11-character id. */
 export const youtubeNetworkSeedVideos = [
@@ -43,7 +34,9 @@ export const youtubeNetworkSeedVideos = [
 	{
 		videoId: 'M7lc1UVf-VE',
 	},
-] as const satisfies readonly EntitySelector<typeof schema, EntityType.YouTubeVideo>[]
+] as const satisfies readonly {
+	videoId: string
+}[]
 
 const youTubeVideoLiveBroadcastPhases = [
 	{
@@ -64,20 +57,62 @@ const youTubeVideoLiveBroadcastPhases = [
 }[]
 
 const youTubeVideoCategories = [
-	{ categoryId: '1', label: 'Film & Animation' },
-	{ categoryId: '2', label: 'Autos & Vehicles' },
-	{ categoryId: '10', label: 'Music' },
-	{ categoryId: '15', label: 'Pets & Animals' },
-	{ categoryId: '17', label: 'Sports' },
-	{ categoryId: '19', label: 'Travel & Events' },
-	{ categoryId: '20', label: 'Gaming' },
-	{ categoryId: '22', label: 'People & Blogs' },
-	{ categoryId: '23', label: 'Comedy' },
-	{ categoryId: '24', label: 'Entertainment' },
-	{ categoryId: '25', label: 'News & Politics' },
-	{ categoryId: '26', label: 'Howto & Style' },
-	{ categoryId: '27', label: 'Education' },
-	{ categoryId: '28', label: 'Science & Technology' },
+	{
+		categoryId: '1',
+		label: 'Film & Animation',
+	},
+	{
+		categoryId: '2',
+		label: 'Autos & Vehicles',
+	},
+	{
+		categoryId: '10',
+		label: 'Music',
+	},
+	{
+		categoryId: '15',
+		label: 'Pets & Animals',
+	},
+	{
+		categoryId: '17',
+		label: 'Sports',
+	},
+	{
+		categoryId: '19',
+		label: 'Travel & Events',
+	},
+	{
+		categoryId: '20',
+		label: 'Gaming',
+	},
+	{
+		categoryId: '22',
+		label: 'People & Blogs',
+	},
+	{
+		categoryId: '23',
+		label: 'Comedy',
+	},
+	{
+		categoryId: '24',
+		label: 'Entertainment',
+	},
+	{
+		categoryId: '25',
+		label: 'News & Politics',
+	},
+	{
+		categoryId: '26',
+		label: 'Howto & Style',
+	},
+	{
+		categoryId: '27',
+		label: 'Education',
+	},
+	{
+		categoryId: '28',
+		label: 'Science & Technology',
+	},
 ] as const satisfies readonly {
 	categoryId: string
 	label: string
@@ -90,12 +125,12 @@ export const youTubeVideoLiveBroadcastPhaseByLiveBroadcastContent = Object.fromE
 	youTubeVideoLiveBroadcastPhases.map((row) => [
 		row.liveBroadcastContent,
 		row,
-	]),
+	])
 )
 
 export const youTubeVideoCategoryByCategoryId = Object.fromEntries(
 	youTubeVideoCategories.map((row) => [
 		row.categoryId,
 		row,
-	]),
+	])
 )

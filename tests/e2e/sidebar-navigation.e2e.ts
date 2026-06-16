@@ -35,14 +35,14 @@ test.describe('sidebar navigation', () => {
 		await networksLink.click()
 		const coldRpcs = page.waitForResponse(
 			(r) => chainlistRpcsWire(r.url()),
-			{ timeout: 90_000 },
+			{ timeout: 90_000 }
 		)
 		await expect(page).toHaveURL((u) => u.pathname === '/networks')
 		await coldRpcs
 		const ethereumMainnetHref = page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()
 		const networksListPending = page.locator('#networks').getByText('Loading networks…')
 		await expect(
-			ethereumMainnetHref.or(networksListPending),
+			ethereumMainnetHref.or(networksListPending)
 		).toBeVisible({ timeout: 90_000 })
 		await expect(networksListPending).toHaveCount(0, { timeout: 60_000 })
 		await assertMainSettled(page)

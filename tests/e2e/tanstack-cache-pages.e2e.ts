@@ -48,14 +48,14 @@ test.describe('TanStack query lifecycle + cache', () => {
 
 		const coldRpc = page.waitForResponse(
 			(r) => chainlistRpcsWire(r.url()),
-			{ timeout: 120_000 },
+			{ timeout: 120_000 }
 		)
 		await page.goto('/networks', { waitUntil: 'load' })
 		await coldRpc
 		await expect(page.locator('#networks')).toBeVisible()
 		await expect(page.locator('#networks').getByText('Loading networks…')).toHaveCount(
 			0,
-			{ timeout: 120_000 },
+			{ timeout: 120_000 }
 		)
 		await expect(page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()).toBeVisible()
 
@@ -81,7 +81,7 @@ test.describe('TanStack query lifecycle + cache', () => {
 				await page.goto(url, { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
 				await expect(
 					page.locator('#main'),
-					`#main missing after goto ${url} (final URL: ${page.url()})`,
+					`#main missing after goto ${url} (final URL: ${page.url()})`
 				).toBeVisible({ timeout: 120_000 })
 				await assertMainSettled(page)
 				const fromPage = issues.slice(issueStart)

@@ -22,7 +22,7 @@
 		<dl data-column-item="center">
 			<div>
 				<dt>Network</dt>
-				<dd>{`${data.entitySelector.$network.caip2.namespace}:${data.entitySelector.$network.caip2.reference}`}</dd>
+				<dd>{`${data.selector.$network.caip2.namespace}:${data.selector.$network.caip2.reference}`}</dd>
 			</div>
 
 			<div>

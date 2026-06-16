@@ -12,7 +12,7 @@ export const getInfo = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>,
 		publicEnv,
 		`/api/info?${(
 			new URLSearchParams({ id, raw_json: '1' }).toString()
-		)}` as const,
+		)}` as const
 	)
 )
 
@@ -23,7 +23,7 @@ export const getSubredditAbout = async (publicEnv: SourcePublicEnvFor<Source.Red
 export const listSubredditLinks = async (
 	publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>,
 	name: string,
-	limit: number,
+	limit: number
 ) => (
 	oauthGetJson<RedditApiListing>(
 		publicEnv,
@@ -32,13 +32,13 @@ export const listSubredditLinks = async (
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
-		)}` as const,
+		)}` as const
 	)
 )
 
 export const listPopularLinks = async (
 	publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>,
-	limit: number,
+	limit: number
 ) => (
 	oauthGetJson<RedditApiListing>(
 		publicEnv,
@@ -47,14 +47,14 @@ export const listPopularLinks = async (
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
-		)}` as const,
+		)}` as const
 	)
 )
 
 export const getLinkComments = async (
 	publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>,
 	permalink: string,
-	limit: number,
+	limit: number
 ) => (
 	oauthGetJson<RedditApiListing[]>(
 		publicEnv,
@@ -63,14 +63,14 @@ export const getLinkComments = async (
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
-		)}`,
+		)}`
 	)
 )
 
 export const getLinkCommentsByArticleId = async (
 	publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>,
 	articleId: string,
-	limit: number,
+	limit: number
 ) => (
 	oauthGetJson<RedditApiListing[]>(
 		publicEnv,
@@ -79,6 +79,6 @@ export const getLinkCommentsByArticleId = async (
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
-		)}` as const,
+		)}` as const
 	)
 )

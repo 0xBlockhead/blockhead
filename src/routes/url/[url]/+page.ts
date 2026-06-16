@@ -10,10 +10,10 @@ import type { PageLoad } from './$types.ts'
 
 
 export const load: PageLoad = ({ params }) => {
-	const entitySelector = parseEntitySelector(schema, UrlSchema, {
+	const selector = parseEntitySelector(schema, UrlSchema, {
 		url: decodeURIComponent(params.url).trim(),
 	})
-	if (entitySelector instanceof arktype.errors) error(404, 'Invalid URL')
+	if (selector instanceof arktype.errors) error(404, 'Invalid URL')
 
-	return { entitySelector }
+	return { selector }
 }

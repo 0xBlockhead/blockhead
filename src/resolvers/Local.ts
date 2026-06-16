@@ -36,7 +36,7 @@ import { EvmProtocolSelector } from '$/schema/EvmProtocol.ts'
 
 const sliceNormalizedRowsForSubset = <_Row>(
 	normalizedCatalogRows: readonly _Row[],
-	context: ResolverContext,
+	context: ResolverContext
 ): readonly _Row[] => (
 	normalizedCatalogRows.slice(0, resolverContextRowLimit(context))
 )
@@ -596,7 +596,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).xmtpConversations,
-					context,
+					context
 				)
 					.map((xmtpConversation) => ({
 						[EntityMetaKey.Selector]: { id: xmtpConversation.id },
@@ -615,7 +615,7 @@ export default {
 				[XmtpNetworkSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType.XmtpNetwork>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).xmtpConversations,
-					context,
+					context
 				)
 					.map((xmtpConversation) => ({
 						[EntityMetaKey.Selector]: { id: xmtpConversation.id },
@@ -634,7 +634,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadSources,
-					context,
+					context
 				)
 					.map((blockheadSource) => ({
 						[EntityMetaKey.Selector]: { id: blockheadSource.id },
@@ -653,7 +653,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadWallets,
-					context,
+					context
 				)
 					.map((blockheadWallet) => ({
 						[EntityMetaKey.Selector]: { id: blockheadWallet.id },
@@ -672,7 +672,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadWalletConnections,
-					context,
+					context
 				)
 					.map((blockheadWalletConnection) => ({
 						[EntityMetaKey.Selector]: {
@@ -695,7 +695,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadWalletAccounts,
-					context,
+					context
 				)
 					.map((blockheadWalletAccount) => ({
 						[EntityMetaKey.Selector]: {
@@ -720,7 +720,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadSessions,
-					context,
+					context
 				)
 					.map((blockheadSession) => ({
 						[EntityMetaKey.Selector]: { id: blockheadSession.id },
@@ -738,13 +738,13 @@ export default {
 			resolve: {
 				[BlockheadSessionSelector.Id]: async (
 				scopedEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
-				context,
+				context
 			) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadSessionActions
 						.filter((sessionAction) => sessionAction.sessionId === scopedEntitySelector.id)
 						.toSorted((left, right) => left.indexInSequence - right.indexInSequence),
-					context,
+					context
 				)
 					.map((sessionAction) => ({
 						[EntityMetaKey.Selector]: {
@@ -766,7 +766,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadPanelTrees,
-					context,
+					context
 				)
 					.map((blockheadPanelTree) => ({
 						[EntityMetaKey.Selector]: { id: blockheadPanelTree.id },
@@ -785,7 +785,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadFarcasterAccountConnections,
-					context,
+					context
 				)
 					.map((blockheadFarcasterAccountConnection) => ({
 						[EntityMetaKey.Selector]: { fid: blockheadFarcasterAccountConnection.fid },
@@ -804,7 +804,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadAgentConversations,
-					context,
+					context
 				)
 					.map((blockheadAgentConversation) => ({
 						[EntityMetaKey.Selector]: { id: blockheadAgentConversation.id },
@@ -822,12 +822,12 @@ export default {
 			resolve: {
 				[BlockheadAgentConversationSelector.Id]: async (
 				scopedEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadAgentConversation>,
-				context,
+				context
 			) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadAgentConversationTurns
 						.filter((conversationTurn) => conversationTurn.conversationId === scopedEntitySelector.id),
-					context,
+					context
 				)
 					.map((conversationTurn) => ({
 						[EntityMetaKey.Selector]: { id: conversationTurn.id },
@@ -846,7 +846,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).bridgeTransactions,
-					context,
+					context
 				)
 						.map((bridgeTransaction) => ({
 							[EntityMetaKey.Selector]: {
@@ -874,7 +874,7 @@ export default {
 					(await readNormalizedLocalInternal()).blockheadRoomPeers.filter((roomPeer) => (
 						roomPeer.roomId === entitySelector.id
 					)),
-					context,
+					context
 				)
 					.map((roomPeer) => ({
 						[EntityMetaKey.Selector]: { id: roomPeer.id },
@@ -893,7 +893,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadRoomPeers,
-					context,
+					context
 				)
 					.map((blockheadRoomPeer) => ({
 						[EntityMetaKey.Selector]: { id: blockheadRoomPeer.id },
@@ -912,7 +912,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadRooms,
-					context,
+					context
 				)
 					.map((blockheadRoom) => ({
 						[EntityMetaKey.Selector]: { id: blockheadRoom.id },
@@ -931,7 +931,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).stateChannels,
-					context,
+					context
 				)
 					.map((stateChannel) => ({
 						[EntityMetaKey.Selector]: { id: stateChannel.id },
@@ -949,12 +949,12 @@ export default {
 			resolve: {
 				[StateChannelSelector.Id]: async (
 				scopedEntitySelector: EntitySelector<typeof schema, EntityType.StateChannel>,
-				context,
+				context
 			) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).stateChannelTransfers
 						.filter((stateChannelTransfer) => stateChannelTransfer.channelId === scopedEntitySelector.id),
-					context,
+					context
 				)
 					.map((stateChannelTransfer) => ({
 						[EntityMetaKey.Selector]: { id: stateChannelTransfer.id },
@@ -972,12 +972,12 @@ export default {
 			resolve: {
 				[StateChannelSelector.Id]: async (
 				scopedEntitySelector: EntitySelector<typeof schema, EntityType.StateChannel>,
-				context,
+				context
 			) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).stateChannelStates
 						.filter((stateChannelState) => stateChannelState.channelId === scopedEntitySelector.id),
-					context,
+					context
 				)
 					.map((stateChannelState) => ({
 						[EntityMetaKey.Selector]: { id: stateChannelState.id },
@@ -995,12 +995,12 @@ export default {
 			resolve: {
 				[StateChannelSelector.Id]: async (
 				scopedEntitySelector: EntitySelector<typeof schema, EntityType.StateChannel>,
-				context,
+				context
 			) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).stateChannelDeposits
 						.filter((stateChannelDeposit) => stateChannelDeposit.channelId === scopedEntitySelector.id),
-					context,
+					context
 				)
 					.map((stateChannelDeposit) => ({
 						[EntityMetaKey.Selector]: { id: stateChannelDeposit.id },
@@ -1019,7 +1019,7 @@ export default {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadSharedAddresses,
-					context,
+					context
 				)
 					.map((blockheadSharedAddress) => ({
 						[EntityMetaKey.Selector]: { id: blockheadSharedAddress.id },
@@ -1038,7 +1038,7 @@ export default {
 				[EvmProtocolSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmSelectors,
-					context,
+					context
 				)
 					.map((evmSelector) => ({
 						[EntityMetaKey.Selector]: { hex: evmSelector.hex },
@@ -1057,7 +1057,7 @@ export default {
 				[EvmProtocolSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmTopics,
-					context,
+					context
 				)
 					.map((evmTopic) => ({
 						[EntityMetaKey.Selector]: { hex: evmTopic.hex },
@@ -1076,7 +1076,7 @@ export default {
 				[EvmProtocolSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType.EvmProtocol>, context) => (
 				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).evmErrors,
-					context,
+					context
 				)
 					.map((evmError) => ({
 						[EntityMetaKey.Selector]: { hex: evmError.hex },

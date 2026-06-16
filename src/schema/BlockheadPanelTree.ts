@@ -35,4 +35,3 @@ export default {
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition
-

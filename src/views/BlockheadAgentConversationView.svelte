@@ -1,14 +1,14 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
+	import type { ComponentProps } from 'svelte'
+	import type { EntityFieldValues, EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/Source.ts'
 
 	type ResourceFields = {
-		fields: Record<string, any>
+		fields: Partial<EntityFieldValues<typeof schema, EntityType.BlockheadAgentConversation>>
 	}
 
 
@@ -38,12 +38,14 @@
 		>
 	> = $props()
 
-	const conversation = subscribe(EntityType.BlockheadAgentConversation,
-		selector,
-		({ sources: [
+	const conversation = $derived.by(() => (
+		subscribe(EntityType.BlockheadAgentConversation,
+			selector,
+			({ sources: [
 				Source.Local_Internal,
 			], fields: { name: true, pinned: true, createdAt: true, updatedAt: true, ...(open ? ({ systemPrompt: true, defaultConnectionId: true, defaultModelId: true }) : ({  })) } }),
-	)
+		)
+	))
 
 
 	// Components
@@ -262,11 +264,5 @@
 			{/if}
 
 		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open,
-	})}
-
 	{/snippet}
 </EntityView>

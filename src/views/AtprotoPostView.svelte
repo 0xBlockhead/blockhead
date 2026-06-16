@@ -36,22 +36,41 @@
 		>
 	> = $props()
 
-	const idKey = stringify(selector)
+	const idKey = $derived(stringify(selector))
 
-	const post = subscribe(EntityType.AtprotoPost,
+	const post = $derived(subscribe(EntityType.AtprotoPost,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Atproto_Xrpc,
 				Source.Atproto_BskySocial_Xrpc,
-			], fields: { text: true, createdAt: true, ...(open ? ({ $author: true, $parent: true, $root: true, indexedAt: true, replyCount: true, repostCount: true, likeCount: true, quoteCount: true, $$timestamps: ({ sources: [
+			],
+			fields: {
+				text: true,
+				createdAt: true,
+				...(open && {
+					$author: true,
+					$parent: true,
+					$root: true,
+					indexedAt: true,
+					$$timestamps: {
+						sources: [
 							Source.Atproto_Xrpc,
 							Source.Atproto_BskySocial_Xrpc,
-						], limit: 1 }), langs: true, selfLabelValues: true }) : ({  })) } }),
-	)
+						],
+						limit: 1,
+					},
+					langs: true,
+					selfLabelValues: true,
+				}),
+			},
+		},
+	))
 
 
 	// Components
 	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
+	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
 	import AtprotoPost_TimestampsView from '$/views/AtprotoPost_TimestampsView.svelte'
 	import AtprotoPostThreadView from '$/views/AtprotoPostThreadView.svelte'
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
@@ -175,10 +194,10 @@
 						<div>
 							<dt>Reply to</dt>
 							<dd>
-								<svelte:self
-									selector={post.fields.$parent[EntityMetaKey.Selector]}
-									layout={EntityLayout.Title}
-									open={false}
+									<AtprotoPostView
+										selector={post.fields.$parent[EntityMetaKey.Selector]}
+										layout={EntityLayout.Title}
+										open={false}
 								/>
 							</dd>
 						</div>
@@ -188,9 +207,9 @@
 						<div>
 							<dt>Thread root</dt>
 							<dd>
-								<svelte:self
-									selector={post.fields.$root[EntityMetaKey.Selector]}
-									layout={EntityLayout.Title}
+									<AtprotoPostView
+										selector={post.fields.$root[EntityMetaKey.Selector]}
+										layout={EntityLayout.Title}
 									open={false}
 								/>
 							</dd>
@@ -200,22 +219,22 @@
 					{#if contentOpen}
 						<SocialMetricSnapshotRows
 							metrics={[
-								{
-									label: 'Replies',
-									value: post.fields.$$timestamps[0]?.replyCount ?? post.fields.replyCount,
-								},
-								{
-									label: 'Reposts',
-									value: post.fields.$$timestamps[0]?.repostCount ?? post.fields.repostCount,
-								},
-								{
-									label: 'Likes',
-									value: post.fields.$$timestamps[0]?.likeCount ?? post.fields.likeCount,
-								},
-								{
-									label: 'Quotes',
-									value: post.fields.$$timestamps[0]?.quoteCount ?? post.fields.quoteCount,
-								},
+									{
+										label: 'Replies',
+										value: post.fields.$$timestamps.values.at(0)?.replyCount,
+									},
+									{
+										label: 'Reposts',
+										value: post.fields.$$timestamps.values.at(0)?.repostCount,
+									},
+									{
+										label: 'Likes',
+										value: post.fields.$$timestamps.values.at(0)?.likeCount,
+									},
+									{
+										label: 'Quotes',
+										value: post.fields.$$timestamps.values.at(0)?.quoteCount,
+									},
 							]}
 						/>
 					{/if}

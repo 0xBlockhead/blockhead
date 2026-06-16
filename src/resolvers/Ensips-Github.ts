@@ -17,7 +17,7 @@ const githubEnsipProposalIndexRows = async (
 	data: {
 		type: string
 		name: string
-	}[],
+	}[]
 ) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	const markdownFiles = data.filter((githubContent) => githubContent.type === 'file' && githubContent.name.endsWith('.md'))

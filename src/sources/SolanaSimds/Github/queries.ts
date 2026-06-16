@@ -18,7 +18,7 @@ export const getProposalContents = () => (
 			pathInRepo: 'proposals',
 			ref,
 		}),
-		{ origins: SolanaSimds.origins  },
+		{ origins: SolanaSimds.origins  }
 	)
 )
 
@@ -30,7 +30,7 @@ export const getProposalMarkdownText = ({ number }: { number: number }) => (
 			ref,
 			pathInRepo: `proposals/${number.toString().padStart(4, '0')}-simd-process.md`,
 		}),
-		{ origins: SolanaSimds.origins  },
+		{ origins: SolanaSimds.origins  }
 	).catch(() => (
 		getProposalContents()
 			.then((entries) => {

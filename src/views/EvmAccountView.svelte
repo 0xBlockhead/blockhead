@@ -268,21 +268,6 @@
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
-				&& selector.interopAddress
-			)}
-				<div>
-					<dt>Interop address</dt>
-					<dd>
-						<TruncatedValue
-							value={selector.interopAddress}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</dd>
-				</div>
-			{/if}
-
-			{#if (
-				contentOpen
 				&& flattenedCoinItems.length
 			)}
 				<div>
@@ -437,20 +422,20 @@
 							[...groups.entries()]
 								.toSorted(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
 						)
-					})() as [assetKey, assetLines], coinGroupIndex (`coin-${String(coinGroupIndex)}`)}
-						{#if assetLines.length}
+					})() as coinGroup, coinGroupIndex (`coin-${String(coinGroupIndex)}`)}
+						{#if coinGroup[1].length}
 							<section
-								data-scroll-marker-label={`${assetKey} balances`}
+								data-scroll-marker-label={`${coinGroup[0]} balances`}
 								id={`${idKey}:balances-coin-${String(coinGroupIndex)}`}
 							>
 								<EntitiesList
 									collapsible={false}
 									entityType={EntityType.EvmNetworkActorCoinBalance}
-									title={`${assetKey} · by network`}
+									title={`${coinGroup[0]} · by network`}
 									id={`${idKey}:balances-coin-evmAccounts-${String(coinGroupIndex)}`}
 									getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
 									getSortValue={(line) => stringify(line.value[EntityMetaKey.Selector])}
-									items={assetLines}
+									items={coinGroup[1]}
 									UnorderedListProps={{
 										orientation: ListOrientation.Column,
 									}}

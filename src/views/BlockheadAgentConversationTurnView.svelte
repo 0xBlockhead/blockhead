@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
+	import type { ComponentProps } from 'svelte'
+	import type { EntityFieldValues, EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -9,7 +9,7 @@
 	import { Source } from '$/sources/Source.ts'
 
 	type ResourceFields = {
-		fields: Record<string, any>
+		fields: Partial<EntityFieldValues<typeof schema, EntityType.BlockheadAgentConversationTurn>>
 	}
 
 
@@ -34,12 +34,14 @@
 		>
 	> = $props()
 
-	const turn = subscribe(EntityType.BlockheadAgentConversationTurn,
-		selector,
-		({ sources: [
+	const turn = $derived.by(() => (
+		subscribe(EntityType.BlockheadAgentConversationTurn,
+			selector,
+			({ sources: [
 				Source.Local_Internal,
 			], fields: { userPrompt: true, assistantText: true, status: true, createdAt: true, ...(open ? ({ providerId: true, promptVersion: true, parentId: true, error: true }) : ({  })) } }),
-	)
+		)
+	))
 
 
 	// Components
@@ -271,10 +273,5 @@
 				</div>
 			{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
 	{/snippet}
 </EntityView>

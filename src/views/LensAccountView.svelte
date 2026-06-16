@@ -18,13 +18,7 @@
 	// State
 	let {
 		selector,
-		href = resolve('/(social)/(lens)/lens/account/[address]', {
-			address: (
-				'address' in selector ? selector.address
-				: 'localName' in selector ? selector.localName
-				: `legacy:${selector.legacyProfileId}`
-			),
-		}),
+		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
@@ -40,16 +34,29 @@
 		>
 	> = $props()
 
-	const idKey = stringify(selector)
+	const idKey = $derived(stringify(selector))
 
-	const lensAccount = subscribe(EntityType.LensAccount,
+	const lensAccount = $derived(subscribe(EntityType.LensAccount,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Lens_Graphql,
-			], fields: { address: true, localName: true, displayName: true, bio: true, createdAt: true, followerCount: true, followingCount: true, $$timestamps: ({ sources: [
-					Source.Lens_Graphql,
-				], limit: 1 }), $icon: true } }),
-	)
+			],
+			fields: {
+				address: true,
+				displayName: true,
+				bio: true,
+				createdAt: true,
+				$$timestamps: {
+					sources: [
+						Source.Lens_Graphql,
+					],
+					limit: 1,
+				},
+				$icon: true,
+			},
+		},
+	))
 
 
 	// Components
@@ -69,7 +76,13 @@
 <EntityView
 	entityType={EntityType.LensAccount}
 	entitySelector={selector}
-	href={href}
+	href={href ?? resolve('/(social)/(lens)/lens/account/[address]', {
+		address: (
+			'address' in selector ? selector.address
+			: 'localName' in selector ? selector.localName
+			: `legacy:${selector.legacyProfileId}`
+		),
+	})}
 	bind:open
 	{...EntityViewProps}
 >
@@ -109,7 +122,6 @@
 		>
 			{#snippet children(lensAccount)}
 				{lensAccount.fields.displayName
-					?? lensAccount.fields.localName
 					?? ('address' in selector ? selector.address : 'localName' in selector ? selector.localName : selector.legacyProfileId)}
 			{/snippet}
 		</ResourceBoundary>
@@ -120,17 +132,9 @@
 			resource={lensAccount}
 		>
 			{#snippet children(lensAccount)}
-				{#if (
-					lensAccount.fields.localName != null
-					&& lensAccount.fields.localName !== ''
-					&& lensAccount.fields.localName !== (
-						lensAccount.fields.displayName
-						?? lensAccount.fields.localName
-						?? ('address' in selector ? selector.address : 'localName' in selector ? selector.localName : selector.legacyProfileId)
-					)
-				)}
+				{#if 'localName' in selector && selector.localName !== lensAccount.fields.displayName}
 					<span data-text="muted">
-						@{lensAccount.fields.localName}
+						@{selector.localName}
 					</span>
 				{/if}
 			{/snippet}
@@ -171,11 +175,11 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: lensAccount.fields.$$timestamps[0]?.followerCount ?? lensAccount.fields.followerCount,
+									value: lensAccount.fields.$$timestamps.values.at(0)?.followerCount,
 								},
 								{
 									label: 'Following',
-									value: lensAccount.fields.$$timestamps[0]?.followingCount ?? lensAccount.fields.followingCount,
+									value: lensAccount.fields.$$timestamps.values.at(0)?.followingCount,
 								},
 							]}
 						/>
@@ -211,7 +215,6 @@
 			id={`${idKey}:carousel-activity`}
 			sectionIdPrefix={idKey}
 			sections={collapsibleTabsSections([
-				{ id: 'lens-account-record', label: 'Record' },
 				{ id: 'posts', label: 'Publications' },
 				{ id: 'metric-snapshots', label: 'Metrics' },
 			])}
@@ -228,9 +231,6 @@
 						Lens profile &amp; publications
 					</HeadingComponent>
 				</header>
-			{/snippet}
-
-			{#snippet SectionLensAccountRecord()}
 			{/snippet}
 
 			{#snippet SectionPosts()}

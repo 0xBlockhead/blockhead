@@ -14,7 +14,7 @@
 <Page>
 	<UtxoTransactionView
 		selector={{
-			$network: { networkSlug: params.networkSlug },
+			$network: { slug: params.networkSlug },
 			txId: params.txId,
 		}}
 	/>

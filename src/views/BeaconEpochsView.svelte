@@ -64,7 +64,6 @@
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
 				entityFieldReference.selector,({ fields: {
-					blockHeight: { sources: [Source.Voltaire_JsonRpc] },
 					[entityFieldReference.fieldName]: { sources: [Source.Beacon_Rest] },
 				} }),
 			)}

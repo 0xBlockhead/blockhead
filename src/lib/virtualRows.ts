@@ -22,7 +22,7 @@ export const measureVirtualRows = <_Row,>({
 }) => {
 	const measuredWidth = Math.max(
 		1,
-		width,
+		width
 	)
 	const rowHeights: number[] = []
 	const offsets: number[] = [
@@ -36,18 +36,18 @@ export const measureVirtualRows = <_Row,>({
 	) {
 		const text = measurement.getMeasureText(
 			rows[index],
-			index,
+			index
 		)
 		const cacheKey = `${measurement.font}\0${text}`
 		let prepared = preparedByKey.get(cacheKey)
 		if (!prepared) {
 			prepared = prepare(
 				text,
-				measurement.font,
+				measurement.font
 			)
 			preparedByKey.set(
 				cacheKey,
-				prepared,
+				prepared
 			)
 		}
 
@@ -55,7 +55,7 @@ export const measureVirtualRows = <_Row,>({
 			layout(
 				prepared,
 				measuredWidth,
-				measurement.lineHeight,
+				measurement.lineHeight
 			).height
 			+ (measurement.rowInsetBlock ?? 0)
 			+ (
@@ -114,7 +114,7 @@ export const getVisibleVirtualRange = ({
 
 	const start = Math.max(
 		0,
-		lo - overscan,
+		lo - overscan
 	)
 	let end = lo
 	while (
@@ -126,7 +126,7 @@ export const getVisibleVirtualRange = ({
 		start,
 		end: Math.min(
 			rowCount - 1,
-			end + overscan,
+			end + overscan
 		),
 	}
 }

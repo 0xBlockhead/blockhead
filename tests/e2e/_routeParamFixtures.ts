@@ -193,7 +193,7 @@ export const e2eBoundaryLiveOptionalPathnames = new Set<string>([
 
 export const e2eRouteParamFixtureForContext = (
 	paramKey: string,
-	staticSegments: readonly string[],
+	staticSegments: readonly string[]
 ) => {
 	const path = staticSegments.join('/')
 
@@ -269,7 +269,7 @@ export const e2eRouteParamFixtureForContext = (
 export const e2eRouteParamFixtureVariantsForContext = (
 	paramKey: string,
 	staticSegments: readonly string[],
-	selectedParams: Readonly<Record<string, string>>,
+	selectedParams: Readonly<Record<string, string>>
 ) => {
 	const path = staticSegments.join('/')
 

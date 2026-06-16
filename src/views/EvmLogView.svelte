@@ -13,7 +13,7 @@
 
 
 	// State
-	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
+	import { normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	let {
@@ -181,7 +181,12 @@
 															format={TruncatedValueFormat.Abbr}
 														/>
 													{:else}
-														<a data-text="font-monospace" href={resolve(getEvmTopicPath(topicHex))}>
+														<a
+															data-text="font-monospace"
+															href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+																hex: topicHex,
+															})}
+														>
 															<TruncatedValue
 																value={topic}
 																format={TruncatedValueFormat.Abbr}

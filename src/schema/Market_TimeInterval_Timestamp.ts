@@ -1,7 +1,6 @@
 import { type } from 'arktype'
 import {
 	MarketTimeIntervalUnit,
-	marketOhlcCandleSources,
 } from '$/constants/Market.ts'
 import {
 	EntityFieldType,
@@ -11,7 +10,10 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import Market from '$/schema/Market.ts'
-import { Source } from '$/sources/Source.ts'
+import {
+	Source,
+	marketOhlcCandleSources,
+} from '$/sources/Source.ts'
 
 export enum Market_TimeInterval_TimestampSelector {
 	MarketTimeIntervalTimestampMsFeedKey = 'marketTimeIntervalTimestampMsFeedKey',
@@ -46,9 +48,9 @@ export default {
 			name: 'timeInterval',
 			type: EntityFieldType.Primitive,
 			primitiveType: type({
-			unit: type.valueOf(MarketTimeIntervalUnit),
-			value: 'number',
-		}),
+				unit: type.valueOf(MarketTimeIntervalUnit),
+				value: 'number',
+			}),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

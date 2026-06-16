@@ -57,7 +57,7 @@ export const getChainId = async (provider: Eip1193Provider) => {
 
 export const onAccountsChanged = (
 	provider: Eip1193Provider,
-	listener: (accounts: `0x${string}`[]) => void,
+	listener: (accounts: `0x${string}`[]) => void
 ) => {
 	if (typeof provider.on !== 'function') return () => {}
 
@@ -76,7 +76,7 @@ export const onAccountsChanged = (
 
 export const onChainChanged = (
 	provider: Eip1193Provider,
-	listener: (chainId: number) => void,
+	listener: (chainId: number) => void
 ) => {
 	if (typeof provider.on !== 'function') return () => {}
 

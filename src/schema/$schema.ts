@@ -69,7 +69,7 @@ export type EntityFieldConditionKey<_Condition extends EntityFieldCondition> = (
 )
 
 export const entityFieldConditionKey = (
-	condition: EntityFieldCondition,
+	condition: EntityFieldCondition
 ) => (
 	condition.itemIndex == null ?
 		condition.fieldName
@@ -78,7 +78,7 @@ export const entityFieldConditionKey = (
 )
 
 export const entityFieldCardinalityIsMultiple = (
-	cardinality: EntityFieldCardinality,
+	cardinality: EntityFieldCardinality
 ) => (
 	cardinality === EntityFieldCardinality.Many
 	|| cardinality === EntityFieldCardinality.ZeroOrMany
@@ -88,7 +88,7 @@ export const entityFieldPrimitiveValueIsValid = (
 	fieldDefinition: Extract<EntityFieldDefinition, {
 		readonly type: EntityFieldType.Primitive
 	}>,
-	value: unknown,
+	value: unknown
 ) => !(fieldDefinition.primitiveType(value) instanceof arktype.errors)
 
 export type EntityFieldDefinition<_Source extends string = string> = (
@@ -126,10 +126,10 @@ export type EntityFieldDefinitions<_EntityDefinition extends EntityDefinition> =
 export function entityFieldDefinitions<
 	const _EntityDefinition extends EntityDefinition,
 >(
-	entityDefinition: _EntityDefinition,
+	entityDefinition: _EntityDefinition
 ): readonly EntityFieldDefinitions<_EntityDefinition>[]
 export function entityFieldDefinitions(
-	entityDefinition: EntityDefinition,
+	entityDefinition: EntityDefinition
 ): readonly EntityFieldDefinition[] {
 	return entityDefinition.fields
 }
@@ -210,12 +210,12 @@ export type EntitySelectorForSelectorName<
 	never
 
 const entitySelectorObjectRecord = (
-	value: object,
+	value: object
 ): Record<string, unknown> => Object.fromEntries(Object.entries(value))
 
 const entitySelectorValue = (
 	fieldName: string,
-	value: unknown,
+	value: unknown
 ) => (
 	fieldName.startsWith('$')
 	&& value != null
@@ -229,7 +229,7 @@ const entitySelectorValue = (
 
 const entitySelectorHasOnlyFields = (
 	entitySelector: Record<string, unknown>,
-	fields: readonly string[],
+	fields: readonly string[]
 ) => (
 	Object.keys(entitySelector).every((key) => fields.includes(key))
 	&& fields.every((field) => field in entitySelector)
@@ -237,7 +237,7 @@ const entitySelectorHasOnlyFields = (
 
 const entitySelectorFieldDefinition = (
 	entityDefinition: EntityDefinition,
-	selectorField: string,
+	selectorField: string
 ) => {
 	const fieldDefinition = entityFieldDefinitions(entityDefinition)
 		.find((candidate) => candidate.name === selectorField)
@@ -250,7 +250,7 @@ const entitySelectorFieldDefinition = (
 const parseEntitySelectorFieldValue = (
 	schema: Schema,
 	fieldDefinition: EntityFieldDefinition,
-	value: unknown,
+	value: unknown
 ) => {
 	if (fieldDefinition.type === EntityFieldType.Primitive)
 		return fieldDefinition.primitiveType(value)
@@ -273,7 +273,7 @@ const parseNamedEntitySelector = <
 	schema: _Schema,
 	entityDefinition: _EntityDefinition,
 	selector: EntitySelectorDefinition,
-	entitySelector: object,
+	entitySelector: object
 ): EntitySelectorFromDefinition<_Schema, _EntityDefinition> | InstanceType<typeof arktype.errors> => {
 	const entitySelectorObject = entitySelectorObjectRecord(entitySelector)
 	if (!entitySelectorHasOnlyFields(entitySelectorObject, selector.fields))
@@ -289,8 +289,8 @@ const parseNamedEntitySelector = <
 			fieldDefinition,
 			entitySelectorValue(
 				field,
-				entitySelectorObject[field],
-			),
+				entitySelectorObject[field]
+			)
 		)
 		return parsed instanceof arktype.errors ?
 			[]
@@ -301,7 +301,7 @@ const parseNamedEntitySelector = <
 					parsed
 				:
 					fieldDefinition.normalize(parsed),
-			] as const]
+			]]
 	})
 
 	if (parsedEntries.length !== selector.fields.length)
@@ -316,12 +316,12 @@ export function parseEntitySelector<
 >(
 	schema: _Schema,
 	entityDefinition: _EntityDefinition,
-	value: unknown,
+	value: unknown
 ): EntitySelectorFromDefinition<_Schema, _EntityDefinition> | InstanceType<typeof arktype.errors>
 export function parseEntitySelector(
 	schema: Schema,
 	entityDefinition: EntityDefinition,
-	value: unknown,
+	value: unknown
 ): EntitySelectorFromDefinition<Schema, EntityDefinition> | InstanceType<typeof arktype.errors> {
 	if (value == null || typeof value !== 'object')
 		return arktype('never')(value)
@@ -338,7 +338,7 @@ export function parseEntitySelector(
 export const validateEntitySelector = (
 	schema: Schema,
 	entityDefinition: EntityDefinition,
-	entitySelector: object,
+	entitySelector: object
 ) => {
 	const entitySelectorObject = entitySelectorObjectRecord(entitySelector)
 	const selector = entityDefinition.selectors.find((candidate) => (
@@ -357,7 +357,7 @@ export const validateEntitySelector = (
 export const entitySelectorKey = (
 	schema: Schema,
 	entityDefinition: EntityDefinition,
-	entitySelector: object,
+	entitySelector: object
 ) => stringify(validateEntitySelector(schema, entityDefinition, entitySelector).fields.reduce<{
 	readonly [_FieldName in string]: unknown
 }>(
@@ -365,7 +365,7 @@ export const entitySelectorKey = (
 		...selectorValue,
 		[fieldName]: entitySelectorObjectRecord(entitySelector)[fieldName],
 	}),
-	{},
+	{}
 ))
 
 export const entitySelectorsFromFields = <
@@ -375,7 +375,7 @@ export const entitySelectorsFromFields = <
 	schema: _Schema,
 	entityDefinition: _EntityDefinition,
 	entitySelector: object,
-	fields: Partial<Record<string, unknown>>,
+	fields: Partial<Record<string, unknown>>
 ): EntitySelectorFromDefinition<_Schema, _EntityDefinition>[] => {
 	const fieldValueByName = {
 		...entitySelectorObjectRecord(entitySelector),
@@ -386,14 +386,14 @@ export const entitySelectorsFromFields = <
 			schema,
 			entityDefinition,
 			validateEntitySelector(schema, entityDefinition, entitySelector),
-			entitySelector,
+			entitySelector
 		),
 		...entityDefinition.selectors.flatMap((selector) => {
 			const selectorValue = Object.fromEntries(
 				selector.fields.flatMap((field) => {
 					const fieldValue = entitySelectorValue(
 						field,
-						fieldValueByName[field],
+						fieldValueByName[field]
 					)
 					if (fieldValue === undefined)
 						return []
@@ -406,7 +406,7 @@ export const entitySelectorsFromFields = <
 						:
 							fieldDefinition.normalize(fieldValue),
 					]]
-				}),
+				})
 			)
 
 			if (Object.keys(selectorValue).length !== selector.fields.length)
@@ -519,7 +519,7 @@ export function conditionalOn<
 >(
 	_fields: _Fields,
 	fieldName: _FieldName,
-	values: _Values,
+	values: _Values
 ): {
 	fieldName: _FieldName
 	values: _Values
@@ -535,7 +535,7 @@ export function conditionalOn<
 	values: _Values,
 	options: {
 		itemIndex: _ItemIndex
-	},
+	}
 ): {
 	fieldName: _FieldName
 	itemIndex: _ItemIndex
@@ -547,7 +547,7 @@ export function conditionalOn(
 	values: readonly (string | number)[],
 	options?: {
 		itemIndex?: number
-	},
+	}
 ) {
 	return {
 		fieldName,
@@ -850,7 +850,7 @@ export type EntityFieldDefinitionByEntityTypeAndName<_Schema extends Schema> = {
 	}
 
 export const indexSchema = <const _Schema extends Schema>(
-	schema: _Schema,
+	schema: _Schema
 ) => ({
 	entityDefinitionByType: Object.fromEntries(schema.map((entityDefinition) => [
 		entityDefinition.entityType,

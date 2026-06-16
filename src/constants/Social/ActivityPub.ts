@@ -1,35 +1,26 @@
-// Types
-import { fediDefaultInstanceOrigin } from '$/constants/Fedi.ts'
-import { mastodonDefaultInstanceOrigin } from '$/constants/Mastodon.ts'
-import type { EntitySelector } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/EntityType.ts'
-import { schema } from '$/schema/index.ts'
+import { fediInstanceBySlug } from '$/constants/Fedi.ts'
+import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 
 
 // Constants
-export const activityPubNetworkFieldValues = {
-	docsUrl: 'https://w3c.github.io/activitypub/',
-	homeUrl: 'https://www.w3.org/TR/activitypub/',
-	protocolName: 'ActivityPub (federated)',
-	registryLabel: 'Configured Mastodon-compatible instances + curated seed actors',
-	topology: 'Constants seeds + live REST (multi-instance) -> network -> actors -> notes -> thread',
-} as const
-
-export const activityPubNetworkSeedActors: readonly EntitySelector<typeof schema, EntityType.ActivityPubActor>[] = [
+export const activityPubNetworkSeedActors = [
 	{
-		instanceOrigin: mastodonDefaultInstanceOrigin,
+		instanceOrigin: mastodonInstanceByKey.mastodon_social.origin,
 		localAccountId: 'Gargron@mastodon.social',
 	},
 	{
-		instanceOrigin: mastodonDefaultInstanceOrigin,
+		instanceOrigin: mastodonInstanceByKey.mastodon_social.origin,
 		localAccountId: 'mastodon@mastodon.social',
 	},
 	{
-		instanceOrigin: fediDefaultInstanceOrigin,
+		instanceOrigin: fediInstanceBySlug.fosstodon.origin,
 		localAccountId: 'fosstodon@fosstodon.org',
 	},
 	{
-		instanceOrigin: fediDefaultInstanceOrigin,
+		instanceOrigin: fediInstanceBySlug.fosstodon.origin,
 		localAccountId: 'matt@fosstodon.org',
 	},
-]
+] as const satisfies readonly {
+	instanceOrigin: string
+	localAccountId: string
+}[]

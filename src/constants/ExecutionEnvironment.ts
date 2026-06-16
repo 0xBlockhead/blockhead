@@ -104,5 +104,5 @@ export const executionEnvironmentByExecutionEnvironmentId = Object.fromEntries(
 	executionEnvironments.map((row) => [
 		row.executionEnvironmentId,
 		row,
-	]),
+	])
 )

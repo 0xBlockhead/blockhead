@@ -529,12 +529,12 @@ export const walletProtocolByProtocol = Object.fromEntries(
 	walletProtocols.map((walletProtocol) => [
 		walletProtocol.protocol,
 		walletProtocol,
-	]),
+	])
 )
 
 export const walletConnectionMethodById = Object.fromEntries(
 	walletConnectionMethods.map((walletConnectionMethod) => [
 		walletConnectionMethod.id,
 		walletConnectionMethod,
-	]),
+	])
 )

@@ -5,7 +5,7 @@ import {
 import { with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
-import { mediaFromUrl } from '$/lib/media.ts'
+import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -34,7 +34,7 @@ const lensMetadataTextFromWire = (
 			content?: string | null
 		}
 		| null
-		| undefined,
+		| undefined
 ) => (
 	metadata?.__typename === 'UnknownPostMetadata' ?
 		undefined
@@ -49,7 +49,7 @@ const lensAnyPostSlugFromWire = (
 			slug?: string | null
 		}
 		| null
-		| undefined,
+		| undefined
 ) => (
 	lensPost?.__typename === 'Post' || lensPost?.__typename === 'Repost' ?
 		optionalNonemptyString(lensPost.slug)
@@ -65,7 +65,7 @@ const lensAccountTimestampFieldsFromWire = (
 				following?: number | null
 			}
 		}
-	},
+	}
 ) => ({
 	...(wire.accountStats?.graphFollowStats.followers != null && {
 		followerCount: wire.accountStats.graphFollowStats.followers,
@@ -85,7 +85,7 @@ const lensPostTimestampFieldsFromWire = (
 			collects?: number | null
 			reactions?: number | null
 		}
-	},
+	}
 ) => ({
 	...(post.stats.comments != null && { commentCount: post.stats.comments }),
 	...(post.stats.reposts != null && { repostCount: post.stats.reposts }),
@@ -108,212 +108,195 @@ const lensGraphqlResolvers = {
 						context.publicEnv,
 						{
 							address: zeroExLowerCase(address),
-						},
+						}
 					)
-				const a = wire.account
-				if (a == null) throw new Error('Lens_Graphql: account not found')
-				const createdAt = optionalTimestampMs(String(a.createdAt))
-				const localName = optionalNonemptyString(a.username?.localName)
-				const displayName = optionalNonemptyString(a.metadata?.name)
-				const bio = optionalNonemptyString(a.metadata?.bio)
-				const pictureUrl = optionalNonemptyString(a.metadata?.picture != null ? String(a.metadata.picture) : null)
-				return {
-					address: lensEvmAddressFromWire(a.address),
-					...(localName != null && { localName }),
-					...(displayName != null && { displayName }),
-					...(bio != null && { bio }),
-					...(createdAt != null && { createdAt }),
-					...lensAccountTimestampFieldsFromWire(wire),
-					...((
-						iconMedia,
+					const a = wire.account
+					if (a == null) throw new Error('Lens_Graphql: account not found')
+					const createdAt = optionalTimestampMs(String(a.createdAt))
+					const localName = optionalNonemptyString(a.username?.localName)
+					const displayName = optionalNonemptyString(a.metadata?.name)
+					const bio = optionalNonemptyString(a.metadata?.bio)
+					const pictureUrl = optionalNonemptyString(a.metadata?.picture != null ? String(a.metadata.picture) : null)
+					return {
+						address: lensEvmAddressFromWire(a.address),
+						...(localName != null && { localName }),
+						...(displayName != null && { displayName }),
+						...(bio != null && { bio }),
+						...(createdAt != null && { createdAt }),
+						...((
+							iconMedia
 					) => (
 						iconMedia != null && {
 							$icon: iconMedia,
 						}
 					))(mediaFromUrl(pictureUrl, MediaType.Image)),
-				}
-			},
-					[LensAccountSelector.LocalName]: async ({ localName: selectedLocalName }, context) => {
+					}
+				},
+				[LensAccountSelector.LocalName]: async ({ localName: selectedLocalName }, context) => {
 					const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 					const wire = await queryAccount(
 						context.publicEnv,
 						{
-								localName: selectedLocalName,
-						},
+							localName: selectedLocalName,
+						}
 					)
-				const a = wire.account
-				if (a == null) throw new Error('Lens_Graphql: account not found')
-				const createdAt = optionalTimestampMs(String(a.createdAt))
-				const localName = optionalNonemptyString(a.username?.localName)
-				const displayName = optionalNonemptyString(a.metadata?.name)
-				const bio = optionalNonemptyString(a.metadata?.bio)
-				const pictureUrl = optionalNonemptyString(a.metadata?.picture != null ? String(a.metadata.picture) : null)
-				return {
-					address: lensEvmAddressFromWire(a.address),
-					...(localName != null && { localName }),
-					...(displayName != null && { displayName }),
-					...(bio != null && { bio }),
-					...(createdAt != null && { createdAt }),
-					...lensAccountTimestampFieldsFromWire(wire),
-					...((
-						iconMedia,
+					const a = wire.account
+					if (a == null) throw new Error('Lens_Graphql: account not found')
+					const createdAt = optionalTimestampMs(String(a.createdAt))
+					const localName = optionalNonemptyString(a.username?.localName)
+					const displayName = optionalNonemptyString(a.metadata?.name)
+					const bio = optionalNonemptyString(a.metadata?.bio)
+					const pictureUrl = optionalNonemptyString(a.metadata?.picture != null ? String(a.metadata.picture) : null)
+					return {
+						address: lensEvmAddressFromWire(a.address),
+						localName: localName ?? selectedLocalName,
+						...(displayName != null && { displayName }),
+						...(bio != null && { bio }),
+						...(createdAt != null && { createdAt }),
+						...((
+							iconMedia
 					) => (
 						iconMedia != null && {
 							$icon: iconMedia,
 						}
 					))(mediaFromUrl(pictureUrl, MediaType.Image)),
-				}
-			},
+					}
+				},
 				[LensAccountSelector.LegacyProfileId]: async ({ legacyProfileId }, context) => {
 					const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 					const wire = await queryAccount(
 						context.publicEnv,
 						{
 							legacyProfileId,
-						},
+						}
 					)
-				const a = wire.account
-				if (a == null) throw new Error('Lens_Graphql: account not found')
-				const createdAt = optionalTimestampMs(String(a.createdAt))
-				const localName = optionalNonemptyString(a.username?.localName)
-				const displayName = optionalNonemptyString(a.metadata?.name)
-				const bio = optionalNonemptyString(a.metadata?.bio)
-				const pictureUrl = optionalNonemptyString(a.metadata?.picture != null ? String(a.metadata.picture) : null)
-				return {
-					address: lensEvmAddressFromWire(a.address),
-					...(localName != null && { localName }),
-					...(displayName != null && { displayName }),
-					...(bio != null && { bio }),
-					...(createdAt != null && { createdAt }),
-					...lensAccountTimestampFieldsFromWire(wire),
-					...((
-						iconMedia,
+					const a = wire.account
+					if (a == null) throw new Error('Lens_Graphql: account not found')
+					const createdAt = optionalTimestampMs(String(a.createdAt))
+					const localName = optionalNonemptyString(a.username?.localName)
+					const displayName = optionalNonemptyString(a.metadata?.name)
+					const bio = optionalNonemptyString(a.metadata?.bio)
+					const pictureUrl = optionalNonemptyString(a.metadata?.picture != null ? String(a.metadata.picture) : null)
+					return {
+						address: lensEvmAddressFromWire(a.address),
+						legacyProfileId,
+						...(localName != null && { localName }),
+						...(displayName != null && { displayName }),
+						...(bio != null && { bio }),
+						...(createdAt != null && { createdAt }),
+						...((
+							iconMedia
 					) => (
 						iconMedia != null && {
 							$icon: iconMedia,
 						}
 					))(mediaFromUrl(pictureUrl, MediaType.Image)),
-				}
-			}
+					}
+				},
 			},
 		})({
-				fields: {
+			fields: {
 				address: (account) => account.address,
 				displayName: (account) => account.displayName,
 				bio: (account) => account.bio,
 				createdAt: (account) => account.createdAt,
-				followerCount: (account) => account.followerCount,
-				followingCount: (account) => account.followingCount,
 				$icon: (account) => account.$icon,
 			},
-			}),
+		}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
 			resolve: {
 				[LensPostSelector.Id]: async ({ id }, context) => {
-				const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
-				const p = (await queryPost(context.publicEnv, id)).post
-				if (p == null) throw new Error('Lens_Graphql: post not found')
+					const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
+					const p = (await queryPost(context.publicEnv, id)).post
+					if (p == null) throw new Error('Lens_Graphql: post not found')
 
-				if (p.__typename === 'Repost') {
+					if (p.__typename === 'Repost') {
+						const timestamp = optionalTimestampMs(String(p.timestamp))
+						return {
+							text: undefined,
+							...(timestamp != null && { timestamp }),
+							isEdited: undefined,
+							isDeleted: p.isDeleted,
+							$commentOn: undefined,
+							$quoteOf: undefined,
+							$root: undefined,
+							$author: {
+								[EntityMetaKey.Selector]: {
+									address: lensEvmAddressFromWire(p.author.address),
+								},
+							},
+							...((postSlug) => (
+								postSlug != null && {
+									$repostOf: { [EntityMetaKey.Selector]: { id: postSlug } },
+								}
+							))(optionalNonemptyString(String(p.repostOf.slug))),
+						}
+					}
+
+					const text = lensMetadataTextFromWire(p.metadata)
 					const timestamp = optionalTimestampMs(String(p.timestamp))
 					return {
-						text: undefined,
+						...(text != null && { text }),
 						...(timestamp != null && { timestamp }),
-						isEdited: undefined,
+						isEdited: p.isEdited,
 						isDeleted: p.isDeleted,
-						commentCount: undefined,
-						repostCount: undefined,
-						quoteCount: undefined,
-						bookmarkCount: undefined,
-						collectCount: undefined,
-						reactionCount: undefined,
-						$commentOn: undefined,
-						$quoteOf: undefined,
-						$root: undefined,
+						...((postSlug) => (
+							postSlug != null && {
+								$commentOn: { [EntityMetaKey.Selector]: { id: postSlug } },
+							}
+						))(optionalNonemptyString(p.commentOn?.slug != null ?
+							String(p.commentOn.slug)
+						:
+							null)),
+						...((postSlug) => (
+							postSlug != null && {
+								$quoteOf: { [EntityMetaKey.Selector]: { id: postSlug } },
+							}
+						))(optionalNonemptyString(
+								p.quoteOf?.slug != null ?
+							String(p.quoteOf.slug)
+						:
+							null
+					)),
+						...((postSlug) => (
+							postSlug != null && {
+								$root: { [EntityMetaKey.Selector]: { id: postSlug } },
+							}
+						))(optionalNonemptyString(
+								p.root?.slug != null ?
+							String(p.root.slug)
+						:
+							null
+					)),
+						$repostOf: undefined,
 						$author: {
 							[EntityMetaKey.Selector]: {
 								address: lensEvmAddressFromWire(p.author.address),
 							},
 						},
-						...((postSlug) => (
-							postSlug != null && {
-								$repostOf: { [EntityMetaKey.Selector]: { id: postSlug } },
-							}
-						))(optionalNonemptyString(String(p.repostOf.slug))),
 					}
 				}
-
-				const text = lensMetadataTextFromWire(p.metadata)
-				const timestamp = optionalTimestampMs(String(p.timestamp))
-				return {
-					...(text != null && { text }),
-					...(timestamp != null && { timestamp }),
-					isEdited: p.isEdited,
-					isDeleted: p.isDeleted,
-					...lensPostTimestampFieldsFromWire(p),
-					...((postSlug) => (
-						postSlug != null && {
-							$commentOn: { [EntityMetaKey.Selector]: { id: postSlug } },
-						}
-					))(optionalNonemptyString(p.commentOn?.slug != null ?
-							String(p.commentOn.slug)
-						:
-							null)),
-					...((postSlug) => (
-						postSlug != null && {
-							$quoteOf: { [EntityMetaKey.Selector]: { id: postSlug } },
-						}
-					))(optionalNonemptyString(
-						p.quoteOf?.slug != null ?
-							String(p.quoteOf.slug)
-						:
-							null,
-					)),
-					...((postSlug) => (
-						postSlug != null && {
-							$root: { [EntityMetaKey.Selector]: { id: postSlug } },
-						}
-					))(optionalNonemptyString(
-						p.root?.slug != null ?
-							String(p.root.slug)
-						:
-							null,
-					)),
-					$repostOf: undefined,
-					$author: {
-						[EntityMetaKey.Selector]: {
-							address: lensEvmAddressFromWire(p.author.address),
-							},
-					},
-				}
-			}
 			},
 		})({
-				fields: {
+			fields: {
 				text: (post) => post.text,
 				timestamp: (post) => post.timestamp,
 				isEdited: (post) => post.isEdited,
 				isDeleted: (post) => post.isDeleted,
-				commentCount: (post) => post.commentCount,
-				repostCount: (post) => post.repostCount,
-				quoteCount: (post) => post.quoteCount,
-				bookmarkCount: (post) => post.bookmarkCount,
-				collectCount: (post) => post.collectCount,
-				reactionCount: (post) => post.reactionCount,
 				$commentOn: (post) => post.$commentOn,
 				$quoteOf: (post) => post.$quoteOf,
 				$repostOf: (post) => post.$repostOf,
 				$root: (post) => post.$root,
 				$author: (post) => post.$author,
 			},
-			}),
+		}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount_Timestamp,
-				resolve: {
-					[LensAccount_TimestampSelector.LensAccountTimestampMs]: async ({ $account }, context) => {
+			resolve: {
+				[LensAccount_TimestampSelector.LensAccountTimestampMs]: async ({ $account }, context) => {
 					const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 					const wire = await queryAccount(context.publicEnv, $account)
 					if (wire.account == null) throw new Error('Lens_Graphql: account not found')
@@ -321,25 +304,25 @@ const lensGraphqlResolvers = {
 				}
 			},
 		})({
-				fields: {
+			fields: {
 				followerCount: (timestamp) => timestamp.followerCount,
 				followingCount: (timestamp) => timestamp.followingCount,
 			},
-			}),
+		}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost_Timestamp,
 			resolve: {
 				[LensPost_TimestampSelector.LensPostTimestampMs]: async ({ $post }, context) => {
-				const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
-				const p = (await queryPost(context.publicEnv, $post.id)).post
-				if (p == null) throw new Error('Lens_Graphql: post not found')
-				if (p.__typename !== 'Post') return {}
-				return lensPostTimestampFieldsFromWire(p)
-			}
+					const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
+					const p = (await queryPost(context.publicEnv, $post.id)).post
+					if (p == null) throw new Error('Lens_Graphql: post not found')
+					if (p.__typename !== 'Post') return {}
+					return lensPostTimestampFieldsFromWire(p)
+				}
 			},
 		})({
-				fields: {
+			fields: {
 				commentCount: (timestamp) => timestamp.commentCount,
 				repostCount: (timestamp) => timestamp.repostCount,
 				quoteCount: (timestamp) => timestamp.quoteCount,
@@ -347,44 +330,44 @@ const lensGraphqlResolvers = {
 				collectCount: (timestamp) => timestamp.collectCount,
 				reactionCount: (timestamp) => timestamp.reactionCount,
 			},
-			}),
+		}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensNetwork,
 			resolve: {
 				[LensNetworkSelector.Scope]: async (_entitySelector, context) => {
-				const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
-				const limit = resolverContextRowLimit(context)
-				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
-				return (
-					((await queryLatestPosts(context.publicEnv, pageSize)).posts.items )
-						.flatMap((lensPost) => {
+					const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
+					const limit = resolverContextRowLimit(context)
+					const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
+					return (
+						((await queryLatestPosts(context.publicEnv, pageSize)).posts.items )
+							.flatMap((lensPost) => {
 							const address = lensPost.author.address
 							if (!/^0x[a-fA-F0-9]{40}$/.test(String(address))) return []
 							const normalizedAddress = lensEvmAddressFromWire(address)
 							return [{
 								[EntityMetaKey.Selector]: { address: normalizedAddress },
 							}]
-						})
-				)
-			}
+							})
+					)
+				}
 			},
 		})({
-				fields: {
+			fields: {
 				$$lensAccounts: (accounts) => accounts,
 			},
-			}),
+		}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensNetwork,
 			resolve: {
 				[LensNetworkSelector.Scope]: async (_entitySelector, context) => {
-				const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
-				const limit = resolverContextRowLimit(context)
-				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
-				return (
-					((await queryLatestPosts(context.publicEnv, pageSize)).posts.items )
-						.flatMap((lensPost) => (
+					const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
+					const limit = resolverContextRowLimit(context)
+					const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
+					return (
+						((await queryLatestPosts(context.publicEnv, pageSize)).posts.items )
+							.flatMap((lensPost) => (
 							((postSlug) => (
 								postSlug != null ?
 									[
@@ -395,50 +378,50 @@ const lensGraphqlResolvers = {
 								:
 									[]
 							))(lensAnyPostSlugFromWire(lensPost))
-						))
-				)
-			}
+							))
+					)
+				}
 			},
 		})({
-				fields: {
+			fields: {
 				$$lensPosts: (posts) => posts,
 			},
-			}),
+		}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
 			resolve: {
 				[LensPostSelector.Id]: async (entitySelector, context) => {
-				const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
-				const p = (await queryPost(context.publicEnv, entitySelector.id)).post
-				if (p == null) throw new Error('Lens_Graphql: post not found')
-				return [
-					{
-						[EntityMetaKey.Selector]: {
-							$post: entitySelector,
-							timestampMs: Date.now(),
+					const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
+					const p = (await queryPost(context.publicEnv, entitySelector.id)).post
+					if (p == null) throw new Error('Lens_Graphql: post not found')
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$post: entitySelector,
+								timestampMs: Date.now(),
+							},
+							...(p.__typename === 'Post' && lensPostTimestampFieldsFromWire(p)),
 						},
-						...(p.__typename === 'Post' && lensPostTimestampFieldsFromWire(p)),
-					},
-				]
-			}
+					]
+				}
 			},
 		})({
-				fields: {
+			fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-			}),
+		}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
 			resolve: {
 				[LensPostSelector.Id]: async ({ id }, context) => {
-				const { queryPostComments } = await import('$/sources/Lens/Graphql/queries.ts')
-				const limit = resolverContextRowLimit(context)
-				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
-				return (
-					((await queryPostComments(context.publicEnv, id, pageSize)).postReferences.items )
-						.flatMap((lensPost) => (
+					const { queryPostComments } = await import('$/sources/Lens/Graphql/queries.ts')
+					const limit = resolverContextRowLimit(context)
+					const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
+					return (
+						((await queryPostComments(context.publicEnv, id, pageSize)).postReferences.items )
+							.flatMap((lensPost) => (
 							((postSlug) => (
 								postSlug != null ?
 									[
@@ -449,15 +432,15 @@ const lensGraphqlResolvers = {
 								:
 									[]
 							))(lensAnyPostSlugFromWire(lensPost))
-						))
-				)
-			}
+							))
+					)
+				}
 			},
 		})({
-				fields: {
+			fields: {
 				$$comments: (comments) => comments,
 			},
-			}),
+		}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
@@ -468,69 +451,69 @@ const lensGraphqlResolvers = {
 						context.publicEnv,
 						{
 							address: zeroExLowerCase(address),
-						},
+						}
 					)
-				if (wire.account == null) throw new Error('Lens_Graphql: account not found')
-				return [
-					{
-						[EntityMetaKey.Selector]: {
-							$account: {
-								address: lensEvmAddressFromWire(wire.account.address),
+					if (wire.account == null) throw new Error('Lens_Graphql: account not found')
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$account: {
+									address: lensEvmAddressFromWire(wire.account.address),
+								},
+								timestampMs: Date.now(),
 							},
-							timestampMs: Date.now(),
+							...lensAccountTimestampFieldsFromWire(wire),
 						},
-						...lensAccountTimestampFieldsFromWire(wire),
-					},
-				]
-			},
-					[LensAccountSelector.LocalName]: async ({ localName: selectedLocalName }, context) => {
+					]
+				},
+				[LensAccountSelector.LocalName]: async ({ localName: selectedLocalName }, context) => {
 					const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 					const wire = await queryAccount(
 						context.publicEnv,
 						{
 							localName: selectedLocalName,
-						},
+						}
 					)
-				if (wire.account == null) throw new Error('Lens_Graphql: account not found')
-				return [
-					{
-						[EntityMetaKey.Selector]: {
-							$account: {
-								address: lensEvmAddressFromWire(wire.account.address),
+					if (wire.account == null) throw new Error('Lens_Graphql: account not found')
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$account: {
+									address: lensEvmAddressFromWire(wire.account.address),
+								},
+								timestampMs: Date.now(),
 							},
-							timestampMs: Date.now(),
+							...lensAccountTimestampFieldsFromWire(wire),
 						},
-						...lensAccountTimestampFieldsFromWire(wire),
-					},
-				]
-			},
+					]
+				},
 				[LensAccountSelector.LegacyProfileId]: async ({ legacyProfileId }, context) => {
 					const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 					const wire = await queryAccount(
 						context.publicEnv,
 						{
 							legacyProfileId,
-						},
+						}
 					)
-				if (wire.account == null) throw new Error('Lens_Graphql: account not found')
-				return [
-					{
-						[EntityMetaKey.Selector]: {
-							$account: {
-								address: lensEvmAddressFromWire(wire.account.address),
+					if (wire.account == null) throw new Error('Lens_Graphql: account not found')
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$account: {
+									address: lensEvmAddressFromWire(wire.account.address),
+								},
+								timestampMs: Date.now(),
 							},
-							timestampMs: Date.now(),
+							...lensAccountTimestampFieldsFromWire(wire),
 						},
-						...lensAccountTimestampFieldsFromWire(wire),
-					},
-				]
-			}
+					]
+				},
 			},
 		})({
-				fields: {
+			fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
-			}),
+		}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
@@ -541,7 +524,7 @@ const lensGraphqlResolvers = {
 					const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 					return (
 						((await queryPostsByAuthor(context.publicEnv, zeroExLowerCase(address), pageSize)).posts.items )
-						.flatMap((lensPost) => (
+							.flatMap((lensPost) => (
 							((postSlug) => (
 								postSlug != null ?
 									[
@@ -552,15 +535,15 @@ const lensGraphqlResolvers = {
 								:
 									[]
 							))(lensAnyPostSlugFromWire(lensPost))
-						))
-				)
-			}
+							))
+					)
+				}
 			},
 		})({
-				fields: {
+			fields: {
 				$$posts: (posts) => posts,
 			},
-			}),
+		}),
 	],
 }
 

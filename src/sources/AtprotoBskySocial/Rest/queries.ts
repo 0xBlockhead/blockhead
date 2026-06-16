@@ -16,7 +16,7 @@ import type {
 export const getProfile = async (actor: string) => (
 	bskySocialXrpcGet<BskyAppViewProfile>(
 		'/app.bsky.actor.getProfile',
-		{ actor },
+		{ actor }
 	)
 )
 
@@ -28,7 +28,7 @@ export const getPosts = async (uris: string[]) => (
 		`${bskySocialXrpcBase}/app.bsky.feed.getPosts?${(
 			new URLSearchParams(uris.map((u) => ['uris', u])).toString()
 		)}`,
-		{ origins: AtprotoBskySocial.origins  },
+		{ origins: AtprotoBskySocial.origins  }
 	)
 )
 
@@ -40,7 +40,7 @@ export const getPostThread = async (
 	}: {
 		depth?: number
 		parentHeight?: number
-	} = {},
+	} = {}
 ) => (
 	bskySocialXrpcGet<BskyAppViewGetPostThreadResponse>(
 		'/app.bsky.feed.getPostThread',
@@ -48,7 +48,7 @@ export const getPostThread = async (
 			uri,
 			depth,
 			parentHeight,
-		},
+		}
 	)
 )
 
@@ -70,7 +70,7 @@ export const getAuthorFeed = async ({
 				limit,
 				includePins: String(includePins),
 				cursor: cursor == null || cursor === '' ? undefined : cursor,
-			},
+			}
 	)
 )
 
@@ -86,7 +86,7 @@ export const searchActorsTypeahead = async ({
 		{
 			limit,
 			q,
-		},
+		}
 	)
 )
 
@@ -102,6 +102,6 @@ export const searchPosts = async ({
 		{
 			limit,
 			q,
-		},
+		}
 	)
 )

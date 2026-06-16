@@ -56,7 +56,7 @@ const isCompactEntityRefShape = (value: object): boolean => {
 const assertEntityCollectionRowShellGeneric = (
 	record: Record<string, unknown>,
 	path: string,
-	selectorValidator: (selectorValue: unknown, selectorPath: string) => void,
+	selectorValidator: (selectorValue: unknown, selectorPath: string) => void
 ): void => {
 	if (typeof record[EntityMetaKey.SelectorKey] !== 'string') {
 		throw new Error(`${path}: ${EntityMetaKey.SelectorKey} must be a string`)
@@ -78,7 +78,7 @@ const assertEntityCollectionRowShellGeneric = (
 
 const assertEntityFieldCollectionRowShell = (
 	record: Record<string, unknown>,
-	path: string,
+	path: string
 ): void => {
 	if (typeof record[EntityMetaKey.ParentSelectorKey] !== 'string') {
 		throw new Error(`${path}: ${EntityMetaKey.ParentSelectorKey} must be a string`)
@@ -106,7 +106,7 @@ const ENTITY_ROW_ROOT_SKIP = new Set<string>([
 const walkLoadedValue = (
 	value: unknown,
 	path: string,
-	seen: WeakSet<object>,
+	seen: WeakSet<object>
 ): void => {
 	if (value === undefined || value === null) return
 
@@ -142,7 +142,7 @@ const walkLoadedValue = (
 					}
 				}))
 					throw new Error(`${selectorPath}: not a valid entity selector for any registered entity type`)
-			},
+			}
 		)
 		walkLoadedValue(record[EntityMetaKey.Fields], `${path}.${EntityMetaKey.Fields}`, seen)
 		for (const key of Object.keys(record)) {
@@ -193,7 +193,7 @@ const walkLoadedValue = (
 const assertPrimitiveManyElements = (
 	context: string,
 	field: Extract<EntityFieldDefinition, { type: EntityFieldType.Primitive }>,
-	value: unknown,
+	value: unknown
 ) => {
 	if (!Array.isArray(value)) {
 		throw new Error(`${context}: ${field.name} must be an array`)
@@ -212,7 +212,7 @@ const assertPrimitiveManyElements = (
 const assertPrimitiveScalar = (
 	context: string,
 	field: Extract<EntityFieldDefinition, { type: EntityFieldType.Primitive }>,
-	value: unknown,
+	value: unknown
 ) => {
 	if (value === undefined) return
 	const out = field.primitiveType(value)
@@ -225,7 +225,7 @@ const assertPrimitiveScalar = (
 const assertFieldsObjectPrimitives = (
 	context: string,
 	entityDefinition: EntityDefinition,
-	fieldsObject: Record<string, unknown>,
+	fieldsObject: Record<string, unknown>
 ) => {
 	for (const field of entityFieldDefinitions(entityDefinition)) {
 		if (field.type !== EntityFieldType.Primitive) continue
@@ -249,7 +249,7 @@ const assertFieldsObjectPrimitives = (
 export const assertLoadedValue = (
 	value: unknown,
 	path = '$',
-	seen = new WeakSet<object>(),
+	seen = new WeakSet<object>()
 ): void => {
 	walkLoadedValue(value, path, seen)
 }
@@ -257,7 +257,7 @@ export const assertLoadedValue = (
 
 export const assertResolverDefinitionResult = (
 	entityDefinition: EntityDefinition,
-	row: unknown,
+	row: unknown
 ): void => {
 	if (row == null || typeof row !== 'object' || Array.isArray(row)) {
 		throw new Error(`EntityCollection ${entityDefinition.entityType}: row must be an object`)
@@ -278,7 +278,7 @@ export const assertResolverDefinitionResult = (
 				throw new Error(`${selectorPath}: must be an entity selector object`)
 
 			validateEntitySelector(schema, entityDefinition, selectorValue)
-		},
+		}
 	)
 
 	const fieldsObject = record[EntityMetaKey.Fields] as Record<string, unknown>
@@ -312,11 +312,11 @@ export const assertResolverDefinitionResult = (
 export const assertResolverValuePartResult = (
 	entityTypeLabel: string,
 	fieldDefinition: EntityFieldDefinition,
-	row: unknown,
+	row: unknown
 ): void => {
 	if (row == null || typeof row !== 'object' || Array.isArray(row)) {
 		throw new Error(
-			`EntityFieldCollection ${entityTypeLabel}.${fieldDefinition.name}: row must be an object`,
+			`EntityFieldCollection ${entityTypeLabel}.${fieldDefinition.name}: row must be an object`
 		)
 	}
 
@@ -329,7 +329,7 @@ export const assertResolverValuePartResult = (
 
 	if (!isEntityFieldCollectionRowShape(row)) {
 		throw new Error(
-			`${path}: expected a field collection row (${EntityMetaKey.ParentSelector}, ${EntityMetaKey.Value}, …)`,
+			`${path}: expected a field collection row (${EntityMetaKey.ParentSelector}, ${EntityMetaKey.Value}, …)`
 		)
 	}
 

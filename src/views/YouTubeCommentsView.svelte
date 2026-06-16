@@ -2,18 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -50,6 +47,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import YouTubeCommentView from '$/views/YouTubeCommentView.svelte'
 </script>
 
@@ -80,56 +78,57 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
+				entityFieldReference.selector,
+				({
+					sources: [
 						Source.Youtube_Rest,
 						Source.Piped_Rest,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						],
-						limit,
+					],
+					fields: {
+						[entityFieldReference.fieldName]: {
+							sources: [
+								Source.Youtube_Rest,
+								Source.Piped_Rest,
+							],
+							limit,
+						},
 					},
-				} }),
+				})
 			)}
-			{@const comments = derive(
-				parent,
-				(parent) => {
-					const youTubeComments: readonly Entity<typeof schema, EntityType.YouTubeComment>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
-					return youTubeComments.map((comment) => comment[EntityMetaKey.Selector])
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.YouTubeComment}
-				id={`${id}-items`}
-				{title}
-				resource={comments}
+			<ResourceBoundary
+				resource={parent}
 				placeholderText="Loading comment thread…"
-				getKey={(row) => stringify(row)}
-				getSortValue={(row) => row.commentId}
-				placeholderKeys={new SvelteSet<string>()}
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No comments yet.
-					</p>
-				{/snippet}
+				{#snippet children(parent)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.YouTubeComment}
+						id={`${id}-items`}
+						{title}
+						items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
+						placeholderText="Loading comment thread…"
+						getKey={(comment) => stringify(comment[EntityMetaKey.Selector])}
+						getSortValue={(comment) => comment[EntityMetaKey.Selector].commentId}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No comments yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({
-					item: comment,
-				})}
-					<YouTubeCommentView
-						selector={{
-							videoId: comment.videoId,
-							commentId: comment.commentId,
-						}}
-						layout={EntityLayout.SummaryDetails}
-						open={false}
-					/>
+						{#snippet Item({
+							item: comment,
+						})}
+							<YouTubeCommentView
+								selector={comment[EntityMetaKey.Selector]}
+								layout={EntityLayout.SummaryDetails}
+								open={false}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

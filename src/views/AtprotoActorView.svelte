@@ -36,17 +36,19 @@
 		>
 	> = $props()
 
-	const idKey = stringify(selector)
+	const idKey = $derived(stringify(selector))
 
-	const actor = subscribe(EntityType.AtprotoActor,
-		selector,
-		({ sources: [
+	const actor = $derived(
+		subscribe(EntityType.AtprotoActor,
+			selector,
+			({ sources: [
 				Source.Atproto_Xrpc,
 				Source.Atproto_BskySocial_Xrpc,
 			], fields: { did: true, displayName: true, handle: true, $icon: true, ...(open ? ({ $banner: true, description: true, followersCount: true, followsCount: true, postsCount: true, $$timestamps: ({ sources: [
 							Source.Atproto_Xrpc,
 							Source.Atproto_BskySocial_Xrpc,
 						], limit: 1 }), indexedAt: true }) : ({  })) } }),
+		),
 	)
 
 
@@ -179,15 +181,15 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: actor.fields.$$timestamps[0]?.followersCount ?? actor.fields.followersCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.followersCount ?? actor.fields.followersCount,
 								},
 								{
 									label: 'Following',
-									value: actor.fields.$$timestamps[0]?.followsCount ?? actor.fields.followsCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.followsCount ?? actor.fields.followsCount,
 								},
 								{
 									label: 'Posts',
-									value: actor.fields.$$timestamps[0]?.postsCount ?? actor.fields.postsCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.postsCount ?? actor.fields.postsCount,
 								},
 							]}
 						/>

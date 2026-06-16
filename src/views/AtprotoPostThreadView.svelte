@@ -49,18 +49,6 @@
 
 	import type { DeclarativeOrderBy } from '$/client/$client.svelte.ts'
 
-	const atprotoPostOrderBy = [
-		[
-			({ fieldRow }) => fieldRow.createdAt,
-			'asc',
-		],
-		[
-			({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
-			'asc',
-		],
-	] as const satisfies DeclarativeOrderBy<AtprotoPostOrderFieldRow>
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -96,21 +84,25 @@
 						Source.Atproto_Xrpc,
 						Source.Atproto_BskySocial_Xrpc,
 					],
-					fields: (
-						open ?
-							{
-								[entityFieldReference.fieldName]: {
-									sources: [
-										Source.Atproto_Xrpc,
-										Source.Atproto_BskySocial_Xrpc,
-									],
-									orderBy: [...atprotoPostOrderBy],
-									limit: limit,
-								},
-							}
-						:
-							{}
-					),
+					fields: {
+						[entityFieldReference.fieldName]: {
+							sources: [
+								Source.Atproto_Xrpc,
+								Source.Atproto_BskySocial_Xrpc,
+							],
+							orderBy: [
+								[
+									({ fieldRow }) => fieldRow.createdAt,
+									'asc',
+								],
+								[
+									({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
+									'asc',
+								],
+							] as const satisfies DeclarativeOrderBy<AtprotoPostOrderFieldRow>,
+							limit,
+						},
+					},
 				},
 			)}
 			<ResourceBoundary

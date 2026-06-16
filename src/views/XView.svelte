@@ -27,17 +27,19 @@
 	const exampleUserId = '783214'
 	const examplePostId = '1955274825074221427'
 
-	const networkSelectorKey = stringify(selector)
+	const networkSelectorKey = $derived(stringify(selector))
 
-	const network = subscribe(EntityType.XNetwork,
-		selector,
-		({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xUsers: ({ sources: [
+	const network = $derived(
+		subscribe(EntityType.XNetwork,
+			selector,
+			({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xUsers: ({ sources: [
 					Source.X_Rest,
 					Source.X_FxEmbed_Rest,
 				] }), $$xPosts: ({ sources: [
 					Source.X_Rest,
 					Source.X_FxEmbed_Rest,
 				] }) } }),
+		),
 	)
 
 
@@ -87,14 +89,14 @@
 				placeholderText="Loading X network…"
 			>
 				{#snippet children(network)}
-					<div>
-						<dt>Profiles</dt>
-						<dd>{String(network.fields['$$xUsers'].length)}</dd>
-					</div>
-					<div>
-						<dt>Posts</dt>
-						<dd>{String(network.fields['$$xPosts'].length)}</dd>
-					</div>
+						<div>
+							<dt>Profiles</dt>
+							<dd>{String(network.fields.$$xUsers?.values.length ?? 0)}</dd>
+						</div>
+						<div>
+							<dt>Posts</dt>
+							<dd>{String(network.fields.$$xPosts?.values.length ?? 0)}</dd>
+						</div>
 					{#if contentOpen}
 						<div>
 							<dt>Protocol</dt>

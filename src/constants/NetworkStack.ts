@@ -134,5 +134,5 @@ export const networkStackByNetworkStackId = Object.fromEntries(
 	networkStacks.map((row) => [
 		row.networkStackId,
 		row,
-	]),
+	])
 )

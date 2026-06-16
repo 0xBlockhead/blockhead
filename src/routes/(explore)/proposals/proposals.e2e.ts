@@ -10,7 +10,7 @@ test.describe('/proposals', () => {
 		const proposals = page.locator('#proposal-realms')
 		await expect(proposals).toBeVisible()
 		await expect(
-			proposals.locator('details, section, p, a').first(),
+			proposals.locator('details, section, p, a').first()
 		).toBeAttached({ timeout: 120_000 })
 	})
 })

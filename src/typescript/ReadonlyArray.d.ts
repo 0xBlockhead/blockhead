@@ -7,13 +7,13 @@ interface ReadonlyArray<T> {
 		callbackfn: (
 			value: _Array[number],
 			index: number,
-			array: _Array,
+			array: _Array
 		) => _U,
-		thisArg?: unknown,
+		thisArg?: unknown
 	): { readonly [_Index in keyof _Array]: _U }
 
 	map<U>(
 		callbackfn: (value: T, index: number, array: readonly T[]) => U,
-		thisArg?: unknown,
+		thisArg?: unknown
 	): U[]
 }

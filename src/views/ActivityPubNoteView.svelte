@@ -19,15 +19,15 @@
 	let {
 		selector,
 		href = resolve(
-		'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]',
-		{
-			instanceOrigin: encodeURIComponent(selector.instanceOrigin),
-			localStatusId: selector.localStatusId,
-		},
-	),
+			'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]',
+			{
+				instanceOrigin: encodeURIComponent(selector.instanceOrigin),
+				localStatusId: selector.localStatusId,
+			},
+		),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(true),
-			...EntityViewProps
+		...EntityViewProps
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.ActivityPubNote>
@@ -44,7 +44,7 @@
 	import { htmlToPlainText } from '$/lib/html.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const idKey = stringify(selector)
+	const idKey = $derived(stringify(selector))
 
 	let contentWarningRevealed = $state(false)
 
@@ -53,20 +53,47 @@
 		contentWarningRevealed = false
 	})
 
-	const note = subscribe(EntityType.ActivityPubNote,
-		selector,
-		({ sources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			], fields: { content: true, createdAt: true, sensitive: true, spoilerText: true, ...(open ? ({ $author: true, $inReplyTo: true, $reblogOf: true, favouriteCount: true, reblogCount: true, replyCount: true, $$timestamps: ({ sources: [
-							Source.Mastodon_Rest,
-							Source.Fedi_Rest,
-						], limit: 1 }), visibility: true, language: true, statusUrl: true, editedAt: true, activityStreamsUri: true, $$media: true }) : ({  })) } }),
+	const note = $derived(
+		subscribe(
+			EntityType.ActivityPubNote,
+			selector,
+			({
+				sources: [
+					Source.Mastodon_Rest,
+					Source.Fedi_Rest,
+				],
+				fields: {
+					content: true,
+					createdAt: true,
+					sensitive: true,
+					spoilerText: true,
+					...(open && {
+						$author: true,
+						$inReplyTo: true,
+						$reblogOf: true,
+						$$timestamps: {
+							sources: [
+								Source.Mastodon_Rest,
+								Source.Fedi_Rest,
+							],
+							limit: 1,
+						},
+						visibility: true,
+						language: true,
+						statusUrl: true,
+						editedAt: true,
+						activityStreamsUri: true,
+						$$media: true,
+					}),
+				},
+			}),
+		)
 	)
 
 
 	// Components
 	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
+	import ActivityPubNoteView from '$/views/ActivityPubNoteView.svelte'
 	import ActivityPubNote_TimestampsView from '$/views/ActivityPubNote_TimestampsView.svelte'
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
@@ -222,7 +249,7 @@
 							<div>
 								<dt>In reply to</dt>
 								<dd>
-									<svelte:self
+									<ActivityPubNoteView
 										selector={note.fields.$inReplyTo[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
@@ -247,7 +274,7 @@
 							<div>
 								<dt>Reblog of</dt>
 								<dd>
-									<svelte:self
+									<ActivityPubNoteView
 										selector={note.fields.$reblogOf[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
@@ -387,15 +414,15 @@
 							metrics={[
 								{
 									label: 'Favourites',
-									value: note.fields.$$timestamps[0]?.favouriteCount ?? note.fields.favouriteCount,
+									value: note.fields.$$timestamps?.values.at(0)?.favouriteCount,
 								},
 								{
 									label: 'Reblogs',
-									value: note.fields.$$timestamps[0]?.reblogCount ?? note.fields.reblogCount,
+									value: note.fields.$$timestamps?.values.at(0)?.reblogCount,
 								},
 								{
 									label: 'Replies',
-									value: note.fields.$$timestamps[0]?.replyCount ?? note.fields.replyCount,
+									value: note.fields.$$timestamps?.values.at(0)?.replyCount,
 								},
 							]}
 						/>
@@ -434,11 +461,11 @@
 		<CollapsibleTabs
 			id={`${idKey}:carousel-note`}
 			sectionIdPrefix={idKey}
-				sections={collapsibleTabsSections([
-					{ id: 'note-details', label: 'Metadata' },
-					{ id: 'note-thread', label: 'Thread' },
-					{ id: 'metric-snapshots', label: 'Metrics' },
-				])}
+			sections={collapsibleTabsSections([
+				{ id: 'note-details', label: 'Metadata' },
+				{ id: 'note-thread', label: 'Thread' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
 			data-card
 		>
 			{#snippet Summary({ open: _conversationSummaryOpen })}
@@ -494,7 +521,7 @@
 					}}
 					id={`${idKey}:note-thread-activityPubNotes`}
 					fieldOpen={_open}
-				orderByCreatedAt="asc"
+					orderByCreatedAt="asc"
 					placeholderText="Loading conversation…"
 					title="Thread"
 				/>
@@ -513,8 +540,8 @@
 				/>
 			{/snippet}
 		</CollapsibleTabs>
-		{/snippet}
-	</EntityView>
+	{/snippet}
+</EntityView>
 
 
 <style>
@@ -522,17 +549,5 @@
 		padding: 0.75em 1em;
 		border-radius: var(--card-radius, 0.5em);
 		background: var(--surface-muted, rgba(127, 127, 127, 0.12));
-	}
-
-	.activitypub-html {
-		:global(pre) {
-			white-space: pre-wrap;
-			word-break: break-word;
-		}
-
-		:global(img) {
-			max-width: 100%;
-			height: auto;
-		}
 	}
 </style>

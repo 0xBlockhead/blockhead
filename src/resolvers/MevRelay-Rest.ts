@@ -132,7 +132,7 @@ export default {
 					.map((mevRelayHost) => mevRelayHost.host)
 				if (hostsForChain.length === 0) {
 					throw new Error(
-						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`,
+						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`
 					)
 				}
 				const subsetRowLimit = resolverContextRowLimit(context)
@@ -168,7 +168,7 @@ export default {
 				}
 				if (out.length === 0) {
 					throw new Error(
-						`MevRelay_Rest: no proposer_payload_delivered payloads for chain ${String(chainId)}`,
+						`MevRelay_Rest: no proposer_payload_delivered payloads for chain ${String(chainId)}`
 					)
 				}
 				return out
@@ -192,7 +192,7 @@ export default {
 					.map((mevRelayHost) => mevRelayHost.host)
 				if (hostsForChain.length === 0) {
 					throw new Error(
-						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`,
+						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`
 					)
 				}
 				const subsetRowLimit = resolverContextRowLimit(context)

@@ -103,24 +103,6 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: 'sqrtPriceX96',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'liquidity',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'tick',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
 			name: 'baseTokenSymbol',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
@@ -149,42 +131,6 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'volumeUSD',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string | number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'totalValueLockedUSD',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string | number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'marketCapUsd',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'fdvUsd',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
 		},
 		{
 			name: 'pairCreatedAtMs',
@@ -217,51 +163,6 @@ export default {
 			name: 'dexscreenerPairUrl',
 			type: EntityFieldType.Primitive,
 			primitiveType: UrlString,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'baseTokenPriceUsd',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'baseTokenPriceQuote',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'priceChangePercent24h',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'transactionBuys24h',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Dexscreener_OpenApi,
-			],
-		},
-		{
-			name: 'transactionSells24h',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Dexscreener_OpenApi,

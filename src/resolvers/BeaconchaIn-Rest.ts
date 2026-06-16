@@ -24,7 +24,7 @@ export default {
 					{
 						apiBase: beaconchaInApiBaseByExecutionChainId[Number($network.caip2.reference)],
 						epoch: epochSelector,
-					},
+					}
 				)
 				if (epoch == null) {
 					throw new Error(`BeaconchaIn_Rest: epoch ${String(epoch)} not found`)

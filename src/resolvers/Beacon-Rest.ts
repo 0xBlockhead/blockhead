@@ -38,7 +38,7 @@ const requireBeaconRestBaseUrl = (chainId: number) => {
 }
 
 const beaconFinalityCheckpointsForChain = async (
-	chainId: number,
+	chainId: number
 ): Promise<BeaconFinalityCheckpoints | undefined> => {
 	const base = requireBeaconRestBaseUrl(chainId)
 	const { getFinalityCheckpoints } = await import('$/sources/Beacon/Rest/queries.ts')
@@ -46,7 +46,7 @@ const beaconFinalityCheckpointsForChain = async (
 }
 
 const beaconForkScheduleEntryForNetworkConsensusUpgrade = async (
-	{ $network, upgradeId }: EntitySelector<typeof schema, EntityType.EthereumConsensusUpgrade>,
+	{ $network, upgradeId }: EntitySelector<typeof schema, EntityType.EthereumConsensusUpgrade>
 ): Promise<BeaconForkScheduleEntry | undefined> => {
 	const chainId = Number($network.caip2.reference)
 	const { networkConsensusUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
@@ -91,7 +91,7 @@ export default {
 					const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
 					const header = await getHeader(
 						requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-						slot,
+						slot
 					)
 					return {
 						bodyRoot: with0xHex(header.bodyRoot),
@@ -125,11 +125,11 @@ export default {
 					const { getValidatorSummaryAtHead } = await import('$/sources/Beacon/Rest/queries.ts')
 					const summary = await getValidatorSummaryAtHead(
 						requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-						validatorIndex,
+						validatorIndex
 					)
 					if (summary == null) {
 						throw new Error(
-							`Beacon_Rest: validator summary not returned for index ${String(validatorIndex)}`,
+							`Beacon_Rest: validator summary not returned for index ${String(validatorIndex)}`
 						)
 					}
 					return {
@@ -159,7 +159,7 @@ export default {
 					const committee = (
 						await getCommittees(
 							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							String(slot),
+							String(slot)
 						)
 					).find((committee) => committee.index === index)
 					if (committee == null) throw new Error('Beacon_Rest: committee not found')
@@ -181,7 +181,7 @@ export default {
 					const { getSyncCommittee } = await import('$/sources/Beacon/Rest/queries.ts')
 					const committee = await getSyncCommittee(
 						requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-						'head',
+						'head'
 					)
 					if (committee == null) throw new Error('Beacon_Rest: sync committee not found')
 					return {
@@ -203,7 +203,7 @@ export default {
 					const attestation = (
 						await getBlockDutySummary(
 							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							slot,
+							slot
 						)
 					).attestations.find((committee) => committee.index === index)
 					if (attestation == null) throw new Error('Beacon_Rest: attestation not found')
@@ -228,7 +228,7 @@ export default {
 					const withdrawal = (
 						await getBlockDutySummary(
 							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							slot,
+							slot
 						)
 					).withdrawals.find((committee) => committee.index === index)
 					if (withdrawal == null) throw new Error('Beacon_Rest: withdrawal not found')
@@ -270,7 +270,7 @@ export default {
 					const checkpoints = await beaconFinalityCheckpointsForChain(chainId)
 					if (checkpoints == null) {
 						throw new Error(
-							`Beacon_Rest: finality checkpoints not returned for chain ${String(chainId)}`,
+							`Beacon_Rest: finality checkpoints not returned for chain ${String(chainId)}`
 						)
 					}
 					return {
@@ -300,7 +300,7 @@ export default {
 				[BeaconEpochSelector.EvmNetworkEpoch]: async ({ $network, epoch }, context) => (
 					Array.from(
 						{ length: Math.min(resolverContextRowLimit(context), slotsPerEpoch) },
-						(_, i) => (epoch * slotsPerEpoch) + i,
+						(_, i) => (epoch * slotsPerEpoch) + i
 					)
 						.map((slot) => ({
 							[EntityMetaKey.Selector]: {
@@ -330,7 +330,7 @@ export default {
 					return (
 						Array.from(
 							{ length: resolverContextRowLimit(context) },
-							(_, i) => headEpoch - i,
+							(_, i) => headEpoch - i
 						)
 							.flatMap((epoch) => (
 								epoch < 0 ?
@@ -368,7 +368,7 @@ export default {
 					return (
 						Array.from(
 							{ length: resolverContextRowLimit(context) },
-							(_, i) => headSlot - i,
+							(_, i) => headSlot - i
 						)
 							.flatMap((slot) => (
 								slot < 0 ?
@@ -432,7 +432,7 @@ export default {
 					return (
 						(await getCommittees(
 							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							String(slot),
+							String(slot)
 						))
 							.slice(0, resolverContextRowLimit(context))
 							.map((committee) => ({
@@ -459,7 +459,7 @@ export default {
 					return (
 						(await getBlockDutySummary(
 							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							slot,
+							slot
 						)).attestations
 							.slice(0, resolverContextRowLimit(context))
 							.map((attestation) => ({
@@ -486,7 +486,7 @@ export default {
 					return (
 						(await getBlockDutySummary(
 							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							slot,
+							slot
 						)).withdrawals
 							.slice(0, resolverContextRowLimit(context))
 							.map((withdrawal) => ({
@@ -513,7 +513,7 @@ export default {
 					return (
 						(await getBlockDutySummary(
 							requireBeaconRestBaseUrl(Number($network.caip2.reference)),
-							slot,
+							slot
 						)).slashings
 							.slice(0, resolverContextRowLimit(context))
 							.map((slashing) => ({

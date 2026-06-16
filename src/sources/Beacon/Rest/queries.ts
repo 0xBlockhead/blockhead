@@ -21,7 +21,7 @@ import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 
 const beaconFetch = (
 	url: string,
-	init?: RequestInit,
+	init?: RequestInit
 ) => (
 	corsFetch(url, {
 		origins: Beacon.origins,
@@ -51,7 +51,7 @@ export const getHeadSlot = async (beaconRestBaseUrl: string): Promise<number> =>
 
 export const getHeader = async (
 	beaconRestBaseUrl: string,
-	blockId: string | number,
+	blockId: string | number
 ): Promise<BeaconHeader> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
 	const res = await beaconFetch(`${base}/eth/v1/beacon/headers/${blockId}`, {
@@ -135,14 +135,14 @@ const nonNegativeDecimalBigIntFromWire = (raw: string | undefined): bigint | und
 
 export const getValidatorSummaryAtHead = async (
 	beaconRestBaseUrl: string,
-	validatorIndex: number,
+	validatorIndex: number
 ): Promise<BeaconValidatorSummary | null> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
 	const res = await beaconFetch(
 		`${base}/eth/v1/beacon/states/head/validators/${String(validatorIndex)}`,
 		{
 			headers: { accept: 'application/json' },
-		},
+		}
 	)
 	if (res.status === 404) return null
 	if (!res.ok) await throwHttpError('Beacon GET validator', res)
@@ -160,7 +160,7 @@ export const getValidatorSummaryAtHead = async (
 	const balanceGwei = nonNegativeDecimalBigIntFromWire(data.balance)
 	const effectiveBalanceGwei = (
 		nonNegativeDecimalBigIntFromWire(
-			validatorNested?.effective_balance,
+			validatorNested?.effective_balance
 		)
 		?? balanceGwei
 	)
@@ -183,7 +183,7 @@ export const getValidatorSummaryAtHead = async (
 }
 
 const checkpointFromWire = (
-	checkpointWire: JsonValue | undefined,
+	checkpointWire: JsonValue | undefined
 ): BeaconFinalityCheckpoints['finalized'] | undefined => {
 	if (checkpointWire == null) return undefined
 	if (!isJsonObject(checkpointWire)) return undefined
@@ -201,7 +201,7 @@ const checkpointFromWire = (
 }
 
 export const getFinalityCheckpointsFromWire = (
-	wire: JsonValue,
+	wire: JsonValue
 ): BeaconFinalityCheckpoints | undefined => {
 	if (!isJsonObject(wire)) return undefined
 	const data = wire.data
@@ -222,7 +222,7 @@ export const getFinalityCheckpointsFromWire = (
 }
 
 export const getFinalityCheckpoints = async (
-	beaconRestBaseUrl: string,
+	beaconRestBaseUrl: string
 ): Promise<BeaconFinalityCheckpoints | undefined> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
 	const res = await beaconFetch(`${base}/eth/v1/beacon/states/head/finality_checkpoints`, {
@@ -234,7 +234,7 @@ export const getFinalityCheckpoints = async (
 }
 
 export const getForkScheduleFromWire = (
-	wire: JsonValue,
+	wire: JsonValue
 ): BeaconForkScheduleEntry[] => {
 	if (!isJsonObject(wire)) return []
 	const data = wire.data
@@ -276,7 +276,7 @@ export const getForkScheduleFromWire = (
 }
 
 export const getForkSchedule = async (
-	beaconRestBaseUrl: string,
+	beaconRestBaseUrl: string
 ): Promise<BeaconForkScheduleEntry[]> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
 	const res = await beaconFetch(`${base}/eth/v1/config/fork_schedule`, {
@@ -288,7 +288,7 @@ export const getForkSchedule = async (
 }
 
 export const getGenesisTimeSeconds = async (
-	beaconRestBaseUrl: string,
+	beaconRestBaseUrl: string
 ): Promise<number | undefined> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
 	const res = await beaconFetch(`${base}/eth/v1/beacon/genesis`, {
@@ -338,7 +338,7 @@ export const getCommitteesFromWire = (wire: JsonValue): BeaconCommittee[] => {
 
 export const getCommittees = async (
 	beaconRestBaseUrl: string,
-	stateId = 'head',
+	stateId = 'head'
 ): Promise<BeaconCommittee[]> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
 	const res = await beaconFetch(`${base}/eth/v1/beacon/states/${stateId}/committees`, {
@@ -364,7 +364,7 @@ export const getSyncCommitteeFromWire = (wire: JsonValue): BeaconSyncCommittee |
 
 export const getSyncCommittee = async (
 	beaconRestBaseUrl: string,
-	stateId = 'head',
+	stateId = 'head'
 ): Promise<BeaconSyncCommittee | undefined> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
 	const res = await beaconFetch(`${base}/eth/v1/beacon/states/${stateId}/sync_committees`, {
@@ -428,7 +428,7 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 						validatorIndex: Number.isFinite(validatorIndex) ? validatorIndex : undefined,
 						address: withdrawalWire.address == null ? undefined : String(withdrawalWire.address),
 						amountGwei: nonNegativeDecimalBigIntFromWire(
-							withdrawalWire.amount == null ? undefined : String(withdrawalWire.amount),
+							withdrawalWire.amount == null ? undefined : String(withdrawalWire.amount)
 						),
 					},
 				]
@@ -466,7 +466,7 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 
 export const getBlockDutySummary = async (
 	beaconRestBaseUrl: string,
-	blockId: string | number,
+	blockId: string | number
 ): Promise<BeaconBlockDutySummary> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
 	const res = await beaconFetch(`${base}/eth/v2/beacon/blocks/${blockId}`, {

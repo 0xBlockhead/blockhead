@@ -38,12 +38,10 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import FarcasterChannelView from '$/views/FarcasterChannelView.svelte'
 </script>
 
@@ -75,44 +73,47 @@
 		{#if open}
 			{@const parentNetwork = subscribe(EntityType.FarcasterNetwork,
 				entityFieldReference.selector,
-				({ fields: { $$channels: ({ sources: [Source.Farcaster_Rest] }) } }),
+				({
+					fields: {
+						[entityFieldReference.fieldName]: {
+							sources: [Source.Farcaster_Rest],
+						},
+					},
+				})
 			)}
-			{@const channels = derive(
-				parentNetwork,
-				(parentNetwork) => (
-					[...(parentNetwork.$$channels ?? [])]
-						.map((result) => ({
-							result,
-						}))
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.FarcasterChannel}
-				id={`${id}-items`}
-				{title}
-				open={true}
-				getKey={(channel) => stringify(channel.result[EntityMetaKey.Selector])}
-				getSortValue={(channel) => channel.result[EntityMetaKey.Selector].id}
+			<ResourceBoundary
+				resource={parentNetwork}
 				placeholderText="Loading Farcaster channels (channel id / slug)…"
-				resource={channels}
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No channels yet.
-					</p>
-				{/snippet}
+				{#snippet children(parentNetwork)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.FarcasterChannel}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={parentNetwork.fields[entityFieldReference.fieldName]?.values ?? []}
+						getKey={(channel) => stringify(channel[EntityMetaKey.Selector])}
+						getSortValue={(channel) => channel[EntityMetaKey.Selector].id}
+						placeholderText="Loading Farcaster channels (channel id / slug)…"
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No channels yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					{@const channelId = item.result[EntityMetaKey.Selector]}
-					<FarcasterChannelView
-						selector={{ id: channelId.id }}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<FarcasterChannelView
+								selector={item[EntityMetaKey.Selector]}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

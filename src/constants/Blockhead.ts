@@ -95,26 +95,26 @@ export const blockheadSessionStatusByStatus = Object.fromEntries(
 	blockheadSessionStatuses.map((row) => [
 		row.status,
 		row,
-	]),
+	])
 )
 
 export const blockheadWalletConnectionStatusByStatus = Object.fromEntries(
 	blockheadWalletConnectionStatuses.map((row) => [
 		row.status,
 		row,
-	]),
+	])
 )
 
 export const blockheadFarcasterConnectionAuthMethodByAuthMethod = Object.fromEntries(
 	blockheadFarcasterConnectionAuthMethods.map((row) => [
 		row.authMethod,
 		row,
-	]),
+	])
 )
 
 export const blockheadAgentConversationTurnStatusByStatus = Object.fromEntries(
 	blockheadAgentConversationTurnStatuses.map((row) => [
 		row.status,
 		row,
-	]),
+	])
 )

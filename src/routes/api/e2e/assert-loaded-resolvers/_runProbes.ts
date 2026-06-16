@@ -61,7 +61,7 @@ const {
 } = indexResolvers(
 	schema,
 	resolvers,
-	enabledSources,
+	enabledSources
 )
 
 const resolverContext = {
@@ -95,7 +95,7 @@ type ResolverValuePartProbe = Pick<
 	index: number
 	resolve: (
 		entitySelector: EntitySelector<typeof schema, SchemaEntityType<typeof schema>>,
-		context: ResolverContext,
+		context: ResolverContext
 	) => ResolverValue | Promise<ResolverValue>
 }
 
@@ -103,7 +103,7 @@ const probeTimeoutMs = 30_000
 
 const withProbeTimeout = async <_Value>(
 	key: string,
-	resolve: () => _Value | Promise<_Value>,
+	resolve: () => _Value | Promise<_Value>
 ) => {
 	let timeoutId: ReturnType<typeof setTimeout> | undefined
 
@@ -113,7 +113,7 @@ const withProbeTimeout = async <_Value>(
 			new Promise<never>((_resolve, reject) => {
 				timeoutId = setTimeout(
 					() => reject(new Error(`resolver probe timed out: ${key}`)),
-					probeTimeoutMs,
+					probeTimeoutMs
 				)
 		}),
 		])
@@ -146,12 +146,12 @@ for (const parts of Object.values(resolverValuePartsByEntityTypeAndFieldName))
 			source: part.source,
 			resolve: async (
 				entitySelector,
-				context,
+				context
 			) => {
 					const selectorName = validateEntitySelector(
 						schema,
 						entityDefinitionByType[part.entityType],
-						entitySelector,
+						entitySelector
 					).name
 					const resolve = part.resolver.resolve[selectorName]
 					if (
@@ -166,10 +166,10 @@ for (const parts of Object.values(resolverValuePartsByEntityTypeAndFieldName))
 					return select(
 						await resolve(
 							entitySelector,
-							context,
+							context
 						),
 						entitySelector,
-						context,
+						context
 					)
 				},
 		})
@@ -227,7 +227,7 @@ const emptyCategorySummary = (): AssertLoadedResolverProbeCategorySummary => (
 
 
 const finalizeProbeCase = (
-	probeCase: Omit<AssertLoadedResolverProbeCase, 'category'>,
+	probeCase: Omit<AssertLoadedResolverProbeCase, 'category'>
 ): AssertLoadedResolverProbeCase => ({
 	...probeCase,
 	category: classifyAssertLoadedResolverProbeCase(probeCase),
@@ -237,7 +237,7 @@ const finalizeProbeCase = (
 const entityResolvePayloadEmptyForProbe = (
 	entityDefinition: EntityDefinition,
 	fields: ResolverValue,
-	source: Source,
+	source: Source
 ): string | undefined => {
 	if (fields == null || typeof fields !== 'object')
 		return 'entity resolve did not return a fields object'
@@ -263,7 +263,7 @@ const entityResolvePayloadEmptyForProbe = (
 const fieldResolvePayloadEmptyForProbe = (
 	fieldDefinition: EntityFieldDefinition,
 	raw: ResolverValue,
-	source: Source,
+	source: Source
 ): string | undefined => {
 	const isListField = (
 		fieldDefinition.cardinality === EntityFieldCardinality.Many
@@ -297,7 +297,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			&& resolver.entityType !== EntityType.Coin_Timestamp
 		) {
 			throw new Error(
-				`Missing probeEntitySelectorByType[${resolver.entityType}] (${resolver.source})`,
+				`Missing probeEntitySelectorByType[${resolver.entityType}] (${resolver.source})`
 			)
 		}
 	}
@@ -330,7 +330,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			const selectorName = validateEntitySelector(
 				schema,
 				entityDef,
-				entitySelector,
+				entitySelector
 			).name
 			const resolve = resolver.resolve[selectorName]
 			if (resolve == null)
@@ -343,8 +343,8 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 					{
 						...resolverContext,
 						publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
-					},
-				),
+					}
+				)
 			)
 		} catch (error) {
 			entityCases.push(finalizeProbeCase({
@@ -360,7 +360,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 		const emptyPayloadError = entityResolvePayloadEmptyForProbe(
 			entityDef,
 			fields,
-			resolver.source,
+			resolver.source
 		)
 		if (emptyPayloadError != null) {
 			entityCases.push(finalizeProbeCase({
@@ -420,7 +420,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			))
 			if (fieldDef == null) {
 				throw new Error(
-					`No field ${fieldResolver.fieldName} on ${fieldResolver.entityType}`,
+					`No field ${fieldResolver.fieldName} on ${fieldResolver.entityType}`
 				)
 			}
 
@@ -437,8 +437,8 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 						{
 							...resolverContext,
 							publicEnv: resolverPublicEnvBySource.get(fieldResolver.source) ?? {},
-						},
-					),
+						}
+					)
 				)
 			} catch (error) {
 				fieldCases.push(finalizeProbeCase({
@@ -454,7 +454,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			const emptyPayloadError = fieldResolvePayloadEmptyForProbe(
 				fieldDef,
 				raw,
-				fieldResolver.source,
+				fieldResolver.source
 			)
 			if (emptyPayloadError != null) {
 				fieldCases.push(finalizeProbeCase({
@@ -494,7 +494,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 					assertResolverValuePartResult(
 						String(fieldResolver.entityType),
 						fieldDef,
-						row,
+						row
 					)
 				} catch (error) {
 					assertThrew = true

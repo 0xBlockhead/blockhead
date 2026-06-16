@@ -39,17 +39,19 @@
 	import { htmlToPlainText } from '$/lib/html.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const idKey = stringify(selector)
+	const idKey = $derived(stringify(selector))
 
-	const actor = subscribe(EntityType.ActivityPubActor,
-		selector,
-		({ sources: [
+	const actor = $derived(
+		subscribe(EntityType.ActivityPubActor,
+			selector,
+			({ sources: [
 				Source.Mastodon_Rest,
 				Source.Fedi_Rest,
-			], fields: { localAccountId: true, username: true, acct: true, displayName: true, $icon: true, ...(open ? ({ note: true, profileUrl: true, activityStreamsUri: true, website: true, followersCount: true, followingCount: true, statusesCount: true, $$timestamps: ({ sources: [
+			], fields: { localAccountId: true, username: true, acct: true, displayName: true, $icon: true, ...(open ? ({ note: true, profileUrl: true, activityStreamsUri: true, website: true, $$timestamps: ({ sources: [
 							Source.Mastodon_Rest,
 							Source.Fedi_Rest,
 						], limit: 1 }), createdAt: true, bot: true, locked: true, $headerImage: true }) : ({  })) } }),
+		),
 	)
 
 
@@ -201,15 +203,15 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: actor.fields.$$timestamps[0]?.followersCount ?? actor.fields.followersCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.followersCount,
 								},
 								{
 									label: 'Following',
-									value: actor.fields.$$timestamps[0]?.followingCount ?? actor.fields.followingCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.followingCount,
 								},
 								{
 									label: 'Statuses',
-									value: actor.fields.$$timestamps[0]?.statusesCount ?? actor.fields.statusesCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.statusesCount,
 								},
 							]}
 						/>

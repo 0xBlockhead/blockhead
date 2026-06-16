@@ -16,7 +16,7 @@ export const getBlock = ({
 }) => (
 	getJson<CometBftBlockResponse>(
 		`${base(restBaseUrl)}/block?height=${height.toString()}`,
-		{ origins: CometBft.origins  },
+		{ origins: CometBft.origins  }
 	)
 )
 
@@ -29,6 +29,6 @@ export const getTx = ({
 }) => (
 	getJson<CometBftTxResponse>(
 		`${base(restBaseUrl)}/tx?hash=0x${txHash.replace(/^0x/i, '')}`,
-		{ origins: CometBft.origins  },
+		{ origins: CometBft.origins  }
 	)
 )

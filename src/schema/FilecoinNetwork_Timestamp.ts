@@ -7,11 +7,11 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export enum FilecoinNetwork_TimestampSelector {
 	NetworkTimestampMs = 'networkTimestampMs',
 }
-import { Source } from '$/sources/Source.ts'
 
 export default {
 	entityType: EntityType.FilecoinNetwork_Timestamp,
@@ -74,6 +74,24 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Lotus_JsonRpc,
+			],
+		},
+		{
+			name: '$headTipset',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.FilecoinTipset,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Lotus_JsonRpc,
+			],
+		},
+		{
+			name: '$$headMiners',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.FilecoinMiner,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Lotus_JsonRpc,
 			],

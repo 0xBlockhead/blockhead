@@ -12,10 +12,10 @@
 		params,
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
-		{ networkSlug: params.networkSlug },
+	const network = $derived(subscribe(EntityType.Network,
+		{ slug: params.networkSlug },
 		({ sources: [Source.Constants_Internal], fields: { namespace: true, slug: true } }),
-	)
+	))
 
 
 	// Components
@@ -31,7 +31,7 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{@const selector = { networkSlug: network.fields.slug }}
+			{@const selector = { slug: network.fields.slug }}
 			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
 				<UtxoBlockView selector={{ $network: selector, height: BigInt(params.height) }} />
 			{:else if network.fields.namespace === NetworkNamespace.Cosmos}

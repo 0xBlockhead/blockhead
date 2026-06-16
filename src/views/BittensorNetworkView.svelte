@@ -18,24 +18,53 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.BittensorNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { name: true, environment: true, $networkStack: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } }),
+	const network = $derived(
+		subscribe(
+			EntityType.Network,
+			selector.$network,
+			{
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					name: true,
+					environment: true,
+					$networkStack: true,
+					$$executionEnvironments: true,
+					$$consensusMechanisms: true,
+					$$nativeAssets: true,
+				},
+			},
+		),
 	)
 
-	const bittensorNetwork = subscribe(EntityType.BittensorNetwork,
-		selector,
-		({ sources: [
-				Source.Bittensor_JsonRpc,
-			], fields: { $$timestamps: ({ limit: 1 }), $$blocks: ({ limit: open ? 12 : 1 }), $$subnets: ({ limit: 24 }) } }),
+	const bittensorNetwork = $derived(
+		subscribe(
+			EntityType.BittensorNetwork,
+			selector,
+			{
+				sources: [
+					Source.Bittensor_JsonRpc,
+				],
+				fields: {
+					$$timestamps: {
+						limit: 1,
+					},
+					$$blocks: {
+						limit: open ? 12 : 1,
+					},
+					$$subnets: {
+						limit: 24,
+					},
+				},
+			},
+		),
 	)
 
 
@@ -61,7 +90,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector}
+	entitySelector={selector.$network}
 	{href}
 	bind:open
 	{layout}
@@ -88,38 +117,38 @@
 
 	{#snippet Content({ open })}
 		<dl class="network-summary-head" data-column-item="center">
-				<ResourceBoundary resource={bittensorNetwork}>
-					{#snippet children(bittensorNetwork)}
-						{@const block = bittensorNetwork.fields.$$blocks?.values.at(0)}
-						{@const subnetCount = bittensorNetwork.fields.$$subnets?.values.length ?? 0}
-						{#if block != null}
-							<div>
-								<dt>Finalized block</dt>
-								<dd id="network-summary-head-block">
-									<BittensorBlockView
-										selector={block[EntityMetaKey.Selector]}
-										layout={EntityLayout.Value}
-									/>
-								</dd>
-							</div>
-						{/if}
-
-						{#if subnetCount > 0}
-							<div>
-								<dt>Subnets</dt>
-								<dd><NumberValue value={subnetCount} /></dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						{@const nativeAssetCount = network.fields.$$nativeAssets?.values.length ?? 0}
+			<ResourceBoundary resource={bittensorNetwork}>
+				{#snippet children(bittensorNetwork)}
+					{@const block = bittensorNetwork.fields.$$blocks?.values.at(0)}
+					{@const subnetCount = bittensorNetwork.fields.$$subnets?.values.length ?? 0}
+					{#if block != null}
 						<div>
-							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+							<dt>Finalized block</dt>
+							<dd id="network-summary-head-block">
+								<BittensorBlockView
+									selector={block[EntityMetaKey.Selector]}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
 						</div>
+					{/if}
+
+					{#if subnetCount > 0}
+						<div>
+							<dt>Subnets</dt>
+							<dd><NumberValue value={subnetCount} /></dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary resource={network}>
+				{#snippet children(network)}
+					{@const nativeAssetCount = network.fields.$$nativeAssets?.values.length ?? 0}
+					<div>
+						<dt>Environment</dt>
+						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+					</div>
 
 					{#if open && network.fields.$networkStack != null}
 						<div>
@@ -133,14 +162,14 @@
 						</div>
 					{/if}
 
-						{#if open && nativeAssetCount > 0}
-							<div>
-								<dt>Native asset</dt>
-								<dd>{nativeAssetCount}</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+					{#if open && nativeAssetCount > 0}
+						<div>
+							<dt>Native asset</dt>
+							<dd>{nativeAssetCount}</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -165,17 +194,17 @@
 			data-card
 			class="network-view-collapsible-execution"
 			scrollContainerProps={{ 'data-row': 'start align-start' }}
-				>
-				{#snippet Summary()}
+		>
+			{#snippet Summary()}
 				<header
 					data-row-item="flexible"
 					data-row="wrap gap-4"
 				>
 					<HeadingComponent>Activity</HeadingComponent>
 				</header>
-				{/snippet}
+			{/snippet}
 
-				{#snippet SectionBittensorSubtensor()}
+			{#snippet SectionBittensorSubtensor()}
 				<ResourceBoundary resource={bittensorNetwork}>
 					{#snippet children(bittensorNetwork)}
 						{@const block = bittensorNetwork.fields.$$blocks?.values.at(0)}
@@ -186,14 +215,14 @@
 									layout={EntityLayout.SummaryDetails}
 								/>
 							{/if}
-					</div>
-				{/snippet}
+						</div>
+					{/snippet}
 				</ResourceBoundary>
-				{/snippet}
+			{/snippet}
 
-				{#snippet SectionBittensorBlocks()}
+			{#snippet SectionBittensorBlocks()}
 				<BittensorBlocksView
-			CollapsibleProps={{ canToggle: false }}
+					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BittensorNetwork,
 						selector,
@@ -234,16 +263,16 @@
 			data-card
 			class="network-view-collapsible-consensus"
 			scrollContainerProps={{ 'data-row': 'start align-start' }}
-				>
-				{#snippet Summary()}
+		>
+			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Consensus &amp; Neurons</HeadingComponent>
 				</header>
-				{/snippet}
+			{/snippet}
 
-				{#snippet SectionBittensorNeurons()}
+			{#snippet SectionBittensorNeurons()}
 				<BittensorSubnetsView
-			CollapsibleProps={{ canToggle: false }}
+					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.BittensorNetwork,
 						selector,
@@ -272,11 +301,11 @@
 								}}
 								id={`${networkSelectorKey}:bittensor-consensus-snapshots`}
 								title="Network snapshots"
-						/>
-					</div>
-				{/snippet}
-			</ResourceBoundary>
-		{/snippet}
+							/>
+						</div>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
@@ -289,19 +318,19 @@
 			data-card
 			class="network-view-collapsible-economics"
 			scrollContainerProps={{ 'data-row': 'start align-start' }}
-				>
-				{#snippet Summary()}
+		>
+			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Assets</HeadingComponent>
 				</header>
-				{/snippet}
+			{/snippet}
 
-				{#snippet SectionBittensorAssetsNative({ id, label }: { id: string, label: string })}
+			{#snippet SectionBittensorAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
-			CollapsibleProps={{ canToggle: false }}
+					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -334,20 +363,20 @@
 			data-card
 			class="network-view-collapsible-resources"
 			scrollContainerProps={{ 'data-row': 'start align-start' }}
-				>
-				{#snippet Summary()}
+		>
+			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Resources</HeadingComponent>
 				</header>
-				{/snippet}
+			{/snippet}
 
-				{#snippet SectionBittensorResourcesFaucets()}
+			{#snippet SectionBittensorResourcesFaucets()}
 				<UrlsView
-			CollapsibleProps={{ canToggle: false }}
+					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -365,7 +394,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

@@ -258,6 +258,7 @@ export enum EntityType {
 	ZeroGStorageNode = 'ZeroGStorageNode',
 	ZeroGStorageProof = 'ZeroGStorageProof',
 	EvmNetwork = 'EvmNetwork',
+	EvmNetwork_Timestamp = 'EvmNetwork_Timestamp',
 	EvmNetworkBridge = 'EvmNetworkBridge',
 	EvmRollup = 'EvmRollup',
 	EthereumBeaconFinality_Timestamp = 'EthereumBeaconFinality_Timestamp',

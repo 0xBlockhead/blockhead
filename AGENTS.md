@@ -106,6 +106,7 @@
 - Max 3 consecutive line breaks
 - Object with > 1 prop, array with > 1 value: indent, one per line, trailing commas
 - Generic with > 1 type param: indent, one per line
+- Do not add trailing commas to call arguments, function / arrow parameters, or type argument lists
 - Multiline expressions: indent, wrap in `()` UNLESS already exclusively wrapped in `[]` / `{}`
 - Multiline unions/intersections: leading `&` / `|` before first member
 - Multiline chained calls: break onto new indented lines

@@ -10,7 +10,7 @@ const PROXY_UPSTREAM_TIMEOUT_MS = 30_000
 const allowlistedProxyOrigins = new Set(
 	sourceProviders.flatMap((provider) => (
 		(provider.origins ?? []).map((entry) => entry.origin)
-	)),
+	))
 )
 
 export const handle: Handle = async ({
@@ -20,7 +20,7 @@ export const handle: Handle = async ({
 	if (!event.url.pathname.startsWith(PROXY_PATH)) return resolve(event)
 
 	const url = new URL(
-		decodeURIComponent(event.url.pathname.replace(PROXY_PATH, '')) + event.url.search,
+		decodeURIComponent(event.url.pathname.replace(PROXY_PATH, '')) + event.url.search
 	)
 
 	if (!allowlistedProxyOrigins.has(url.origin)) throw error(403, 'Request Forbidden.')

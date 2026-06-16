@@ -371,21 +371,21 @@ export const ensRegistrationStatusByStatus = Object.fromEntries(
 	ensRegistrationStatuses.map((row) => [
 		row.status,
 		row,
-	]),
+	])
 )
 
 export const ensTextRecordLabelByKey = Object.fromEntries(
 	ensTextRecordLabels.map((row) => [
 		row.key,
 		row,
-	]),
+	])
 )
 
 export const ensCoinTypeLabelByKey = Object.fromEntries(
 	ensCoinTypeLabels.map((row) => [
 		row.key,
 		row,
-	]),
+	])
 )
 
 export const ensTextRecordDisplayRank = Object.fromEntries(
@@ -395,5 +395,5 @@ export const ensTextRecordDisplayRank = Object.fromEntries(
 			key,
 			rank,
 		},
-	]),
+	])
 )

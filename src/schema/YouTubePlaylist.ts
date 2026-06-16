@@ -46,12 +46,6 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'itemCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
 			name: '$$timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.YouTubePlaylist_Timestamp,

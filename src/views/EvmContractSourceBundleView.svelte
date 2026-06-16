@@ -17,9 +17,10 @@
 	let {
 		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
-				...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
-			address: selector.address,
-			}),
+			caip2Namespace: selector.$contract.$network.caip2.namespace,
+			caip2Reference: selector.$contract.$network.caip2.reference,
+			address: selector.$contract.address,
+		}),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -41,12 +42,12 @@
 		never
 	> = $props()
 
-	const sourceBundle = subscribe(EntityType.EvmContractSourceBundle,
+	const sourceBundle = $derived(subscribe(EntityType.EvmContractSourceBundle,
 		selector,
 		({ sources: [
 				Source.Sourcify_Rest,
 			], fields: { ...(open && ({ files: true })) } }),
-	)
+	))
 
 
 	// Components

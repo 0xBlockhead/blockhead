@@ -4,10 +4,9 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	moneroDaemonDefaultRpcUrl,
 	moneroMainnetRpcEndpoints,
-} from '$/constants/MoneroNetwork.ts'
-import { caip2ByNetworkSlug } from '$/constants/Network.ts'
+} from '$/sources/MoneroDaemonRpc/index.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -31,18 +30,17 @@ import { MoneroStealthOutputSelector } from '$/schema/MoneroStealthOutput.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
-const moneroMainnetCaip2 = caip2ByNetworkSlug.monero
+const moneroMainnetCaip2 = networkBySlug.monero.caip2
 
 const assertMoneroMainnet = (network: NetworkId) => {
-	if (stringify(network) !== stringify({ caip2: moneroMainnetCaip2 })) {
+	if (stringify(network) !== stringify({ caip2: moneroMainnetCaip2 }))
 		throw new Error('MoneroDaemonRpc_JsonRpc: unsupported network')
-	}
 }
 
 const moneroTransactionOutputFields = (
 	transaction: MoneroRpcTransaction,
 	output: MoneroRpcTransactionOutput,
-	outputIndex: number,
+	outputIndex: number
 ) => ({
 	...(output.target.key != null && {
 		publicKey: output.target.key,
@@ -61,7 +59,7 @@ const moneroKeyImageFields = (
 		txHash: string
 	},
 	input: MoneroRpcTransactionInput,
-	inputIndex: number,
+	inputIndex: number
 ) => ({
 	...(input.key != null && {
 		$ring: {
@@ -78,7 +76,7 @@ const moneroKeyImageFields = (
 
 const moneroRingMemberFields = (
 	input: MoneroRpcTransactionInput,
-	memberIndex: number,
+	memberIndex: number
 ) => (
 	input.key?.key_offsets[memberIndex] == null ?
 		{}
@@ -90,7 +88,7 @@ const moneroRingMemberFields = (
 
 const moneroTransactionFields = (
 	network: NetworkId,
-	transaction: MoneroRpcTransaction,
+	transaction: MoneroRpcTransaction
 ) => ({
 	...(!transaction.in_pool && {
 		$block: {
@@ -111,25 +109,25 @@ const moneroTransactionFields = (
 				[]
 			:
 				[
-				{
-					[EntityMetaKey.Selector]: {
-						$transaction: {
-							$network: network,
-							txHash: transaction.tx_hash,
+					{
+						[EntityMetaKey.Selector]: {
+							$transaction: {
+								$network: network,
+								txHash: transaction.tx_hash,
+							},
+							inputIndex,
+							keyImage: input.key.k_image,
 						},
-						inputIndex,
-						keyImage: input.key.k_image,
-					},
-					...moneroKeyImageFields(
-						{
-							$network: network,
-							txHash: transaction.tx_hash,
-						},
-						input,
-						inputIndex,
+						...moneroKeyImageFields(
+							{
+								$network: network,
+								txHash: transaction.tx_hash,
+							},
+							input,
+							inputIndex
 					),
-				},
-			]
+					},
+				]
 		)),
 		$$stealthOutputs: transaction.decoded_json.vout.map((output, outputIndex) => ({
 			[EntityMetaKey.Selector]: {
@@ -142,7 +140,7 @@ const moneroTransactionFields = (
 			...moneroTransactionOutputFields(
 				transaction,
 				output,
-				outputIndex,
+				outputIndex
 			),
 		})),
 	}),
@@ -155,12 +153,11 @@ const getMoneroTransaction = async ({ $network, txHash }: {
 	assertMoneroMainnet($network)
 	const { getTransactions } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 	const transaction = (await getTransactions({
-		rpcUrl: moneroDaemonDefaultRpcUrl,
+		rpcUrl: moneroMainnetRpcEndpoints[0].url,
 		txHashes: [txHash],
 	})).txs.at(0)
-	if (transaction == null) {
+	if (transaction == null)
 		throw new Error(`MoneroDaemonRpc_JsonRpc: transaction not found for hash ${txHash}`)
-	}
 	return transaction
 }
 
@@ -180,13 +177,13 @@ export default {
 						rpcEndpoints: [...moneroMainnetRpcEndpoints],
 					}
 				}
-			}
+			},
 		})({
-				fields: {
-					$network: (network) => network.$network,
-					rpcEndpoints: (network) => network.rpcEndpoints,
-				},
-			}),
+			fields: {
+				$network: (network) => network.$network,
+				rpcEndpoints: (network) => network.rpcEndpoints,
+			},
+		}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroBlock,
@@ -195,7 +192,7 @@ export default {
 					assertMoneroMainnet($network)
 					const { getBlock } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const block = await getBlock({
-						rpcUrl: moneroDaemonDefaultRpcUrl,
+						rpcUrl: moneroMainnetRpcEndpoints[0].url,
 						height: height,
 					})
 					return {
@@ -230,17 +227,17 @@ export default {
 						})),
 					}
 				}
-			}
+			},
 		})({
-				fields: {
-					hash: (block) => block.hash,
-					$parent: (block) => block.$parent,
-					timestampMs: (block) => block.timestampMs,
-					difficulty: (block) => block.difficulty,
-					weightBytes: (block) => block.weightBytes,
-					$$transactions: (block) => block.$$transactions,
-				},
-			}),
+			fields: {
+				hash: (block) => block.hash,
+				$parent: (block) => block.$parent,
+				timestampMs: (block) => block.timestampMs,
+				difficulty: (block) => block.difficulty,
+				weightBytes: (block) => block.weightBytes,
+				$$transactions: (block) => block.$$transactions,
+			},
+		}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroTransaction,
@@ -248,20 +245,20 @@ export default {
 				[MoneroTransactionSelector.NetworkTxHash]: async (entitySelector) => (
 					moneroTransactionFields(
 						entitySelector.$network,
-						await getMoneroTransaction(entitySelector),
+						await getMoneroTransaction(entitySelector)
 					)
 				)
-			}
+			},
 		})({
-				fields: {
-					$block: (transaction) => transaction.$block,
-					version: (transaction) => transaction.version,
-					unlockTime: (transaction) => transaction.unlockTime,
-					feeAtomicUnits: (transaction) => transaction.feeAtomicUnits,
-					$$keyImages: (transaction) => transaction.$$keyImages ?? [],
-					$$stealthOutputs: (transaction) => transaction.$$stealthOutputs ?? [],
-				},
-			}),
+			fields: {
+				$block: (transaction) => transaction.$block,
+				version: (transaction) => transaction.version,
+				unlockTime: (transaction) => transaction.unlockTime,
+				feeAtomicUnits: (transaction) => transaction.feeAtomicUnits,
+				$$keyImages: (transaction) => transaction.$$keyImages ?? [],
+				$$stealthOutputs: (transaction) => transaction.$$stealthOutputs ?? [],
+			},
+		}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroKeyImage,
@@ -269,21 +266,20 @@ export default {
 				[MoneroKeyImageSelector.MoneroTransactionInputIndexKeyImage]: async ({ $transaction, inputIndex, keyImage }) => {
 					const transaction = await getMoneroTransaction($transaction)
 					const input = transaction.decoded_json?.vin[inputIndex]
-					if (input?.key == null || input.key.k_image !== keyImage) {
+					if (input?.key == null || input.key.k_image !== keyImage)
 						throw new Error(`MoneroDaemonRpc_JsonRpc: key image ${keyImage} not found for ${$transaction.txHash}`)
-					}
 					return moneroKeyImageFields(
 						$transaction,
 						input,
-						inputIndex,
+						inputIndex
 					)
 				}
-			}
+			},
 		})({
-				fields: {
-					$ring: (keyImage) => keyImage.$ring,
-				},
-			}),
+			fields: {
+				$ring: (keyImage) => keyImage.$ring,
+			},
+		}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRing,
@@ -291,9 +287,8 @@ export default {
 				[MoneroRingSelector.MoneroKeyImage]: async ({ $keyImage }) => {
 					const transaction = await getMoneroTransaction($keyImage.$transaction)
 					const input = transaction.decoded_json?.vin[$keyImage.inputIndex]
-					if (input?.key == null || input.key.k_image !== $keyImage.keyImage) {
+					if (input?.key == null || input.key.k_image !== $keyImage.keyImage)
 						throw new Error(`MoneroDaemonRpc_JsonRpc: ring not found for key image ${$keyImage.keyImage}`)
-					}
 					return {
 						$$members: input.key.key_offsets.map((_keyOffset, memberIndex) => ({
 							[EntityMetaKey.Selector]: {
@@ -304,17 +299,17 @@ export default {
 							},
 							...moneroRingMemberFields(
 								input,
-								memberIndex,
+								memberIndex
 							),
 						})),
 					}
 				}
-			}
+			},
 		})({
-				fields: {
-					$$members: (ring) => ring.$$members,
-				},
-			}),
+			fields: {
+				$$members: (ring) => ring.$$members,
+			},
+		}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRingMember,
@@ -322,20 +317,19 @@ export default {
 				[MoneroRingMemberSelector.MoneroRingMemberIndex]: async ({ $ring, memberIndex }) => {
 					const transaction = await getMoneroTransaction($ring.$keyImage.$transaction)
 					const input = transaction.decoded_json?.vin[$ring.$keyImage.inputIndex]
-					if (input?.key == null || input.key.k_image !== $ring.$keyImage.keyImage) {
+					if (input?.key == null || input.key.k_image !== $ring.$keyImage.keyImage)
 						throw new Error(`MoneroDaemonRpc_JsonRpc: ring member ${memberIndex.toString()} not found for key image ${$ring.$keyImage.keyImage}`)
-					}
 					return moneroRingMemberFields(
 						input,
-						memberIndex,
+						memberIndex
 					)
 				}
-			}
+			},
 		})({
-				fields: {
-					globalOutputIndex: (ringMember) => ringMember.globalOutputIndex,
-				},
-			}),
+			fields: {
+				globalOutputIndex: (ringMember) => ringMember.globalOutputIndex,
+			},
+		}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroStealthOutput,
@@ -343,22 +337,21 @@ export default {
 				[MoneroStealthOutputSelector.MoneroTransactionOutputIndex]: async ({ $transaction, outputIndex }) => {
 					const transaction = await getMoneroTransaction($transaction)
 					const output = transaction.decoded_json?.vout[outputIndex]
-					if (output == null) {
+					if (output == null)
 						throw new Error(`MoneroDaemonRpc_JsonRpc: stealth output ${outputIndex.toString()} not found for ${$transaction.txHash}`)
-					}
 					return moneroTransactionOutputFields(
 						transaction,
 						output,
-						outputIndex,
+						outputIndex
 					)
 				}
-			}
+			},
 		})({
-				fields: {
-					publicKey: (output) => output.publicKey,
-					commitment: (output) => output.commitment,
-				},
-			}),
+			fields: {
+				publicKey: (output) => output.publicKey,
+				commitment: (output) => output.commitment,
+			},
+		}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
@@ -367,7 +360,7 @@ export default {
 					assertMoneroMainnet(entitySelector.$network)
 					const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const info = await getInfo({
-						rpcUrl: moneroDaemonDefaultRpcUrl,
+						rpcUrl: moneroMainnetRpcEndpoints[0].url,
 					})
 					return [
 						{
@@ -425,12 +418,12 @@ export default {
 						},
 					]
 				}
-			}
+			},
 		})({
-				fields: {
-					$$timestamps: (timestamps) => timestamps,
-				},
-			}),
+			fields: {
+				$$timestamps: (timestamps) => timestamps,
+			},
+		}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
@@ -439,13 +432,13 @@ export default {
 					assertMoneroMainnet(entitySelector.$network)
 					const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 					const info = await getInfo({
-						rpcUrl: moneroDaemonDefaultRpcUrl,
+						rpcUrl: moneroMainnetRpcEndpoints[0].url,
 					})
 					const headBlockHeight = BigInt(info.height - 1)
 					return Array.from({
 						length: Math.min(
 							Number(headBlockHeight + 1n),
-							resolverContextRowLimit(context),
+							resolverContextRowLimit(context)
 						),
 					}, (_value, blockOffset) => ({
 						[EntityMetaKey.Selector]: {
@@ -457,12 +450,12 @@ export default {
 						},
 					}))
 				}
-			}
+			},
 		})({
-				fields: {
-					$$blocks: (blocks) => blocks,
-				},
-			}),
+			fields: {
+				$$blocks: (blocks) => blocks,
+			},
+		}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRing,
@@ -470,9 +463,8 @@ export default {
 				[MoneroRingSelector.MoneroKeyImage]: async ({ $keyImage }) => {
 					const transaction = await getMoneroTransaction($keyImage.$transaction)
 					const input = transaction.decoded_json?.vin[$keyImage.inputIndex]
-					if (input?.key == null || input.key.k_image !== $keyImage.keyImage) {
+					if (input?.key == null || input.key.k_image !== $keyImage.keyImage)
 						throw new Error(`MoneroDaemonRpc_JsonRpc: ring not found for key image ${$keyImage.keyImage}`)
-					}
 					return input.key.key_offsets.map((_keyOffset, memberIndex) => ({
 						[EntityMetaKey.Selector]: {
 							$ring: {
@@ -482,15 +474,15 @@ export default {
 						},
 						...moneroRingMemberFields(
 							input,
-							memberIndex,
+							memberIndex
 						),
 					}))
 				}
-			}
+			},
 		})({
-				fields: {
-					$$members: (members) => members,
-				},
-			}),
+			fields: {
+				$$members: (members) => members,
+			},
+		}),
 	],
 }

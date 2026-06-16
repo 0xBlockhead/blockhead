@@ -23,7 +23,7 @@ const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: s
 
 const heliusTransactionFields = (
 	network: { caip2: { namespace: string; reference: string } } | { slug: string },
-	transaction: HeliusEnhancedTransaction,
+	transaction: HeliusEnhancedTransaction
 ) => ({
 	$block: {
 		[EntityMetaKey.Selector]: {
@@ -51,7 +51,7 @@ const heliusInstructionRows = (
 		$network: { caip2: { namespace: string; reference: string } } | { slug: string }
 		signature: string
 	},
-	transaction: HeliusEnhancedTransaction,
+	transaction: HeliusEnhancedTransaction
 ) => (
 	(transaction.instructions ?? []).map((instruction, instructionIndex) => ({
 		[EntityMetaKey.Selector]: {
@@ -84,7 +84,7 @@ const getTransaction = async (
 		$network: { caip2: { namespace: string; reference: string } } | { slug: string }
 		signature: string
 	},
-	context: SourceResolverContext<Source.Helius_Rest>,
+	context: SourceResolverContext<Source.Helius_Rest>
 ) => {
 	assertSolanaMainnet($network)
 	const { getEnhancedTransactions } = await import('$/sources/Helius/Rest/queries.ts')
@@ -106,16 +106,16 @@ export default {
 				[SolanaTransactionSelector.NetworkSignature]: async (entitySelector, context) => {
 				const transaction = await getTransaction(
 					entitySelector,
-					context,
+					context
 				)
 				return {
 					...heliusTransactionFields(
 						entitySelector.$network,
-						transaction,
+						transaction
 					),
 					$$instructions: heliusInstructionRows(
 						entitySelector,
-						transaction,
+						transaction
 					),
 				}
 			}
@@ -139,11 +139,11 @@ export default {
 				[SolanaInstructionSelector.SolanaTransactionInstructionPath]: async ({ $transaction, instructionPath }, context) => {
 				const transaction = await getTransaction(
 					$transaction,
-					context,
+					context
 				)
 				const instruction = heliusInstructionRows(
 					$transaction,
-					transaction,
+					transaction
 				).find((instruction) => (
 					instruction[EntityMetaKey.Selector].instructionPath.length === instructionPath.length
 					&& instruction[EntityMetaKey.Selector].instructionPath.every((index, indexIndex) => index === instructionPath[indexIndex])
@@ -168,8 +168,8 @@ export default {
 					entitySelector,
 					await getTransaction(
 						entitySelector,
-						context,
-					),
+						context
+					)
 				)
 			)
 			}

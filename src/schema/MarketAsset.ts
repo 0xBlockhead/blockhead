@@ -44,7 +44,7 @@ export const marketAsset = type.or(
 					}),
 					address: EvmAddress,
 				}),
-			}),
+			})
 		),
 	}),
 	type({
@@ -52,5 +52,5 @@ export const marketAsset = type.or(
 		$currency: type({
 			iso4217: type.valueOf(Iso4217),
 		}),
-	}),
+	})
 )

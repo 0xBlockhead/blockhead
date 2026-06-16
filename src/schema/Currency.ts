@@ -7,13 +7,14 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { marketCatalogFieldSources } from '$/constants/Market.ts'
-import { Source } from '$/sources/Source.ts'
+import {
+	Source,
+	marketCatalogFieldSources,
+} from '$/sources/Source.ts'
 
 export enum CurrencySelector {
 	Iso4217 = 'iso4217',
 }
-
 
 
 export default {

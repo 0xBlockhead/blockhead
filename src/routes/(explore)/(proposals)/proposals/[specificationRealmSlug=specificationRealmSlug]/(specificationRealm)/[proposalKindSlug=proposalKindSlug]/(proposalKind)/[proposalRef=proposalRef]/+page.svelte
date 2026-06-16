@@ -34,7 +34,7 @@
 		})(),
 	)
 
-	const entitySelector = $derived(
+	const selector = $derived(
 		realm != null && category != null && proposalCategory != null
 		&& proposalNumber != null
 		&& category === proposalCategory
@@ -56,9 +56,9 @@
 
 
 <Page>
-	{#if entitySelector !== undefined}
+	{#if selector !== undefined}
 		<ProposalView
-			selector={entitySelector}
+			selector={selector}
 			open
 		/>
 	{:else}

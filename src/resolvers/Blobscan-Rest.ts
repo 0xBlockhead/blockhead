@@ -13,7 +13,7 @@ const blobscanChainId = async (network: { caip2: { reference: string } }) => {
 	const chainId = Number(network.caip2.reference)
 	if (blobscanRestApiOriginForChainId(chainId) == null) {
 		throw new Error(
-			`Blobscan_Rest: unsupported chain ${String(chainId)}`,
+			`Blobscan_Rest: unsupported chain ${String(chainId)}`
 		)
 	}
 	return chainId

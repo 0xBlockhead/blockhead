@@ -36,7 +36,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 	const publicRpcUrlRaw = await publicJsonRpcHttpUrlForChainE2e(chainId)
 	expect(
 		publicRpcUrlRaw,
-		`no HTTP JSON-RPC for chain ${String(chainId)} (ExecutionEndpoints / Chainlist)`,
+		`no HTTP JSON-RPC for chain ${String(chainId)} (ExecutionEndpoints / Chainlist)`
 	).not.toBeNull()
 	if (publicRpcUrlRaw == null) {
 		throw new Error(`no HTTP JSON-RPC for chain ${String(chainId)} (ExecutionEndpoints / Chainlist)`)
@@ -46,7 +46,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		page,
 		publicRpcUrl,
 		3_000,
-		{ attempts: 8, betweenAttemptsMs: 4_000 },
+		{ attempts: 8, betweenAttemptsMs: 4_000 }
 	)
 	expect(
 		preflight.ok,
@@ -55,7 +55,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		: 'detail' in preflight && preflight.detail != null ?
 			jsonStringifyForExpectMessage(preflight.detail)
 		:
-			jsonStringifyForExpectMessage(preflight),
+			jsonStringifyForExpectMessage(preflight)
 	).toBe(true)
 
 	const blockscoutToBasescanV2: string[] = []
@@ -89,7 +89,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		await assertMainSettled(page, 120_000)
 
 		await expect(page.locator('#network-summary-head-block')).toBeVisible(
-			{ timeout: 45_000 },
+			{ timeout: 45_000 }
 		)
 		const headBaseline = await readNetworkHeadBlockBigint(page)
 		expect(headBaseline, 'head after settle').not.toBeNull()
@@ -106,7 +106,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 			{
 				timeout: 120_000,
 				intervals: [1_000, 2_000, 2_000, 3_000, 3_000, 5_000],
-			},
+			}
 		).toBe(true)
 
 		const head0 = await readNetworkHeadBlockBigint(page)
@@ -121,7 +121,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 			{
 				timeout: 120_000,
 				intervals: [2_000, 2_000, 3_000, 4_000, 5_000],
-			},
+			}
 		).toBe(true)
 
 		const head1 = await readNetworkHeadBlockBigint(page)
@@ -141,27 +141,27 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 			{
 				timeout: 120_000,
 				intervals: [1_000, 2_000, 2_000, 3_000, 4_000],
-			},
+			}
 		).toBe(true)
 
 		const numsAfterHeadTick = await readNetworkCarouselBlockNumbers(page)
 		expect(numsAfterHeadTick.length > 0).toBe(true)
 		const maxCarousel = numsAfterHeadTick.reduce(
 			(a, b) => (a > b ? a : b),
-			0n,
+			0n
 		)
 		expect(maxCarousel >= (head1 ?? 0n)).toBe(true)
 
 		await expect(
 			page.locator(
-				'.network-carousel-execution[data-scroll-container~="layout-carousel"] a[href*="/tx/"]',
-			).first(),
+				'.network-carousel-execution[data-scroll-container~="layout-carousel"] a[href*="/tx/"]'
+			).first()
 		).toBeVisible({ timeout: 90_000 })
 
 		const txBefore = await readTxHrefsJoin(page)
 		expect(
 			txBefore.length,
-			'expected transaction links after tx carousel row is visible',
+			'expected transaction links after tx carousel row is visible'
 		).toBeGreaterThan(0)
 
 		await expect.poll(
@@ -169,13 +169,13 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 			{
 				timeout: 90_000,
 				intervals: [2_000, 3_000, 5_000, 5_000],
-			},
+			}
 		).toBe(true)
 
 		const carouselBeforeSecondAdvance = await readNetworkCarouselBlockNumbers(page)
 		const topBefore = carouselBeforeSecondAdvance.reduce(
 			(a, b) => (a > b ? a : b),
-			carouselBeforeSecondAdvance[0] ?? 0n,
+			carouselBeforeSecondAdvance[0] ?? 0n
 		)
 
 		await expect.poll(
@@ -186,7 +186,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 			{
 				timeout: 120_000,
 				intervals: [2_000, 3_000, 4_000, 5_000],
-			},
+			}
 		).toBe(true)
 
 		const head2 = await readNetworkHeadBlockBigint(page)
@@ -203,18 +203,18 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 			{
 				timeout: 120_000,
 				intervals: [1_000, 2_000, 3_000, 4_000],
-			},
+			}
 		).toBe(true)
 
 		expect(
 			pageErrors(issues),
-			pageErrors(issues).join('\n'),
+			pageErrors(issues).join('\n')
 		).toEqual([])
 
 		if (enforceBasescanNotViaApiProxy) {
 			expect(
 				blockscoutToBasescanV2,
-				`Basescan must not be called as Blockscout v2: ${blockscoutToBasescanV2.join('\n')}`,
+				`Basescan must not be called as Blockscout v2: ${blockscoutToBasescanV2.join('\n')}`
 			).toEqual([])
 		}
 	} finally {

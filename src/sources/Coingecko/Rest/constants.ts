@@ -2038,7 +2038,7 @@ export const idByCoinId: Partial<Record<CoinId, string>> = Object.fromEntries(
 				[]
 			:
 				[[entry.coinId, entry.wireId] as const]
-		)),
+		))
 )
 
 export const coinIdByWireId: Partial<Record<string, CoinId>> = Object.fromEntries(
@@ -2048,7 +2048,7 @@ export const coinIdByWireId: Partial<Record<string, CoinId>> = Object.fromEntrie
 				[]
 			:
 				[[entry.wireId, entry.coinId] as const]
-		)),
+		))
 )
 
 export const decimalsByCoinId: Partial<Record<CoinId, number>> = Object.fromEntries(
@@ -2058,7 +2058,7 @@ export const decimalsByCoinId: Partial<Record<CoinId, number>> = Object.fromEntr
 				[]
 			:
 				[[entry.coinId, entry.decimals] as const]
-		)),
+		))
 )
 
 export const coingeckoCatalogCoinIds: readonly CoinId[] = catalog.flatMap((entry) => (

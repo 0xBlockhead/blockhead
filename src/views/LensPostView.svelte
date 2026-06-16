@@ -38,14 +38,31 @@
 		>
 	> = $props()
 
-	const lensPost = subscribe(EntityType.LensPost,
+	const lensPost = $derived(subscribe(EntityType.LensPost,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Lens_Graphql,
-			], fields: { text: true, timestamp: true, isEdited: true, isDeleted: true, commentCount: true, repostCount: true, quoteCount: true, bookmarkCount: true, collectCount: true, reactionCount: true, $$timestamps: ({ sources: [
-					Source.Lens_Graphql,
-				], limit: 1 }), $author: true, $commentOn: true, $quoteOf: true, $repostOf: true, $root: true } }),
-	)
+			],
+			fields: {
+				text: true,
+				timestamp: true,
+				isEdited: true,
+				isDeleted: true,
+				$$timestamps: {
+					sources: [
+						Source.Lens_Graphql,
+					],
+					limit: 1,
+				},
+				$author: true,
+				$commentOn: true,
+				$quoteOf: true,
+				$repostOf: true,
+				$root: true,
+			},
+		},
+	))
 
 
 	// Components
@@ -225,27 +242,27 @@
 							metrics={[
 								{
 									label: 'Comments',
-									value: lensPost.fields.$$timestamps[0]?.commentCount ?? lensPost.fields.commentCount,
+									value: lensPost.fields.$$timestamps.values.at(0)?.commentCount,
 								},
 								{
 									label: 'Reposts',
-									value: lensPost.fields.$$timestamps[0]?.repostCount ?? lensPost.fields.repostCount,
+									value: lensPost.fields.$$timestamps.values.at(0)?.repostCount,
 								},
 								{
 									label: 'Quotes',
-									value: lensPost.fields.$$timestamps[0]?.quoteCount ?? lensPost.fields.quoteCount,
+									value: lensPost.fields.$$timestamps.values.at(0)?.quoteCount,
 								},
 								{
 									label: 'Bookmarks',
-									value: lensPost.fields.$$timestamps[0]?.bookmarkCount ?? lensPost.fields.bookmarkCount,
+									value: lensPost.fields.$$timestamps.values.at(0)?.bookmarkCount,
 								},
 								{
 									label: 'Collects',
-									value: lensPost.fields.$$timestamps[0]?.collectCount ?? lensPost.fields.collectCount,
+									value: lensPost.fields.$$timestamps.values.at(0)?.collectCount,
 								},
 								{
 									label: 'Reactions',
-									value: lensPost.fields.$$timestamps[0]?.reactionCount ?? lensPost.fields.reactionCount,
+									value: lensPost.fields.$$timestamps.values.at(0)?.reactionCount,
 								},
 							]}
 						/>
@@ -267,7 +284,6 @@
 						collapsibleTabsSections([
 							{ id: 'lens-post-text', label: 'Text' },
 							{ id: 'lens-post-comments', label: 'Comments' },
-							{ id: 'lens-post-record', label: 'Record' },
 							{ id: 'metric-snapshots', label: 'Metrics' },
 							{ id: 'lens-post-more', label: 'More' },
 						])
@@ -275,7 +291,6 @@
 						collapsibleTabsSections([
 							{ id: 'lens-post-text', label: 'Text' },
 							{ id: 'lens-post-comments', label: 'Comments' },
-							{ id: 'lens-post-record', label: 'Record' },
 							{ id: 'metric-snapshots', label: 'Metrics' },
 						])
 				)}
@@ -322,9 +337,6 @@
 					open={true}
 					title="Comments"
 				/>
-			{/snippet}
-
-			{#snippet SectionLensPostRecord()}
 			{/snippet}
 
 			{#snippet SectionMetricSnapshots()}

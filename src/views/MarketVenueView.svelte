@@ -53,7 +53,7 @@
 <EntityView
 	entityType={EntityType.MarketVenue}
 	entitySelector={selector}
-	href={href}
+	{href}
 	title={selector.marketVenueId}
 	{layout}
 	bind:open

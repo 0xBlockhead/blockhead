@@ -1,7 +1,7 @@
 import { getJson } from '$/lib/http.ts'
+import { atprotoAppViewBySlug } from '$/constants/AtprotoAppView.ts'
 import { bskyPublicXrpcGet } from '$/sources/AtprotoBsky/Rest/client.ts'
 import AtprotoBsky from '$/sources/AtprotoBsky/index.ts'
-import { publicAppViewXrpcBase } from '$/sources/AtprotoBsky/Rest/constants.ts'
 import type {
 	BskyAppViewGetAuthorFeedResponse,
 	BskyAppViewGetPostThreadResponse,
@@ -14,7 +14,7 @@ import type {
 export const getProfile = async (actor: string) => (
 	bskyPublicXrpcGet<BskyAppViewProfile>(
 		'/app.bsky.actor.getProfile',
-		{ actor },
+		{ actor }
 	)
 )
 
@@ -23,10 +23,13 @@ export const getPosts = async (uris: string[]) => (
 		{ posts: [] } satisfies BskyAppViewGetPostsResponse
 	:
 		getJson<BskyAppViewGetPostsResponse>(
-		`${publicAppViewXrpcBase}/app.bsky.feed.getPosts?${(
-			new URLSearchParams(uris.map((u) => ['uris', u])).toString()
-		)}`,
-		{ origins: AtprotoBsky.origins  },
+			`${atprotoAppViewBySlug.bsky_public.origin}${atprotoAppViewBySlug.bsky_public.xrpcPath}/app.bsky.feed.getPosts?${(
+			new URLSearchParams(uris.map((u) => [
+				'uris',
+				u,
+			])).toString()
+			)}`,
+			{ origins: AtprotoBsky.origins  }
 	)
 )
 
@@ -38,7 +41,7 @@ export const getPostThread = async (
 	}: {
 		depth?: number
 		parentHeight?: number
-	} = {},
+	} = {}
 ) => (
 	bskyPublicXrpcGet<BskyAppViewGetPostThreadResponse>(
 		'/app.bsky.feed.getPostThread',
@@ -46,7 +49,7 @@ export const getPostThread = async (
 			uri,
 			depth,
 			parentHeight,
-		},
+		}
 	)
 )
 
@@ -64,11 +67,11 @@ export const getAuthorFeed = async ({
 	bskyPublicXrpcGet<BskyAppViewGetAuthorFeedResponse>(
 		'/app.bsky.feed.getAuthorFeed',
 		{
-				actor,
-				limit,
-				includePins: String(includePins),
-				cursor: cursor == null || cursor === '' ? undefined : cursor,
-			},
+			actor,
+			limit,
+			includePins: String(includePins),
+			cursor: cursor == null || cursor === '' ? undefined : cursor,
+		}
 	)
 )
 
@@ -84,7 +87,7 @@ export const searchActorsTypeahead = async ({
 		{
 			limit,
 			q,
-		},
+		}
 	)
 )
 
@@ -100,6 +103,6 @@ export const searchPosts = async ({
 		{
 			limit,
 			q,
-		},
+		}
 	)
 )

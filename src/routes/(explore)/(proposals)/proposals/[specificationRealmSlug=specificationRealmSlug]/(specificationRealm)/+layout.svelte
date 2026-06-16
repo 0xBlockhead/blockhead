@@ -14,7 +14,7 @@
 		params,
 	} = $props()
 
-	const entitySelector = $derived(
+	const selector = $derived(
 		params.specificationRealmSlug in specificationRealmBySlug ?
 			{
 				realm: specificationRealmBySlug[params.specificationRealmSlug]!.id,
@@ -31,16 +31,16 @@
 </script>
 
 
-{#if entitySelector !== undefined}
+{#if selector !== undefined}
 	<ParentPageCollapsible
 		href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
 			specificationRealmSlug: params.specificationRealmSlug,
 		})}
-		id={stringify(entitySelector)}
+		id={stringify(selector)}
 	>
 		{#snippet Summary({ open: _open })}
 			<SpecificationRealmView
-				selector={entitySelector}
+				selector={selector}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

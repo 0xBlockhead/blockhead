@@ -60,7 +60,7 @@ test.describe('/network/[caip2Namespace]:[caip2Reference]/tx/[transactionId]', (
 
 		await step(page.goto(
 			`/network/eip155:1/tx/${SAMPLE_TOKEN_TRANSFER_TX}`,
-			{ waitUntil: 'load', timeout: 120_000 },
+			{ waitUntil: 'load', timeout: 120_000 }
 		))
 
 		await step(expect(page.locator('[data-tx-hash]')).toBeAttached({
@@ -78,7 +78,7 @@ test.describe('/network/[caip2Namespace]:[caip2Reference]/tx/[transactionId]', (
 		await step(expect(
 			page.locator('section[data-scroll-marker-label="Movements"]')
 				.or(page.locator('section[data-scroll-marker-label="Events"]'))
-				.first(),
+				.first()
 		).toBeAttached({
 			timeout: 120_000,
 		}))

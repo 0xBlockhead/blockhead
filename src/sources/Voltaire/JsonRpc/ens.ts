@@ -283,7 +283,7 @@ const resolveContentHash = async ({
 
 const resolverAbiJsonTextFromWire = (
 	contentType: bigint,
-	data: Uint8Array,
+	data: Uint8Array
 ) => {
 	if (data.length === 0) return null
 	if (contentType === ensResolverAbiContentTypeJson) {
@@ -381,7 +381,7 @@ const resolveMulticoinAddr = async ({
 
 const reverseNode = (address: `0x${string}`) => (
 	bytes32FromNamehash(
-		namehash(`${address.toLowerCase().slice(2).padStart(40, '0')}.addr.reverse`),
+		namehash(`${address.toLowerCase().slice(2).padStart(40, '0')}.addr.reverse`)
 	)
 )
 
@@ -481,7 +481,7 @@ export const resolveEnsForwardForRpcUrl = async ({
 						key,
 					}),
 				] as const
-			)),
+			))
 		)
 			.then((entries) => Object.fromEntries(entries.filter(([, value]) => value !== ''))),
 		resolveContentHash({
@@ -508,11 +508,11 @@ export const resolveEnsForwardForRpcUrl = async ({
 						coinType,
 					}),
 				] as const
-			)),
+			))
 		)
 			.then((entries) => (
 				Object.fromEntries(
-					entries.filter((entry): entry is [string, string] => entry[1] != null),
+					entries.filter((entry): entry is [string, string] => entry[1] != null)
 				)
 			)),
 	])

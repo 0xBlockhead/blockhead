@@ -4,6 +4,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
@@ -25,7 +26,7 @@
 		formatDecodedParamValue,
 	} from '$/lib/calldata-decode.ts'
 
-	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
+	import { normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const emptyTopicHex: `0x${string}` = '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -34,12 +35,12 @@
 	// (Derived)
 	const topic0Hex = $derived(
 		topics[0]?.startsWith('0x') ?
-			normalizeEvmTopicHex(topics[0] as `0x${string}`)
+			normalizeEvmTopicHex(topics[0])
 		:
 			null,
 	)
 
-	const topic = subscribe(EntityType.EvmTopic,
+	const topic = $derived(subscribe(EntityType.EvmTopic,
 		(
 			topic0Hex != null ?
 				{ hex: topic0Hex }
@@ -49,9 +50,9 @@
 		({ sources: [
 				Source.Openchain_Rest,
 			], fields: { signatures: true } }),
-	)
+	))
 
-	const emitterContract = subscribe(EntityType.EvmContract,
+	const emitterContract = $derived(subscribe(EntityType.EvmContract,
 		emitterContractId ?? {
 			$network: { caip2: { namespace: 'eip155' as const, reference: String(0) } },
 			address: '0x0000000000000000000000000000000000000000',
@@ -65,7 +66,7 @@
 				:
 					[]
 			), fields: { ...(open && emitterContractId && ({ abi: true })) } }),
-	)
+	))
 
 
 	const decodedLog = $derived.by(() => {
@@ -101,7 +102,9 @@
 			<span data-text="annotation">Topic 0</span>
 			<a
 				data-text="font-monospace"
-				href={getEvmTopicPath(topic0Hex)}
+				href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+					hex: topic0Hex,
+				})}
 			>
 				<TruncatedValue
 					value={topic0Hex}
@@ -115,28 +118,26 @@
 				resource={topic}
 				placeholderText="Loading log topic signatures…"
 			>
-				{#snippet children()}
-					{#if decodedLog}
-						<div data-column="gap-1">
-							<span data-text="annotation">
-								{decodedLog.source === 'contract-abi' ?
-									'Decoded from emitter ABI'
-								:
-									'Decoded from topic catalog'}
-							</span>
-							<code>{decodedLog.signature}</code>
-							{#if decodedLog.decoded.params.length}
-								<ul data-text="muted">
-									{#each decodedLog.decoded.params as param, index (index)}
-										<li>
-											{param.type}: {formatDecodedParamValue(param.type, param.value)}
-										</li>
-									{/each}
-								</ul>
-							{/if}
-						</div>
-					{/if}
-				{/snippet}
+				{#if decodedLog}
+					<div data-column="gap-1">
+						<span data-text="annotation">
+							{decodedLog.source === 'contract-abi' ?
+								'Decoded from emitter ABI'
+							:
+								'Decoded from topic catalog'}
+						</span>
+						<code>{decodedLog.signature}</code>
+						{#if decodedLog.decoded.params.length}
+							<ul data-text="muted">
+								{#each decodedLog.decoded.params as param, index (index)}
+									<li>
+										{param.type}: {formatDecodedParamValue(param.type, param.value)}
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					</div>
+				{/if}
 			</ResourceBoundary>
 		{/if}
 	</div>

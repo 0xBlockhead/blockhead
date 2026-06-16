@@ -1,0 +1,25 @@
+import {
+	describe,
+	expect,
+	it,
+} from 'vitest'
+
+import { MediaTransport, MediaType } from '$/schema/Media.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { mediaFromUrl } from '$/resolvers/media.ts'
+
+describe('mediaFromUrl', () => {
+	it('builds media entity field values from normalized media URLs', () => {
+		expect(mediaFromUrl('ipfs://bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/image.png', MediaType.Image)).toEqual({
+			[EntityMetaKey.Selector]: {
+				url: 'https://ipfs.io/ipfs/bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/image.png',
+			},
+			type: MediaType.Image,
+			transport: MediaTransport.Ipfs,
+		})
+	})
+
+	it('omits invalid media URLs', () => {
+		expect(mediaFromUrl('not-a-media-url', MediaType.Image)).toBeUndefined()
+	})
+})

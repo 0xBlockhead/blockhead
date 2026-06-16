@@ -18,7 +18,7 @@ export const load: PageLoad = ({ params }) => {
 	if (address instanceof arktype.errors) error(404, 'Invalid account address')
 
 	return {
-		entitySelector: {
+		selector: {
 			$network: {
 				caip2: {
 					namespace: params.caip2Namespace,

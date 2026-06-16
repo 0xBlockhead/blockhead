@@ -24,7 +24,7 @@ const profileHandleParam = (idOrUsername: string) => {
  */
 export const getUser = async (idOrUsername: string) => (
 	fxEmbedGet<FxEmbedUserResponse>(
-		`/profile/${encodeURIComponent(profileHandleParam(idOrUsername))}`,
+		`/profile/${encodeURIComponent(profileHandleParam(idOrUsername))}`
 	)
 )
 
@@ -33,7 +33,7 @@ export const getUser = async (idOrUsername: string) => (
  */
 export const getStatus = async (id: string) => (
 	fxEmbedGet<FxEmbedSocialThread>(
-		`/status/${encodeURIComponent(id.trim())}`,
+		`/status/${encodeURIComponent(id.trim())}`
 	)
 )
 
@@ -47,7 +47,7 @@ export const searchStatuses = async (count: number) => (
 			q: 'lang:en -is:retweet',
 			feed: 'latest',
 			count: clampFxEmbedCount(count),
-		},
+		}
 	)
 )
 
@@ -56,12 +56,12 @@ export const searchStatuses = async (count: number) => (
  */
 export const getUserStatuses = async (
 	idOrUsername: string,
-	count: number,
+	count: number
 ) => (
 	fxEmbedGet<FxEmbedSearchResults>(
 		`/profile/${encodeURIComponent(profileHandleParam(idOrUsername))}/statuses`,
 		{
 			count: clampFxEmbedCount(count),
-		},
+		}
 	)
 )

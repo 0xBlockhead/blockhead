@@ -129,11 +129,11 @@ export const blockscoutExplorerOriginByChainId: Partial<Record<number, string>> 
 		.map((entry) => [
 			entry.chainId,
 			`https://${entry.host}`,
-		]),
+		])
 )
 
 export const blockscoutExplorerOriginForChain = (
-	chainId: number,
+	chainId: number
 ): string | undefined => blockscoutExplorerOriginByChainId[chainId]
 
 /** Same predicate Blockscout resolvers use before calling REST v2 list endpoints. */
@@ -173,7 +173,7 @@ export const blockscoutErc4337OperationsSupportedChainIds = [
 ] as const satisfies readonly (typeof blockscoutHostedNetworks)[number]['chainId'][]
 
 const blockscoutErc4337OperationsSupportedChainIdSet = new Set<number>(
-	blockscoutErc4337OperationsSupportedChainIds,
+	blockscoutErc4337OperationsSupportedChainIds
 )
 
 /** `GET …/proxy/account-abstraction/operations` (+ smart-account registry) for this chain. */

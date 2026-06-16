@@ -18,25 +18,53 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.HyperliquidNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { name: true, environment: true, $networkStack: true, $$nativeAssets: true, $$executionEnvironments: true, $$consensusMechanisms: true } }),
+	const network = $derived(
+		subscribe(
+			EntityType.Network,
+			selector.$network,
+			{
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					name: true,
+					environment: true,
+					$networkStack: true,
+					$$nativeAssets: true,
+					$$executionEnvironments: true,
+					$$consensusMechanisms: true,
+				},
+			},
+		),
 	)
 
-	const hyperliquidNetwork = subscribe(EntityType.HyperliquidNetwork,
-		selector,
-		({ sources: [
-				Source.Hyperliquid_JsonRpc,
-				Source.Hyperliquid_Rest,
-			], fields: { rpcEndpoints: true, restEndpoints: true, $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1 }) } }),
+	const hyperliquidNetwork = $derived(
+		subscribe(
+			EntityType.HyperliquidNetwork,
+			selector,
+			{
+				sources: [
+					Source.Hyperliquid_JsonRpc,
+					Source.Hyperliquid_Rest,
+				],
+				fields: {
+					rpcEndpoints: true,
+					restEndpoints: true,
+					$$blocks: {
+						limit: 1,
+					},
+					$$timestamps: {
+						limit: 1,
+					},
+				},
+			},
+		),
 	)
 
 
@@ -67,7 +95,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector}
+	entitySelector={selector.$network}
 	{href}
 	bind:open
 	{layout}
@@ -104,18 +132,18 @@
 		open,
 	})}
 		<dl class="network-summary-head" data-column-item="center">
-				<ResourceBoundary resource={hyperliquidNetwork} placeholderText="Loading head block…">
-					{#snippet children(hyperliquidNetwork)}
-						{@const block = hyperliquidNetwork.fields.$$blocks?.values.at(0)}
-						{#if block != null}
-							<div>
-								<dt>Head block</dt>
-								<dd id="network-summary-head-block">
-									<HyperliquidBlockView
-										selector={block[EntityMetaKey.Selector]}
-										layout={EntityLayout.Value}
-									/>
-								</dd>
+			<ResourceBoundary resource={hyperliquidNetwork} placeholderText="Loading head block…">
+				{#snippet children(hyperliquidNetwork)}
+					{@const block = hyperliquidNetwork.fields.$$blocks?.values.at(0)}
+					{#if block != null}
+						<div>
+							<dt>Head block</dt>
+							<dd id="network-summary-head-block">
+								<HyperliquidBlockView
+									selector={block[EntityMetaKey.Selector]}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
 						</div>
 					{/if}
 				{/snippet}
@@ -267,7 +295,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -327,7 +355,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -345,7 +373,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

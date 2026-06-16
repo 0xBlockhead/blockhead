@@ -14,7 +14,7 @@
 <Page>
 	<NetworkView
 		selector={{
-			networkSlug: params.networkSlug,
+			slug: params.networkSlug,
 		}}
 	/>
 </Page>

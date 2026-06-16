@@ -54,14 +54,3 @@ export const evmAbiFromJsonString = (abiJson: string): EvmAbiEntry[] => {
 	}
 	return evmAbiFromJsonValue(parsed)
 }
-
-export const evmAbiEntrySignature = (entry: EvmAbiEntry) => (
-	entry.name != null && entry.name !== '' ?
-		`${entry.name}(${(entry.inputs ?? []).map((input) => (
-			`${input.type}${input.indexed ? ' indexed' : ''}`
-		)).join(', ')})`
-	: (entry.inputs ?? []).length ?
-		`(${(entry.inputs ?? []).map((input) => input.type).join(', ')})`
-	:
-		entry.type
-)

@@ -43,7 +43,7 @@ const normalizedEnsSearchQuery = (query: string): string => {
 }
 
 const actorEntityFromSubgraphAccount = (
-	account: { id: string } | null | undefined,
+	account: { id: string } | null | undefined
 ): Entity<typeof schema, EntityType.EvmAccount> | null => {
 	const address = (
 		account?.id == null ?
@@ -110,20 +110,20 @@ export default {
 				const subgraphOwnerActor = actorEntityFromSubgraphAccount(matchingEnsDomain.owner)
 				const registrantActor = actorEntityFromSubgraphAccount(
 					matchingEnsDomain.registrant
-					?? matchingEnsDomain.registration?.registrant,
+					?? matchingEnsDomain.registration?.registrant
 				)
 				const wrappedOwnerActor = actorEntityFromSubgraphAccount(matchingEnsDomain.wrappedOwner)
 				const wrappedExpiryDateBigInt = epochMsFromSubgraphScalar(
-					matchingEnsDomain.wrappedDomain?.expiryDate,
+					matchingEnsDomain.wrappedDomain?.expiryDate
 				)
 				const registrationDateBigInt = epochMsFromSubgraphScalar(
-					matchingEnsDomain.registration?.registrationDate,
+					matchingEnsDomain.registration?.registrationDate
 				)
 				const registrationCostBigInt = bigintFromSubgraphScalar(
-					matchingEnsDomain.registration?.cost,
+					matchingEnsDomain.registration?.cost
 				)
 				const registrationExpiryDateBigInt = epochMsFromSubgraphScalar(
-					matchingEnsDomain.registration?.expiryDate,
+					matchingEnsDomain.registration?.expiryDate
 				)
 
 				return {

@@ -16,16 +16,12 @@ export const graphql = initGraphQLTada<{
 }>()
 
 export const queryEns = async <
-	_Result extends {
-		[key: string]: any
-	},
-	_Variables extends {
-		[key: string]: any
-	},
+	_Result extends object,
+	_Variables extends object,
 >(
 	publicEnv: SourcePublicEnvFor<Source.TheGraph_Graphql>,
 	document: TadaDocumentNode<_Result, _Variables>,
-	variables?: _Variables,
+	variables?: _Variables
 ) => (
 	await queryTheGraph({
 		document,

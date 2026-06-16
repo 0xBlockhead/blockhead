@@ -6,12 +6,13 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = getEvmErrorPath(selector.hex),
+		href: hrefProp,
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -36,14 +37,21 @@
 		>
 	> = $props()
 
-	import { getEvmErrorPath } from '$/lib/signature-paths.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const evmError = subscribe(EntityType.EvmError,
-		selector,
-		({ sources: [
-				Source.Openchain_Rest,
-			], fields: { ...(open && ({ signatures: true })) } }),
+	const href = $derived(
+		hrefProp ?? resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
+			hex: selector.hex,
+		}),
+	)
+
+	const evmError = $derived(
+		subscribe(EntityType.EvmError,
+			selector,
+			({ sources: [
+					Source.Openchain_Rest,
+				], fields: { ...(open && ({ signatures: true })) } }),
+		),
 	)
 
 
@@ -98,7 +106,7 @@
 			<dl data-column-item="center">
 				{#if !summaryUsesHeading}
 					<div>
-							<dt>Selector</dt>
+						<dt>Selector</dt>
 						<dd>
 							<TruncatedValue
 								value={selector.hex}
@@ -115,7 +123,7 @@
 						{#snippet children(evmError)}
 							{#if evmError.fields.signatures?.length}
 								<div>
-										<dt>Signatures</dt>
+									<dt>Signatures</dt>
 									<dd>
 										<ul>
 											{#each evmError.fields.signatures as sig (sig)}
@@ -126,7 +134,7 @@
 								</div>
 							{:else}
 								<div>
-										<dt>Signatures</dt>
+									<dt>Signatures</dt>
 									<dd>
 										<p data-text="muted">No catalog matches for this revert/error selector.</p>
 									</dd>

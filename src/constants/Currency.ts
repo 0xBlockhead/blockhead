@@ -291,7 +291,7 @@ export const currencyByIso4217 = Object.fromEntries(
 	currencies.map((currency) => [
 		currency.iso4217,
 		currency,
-	]),
+	])
 )
 
 

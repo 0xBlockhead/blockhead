@@ -38,12 +38,12 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const pool = subscribe(EntityType.LiquidityPool,
+	const pool = $derived(subscribe(EntityType.LiquidityPool,
 		selector,
 		({ fields: { $baseToken: true, $quoteToken: true, $hooks: true, baseTokenSymbol: true, quoteTokenSymbol: true, baseTokenDecimals: true, quoteTokenDecimals: true, fee: true, tickSpacing: true, v4PoolId: true, $$timestamps: ({ sources: [
 					Source.Dexscreener_OpenApi,
-				], limit: 64 }), sqrtPriceX96: true, liquidity: true, tick: true, volumeUSD: true, totalValueLockedUSD: true, marketCapUsd: true, fdvUsd: true, pairCreatedAtMs: true, dexscreenerLabels: true, dexId: true, dexscreenerPairUrl: true, baseTokenPriceUsd: true, baseTokenPriceQuote: true, priceChangePercent24h: true, transactionBuys24h: true, transactionSells24h: true } }),
-	)
+				], limit: 64 }), pairCreatedAtMs: true, dexscreenerLabels: true, dexId: true, dexscreenerPairUrl: true } }),
+	))
 
 
 	// Components
@@ -181,33 +181,6 @@
 					{/if}
 					{#if (
 						open
-						&& pool.fields.sqrtPriceX96 !== undefined
-					)}
-						<div>
-							<dt>Sqrt price X96</dt>
-							<dd>{String(pool.fields.sqrtPriceX96)}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& pool.fields.liquidity !== undefined
-					)}
-						<div>
-							<dt>Active liquidity</dt>
-							<dd>{String(pool.fields.liquidity)}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& pool.fields.tick !== undefined
-					)}
-						<div>
-							<dt>Tick</dt>
-							<dd>{String(pool.fields.tick)}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
 						&& pool.fields.baseTokenDecimals !== undefined
 					)}
 						<div>
@@ -222,42 +195,6 @@
 						<div>
 							<dt>Quote token decimals</dt>
 							<dd>{String(pool.fields.quoteTokenDecimals)}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& pool.fields.volumeUSD !== undefined
-					)}
-						<div>
-							<dt>Volume USD</dt>
-							<dd>{String(pool.fields.volumeUSD)}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& pool.fields.totalValueLockedUSD !== undefined
-					)}
-						<div>
-							<dt>TVL USD</dt>
-							<dd>{String(pool.fields.totalValueLockedUSD)}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& pool.fields.marketCapUsd !== undefined
-					)}
-						<div>
-							<dt>Market cap USD</dt>
-							<dd>{String(pool.fields.marketCapUsd)}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& pool.fields.fdvUsd !== undefined
-					)}
-						<div>
-							<dt>FDV USD</dt>
-							<dd>{String(pool.fields.fdvUsd)}</dd>
 						</div>
 					{/if}
 					{#if (
@@ -304,51 +241,6 @@
 									target="_blank"
 								>{pool.fields.dexscreenerPairUrl}</a>
 							</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& pool.fields.baseTokenPriceUsd !== undefined
-					)}
-						<div>
-							<dt>Base price USD</dt>
-							<dd>{pool.fields.baseTokenPriceUsd}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& pool.fields.baseTokenPriceQuote !== undefined
-					)}
-						<div>
-							<dt>Base price quote</dt>
-							<dd>{pool.fields.baseTokenPriceQuote}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& pool.fields.priceChangePercent24h !== undefined
-					)}
-						<div>
-							<dt>Price change 24h</dt>
-							<dd>{String(pool.fields.priceChangePercent24h)}%</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& pool.fields.transactionBuys24h !== undefined
-					)}
-						<div>
-							<dt>Buys 24h</dt>
-							<dd>{String(pool.fields.transactionBuys24h)}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& pool.fields.transactionSells24h !== undefined
-					)}
-						<div>
-							<dt>Sells 24h</dt>
-							<dd>{String(pool.fields.transactionSells24h)}</dd>
 						</div>
 					{/if}
 				</dl>

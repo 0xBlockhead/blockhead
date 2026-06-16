@@ -21,7 +21,7 @@ const toQueryString = (params?: Record<string, string | number | boolean | undef
 
 export async function snapchainGet<T>(
 	path: string,
-	params?: Record<string, string | number | boolean | undefined>,
+	params?: Record<string, string | number | boolean | undefined>
 ): Promise<T> {
 	let lastError: Error | undefined
 	for (const endpoint of nodeEndpoints) {

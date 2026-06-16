@@ -44,7 +44,7 @@ const collectRouteBoundaryReport = async (page: Page, pathname: string) => {
 		page.url(),
 		mainVisible,
 		await getBoundaryProbeEvents(page).catch(() => []),
-		snapshot,
+		snapshot
 	)
 }
 
@@ -93,14 +93,14 @@ const installEthereumEipGithubStub = async (page: Page) => {
 							'',
 							'Deterministic E2E fixture body.',
 						].join('\n'),
-					},
+					}
 			)
-		},
+		}
 	)
 }
 
 const assertNoBrokenBoundaryReports = (
-	reports: RouteBoundaryReport[],
+	reports: RouteBoundaryReport[]
 ) => {
 	expect(
 		reports
@@ -109,7 +109,7 @@ const assertNoBrokenBoundaryReports = (
 				&& !e2eBoundaryLiveOptionalPathnames.has(report.pathname)
 			))
 			.map((report) => `${report.pathname}\n  ${report.issues.join('\n  ')}`),
-		formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames),
+		formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames)
 	).toEqual([])
 }
 

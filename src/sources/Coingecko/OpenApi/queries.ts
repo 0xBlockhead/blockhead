@@ -1,14 +1,13 @@
 /**
- * CoinGecko Demo API (OpenAPI: `coingecko-demo.json`).
- * @see https://docs.coingecko.com/reference/coins-id-ohlc
- * @see https://docs.coingecko.com/reference/coins-id
- */
+	* CoinGecko Demo API (OpenAPI: `coingecko-demo.json`).
+	* @see https://docs.coingecko.com/reference/coins-id-ohlc
+	* @see https://docs.coingecko.com/reference/coins-id
+	*/
 
 import { stringify } from 'devalue'
 
 import { throwHttpError } from '$/lib/http.ts'
 import type { CoinId } from '$/constants/Coin.ts'
-import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { MarketAssetKind, coingeckoOhlcDayWindowLengths } from '$/constants/Market.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -32,6 +31,14 @@ import type {
 	CoingeckoOpenApiCoinsOhlc,
 	CoingeckoOpenApiCoinTicker,
 } from '$/sources/Coingecko/OpenApi/types.ts'
+
+type OhlcCandle = readonly [
+	timestampMs: number,
+	open: number,
+	high: number,
+	low: number,
+	close: number,
+]
 
 const coingeckoOpenApiOhlcDaysByWindow = {
 	1: '1',
@@ -66,7 +73,7 @@ export const getCoinById = async ({
 
 	const response = await coingeckoOpenApiFetch(
 		publicEnv,
-		`/coins/${encodeURIComponent(coingeckoId)}?${coingeckoOpenApiCoinMarketSpotQuery}`,
+		`/coins/${encodeURIComponent(coingeckoId)}?${coingeckoOpenApiCoinMarketSpotQuery}`
 	)
 
 	if (response.status === 404) return undefined
@@ -128,7 +135,7 @@ export const getCoinOhlc = async ({
 
 	const response = await coingeckoOpenApiFetch(
 		publicEnv,
-		`/coins/${encodeURIComponent(coingeckoId)}/ohlc?${searchParams.toString()}`,
+		`/coins/${encodeURIComponent(coingeckoId)}/ohlc?${searchParams.toString()}`
 	)
 
 	if (response.status === 404) return []
@@ -141,12 +148,12 @@ export const getCoinOhlc = async ({
 					timestampMs,
 					open,
 					high,
-						low,
-						close,
-					]
-				))
-		)
-	}
+					low,
+					close,
+				]
+			))
+	)
+}
 
 
 /** `GET /coins/{id}/tickers` — venue spot books. @see https://docs.coingecko.com/reference/coins-id-tickers */
@@ -157,24 +164,21 @@ export const getCoinTickers = async ({
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
 	coingeckoId: string
 }): Promise<CoingeckoOpenApiCoinTicker[]> => {
-	if (coingeckoId.trim() === '') {
+	if (coingeckoId.trim() === '')
 		return []
-	}
 
 	const searchParams = new URLSearchParams()
 	searchParams.set('order', 'volume_desc')
 
 	const response = await coingeckoOpenApiFetch(
 		publicEnv,
-		`/coins/${encodeURIComponent(coingeckoId)}/tickers?${searchParams.toString()}`,
+		`/coins/${encodeURIComponent(coingeckoId)}/tickers?${searchParams.toString()}`
 	)
 
-	if (response.status === 404) {
+	if (response.status === 404)
 		return []
-	}
-	if (!response.ok) {
+	if (!response.ok)
 		await throwHttpError(`CoinGecko OpenApi /coins/${coingeckoId}/tickers`, response)
-	}
 
 	const body = await response.json<{ tickers?: CoingeckoOpenApiCoinTicker[] }>()
 	return body.tickers ?? []
@@ -203,15 +207,13 @@ export const collectSpotMarketEntitySelectorsForCoin = async ({
 			const marketId = marketEntitySelectorFromCoingeckoSpotTicker(
 				ticker,
 				catalogCoinId,
-				catalogCoinIdByCoingeckoIdMap,
+				catalogCoinIdByCoingeckoIdMap
 			)
-			if (marketId == null) {
+			if (marketId == null)
 				return []
-			}
 			const key = stringify(marketId)
-			if (seen.has(key)) {
+			if (seen.has(key))
 				return []
-			}
 			seen.add(key)
 			return [marketId]
 		})
@@ -250,13 +252,12 @@ export const getDerivativesExchangeById = async ({
 
 	const response = await coingeckoOpenApiFetch(
 		publicEnv,
-		`/derivatives/exchanges/${encodeURIComponent(exchangeId)}?${searchParams.toString()}`,
+		`/derivatives/exchanges/${encodeURIComponent(exchangeId)}?${searchParams.toString()}`
 	)
 
 	if (response.status === 404) return undefined
-	if (!response.ok) {
+	if (!response.ok)
 		await throwHttpError(`CoinGecko OpenApi /derivatives/exchanges/${exchangeId}`, response)
-	}
 
 	return response.json<CoingeckoDerivativesExchangeById>()
 }
@@ -290,7 +291,7 @@ export const collectDerivativeMarketEntitySelectors = async ({
 						|| venueId === marketVenueId
 					))
 					.map(
-						async ([venueId, exchangeId]) => {
+					async ([venueId, exchangeId]) => {
 							const exchange = await getDerivativesExchangeById({
 								publicEnv,
 								exchangeId,
@@ -300,12 +301,11 @@ export const collectDerivativeMarketEntitySelectors = async ({
 									const marketId = marketEntitySelectorFromCoingeckoDerivativesExchangeTicker(
 										ticker,
 										venueId,
-										catalogCoinIdByCoingeckoIdMap,
+										catalogCoinIdByCoingeckoIdMap
 									)
-								if (marketId == null) {
-									return []
-								}
-								if (
+									if (marketId == null)
+										return []
+									if (
 									catalogCoinId != null
 									&& (
 										marketId.$base.kind !== MarketAssetKind.Coin
@@ -314,16 +314,15 @@ export const collectDerivativeMarketEntitySelectors = async ({
 								) {
 									return []
 								}
-								const key = stringify(marketId)
-								if (seen.has(key)) {
-									return []
-								}
-								seen.add(key)
-								return [marketId]
-							})
-						)
-					},
-				),
+									const key = stringify(marketId)
+									if (seen.has(key))
+										return []
+									seen.add(key)
+									return [marketId]
+								})
+							)
+					}
+				)
 			)
 		).flat()
 	)

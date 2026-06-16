@@ -1,15 +1,6 @@
-export const htmlToPlainText = (raw: unknown) => {
-	let s = ''
-	try {
-		s = raw == null ? '' : String(raw)
-	}
-	catch {
-		s = ''
-	}
-	return (
-		s
-			.replace(/<[^>]+>/g, ' ')
-			.replace(/\s+/g, ' ')
-			.trim()
-	)
-}
+export const htmlToPlainText = (html: string | null | undefined) => (
+	(html ?? '')
+		.replace(/<[^>]+>/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim()
+)

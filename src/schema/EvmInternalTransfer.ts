@@ -98,7 +98,7 @@ export default {
 				[
 					EvmInternalCallType.Create,
 					EvmInternalCallType.Create2,
-				],
+				]
 			),
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

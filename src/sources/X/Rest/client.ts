@@ -14,7 +14,7 @@ const xBearerHeader = (publicEnv: SourcePublicEnvFor<Source.X_Rest>) => {
 
 export const xApiV2Get = async <T>(
 	publicEnv: SourcePublicEnvFor<Source.X_Rest>,
-	path: `/${string}`,
+	path: `/${string}`
 ): Promise<T> => (
 	getJson<T>(`${xApiV2Base}${path}`, {
 		origins: X.origins,

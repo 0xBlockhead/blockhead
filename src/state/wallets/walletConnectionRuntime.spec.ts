@@ -61,7 +61,7 @@ describe('wallet connection runtime normalization', () => {
 				'0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 			],
 			1,
-			BlockheadConnectionStatus.Connected,
+			BlockheadConnectionStatus.Connected
 		)).toMatchObject({
 			walletId: 'eip6963:com.example.wallet',
 			status: BlockheadConnectionStatus.Connected,
@@ -230,7 +230,7 @@ describe('wallet connection runtime normalization', () => {
 				id: 'session-1',
 			},
 			0,
-			ActionType.Swap,
+			ActionType.Swap
 		)
 		writeLocalBlockheadWallet(context, {
 			id: 'eip6963:com.example.wallet',
@@ -270,7 +270,7 @@ describe('wallet connection runtime normalization', () => {
 			{
 				sessionId: 'session-1',
 				actionId: 'action-1',
-			},
+			}
 		)
 		deleteLocalBlockheadWalletConnection(context, 'eip6963:com.example.wallet')
 

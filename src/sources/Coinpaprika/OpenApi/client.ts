@@ -1,5 +1,5 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { optionalPublicEnvString } from '$/lib/sources.ts'
+import { optionalPublicEnvString } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import Coinpaprika from '$/sources/Coinpaprika/index.ts'
@@ -10,7 +10,7 @@ import {
 
 export const getCoinpaprikaJson = async <_Response>(
 	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>,
-	pathAndQuery: string,
+	pathAndQuery: string
 ): Promise<_Response> => {
 	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_COINPAPRIKA_API_KEY')
 	const response = await corsFetch(
@@ -23,7 +23,7 @@ export const getCoinpaprikaJson = async <_Response>(
 					...(apiKey != null && { Authorization: `Bearer ${apiKey}` }),
 				},
 			},
-		},
+		}
 	)
 
 	if (!response.ok) await throwHttpError('Coinpaprika API', response)

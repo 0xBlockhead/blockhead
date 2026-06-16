@@ -58,5 +58,5 @@ export const marketVenueById = Object.fromEntries(
 	marketVenues.map((marketVenue) => [
 		marketVenue.id,
 		marketVenue,
-	]),
+	])
 )

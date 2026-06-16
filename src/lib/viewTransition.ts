@@ -10,7 +10,7 @@ type DocumentWithViewTransitions = Document & {
 }
 
 const documentHasStartViewTransition = (
-	doc: Document,
+	doc: Document
 ): doc is DocumentWithViewTransitions => (
 	'startViewTransition' in doc
 )
@@ -58,13 +58,13 @@ export const createSerialViewTransitionRunner = (): {
 			track(
 				doc
 					.startViewTransition(runUpdate)
-					.finished,
+					.finished
 			)
 		)
 
 		return inFlight ?
 			track(
-				inFlight.then(startNow),
+				inFlight.then(startNow)
 			)
 		:
 			startNow()
@@ -89,7 +89,7 @@ export const viewTransitionNameIdent = (key: string | number): string => (
  */
 export const viewTransitionName = (
 	key: string | number,
-	prefix = 'list-item-',
+	prefix = 'list-item-'
 ): string => (
 	prefix + viewTransitionNameIdent(key)
 )

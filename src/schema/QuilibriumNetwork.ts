@@ -63,7 +63,6 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		networkFields[1],
-		networkFields[2],
 		networkFields[3],
 		networkFields[11],
 		networkFields[12],

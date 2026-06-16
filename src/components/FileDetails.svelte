@@ -11,7 +11,7 @@
 	}: {
 		contentSize?: number
 		contentType?: string
-		displayType: IpfsDisplayType
+		displayType: ContentDisplayType
 		extension?: string
 		fileName?: string
 		src?: string
@@ -38,8 +38,18 @@
 	}
 
 
-	import type { IpfsDisplayType } from '$/lib/contentType.ts'
 	import { formatByteCount } from '$/lib/bytes.ts'
+
+	type ContentDisplayType =
+		| 'text'
+		| 'image'
+		| 'video'
+		| 'audio'
+		| 'json'
+		| 'xml'
+		| 'pdf'
+		| 'iframe'
+		| 'binary'
 
 	const displayIconByType = {
 		text: '📄',
@@ -51,7 +61,7 @@
 		pdf: '📄',
 		iframe: '🌐',
 		binary: '📦',
-	} as const satisfies Record<IpfsDisplayType, string>
+	} as const satisfies Record<ContentDisplayType, string>
 
 
 	const mediaType = $derived(

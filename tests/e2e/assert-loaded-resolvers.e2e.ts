@@ -38,12 +38,12 @@ test.describe('assertLoaded resolver probes', () => {
 
 		expect(
 			body.fulfilledButAssertFailed,
-			body.fulfilledButAssertFailed.map((c) => `${c.key}: ${c.assertError}`).join('\n'),
+			body.fulfilledButAssertFailed.map((c) => `${c.key}: ${c.assertError}`).join('\n')
 		).toEqual([])
 
 		expect(
 			body.assertOk,
-			`expected at least one fulfilled resolver to pass assert; got ${body.assertOk}. Check env / network.`,
+			`expected at least one fulfilled resolver to pass assert; got ${body.assertOk}. Check env / network.`
 		).toBeGreaterThan(0)
 
 		for (const category of assertLoadedResolverProbeCategories) {

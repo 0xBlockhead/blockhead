@@ -18,25 +18,50 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.PolkadotNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { slug: true, name: true, environment: true, $$nativeAssets: true } }),
+	const network = $derived(
+		subscribe(
+			EntityType.Network,
+			selector.$network,
+			{
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					slug: true,
+					name: true,
+					environment: true,
+					$$nativeAssets: true,
+				},
+			},
+		),
 	)
 
-	const polkadotNetwork = subscribe(EntityType.PolkadotNetwork,
-		selector,
-		({ sources: [
-				Source.Polkadot_JsonRpc,
-				Source.SubstrateSidecar_Rest,
-			], fields: { rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1 }) } }),
+	const polkadotNetwork = $derived(
+		subscribe(
+			EntityType.PolkadotNetwork,
+			selector,
+			{
+				sources: [
+					Source.Polkadot_JsonRpc,
+					Source.SubstrateSidecar_Rest,
+				],
+				fields: {
+					rpcEndpoints: true,
+					$$blocks: {
+						limit: 1,
+					},
+					$$timestamps: {
+						limit: 1,
+					},
+				},
+			},
+		),
 	)
 
 
@@ -63,7 +88,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector}
+	entitySelector={selector.$network}
 	{href}
 	bind:open
 	{layout}
@@ -100,18 +125,18 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-						<ResourceBoundary resource={polkadotNetwork}>
-							{#snippet children(polkadotNetwork)}
-								{@const block = polkadotNetwork.fields.$$blocks?.values.at(0)}
-								{#if block != null}
-									<div>
-										<dt>Head block</dt>
-										<dd id="network-summary-head-block">
-											<PolkadotBlockView
-												selector={block[EntityMetaKey.Selector]}
-												layout={EntityLayout.Value}
-											/>
-										</dd>
+					<ResourceBoundary resource={polkadotNetwork}>
+						{#snippet children(polkadotNetwork)}
+							{@const block = polkadotNetwork.fields.$$blocks?.values.at(0)}
+							{#if block != null}
+								<div>
+									<dt>Head block</dt>
+									<dd id="network-summary-head-block">
+										<PolkadotBlockView
+											selector={block[EntityMetaKey.Selector]}
+											layout={EntityLayout.Value}
+										/>
+									</dd>
 								</div>
 							{/if}
 						{/snippet}
@@ -122,13 +147,13 @@
 						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 					</div>
 
-						{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
-							<div>
-								<dt>Native asset</dt>
-								<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
-							</div>
-						{/if}
-					</dl>
+					{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
+						<div>
+							<dt>Native asset</dt>
+							<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
+						</div>
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -235,7 +260,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -269,7 +294,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -287,7 +312,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

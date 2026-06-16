@@ -185,33 +185,33 @@ export const evmTransactionEnvelopeTypeByEnvelopeType = Object.fromEntries(
 	evmTransactionEnvelopeTypes.map((row) => [
 		row.envelopeType,
 		row,
-	]),
+	])
 )
 
 export const evmTransactionExecutionStatusByExecutionStatus = Object.fromEntries(
 	evmTransactionExecutionStatuses.map((row) => [
 		row.executionStatus,
 		row,
-	]),
+	])
 )
 
 export const evmTransactionKindByKind = Object.fromEntries(
 	evmTransactionKinds.map((row) => [
 		row.kind,
 		row,
-	]),
+	])
 )
 
 export const evmInternalCallTypeByCallType = Object.fromEntries(
 	evmInternalCallTypes.map((row) => [
 		row.callType,
 		row,
-	]),
+	])
 )
 
 export const evmTokenStandardByStandard = Object.fromEntries(
 	evmTokenStandards.map((row) => [
 		row.standard,
 		row,
-	]),
+	])
 )

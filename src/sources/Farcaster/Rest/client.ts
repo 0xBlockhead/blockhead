@@ -24,7 +24,7 @@ const toQueryString = (params?: Record<string, string | number | boolean | undef
 
 export async function farcasterGet<T>(
 	path: string,
-	params?: Record<string, string | number | boolean | undefined>,
+	params?: Record<string, string | number | boolean | undefined>
 ): Promise<T> {
 	const baseUrl = path.startsWith('/~api/') ? webBaseUrl : clientBaseUrl
 	return getJson<T>(`${baseUrl}${path}${toQueryString(params)}`, { origins: Farcaster.origins  })

@@ -1,10 +1,9 @@
 /**
- * CoinMarketCap latest quotes and metadata endpoints.
- * @see https://coinmarketcap.com/api/documentation/
- */
+	* CoinMarketCap latest quotes and metadata endpoints.
+	* @see https://coinmarketcap.com/api/documentation/
+	*/
 
 import { coinMarketCapFetch } from '$/sources/CoinMarketCap/Rest/client.ts'
-import type { OhlcCandle } from '$/lib/marketOhlcCandles.ts'
 import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import type {
@@ -13,9 +12,18 @@ import type {
 	CoinMarketCapQuotesLatestResponse,
 } from '$/sources/CoinMarketCap/Rest/types.ts'
 
+type OhlcCandle = readonly [
+	timestampMs: number,
+	open: number,
+	high: number,
+	low: number,
+	close: number,
+	quoteVolume?: number,
+]
+
 /**
- * `GET /v3/cryptocurrency/quotes/latest`
- */
+	* `GET /v3/cryptocurrency/quotes/latest`
+	*/
 export const getQuotesLatest = async ({
 	publicEnv,
 	id,
@@ -25,13 +33,13 @@ export const getQuotesLatest = async ({
 }) => (
 	await coinMarketCapFetch<CoinMarketCapQuotesLatestResponse>(
 		publicEnv,
-		`/v3/cryptocurrency/quotes/latest?id=${id}&convert=USD`,
+		`/v3/cryptocurrency/quotes/latest?id=${id}&convert=USD`
 	)
 )
 
 /**
- * `GET /v2/cryptocurrency/info`
- */
+	* `GET /v2/cryptocurrency/info`
+	*/
 export const getInfo = async ({
 	publicEnv,
 	id,
@@ -41,14 +49,14 @@ export const getInfo = async ({
 }) => (
 	await coinMarketCapFetch<CoinMarketCapInfoLatestResponse>(
 		publicEnv,
-		`/v2/cryptocurrency/info?id=${id}&aux=platform`,
+		`/v2/cryptocurrency/info?id=${id}&aux=platform`
 	)
 )
 
 /**
- * `GET /v2/cryptocurrency/ohlcv/historical` — daily OHLCV candles.
- * @see https://coinmarketcap.com/api/documentation/v1/#operation/getV2CryptocurrencyOhlcvHistorical
- */
+	* `GET /v2/cryptocurrency/ohlcv/historical` — daily OHLCV candles.
+	* @see https://coinmarketcap.com/api/documentation/v1/#operation/getV2CryptocurrencyOhlcvHistorical
+	*/
 export const getOhlcvHistoricalRows = async ({
 	publicEnv,
 	id,
@@ -60,7 +68,7 @@ export const getOhlcvHistoricalRows = async ({
 }): Promise<OhlcCandle[]> => {
 	const response = await coinMarketCapFetch<CoinMarketCapOhlcvHistoricalResponse>(
 		publicEnv,
-		`/v2/cryptocurrency/ohlcv/historical?id=${id}&time_period=daily&count=${days}&convert=USD`,
+		`/v2/cryptocurrency/ohlcv/historical?id=${id}&time_period=daily&count=${days}&convert=USD`
 	)
 	const coin = (
 		response.data == null ?

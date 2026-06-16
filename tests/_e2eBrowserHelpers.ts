@@ -1,14 +1,14 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
+import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { gatewayUrls as ipfsGatewayUrls } from '$/sources/Ipfs/Rest/constants.ts'
 import { gatewayUrls as swarmGatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
 import { jsonRpcUrlWithTransportForChain } from '$/sources/Evm/JsonRpc/client.ts'
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
 export const jsonStringifyForExpectMessage = (
-	value: Parameters<typeof JSON.stringify>[0],
+	value: Parameters<typeof JSON.stringify>[0]
 ) => (
 	JSON.stringify(
 		value,
@@ -17,7 +17,7 @@ export const jsonStringifyForExpectMessage = (
 				nested.toString()
 			:
 				nested
-		),
+		)
 	)
 )
 
@@ -28,6 +28,7 @@ declare global {
 		__e2eViewTransitionUpdates?: number
 		__blockheadClientProbe?: BlockheadClientProbe
 		__blockheadPersistenceProbe?: BlockheadPersistenceProbeEvent[]
+		__blockheadProductDataSchemaVersionOverride?: number
 		__blockheadBoundaryProbe?: BoundaryUpdateEvent[]
 	}
 }
@@ -137,7 +138,7 @@ export type BlockheadClientProbe = {
 	read: (
 		entityType: string,
 		entitySelector: object,
-		selection: object,
+		selection: object
 	) => ClientProbeResource<ProductProbePayload>
 }
 
@@ -205,7 +206,7 @@ export const persistenceShortCircuitDecisions: readonly BlockheadPersistenceProb
 
 export const waitForPersistenceMarkLoaded = (
 	page: Page,
-	collectionId: string,
+	collectionId: string
 ) => (
 	page.waitForFunction(
 		(expectedCollectionId) => (
@@ -215,7 +216,7 @@ export const waitForPersistenceMarkLoaded = (
 			))
 		),
 		collectionId,
-		{ timeout: 120_000 },
+		{ timeout: 120_000 }
 	)
 )
 
@@ -225,7 +226,7 @@ export const waitForPersistenceShortCircuit = (
 	options?: {
 		startIndex?: number
 		loadedKey?: string
-	},
+	}
 ) => (
 	page.waitForFunction(
 		({
@@ -252,13 +253,13 @@ export const waitForPersistenceShortCircuit = (
 			expectedLoadedKey: options?.loadedKey,
 			shortCircuitDecisions: persistenceShortCircuitDecisions,
 		},
-		{ timeout: 120_000 },
+		{ timeout: 120_000 }
 	)
 )
 
 export const persistenceMarkLoadedEvent = (
 	events: BlockheadPersistenceProbeEvent[],
-	collectionId: string,
+	collectionId: string
 ) => (
 	events.find((event) => (
 		event.kind === 'markLoaded'
@@ -281,12 +282,14 @@ export const installBoundaryProbe = (page: Page) => (
 		const domKindForElement = (element: Element) => (
 			element.matches('[data-error], [role="alert"]') ?
 				'dom-failed' as const
-			: element.matches('[data-tag].inline-placeholder:not([aria-busy="true"])') ?
-				'dom-failed' as const
-			: element.matches('.loading, [aria-busy="true"]') ?
-				'dom-loading' as const
 			:
-				null
+				element.matches('[data-tag].inline-placeholder:not([aria-busy="true"])') ?
+					'dom-failed' as const
+				:
+					element.matches('.loading, [aria-busy="true"]') ?
+						'dom-loading' as const
+					:
+						null
 		)
 
 		window.__blockheadBoundaryProbe = []
@@ -294,7 +297,7 @@ export const installBoundaryProbe = (page: Page) => (
 		const pushBoundaryEvent = (
 			kind: BoundaryUpdateEvent['kind'],
 			key: string | null,
-			message: string,
+			message: string
 		) => {
 			(window.__blockheadBoundaryProbe ??= []).push({
 				at: Date.now(),
@@ -312,7 +315,7 @@ export const installBoundaryProbe = (page: Page) => (
 				pushBoundaryEvent(
 					'console-uncaught',
 					keyMatch?.[1] ?? null,
-					text,
+					text
 				)
 			}
 			else if (text.includes('[blockhead:boundary]')) {
@@ -320,7 +323,7 @@ export const installBoundaryProbe = (page: Page) => (
 				pushBoundaryEvent(
 					'console-failed',
 					keyMatch?.[1] ?? null,
-					text,
+					text
 				)
 			}
 			origConsoleError.apply(console, args)
@@ -342,7 +345,7 @@ export const installBoundaryProbe = (page: Page) => (
 				pushBoundaryEvent(
 					kind,
 					element.getAttribute('data-error'),
-					rowMessage(element),
+					rowMessage(element)
 				)
 			}
 		}
@@ -352,7 +355,7 @@ export const installBoundaryProbe = (page: Page) => (
 			pushBoundaryEvent(
 				'dom-resolved',
 				node.getAttribute('data-error'),
-				rowMessage(node),
+				rowMessage(node)
 			)
 		}
 
@@ -410,11 +413,11 @@ export const installBoundaryProbe = (page: Page) => (
 export const resetBoundaryProbe = (page: Page) => (
 	page.url().startsWith('about:') ?
 		Promise.resolve()
-		:
-			page.evaluate(() => {
-				window.__blockheadBoundaryProbe = []
-			}).catch(() => {})
-	)
+	:
+		page.evaluate(() => {
+		window.__blockheadBoundaryProbe = []
+		}).catch(() => {})
+)
 
 export const clearBoundaryProbe = resetBoundaryProbe
 
@@ -437,7 +440,7 @@ export const snapshotBoundaryMain = (page: Page) => (
 		}
 
 		const main = document.querySelector('#main')
-		if (main == null) {
+		if (main == null)
 			return {
 				failed: [],
 				loading: [],
@@ -446,7 +449,6 @@ export const snapshotBoundaryMain = (page: Page) => (
 				textLength: 0,
 				contentMarkerCount: 0,
 			} satisfies BoundaryMainSnapshot
-		}
 
 		const failed = [
 			...main.querySelectorAll('[data-error], [role="alert"]'),
@@ -467,8 +469,8 @@ export const snapshotBoundaryMain = (page: Page) => (
 		}))
 
 		const contentMarkerCount = main.querySelectorAll(
-			'section, dl, ul, ol, [data-card], h1, h2, h3, table, pre, canvas',
-		).length
+			'section, dl, ul, ol, [data-card], h1, h2, h3, table, pre, canvas'
+			).length
 		const textLength = main.textContent.replace(/\s+/g, ' ').trim().length
 
 		const empty = (
@@ -507,7 +509,7 @@ export const waitForBoundarySettle = async (
 	}: {
 		timeoutMs?: number
 		quietMs?: number
-	} = {},
+	} = {}
 ) => {
 	const deadline = Date.now() + timeoutMs
 	let lastSignature = ''
@@ -559,7 +561,7 @@ export const summarizeRouteBoundaryReport = (
 	finalUrl: string,
 	mainVisible: boolean,
 	updates: BoundaryUpdateEvent[],
-	snapshot: BoundaryMainSnapshot,
+	snapshot: BoundaryMainSnapshot
 ) => {
 	const issues: string[] = []
 
@@ -568,13 +570,13 @@ export const summarizeRouteBoundaryReport = (
 
 	for (const row of snapshot.failed) {
 		issues.push(
-			`failed:${row.key ?? 'unknown'}:${row.message || '(no message)'}`,
+			`failed:${row.key ?? 'unknown'}:${row.message || '(no message)'}`
 		)
 	}
 
 	for (const row of snapshot.loading) {
 		issues.push(
-			`still-loading:${row.key ?? 'unknown'}:${row.message || '(no message)'}`,
+			`still-loading:${row.key ?? 'unknown'}:${row.message || '(no message)'}`
 		)
 	}
 
@@ -604,7 +606,7 @@ export const summarizeRouteBoundaryReport = (
 
 export const formatBoundaryReportSummary = (
 	reports: RouteBoundaryReport[],
-	optionalPathnames: ReadonlySet<string> = new Set(),
+	optionalPathnames: ReadonlySet<string> = new Set()
 ) => {
 	const failedRoutes = reports.filter((report) => (
 		report.snapshot.failed.length > 0
@@ -671,7 +673,7 @@ export const waitForNetworksListRendered = async (page: Page) => {
 	await expect(networks).toBeVisible({ timeout: 120_000 })
 	await expect(networks.getByText('Loading networks…')).toHaveCount(
 		0,
-		{ timeout: 120_000 },
+		{ timeout: 120_000 }
 	)
 	await expect(networks.locator('a[href$="/network/eip155:1"], a[href$="/network/ethereum"]').first()).toBeAttached({
 		timeout: 120_000,
@@ -681,7 +683,11 @@ export const waitForNetworksListRendered = async (page: Page) => {
 const forwardBrowserConsoleLine = (
 	type: string,
 	text: string,
-	location: { url: string, lineNumber: number, columnNumber: number },
+	location: {
+		url: string
+		lineNumber: number
+		columnNumber: number
+	}
 ) => {
 	const locStr = (
 		location.url ?
@@ -690,18 +696,16 @@ const forwardBrowserConsoleLine = (
 			''
 	)
 	const line = `[browser:${type}]${locStr} ${text}`
-	;(
-		type === 'error' ?
-			console.error(line)
-		: type === 'warning' ?
-			console.warn(line)
-		: type === 'info' ?
-			console.info(line)
-		: type === 'debug' ?
-			console.debug(line)
-		:
-			console.log(line)
-	)
+	if (type === 'error')
+		console.error(line)
+	else if (type === 'warning')
+		console.warn(line)
+	else if (type === 'info')
+		console.info(line)
+	else if (type === 'debug')
+		console.debug(line)
+	else
+		console.log(line)
 }
 
 export const collectIssues = (page: Page) => {
@@ -745,9 +749,9 @@ export const collectIssues = (page: Page) => {
 }
 
 /**
- * Fail-fast gate for live network pages: `step()` races each await against first pageerror / critical console.error.
- * Matches filters in `network.e2e.ts` (ignore HTTP 4xx/5xx, resolver fetch noise, WSS drop copy).
- */
+	* Fail-fast gate for live network pages: `step()` races each await against first pageerror / critical console.error.
+	* Matches filters in `network.e2e.ts` (ignore HTTP 4xx/5xx, resolver fetch noise, WSS drop copy).
+	*/
 export const setupNetworkLiveFailFast = (page: Page) => {
 	let failed = false
 	let rejectRuntimeError: ((error: Error) => void) | undefined
@@ -760,7 +764,10 @@ export const setupNetworkLiveFailFast = (page: Page) => {
 		rejectRuntimeError?.(error)
 	}
 	const step = async <_Value>(promise: Promise<_Value>) => {
-		await Promise.race([promise, runtimeError])
+		await Promise.race([
+			promise,
+			runtimeError,
+		])
 	}
 
 	page.on('pageerror', (error) => {
@@ -823,7 +830,7 @@ export const chainlistRpcsWire = (url: string) => (
 export const ipfsPublicGatewayGetWire = (url: string) => {
 	try {
 		const u = new URL(url)
-		if (!ipfsGatewayUrls.some((origin) => origin === u.origin))
+		if (!ipfsPublicGateways.some((gateway) => gateway.origin === u.origin))
 			return false
 		return u.pathname.includes('/ipfs/') || u.pathname.includes('/ipns/')
 	} catch {
@@ -844,9 +851,9 @@ export const swarmPublicGatewayGetWire = (url: string) => {
 }
 
 /**
- * Call before `page.goto`. Patches `document.startViewTransition` to count
- * starts and completed transitions (or set both to `-1` when the API is missing).
- */
+	* Call before `page.goto`. Patches `document.startViewTransition` to count
+	* starts and completed transitions (or set both to `-1` when the API is missing).
+	*/
 export const installViewTransitionStartSpy = (page: Page) => (
 	page.addInitScript(() => {
 		window.__e2eViewTransitionStarts = 0
@@ -863,10 +870,10 @@ export const installViewTransitionStartSpy = (page: Page) => (
 		document.startViewTransition = (callbackOptions) => {
 			window.__e2eViewTransitionStarts = (window.__e2eViewTransitionStarts ?? 0) + 1
 			const update: ViewTransitionUpdateCallback = (
-				typeof callbackOptions === 'function'
-					? callbackOptions
-					:
-						() => {}
+				typeof callbackOptions === 'function' ?
+					callbackOptions
+				:
+					() => {}
 			)
 			const vt = orig(async () => {
 				window.__e2eViewTransitionUpdates = (window.__e2eViewTransitionUpdates ?? 0) + 1
@@ -903,7 +910,10 @@ export const getViewTransitionUpdateCount = (page: Page) => (
 export const countRequestsMatching = (page: Page, match: (url: string, method: string) => boolean) => {
 	let n = 0
 	const urls: string[] = []
-	const fn = (req: { method: () => string, url: () => string }) => {
+	const fn = (req: {
+		method: () => string
+		url: () => string
+	}) => {
 		if (match(req.url(), req.method())) {
 			n += 1
 			urls.push(req.url())
@@ -919,26 +929,108 @@ export const countRequestsMatching = (page: Page, match: (url: string, method: s
 
 /** Stubs for `GET …/rpcs.json` in e2e. Includes popular live chains + mainnet HTTP RPCs. */
 export const MOCK_CHAINLIST_RPCS_JSON_BODY = JSON.stringify([
-	{ chainId: 1, name: 'Ethereum Mainnet', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://ethereum.publicnode.com'] },
-	{ chainId: 8453, name: 'Base', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://mainnet.base.org'], parent: { type: 'L2', chain: 'eip155:1' } },
-	{ chainId: 42161, name: 'Arbitrum One', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://arb1.arbitrum.io/rpc'], parent: { type: 'L2', chain: 'eip155:1' } },
-	{ chainId: 10, name: 'Optimism', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://mainnet.optimism.io'], parent: { type: 'L2', chain: 'eip155:1' } },
-	{ chainId: 137, name: 'Polygon', nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 }, rpc: ['https://polygon-rpc.com'] },
-	{ chainId: 56, name: 'BNB Chain', nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 }, rpc: ['https://bsc-dataseed.binance.org'] },
+	{
+		chainId: 1,
+		name: 'Ethereum Mainnet',
+		nativeCurrency: {
+			name: 'Ether',
+			symbol: 'ETH',
+			decimals: 18,
+		},
+		rpc: [
+			'https://ethereum.publicnode.com',
+		],
+	},
+	{
+		chainId: 8453,
+		name: 'Base',
+		nativeCurrency: {
+			name: 'Ether',
+			symbol: 'ETH',
+			decimals: 18,
+		},
+		rpc: [
+			'https://mainnet.base.org',
+		],
+		parent: {
+			type: 'L2',
+			chain: 'eip155:1',
+		},
+	},
+	{
+		chainId: 42161,
+		name: 'Arbitrum One',
+		nativeCurrency: {
+			name: 'Ether',
+			symbol: 'ETH',
+			decimals: 18,
+		},
+		rpc: [
+			'https://arb1.arbitrum.io/rpc',
+		],
+		parent: {
+			type: 'L2',
+			chain: 'eip155:1',
+		},
+	},
+	{
+		chainId: 10,
+		name: 'Optimism',
+		nativeCurrency: {
+			name: 'Ether',
+			symbol: 'ETH',
+			decimals: 18,
+		},
+		rpc: [
+			'https://mainnet.optimism.io',
+		],
+		parent: {
+			type: 'L2',
+			chain: 'eip155:1',
+		},
+	},
+	{
+		chainId: 137,
+		name: 'Polygon',
+		nativeCurrency: {
+			name: 'MATIC',
+			symbol: 'MATIC',
+			decimals: 18,
+		},
+		rpc: [
+			'https://polygon-rpc.com',
+		],
+	},
+	{
+		chainId: 56,
+		name: 'BNB Chain',
+		nativeCurrency: {
+			name: 'BNB',
+			symbol: 'BNB',
+			decimals: 18,
+		},
+		rpc: [
+			'https://bsc-dataseed.binance.org',
+		],
+	},
 ])
 export const MOCK_CHAINLIST_RPCS_CHAIN_COUNT = 6
 
 /**
- * Minimal `chains.json` for ethereum-lists (same chain ids as {@link MOCK_CHAINLIST_RPCS_JSON_BODY}).
- * Includes L2 parent links so `/network/eip155:1` exercises the Chainlist / ethereum-lists child network subsets.
- */
+	* Minimal `chains.json` for ethereum-lists (same chain ids as {@link MOCK_CHAINLIST_RPCS_JSON_BODY}).
+	* Includes L2 parent links so `/network/eip155:1` exercises the Chainlist / ethereum-lists child network subsets.
+	*/
 export const MOCK_ETHEREUM_LISTS_CHAINS_JSON_BODY = JSON.stringify(
 	[
 		{
 			name: 'Ethereum Mainnet',
 			chain: 'ETH',
 			rpc: ['https://ethereum.publicnode.com'],
-			nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+			nativeCurrency: {
+				name: 'Ether',
+				symbol: 'ETH',
+				decimals: 18,
+			},
 			shortName: 'eth',
 			chainId: 1,
 			networkId: 1,
@@ -947,37 +1039,62 @@ export const MOCK_ETHEREUM_LISTS_CHAINS_JSON_BODY = JSON.stringify(
 			name: 'Base',
 			chain: 'ETH',
 			rpc: ['https://mainnet.base.org'],
-			nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+			nativeCurrency: {
+				name: 'Ether',
+				symbol: 'ETH',
+				decimals: 18,
+			},
 			shortName: 'base',
 			chainId: 8453,
 			networkId: 8453,
-			parent: { type: 'L2', chain: 'eip155:1' },
+			parent: {
+				type: 'L2',
+				chain: 'eip155:1',
+			},
 		},
 		{
 			name: 'Arbitrum One',
 			chain: 'ETH',
 			rpc: ['https://arb1.arbitrum.io/rpc'],
-			nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+			nativeCurrency: {
+				name: 'Ether',
+				symbol: 'ETH',
+				decimals: 18,
+			},
 			shortName: 'arb1',
 			chainId: 42161,
 			networkId: 42161,
-			parent: { type: 'L2', chain: 'eip155:1' },
+			parent: {
+				type: 'L2',
+				chain: 'eip155:1',
+			},
 		},
 		{
 			name: 'Optimism',
 			chain: 'ETH',
 			rpc: ['https://mainnet.optimism.io'],
-			nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+			nativeCurrency: {
+				name: 'Ether',
+				symbol: 'ETH',
+				decimals: 18,
+			},
 			shortName: 'oeth',
 			chainId: 10,
 			networkId: 10,
-			parent: { type: 'L2', chain: 'eip155:1' },
+			parent: {
+				type: 'L2',
+				chain: 'eip155:1',
+			},
 		},
 		{
 			name: 'Polygon',
 			chain: 'MATIC',
 			rpc: ['https://polygon-rpc.com'],
-			nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+			nativeCurrency: {
+				name: 'MATIC',
+				symbol: 'MATIC',
+				decimals: 18,
+			},
 			shortName: 'matic',
 			chainId: 137,
 			networkId: 137,
@@ -986,12 +1103,16 @@ export const MOCK_ETHEREUM_LISTS_CHAINS_JSON_BODY = JSON.stringify(
 			name: 'BNB Chain',
 			chain: 'BNB',
 			rpc: ['https://bsc-dataseed.binance.org'],
-			nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+			nativeCurrency: {
+				name: 'BNB',
+				symbol: 'BNB',
+				decimals: 18,
+			},
 			shortName: 'bnb',
 			chainId: 56,
 			networkId: 56,
 		},
-	],
+	]
 )
 
 export const ethereumListsChainsJsonWire = (url: string, method: string) => (
@@ -1013,10 +1134,10 @@ export const catalogWire = (url: string, method: string) => (
 )
 
 /**
- * L2Beat scaling summary — only projects that map to {@link MOCK_CHAINLIST_RPCS_JSON_BODY}
- * chain ids via `chainIdByL2BeatProjectId`, so e2e does not hydrate extra `Network` rows that
- * lack JSON-RPC in the chainlist stub (Voltaire / `collectIssues` console errors).
- */
+	* L2Beat scaling summary — only projects that map to {@link MOCK_CHAINLIST_RPCS_JSON_BODY}
+	* chain ids via `chainIdByL2BeatProjectId`, so e2e does not hydrate extra `Network` rows that
+	* lack JSON-RPC in the chainlist stub (Voltaire / `collectIssues` console errors).
+	*/
 export const MOCK_L2BEAT_SCALING_SUMMARY_BODY = JSON.stringify({
 	projects: {
 		arbitrum: {
@@ -1072,9 +1193,9 @@ export const tradingViewCryptoScanWire = (url: string, method: string) => (
 )
 
 /**
- * Stubs Chainlist `rpcs.json`, ethereum-lists `chains.json`, L2Beat scaling summary, TradingView crypto scan, and public IPFS gateway GETs.
- * One-off real catalog runs: `E2E_USE_E2E_HTTP_STUBS=0 pnpm exec playwright test …` (OPFS / warm-reload tests may need the stub).
- */
+	* Stubs Chainlist `rpcs.json`, ethereum-lists `chains.json`, L2Beat scaling summary, TradingView crypto scan, and public IPFS gateway GETs.
+	* One-off real catalog runs: `E2E_USE_E2E_HTTP_STUBS=0 pnpm exec playwright test …` (OPFS / warm-reload tests may need the stub).
+	*/
 export const installChainlistRpcsJsonStub = async (page: Page) => {
 	if (process.env.E2E_USE_E2E_HTTP_STUBS === '0')
 		return
@@ -1152,25 +1273,25 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 
 export const assertMainSettled = async (
 	page: Page,
-	timeoutMs = 180_000,
+	timeoutMs = 180_000
 ) => {
 	await expect(page.locator('#main')).toBeAttached({ timeout: timeoutMs })
 	const snapshot = await waitForBoundarySettle(page, { timeoutMs })
 	expect(
-		snapshot.failed.map((row) => `${row.key ?? 'unknown'}: ${row.message}`),
-	).toEqual([])
+		snapshot.failed.map((row) => `${row.key ?? 'unknown'}: ${row.message}`)
+		).toEqual([])
 	expect(
-		snapshot.loading.map((row) => `${row.key ?? 'unknown'}: ${row.message}`),
-	).toEqual([])
+		snapshot.loading.map((row) => `${row.key ?? 'unknown'}: ${row.message}`)
+		).toEqual([])
 	expect(
-		snapshot.empty ? `${snapshot.emptyReason ?? 'unknown'} (${snapshot.textLength} chars)` : '',
-	).toBe('')
+		snapshot.empty ? `${snapshot.emptyReason ?? 'unknown'} (${snapshot.textLength} chars)` : ''
+		).toBe('')
 }
 
 /**
- * Proves `resolveLive` started Voltaire’s subscription (layout mounted). WSS can still drop in CI/Playwright; use for smoke tests with stubbed chainlist.
- * Register the returned promise *before* `page.goto` so the first line is not missed.
- */
+	* Proves `resolveLive` started Voltaire’s subscription (layout mounted). WSS can still drop in CI/Playwright; use for smoke tests with stubbed chainlist.
+	* Register the returned promise *before* `page.goto` so the first line is not missed.
+	*/
 export const voltaireBlockStreamWatchStartConsoleEvent = (page: Page, timeoutMs = 90_000) => (
 	page.waitForEvent('console', {
 		predicate: (msg) => {
@@ -1185,9 +1306,9 @@ export const voltaireBlockStreamWatchStartConsoleEvent = (page: Page, timeoutMs 
 )
 
 /**
- * Wait for a single console line with `[block stream] … type=blocks`. Prefer the combined gate in `tests/e2e/_networkViewLiveE2e.ts` (log or head tick) for real runs — WSS often never emits in Playwright.
- * Register the returned promise *before* `page.goto` so the first event is not missed.
- */
+	* Wait for a single console line with `[block stream] … type=blocks`. Prefer the combined gate in `tests/e2e/_networkViewLiveE2e.ts` (log or head tick) for real runs — WSS often never emits in Playwright.
+	* Register the returned promise *before* `page.goto` so the first event is not missed.
+	*/
 export const blockStreamBlocksConsoleEvent = (page: Page, timeoutMs = 90_000) => (
 	page.waitForEvent('console', {
 		predicate: (msg) => {
@@ -1199,20 +1320,13 @@ export const blockStreamBlocksConsoleEvent = (page: Page, timeoutMs = 90_000) =>
 )
 
 /**
- * HTTP JSON-RPC URL aligned with app `jsonRpcUrlWithTransportForChain` (ExecutionEndpoints, then Chainlist). Playwright preflight uses `fetch` only — if the default is WebSocket, falls back to Chainlist HTTP.
- */
+	* HTTP JSON-RPC URL aligned with app `jsonRpcUrlWithTransportForChain`.
+	* Playwright preflight uses `fetch` only, so WebSocket-only chains cannot use this probe.
+	*/
 export const publicJsonRpcHttpUrlForChainE2e = async (chainId: number) => {
 	const t = await jsonRpcUrlWithTransportForChain(chainId)
 	if (t == null) return null
 	if (t.transportType === TransportType.Http) return t.rpcUrl
-	const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
-	const chain = (await fetchRpcsJson()).find((candidate) => candidate.chainId === chainId)
-	if (chain == null) return null
-	for (const entry of chain.rpc ?? []) {
-		const raw = typeof entry === 'string' ? entry : entry.url
-			const url = raw.trim()
-		if (url && url.startsWith('http')) return url
-	}
 	return null
 }
 
@@ -1220,22 +1334,39 @@ export const publicJsonRpcHttpUrlForChainE2e = async (chainId: number) => {
 export const preflightChainHeadAdvances = async (
 	page: Page,
 	rpcUrl: string,
-	gapMs: number,
+	gapMs: number
 ) => {
 	const a = await preflightPublicJsonRpcEthBlockNumber(page, rpcUrl)
-	if (!a.ok || a.blockNumberHex == null) return { ok: false as const, reason: 'first', detail: a }
+	if (!a.ok || a.blockNumberHex == null) return {
+		ok: false as const,
+		reason: 'first',
+		detail: a,
+	}
 	const h0 = BigInt(a.blockNumberHex)
 	await page.waitForTimeout(gapMs)
 	const b = await preflightPublicJsonRpcEthBlockNumber(page, rpcUrl)
-	if (!b.ok || b.blockNumberHex == null) return { ok: false as const, reason: 'second', detail: b }
+	if (!b.ok || b.blockNumberHex == null) return {
+		ok: false as const,
+		reason: 'second',
+		detail: b,
+	}
 	const h1 = BigInt(b.blockNumberHex)
-	if (h1 <= h0) return { ok: false as const, reason: 'stuck', h0, h1 }
-	return { ok: true as const, h0, h1 }
+	if (h1 <= h0) return {
+		ok: false as const,
+		reason: 'stuck',
+		h0,
+		h1,
+	}
+	return {
+		ok: true as const,
+		h0,
+		h1,
+	}
 }
 
 /**
- * Retries in-browser public RPC preflight (429, transient DNS, or slow blocks) before failing the test.
- */
+	* Retries in-browser public RPC preflight (429, transient DNS, or slow blocks) before failing the test.
+	*/
 export const preflightChainHeadAdvancesWithRetries = async (
 	page: Page,
 	rpcUrl: string,
@@ -1243,7 +1374,10 @@ export const preflightChainHeadAdvancesWithRetries = async (
 	{
 		attempts = 8,
 		betweenAttemptsMs = 4_000,
-	}: { attempts?: number, betweenAttemptsMs?: number } = {},
+	}: {
+		attempts?: number
+		betweenAttemptsMs?: number
+	} = {}
 ) => {
 	let last: Awaited<ReturnType<typeof preflightChainHeadAdvances>> | undefined
 	for (let i = 0; i < attempts; i += 1) {
@@ -1257,7 +1391,7 @@ export const preflightChainHeadAdvancesWithRetries = async (
 
 export const preflightPublicJsonRpcEthBlockNumber = (
 	page: Page,
-	rpcUrl: string,
+	rpcUrl: string
 ) => (
 	page.evaluate(async (url) => {
 		try {
@@ -1272,17 +1406,35 @@ export const preflightPublicJsonRpcEthBlockNumber = (
 							id: 1,
 							method: 'eth_blockNumber',
 							params: [] as const,
-						},
+						}
 					),
-				},
+				}
 			)
-			if (!res.ok) return { ok: false, status: res.status }
-			const j: { result?: string, error?: { message?: string } } = await res.json()
+			if (!res.ok) return {
+				ok: false,
+				status: res.status,
+			}
+			const j: {
+				result?: string
+				error?: {
+					message?: string
+				}
+			} = await res.json()
 			const hex = j.result
-			if (typeof hex !== 'string' || !hex.startsWith('0x')) return { ok: false, status: res.status, error: j.error?.message }
-			return { ok: true, blockNumberHex: hex }
+			if (typeof hex !== 'string' || !hex.startsWith('0x')) return {
+				ok: false,
+				status: res.status,
+				error: j.error?.message,
+			}
+			return {
+				ok: true,
+				blockNumberHex: hex,
+			}
 		} catch (e) {
-			return { ok: false, error: e instanceof Error ? e.message : String(e) }
+			return {
+				ok: false,
+				error: e instanceof Error ? e.message : String(e),
+			}
 		}
 	}, rpcUrl)
 )
@@ -1301,16 +1453,19 @@ const blockPathNumberFromHref = (href: string | null) => {
 /** Parses head block height from `#network-summary-head-block` only. */
 export const readNetworkHeadBlockBigint = async (
 	page: Page,
-	linkWaitMs = 120_000,
+	linkWaitMs = 120_000
 ) => {
 	const summaryLink = page.locator('#network-summary-head-block').locator('a[href*="/block/"]').first()
-	await summaryLink.waitFor({ state: 'attached', timeout: linkWaitMs })
+	await summaryLink.waitFor({
+		state: 'attached',
+		timeout: linkWaitMs,
+	})
 	return blockPathNumberFromHref(await summaryLink.getAttribute('href'))
 }
 
 const beaconPathNumberFromHref = (
 	href: string | null,
-	segment: 'epoch' | 'slot',
+	segment: 'epoch' | 'slot'
 ) => {
 	if (href == null) return null
 	const m = new RegExp(`/${segment}/([0-9]+)\\b`).exec(href)
@@ -1325,26 +1480,32 @@ const beaconPathNumberFromHref = (
 /** Head epoch from summary `<dl>` (`BeaconEpochView` link). */
 export const readNetworkHeadEpochBigint = async (
 	page: Page,
-	linkWaitMs = 120_000,
+	linkWaitMs = 120_000
 ) => {
 	const link = page
 		.locator('.network-summary-head')
 		.locator('a[href*="/epoch/"]')
 		.first()
-	await link.waitFor({ state: 'attached', timeout: linkWaitMs })
+	await link.waitFor({
+		state: 'attached',
+		timeout: linkWaitMs,
+	})
 	return beaconPathNumberFromHref(await link.getAttribute('href'), 'epoch')
 }
 
 /** Head slot from summary `<dl>` (`BeaconSlotView` link). */
 export const readNetworkHeadSlotBigint = async (
 	page: Page,
-	linkWaitMs = 120_000,
+	linkWaitMs = 120_000
 ) => {
 	const link = page
 		.locator('.network-summary-head')
 		.locator('a[href*="/slot/"]')
 		.first()
-	await link.waitFor({ state: 'attached', timeout: linkWaitMs })
+	await link.waitFor({
+		state: 'attached',
+		timeout: linkWaitMs,
+	})
 	return beaconPathNumberFromHref(await link.getAttribute('href'), 'slot')
 }
 
@@ -1365,20 +1526,26 @@ const networkExecutionCarouselPanesSel = '.network-carousel-execution[data-scrol
 
 export const readTopBlockNumberFromNetworkCarousel = async (
 	page: Page,
-	linkWaitMs = 90_000,
+	linkWaitMs = 90_000
 ) => {
 	const first = page.locator(`${networkExecutionCarouselPanesSel} a[href*="/block/"]`).first()
-	await first.waitFor({ state: 'visible', timeout: linkWaitMs })
+	await first.waitFor({
+		state: 'visible',
+		timeout: linkWaitMs,
+	})
 	return blockPathNumberFromHref(await first.getAttribute('href'))
 }
 
 /** Top block link on `/network/:id/blocks` (`EvmBlocksView` inner list `article#…-items`). */
 export const readTopBlockNumberFromNetworkBlocksPage = async (
 	page: Page,
-	linkWaitMs = 120_000,
+	linkWaitMs = 120_000
 ) => {
 	const first = page.locator('#blocks-items a[href*="/block/"]').first()
-	await first.waitFor({ state: 'visible', timeout: linkWaitMs })
+	await first.waitFor({
+		state: 'visible',
+		timeout: linkWaitMs,
+	})
 	return blockPathNumberFromHref(await first.getAttribute('href'))
 }
 
@@ -1407,7 +1574,7 @@ export const readTxHrefsJoin = async (page: Page) => {
 				:
 					''
 			))
-		),
+		)
 	)
 	return all.join('\0')
 }
@@ -1443,7 +1610,7 @@ export const orderedInternalNavHrefs = (menu: Locator) => (
 
 export const navMenu = (page: Page) => page.locator('#nav-menu')
 
-export const chunk = <T,>(arr: T[], size: number): T[][] => (
+export const chunk = <T>(arr: T[], size: number): T[][] => (
 	arr.reduce<T[][]>((acc, item, j) => {
 		const idx = Math.floor(j / size)
 		acc[idx] ??= []
@@ -1455,7 +1622,7 @@ export const chunk = <T,>(arr: T[], size: number): T[][] => (
 export const clickInternalNavHrefs = async (
 	page: Page,
 	menu: Locator,
-	hrefs: string[],
+	hrefs: string[]
 ) => {
 	for (const href of hrefs) {
 		await expandClosedAncestors(menu.locator(`a[href="${href}"]`).first())

@@ -25,6 +25,9 @@
 		},
 	)
 	let promiseState = $state('pending')
+	let secondPromiseState = $state('pending')
+	let catchState = $state('')
+	let finallyCount = $state(0)
 
 	const applyQuery = (
 		nextQuery: TanStackLiveQuerySnapshot<string>,
@@ -36,6 +39,8 @@
 		query.error = nextQuery.error
 		query.status = nextQuery.status
 		promiseState = 'pending'
+		secondPromiseState = 'pending'
+		catchState = ''
 		for (const listener of queryListeners)
 			listener()
 		void resource.then(
@@ -46,6 +51,20 @@
 				promiseState = String(error)
 			},
 		)
+		void resource.then(
+			(value) => {
+				secondPromiseState = value
+			},
+			(error) => {
+				secondPromiseState = String(error)
+			},
+		)
+		void resource.catch((error) => {
+			catchState = String(error)
+		})
+		void resource.finally(() => {
+			finallyCount += 1
+		}).catch(() => {})
 	}
 </script>
 
@@ -135,4 +154,7 @@
 	</button>
 
 	<p data-testid="adapter-awaited">{promiseState}</p>
+	<p data-testid="adapter-awaited-second">{secondPromiseState}</p>
+	<p data-testid="adapter-catch">{catchState}</p>
+	<p data-testid="adapter-finally-count">{finallyCount}</p>
 </section>

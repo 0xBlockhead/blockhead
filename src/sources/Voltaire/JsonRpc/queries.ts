@@ -8,7 +8,7 @@ import {
 } from '@tevm/voltaire/block'
 import { Rpc } from '@tevm/voltaire/jsonrpc'
 import { Hex } from '@tevm/voltaire/Hex'
-import type { Provider } from '@tevm/voltaire/provider'
+import { type Provider, HttpProvider, WebSocketProvider } from '@tevm/voltaire/provider'
 
 import type { ExecutionEndpoint } from '$/constants/ExecutionEndpoints.ts'
 import { TransportType } from '$/constants/TransportType.ts'
@@ -20,13 +20,17 @@ import {
 import type { RpcBlockHeader, RpcLog, RpcReceipt, RpcTransaction } from '$/sources/Evm/JsonRpc/types.ts'
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 
-import { parseRawCallTrace } from '$/lib/evm-trace.ts'
-import type { VoltaireBlockRpc, VoltaireReceiptRpc, VoltaireTxRpc } from './types.ts'
+import {
+	parseVoltaireCallTraceRpc,
+	type VoltaireBlockRpc,
+	type VoltaireReceiptRpc,
+	type VoltaireTxRpc,
+} from './types.ts'
 
 /** Voltaire `Provider.request` is EIP-1193 — JSON-shaped but untyped at the boundary. */
 const jsonValueFromProviderRequest = async (
 	// oxlint-disable-next-line typescript/no-restricted-types -- EIP-1193 Provider.request return
-	requestPromise: Promise<unknown>,
+	requestPromise: Promise<unknown>
 ): Promise<JsonValue> => {
 	const result = await requestPromise
 	// @ts-expect-error EIP-1193 JSON-RPC result is JSON-shaped but untyped on Provider.request
@@ -107,16 +111,19 @@ export const narrowBlockRpc = (raw: JsonValue): VoltaireBlockRpc | null => {
 	const transactions = (
 		!Array.isArray(txs) ?
 			undefined
-		: txs.length === 0 ?
-			[]
-		: txs.every((t) => typeof t === 'string') ?
-			txs
-		: txs.every((t) => typeof t === 'object' && t !== null && !Array.isArray(t)) ?
-			txs
-				.map((t) => narrowTxRpc(t))
-				.filter((t): t is VoltaireTxRpc => t != null)
 		:
-			undefined
+			txs.length === 0 ?
+				[]
+			:
+				txs.every((t) => typeof t === 'string') ?
+					txs
+				:
+					txs.every((t) => typeof t === 'object' && t !== null && !Array.isArray(t)) ?
+					txs
+						.map((t) => narrowTxRpc(t))
+						.filter((t): t is VoltaireTxRpc => t != null)
+				:
+					undefined
 	)
 	return {
 		number,
@@ -150,10 +157,11 @@ const narrowVoltaireReceiptRpc = (raw: JsonValue): VoltaireReceiptRpc | null => 
 	const contractAddress = (
 		contractAddressRaw === null ?
 			null
-		: typeof contractAddressRaw === 'string' ?
-			contractAddressRaw
 		:
-			undefined
+			typeof contractAddressRaw === 'string' ?
+				contractAddressRaw
+			:
+				undefined
 	)
 	return {
 		status: typeof raw['status'] === 'string' ? raw['status'] : undefined,
@@ -168,7 +176,7 @@ const narrowVoltaireReceiptRpc = (raw: JsonValue): VoltaireReceiptRpc | null => 
 
 
 export const streamBlockToBlockRpcWire = (
-	block: StreamBlock<BlockInclude> | VoltaireBlockRpc,
+	block: StreamBlock<BlockInclude> | VoltaireBlockRpc
 ): VoltaireBlockRpc => {
 	const transactions: VoltaireBlockRpc['transactions'] = (
 		(
@@ -205,21 +213,15 @@ export const getProviderForExecutionUrl = async ({
 }: {
 	url: string
 	transportType: TransportType
-}): Promise<Provider> => {
-	const {
-		getHttpProvider,
-		getWebsocketProvider,
-	} = await import('$/sources/Voltaire/JsonRpc/provider.ts')
-	return (
-		transportType === TransportType.WebSocket ?
-			getWebsocketProvider(url)
-		:
-			getHttpProvider(url)
-	)
-}
+}): Promise<Provider> => (
+	transportType === TransportType.WebSocket ?
+		new WebSocketProvider(url)
+	:
+		new HttpProvider(url)
+)
 
 export const getProviderForExecutionEndpoint = (
-	endpoint: ExecutionEndpoint,
+	endpoint: ExecutionEndpoint
 ): Promise<Provider> => (
 	getProviderForExecutionUrl({
 		url: endpoint.url,
@@ -241,10 +243,10 @@ export const getBlockByNumber = async ({
 			provider.request(
 				Rpc.Eth.GetBlockByNumberRequest(
 					blockNumber === 'latest' ? 'latest' : getBlockSpec(blockNumber),
-					fullTransactions,
-				),
-			),
-		),
+					fullTransactions
+				)
+			)
+		)
 	)
 )
 
@@ -257,12 +259,11 @@ export const getBlockTransactionCountByNumber = async ({
 }): Promise<bigint> => {
 	const transactionCountHexUnknown = await provider.request(
 		Rpc.Eth.GetBlockTransactionCountByNumberRequest(
-			blockNumber === 'latest' ? 'latest' : getBlockSpec(blockNumber),
-		),
+			blockNumber === 'latest' ? 'latest' : getBlockSpec(blockNumber)
+		)
 	)
-	if (typeof transactionCountHexUnknown !== 'string') {
+	if (typeof transactionCountHexUnknown !== 'string')
 		throw new Error('eth_getBlockTransactionCountByNumber: expected hex string')
-	}
 	return BigInt(transactionCountHexUnknown)
 }
 
@@ -272,20 +273,26 @@ export const lookupTransactionByHash = async ({
 }: {
 	provider: Provider
 	txHash: `0x${string}`
-}): Promise<{ tx: VoltaireTxRpc; receipt: VoltaireReceiptRpc | null }> => {
+}): Promise<{
+	tx: VoltaireTxRpc
+	receipt: VoltaireReceiptRpc | null
+}> => {
 	const hashParam = Hex(txHash)
 	const [txUnknown, receiptUnknown] = await Promise.all([
 		jsonValueFromProviderRequest(
-			provider.request(Rpc.Eth.GetTransactionByHashRequest(hashParam)),
+			provider.request(Rpc.Eth.GetTransactionByHashRequest(hashParam))
 		),
 		jsonValueFromProviderRequest(
-			provider.request(Rpc.Eth.GetTransactionReceiptRequest(hashParam)),
+			provider.request(Rpc.Eth.GetTransactionReceiptRequest(hashParam))
 		),
 	])
 	const tx = narrowTxRpc(txUnknown)
 	const receipt = narrowVoltaireReceiptRpc(receiptUnknown)
 	if (tx == null) throw new Error('Transaction not found')
-	return { tx, receipt }
+	return {
+		tx,
+		receipt,
+	}
 }
 
 /** BlockStream for live / reorg-aware blocks; prefer a WebSocket execution URL. */
@@ -361,11 +368,13 @@ export const getChainHeadNumberForRpcUrl = async ({
 		const hex = await getEvmBlockNumber({ rpcUrl })
 		return BigInt(hex)
 	}
-	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
+	const provider = await getProviderForExecutionUrl({
+		url: rpcUrl,
+		transportType,
+	})
 	const hexUnknown = await provider.request(Rpc.Eth.BlockNumberRequest())
-	if (typeof hexUnknown !== 'string') {
+	if (typeof hexUnknown !== 'string')
 		throw new Error('eth_blockNumber: expected hex string')
-	}
 	return BigInt(hexUnknown)
 }
 
@@ -413,8 +422,15 @@ export const getBlockByNumberForRpcUrl = async ({
 		}
 	}
 
-	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
-	return getBlockByNumber({ provider, blockNumber, fullTransactions })
+	const provider = await getProviderForExecutionUrl({
+		url: rpcUrl,
+		transportType,
+	})
+	return getBlockByNumber({
+		provider,
+		blockNumber,
+		fullTransactions,
+	})
 }
 
 export const getRecentBlockWiresForRpcUrl = async ({
@@ -429,12 +445,15 @@ export const getRecentBlockWiresForRpcUrl = async ({
 	blockNumbers: bigint[]
 	wires: (VoltaireBlockRpc | null)[]
 }> => {
-	const head = await getChainHeadNumberForRpcUrl({ rpcUrl, transportType })
+	const head = await getChainHeadNumberForRpcUrl({
+		rpcUrl,
+		transportType,
+	})
 	const blockNumbers = (
 		Array.from(
 			{ length: recentBlockDepth },
-			(_, index) => head - BigInt(index),
-		).filter((n) => n >= 0n)
+			(_, index) => head - BigInt(index)
+			).filter((n) => n >= 0n)
 	)
 	const wires = await Promise.all(
 		blockNumbers.map((blockNumber) => (
@@ -449,9 +468,12 @@ export const getRecentBlockWiresForRpcUrl = async ({
 					setTimeout(() => resolve(null), 8_000)
 				}),
 			])
-		)),
+		))
 	)
-	return { blockNumbers, wires }
+	return {
+		blockNumbers,
+		wires,
+	}
 }
 
 export const getTransactionByHashForRpcUrl = async ({
@@ -463,11 +485,14 @@ export const getTransactionByHashForRpcUrl = async ({
 	transportType: TransportType
 	txHash: `0x${string}`
 }): Promise<VoltaireTxRpc | null> => {
-	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
+	const provider = await getProviderForExecutionUrl({
+		url: rpcUrl,
+		transportType,
+	})
 	return narrowTxRpc(
 		await jsonValueFromProviderRequest(
-			provider.request(Rpc.Eth.GetTransactionByHashRequest(Hex(txHash))),
-		),
+			provider.request(Rpc.Eth.GetTransactionByHashRequest(Hex(txHash)))
+		)
 	)
 }
 
@@ -480,7 +505,10 @@ export const debugTraceTransactionForRpcUrl = async ({
 	transportType: TransportType
 	txHash: `0x${string}`
 }) => {
-	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
+	const provider = await getProviderForExecutionUrl({
+		url: rpcUrl,
+		transportType,
+	})
 	try {
 		const traceJson = await jsonValueFromProviderRequest(
 			provider.request({
@@ -489,11 +517,11 @@ export const debugTraceTransactionForRpcUrl = async ({
 					Hex(txHash),
 					{ tracer: 'callTracer' },
 				],
-			}),
+			})
 		)
 		return (
 			isJsonObject(traceJson) ?
-				parseRawCallTrace(traceJson)
+				parseVoltaireCallTraceRpc(traceJson)
 			:
 				null
 		)
@@ -511,11 +539,14 @@ export const getTransactionReceiptForRpcUrl = async ({
 	transportType: TransportType
 	txHash: `0x${string}`
 }): Promise<VoltaireReceiptRpc | null> => {
-	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
+	const provider = await getProviderForExecutionUrl({
+		url: rpcUrl,
+		transportType,
+	})
 	return narrowVoltaireReceiptRpc(
 		await jsonValueFromProviderRequest(
-			provider.request(Rpc.Eth.GetTransactionReceiptRequest(Hex(txHash))),
-		),
+			provider.request(Rpc.Eth.GetTransactionReceiptRequest(Hex(txHash)))
+		)
 	)
 }
 
@@ -527,13 +558,22 @@ export const lookupTransactionByHashForRpcUrl = async ({
 	rpcUrl: string
 	transportType: TransportType
 	txHash: `0x${string}`
-}): Promise<{ tx: VoltaireTxRpc; receipt: VoltaireReceiptRpc | null }> => {
-	const provider = await getProviderForExecutionUrl({ url: rpcUrl, transportType })
-	return lookupTransactionByHash({ provider, txHash })
+}): Promise<{
+	tx: VoltaireTxRpc
+	receipt: VoltaireReceiptRpc | null
+}> => {
+	const provider = await getProviderForExecutionUrl({
+		url: rpcUrl,
+		transportType,
+	})
+	return lookupTransactionByHash({
+		provider,
+		txHash,
+	})
 }
 
 export const getRpcHeader = (
-	wire: VoltaireBlockRpc,
+	wire: VoltaireBlockRpc
 ): RpcBlockHeader => ({
 	number: wire.number,
 	hash: wire.hash,
@@ -555,7 +595,7 @@ export const getRpcHeader = (
 
 export const getRpcTx = (
 	tx: VoltaireTxRpc,
-	txHash: `0x${string}`,
+	txHash: `0x${string}`
 ): RpcTransaction => ({
 	hash: tx.hash ?? txHash,
 	blockHash: tx.blockHash,
@@ -575,7 +615,7 @@ export const getRpcTx = (
 })
 
 export const getRpcReceipt = (
-	receipt: VoltaireReceiptRpc | null,
+	receipt: VoltaireReceiptRpc | null
 ): RpcReceipt | null => (
 	receipt == null ?
 		null

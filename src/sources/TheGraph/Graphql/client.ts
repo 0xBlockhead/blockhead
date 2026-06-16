@@ -6,19 +6,15 @@ import type {
 import { getJson } from '$/lib/http.ts'
 import {
 	optionalPublicEnvString,
-} from '$/lib/sources.ts'
+} from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import TheGraph from '$/sources/TheGraph/index.ts'
 
 export const queryTheGraph = async <
-	_Result extends {
-		[key: string]: any
-	},
-	_Variables extends {
-		[key: string]: any
-	},
->({
+	_Result extends object,
+	_Variables extends object,
+	>({
 	document,
 	endpointUrl,
 	publicEnv,
@@ -69,7 +65,7 @@ export const queryTheGraph = async <
 				errors
 					.map((error) => error.message ?? 'Unknown error')
 					.join(', ')
-			}`,
+			}`
 		)
 	}
 

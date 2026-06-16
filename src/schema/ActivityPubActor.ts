@@ -15,7 +15,6 @@ export enum ActivityPubActorSelector {
 }
 
 
-
 export default {
 	entityType: EntityType.ActivityPubActor,
 
@@ -112,24 +111,6 @@ export default {
 			name: 'website',
 			type: EntityFieldType.Primitive,
 			primitiveType: UrlString,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'followersCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'followingCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'statusesCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

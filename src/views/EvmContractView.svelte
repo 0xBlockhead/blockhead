@@ -44,7 +44,7 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const contract = subscribe(EntityType.EvmContract,
+	const contract = $derived(subscribe(EntityType.EvmContract,
 		selector,
 		({ sources: [
 				Source.Local_Internal,
@@ -65,7 +65,7 @@
 				], fields: { $compilation: ({ fields: { fullyQualifiedName: true, name: true } }) } }), ...(open && ({ $deployer: true, $creationTransaction: true, $implementation: true, codeHash: true, code: true, abi: true, storageSlotReads: true, $verification: ({ sources: [
 						Source.Sourcify_Rest,
 					], fields: { match: true, creationMatch: true, runtimeMatch: true, verifiedAtMs: true, $compilation: ({ fields: { fullyQualifiedName: true, name: true } }), $sourceBundle: true } }) })) } }),
-	)
+	))
 
 
 	// Components
@@ -107,15 +107,15 @@
 			{#snippet children(contract)}
 				{#if contract.fields.precompileName}
 					{contract.fields.precompileName}
-				{:else if contract.fields.$verification?.$compilation?.fullyQualifiedName}
+				{:else if contract.fields.$verification?.entity.fields.$compilation?.entity.fields.fullyQualifiedName}
 					<code>
-						{contract.fields.$verification.$compilation.fullyQualifiedName
+						{contract.fields.$verification.entity.fields.$compilation.entity.fields.fullyQualifiedName
 							.split(':')[0]
 							.split('/')
 							.at(-1)}
 					</code>
-				{:else if contract.fields.$verification?.$compilation?.name}
-					{contract.fields.$verification.$compilation.name}
+				{:else if contract.fields.$verification?.entity.fields.$compilation?.entity.fields.name}
+					{contract.fields.$verification.entity.fields.$compilation.entity.fields.name}
 				{:else}
 						<EvmNetworkAccountView
 							selector={{

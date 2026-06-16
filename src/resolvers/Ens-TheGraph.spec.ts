@@ -25,11 +25,11 @@ vi.mock('$/sources/TheGraph/Graphql/Ens/queries.ts', () => ({
 const { default: ensTheGraphResolvers } = await import('$/resolvers/Ens-TheGraph.ts')
 
 const ensNameResolver = ensTheGraphResolvers.resolvers.find((
-	resolver,
+	resolver
 ) => resolver.entityType === EntityType.EnsName)
 
 const ensNamesOwnedResolver = ensTheGraphResolvers.resolvers.find((
-	resolver,
+	resolver
 ): resolver is Extract<
 	typeof ensTheGraphResolvers.resolvers[number],
 	{ entityType: EntityType.EvmAccount }
@@ -101,7 +101,7 @@ describe('Ens-TheGraph entity resolver', () => {
 
 		const resolvedEntity = await ensNameResolver.resolve[EnsNameSelector.NormalizedName](
 			{ name: 'vitalik.eth' },
-			resolverContext,
+			resolverContext
 		)
 
 		expect(resolvedEntity).toMatchObject({
@@ -151,7 +151,7 @@ describe('Ens-TheGraph entity resolver', () => {
 
 		const resolvedEntity = await ensNameResolver.resolve[EnsNameSelector.NormalizedName](
 			{ name: 'vitalik.eth' },
-			resolverContext,
+			resolverContext
 		)
 
 		expect(resolvedEntity.$subgraphResolvedActor).toBeUndefined()
@@ -178,7 +178,7 @@ describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 					address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
 					interopAddress: 'eip155:1:0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
 				},
-				resolverContext,
+				resolverContext
 			)
 
 			expect(resolvedEntity).toEqual([

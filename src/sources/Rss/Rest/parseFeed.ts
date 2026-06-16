@@ -11,11 +11,11 @@ const decodeXmlEntities = (value: string) => (
 
 const firstTagText = (
 	block: string,
-	tagNames: readonly string[],
+	tagNames: readonly string[]
 ) => {
 	for (const tagName of tagNames) {
 		const match = block.match(
-			new RegExp(`<${tagName}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tagName}>`, 'i'),
+			new RegExp(`<${tagName}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tagName}>`, 'i')
 		)?.[1]
 		if (match?.trim()) return decodeXmlEntities(match)
 	}
@@ -24,7 +24,7 @@ const firstTagText = (
 
 const linkHrefFromBlock = (
 	block: string,
-	rel?: 'alternate' | 'self',
+	rel?: 'alternate' | 'self'
 ) => {
 	if (rel) {
 		for (const pattern of [
@@ -42,12 +42,12 @@ const linkHrefFromBlock = (
 
 const authorFromBlock = (
 	block: string,
-	fallbackAuthor?: string,
+	fallbackAuthor?: string
 ) => {
 	for (const tagName of ['author', 'dc:creator']) {
 		const escapedTagName = tagName.replace(':', '\\:')
 		const authorBlock = block.match(
-			new RegExp(`<${escapedTagName}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${escapedTagName}>`, 'i'),
+			new RegExp(`<${escapedTagName}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${escapedTagName}>`, 'i')
 		)?.[1]
 		if (!authorBlock?.trim()) continue
 		const name = authorBlock.match(/<name(?:\s[^>]*)?>([\s\S]*?)<\/name>/i)?.[1]
@@ -132,7 +132,7 @@ const parseItemBlock = (
 	options: {
 		isAtom: boolean
 		feedAuthor?: string
-	},
+	}
 ) => {
 	const title = firstTagText(block, ['title'])
 	const link = (

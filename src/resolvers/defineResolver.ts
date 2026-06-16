@@ -35,7 +35,7 @@ type ResolveShape<
 			_EntityType,
 			Extract<_SelectorName, EntitySelectorName<typeof schema, _EntityType>>
 		>,
-		context: SourceResolverContext<_Source>,
+		context: SourceResolverContext<_Source>
 	) => Promise<ResolverValue>
 }>
 
@@ -63,11 +63,9 @@ export const defineResolver = <
 	entityType: _EntityType
 	resolve: _Resolve
 	resolveLive?: ResolveLivePublishers<typeof schema, _EntityType>
-},
+}
 ) => (facets: {
 	fields: ResolverFields<_Source, _EntityType, _Resolve>
-} = {
-	fields: {},
 }) => ({
 	...resolver,
 	...facets,

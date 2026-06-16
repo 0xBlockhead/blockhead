@@ -2,18 +2,21 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
-	import { catalogCoinIdentitySources } from '$/constants/Market.ts'
-	import { Source } from '$/sources/Source.ts'
-	import { catalogCoinUsdMarketIdByCoinId } from '$/constants/MarketCatalog.ts'
+	import {
+		Source,
+		catalogCoinIdentitySources,
+	} from '$/sources/Source.ts'
+	import { catalogCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
 
 	import {
+		MarketAssetKind,
 		MarketKind,
 		marketKindByMarketKind,
 	} from '$/constants/Market.ts'
 
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
@@ -88,13 +91,10 @@
 						$logo: true,
 						decimals: true,
 						name: true,
-						marketCapRank: true,
-						marketCapUsd: {
-							sources: catalogCoinIdentitySources,
-						},
 						$$timestamps: {
 							sources: [
-							Source.Blockscout_Rest,
+								Source.Coingecko_Rest,
+								Source.Blockscout_Rest,
 							],
 							limit: 8,
 						},
@@ -201,8 +201,9 @@
 				<dd>
 					<ResourceBoundary resource={coin}>
 						{#snippet children(coin)}
-							{#if coin.fields.marketCapRank != null && Number.isFinite(coin.fields.marketCapRank)}
-								{String(coin.fields.marketCapRank)}
+							{@const marketCapRank = coin.fields.$$timestamps.values.at(0)?.marketCapRank}
+							{#if marketCapRank != null && Number.isFinite(marketCapRank)}
+								{String(marketCapRank)}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -214,11 +215,12 @@
 				<dd>
 					<ResourceBoundary resource={coin}>
 						{#snippet children(coin)}
-							{#if coin.fields.marketCapUsd != null && Number.isFinite(coin.fields.marketCapUsd)}
+							{@const marketCapUsd = coin.fields.$$timestamps.values.at(0)?.marketCapUsd}
+							{#if marketCapUsd != null && Number.isFinite(marketCapUsd)}
 								<CurrencyAmount
 									currency="USD"
 									scale={1}
-									value={coin.fields.marketCapUsd}
+									value={marketCapUsd}
 								/>
 							{/if}
 						{/snippet}
@@ -230,36 +232,33 @@
 				open
 				&& coin.current?.fields.$$timestamps?.values.length
 			)}
-			<div>
-				<dt>Latest snapshot</dt>
-				<dd>
-					<ResourceBoundary resource={coin}>
-						{#snippet children(coin)}
-							{@const headTimestampId = (
-								(coin.fields.$$timestamps?.values ?? [])
-									.toSorted((
-											leftRow: Entity<typeof schema, EntityType.Coin_Timestamp>,
-											rightRow: Entity<typeof schema, EntityType.Coin_Timestamp>,
-									) => (
-										rightRow[EntityMetaKey.Selector].timestampMs
-											- leftRow[EntityMetaKey.Selector].timestampMs
-									))[0]
-									?.[EntityMetaKey.Selector]
-							)}
-							{#if headTimestampId}
-								<Coin_TimestampView
-									selector={headTimestampId}
-									href={resolve('/(assets)/(coins)/coin/[coinId]', {
+				<div>
+					<dt>Latest snapshot</dt>
+					<dd>
+						<ResourceBoundary resource={coin}>
+							{#snippet children(coin)}
+								{@const headTimestampId = (
+									(coin.fields.$$timestamps?.values ?? [])
+										.toSorted((leftRow, rightRow) => (
+											rightRow[EntityMetaKey.Selector].timestampMs
+												- leftRow[EntityMetaKey.Selector].timestampMs
+										))[0]
+										?.[EntityMetaKey.Selector]
+								)}
+								{#if headTimestampId}
+									<Coin_TimestampView
+										selector={headTimestampId}
+										href={resolve('/(assets)/(coins)/coin/[coinId]', {
 											coinId: selector.coinId,
 										})}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
 			{#if open}
@@ -283,9 +282,20 @@
 		open: _open,
 	})}
 		{@const idPrefix = stringify(selector)}
-		{@const catalogUsdMarketId = (
-			catalogCoinUsdMarketIdByCoinId[selector.coinId]
-		) satisfies EntitySelector<typeof schema, EntityType.Market>}
+		{@const catalogUsdMarketId = {
+			$base: {
+				kind: MarketAssetKind.Coin,
+				$coin: { coinId: catalogCoinSpotUsdMarketByCoinId[selector.coinId].baseCoinId },
+			},
+			$quote: {
+				kind: MarketAssetKind.Currency,
+				$currency: { iso4217: catalogCoinSpotUsdMarketByCoinId[selector.coinId].quoteIso4217 },
+			},
+			$marketVenue: {
+				marketVenueId: catalogCoinSpotUsdMarketByCoinId[selector.coinId].marketVenueId,
+			},
+			marketKind: catalogCoinSpotUsdMarketByCoinId[selector.coinId].marketKind,
+		}}
 		{@const catalogUsdMarketLabel = (
 			catalogUsdMarketId.marketKind === MarketKind.Spot ?
 				`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217}`
@@ -301,10 +311,10 @@
 						sectionIdPrefix={idPrefix}
 						sections={collapsibleTabsSections([
 							{ id: 'coin-instances', label: 'Instances' },
-							...((coin.fields.$$coinInstances?.values ?? []).some((row: Entity<typeof schema, EntityType.EvmCoinInstance>) => (
+							...((coin.fields.$$coinInstances?.values ?? []).some((row) => (
 								row.representation === CoinInstanceRepresentation.BridgeWrapped
-							)) ? [{ id: 'coin-wrapped', label: 'Wrapped' } as const] : []),
-							...((coin.fields.$$bridgeCapabilities?.values ?? []).length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' } as const] : []),
+							)) ? [{ id: 'coin-wrapped', label: 'Wrapped' }] : []),
+							...((coin.fields.$$bridgeCapabilities?.values ?? []).length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' }] : []),
 						])}
 						class="coin-view-collapsible-topology"
 						data-card
@@ -337,7 +347,7 @@
 						{/snippet}
 
 						{#snippet SectionCoinWrapped({ id, label })}
-							{#if (coin.fields.$$coinInstances?.values ?? []).some((row: Entity<typeof schema, EntityType.EvmCoinInstance>) => (
+							{#if (coin.fields.$$coinInstances?.values ?? []).some((row) => (
 								row.representation === CoinInstanceRepresentation.BridgeWrapped
 							))}
 								<EvmCoinInstancesView

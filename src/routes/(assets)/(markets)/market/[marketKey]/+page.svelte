@@ -1,6 +1,11 @@
 <script lang="ts">
 	// Types/constants
+	import { type as arktype } from 'arktype'
 	import { parse } from 'devalue'
+
+	import { parseEntitySelector } from '$/schema/$schema.ts'
+	import MarketSchema from '$/schema/Market.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// State
@@ -8,27 +13,22 @@
 		params,
 	} = $props()
 
-	import { isMarketEntitySelector } from '$/lib/isMarketEntityId.ts'
-
 	const route = $derived.by(() => {
 		const raw = params.marketKey ?? ''
-		if (raw.length === 0) {
+		if (raw.length === 0)
 			return {
 				marketId: null,
 				error: 'Missing market id' as const,
 			}
-		}
+
 		try {
-			const id = parse((() => {
-				try {
-					return decodeURIComponent(raw)
-				} catch {
-					return raw
-				}
-			})())
-			if (isMarketEntitySelector(id)) {
-				return { marketId: id, error: null }
-			}
+			const marketId = parseEntitySelector(
+				schema,
+				MarketSchema,
+				parse(decodeURIComponent(raw)),
+			)
+			if (!(marketId instanceof arktype.errors))
+				return { marketId, error: null }
 		} catch {
 			// fall through
 		}

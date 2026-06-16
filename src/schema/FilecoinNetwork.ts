@@ -9,13 +9,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
-import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
 
 export enum FilecoinNetworkSelector {
 	Network = 'network',
 }
-
 
 const filecoinRpcEndpointField = type({
 	url: UrlString,
@@ -58,15 +56,6 @@ export default {
 			],
 		},
 		{
-			name: '$headTipset',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.FilecoinTipset,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Lotus_JsonRpc,
-			],
-		},
-		{
 			name: '$$timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FilecoinNetwork_Timestamp,
@@ -79,15 +68,6 @@ export default {
 			name: '$$tipsets',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FilecoinTipset,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Lotus_JsonRpc,
-			],
-		},
-		{
-			name: '$$headMiners',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.FilecoinMiner,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Lotus_JsonRpc,

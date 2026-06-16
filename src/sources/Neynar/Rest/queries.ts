@@ -32,7 +32,7 @@ export const getBulkUsers = async ({
  */
 export const getFeed = async (
 	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
-	query: NeynarFeedQuery,
+	query: NeynarFeedQuery
 ): Promise<NeynarFeedResponse | undefined> => {
 	const searchParams = new URLSearchParams()
 	searchParams.set('feed_type', query.feedType)
@@ -53,7 +53,7 @@ export const getFeed = async (
 	}
 	const clampedFeedLimit = Math.min(
 		Math.max(query.limit ?? neynarFeedDefaultLimit, 1),
-		neynarFeedMaxLimit,
+		neynarFeedMaxLimit
 	)
 	searchParams.set('limit', String(clampedFeedLimit))
 	if (query.cursor != null && query.cursor !== '') {
@@ -67,7 +67,7 @@ export const getFeed = async (
 
 export const getCastByHash = async (
 	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
-	hash: `0x${string}`,
+	hash: `0x${string}`
 ): Promise<NeynarCast | undefined> => {
 	const searchParams = new URLSearchParams({
 		identifier: hash,
@@ -75,7 +75,7 @@ export const getCastByHash = async (
 	})
 	const response = await neynarFetch<{ cast?: NeynarCast }>(
 		publicEnv,
-		`/v2/farcaster/cast/?${searchParams}`,
+		`/v2/farcaster/cast/?${searchParams}`
 	)
 	return response?.cast
 }
@@ -86,7 +86,7 @@ export const getCastByHash = async (
  */
 export const getCastByClientUrl = async (
 	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
-	clientUrl: string,
+	clientUrl: string
 ): Promise<NeynarCast | undefined> => {
 	const searchParams = new URLSearchParams({
 		identifier: clientUrl,
@@ -94,7 +94,7 @@ export const getCastByClientUrl = async (
 	})
 	const response = await neynarFetch<{ cast?: NeynarCast }>(
 		publicEnv,
-		`/v2/farcaster/cast/?${searchParams}`,
+		`/v2/farcaster/cast/?${searchParams}`
 	)
 	return response?.cast
 }

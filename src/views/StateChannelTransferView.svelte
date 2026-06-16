@@ -41,10 +41,10 @@
 		>
 	> = $props()
 
-	const transfer = subscribe(EntityType.StateChannelTransfer,
+	const transfer = $derived(subscribe(EntityType.StateChannelTransfer,
 		selector,
 		({ sources: [Source.Local_Internal], fields: { amount: true, turnNum: true, status: true, timestamp: true, $from: true, $to: true, $channel: ({ fields: { $network: true } }) } }),
-	)
+	))
 
 
 	// Components
@@ -105,16 +105,16 @@
 				placeholderText="Loading channel transfer…"
 			>
 				{#snippet children(transfer)}
-					{#if showParentChannel && transfer.fields.$channel?.[EntityMetaKey.Selector].id !== undefined}
+					{#if showParentChannel && transfer.fields.$channel?.value[EntityMetaKey.Selector].id !== undefined}
 						<div>
 							<dt>Channel</dt>
 							<dd>
 								<a
 									href={resolve('/(assets)/(channels)/channel/[channelId]', {
-										channelId: transfer.fields.$channel[EntityMetaKey.Selector].id,
+										channelId: transfer.fields.$channel.value[EntityMetaKey.Selector].id,
 									})}
 								>
-									{transfer.fields.$channel[EntityMetaKey.Selector].id}
+									{transfer.fields.$channel.value[EntityMetaKey.Selector].id}
 								</a>
 							</dd>
 						</div>
@@ -158,14 +158,14 @@
 						<div>
 							<dt>From</dt>
 							<dd>
-									{#if transfer.fields.$channel?.[EntityMetaKey.Selector].id !== undefined && transfer.fields.$channel.$network !== undefined}
-										<EvmNetworkAccountView
-											selector={{
-												$network: transfer.fields.$channel.$network[EntityMetaKey.Selector],
+								{#if transfer.fields.$channel?.entity.fields.$network !== undefined}
+									<EvmNetworkAccountView
+										selector={{
+											$network: transfer.fields.$channel.entity.fields.$network[EntityMetaKey.Selector],
 											$actor: transfer.fields.$from[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
-											open={false}
+										open={false}
 									/>
 								{:else}
 									<EvmAccountView
@@ -185,14 +185,14 @@
 						<div>
 							<dt>To</dt>
 							<dd>
-									{#if transfer.fields.$channel?.[EntityMetaKey.Selector].id !== undefined && transfer.fields.$channel.$network !== undefined}
-										<EvmNetworkAccountView
-											selector={{
-												$network: transfer.fields.$channel.$network[EntityMetaKey.Selector],
+								{#if transfer.fields.$channel?.entity.fields.$network !== undefined}
+									<EvmNetworkAccountView
+										selector={{
+											$network: transfer.fields.$channel.entity.fields.$network[EntityMetaKey.Selector],
 											$actor: transfer.fields.$to[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
-											open={false}
+										open={false}
 									/>
 								{:else}
 									<EvmAccountView

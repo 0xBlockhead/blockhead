@@ -16,14 +16,14 @@
 	} = $props()
 
 
-	const network = subscribe(EntityType.Network,
+	const network = $derived(subscribe(EntityType.Network,
 		{
-			networkSlug: params.networkSlug,
+			slug: params.networkSlug,
 		},
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { namespace: true, slug: true } }),
-	)
+	))
 
 
 	// Components
@@ -42,7 +42,7 @@
 						entityType: EntityType.LightningNetwork,
 						selector: {
 							$network: {
-								networkSlug: network.fields.slug,
+								slug: network.fields.slug,
 							},
 						},
 						fieldName: '$$invoices',

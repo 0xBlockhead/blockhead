@@ -10,12 +10,11 @@ import { Source } from '$/sources/Source.ts'
 
 export enum AtprotoActorSelector {
 	Did = 'did',
+	Handle = 'handle',
 }
 
-
-
 const Did = type(
-	'/^did:(plc:[a-z2-7]+|web:[A-Za-z0-9._:%-]+)$/' as type.cast<string>,
+	'/^did:(plc:[a-z2-7]+|web:[A-Za-z0-9._:%-]+)$/' as type.cast<string>
 )
 
 export default {
@@ -29,6 +28,12 @@ export default {
 			name: AtprotoActorSelector.Did,
 			fields: [
 				'did',
+			],
+		},
+		{
+			name: AtprotoActorSelector.Handle,
+			fields: [
+				'handle',
 			],
 		},
 	],
@@ -50,7 +55,7 @@ export default {
 			name: 'handle',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$icon',

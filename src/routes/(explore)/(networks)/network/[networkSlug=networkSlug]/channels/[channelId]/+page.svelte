@@ -14,7 +14,7 @@
 <Page>
 	<LightningChannelView
 		selector={{
-			$network: { networkSlug: params.networkSlug },
+			$network: { slug: params.networkSlug },
 			channelId: params.channelId,
 		}}
 	/>

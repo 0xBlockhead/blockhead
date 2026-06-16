@@ -252,7 +252,7 @@ export const specificationRealmById = Object.fromEntries(
 		.map((row) => [
 			row.id,
 			row,
-		]),
+		])
 )
 
 export const specificationRealmBySlug = Object.fromEntries(
@@ -260,7 +260,7 @@ export const specificationRealmBySlug = Object.fromEntries(
 		.map((row) => [
 			row.slug,
 			row,
-		]),
+		])
 )
 
 export const proposalCategoryById = Object.fromEntries(
@@ -268,7 +268,7 @@ export const proposalCategoryById = Object.fromEntries(
 		.map((row) => [
 			row.id,
 			row,
-		]),
+		])
 )
 
 export const proposalCategoryBySlug = Object.fromEntries(
@@ -276,7 +276,7 @@ export const proposalCategoryBySlug = Object.fromEntries(
 		.map((row) => [
 			row.slug,
 			row,
-		]),
+		])
 )
 
 export const proposalKindIds = specificationRealms
@@ -360,5 +360,5 @@ export const proposalKindAllowedInRealmByKey = Object.fromEntries(
 	proposalKindIds.map((proposalKindId) => [
 		`${proposalKindId.realm}:${proposalKindId.category}`,
 		proposalKindId,
-	]),
+	])
 )

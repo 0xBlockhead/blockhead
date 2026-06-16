@@ -31,5 +31,5 @@ export const mastodonVisibilityByVisibility = Object.fromEntries(
 	mastodonVisibilities.map((row) => [
 		row.visibility,
 		row,
-	]),
+	])
 )

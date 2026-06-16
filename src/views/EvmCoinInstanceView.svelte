@@ -43,24 +43,14 @@
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const coinInstance = subscribe(EntityType.EvmCoinInstance,
+	const coinInstance = $derived(subscribe(EntityType.EvmCoinInstance,
 		selector,
 		({ sources: [
 				Source.Coingecko_Rest,
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
-			], fields: { coinId: true, $icon: true, name: true, symbol: true, ...(open ? ({ decimals: true, caip19: true, representation: true, $canonicalInstance: ({ sources: [Source.Coingecko_Rest] }), $$outboundBridgeCapabilities: ({ sources: [Source.Lifi_Rest] }), $$inboundBridgeCapabilities: ({ sources: [Source.Lifi_Rest] }) }) : ({  })) } }),
-	)
-
-	const network = subscribe(EntityType.EvmNetwork,
-		selector.$network,
-		({ sources: [
-				Source.Constants_Internal,
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-			], fields: { name: true } }),
-	)
-
+			], fields: { coinId: true, $icon: true, name: true, symbol: true, ...(open ? ({ $contract: true, decimals: true, caip19: true, representation: true, $canonicalInstance: ({ sources: [Source.Coingecko_Rest] }), $$outboundBridgeCapabilities: ({ sources: [Source.Lifi_Rest] }), $$inboundBridgeCapabilities: ({ sources: [Source.Lifi_Rest] }) }) : ({  })) } }),
+	))
 
 	// (Derived)
 	const coinInstanceKey = $derived(
@@ -95,13 +85,7 @@
 					},
 				)
 			:
-				resolve(
-					'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
-					{
-						chainId: String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)),
-						coinInstanceSlug: selector.$contract.address,
-					},
-				)
+				undefined
 		)
 	}
 	{collapsible}
@@ -144,7 +128,7 @@
 					selector.type === CoinInstanceType.NativeCurrency ?
 						`Native (${evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)})`
 					:
-						`ERC-20 (${evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)})`
+						`Token (${evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)})`
 				)}
 			{/snippet}
 		</ResourceBoundary>
@@ -176,12 +160,16 @@
 							{#if selector.type === CoinInstanceType.NativeCurrency}
 								Native
 							{:else}
-								<EvmContractView
-									selector={selector.$contract}
-									layout={EntityLayout.Value}
-									open={true}
-									showTypeAnnotation={false}
-								/>
+								{#if coinInstance.fields.$contract}
+									<EvmContractView
+										selector={coinInstance.fields.$contract[EntityMetaKey.Selector]}
+										layout={EntityLayout.Value}
+										open={true}
+										showTypeAnnotation={false}
+									/>
+								{:else}
+									Token contract unresolved
+								{/if}
 							{/if}
 						</dd>
 					</div>

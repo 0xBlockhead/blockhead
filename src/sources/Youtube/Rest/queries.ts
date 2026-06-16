@@ -24,7 +24,7 @@ const clampYoutubeMaxResults = (limit: number) => (
 
 export const getChannel = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
-	channelId: string,
+	channelId: string
 ) => (
 	youtubeApiV3Get<YoutubeApiChannelsListResponse>(
 		publicEnv,
@@ -32,13 +32,13 @@ export const getChannel = async (
 		{
 			part: channelParts,
 			id: channelId,
-		},
+		}
 	)
 )
 
 export const getVideo = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
-	videoId: string,
+	videoId: string
 ) => (
 	youtubeApiV3Get<YoutubeApiVideosListResponse>(
 		publicEnv,
@@ -46,13 +46,13 @@ export const getVideo = async (
 		{
 			part: videoParts,
 			id: videoId,
-		},
+		}
 	)
 )
 
 export const getComment = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
-	commentId: string,
+	commentId: string
 ) => (
 	youtubeApiV3Get<YoutubeApiCommentsListResponse>(
 		publicEnv,
@@ -60,13 +60,13 @@ export const getComment = async (
 		{
 			part: commentParts,
 			id: commentId,
-		},
+		}
 	)
 )
 
 export const getCommentThread = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
-	commentThreadId: string,
+	commentThreadId: string
 ) => (
 	youtubeApiV3Get<YoutubeApiCommentThreadsListResponse>(
 		publicEnv,
@@ -74,13 +74,13 @@ export const getCommentThread = async (
 		{
 			part: commentThreadParts,
 			id: commentThreadId,
-		},
+		}
 	)
 )
 
 export const getPlaylist = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
-	playlistId: string,
+	playlistId: string
 ) => (
 	youtubeApiV3Get<YoutubeApiPlaylistsListResponse>(
 		publicEnv,
@@ -88,14 +88,14 @@ export const getPlaylist = async (
 		{
 			part: playlistParts,
 			id: playlistId,
-		},
+		}
 	)
 )
 
 export const listChannelPlaylists = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	channelId: string,
-	limit: number,
+	limit: number
 ) => (
 	youtubeApiV3Get<YoutubeApiPlaylistsListResponse>(
 		publicEnv,
@@ -104,14 +104,14 @@ export const listChannelPlaylists = async (
 			part: playlistParts,
 			channelId,
 			maxResults: String(clampYoutubeMaxResults(limit)),
-		},
+		}
 	)
 )
 
 export const listPlaylistItems = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	playlistId: string,
-	limit: number,
+	limit: number
 ) => (
 	youtubeApiV3Get<YoutubeApiPlaylistItemsListResponse>(
 		publicEnv,
@@ -120,7 +120,7 @@ export const listPlaylistItems = async (
 			part: playlistItemParts,
 			playlistId,
 			maxResults: String(clampYoutubeMaxResults(limit)),
-		},
+		}
 	)
 )
 
@@ -128,7 +128,7 @@ export const listCommentThreads = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	videoId: string,
 	limit: number,
-	pageToken?: string,
+	pageToken?: string
 ) => (
 	youtubeApiV3Get<YoutubeApiCommentThreadsListResponse>(
 		publicEnv,
@@ -138,7 +138,7 @@ export const listCommentThreads = async (
 			videoId,
 			maxResults: String(clampYoutubeMaxResults(limit)),
 			...(pageToken != null && { pageToken }),
-		},
+		}
 	)
 )
 
@@ -146,7 +146,7 @@ export const listCommentReplies = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	parentId: string,
 	limit: number,
-	pageToken?: string,
+	pageToken?: string
 ) => (
 	youtubeApiV3Get<YoutubeApiCommentsListResponse>(
 		publicEnv,
@@ -156,13 +156,13 @@ export const listCommentReplies = async (
 			parentId,
 			maxResults: String(clampYoutubeMaxResults(limit)),
 			...(pageToken != null && { pageToken }),
-		},
+		}
 	)
 )
 
 export const listPopularVideos = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
-	limit: number,
+	limit: number
 ) => (
 	youtubeApiV3Get<YoutubeApiVideosListResponse>(
 		publicEnv,
@@ -171,14 +171,14 @@ export const listPopularVideos = async (
 			part: videoParts,
 			chart: 'mostPopular',
 			maxResults: String(clampYoutubeMaxResults(limit)),
-		},
+		}
 	)
 )
 
 export const searchChannels = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	query: string,
-	limit: number,
+	limit: number
 ) => (
 	youtubeApiV3Get<YoutubeApiSearchListResponse>(
 		publicEnv,
@@ -188,14 +188,14 @@ export const searchChannels = async (
 			type: 'channel',
 			q: query,
 			maxResults: String(clampYoutubeMaxResults(limit)),
-		},
+		}
 	)
 )
 
 export const searchChannelVideos = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	channelId: string,
-	limit: number,
+	limit: number
 ) => (
 	youtubeApiV3Get<YoutubeApiSearchListResponse>(
 		publicEnv,
@@ -206,6 +206,6 @@ export const searchChannelVideos = async (
 			channelId,
 			order: 'date',
 			maxResults: String(clampYoutubeMaxResults(limit)),
-		},
+		}
 	)
 )

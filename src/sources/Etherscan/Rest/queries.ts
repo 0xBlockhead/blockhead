@@ -67,7 +67,7 @@ const etherscanAccountListRows = async <T>({
 			publicEnv,
 			query,
 			options,
-		}),
+		})
 	)
 )
 
@@ -100,7 +100,7 @@ export const getTransactionByHash = async ({
 				txhash: txHash,
 			},
 			options,
-		}),
+		})
 	)
 )
 
@@ -129,7 +129,7 @@ export const getTransactionReceipt = async ({
 				txhash: txHash,
 			},
 			options,
-		}),
+		})
 	)
 )
 
@@ -155,7 +155,7 @@ export const getBlockNumber = async ({
 				action: 'eth_blockNumber',
 			},
 			options,
-		}),
+		})
 	)
 	return typeof blockNumberHex === 'string' ? blockNumberHex : null
 }
@@ -188,7 +188,7 @@ export const getBlockByNumber = async ({
 				boolean: boolean ? 'true' : 'false',
 			},
 			options,
-		}),
+		})
 	)
 )
 
@@ -318,7 +318,7 @@ export const getCode = async ({
 				tag: 'latest',
 			},
 			options,
-		}),
+		})
 	)
 )
 
@@ -348,7 +348,7 @@ export const getStorageAt = async ({
 				tag: 'latest',
 			},
 			options,
-		}),
+		})
 	)
 )
 
@@ -608,7 +608,7 @@ export const getTokenTransfersByTransaction = async ({
 			]
 				.filter((address): address is `0x${string}` => (
 					address != null && address !== ''
-				)),
+				))
 		),
 	]
 	if (participantAddresses.length === 0) return []
@@ -621,7 +621,7 @@ export const getTokenTransfersByTransaction = async ({
 				offset,
 				options,
 			})
-		)),
+		))
 	)
 	if (participantRows.some((rows) => rows == null)) return null
 	const merged = participantRows.flatMap((rows) => rows ?? [])

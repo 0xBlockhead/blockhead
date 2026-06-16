@@ -1,8 +1,4 @@
-import type { IpfsNamespace } from '$/sources/Ipfs/Rest/types.ts'
-import {
-	getNamespaceForTarget,
-	parseBrowseInput,
-} from '$/sources/Ipfs/Rest/queries.ts'
+export type IpfsNamespace = 'ipfs' | 'ipns'
 
 export type IpfsResourceAddress = {
 	namespace: IpfsNamespace
@@ -10,7 +6,10 @@ export type IpfsResourceAddress = {
 	contentPath: string
 }
 
-const trimSlashes = (value: string) => (
+const ipfsBrowseUriPattern = /^(ipfs|ipns):\/\/([^/?#]+)((?:\/[^?#]*)?)(?:[?#].*)?$/i
+const ipfsBrowseGatewayPattern = /^https?:\/\/[^/]+\/(ipfs|ipns)\/([^/?#]+)((?:\/[^?#]*)?)(?:[?#].*)?$/i
+
+export const trimIpfsSlashes = (value: string) => (
 	value.replace(/^\/+|\/+$/g, '')
 )
 
@@ -21,22 +20,6 @@ export const ipfsNamespaceFromString = (value: string | null | undefined): IpfsN
 		null
 )
 
-export const ipfsResourceCanonicalUri = ({
-	namespace,
-	target,
-	contentPath,
-}: IpfsResourceAddress) => (
-	`${namespace}://${trimSlashes(target)}${trimSlashes(contentPath) === '' ? '' : `/${trimSlashes(contentPath)}`}`
-)
-
-export const ipfsResourceHref = ({
-	namespace,
-	target,
-	contentPath,
-}: IpfsResourceAddress) => (
-	`/ipfs/${encodeURIComponent(trimSlashes(namespace))}/${encodeURIComponent(trimSlashes(target))}${trimSlashes(contentPath) === '' ? '' : `/path/${trimSlashes(contentPath).split('/').map(encodeURIComponent).join('/')}`}`
-)
-
 export const ipfsResourceAddressFromInput = ({
 	targetInput,
 	contentPathInput = '',
@@ -44,23 +27,71 @@ export const ipfsResourceAddressFromInput = ({
 	targetInput: string
 	contentPathInput?: string
 }): IpfsResourceAddress | null => {
-	const parsedTarget = parseBrowseInput(targetInput)
-	const target = trimSlashes(parsedTarget.target)
+	const trimmedInput = targetInput.trim()
+	const parsedTarget = (
+		((match) => (
+			match == null ?
+				undefined
+			:
+				{
+					namespace: ipfsNamespaceFromString(match[1].toLowerCase()),
+					target: trimIpfsSlashes(match[2]),
+					contentPath: trimIpfsSlashes(match[3]),
+				}
+		))(ipfsBrowseUriPattern.exec(trimmedInput))
+		?? ((match) => (
+			match == null ?
+				undefined
+			:
+				{
+					namespace: ipfsNamespaceFromString(match[1].toLowerCase()),
+					target: trimIpfsSlashes(match[2]),
+					contentPath: trimIpfsSlashes(match[3]),
+				}
+		))(ipfsBrowseGatewayPattern.exec(trimmedInput))
+		?? {
+			namespace: null,
+			target: trimIpfsSlashes(trimmedInput),
+			contentPath: '',
+		}
+	)
+	const target = trimIpfsSlashes(parsedTarget.target)
 	if (target === '') return null
 
-	const contentPath = trimSlashes(
-		contentPathInput.trim() !== '' ?
-			contentPathInput
-		:
-			parsedTarget.contentPath,
-	)
-
 	return {
-		namespace: parsedTarget.namespace ?? getNamespaceForTarget(target),
+		namespace: parsedTarget.namespace ?? ipfsNamespaceForTarget(target),
 		target,
-		contentPath,
+		contentPath: trimIpfsSlashes(
+			contentPathInput.trim() !== '' ?
+				contentPathInput
+			:
+				parsedTarget.contentPath
+		),
 	}
 }
+
+export const ipfsNamespaceForTarget = (target: string): IpfsNamespace => (
+	/^(Qm[1-9A-HJ-NP-Za-km-z]{44}|bafy[a-z2-7]+|bafk[a-z2-7]+)$/i.test(target.trim()) ?
+		'ipfs'
+	:
+		'ipns'
+)
+
+export const ipfsResourceCanonicalUri = ({
+	namespace,
+	target,
+	contentPath,
+}: IpfsResourceAddress) => (
+	`${namespace}://${trimIpfsSlashes(target)}${trimIpfsSlashes(contentPath) === '' ? '' : `/${trimIpfsSlashes(contentPath)}`}`
+)
+
+export const ipfsResourceHref = ({
+	namespace,
+	target,
+	contentPath,
+}: IpfsResourceAddress) => (
+	`/ipfs/${encodeURIComponent(trimIpfsSlashes(namespace))}/${encodeURIComponent(trimIpfsSlashes(target))}${trimIpfsSlashes(contentPath) === '' ? '' : `/path/${trimIpfsSlashes(contentPath).split('/').map(encodeURIComponent).join('/')}`}`
+)
 
 export const ipfsResourceAddressFromRouteParams = ({
 	namespace,
@@ -72,12 +103,12 @@ export const ipfsResourceAddressFromRouteParams = ({
 	contentPath?: string | null | undefined
 }): IpfsResourceAddress | null => {
 	const parsedNamespace = ipfsNamespaceFromString(namespace)
-	const parsedTarget = trimSlashes(target ?? '')
+	const parsedTarget = trimIpfsSlashes(target ?? '')
 	if (parsedNamespace == null || parsedTarget === '') return null
 
 	return {
 		namespace: parsedNamespace,
 		target: parsedTarget,
-		contentPath: trimSlashes(contentPath ?? ''),
+		contentPath: trimIpfsSlashes(contentPath ?? ''),
 	}
 }

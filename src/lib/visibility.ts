@@ -21,7 +21,7 @@ export const visibility = ({
 				rootMargin: '200px',
 				...options,
 				root: options.root ?? element.closest('[data-scroll-container]'),
-			},
+			}
 		)
 
 		observer.observe(element)

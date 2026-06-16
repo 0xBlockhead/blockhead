@@ -19,7 +19,7 @@
 		proposalCategoryBySlug[params.proposalKindSlug]?.id,
 	)
 
-	const entitySelector = $derived(
+	const selector = $derived(
 		realm != null && category != null && proposalKindAllowedInRealmByKey[`${realm}:${category}`] != null ?
 			{
 				realm,
@@ -37,9 +37,9 @@
 
 
 <Page>
-	{#if entitySelector !== undefined}
+	{#if selector !== undefined}
 		<ProposalKindView
-			selector={entitySelector}
+			selector={selector}
 			open
 		/>
 	{:else}

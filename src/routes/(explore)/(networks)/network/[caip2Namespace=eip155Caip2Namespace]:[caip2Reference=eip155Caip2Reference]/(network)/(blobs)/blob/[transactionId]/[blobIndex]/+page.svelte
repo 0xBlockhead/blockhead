@@ -13,6 +13,6 @@
 
 <Page>
 	<EvmBlobView
-		selector={data.entitySelector}
+		selector={data.selector}
 	/>
 </Page>

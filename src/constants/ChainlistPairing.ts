@@ -110,21 +110,19 @@ export const chainlistCanonicalFamilyByToken = Object.fromEntries(
 	chainlistFamilyAliases.map((row) => [
 		row.token,
 		row,
-	]),
+	])
 )
 
 export const chainlistRootFamilyByToken = Object.fromEntries(
 	chainlistFamilyEquivalences.map((row) => [
 		row.token,
 		row,
-	]),
+	])
 )
 
 export const chainlistCanonicalFamilyBySlugToken = Object.fromEntries(
 	chainlistSlugFamilyAliases.map((row) => [
 		row.slugToken,
 		row,
-	]),
+	])
 )
-
-export const chainlistEthereumCanonicalFamily = chainlistCanonicalFamilyByToken.eth.canonicalFamily

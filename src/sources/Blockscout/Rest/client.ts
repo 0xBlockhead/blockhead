@@ -1,11 +1,12 @@
 /**
- * Blockscout REST v2 JSON over HTTP.
- * @see https://docs.blockscout.com/devs/apis/rest
- */
+	* Blockscout REST v2 JSON over HTTP.
+	* @see https://docs.blockscout.com/devs/apis/rest
+	*/
 
 import { corsFetch, throwIfHttpNotOk } from '$/lib/http.ts'
 import Blockscout from '$/sources/Blockscout/index.ts'
 import { restPath } from '$/sources/Blockscout/Rest/constants.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const blockscoutLegacyApiUrl = ({
 	explorerOrigin,
@@ -71,7 +72,7 @@ export const postBlockscoutEthRpc = async <T>({
 }: {
 	explorerOrigin: string
 	method: string
-	params: unknown[]
+	params: readonly JsonValue[]
 }): Promise<T | null> => {
 	const url = blockscoutEthRpcUrl(explorerOrigin)
 	const res = await corsFetch(url, {
@@ -91,10 +92,10 @@ export const postBlockscoutEthRpc = async <T>({
 		},
 	})
 	await throwIfHttpNotOk(res, url)
-	const wire = await res.json() as {
+	const wire: {
 		result?: T
 		error?: { message?: string }
-	}
+	} = await res.json()
 	if (wire.error != null) return null
 	return wire.result ?? null
 }

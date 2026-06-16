@@ -6,7 +6,6 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import Coin from '$/schema/Coin.ts'
 import { Source } from '$/sources/Source.ts'
 
 export enum Coin_TimestampSelector {
@@ -41,6 +40,24 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'marketCapRank',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Coingecko_Rest,
+			],
+		},
+		{
+			name: 'marketCapUsd',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Coingecko_Rest,
+			],
 		},
 		{
 			name: 'marketCap',

@@ -17,7 +17,7 @@ const clampNostrBandLimit = (limit: number) => (
  */
 export const getEventById = async (eventId: string) => (
 	nostrBandGet<NostrBandEventById>(
-		`/events/e/${encodeURIComponent(eventId.trim().toLowerCase())}`,
+		`/events/e/${encodeURIComponent(eventId.trim().toLowerCase())}`
 	)
 )
 
@@ -26,7 +26,7 @@ export const getEventById = async (eventId: string) => (
  */
 export const getProfileByPubkey = async (pubkey: string) => (
 	nostrBandGet<NostrBandProfileSearch>(
-		`/users/profile/${encodeURIComponent(pubkey.trim().toLowerCase())}`,
+		`/users/profile/${encodeURIComponent(pubkey.trim().toLowerCase())}`
 	)
 )
 
@@ -87,7 +87,7 @@ export const listAuthorTextNotes = async (pubkey: string, limit: number) => (
 		{
 			limit: clampNostrBandLimit(limit),
 			kinds: '1',
-		},
+		}
 	)
 )
 
@@ -100,7 +100,7 @@ export const listAuthorReposts = async (pubkey: string, limit: number) => (
 		{
 			limit: clampNostrBandLimit(limit),
 			kinds: '6',
-		},
+		}
 	)
 )
 
@@ -113,7 +113,7 @@ export const listAuthorArticles = async (pubkey: string, limit: number) => (
 		{
 			limit: clampNostrBandLimit(limit),
 			kinds: '30023',
-		},
+		}
 	)
 )
 
@@ -126,7 +126,7 @@ export const listNoteReplies = async (eventId: string, limit: number) => (
 		{
 			kinds: '1',
 			limit: clampNostrBandLimit(limit),
-		},
+		}
 	)
 )
 
@@ -139,6 +139,6 @@ export const listNoteReactions = async (eventId: string, limit: number) => (
 		{
 			limit: clampNostrBandLimit(limit),
 			kinds: '7',
-		},
+		}
 	)
 )

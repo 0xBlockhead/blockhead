@@ -10,11 +10,11 @@ import { fetchTools } from '../src/sources/Lifi/Rest/queries.ts'
 
 const bridgeToolsSource = readFileSync(
 	new URL('../src/constants/Bridge.ts', import.meta.url),
-	'utf8',
+	'utf8'
 )
 
 const catalogKeys = new Set(
-	[...bridgeToolsSource.matchAll(/^\s*key: '([^']+)'/gm)].map((match) => match[1]),
+	[...bridgeToolsSource.matchAll(/^\s*key: '([^']+)'/gm)].map((match) => match[1])
 )
 
 const { bridges } = await fetchTools()

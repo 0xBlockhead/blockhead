@@ -33,12 +33,10 @@
 		collapsible?: boolean
 	} = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
 </script>
 
@@ -71,44 +69,49 @@
 		{#if open}
 			{@const parentNetwork = subscribe(EntityType.FarcasterNetwork,
 				entityFieldReference.selector,
-				({ sources: [Source.Farcaster_Rest], fields: { protocolName: true, $$users: ({ sources: [Source.Snapchain_Rest] }) } }),
+				({
+					sources: [Source.Farcaster_Rest],
+					fields: {
+						protocolName: true,
+						[entityFieldReference.fieldName]: {
+							sources: [Source.Snapchain_Rest],
+						},
+					},
+				})
 			)}
-			{@const users = derive(
-				parentNetwork,
-				(parentNetwork) => (
-					[...(parentNetwork.$$users ?? [])]
-						.map((value) => ({
-							value,
-						}))
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.FarcasterUser}
-				id={`${id}-items`}
-				{title}
-				open={true}
-				getKey={(farcasterUser) => stringify(farcasterUser.value[EntityMetaKey.Selector])}
-				getSortValue={(farcasterUser) => farcasterUser.value[EntityMetaKey.Selector].fid}
+			<ResourceBoundary
+				resource={parentNetwork}
 				placeholderText="Loading Farcaster users…"
-				resource={users}
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No Farcaster users in this farcasterUsers yet.
-					</p>
-				{/snippet}
+				{#snippet children(parentNetwork)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.FarcasterUser}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={parentNetwork.fields[entityFieldReference.fieldName]?.values ?? []}
+						getKey={(farcasterUser) => stringify(farcasterUser[EntityMetaKey.Selector])}
+						getSortValue={(farcasterUser) => farcasterUser[EntityMetaKey.Selector].fid}
+						placeholderText="Loading Farcaster users…"
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No Farcaster users in this farcasterUsers yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					{@const userId = item.value[EntityMetaKey.Selector]}
-					<FarcasterUserView
-						selector={{ fid: userId.fid }}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<FarcasterUserView
+								selector={item[EntityMetaKey.Selector]}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

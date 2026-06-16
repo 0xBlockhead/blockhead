@@ -32,12 +32,12 @@ export default {
 				})
 				if (detail == null) {
 					throw new Error(
-						`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${tokenId} not found`,
+						`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${tokenId} not found`
 					)
 				}
 				if (detail.contractAddress !== $contract.address.toLowerCase()) {
 					throw new Error(
-						`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${$contract.address}/${tokenId} not found`,
+						`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${$contract.address}/${tokenId} not found`
 					)
 				}
 				return {

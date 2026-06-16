@@ -40,7 +40,7 @@
 </script>
 
 
-	<EntityView
+<EntityView
 		entityType={EntityType.HyperliquidBlock}
 	entitySelector={selector}
 		title={'height' in selector ? `Block #${selector.height.toString()}` : `Block ${selector.hash}`}

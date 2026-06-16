@@ -47,7 +47,6 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		networkFields[1],
-		networkFields[2],
 		networkFields[3],
 		{
 			name: 'environment',

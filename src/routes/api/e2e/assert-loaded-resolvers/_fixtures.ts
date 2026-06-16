@@ -4,13 +4,13 @@ import { CoinId } from '$/constants/Coin.ts'
 import { ConsensusMechanismId } from '$/constants/ConsensusMechanism.ts'
 import { currencyCatalogSnapshotTimestampMs, Iso4217 } from '$/constants/Currency.ts'
 import { ExecutionEnvironmentId } from '$/constants/ExecutionEnvironment.ts'
-import { catalogCoinUsdMarketIdByCoinId } from '$/constants/MarketCatalog.ts'
-import { MarketTimeIntervalUnit } from '$/constants/Market.ts'
+import { catalogCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
+import { MarketAssetKind, MarketTimeIntervalUnit, type MarketIdLabelInput } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
 import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationProposal.ts'
 import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
-import { cashuProbeKeysetId, cashuProbeMintUrl } from '$/constants/Cashu.ts'
+import { cashuMintBySlug } from '$/constants/Cashu.ts'
 import {
 	liquidProbeAssetId,
 } from '$/constants/ElementsNetwork.ts'
@@ -28,8 +28,8 @@ import { Source } from '$/sources/Source.ts'
 
 
 /**
- * Probe hex: canonical lowercase `0x` + digits (`$ZeroExHex` / `EvmAddress`). No strip/re-prefix.
- */
+	* Probe hex: canonical lowercase `0x` + digits (`$ZeroExHex` / `EvmAddress`). No strip/re-prefix.
+	*/
 export const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
 
 export const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const
@@ -125,7 +125,20 @@ const TRANSFER_TOPIC = (
 	'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' as const
 )
 
-export const ethUsdCatalogMarket = catalogCoinUsdMarketIdByCoinId[CoinId.ETH]
+export const ethUsdCatalogMarket = {
+	$base: {
+		kind: MarketAssetKind.Coin,
+		$coin: { coinId: catalogCoinSpotUsdMarketByCoinId[CoinId.ETH].baseCoinId },
+	},
+	$quote: {
+		kind: MarketAssetKind.Currency,
+		$currency: { iso4217: catalogCoinSpotUsdMarketByCoinId[CoinId.ETH].quoteIso4217 },
+	},
+	$marketVenue: {
+		marketVenueId: catalogCoinSpotUsdMarketByCoinId[CoinId.ETH].marketVenueId,
+	},
+	marketKind: catalogCoinSpotUsdMarketByCoinId[CoinId.ETH].marketKind,
+} satisfies MarketIdLabelInput
 
 const mainnetChainId = 1
 
@@ -163,7 +176,7 @@ const liquid = {
 const liquidNetwork = liquid.$network
 
 const cashuProbeMint = {
-	mintUrl: cashuProbeMintUrl,
+	mintUrl: cashuMintBySlug.probe.url,
 } as const
 
 const fedimintProbeFederation = {
@@ -357,8 +370,8 @@ const bridgeRouteEthMainnetToOptimism = {
 } as const
 
 /**
- * Probe entity selectors for `resolverDefinitionProbes` smoke shapes; must match each type’s Arktype `id`.
- */
+	* Probe entity selectors for `resolverDefinitionProbes` smoke shapes; must match each type’s Arktype `id`.
+	*/
 export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType._Global]: { scope: 'global' },
 
@@ -386,17 +399,17 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 
 	[EntityType.EvmAccount]: actorMainnetVitalik,
 
-		[EntityType.EvmNetworkActorCoinBalance]: {
-			$actor: actorMainnetVitalik,
-			$contract: coinInstanceUsdcMainnet.$contract,
-		},
+	[EntityType.EvmNetworkActorCoinBalance]: {
+		$actor: actorMainnetVitalik,
+		$contract: coinInstanceUsdcMainnet.$contract,
+	},
 
-		[EntityType.EvmActorCoinAllowance]: {
-			$actor: actorMainnetVitalik,
-			$contract: coinInstanceUsdcMainnet.$contract,
-			$spender: {
-				address: '0x0000000000000000000000000000000000000001',
-			},
+	[EntityType.EvmActorCoinAllowance]: {
+		$actor: actorMainnetVitalik,
+		$contract: coinInstanceUsdcMainnet.$contract,
+		$spender: {
+			address: '0x0000000000000000000000000000000000000001',
+		},
 		interopAddress: `${VITALIK_ADDRESS}:USDC:0x0000000000000000000000000000000000000001`,
 	},
 
@@ -418,8 +431,14 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		timestampMs: 0,
 	},
 
-	[EntityType.BeaconEpoch]: { $network: mainnet, epoch: 300_000 },
-	[EntityType.BeaconSlot]: { $network: mainnet, slot: 9_500_000 },
+	[EntityType.BeaconEpoch]: {
+		$network: mainnet,
+		epoch: 300_000,
+	},
+	[EntityType.BeaconSlot]: {
+		$network: mainnet,
+		slot: 9_500_000,
+	},
 	[EntityType.BeaconValidator]: {
 		$network: mainnet,
 		validatorIndex: 0,
@@ -546,10 +565,10 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		txHash: SAMPLE_BLOB_TX_HASH,
 		blobIndex: 0,
 	},
-		[EntityType.EvmBlock]: {
-			$network: mainnet,
-			blockNumber: 18_000_000n,
-		},
+	[EntityType.EvmBlock]: {
+		$network: mainnet,
+		blockNumber: 18_000_000n,
+	},
 	[EntityType.Erc4337SmartAccount]: {
 		$network: mainnet,
 		address: ERC4337_SMART_ACCOUNT_ADDRESS,
@@ -620,9 +639,15 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		hash: SAMPLE_USER_OPERATION_HASH,
 	},
 
-	[EntityType.FarcasterCast]: { fid: 3, hash: CAST_HASH_32 },
+	[EntityType.FarcasterCast]: {
+		fid: 3,
+		hash: CAST_HASH_32,
+	},
 	[EntityType.FarcasterCast_Timestamp]: {
-		$cast: { fid: 3, hash: CAST_HASH_32 },
+		$cast: {
+			fid: 3,
+			hash: CAST_HASH_32,
+		},
 		timestampMs: 1_700_000_000_000,
 	},
 	[EntityType.FarcasterChannel]: { id: 'memes' },
@@ -678,7 +703,10 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 
 	[EntityType.EvmNft]: {
 		$contract: {
-			$network: { caip2: { namespace: 'eip155', reference: '56' } },
+			$network: { caip2: {
+				namespace: 'eip155',
+				reference: '56',
+			} },
 			address: '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432',
 		},
 		tokenId: '104776',
@@ -689,13 +717,16 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		id: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
 	},
 
-		[EntityType.Market]: ethUsdCatalogMarket,
-		[EntityType.MarketPrice]: {
-			$market: ethUsdCatalogMarket,
-		},
+	[EntityType.Market]: ethUsdCatalogMarket,
+	[EntityType.MarketPrice]: {
+		$market: ethUsdCatalogMarket,
+	},
 	[EntityType.Market_TimeInterval_Timestamp]: {
 		$market: ethUsdCatalogMarket,
-		timeInterval: { unit: MarketTimeIntervalUnit.Day, value: 7 },
+		timeInterval: {
+			unit: MarketTimeIntervalUnit.Day,
+			value: 7,
+		},
 		timestampMs: 1_700_000_000_000,
 		feedKey: 'e2e-probe-market-ohlc',
 	},
@@ -714,11 +745,17 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.EvmNetwork]: mainnet,
 	[EntityType.EvmNetworkBridge]: {
 		$fromNetwork: mainnet,
-		$toNetwork: { caip2: { namespace: 'eip155', reference: '10' } },
+		$toNetwork: { caip2: {
+			namespace: 'eip155',
+			reference: '10',
+		} },
 		url: 'https://bridge.example',
 	},
 	[EntityType.EvmRollup]: {
-		$network: { caip2: { namespace: 'eip155', reference: '10' } },
+		$network: { caip2: {
+			namespace: 'eip155',
+			reference: '10',
+		} },
 		projectId: 'optimism',
 	},
 	[EntityType.EthereumNetworkUpgrade]: {
@@ -1506,7 +1543,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.CashuMint]: cashuProbeMint,
 	[EntityType.CashuKeyset]: {
 		$mint: cashuProbeMint,
-		keysetId: cashuProbeKeysetId,
+		keysetId: cashuMintBySlug.probe.activeKeysetId,
 	},
 
 	[EntityType.FedimintFederation]: fedimintProbeFederation,
@@ -1586,9 +1623,9 @@ export const catalogProbeSources = new Set<Source>([
 
 
 /**
- * Probe keys with known upstream gaps (missing explorer indexes, empty registry lists, …).
- * Matched before env/catalog/network defaults.
- */
+	* Probe keys with known upstream gaps (missing explorer indexes, empty registry lists, …).
+	* Matched before env/catalog/network defaults.
+	*/
 export const knownUpstreamGapProbeKeys = new Set<string>([
 	`field:${EntityType.EvmNetwork}.$$erc4337Bundlers:${Source.Blockscout_Rest}`,
 	`field:${EntityType.EvmNetwork}.$$erc4337Paymasters:${Source.Blockscout_Rest}`,
@@ -1599,9 +1636,8 @@ export const knownUpstreamGapProbeKeys = new Set<string>([
 export const probeKeySource = (key: string): Source | undefined => {
 	const sourceSegment = key.slice(key.lastIndexOf(':') + 1)
 	for (const source of Object.values(Source)) {
-		if (source === sourceSegment) {
+		if (source === sourceSegment)
 			return source
-		}
 	}
 	return undefined
 }
@@ -1616,11 +1652,10 @@ export type AssertLoadedResolverProbeCaseForClassification = {
 
 
 export const classifyAssertLoadedResolverProbeCase = (
-	probeCase: AssertLoadedResolverProbeCaseForClassification,
+	probeCase: AssertLoadedResolverProbeCaseForClassification
 ): AssertLoadedResolverProbeCategory => {
-	if (knownUpstreamGapProbeKeys.has(probeCase.key)) {
+	if (knownUpstreamGapProbeKeys.has(probeCase.key))
 		return 'knownUpstreamGap'
-	}
 
 	if (
 		probeCase.resolveRejected
@@ -1634,12 +1669,10 @@ export const classifyAssertLoadedResolverProbeCase = (
 	}
 
 	const source = probeKeySource(probeCase.key)
-	if (source != null && envGatedProbeSources.has(source)) {
+	if (source != null && envGatedProbeSources.has(source))
 		return 'envGated'
-	}
-	if (source != null && catalogProbeSources.has(source)) {
+	if (source != null && catalogProbeSources.has(source))
 		return 'catalog'
-	}
 
 	return 'networkLive'
 }
@@ -1649,7 +1682,7 @@ export const isExpectedAssertLoadedResolverProbeFailure = (
 	probeCase: AssertLoadedResolverProbeCaseForClassification & {
 		category: AssertLoadedResolverProbeCategory
 		assertThrew: boolean
-	},
+	}
 ): boolean => (
 	!probeCase.resolveRejected
 	&& probeCase.assertThrew
@@ -1661,17 +1694,16 @@ export const isExpectedAssertLoadedResolverProbeFailure = (
 
 
 const probeEntitySelectorForType = (
-	entityType: EntityType,
+	entityType: EntityType
 ): EntitySelector<typeof schema, EntityType> => {
 	const entitySelector = probeEntitySelectorByType[entityType]
-	if (entitySelector === undefined) {
+	if (entitySelector === undefined)
 		throw new Error(`Missing probeEntitySelectorByType[${entityType}]`)
-	}
 	return entitySelector
 }
 
 export const resolveProbeEntitySelector = async (
-	entityType: EntityType,
+	entityType: EntityType
 ): Promise<EntitySelector<typeof schema, EntityType>> => {
 	if (entityType === EntityType.Coin_Timestamp) {
 		const {
@@ -1687,18 +1719,16 @@ export const resolveProbeEntitySelector = async (
 			throw new Error('assert-loaded-resolvers: mainnet Blockscout stats unavailable for Coin_Timestamp probe')
 		}
 		const stats = await getStats({ explorerOrigin: origin })
-		if (stats == null) {
+		if (stats == null)
 			throw new Error('assert-loaded-resolvers: Blockscout stats unavailable for Coin_Timestamp probe')
-		}
 		const updatedAtMs = (
 			stats.gas_price_updated_at != null ?
 				Date.parse(stats.gas_price_updated_at)
 			:
 				NaN
 		)
-		if (!Number.isFinite(updatedAtMs)) {
+		if (!Number.isFinite(updatedAtMs))
 			throw new Error('assert-loaded-resolvers: Blockscout stats clock missing for Coin_Timestamp probe')
-		}
 		return {
 			$coin: { coinId: CoinId.ETH },
 			timestampMs: updatedAtMs,
@@ -1710,105 +1740,141 @@ export const resolveProbeEntitySelector = async (
 
 
 export const parentEntitySelectorForResolverValuePart = (
-	entityType: EntityType,
+	entityType: EntityType
 ): EntitySelector<typeof schema, EntityType> => (
 	entityType === EntityType._Global ?
 		{ scope: 'global' }
-	: entityType === EntityType.Network ?
-		bitcoin
-	: entityType === EntityType.EvmNetwork ?
-		mainnet
-	: entityType === EntityType.EvmAccount ?
-		actorMainnetVitalik
-	: entityType === EntityType.EvmNetworkAccount ?
-		evmNetworkAccountMainnetUsdc
-	: entityType === EntityType.EvmBlock ?
-		({
-			$network: mainnet,
-			blockNumber: 18_000_000n,
-		})
-	: entityType === EntityType.AtprotoActor ?
-		{ did: atprotoProbeDid }
-	: entityType === EntityType.AtprotoPost ?
-		probeEntitySelectorForType(EntityType.AtprotoPost)
-	: entityType === EntityType.ActivityPubNetwork ?
-		{ scope: 'ActivityPubNetwork' }
-	: entityType === EntityType.ActivityPubActor ?
-		probeEntitySelectorForType(EntityType.ActivityPubActor)
-	: entityType === EntityType.ActivityPubNote ?
-		probeEntitySelectorForType(EntityType.ActivityPubNote)
-	: entityType === EntityType.AtprotoNetwork ?
-		{ scope: 'AtprotoNetwork' }
-	: entityType === EntityType.LensNetwork ?
-		{ scope: 'LensNetwork' }
-	: entityType === EntityType.RedditNetwork ?
-		{ scope: 'RedditNetwork' }
-	: entityType === EntityType.RssNetwork ?
-		{ scope: 'RssNetwork' }
-	: entityType === EntityType.RssFeed ?
-		probeEntitySelectorForType(EntityType.RssFeed)
-	: entityType === EntityType.RedditSubreddit ?
-		probeEntitySelectorForType(EntityType.RedditSubreddit)
-	: entityType === EntityType.RedditLink ?
-		probeEntitySelectorForType(EntityType.RedditLink)
-	: entityType === EntityType.LensAccount ?
-		probeEntitySelectorForType(EntityType.LensAccount)
-	: entityType === EntityType.XUser ?
-		probeEntitySelectorForType(EntityType.XUser)
-	: entityType === EntityType.NostrNetwork ?
-		{ scope: 'NostrNetwork' }
-	: entityType === EntityType.YouTubeNetwork ?
-		{ scope: 'YouTubeNetwork' }
-	: entityType === EntityType.XNetwork ?
-		{ scope: 'XNetwork' }
-	: entityType === EntityType.XmtpNetwork ?
-		{ scope: 'XmtpNetwork' }
-	: entityType === EntityType.EnsProtocol ?
-		{ scope: 'EnsProtocol' }
-	: entityType === EntityType.EvmProtocol ?
-		{ scope: 'EvmProtocol' }
-	: entityType === EntityType.IpfsProtocol ?
-		{ scope: 'IpfsProtocol' }
-	: entityType === EntityType.SwarmProtocol ?
-		{ scope: 'SwarmProtocol' }
-	: entityType === EntityType.FarcasterNetwork ?
-		{ scope: 'FarcasterNetwork' }
-	: entityType === EntityType.FarcasterFeed ?
-		({ variant: 'trending' })
-	: entityType === EntityType.FarcasterUser ?
-		{ fid: 3 }
-	: entityType === EntityType.FarcasterVerifiedAddress ?
-		{
-			fid: 3,
-			protocol: 'ethereum',
-			address: VITALIK_ADDRESS,
-		}
-	: entityType === EntityType.FarcasterChannel ?
-		{ id: 'memes' }
-	: entityType === EntityType.LightningNetwork ?
-		lightning
-	: entityType === EntityType.LightningNode ?
-		probeEntitySelectorForType(EntityType.LightningNode)
-	: entityType === EntityType.LightningChannel ?
-		probeEntitySelectorForType(EntityType.LightningChannel)
-	: entityType === EntityType.ElementsNetwork ?
-		liquid
 	:
-		probeEntitySelectorForType(entityType)
+		entityType === EntityType.Network ?
+			bitcoin
+		:
+			entityType === EntityType.EvmNetwork ?
+				mainnet
+			:
+				entityType === EntityType.EvmAccount ?
+				actorMainnetVitalik
+			:
+				entityType === EntityType.EvmNetworkAccount ?
+				evmNetworkAccountMainnetUsdc
+			:
+				entityType === EntityType.EvmBlock ?
+				({
+					$network: mainnet,
+					blockNumber: 18_000_000n,
+				})
+			:
+				entityType === EntityType.AtprotoActor ?
+				{ did: atprotoProbeDid }
+			:
+				entityType === EntityType.AtprotoPost ?
+				probeEntitySelectorForType(EntityType.AtprotoPost)
+			:
+				entityType === EntityType.ActivityPubNetwork ?
+				{ scope: 'ActivityPubNetwork' }
+			:
+				entityType === EntityType.ActivityPubActor ?
+				probeEntitySelectorForType(EntityType.ActivityPubActor)
+			:
+				entityType === EntityType.ActivityPubNote ?
+				probeEntitySelectorForType(EntityType.ActivityPubNote)
+			:
+				entityType === EntityType.AtprotoNetwork ?
+				{ scope: 'AtprotoNetwork' }
+			:
+				entityType === EntityType.LensNetwork ?
+				{ scope: 'LensNetwork' }
+			:
+				entityType === EntityType.RedditNetwork ?
+				{ scope: 'RedditNetwork' }
+			:
+				entityType === EntityType.RssNetwork ?
+				{ scope: 'RssNetwork' }
+			:
+				entityType === EntityType.RssFeed ?
+				probeEntitySelectorForType(EntityType.RssFeed)
+			:
+				entityType === EntityType.RedditSubreddit ?
+				probeEntitySelectorForType(EntityType.RedditSubreddit)
+			:
+				entityType === EntityType.RedditLink ?
+				probeEntitySelectorForType(EntityType.RedditLink)
+			:
+				entityType === EntityType.LensAccount ?
+				probeEntitySelectorForType(EntityType.LensAccount)
+			:
+				entityType === EntityType.XUser ?
+				probeEntitySelectorForType(EntityType.XUser)
+			:
+				entityType === EntityType.NostrNetwork ?
+				{ scope: 'NostrNetwork' }
+			:
+				entityType === EntityType.YouTubeNetwork ?
+				{ scope: 'YouTubeNetwork' }
+			:
+				entityType === EntityType.XNetwork ?
+				{ scope: 'XNetwork' }
+			:
+				entityType === EntityType.XmtpNetwork ?
+				{ scope: 'XmtpNetwork' }
+			:
+				entityType === EntityType.EnsProtocol ?
+				{ scope: 'EnsProtocol' }
+			:
+				entityType === EntityType.EvmProtocol ?
+				{ scope: 'EvmProtocol' }
+			:
+				entityType === EntityType.IpfsProtocol ?
+				{ scope: 'IpfsProtocol' }
+			:
+				entityType === EntityType.SwarmProtocol ?
+				{ scope: 'SwarmProtocol' }
+			:
+				entityType === EntityType.FarcasterNetwork ?
+				{ scope: 'FarcasterNetwork' }
+			:
+				entityType === EntityType.FarcasterFeed ?
+				({ variant: 'trending' })
+			:
+				entityType === EntityType.FarcasterUser ?
+				{ fid: 3 }
+			:
+				entityType === EntityType.FarcasterVerifiedAddress ?
+				{
+					fid: 3,
+					protocol: 'ethereum',
+					address: VITALIK_ADDRESS,
+				}
+			:
+				entityType === EntityType.FarcasterChannel ?
+				{ id: 'memes' }
+			:
+				entityType === EntityType.LightningNetwork ?
+				lightning
+			:
+				entityType === EntityType.LightningNode ?
+				probeEntitySelectorForType(EntityType.LightningNode)
+			:
+				entityType === EntityType.LightningChannel ?
+				probeEntitySelectorForType(EntityType.LightningChannel)
+			:
+				entityType === EntityType.ElementsNetwork ?
+				liquid
+			:
+				probeEntitySelectorForType(entityType)
 )
 
 
 export const entityFieldValueForAssert = (
-	value: ResolverValue,
+	value: ResolverValue
 ): ResolverValue => (
 	value != null
 		&& typeof value === 'object'
 		&& !Array.isArray(value)
 		&& EntityMetaKey.Selector in value ?
-			({
-				[EntityMetaKey.Selector]: value[EntityMetaKey.Selector],
-				[EntityMetaKey.SelectorKey]: stringify(value[EntityMetaKey.Selector]),
-			})
+		({
+			[EntityMetaKey.Selector]: value[EntityMetaKey.Selector],
+			[EntityMetaKey.SelectorKey]: stringify(value[EntityMetaKey.Selector]),
+		})
 	:
 		value
 )

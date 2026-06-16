@@ -9,19 +9,19 @@ export const getInfo = async (id: string) => (
 	redditJsonGet<RedditPublicApiInfoResponse>(
 		`/api/info.json?${(
 			new URLSearchParams({ id, raw_json: '1' }).toString()
-		)}` as const,
+		)}` as const
 	)
 )
 
 export const getSubredditAbout = async (name: string) => (
 	redditJsonGet<RedditPublicApiSubredditAbout>(
-		`/r/${encodeURIComponent(name)}/about.json?raw_json=1` as const,
+		`/r/${encodeURIComponent(name)}/about.json?raw_json=1` as const
 	)
 )
 
 export const listSubredditHot = async (
 	name: string,
-	limit: number,
+	limit: number
 ) => (
 	redditJsonGet<RedditPublicApiListing>(
 		`/r/${encodeURIComponent(name)}/hot.json?${(
@@ -29,13 +29,13 @@ export const listSubredditHot = async (
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
-		)}` as const,
+		)}` as const
 	)
 )
 
 export const getComments = async (
 	permalink: string,
-	limit: number,
+	limit: number
 ) => (
 	redditJsonGet<RedditPublicApiListing[]>(
 		`${permalink.startsWith('/') ? permalink : `/${permalink}`}.json?${(
@@ -43,13 +43,13 @@ export const getComments = async (
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
-		)}`,
+		)}`
 	)
 )
 
 export const getCommentsByArticleId = async (
 	articleId: string,
-	limit: number,
+	limit: number
 ) => (
 	redditJsonGet<RedditPublicApiListing[]>(
 		`/comments/${encodeURIComponent(articleId)}.json?${(
@@ -57,6 +57,6 @@ export const getCommentsByArticleId = async (
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
-		)}` as const,
+		)}` as const
 	)
 )

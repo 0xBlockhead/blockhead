@@ -40,21 +40,39 @@
 		>
 	> = $props()
 
-	const video = subscribe(EntityType.YouTubeVideo,
-		selector,
-		({ sources: [
+	const video = $derived(
+		subscribe(
+			EntityType.YouTubeVideo,
+			selector,
+			({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
-			], fields: { title: true, description: true, publishedAt: true, publishedAtMs: true, viewCount: true, likeCount: true, durationSeconds: true, commentCount: true, $$timestamps: ({ sources: [
+			], fields: {
+				title: true,
+				description: true,
+				publishedAt: true,
+				publishedAtMs: true,
+				durationSeconds: true,
+				$$timestamps: ({ sources: [
 					Source.Youtube_Rest,
 					Source.Piped_Rest,
-				], limit: 1 }), categoryId: true, liveBroadcastContent: true, tags: true, thumbnailUrl: true, $author: true, ...(open ? ({ $$comments: ({ sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						] }) }) : ({  })) } }),
+				], limit: 1 }),
+				categoryId: true,
+				liveBroadcastContent: true,
+				tags: true,
+				thumbnailUrl: true,
+				$author: true,
+				...(open && {
+					$$comments: ({ sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					] }),
+				}),
+			} }),
+		)
 	)
 
-	const idKey = stringify(selector)
+	const idKey = $derived(stringify(selector))
 
 
 	// Components
@@ -148,15 +166,15 @@
 							metrics={[
 								{
 									label: 'Views',
-									value: video.fields.$$timestamps[0]?.viewCount ?? video.fields.viewCount,
+									value: video.fields.$$timestamps.values.at(0)?.viewCount,
 								},
 								{
 									label: 'Likes',
-									value: video.fields.$$timestamps[0]?.likeCount ?? video.fields.likeCount,
+									value: video.fields.$$timestamps.values.at(0)?.likeCount,
 								},
 								{
 									label: 'Comments',
-									value: video.fields.$$timestamps[0]?.commentCount ?? video.fields.commentCount,
+									value: video.fields.$$timestamps.values.at(0)?.commentCount,
 								},
 							]}
 						/>
@@ -366,6 +384,6 @@
 					title="Metric snapshots"
 				/>
 			{/snippet}
-			</CollapsibleTabs>
-		{/snippet}
-	</EntityView>
+		</CollapsibleTabs>
+	{/snippet}
+</EntityView>

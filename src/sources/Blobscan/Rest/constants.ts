@@ -25,7 +25,7 @@ export const blobscanRestOrigins = [
 
 
 export const blobscanRestApiOriginForChainId = (
-	chainId: number,
+	chainId: number
 ): string | undefined => (
 	chainId === ChainId.Ethereum ?
 		'https://api.blobscan.com'

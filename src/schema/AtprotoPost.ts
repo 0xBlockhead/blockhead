@@ -13,7 +13,7 @@ export enum AtprotoPostSelector {
 
 
 const AtUri = type(
-	'/^at:\\/\\/[^\\/]+\\/app\\.bsky\\.feed\\.post\\/[^\\/]+$/' as type.cast<string>,
+	'/^at:\\/\\/[^\\/]+\\/app\\.bsky\\.feed\\.post\\/[^\\/]+$/' as type.cast<string>
 )
 
 export default {

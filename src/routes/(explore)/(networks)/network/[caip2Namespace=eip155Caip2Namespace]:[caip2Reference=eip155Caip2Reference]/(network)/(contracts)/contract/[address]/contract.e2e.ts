@@ -56,13 +56,13 @@ test.describe('network contract detail', () => {
 
 		await step(page.goto(
 			'/network/eip155:1/contract/0x0000000000000000000000000000000000000001',
-			{ waitUntil: 'load', timeout: 120_000 },
+			{ waitUntil: 'load', timeout: 120_000 }
 		))
 
 		await step(expect(page.getByRole('heading', { name: '500' })).toHaveCount(0))
 		await step(expect(page.getByText('Internal Error')).toHaveCount(0))
 		await step(expect(
-			page.getByText('ecrecover').or(page.getByText('Precompile')),
+			page.getByText('ecrecover').or(page.getByText('Precompile'))
 		).toBeAttached({ timeout: 120_000 }))
 	})
 })

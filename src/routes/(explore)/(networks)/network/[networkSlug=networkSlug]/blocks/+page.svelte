@@ -13,14 +13,14 @@
 		params,
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
+	const network = $derived(subscribe(EntityType.Network,
 		{
-			networkSlug: params.networkSlug,
+			slug: params.networkSlug,
 		},
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { caip2: true, namespace: true, slug: true } }),
-	)
+	))
 
 
 	// Components
@@ -50,10 +50,12 @@
 				<UtxoBlocksView
 					entityFieldReference={{
 						entityType: EntityType.UtxoNetwork,
-						selector: network.fields.caip2 == null ?
-							{ networkSlug: network.fields.slug }
-						:
-							{ caip2: network.fields.caip2 },
+						selector: {
+							$network: network.fields.caip2 == null ?
+								{ slug: network.fields.slug }
+							:
+								{ caip2: network.fields.caip2 },
+						},
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -78,10 +80,12 @@
 				<CosmosBlocksView
 					entityFieldReference={{
 						entityType: EntityType.CosmosNetwork,
-						selector: network.fields.caip2 == null ?
-							{ networkSlug: network.fields.slug }
-						:
-							{ caip2: network.fields.caip2 },
+						selector: {
+							$network: network.fields.caip2 == null ?
+								{ slug: network.fields.slug }
+							:
+								{ caip2: network.fields.caip2 },
+						},
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -91,10 +95,12 @@
 				<FilecoinTipsetsView
 					entityFieldReference={{
 						entityType: EntityType.FilecoinNetwork,
-						selector: network.fields.caip2 == null ?
-							{ networkSlug: network.fields.slug }
-						:
-							{ caip2: network.fields.caip2 },
+						selector: {
+							$network: network.fields.caip2 == null ?
+								{ slug: network.fields.slug }
+							:
+								{ caip2: network.fields.caip2 },
+						},
 						fieldName: '$$tipsets',
 					}}
 					{href}
@@ -105,10 +111,12 @@
 				<PolkadotBlocksView
 					entityFieldReference={{
 						entityType: EntityType.PolkadotNetwork,
-						selector: network.fields.caip2 == null ?
-							{ networkSlug: network.fields.slug }
-						:
-							{ caip2: network.fields.caip2 },
+						selector: {
+							$network: network.fields.caip2 == null ?
+								{ slug: network.fields.slug }
+							:
+								{ caip2: network.fields.caip2 },
+						},
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -118,7 +126,7 @@
 				<NearBlocksView
 					entityFieldReference={{
 						entityType: EntityType.NearNetwork,
-						selector: { networkSlug: 'near' },
+						selector: { slug: 'near' },
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -128,10 +136,12 @@
 				<TronBlocksView
 					entityFieldReference={{
 						entityType: EntityType.TronNetwork,
-						selector: network.fields.caip2 == null ?
-							{ networkSlug: network.fields.slug }
-						:
-							{ caip2: network.fields.caip2 },
+						selector: {
+							$network: network.fields.caip2 == null ?
+								{ slug: network.fields.slug }
+							:
+								{ caip2: network.fields.caip2 },
+						},
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -141,10 +151,12 @@
 				<MoneroBlocksView
 					entityFieldReference={{
 						entityType: EntityType.MoneroNetwork,
-						selector: network.fields.caip2 == null ?
-							{ networkSlug: network.fields.slug }
-						:
-							{ caip2: network.fields.caip2 },
+						selector: {
+							$network: network.fields.caip2 == null ?
+								{ slug: network.fields.slug }
+							:
+								{ caip2: network.fields.caip2 },
+						},
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -154,10 +166,12 @@
 				<HyperliquidBlocksView
 					entityFieldReference={{
 						entityType: EntityType.HyperliquidNetwork,
-						selector: network.fields.caip2 == null ?
-							{ networkSlug: network.fields.slug }
-						:
-							{ caip2: network.fields.caip2 },
+						selector: {
+							$network: network.fields.caip2 == null ?
+								{ slug: network.fields.slug }
+							:
+								{ caip2: network.fields.caip2 },
+						},
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -167,10 +181,12 @@
 				<BittensorBlocksView
 					entityFieldReference={{
 						entityType: EntityType.BittensorNetwork,
-						selector: network.fields.caip2 == null ?
-							{ networkSlug: network.fields.slug }
-						:
-							{ caip2: network.fields.caip2 },
+						selector: {
+							$network: network.fields.caip2 == null ?
+								{ slug: network.fields.slug }
+							:
+								{ caip2: network.fields.caip2 },
+						},
 						fieldName: '$$blocks',
 					}}
 					{href}
@@ -180,7 +196,7 @@
 				<ZeroGBlocksView
 					entityFieldReference={{
 						entityType: EntityType.ZeroGNetwork,
-						selector: { networkSlug: '0g' },
+						selector: { slug: '0g' },
 						fieldName: '$$blocks',
 					}}
 					{href}

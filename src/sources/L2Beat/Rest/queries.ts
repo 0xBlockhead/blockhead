@@ -14,7 +14,6 @@ import type { L2BeatScalingSummaryResponse } from '$/sources/L2Beat/Rest/types.t
 export const fetchScalingSummary = async (): Promise<L2BeatScalingSummaryResponse> => (
 	getJson<L2BeatScalingSummaryResponse>(
 		`${origin}${scalingSummaryPath}`,
-		{ origins: L2Beat.origins },
+		{ origins: L2Beat.origins }
 	)
 )
-

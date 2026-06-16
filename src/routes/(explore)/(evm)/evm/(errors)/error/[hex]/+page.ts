@@ -11,7 +11,7 @@ export const load: PageLoad = ({ params }) => {
 	const hex = ZeroExHex(params.hex)
 	if (hex instanceof arktype.errors) error(404, 'Invalid error hex')
 	return {
-		entitySelector: {
+		selector: {
 			hex,
 		},
 	}

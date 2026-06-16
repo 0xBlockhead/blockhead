@@ -25,7 +25,7 @@ test.describe('Evm block + transactions', () => {
 					&& (issue.includes('status of 404') || issue.includes('status of 422'))
 				)
 			)),
-			issues.join('\n'),
+			issues.join('\n')
 		).toEqual([])
 	})
 })

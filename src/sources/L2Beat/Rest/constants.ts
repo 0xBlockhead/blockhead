@@ -98,12 +98,12 @@ export const chainIdByL2BeatProjectId = Object.fromEntries(
 	l2BeatProjectChainIds.map((project) => [
 		project.projectId,
 		project.chainId,
-	]),
+	])
 ) satisfies Partial<Record<string, number>>
 
 export const l2BeatProjectIdByChainId = Object.fromEntries(
 	l2BeatProjectChainIds.map((project) => [
 		String(project.chainId),
 		project.projectId,
-	]),
+	])
 ) satisfies Record<string, string>

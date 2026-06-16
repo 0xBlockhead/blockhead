@@ -57,7 +57,7 @@ export const actionTypeDefinitionByActionType = Object.fromEntries(
 	actionTypeDefinitions.map((definition) => [
 		definition.type,
 		definition,
-	]),
+	])
 )
 
 export type Action = {

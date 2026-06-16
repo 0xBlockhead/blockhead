@@ -41,7 +41,7 @@
 		>
 	> = $props()
 
-	
+
 	const peer = subscribe(EntityType.BlockheadRoomPeer,
 		selector,
 		({ sources: [

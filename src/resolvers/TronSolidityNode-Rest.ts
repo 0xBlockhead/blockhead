@@ -2,7 +2,6 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
-import { tronSolidityNodeDefaultLocalRestUrl } from '$/constants/TronNetwork.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -17,13 +16,16 @@ import type {
 import { TronBlockSelector } from '$/schema/TronBlock.ts'
 import { TronTransactionSelector } from '$/schema/TronTransaction.ts'
 import { TronAccountSelector } from '$/schema/TronAccount.ts'
+import { tronSolidityNodeRestEndpoints } from '$/sources/TronSolidityNode/index.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
+type NetworkId = { caip2: {
+	namespace: string
+	reference: string
+} } | { slug: string }
 
 const assertTronMainnet = (network: NetworkId) => {
-	if (!('slug' in network) || network.slug !== networkBySlug.tron.slug) {
+	if (!('slug' in network) || network.slug !== networkBySlug.tron.slug)
 		throw new Error('TronSolidityNode_Rest: unsupported network')
-	}
 }
 
 const bigintFromNumberOrString = (value: number | string | undefined): bigint | undefined => (
@@ -40,7 +42,7 @@ const firstContractValue = (transaction: TronNodeTransaction): TronNodeContractV
 const transactionFields = (
 	network: NetworkId,
 	transaction: TronNodeTransaction,
-	info?: TronNodeTransactionInfo,
+	info?: TronNodeTransactionInfo
 ) => {
 	const contract = transaction.raw_data?.contract?.[0]
 	const value = firstContractValue(transaction)
@@ -89,15 +91,13 @@ const transactionFields = (
 
 const blockFields = (
 	network: NetworkId,
-	block: TronNodeBlock,
+	block: TronNodeBlock
 ) => {
 	const rawBlock = block.block_header?.raw_data
-	if (rawBlock?.number == null) {
+	if (rawBlock?.number == null)
 		throw new Error('TronSolidityNode_Rest: block is missing height')
-	}
-	if (block.blockID == null) {
+	if (block.blockID == null)
 		throw new Error('TronSolidityNode_Rest: block is missing hash')
-	}
 	return {
 		hash: block.blockID,
 		...(rawBlock.number > 0 && rawBlock.parentHash != null && {
@@ -137,7 +137,7 @@ const blockFields = (
 						{
 							blockNumber: rawBlock.number,
 							blockTimeStamp: rawBlock.timestamp,
-						},
+						}
 					),
 				}]
 		)),
@@ -152,100 +152,100 @@ export default {
 			entityType: EntityType.TronBlock,
 			resolve: {
 				[TronBlockSelector.NetworkHeightHash]: async ({ $network, height }) => {
-				assertTronMainnet($network)
-				const { getBlockByNumber } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
-				return blockFields(
-					$network,
-					await getBlockByNumber({
-						restBaseUrl: tronSolidityNodeDefaultLocalRestUrl,
-						height: height,
-					}),
-				)
-			}
-			}
+					assertTronMainnet($network)
+					const { getBlockByNumber } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
+					return blockFields(
+						$network,
+						await getBlockByNumber({
+							restBaseUrl: tronSolidityNodeRestEndpoints[0].restBaseUrl,
+							height: height,
+						})
+					)
+				}
+			},
 		})({
-				fields: {
-			hash: (block) => block.hash,
-			$parent: (block) => block.$parent,
-			parentHash: (block) => block.parentHash,
-			timestampMs: (block) => block.timestampMs,
-			$witness: (block) => block.$witness,
-			txTrieRoot: (block) => block.txTrieRoot,
-			version: (block) => block.version,
-			transactionCount: (block) => block.transactionCount,
-			$$transactions: (block) => block.$$transactions,
-		},
-			}),
+			fields: {
+				hash: (block) => block.hash,
+				$parent: (block) => block.$parent,
+				parentHash: (block) => block.parentHash,
+				timestampMs: (block) => block.timestampMs,
+				$witness: (block) => block.$witness,
+				txTrieRoot: (block) => block.txTrieRoot,
+				version: (block) => block.version,
+				transactionCount: (block) => block.transactionCount,
+				$$transactions: (block) => block.$$transactions,
+			},
+		}),
 
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				[TronTransactionSelector.NetworkTransactionId]: async ({ $network, transactionId }) => {
-				assertTronMainnet($network)
-				const {
-					getTransactionById,
-					getTransactionInfoById,
-				} = await import('$/sources/TronSolidityNode/Rest/queries.ts')
-				const transaction = await getTransactionById({
-					restBaseUrl: tronSolidityNodeDefaultLocalRestUrl,
-					transactionId: transactionId,
-				})
-				if (transaction.txID == null) throw new Error(`TronSolidityNode_Rest: transaction not found for ${transactionId}`)
-				return transactionFields(
-					$network,
-					transaction,
-					await getTransactionInfoById({
-						restBaseUrl: tronSolidityNodeDefaultLocalRestUrl,
+					assertTronMainnet($network)
+					const {
+						getTransactionById,
+						getTransactionInfoById,
+					} = await import('$/sources/TronSolidityNode/Rest/queries.ts')
+					const transaction = await getTransactionById({
+						restBaseUrl: tronSolidityNodeRestEndpoints[0].restBaseUrl,
 						transactionId: transactionId,
-					}),
-				)
-			}
-			}
+					})
+					if (transaction.txID == null) throw new Error(`TronSolidityNode_Rest: transaction not found for ${transactionId}`)
+					return transactionFields(
+						$network,
+						transaction,
+						await getTransactionInfoById({
+							restBaseUrl: tronSolidityNodeRestEndpoints[0].restBaseUrl,
+							transactionId: transactionId,
+						})
+					)
+				}
+			},
 		})({
-				fields: {
-			blockHeight: (transaction) => transaction.blockHeight,
-			timestampMs: (transaction) => transaction.timestampMs,
-			expirationTimestampMs: (transaction) => transaction.expirationTimestampMs,
-			contractType: (transaction) => transaction.contractType,
-			result: (transaction) => transaction.result,
-			feeSun: (transaction) => transaction.feeSun,
-			$owner: (transaction) => transaction.$owner,
-			$to: (transaction) => transaction.$to,
-			$contract: (transaction) => transaction.$contract,
-			amountSun: (transaction) => transaction.amountSun,
-			assetName: (transaction) => transaction.assetName,
-			rawDataHex: (transaction) => transaction.rawDataHex,
-			signatures: (transaction) => transaction.signatures,
-		},
-			}),
+			fields: {
+				blockHeight: (transaction) => transaction.blockHeight,
+				timestampMs: (transaction) => transaction.timestampMs,
+				expirationTimestampMs: (transaction) => transaction.expirationTimestampMs,
+				contractType: (transaction) => transaction.contractType,
+				result: (transaction) => transaction.result,
+				feeSun: (transaction) => transaction.feeSun,
+				$owner: (transaction) => transaction.$owner,
+				$to: (transaction) => transaction.$to,
+				$contract: (transaction) => transaction.$contract,
+				amountSun: (transaction) => transaction.amountSun,
+				assetName: (transaction) => transaction.assetName,
+				rawDataHex: (transaction) => transaction.rawDataHex,
+				signatures: (transaction) => transaction.signatures,
+			},
+		}),
 
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
 				[TronAccountSelector.NetworkAddress]: async ({ $network, address }) => {
-				assertTronMainnet($network)
-				const { getAccount } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
-				const account = await getAccount({
-					restBaseUrl: tronSolidityNodeDefaultLocalRestUrl,
-					address: address,
-				})
-				return {
-					name: account.account_name,
-					...(account.balance != null && {
-						balanceSun: BigInt(account.balance),
-					}),
-					createdTimestampMs: account.create_time,
-					latestOperationTimestampMs: account.latest_opration_time,
+					assertTronMainnet($network)
+					const { getAccount } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
+					const account = await getAccount({
+						restBaseUrl: tronSolidityNodeRestEndpoints[0].restBaseUrl,
+						address: address,
+					})
+					return {
+						name: account.account_name,
+						...(account.balance != null && {
+							balanceSun: BigInt(account.balance),
+						}),
+						createdTimestampMs: account.create_time,
+						latestOperationTimestampMs: account.latest_opration_time,
+					}
 				}
-			}
-			}
+			},
 		})({
-				fields: {
-			name: (account) => account.name,
-			balanceSun: (account) => account.balanceSun,
-			createdTimestampMs: (account) => account.createdTimestampMs,
-			latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
-		},
-			}),
+			fields: {
+				name: (account) => account.name,
+				balanceSun: (account) => account.balanceSun,
+				createdTimestampMs: (account) => account.createdTimestampMs,
+				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
+			},
+		}),
 	],
 }

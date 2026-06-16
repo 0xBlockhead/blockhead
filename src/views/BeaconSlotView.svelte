@@ -1,9 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import BeaconSlotSchema from '$/schema/BeaconSlot.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -26,7 +27,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: typeof BeaconSlotSchema.id.infer
+			selector: EntitySelector<typeof schema, EntityType.BeaconSlot>
 			href?: string
 			layout?: EntityLayout
 			title?: string
@@ -38,12 +39,12 @@
 		>
 	> = $props()
 
-	const slot = subscribe(EntityType.BeaconSlot,
+	const slot = $derived(subscribe(EntityType.BeaconSlot,
 		selector,
 		({ sources: [
 				Source.Beacon_Rest,
 			], fields: { proposerIndex: true, ...(open && ({ epoch: true, root: true, parentRoot: true, stateRoot: true, bodyRoot: true, canonical: true, signature: true })) } }),
-	)
+	))
 
 
 	// (Derived)

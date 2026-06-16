@@ -1,9 +1,10 @@
 import { getText } from '$/lib/http.ts'
+import { zeroGMainnetExplorerEndpoints } from '$/sources/ZeroG/ChainScan/Rest/index.ts'
 import ZeroG from '$/sources/ZeroG/index.ts'
 import type { ZeroGChainScanInfo } from '$/sources/ZeroG/ChainScan/Rest/types.ts'
 
 export const getInfo = () => ({
-	url: 'https://chainscan.0g.ai',
+	url: zeroGMainnetExplorerEndpoints[0].url,
 	chainId: 16661,
 	features: [
 		'blocks',
@@ -15,7 +16,7 @@ export const getInfo = () => ({
 }) as const satisfies ZeroGChainScanInfo
 
 export const getLlmInfo = () => (
-	getText('https://chainscan.0g.ai/llms.txt', {
+	getText(new URL('/llms.txt', zeroGMainnetExplorerEndpoints[0].url).toString(), {
 		origins: ZeroG.origins,
 	})
 )

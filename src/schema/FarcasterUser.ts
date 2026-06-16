@@ -83,26 +83,6 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: 'followerCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-			],
-		},
-		{
-			name: 'followingCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-			],
-		},
-		{
 			name: '$$timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FarcasterUser_Timestamp,

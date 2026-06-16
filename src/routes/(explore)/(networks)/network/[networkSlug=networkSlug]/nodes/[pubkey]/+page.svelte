@@ -14,7 +14,7 @@
 <Page>
 	<LightningNodeView
 		selector={{
-			$network: { networkSlug: params.networkSlug },
+			$network: { slug: params.networkSlug },
 			publicKey: params.pubkey,
 		}}
 	/>

@@ -28,7 +28,7 @@ const normalizeEventId = (eventId: string) => (
 const profileTimelinePost = (
 	path: string,
 	pubkey: string,
-	limit: number,
+	limit: number
 ) => (
 	primalPost<PrimalTimelineEvents>(path, {
 		pubkey: normalizePubkey(pubkey),
@@ -41,7 +41,7 @@ const profileTimelinePost = (
  */
 export const getProfile = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
-	pubkeyOrNpub: string,
+	pubkeyOrNpub: string
 ) => (
 	primalGet<PrimalProfile>(`/profile/${encodeProfileId(pubkeyOrNpub)}`)
 )
@@ -52,7 +52,7 @@ export const getProfile = async (
 export const getProfileNotes = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
 	pubkey: string,
-	limit: number,
+	limit: number
 ) => (
 	profileTimelinePost('/timeline/profile/notes', pubkey, limit)
 )
@@ -63,7 +63,7 @@ export const getProfileNotes = async (
 export const getProfileReposts = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
 	pubkey: string,
-	limit: number,
+	limit: number
 ) => (
 	profileTimelinePost('/timeline/profile/reposts', pubkey, limit)
 )
@@ -74,7 +74,7 @@ export const getProfileReposts = async (
 export const getProfileArticles = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
 	pubkey: string,
-	limit: number,
+	limit: number
 ) => (
 	profileTimelinePost('/timeline/profile/articles', pubkey, limit)
 )
@@ -85,7 +85,7 @@ export const getProfileArticles = async (
 export const getNoteThread = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
 	eventId: string,
-	limit: number,
+	limit: number
 ) => (
 	primalPost<PrimalTimelineEvents>('/timeline/thread', {
 		event_id: normalizeEventId(eventId),
@@ -97,7 +97,7 @@ export const getNoteThread = async (
 export const getNoteReplies = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
 	eventId: string,
-	limit: number,
+	limit: number
 ) => (
 	primalPost<PrimalTimelineEvents>('/timeline/event/actions', {
 		event_id: normalizeEventId(eventId),
@@ -112,7 +112,7 @@ export const getNoteReplies = async (
 export const getNoteReactions = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
 	eventId: string,
-	limit: number,
+	limit: number
 ) => (
 	primalPost<PrimalTimelineEvents>('/timeline/event/actions', {
 		event_id: normalizeEventId(eventId),
@@ -128,7 +128,7 @@ export const searchEvents = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
 	query: string,
 	limit: number,
-	kinds?: readonly number[],
+	kinds?: readonly number[]
 ) => (
 	primalPost<PrimalSearchEvents>('/search/events', {
 		query: query.trim(),
@@ -143,7 +143,7 @@ export const searchEvents = async (
 export const searchEventReactions = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
 	eventId: string,
-	limit: number,
+	limit: number
 ) => (
 	primalPost<PrimalSearchEvents>('/search/events', {
 		'#e': [normalizeEventId(eventId)],
@@ -158,7 +158,7 @@ export const searchEventReactions = async (
 export const searchUsers = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
 	query: string,
-	limit: number,
+	limit: number
 ) => (
 	primalPost<PrimalSearchUsers>('/search/users', {
 		query: query.trim(),
@@ -171,7 +171,7 @@ export const searchUsers = async (
  */
 export const getEventById = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
-	eventId: string,
+	eventId: string
 ) => (
 	primalGet<PrimalEventById>(`/events/${encodeURIComponent(normalizeEventId(eventId))}`)
 )

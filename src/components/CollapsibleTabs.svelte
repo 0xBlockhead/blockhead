@@ -1,4 +1,4 @@
-<script lang="ts" module>
+<script module lang="ts">
 	// Types/constants
 	import type { Snippet } from 'svelte'
 

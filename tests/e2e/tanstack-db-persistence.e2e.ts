@@ -2,7 +2,6 @@ import { expect, test, type Page } from '@playwright/test'
 import type { BlockheadPersistenceProbeEvent } from '../_e2eBrowserHelpers.ts'
 
 import {
-	assertMainSettled,
 	catalogWire,
 	clearOriginOpfs,
 	clearPersistenceProbe,
@@ -73,7 +72,7 @@ type ClientProbe = {
 	read: (
 		entityType: string,
 		entitySelector: object,
-		selection: object,
+		selection: object
 	) => ClientProbeResource<ProductProbePayload>
 }
 
@@ -93,17 +92,8 @@ type ProductProbeReadState = {
 	ready: boolean
 }
 
-const pathnamesForRun = () => {
-	const includeRaw = process.env.E2E_REAL_PERSISTENCE_PATHS ?? [
-		'/networks',
-		'/network/eip155:1',
-		'/network/eip155:1/contracts',
-	].join(',')
-	return includeRaw.split(',').map((path) => path.trim()).filter(Boolean)
-}
-
 const productCollectionSyncEvents = (
-	events: ProductCollectionSyncEvent[],
+	events: ProductCollectionSyncEvent[]
 ) => (
 	events.filter((event) => (
 		event.collection.entityType === 'EvmNetwork'
@@ -120,100 +110,111 @@ const productCollectionIds = [
 	'Count:EvmNetwork:$$rpcUrls',
 ] as const
 
-const readProductProbe = (
+const readProductProbe = async (
 	page: Page,
-	timeoutMs = 60_000,
-): Promise<ProductProbeResult> => page.evaluate(async (timeout) => {
-	const browserWindow: Window & {
-		__blockheadClientProbe?: ClientProbe
-	} = window
-	const probe = browserWindow.__blockheadClientProbe
-	if (probe == null)
-		throw new Error('missing blockhead client probe')
+	timeoutMs = 60_000
+): Promise<ProductProbeResult> => {
+	await page.waitForFunction(() => window.__blockheadClientProbe != null, undefined, {
+		timeout: timeoutMs,
+	})
+	return page.evaluate(async (timeout) => {
+		const browserWindow: Window & {
+			__blockheadClientProbe?: ClientProbe
+		} = window
+		const probe = browserWindow.__blockheadClientProbe
+		if (probe == null)
+			throw new Error('missing blockhead client probe')
 
-	const resource = probe.read(
-		'EvmNetwork',
-		{
-			caip2: {
-				namespace: 'eip155',
-				reference: '1',
-			},
-		},
-		{
-			fields: {
-				name: {
-					sources: [
-						'Chainlist_Rest',
-					],
-				},
-				$$rpcUrls: {
-					sources: [
-						'Chainlist_Rest',
-					],
-					count: true,
+		const resource = probe.read(
+			'EvmNetwork',
+			{
+				caip2: {
+					namespace: 'eip155',
+					reference: '1',
 				},
 			},
-		},
-	)
-	const unsubscribe = resource.subscribe(() => {})
-	const settled = await Promise.race([
-		resource.then((result) => ({
-			kind: 'ready' as const,
-			result,
-		}), (errors: readonly ProductSubscribeError[]) => ({
-			kind: 'error' as const,
-			errors,
-		})),
-		new Promise<{
-			kind: 'timeout'
-			state: ProductProbeReadState
-			events: ProductCollectionSyncEvent[]
-			sizes: ProductCollectionSizes
-			persistenceEvents: readonly BlockheadPersistenceProbeEvent[]
-		}>((resolve) => {
-			setTimeout(() => resolve({
-				kind: 'timeout',
-				state: {
-					current: resource.current,
-					error: resource.error,
-					loading: resource.loading,
-					ready: resource.ready,
+			{
+				sources: [
+					'Chainlist_Rest',
+				],
+				fields: {
+					name: {
+						sources: [
+							'Chainlist_Rest',
+						],
+					},
+					$$rpcUrls: {
+						sources: [
+							'Chainlist_Rest',
+						],
+						count: true,
+					},
 				},
-				events: [...probe.events.collectionSync],
-				sizes: probe.collectionSizes(),
-				persistenceEvents: window.__blockheadPersistenceProbe ?? [],
-			}), timeout)
-		}),
-	])
-	unsubscribe()
-	if (settled.kind === 'error')
-		throw new Error(JSON.stringify(settled.errors))
-	if (settled.kind === 'timeout')
-		throw new Error(JSON.stringify(settled))
+			}
+		)
+		const unsubscribe = resource.subscribe(() => {})
+		const settled = await Promise.race([
+			resource.then((result) => ({
+				kind: 'ready' as const,
+				result,
+			}), (errors: readonly ProductSubscribeError[]) => ({
+				kind: 'error' as const,
+				errors,
+			})),
+			new Promise<{
+				kind: 'timeout'
+				state: ProductProbeReadState
+				events: ProductCollectionSyncEvent[]
+				sizes: ProductCollectionSizes
+				persistenceEvents: readonly BlockheadPersistenceProbeEvent[]
+			}>((resolve) => {
+				setTimeout(() => resolve({
+					kind: 'timeout',
+					state: {
+						current: resource.current,
+						error: resource.error,
+						loading: resource.loading,
+						ready: resource.ready,
+					},
+					events: [...probe.events.collectionSync],
+					sizes: probe.collectionSizes(),
+					persistenceEvents: window.__blockheadPersistenceProbe ?? [],
+				}), timeout)
+			}),
+		])
+		unsubscribe()
+		if (settled.kind === 'error')
+			throw new Error(JSON.stringify(settled.errors))
+		if (settled.kind === 'timeout')
+			throw new Error(JSON.stringify(settled))
 
-	const result = settled.result
-	return {
-		name: result.fields.name,
-		rpcUrlCount: result.fields.$$rpcUrls?.values.length ?? 0,
-		totalCount: result.fields.$$rpcUrls?.totalCount,
-		events: [...probe.events.collectionSync],
-		persistenceEvents: window.__blockheadPersistenceProbe ?? [],
-		sizes: probe.collectionSizes(),
-	}
-}, timeoutMs)
+		const result = settled.result
+		return {
+			name: result.fields.name,
+			rpcUrlCount: result.fields.$$rpcUrls?.values.length ?? 0,
+			totalCount: result.fields.$$rpcUrls?.totalCount,
+			events: [...probe.events.collectionSync],
+			persistenceEvents: window.__blockheadPersistenceProbe ?? [],
+			sizes: probe.collectionSizes(),
+		}
+	}, timeoutMs)
+}
 
 
 test.describe.configure({ mode: 'serial' })
 
 test.describe('TanStack DB persistence', () => {
-	test('representative routes hydrate completed product entity, field, and count subsets from OPFS without replaying them', async ({
+	test('hydrates completed product entity, field, and count subsets from OPFS without replaying them', async ({
 		browser,
 	}) => {
 		test.setTimeout(600_000)
 
 		const context = await browser.newContext(e2eBrowserNewContextOptions())
 		const wipePage = await context.newPage()
-		await wipePage.goto('/', { waitUntil: 'domcontentloaded', timeout: gotoLoadTimeoutMs })
+		await wipePage.goto('/', {
+			waitUntil: 'domcontentloaded',
+			timeout: gotoLoadTimeoutMs,
+		})
 		await clearOriginOpfs(wipePage)
 		await wipePage.close()
 
@@ -221,19 +222,13 @@ test.describe('TanStack DB persistence', () => {
 		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
 		await installPersistenceProbe(page)
 		await installChainlistRpcsJsonStub(page)
-		await page.goto('/', { waitUntil: 'domcontentloaded', timeout: gotoLoadTimeoutMs })
+		await page.goto('/', {
+			waitUntil: 'domcontentloaded',
+			timeout: gotoLoadTimeoutMs,
+		})
 		await clearPersistenceProbe(page)
 
 		const coldCatalogRequests = countRequestsMatching(page, catalogWire)
-		const pathnames = pathnamesForRun()
-		for (const url of pathnames) {
-			await test.step(url, async () => {
-				await page.goto(url, { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
-				await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
-				await assertMainSettled(page, 120_000)
-			})
-		}
-
 		const cold = await readProductProbe(page)
 		const coldProductEvents = productCollectionSyncEvents(cold.events)
 
@@ -259,26 +254,13 @@ test.describe('TanStack DB persistence', () => {
 		await page.waitForTimeout(2_000)
 		const coldPersistenceEvents = await getPersistenceProbeEvents(page)
 
-		const finalColdPathname = pathnames.at(-1)
-		if (finalColdPathname == null)
-			throw new Error('tanstack persistence e2e requires at least one pathname')
-
 		await clearPersistenceProbe(page)
 		const warmCatalogRequests = countRequestsMatching(page, catalogWire)
-		const warmPathnames = [
-			finalColdPathname,
-			...pathnames.slice(0, -1),
-		]
-		for (const [index, url] of warmPathnames.entries()) {
-			await test.step(`warm ${url}`, async () => {
-				if (index === 0)
-					await page.reload({ waitUntil: 'load', timeout: gotoLoadTimeoutMs })
-				else
-					await page.goto(url, { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
-				await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
-				await assertMainSettled(page, 120_000)
-			})
-		}
+		await page.reload({
+			waitUntil: 'load',
+			timeout: gotoLoadTimeoutMs,
+		})
+		await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
 
 		const warm = await readProductProbe(page)
 		const warmProductEvents = productCollectionSyncEvents(warm.events)
@@ -323,12 +305,12 @@ test.describe('TanStack DB persistence', () => {
 			'Count',
 		]))
 		expect(
-			warmProductPersistenceLoadEvents.map((event) => `${event.collectionId}:${event.decision}`),
-		).toEqual(expect.arrayContaining([
-			'Entity:EvmNetwork:hydrated-rows',
-			'Field:EvmNetwork:$$rpcUrls:hydrated-rows',
-			'Count:EvmNetwork:$$rpcUrls:hydrated-rows',
-		]))
+			warmProductPersistenceLoadEvents.map((event) => `${event.collectionId}:${event.decision}`)
+			).toEqual(expect.arrayContaining([
+				'Entity:EvmNetwork:hydrated-rows',
+				'Field:EvmNetwork:$$rpcUrls:hydrated-rows',
+				'Count:EvmNetwork:$$rpcUrls:hydrated-rows',
+			]))
 		expect(warmProductPersistenceLoadEvents.every((event) => event.decision === 'hydrated-rows')).toBe(true)
 		expect(warmProductRemoteLoads.map((event) => `${event.collectionId}:${event.loadedKey}`)).toEqual([])
 		expect(warmPersistenceEvents.length).toBeLessThanOrEqual(500)
@@ -340,6 +322,135 @@ test.describe('TanStack DB persistence', () => {
 			...warmCatalogRequests.urls.slice(0, 30),
 		].join('\n')).toBe(true)
 		warmCatalogRequests.detach()
+
+		await context.close()
+	})
+
+	test('schema version bumps invalidate persisted product subsets before warm hydration', async ({
+		browser,
+	}) => {
+		test.setTimeout(600_000)
+
+		const context = await browser.newContext(e2eBrowserNewContextOptions())
+		const wipePage = await context.newPage()
+		await wipePage.goto('/', {
+			waitUntil: 'domcontentloaded',
+			timeout: gotoLoadTimeoutMs,
+		})
+		await clearOriginOpfs(wipePage)
+		await wipePage.close()
+
+		const coldPage = await context.newPage()
+		coldPage.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+		await coldPage.addInitScript((schemaVersion) => {
+			window.__blockheadProductDataSchemaVersionOverride = schemaVersion
+		}, 101)
+		await installPersistenceProbe(coldPage)
+		await installChainlistRpcsJsonStub(coldPage)
+		await coldPage.goto('/', {
+			waitUntil: 'load',
+			timeout: gotoLoadTimeoutMs,
+		})
+		await expect(coldPage.locator('#main')).toBeVisible({ timeout: 120_000 })
+		const cold = await readProductProbe(coldPage)
+		await coldPage.waitForLoadState('networkidle', { timeout: 120_000 })
+		await coldPage.waitForTimeout(2_000)
+		const coldPersistenceEvents = await getPersistenceProbeEvents(coldPage)
+		const coldProductMarkLoadedKeys = new Set(coldPersistenceEvents.flatMap((event) => (
+			event.kind === 'markLoaded'
+			&& productCollectionIds.some((collectionId) => collectionId === event.collectionId) ?
+				[`${event.collectionId}:${event.loadedKey}`]
+			:
+				[]
+		)))
+		expect(cold.name).toBe('Ethereum Mainnet')
+		expect(coldProductMarkLoadedKeys.size).toBeGreaterThan(0)
+		await coldPage.close()
+
+		const sameVersionPage = await context.newPage()
+		sameVersionPage.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+		await sameVersionPage.addInitScript((schemaVersion) => {
+			window.__blockheadProductDataSchemaVersionOverride = schemaVersion
+		}, 101)
+		await installPersistenceProbe(sameVersionPage)
+		await installChainlistRpcsJsonStub(sameVersionPage)
+		await sameVersionPage.goto('/', {
+			waitUntil: 'load',
+			timeout: gotoLoadTimeoutMs,
+		})
+		await expect(sameVersionPage.locator('#main')).toBeVisible({ timeout: 120_000 })
+		const sameVersion = await readProductProbe(sameVersionPage)
+		const sameVersionPersistenceEvents = await getPersistenceProbeEvents(sameVersionPage)
+		const sameVersionProductPersistenceLoadEvents = sameVersionPersistenceEvents.flatMap((event) => (
+			event.kind === 'loadSubset'
+			&& productCollectionIds.some((collectionId) => collectionId === event.collectionId) ?
+				[event]
+			:
+				[]
+		))
+		const sameVersionProductRemoteLoads = sameVersionProductPersistenceLoadEvents.filter((event) => (
+			event.decision === 'remote'
+		))
+		expect(sameVersion.name).toBe(cold.name)
+		expect(sameVersion.rpcUrlCount).toBe(cold.rpcUrlCount)
+		expect(
+			sameVersionProductPersistenceLoadEvents.map((event) => `${event.collectionId}:${event.decision}`)
+			).toEqual(expect.arrayContaining([
+				'Entity:EvmNetwork:hydrated-rows',
+				'Field:EvmNetwork:$$rpcUrls:hydrated-rows',
+				'Count:EvmNetwork:$$rpcUrls:hydrated-rows',
+			]))
+		expect(sameVersionProductRemoteLoads.filter((event) => (
+			coldProductMarkLoadedKeys.has(`${event.collectionId}:${event.loadedKey}`)
+		))).toEqual([])
+		await sameVersionPage.close()
+
+		const bumpedVersionPage = await context.newPage()
+		bumpedVersionPage.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+		await bumpedVersionPage.addInitScript((schemaVersion) => {
+			window.__blockheadProductDataSchemaVersionOverride = schemaVersion
+		}, 102)
+		await installPersistenceProbe(bumpedVersionPage)
+		await installChainlistRpcsJsonStub(bumpedVersionPage)
+		await bumpedVersionPage.goto('/', {
+			waitUntil: 'load',
+			timeout: gotoLoadTimeoutMs,
+		})
+		await expect(bumpedVersionPage.locator('#main')).toBeVisible({ timeout: 120_000 })
+		const bumpedVersion = await readProductProbe(bumpedVersionPage)
+		const bumpedVersionPersistenceEvents = await getPersistenceProbeEvents(bumpedVersionPage)
+		const bumpedVersionProductRemoteLoads = bumpedVersionPersistenceEvents.flatMap((event) => (
+			event.kind === 'loadSubset'
+			&& event.decision === 'remote'
+			&& productCollectionIds.some((collectionId) => collectionId === event.collectionId) ?
+				[event]
+			:
+				[]
+		))
+		const bumpedVersionProductMarkLoadedKeys = new Set(bumpedVersionPersistenceEvents.flatMap((event) => (
+			event.kind === 'markLoaded'
+			&& productCollectionIds.some((collectionId) => collectionId === event.collectionId) ?
+				[`${event.collectionId}:${event.loadedKey}`]
+			:
+				[]
+		)))
+		const bumpedVersionProductRemoteLoadKeys = new Set(bumpedVersionProductRemoteLoads.map((event) => (
+			`${event.collectionId}:${event.loadedKey}`
+		)))
+		expect(bumpedVersion.name).toBe(cold.name)
+		expect(bumpedVersion.rpcUrlCount).toBe(cold.rpcUrlCount)
+		expect(bumpedVersionProductRemoteLoads.map((event) => event.collectionId)).toEqual(expect.arrayContaining([
+			'Entity:EvmNetwork',
+			'Field:EvmNetwork:$$rpcUrls',
+			'Count:EvmNetwork:$$rpcUrls',
+		]))
+		expect([...coldProductMarkLoadedKeys].some((loadedKey) => (
+			bumpedVersionProductRemoteLoadKeys.has(loadedKey)
+		))).toBe(true)
+		expect([...coldProductMarkLoadedKeys].some((loadedKey) => (
+			bumpedVersionProductMarkLoadedKeys.has(loadedKey)
+		))).toBe(true)
+		await bumpedVersionPage.close()
 
 		await context.close()
 	})

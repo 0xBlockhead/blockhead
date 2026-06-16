@@ -14,13 +14,13 @@ const gitlabProjectUrl = (path: string) => (
 export const getTree = () => (
 	getJson<BitcoinCashChipsGitlabTree>(
 		gitlabProjectUrl(`/repository/tree?ref=${bitcoinCashChipsGitlabRepo.ref}&per_page=100`),
-		{ origins: BitcoinCashChips.origins  },
+		{ origins: BitcoinCashChips.origins  }
 	)
 )
 
 export const getChipMarkdownText = ({ path }: { path: string }) => (
 	getText(
 		gitlabProjectUrl(`/repository/files/${encodeURIComponent(path)}/raw?ref=${bitcoinCashChipsGitlabRepo.ref}`),
-		{ origins: BitcoinCashChips.origins  },
+		{ origins: BitcoinCashChips.origins  }
 	)
 )

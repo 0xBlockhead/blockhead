@@ -17,7 +17,7 @@ type GithubContentRow = {
 
 const rootDir = resolve(
 	dirname(fileURLToPath(import.meta.url)),
-	'..',
+	'..'
 )
 
 const dataDir = resolve(rootDir, 'src/data/precompiles')
@@ -36,7 +36,7 @@ const readManifest = async (): Promise<PrecompilesManifest> => {
 }
 
 const listGithubPrecompileFiles = async (
-	ref: string,
+	ref: string
 ): Promise<GithubContentRow[]> => {
 	const response = await fetch(
 		`https://api.github.com/repos/shemnon/precompiles/contents/_data/precompiles?ref=${ref}`,
@@ -44,7 +44,7 @@ const listGithubPrecompileFiles = async (
 			headers: {
 				Accept: 'application/vnd.github+json',
 			},
-		},
+		}
 	)
 	if (!response.ok) {
 		throw new Error(`precompiles-source: GitHub listing failed (${String(response.status)})`)
@@ -89,7 +89,7 @@ const syncPrecompiles = async () => {
 		`${JSON.stringify({
 			...manifest,
 			lastSynced: new Date().toISOString(),
-		}, null, 2)}\n`,
+		}, null, 2)}\n`
 	)
 
 	console.log(`precompiles-source: synced ${String(files.length)} files`)

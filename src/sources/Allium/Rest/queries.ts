@@ -34,7 +34,7 @@ export const getLatestWalletBalances = async ({
 					chain: apiChain,
 				},
 			]),
-		},
+		}
 	)
 )
 
@@ -62,6 +62,6 @@ export const getTokensByChainAddress = async ({
 					token_address: tokenAddress,
 				},
 			]),
-		},
+		}
 	)
 )

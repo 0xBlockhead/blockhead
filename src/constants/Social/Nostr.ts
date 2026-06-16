@@ -1,20 +1,6 @@
-// Types
-import type { EntitySelector } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/EntityType.ts'
-import { schema } from '$/schema/index.ts'
-
-
 // Constants
-export const nostrNetworkFieldValues = {
-	docsUrl: 'https://github.com/nostr-protocol/nips',
-	homeUrl: 'https://nostr.com',
-	protocolName: 'Nostr',
-	registryLabel: 'Curated seed profiles + relay/indexer feeds',
-	topology: 'Constants seeds + live REST/indexer -> network -> relays / profiles -> notes / reposts / articles',
-} as const
-
 /** Relay `relayUrl` is a public `wss://` endpoint (NIP-11 metadata optional). */
-export const nostrNetworkSeedRelays: readonly EntitySelector<typeof schema, EntityType.NostrRelay>[] = [
+export const nostrNetworkSeedRelays = [
 	{
 		relayUrl: 'wss://relay.damus.io',
 	},
@@ -24,10 +10,12 @@ export const nostrNetworkSeedRelays: readonly EntitySelector<typeof schema, Enti
 	{
 		relayUrl: 'wss://relay.primal.net',
 	},
-]
+] as const satisfies readonly {
+	relayUrl: string
+}[]
 
 /** Profile `pubkey` is 64-char lowercase hex (secp256k1 x-only). */
-export const nostrNetworkSeedProfiles: readonly EntitySelector<typeof schema, EntityType.NostrProfile>[] = [
+export const nostrNetworkSeedProfiles = [
 	{
 		pubkey: '82341f880b9929660a178be448011edd0e5839858c4fc1480b5fd4b6205d127b',
 	},
@@ -37,4 +25,6 @@ export const nostrNetworkSeedProfiles: readonly EntitySelector<typeof schema, En
 	{
 		pubkey: 'c45abd5648552b4c7333b6bcc33ccba8fc58f452dc41f2b6dceda1588758144',
 	},
-]
+] as const satisfies readonly {
+	pubkey: string
+}[]

@@ -40,10 +40,10 @@
 		>
 	> = $props()
 
-	const state = subscribe(EntityType.StateChannelState,
+	const state = $derived(subscribe(EntityType.StateChannelState,
 		selector,
 		({ sources: [Source.Local_Internal], fields: { intent: true, version: true, isFinal: true, timestamp: true, stateData: true, $channel: true, ...(open && ({ allocations: true, signatures: true })) } }),
-	)
+	))
 
 
 	// Components

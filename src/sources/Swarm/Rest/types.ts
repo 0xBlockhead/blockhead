@@ -11,13 +11,3 @@ export type SwarmBrowseResult = {
 	isContentTypeInferred: boolean
 	text?: string
 }
-
-export type SwarmResourceAddress = {
-	reference: string
-	contentPath: string
-}
-
-export type ParsedSwarmBrowseInput = {
-	reference: string
-	contentPath: string
-}

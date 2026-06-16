@@ -14,7 +14,6 @@ export enum UrlSelector {
 }
 
 
-
 export default {
 	entityType: EntityType.Url,
 

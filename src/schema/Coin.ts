@@ -14,7 +14,6 @@ export enum CoinSelector {
 }
 
 
-
 export default {
 	entityType: EntityType.Coin,
 
@@ -56,26 +55,12 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'marketCapRank',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'marketCapUsd',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_Rest,
-			],
-		},
-		{
 			name: '$$timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Coin_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
+				Source.Coingecko_Rest,
 				Source.Blockscout_Rest,
 			],
 		},

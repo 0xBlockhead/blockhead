@@ -1,10 +1,3 @@
-// Types
-
-import type { Entity } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/EntityType.ts'
-import { schema } from '$/schema/index.ts'
-
-
 // Constants
 
 export const stateChannelStatuses = [
@@ -29,7 +22,7 @@ export const stateChannelStatuses = [
 		label: 'Disputed',
 	},
 ] as const satisfies readonly {
-	status: Entity<typeof schema, EntityType.StateChannel>['status']
+	status: 'pending' | 'active' | 'closing' | 'closed' | 'disputed'
 	label: string
 }[]
 
@@ -40,7 +33,7 @@ export const stateChannelStatusByStatus = Object.fromEntries(
 	stateChannelStatuses.map((row) => [
 		row.status,
 		row,
-	]),
+	])
 )
 
 export const stateChannelTransferStatuses = [
@@ -57,7 +50,7 @@ export const stateChannelTransferStatuses = [
 		label: 'Failed',
 	},
 ] as const satisfies readonly {
-	status: Entity<typeof schema, EntityType.StateChannelTransfer>['status']
+	status: 'pending' | 'confirmed' | 'failed'
 	label: string
 }[]
 
@@ -65,7 +58,7 @@ export const stateChannelTransferStatusByStatus = Object.fromEntries(
 	stateChannelTransferStatuses.map((row) => [
 		row.status,
 		row,
-	]),
+	])
 )
 
 const stateChannelStateIntents = [
@@ -94,5 +87,5 @@ export const stateChannelStateIntentByIntent = Object.fromEntries(
 	stateChannelStateIntents.map((row) => [
 		row.intent,
 		row,
-	]),
+	])
 )

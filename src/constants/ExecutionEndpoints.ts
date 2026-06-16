@@ -676,5 +676,5 @@ export const executionEndpoints = [
 // Lookups
 export const executionEndpointsByChainId = Object.groupBy(
 	executionEndpoints,
-	(e) => e.chainId,
+	(e) => e.chainId
 )

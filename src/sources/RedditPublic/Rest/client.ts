@@ -15,6 +15,6 @@ export const redditJsonGet = async <T>(path: string) => (
 					'User-Agent': redditUserAgent,
 				},
 			},
-		},
+		}
 	)
 )

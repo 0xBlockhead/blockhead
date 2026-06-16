@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -37,18 +37,29 @@
 		>
 	> = $props()
 
-	const comment = subscribe(EntityType.RedditComment,
-		selector,
-		({ sources: [
+	const comment = $derived(
+		subscribe(
+			EntityType.RedditComment,
+			selector,
+			({ sources: [
 				Source.Reddit_Rest,
 				Source.Reddit_PublicJson,
-			], fields: { body: true, author: true, score: true, $$timestamps: ({ sources: [
+			], fields: {
+				body: true,
+				author: true,
+				$$timestamps: ({ sources: [
 					Source.Reddit_Rest,
 					Source.Reddit_PublicJson,
-				], limit: 1 }), createdAt: true, depth: true, $link: true, $parentComment: true } }),
+				], limit: 1 }),
+				createdAt: true,
+				depth: true,
+				$link: true,
+				$parentComment: true,
+			} }),
+		)
 	)
 
-	const idKey = stringify(selector)
+	const idKey = $derived(stringify(selector))
 
 
 	// Components
@@ -59,6 +70,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
+	import RedditCommentView from '$/views/RedditCommentView.svelte'
 	import RedditCommentsView from '$/views/RedditCommentsView.svelte'
 	import RedditComment_TimestampsView from '$/views/RedditComment_TimestampsView.svelte'
 	import RedditLinkView from '$/views/RedditLinkView.svelte'
@@ -126,11 +138,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({
-		title: _title,
-		href: _href,
-		open: contentOpen,
-	})}
+	{#snippet Content({})}
 		<ResourceBoundary
 			resource={comment}
 			placeholderText="Loading Reddit comment…"
@@ -152,7 +160,7 @@
 						metrics={[
 							{
 								label: 'Score',
-								value: comment.fields.$$timestamps[0]?.score ?? comment.fields.score,
+								value: comment.fields.$$timestamps.values.at(0)?.score,
 							},
 						]}
 					/>
@@ -183,10 +191,10 @@
 						<div>
 							<dt>Reply to</dt>
 							<dd>
-								<svelte:self
-									selector={comment.fields.$parentComment[EntityMetaKey.Selector]}
-									layout={EntityLayout.Title}
-									open={false}
+									<RedditCommentView
+										selector={comment.fields.$parentComment[EntityMetaKey.Selector]}
+										layout={EntityLayout.Title}
+										open={false}
 								/>
 							</dd>
 						</div>
@@ -212,10 +220,9 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<CollapsibleTabs
-			sectionIdPrefix={idKey}
+			<CollapsibleTabs
+				sectionIdPrefix={idKey}
 				sections={collapsibleTabsSections([
-					{ id: 'comment-details', label: 'Metadata' },
 					{ id: 'comment-replies', label: 'Replies' },
 					{ id: 'metric-snapshots', label: 'Metrics' },
 				])}
@@ -235,10 +242,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCommentDetails()}
-			{/snippet}
-
-			{#snippet SectionCommentReplies()}
+				{#snippet SectionCommentReplies()}
 				<RedditCommentsView
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
@@ -247,7 +251,7 @@
 						fieldName: '$$replies',
 					}}
 					id={`${idKey}:reddit-replies`}
-				sortMode="createdAtAsc"
+					sortMode="createdAtAsc"
 					title="Replies"
 				/>
 			{/snippet}
@@ -265,6 +269,5 @@
 				/>
 			{/snippet}
 		</CollapsibleTabs>
-
-		{/snippet}
-	</EntityView>
+	{/snippet}
+</EntityView>

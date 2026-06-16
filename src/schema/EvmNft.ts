@@ -98,7 +98,7 @@ export default {
 				'format',
 				[
 					EvmNftFormat.Eip8004Registration,
-				],
+				]
 			),
 		},
 		{
@@ -111,7 +111,7 @@ export default {
 				'format',
 				[
 					EvmNftFormat.Eip8004Registration,
-				],
+				]
 			),
 		},
 		{
@@ -124,7 +124,7 @@ export default {
 				'format',
 				[
 					EvmNftFormat.Eip8004Registration,
-				],
+				]
 			),
 		},
 		{
@@ -137,7 +137,7 @@ export default {
 				'format',
 				[
 					EvmNftFormat.Eip8004Registration,
-				],
+				]
 			),
 		},
 		{
@@ -150,7 +150,7 @@ export default {
 				'format',
 				[
 					EvmNftFormat.Eip8004Registration,
-				],
+				]
 			),
 		},
 		{
@@ -163,7 +163,7 @@ export default {
 				'format',
 				[
 					EvmNftFormat.Eip8004Registration,
-				],
+				]
 			),
 		},
 		{
@@ -176,7 +176,7 @@ export default {
 				'format',
 				[
 					EvmNftFormat.Eip8004Registration,
-				],
+				]
 			),
 		},
 		{
@@ -189,7 +189,7 @@ export default {
 				'format',
 				[
 					EvmNftFormat.Eip8004Registration,
-				],
+				]
 			),
 		},
 		{
@@ -202,7 +202,7 @@ export default {
 				'format',
 				[
 					EvmNftFormat.Eip8004Registration,
-				],
+				]
 			),
 		},
 		{

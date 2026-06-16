@@ -6,7 +6,7 @@ import { Source } from '$/sources/Source.ts'
 export const getFeed = async (
 	feedUrl: string,
 	limit: number,
-	_publicEnv: SourcePublicEnvFor<Source.Rss2Json_Rest>,
+	_publicEnv: SourcePublicEnvFor<Source.Rss2Json_Rest>
 ) => {
 	const params = new URLSearchParams({
 		rss_url: normalizeRssFeedUrl(feedUrl),

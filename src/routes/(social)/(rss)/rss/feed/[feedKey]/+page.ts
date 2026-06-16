@@ -7,7 +7,7 @@ export const load: PageLoad = ({ params }) => {
 	const feedUrl = decodeURIComponent(params.feedKey).trim()
 	try {
 		return {
-			entitySelector: {
+			selector: {
 				feedUrl: new URL(feedUrl).href,
 			},
 		}

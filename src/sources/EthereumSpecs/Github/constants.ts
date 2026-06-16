@@ -32,7 +32,7 @@ export const goEthereumParamsConfigGoUrl = (
  * @see https://github.com/ethereum/execution-specs
  */
 export const executionSpecsMainnetUpgradeMarkdownUrl = (
-	filename: string,
+	filename: string
 ) => (
 	`${rawOrigin}/ethereum/execution-specs/${executionSpecsLegacyUpgradeTreeRef}/network-upgrades/mainnet-upgrades/${filename}`
 )

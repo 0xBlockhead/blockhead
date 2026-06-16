@@ -33,24 +33,40 @@
 			layout?: EntityLayout
 			open?: boolean
 		},
-		never
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'showTypeAnnotation'
+		>
 	> = $props()
 
-	const playlist = subscribe(EntityType.YouTubePlaylist,
-		selector,
-		({ sources: [
+	const playlist = $derived(
+		subscribe(
+			EntityType.YouTubePlaylist,
+			selector,
+			({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
-			], fields: { title: true, description: true, itemCount: true, $$timestamps: ({ sources: [
+			], fields: {
+				title: true,
+				description: true,
+				$$timestamps: ({ sources: [
 					Source.Youtube_Rest,
 					Source.Piped_Rest,
-				], limit: 1 }), publishedAt: true, publishedAtMs: true, $channel: true, ...(open ? ({ $$videos: ({ sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						] }) }) : ({  })) } }),
+				], limit: 1 }),
+				publishedAt: true,
+				publishedAtMs: true,
+				$channel: true,
+				...(open && {
+					$$videos: ({ sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					] }),
+				}),
+			} }),
+		)
 	)
 
-	const idKey = stringify(selector)
+	const idKey = $derived(stringify(selector))
 
 
 	// Components
@@ -131,7 +147,7 @@
 							metrics={[
 								{
 									label: 'Items',
-									value: playlist.fields.$$timestamps[0]?.itemCount ?? playlist.fields.itemCount,
+									value: playlist.fields.$$timestamps.values.at(0)?.itemCount,
 								},
 							]}
 						/>
@@ -216,6 +232,6 @@
 					title="Metric snapshots"
 				/>
 			{/snippet}
-			</CollapsibleTabs>
-		{/snippet}
-	</EntityView>
+		</CollapsibleTabs>
+	{/snippet}
+</EntityView>

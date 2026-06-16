@@ -5,7 +5,7 @@ export type InspectableCollection<T> = {
 	entries: () => IterableIterator<[PropertyKey, T]>
 	subscribeChanges: (
 		_onChanges: (_changes: readonly object[]) => void,
-		_opts?: { includeInitialState?: boolean },
+		_opts?: { includeInitialState?: boolean }
 	) => { unsubscribe: () => void }
 	onFirstReady: (_callback: () => void) => void
 }

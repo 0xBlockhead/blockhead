@@ -18,7 +18,7 @@ import { BittensorMetagraph_TimestampSelector } from '$/schema/BittensorMetagrap
 import { BittensorNeuronSelector } from '$/schema/BittensorNeuron.ts'
 
 const assertBittensorMainnet = (
-	network: EntitySelector<typeof schema, EntityType.Network>,
+	network: EntitySelector<typeof schema, EntityType.Network>
 ) => {
 	if (stringify(network) !== stringify({ slug: 'bittensor' })) {
 		throw new Error('Bittensor_JsonRpc: unsupported network')
@@ -303,7 +303,7 @@ export default {
 						length: Math.min(
 							1,
 							Number(finalizedBlockNumber + 1n),
-							resolverContextRowLimit(context),
+							resolverContextRowLimit(context)
 						),
 					}, () => ({
 						[EntityMetaKey.Selector]: {

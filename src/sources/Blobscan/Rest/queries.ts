@@ -26,7 +26,7 @@ export const getBlobDetail = async ({
 	try {
 		tx = await getJson<BlobscanTransaction>(
 			txUrl,
-			{ origins: Blobscan.origins  },
+			{ origins: Blobscan.origins  }
 		)
 	}
 	catch {
@@ -44,7 +44,7 @@ export const getBlobDetail = async ({
 	try {
 		detail = await getJson<BlobscanBlobDetail>(
 			blobUrl,
-			{ origins: Blobscan.origins  },
+			{ origins: Blobscan.origins  }
 		)
 	}
 	catch {

@@ -83,7 +83,7 @@ export default {
 		})({
 				fields: {
 			name: (snapshot) => snapshot.name,
-			namespace: (snapshot) => snapshot.namespace,
+			namespace: () => NetworkNamespace.Evm,
 			environment: (snapshot) => snapshot.environment,
 			$parent: (snapshot) => snapshot.$parent,
 			layerNumber: (snapshot) => snapshot.layerNumber,

@@ -91,7 +91,7 @@ export default {
 				[
 					ZcashShieldedActionKind.Spend,
 					ZcashShieldedActionKind.Action,
-				],
+				]
 			),
 		},
 		{
@@ -105,7 +105,7 @@ export default {
 				[
 					ZcashShieldedActionKind.Output,
 					ZcashShieldedActionKind.Action,
-				],
+				]
 			),
 		},
 		{

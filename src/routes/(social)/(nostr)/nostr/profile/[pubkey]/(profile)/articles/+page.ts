@@ -3,7 +3,7 @@ import type { PageLoad } from './$types.ts'
 
 export const load: PageLoad = ({ params }) => {
 	return {
-		entitySelector: {
+		selector: {
 			pubkey: decodeURIComponent(params.pubkey).trim().toLowerCase(),
 		},
 	}

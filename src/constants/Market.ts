@@ -18,7 +18,7 @@ export type MarketAssetLegLabelInput =
 	}
 
 
-/** Spot CEX/DEX book vs perpetual vs dated futures (see `$/sources/Coingecko/marketKind.ts` for provider mapping). */
+/** Spot CEX/DEX book vs perpetual vs dated futures. */
 export enum MarketKind {
 	Spot = 'Spot',
 	Perpetual = 'Perpetual',
@@ -34,20 +34,20 @@ export type MarketIdLabelInput = {
 
 
 /**
- * `Market` graph model (source-agnostic ids; resolvers map into provider APIs):
- *
- * - **MarketAsset** — discriminated value in `Market.$base` / `.$quote` (catalog `Coin`, on-chain
- *   `CoinInstance`, or fiat `Currency` via `$currency` → `Currency`). Embedded in `Market.id`
- *   and in `MarketPrice` / OHLC parents via `.$market`.
- * - **Market** — `{$base, $quote, $marketVenue}`; venue is a real trading book (`Binance`, `Coinbase`, …).
- * - **MarketPrice** — stream identity: `{$market, feedKey?, $network?}`; spot/index prints live on
- *   **`Market_Timestamp`** rows referenced from `$$quotes` (`{$market, timestampMs, feedKey?}`).
- * - **Market_TimeInterval_Timestamp** — one OHLC candle per row (`{$market, timeInterval, timestampMs}`).
- */
+	* `Market` graph model (source-agnostic ids; resolvers map into provider APIs):
+	*
+	* - **MarketAsset** — discriminated value in `Market.$base` / `.$quote` (catalog `Coin`, on-chain
+	*   `CoinInstance`, or fiat `Currency` via `$currency` → `Currency`). Embedded in `Market.id`
+	*   and in `MarketPrice` / OHLC parents via `.$market`.
+	* - **Market** — `{$base, $quote, $marketVenue}`; venue is a real trading book (`Binance`, `Coinbase`, …).
+	* - **MarketPrice** — stream identity: `{$market, feedKey?, $network?}`; spot/index prints live on
+	*   **`Market_Timestamp`** rows referenced from `$$quotes` (`{$market, timestampMs, feedKey?}`).
+	* - **Market_TimeInterval_Timestamp** — one OHLC candle per row (`{$market, timeInterval, timestampMs}`).
+	*/
 
 /**
- * How a market asset id discriminates value: catalog coin, `CoinInstance` id, or fiat via `$currency`.
- */
+	* How a market asset id discriminates value: catalog coin, `CoinInstance` id, or fiat via `$currency`.
+	*/
 export enum MarketAssetKind {
 	Coin = 'Coin',
 	CoinInstance = 'CoinInstance',
@@ -55,8 +55,8 @@ export enum MarketAssetKind {
 }
 
 /**
- * Unit for a rolling or bucketed time window. Extensible for 4h-style CEX series.
- */
+	* Unit for a rolling or bucketed time window. Extensible for 4h-style CEX series.
+	*/
 export enum MarketTimeIntervalUnit {
 	Day = 'day',
 	Hour = 'hour',
@@ -65,73 +65,24 @@ export enum MarketTimeIntervalUnit {
 }
 
 /**
- * Rolling (or provider-defined) window: `value` steps of `unit` (e.g. 7 × `day` for daily OHLC).
- */
+	* Rolling (or provider-defined) window: `value` steps of `unit` (e.g. 7 × `day` for daily OHLC).
+	*/
 export type MarketTimeInterval = {
 	unit: MarketTimeIntervalUnit
 	value: number
 }
 
-// Constants
-
-import { Source } from '$/sources/Source.ts'
-
 /**
- * `days` values accepted by CoinGecko `GET /coins/{id}/ohlc` for USD candles (numeric days).
- * @see https://docs.coingecko.com/reference/coins-id-ohlc
- */
-export const coingeckoOhlcDayWindowLengths = [1, 7, 14, 30, 90] as const
-
-/** Resolvers that populate catalog `Coin` identity (symbol, name, rank, logo). */
-export const catalogCoinIdentitySources = [
-	Source.Constants_Internal,
-	Source.Coingecko_Rest,
-	Source.CoinMarketCap_Rest,
-	Source.Coinpaprika_OpenApi,
+	* `days` values accepted by CoinGecko `GET /coins/{id}/ohlc` for USD candles (numeric days).
+	* @see https://docs.coingecko.com/reference/coins-id-ohlc
+	*/
+export const coingeckoOhlcDayWindowLengths = [
+	1,
+	7,
+	14,
+	30,
+	90,
 ] as const
-
-/** Resolvers for derivative-only `Market` observation fields (`fundingRate`, open interest, …). */
-export const marketDerivativeObservationSources = [
-	Source.Coingecko_OpenApi,
-] as const
-
-/** Resolvers for `MarketPrice` / `$$marketPrices` (spot USD streams). */
-export const marketSpotPriceSources = [
-	Source.Constants_Internal,
-	Source.Coingecko_Rest,
-	Source.Coingecko_OpenApi,
-	Source.CoinMarketCap_Rest,
-	Source.Coinpaprika_OpenApi,
-	Source.Defillama_OpenApi,
-] as const
-
-/** Resolvers for `Market_TimeInterval_Timestamp` / `$$marketTimeIntervalTimestamps`. */
-export const marketOhlcCandleSources = [
-	Source.Coingecko_Rest,
-	Source.Coingecko_OpenApi,
-	Source.Defillama_OpenApi,
-	Source.Coinpaprika_OpenApi,
-	Source.CoinMarketCap_Rest,
-] as const
-
-/** Parent `$` sources when loading `$$markets` field lists. */
-export const marketCatalogFieldSources = [
-	Source.Constants_Internal,
-	Source.Coingecko_Rest,
-	Source.Coingecko_OpenApi,
-	Source.CoinMarketCap_Rest,
-	Source.Coinpaprika_OpenApi,
-	Source.Defillama_OpenApi,
-	Source.TradingView_Rest,
-] as const
-
-/** Parent `$` sources when loading `MarketVenue.$$markets`. */
-export const marketVenueCatalogFieldSources = [
-	Source.Constants_Internal,
-	Source.Coingecko_OpenApi,
-	Source.Coinpaprika_OpenApi,
-] as const
-
 
 const marketKinds = [
 	{
@@ -158,5 +109,5 @@ export const marketKindByMarketKind = Object.fromEntries(
 	marketKinds.map((row) => [
 		row.marketKind,
 		row,
-	]),
+	])
 )

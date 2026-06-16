@@ -30,7 +30,7 @@ export const getName = async ({
 			]),
 			{
 				name,
-			},
+			}
 		)
 	).domains
 )
@@ -69,7 +69,7 @@ export const getDomainsContaining = async ({
 			{
 				query,
 				limit,
-			},
+			}
 		)
 	).domains
 )
@@ -103,7 +103,7 @@ export const getDomainsByOwner = async ({
 			]),
 			{
 				owner,
-			},
+			}
 		)
 	).domains
 )

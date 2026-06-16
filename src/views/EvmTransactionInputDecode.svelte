@@ -4,6 +4,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
@@ -20,7 +21,7 @@
 		formatDecodedParamValue,
 	} from '$/lib/calldata-decode.ts'
 
-	import { getEvmSelectorPath, normalizeEvmSelectorHex } from '$/lib/signature-paths.ts'
+	import { normalizeEvmSelectorHex } from '$/lib/signature-paths.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const emptySelectorHex: `0x${string}` = '0x00000000'
@@ -77,7 +78,9 @@
 			<span data-text="annotation">Selector</span>
 			<a
 				data-text="font-monospace"
-				href={getEvmSelectorPath(selectorHex)}
+				href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+					hex: selectorHex,
+				})}
 			>
 				<TruncatedValue
 					value={selectorHex}

@@ -33,7 +33,7 @@ const _condition = conditionalOn(
 	'kind',
 	[
 		VerifyType.A,
-	],
+	]
 )
 
 const fieldsWithConditional = [

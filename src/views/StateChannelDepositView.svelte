@@ -38,10 +38,10 @@
 		>
 	> = $props()
 
-	const deposit = subscribe(EntityType.StateChannelDeposit,
+	const deposit = $derived(subscribe(EntityType.StateChannelDeposit,
 		selector,
 		({ sources: [Source.Local_Internal], fields: { availableBalance: true, lockedBalance: true, lastUpdated: true, $account: true, $network: true } }),
-	)
+	))
 
 
 	// Components
@@ -113,14 +113,14 @@
 						<div>
 							<dt>Account</dt>
 							<dd>
-									{#if deposit.fields.$network !== undefined}
-										<EvmNetworkAccountView
-											selector={{
-												$network: deposit.fields.$network[EntityMetaKey.Selector],
+								{#if deposit.fields.$network !== undefined}
+									<EvmNetworkAccountView
+										selector={{
+											$network: deposit.fields.$network[EntityMetaKey.Selector],
 											$actor: deposit.fields.$account[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
-											open={false}
+										open={false}
 									/>
 								{:else}
 									<EvmAccountView

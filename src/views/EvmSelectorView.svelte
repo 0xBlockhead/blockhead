@@ -6,12 +6,13 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = getEvmSelectorPath(selector.hex),
+		href: hrefProp,
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -36,14 +37,21 @@
 		>
 	> = $props()
 
-	import { getEvmSelectorPath } from '$/lib/signature-paths.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
-	const decodedSelector = subscribe(EntityType.EvmSelector,
-		selector,
-		({ sources: [
-				Source.Openchain_Rest,
-			], fields: { ...(open && ({ signatures: true })) } }),
+	const href = $derived(
+		hrefProp ?? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+			hex: selector.hex,
+		}),
+	)
+
+	const decodedSelector = $derived(
+		subscribe(EntityType.EvmSelector,
+			selector,
+			({ sources: [
+					Source.Openchain_Rest,
+				], fields: { ...(open && ({ signatures: true })) } }),
+		),
 	)
 
 

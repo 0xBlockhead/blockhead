@@ -9,8 +9,9 @@
 		specificationRealmById,
 	} from '$/constants/SpecificationProposal.ts'
 
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import ProposalSchema from '$/schema/SpecificationProposal.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -29,7 +30,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: typeof ProposalSchema.id.infer
+			selector: EntitySelector<typeof schema, EntityType.SpecificationProposal>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -39,38 +40,23 @@
 
 
 	// Functions
-	const proposalHeadingExtractBeforeIdentifier = (
-		m: {
-			documentBody?: string | null
-			documentTitle?: string | null
-		},
-		proposalId: typeof ProposalSchema.id.infer,
-	): string => {
-		const trimmedTitle = (m.documentTitle ?? '').trim()
-		const match = (
-			proposalId.category === ProposalCategory.Ensip ?
-				(m.documentBody ?? '').match(/#\s*(ENSIP-\d+:\s*.+)/)
-			:
-				null
-		)
-		return (
-			trimmedTitle !== '' ?
-				trimmedTitle
-			:
-				(match?.[1] ?? '').trim()
-		)
-	}
-
 	const proposalHeadingTitle = (
 		m: {
 			documentBody?: string | null
 			documentTitle?: string | null
 		},
-		proposalId: typeof ProposalSchema.id.infer,
+		proposalId: EntitySelector<typeof schema, EntityType.SpecificationProposal>,
 		kindLabel: string,
 	) => {
 		const identifier = `${kindLabel}-${proposalId.number}`
-		const headingExtract = proposalHeadingExtractBeforeIdentifier(m, proposalId)
+		const headingExtract = (
+			(m.documentTitle ?? '').trim() !== '' ?
+				(m.documentTitle ?? '').trim()
+			: proposalId.category === ProposalCategory.Ensip ?
+				((m.documentBody ?? '').match(/#\s*(ENSIP-\d+:\s*.+)/)?.[1] ?? '').trim()
+			:
+				''
+		)
 		return (
 			headingExtract === '' ?
 				identifier
@@ -86,7 +72,7 @@
 	}
 
 
-	const proposal = subscribe(EntityType.SpecificationProposal,
+	const proposal = $derived(subscribe(EntityType.SpecificationProposal,
 		selector,
 		({ sources: [
 				selector.realm === SpecificationRealm.Bitcoin && selector.category === ProposalCategory.Bip ?
@@ -127,18 +113,18 @@
 				:
 					Source.Constants_Internal,
 			], fields: { documentBody: true, documentCategory: true, documentStatus: true, documentTitle: true } }),
-	)
+	))
 
-	const specificationRealm = subscribe(EntityType.SpecificationRealm,
+	const specificationRealm = $derived(subscribe(EntityType.SpecificationRealm,
 		{
 			realm: selector.realm,
 		},
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true, slug: true } }),
-	)
+	))
 
-	const proposalKind = subscribe(EntityType.SpecificationProposalKind,
+	const proposalKind = $derived(subscribe(EntityType.SpecificationProposalKind,
 		{
 			realm: selector.realm,
 			category: selector.category,
@@ -146,7 +132,7 @@
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true, labelPlural: true, slug: true } }),
-	)
+	))
 
 
 	// (Derived)
@@ -339,9 +325,9 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Details({ open })}
+	{#snippet Details()}
 		<section
-			id={`${(`proposal:${selector.realm}:${selector.category}:${selector.number}`)}:document-body`}
+			id={`proposal:${selector.realm}:${selector.category}:${selector.number}:document-body`}
 		>
 			<ResourceBoundary
 				resource={proposal}

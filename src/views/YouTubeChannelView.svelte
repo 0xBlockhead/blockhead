@@ -39,24 +39,39 @@
 		>
 	> = $props()
 
-	const channel = subscribe(EntityType.YouTubeChannel,
-		selector,
-		({ sources: [
+	const channel = $derived(
+		subscribe(
+			EntityType.YouTubeChannel,
+			selector,
+			({ sources: [
 				Source.Youtube_Rest,
 				Source.Piped_Rest,
-			], fields: { title: true, description: true, subscriberCount: true, videoCount: true, viewCount: true, $$timestamps: ({ sources: [
+			], fields: {
+				title: true,
+				description: true,
+				$$timestamps: ({ sources: [
 					Source.Youtube_Rest,
 					Source.Piped_Rest,
-				], limit: 1 }), publishedAt: true, publishedAtMs: true, customUrl: true, $icon: true, ...(open ? ({ $$videos: ({ sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						] }), $$playlists: ({ sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						] }) }) : ({  })) } }),
+				], limit: 1 }),
+				publishedAt: true,
+				publishedAtMs: true,
+				customUrl: true,
+				$icon: true,
+				...(open && {
+					$$videos: ({ sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					] }),
+					$$playlists: ({ sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					] }),
+				}),
+			} }),
+		)
 	)
 
-	const idKey = stringify(selector)
+	const idKey = $derived(stringify(selector))
 
 
 	// Components
@@ -156,15 +171,15 @@
 							metrics={[
 								{
 									label: 'Subscribers',
-									value: channel.fields.$$timestamps[0]?.subscriberCount ?? channel.fields.subscriberCount,
+									value: channel.fields.$$timestamps.values.at(0)?.subscriberCount,
 								},
 								{
 									label: 'Videos',
-									value: channel.fields.$$timestamps[0]?.videoCount ?? channel.fields.videoCount,
+									value: channel.fields.$$timestamps.values.at(0)?.videoCount,
 								},
 								{
 									label: 'Views',
-									value: channel.fields.$$timestamps[0]?.viewCount ?? channel.fields.viewCount,
+									value: channel.fields.$$timestamps.values.at(0)?.viewCount,
 								},
 							]}
 						/>
@@ -212,11 +227,11 @@
 		<CollapsibleTabs
 			id={`${idKey}:carousel-channel`}
 			sectionIdPrefix={idKey}
-				sections={collapsibleTabsSections([
-					{ id: 'videos', label: 'Videos' },
-					{ id: 'playlists', label: 'Playlists' },
-					{ id: 'metric-snapshots', label: 'Metrics' },
-				])}
+			sections={collapsibleTabsSections([
+				{ id: 'videos', label: 'Videos' },
+				{ id: 'playlists', label: 'Playlists' },
+				{ id: 'metric-snapshots', label: 'Metrics' },
+			])}
 			data-card
 		>
 			{#snippet Summary({
@@ -271,5 +286,5 @@
 				/>
 			{/snippet}
 		</CollapsibleTabs>
-		{/snippet}
-	</EntityView>
+	{/snippet}
+</EntityView>

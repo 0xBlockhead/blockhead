@@ -12,7 +12,7 @@ export const getProposerPayloadDeliveredForRelayHost = async (
 	relayHost: string,
 	options: {
 		limit: number
-	},
+	}
 ): Promise<readonly ProposerPayloadDelivered[]> => {
 	const base = `https://${relayHost.replace(/\/$/, '')}`
 	const search = new URLSearchParams()

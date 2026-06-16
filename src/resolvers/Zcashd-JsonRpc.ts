@@ -2,8 +2,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
-	zcashMainnetCaip2,
-	zcashdDefaultLocalRpcUrl,
+	bitcoinNetworkBySlug,
 } from '$/constants/BitcoinNetwork.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -17,14 +16,17 @@ import { ZcashShieldedPoolSelector } from '$/schema/ZcashShieldedPool.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { ZcashShieldedActionSelector } from '$/schema/ZcashShieldedAction.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
+type NetworkId = { caip2: {
+	namespace: string
+	reference: string
+} } | { slug: string }
 
 const assertZcashMainnet = (network: NetworkId) => {
 	if (
 		'caip2' in network ?
 			(
-				network.caip2.namespace !== zcashMainnetCaip2.namespace
-				|| network.caip2.reference !== zcashMainnetCaip2.reference
+				network.caip2.namespace !== bitcoinNetworkBySlug.zcash.caip2.namespace
+				|| network.caip2.reference !== bitcoinNetworkBySlug.zcash.caip2.reference
 			)
 		:
 			network.slug !== networkBySlug.zcash.slug
@@ -38,7 +40,7 @@ const zcashShieldedActionRows = (
 		$network: NetworkId
 		txId: string
 	},
-	transaction: Awaited<ReturnType<typeof import('$/sources/Zcashd/JsonRpc/queries.ts')['getRawTransaction']>>,
+	transaction: Awaited<ReturnType<typeof import('$/sources/Zcashd/JsonRpc/queries.ts')['getRawTransaction']>>
 ) => [
 	...(transaction.vShieldedSpend ?? []).map((spend, actionIndex) => ({
 		[EntityMetaKey.Selector]: {
@@ -103,7 +105,7 @@ const getTransaction = async ({ $network, txId }: {
 	assertZcashMainnet($network)
 	const { getRawTransaction } = await import('$/sources/Zcashd/JsonRpc/queries.ts')
 	return getRawTransaction({
-		rpcUrl: zcashdDefaultLocalRpcUrl,
+		rpcUrl: bitcoinNetworkBySlug.zcash.zcashdRpcUrl,
 		txId: txId,
 	})
 }
@@ -116,78 +118,78 @@ export default {
 			entityType: EntityType.ZcashShieldedPool,
 			resolve: {
 				[ZcashShieldedPoolSelector.NetworkPool]: async ({ $network, pool }) => {
-				assertZcashMainnet($network)
-				return (
-					pool === ZcashShieldedPoolKind.Sapling ?
-						{
-							activationNetworkUpgrade: 'Sapling',
-							noteProtocol: 'Sapling',
-						}
-					:
-						{
-							activationNetworkUpgrade: 'NU5',
-							noteProtocol: 'Orchard',
-						}
-				)
-			}
-			}
+					assertZcashMainnet($network)
+					return (
+						pool === ZcashShieldedPoolKind.Sapling ?
+							{
+								activationNetworkUpgrade: 'Sapling',
+								noteProtocol: 'Sapling',
+							}
+						:
+							{
+								activationNetworkUpgrade: 'NU5',
+								noteProtocol: 'Orchard',
+							}
+					)
+				}
+			},
 		})({
-				fields: {
-			activationNetworkUpgrade: (snapshot) => snapshot.activationNetworkUpgrade,
-			noteProtocol: (snapshot) => snapshot.noteProtocol,
-		},
-			}),
+			fields: {
+				activationNetworkUpgrade: (snapshot) => snapshot.activationNetworkUpgrade,
+				noteProtocol: (snapshot) => snapshot.noteProtocol,
+			},
+		}),
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[UtxoTransactionSelector.NetworkTxId]: async (entitySelector) => {
-				const transaction = await getTransaction(entitySelector)
-				return {
-					version: transaction.version,
-					lockTime: transaction.locktime,
-					sizeBytes: transaction.size,
-					weightUnits: transaction.weight,
-					$$zcashShieldedActions: zcashShieldedActionRows(
-						entitySelector,
-						transaction,
+					const transaction = await getTransaction(entitySelector)
+					return {
+						version: transaction.version,
+						lockTime: transaction.locktime,
+						sizeBytes: transaction.size,
+						weightUnits: transaction.weight,
+						$$zcashShieldedActions: zcashShieldedActionRows(
+							entitySelector,
+							transaction
 					),
+					}
 				}
-			}
-			}
+			},
 		})({
-				fields: {
-			version: (snapshot) => snapshot.version,
-			lockTime: (snapshot) => snapshot.lockTime,
-			sizeBytes: (snapshot) => snapshot.sizeBytes,
-			weightUnits: (snapshot) => snapshot.weightUnits,
-			$$zcashShieldedActions: (snapshot) => snapshot.$$zcashShieldedActions,
-		},
-			}),
+			fields: {
+				version: (snapshot) => snapshot.version,
+				lockTime: (snapshot) => snapshot.lockTime,
+				sizeBytes: (snapshot) => snapshot.sizeBytes,
+				weightUnits: (snapshot) => snapshot.weightUnits,
+				$$zcashShieldedActions: (snapshot) => snapshot.$$zcashShieldedActions,
+			},
+		}),
 
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.ZcashShieldedAction,
 			resolve: {
 				[ZcashShieldedActionSelector.UtxoTransactionPoolActionKindActionIndex]: async ({ $transaction, pool, actionKind, actionIndex }) => {
-				const shieldedAction = zcashShieldedActionRows(
-					$transaction,
-					await getTransaction($transaction),
-				).find((action) => (
-					action[EntityMetaKey.Selector].pool === pool
+					const shieldedAction = zcashShieldedActionRows(
+						$transaction,
+						await getTransaction($transaction)
+						).find((action) => (
+						action[EntityMetaKey.Selector].pool === pool
 					&& action[EntityMetaKey.Selector].actionKind === actionKind
 					&& action[EntityMetaKey.Selector].actionIndex === actionIndex
-				))
-				if (shieldedAction == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${$transaction.txId}`)
-				return shieldedAction
-			}
-			}
+						))
+					if (shieldedAction == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${$transaction.txId}`)
+					return shieldedAction
+				}
+			},
 		})({
-				fields: {
-			$pool: (snapshot) => snapshot.$pool,
-			actionKind: (snapshot) => snapshot.actionKind,
-			nullifier: (snapshot) => snapshot.nullifier,
-			noteCommitment: (snapshot) => snapshot.noteCommitment,
-			valueCommitment: (snapshot) => snapshot.valueCommitment,
-		},
-			}),
+			fields: {
+				$pool: (snapshot) => snapshot.$pool,
+				actionKind: (snapshot) => snapshot.actionKind,
+				nullifier: (snapshot) => snapshot.nullifier,
+				noteCommitment: (snapshot) => snapshot.noteCommitment,
+				valueCommitment: (snapshot) => snapshot.valueCommitment,
+			},
+		}),
 	],
 }

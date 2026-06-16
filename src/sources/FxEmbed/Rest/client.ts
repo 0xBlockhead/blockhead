@@ -14,10 +14,10 @@ const toQuery = (params: Record<string, string | number | undefined>) => {
 
 export const fxEmbedGet = async <T>(
 	path: `/${string}`,
-	params?: Record<string, string | number | undefined>,
+	params?: Record<string, string | number | undefined>
 ): Promise<T> => (
 	getJson<T>(
 		`${fxEmbedApiV2Base}${path}${toQuery(params ?? {})}`,
-		{ origins: FxEmbed.origins  },
+		{ origins: FxEmbed.origins  }
 	)
 )

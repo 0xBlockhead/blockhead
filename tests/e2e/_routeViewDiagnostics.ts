@@ -3,7 +3,7 @@ import type { Page, TestInfo } from '@playwright/test'
 
 const envMs = (
 	value: string | undefined,
-	fallback: number,
+	fallback: number
 ) => {
 	const trimmed = value?.trim()
 	if (!trimmed) return fallback

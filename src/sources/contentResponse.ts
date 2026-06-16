@@ -1,6 +1,6 @@
 import { fileTypeFromBuffer } from 'file-type'
 
-export type IpfsDisplayType =
+export type ContentDisplayType =
 	| 'text'
 	| 'image'
 	| 'video'
@@ -11,10 +11,10 @@ export type IpfsDisplayType =
 	| 'iframe'
 	| 'binary'
 
-export type ParsedIpfsContent = {
+export type ParsedContentResponse = {
 	contentLength?: number
 	contentType?: string
-	displayType: IpfsDisplayType
+	displayType: ContentDisplayType
 	extension?: string
 	fileName?: string
 	isContentTypeInferred: boolean
@@ -71,44 +71,53 @@ const contentTypeFromText = (text: string | undefined): string | undefined => {
 	return printableRatio > 0.9 ? 'text/plain' : undefined
 }
 
-export const ipfsDisplayTypeFromContent = ({
+export const displayTypeFromContent = ({
 	contentType,
 	text,
 }: {
 	contentType?: string
 	text?: string
-}): IpfsDisplayType => (
+}): ContentDisplayType => (
 	contentType == null || contentType.startsWith('text/plain') ?
 		'text'
-	: contentType.startsWith('text/html') ?
-		'iframe'
-	: contentType.startsWith('text/') ?
-		'text'
-	: contentType.startsWith('image/') ?
-		'image'
-	: contentType.startsWith('video/') ?
-		'video'
-	: contentType.startsWith('audio/') ?
-		'audio'
-	: contentType.startsWith('application/json') ?
-		'json'
-	: contentType.startsWith('application/xml') || contentType.startsWith('text/xml') ?
-		'xml'
-	: contentType.startsWith('application/pdf') ?
-		'pdf'
-	: text != null ?
-		'text'
 	:
-		'binary'
+		contentType.startsWith('text/html') ?
+			'iframe'
+		:
+			contentType.startsWith('text/') ?
+				'text'
+			:
+				contentType.startsWith('image/') ?
+				'image'
+			:
+				contentType.startsWith('video/') ?
+				'video'
+			:
+				contentType.startsWith('audio/') ?
+				'audio'
+			:
+				contentType.startsWith('application/json') ?
+				'json'
+			:
+				contentType.startsWith('application/xml') || contentType.startsWith('text/xml') ?
+				'xml'
+			:
+				contentType.startsWith('application/pdf') ?
+				'pdf'
+			:
+				text != null ?
+				'text'
+			:
+				'binary'
 )
 
-export const parseIpfsContentResponse = async ({
+export const parseContentResponse = async ({
 	response,
 	fileName,
 }: {
 	response: Response
 	fileName?: string
-}): Promise<ParsedIpfsContent> => {
+}): Promise<ParsedContentResponse> => {
 	const bytes = new Uint8Array(await response.clone().arrayBuffer())
 	const sniffedType = await fileTypeFromBuffer(bytes)
 	const text = maybeText(bytes)
@@ -118,7 +127,7 @@ export const parseIpfsContentResponse = async ({
 		?? contentTypeFromText(text)
 	)
 	const contentType = headerContentType ?? inferredContentType
-	const displayType = ipfsDisplayTypeFromContent({
+	const displayType = displayTypeFromContent({
 		contentType,
 		text,
 	})

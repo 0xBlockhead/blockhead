@@ -111,7 +111,7 @@ export default {
 				[
 					EvmTokenStandard.Erc721,
 					EvmTokenStandard.Erc1155,
-				],
+				]
 			),
 		},
 		{

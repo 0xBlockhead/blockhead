@@ -2,6 +2,7 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,28 +11,10 @@
 	import { stringify } from 'devalue'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const
-
-
 	// State
 	let {
 		selector,
-		href = resolve(
-			'/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]',
-			{
-				chainId: String(evmChainIdFromCaip2(`${selector.$coinInstance.$network.caip2.namespace}:${selector.$coinInstance.$network.caip2.reference}`)),
-				owner: selector.$actor.address,
-				coin: (
-					selector.$coinInstance.type === CoinInstanceType.Erc20Token ?
-						selector.$coinInstance.$contract.address
-					:
-						pathNativeCoin
-				),
-			},
-		),
+		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
@@ -46,16 +29,15 @@
 		>
 	> = $props()
 
-	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 	import { formatValue } from '$/lib/number.ts'
 
-	const actorCoinDetailAnchorKey = stringify(selector)
+	const actorCoinDetailAnchorKey = $derived(stringify(selector))
 
-	const actorCoin = subscribe(EntityType.EvmNetworkActorCoinBalance,
+	const actorCoin = $derived(subscribe(EntityType.EvmNetworkActorCoinBalance,
 		selector,
-		({ sources: [Source.Allium_Rest], fields: { symbol: true, balance: true, ...(open ? ({ decimals: true, usdValue: true }) : ({  })) } }),
-	)
+		({ sources: [Source.Allium_Rest], fields: { symbol: true, balance: true, $coinInstance: true, ...(open ? ({ decimals: true, usdValue: true }) : ({  })) } }),
+	))
 
 
 	// (Derived)
@@ -131,31 +113,47 @@
 			<div>
 				<dt>Account</dt>
 				<dd>
-					<EvmNetworkAccountView
-						selector={{
-							$network: selector.$coinInstance.$network,
-							$actor: selector.$actor,
-						}}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+					<ResourceBoundary
+						resource={actorCoin}
+						placeholderText="Loading account…"
+					>
+						{#snippet children(actorCoin)}
+							{#if actorCoin.fields.$coinInstance}
+								<EvmNetworkAccountView
+									selector={{
+										$network: actorCoin.fields.$coinInstance[EntityMetaKey.Selector].$network,
+										$actor: selector.$actor,
+									}}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 			<div>
 				<dt>Asset</dt>
 				<dd>
-					{#if selector.$coinInstance.type === CoinInstanceType.NativeCurrency}
-						Native gas token (chain issuance)
-					{:else if selector.$coinInstance.type === CoinInstanceType.Erc20Token}
-						<EvmContractView
-							selector={selector.$coinInstance.$contract}
-							layout={EntityLayout.Value}
-							open={false}
-							showTypeAnnotation={false}
-						/>
-					{:else}
-						—
-					{/if}
+					<ResourceBoundary
+						resource={actorCoin}
+						placeholderText="Loading asset…"
+					>
+						{#snippet children(actorCoin)}
+							{#if actorCoin.fields.$coinInstance?.[EntityMetaKey.Selector].type === CoinInstanceType.NativeCurrency}
+								Native gas token (chain issuance)
+							{:else if actorCoin.fields.$coinInstance?.$contract}
+								<EvmContractView
+									selector={actorCoin.fields.$coinInstance.$contract[EntityMetaKey.Selector]}
+									layout={EntityLayout.Value}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							{:else}
+								—
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 

@@ -182,7 +182,7 @@ export default {
 					EvmTransactionEnvelopeType.FeeMarket,
 					EvmTransactionEnvelopeType.Blob,
 					EvmTransactionEnvelopeType.SetCode,
-				],
+				]
 			),
 		},
 		{
@@ -197,7 +197,7 @@ export default {
 					EvmTransactionEnvelopeType.FeeMarket,
 					EvmTransactionEnvelopeType.Blob,
 					EvmTransactionEnvelopeType.SetCode,
-				],
+				]
 			),
 		},
 		{
@@ -210,7 +210,7 @@ export default {
 				'envelopeType',
 				[
 					EvmTransactionEnvelopeType.Blob,
-				],
+				]
 			),
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
@@ -226,7 +226,7 @@ export default {
 				'envelopeType',
 				[
 					EvmTransactionEnvelopeType.Blob,
-				],
+				]
 			),
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
@@ -242,7 +242,7 @@ export default {
 				'envelopeType',
 				[
 					EvmTransactionEnvelopeType.Blob,
-				],
+				]
 			),
 			defaultSources: [
 				Source.Voltaire_JsonRpc,

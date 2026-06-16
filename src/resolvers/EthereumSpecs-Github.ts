@@ -28,7 +28,7 @@ export default {
 				)
 				if (preset == null) {
 					throw new Error(
-						`EthereumSpecs_Github: no consensus preset for chain ${String(Number(caip2.reference))}`,
+						`EthereumSpecs_Github: no consensus preset for chain ${String(Number(caip2.reference))}`
 					)
 				}
 				const { fetchConsensusSpecsConfigYaml } = await import('$/sources/EthereumSpecs/Github/queries.ts')
@@ -47,7 +47,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 				if (!ethereumReferenceForkMetadataChainIds.some((chainId) => chainId === Number(caip2.reference))) {
 					throw new Error(
-						`EthereumSpecs_Github: go-ethereum params unsupported for chain ${String(Number(caip2.reference))}`,
+						`EthereumSpecs_Github: go-ethereum params unsupported for chain ${String(Number(caip2.reference))}`
 					)
 				}
 				const { fetchGoEthereumParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')

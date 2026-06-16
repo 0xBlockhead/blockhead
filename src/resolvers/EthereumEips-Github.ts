@@ -41,7 +41,7 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 		ledgers.map(async ({ ledger, category: cat }) => ({
 			category: cat,
 			data: await getContents({ ledger }),
-		})),
+		}))
 	)
 	const specificationProposals: {
 		[EntityMetaKey.Selector]: {

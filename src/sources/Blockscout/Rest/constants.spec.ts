@@ -18,7 +18,7 @@ describe('blockscoutErc4337OperationsSupported', () => {
 		for (const chainId of [5, 17000]) {
 			expect(
 				blockscoutHostedNetworks.some((network) => network.chainId === chainId),
-				`fixture chain ${chainId}`,
+				`fixture chain ${chainId}`
 			).toBe(true)
 			expect(blockscoutErc4337OperationsSupported(chainId)).toBe(false)
 		}

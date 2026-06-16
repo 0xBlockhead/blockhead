@@ -14,7 +14,7 @@ import { EvmContractSourceBundleSelector } from '$/schema/EvmContractSourceBundl
 import { EvmContractSelector } from '$/schema/EvmContract.ts'
 
 const sourcifyFirstStorageLayoutRecord = (
-	root: unknown,
+	root: unknown
 ): Record<string, unknown> | undefined => {
 	const visited = new WeakSet<object>()
 	const walk = (node: unknown): Record<string, unknown> | undefined => {
@@ -43,7 +43,7 @@ const sourcifyFirstStorageLayoutRecord = (
 }
 
 const sourcifyStorageLayoutJsonFromLookup = (
-	wire: SourcifyContractLookup,
+	wire: SourcifyContractLookup
 ) => {
 	const layoutObject = (
 		sourcifyFirstStorageLayoutRecord(wire.storageLayout)
@@ -55,7 +55,7 @@ const sourcifyStorageLayoutJsonFromLookup = (
 }
 
 const sourcifySourceFilesFromLookup = (
-	wire: SourcifyContractLookup,
+	wire: SourcifyContractLookup
 ) => (
 	Object.fromEntries(
 		Object.entries(wire.sources ?? wire.metadata?.sources ?? {})
@@ -64,7 +64,7 @@ const sourcifySourceFilesFromLookup = (
 					[[path, source.content]]
 				:
 					[]
-			)),
+			))
 	)
 )
 

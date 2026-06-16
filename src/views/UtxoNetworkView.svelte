@@ -18,31 +18,58 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.Network>
+		selector: EntitySelector<typeof schema, EntityType.UtxoNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { slug: true, name: true, environment: true, $$nativeAssets: true } }),
+	const network = $derived(
+		subscribe(
+			EntityType.Network,
+			selector.$network,
+			{
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					slug: true,
+					name: true,
+					environment: true,
+					$$nativeAssets: true,
+				},
+			},
+		),
 	)
 
-	const utxoNetwork = subscribe(EntityType.UtxoNetwork,
-		selector,
-		({ sources: [
-				Source.Blockchair_Rest,
-				Source.Esplora_Rest,
-				Source.MempoolSpace_Rest,
-				Source.BitcoinCore_JsonRpc,
-				Source.LitecoinCore_JsonRpc,
-				Source.DogecoinCore_JsonRpc,
-				Source.BitcoinCashNode_JsonRpc,
-				Source.Zcashd_JsonRpc,
-			], fields: { $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1, fields: { suggestedTransactionFeePerByteSats: true } }) } }),
+	const utxoNetwork = $derived(
+		subscribe(
+			EntityType.UtxoNetwork,
+			selector,
+			{
+				sources: [
+					Source.Blockchair_Rest,
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+					Source.BitcoinCore_JsonRpc,
+					Source.LitecoinCore_JsonRpc,
+					Source.DogecoinCore_JsonRpc,
+					Source.BitcoinCashNode_JsonRpc,
+					Source.Zcashd_JsonRpc,
+				],
+				fields: {
+					$$blocks: {
+						limit: 1,
+					},
+					$$timestamps: {
+						limit: 1,
+						fields: {
+							suggestedTransactionFeePerByteSats: true,
+						},
+					},
+				},
+			},
+		),
 	)
 
 
@@ -69,7 +96,7 @@
 
 <EntityView
 	entityType={EntityType.Network}
-	entitySelector={selector}
+	entitySelector={selector.$network}
 	{href}
 	bind:open
 	{layout}
@@ -103,49 +130,49 @@
 	{/snippet}
 
 	{#snippet Content()}
-			<ResourceBoundary resource={utxoNetwork}>
-				{#snippet children(utxoNetwork)}
-					{@const block = utxoNetwork.fields.$$blocks?.values.at(0)}
-					{@const timestamp = utxoNetwork.fields.$$timestamps?.values.at(0)}
-					<dl class="network-summary-head" data-column-item="center">
-						{#if block != null}
-							<div>
-								<dt>Head block</dt>
-								<dd id="network-summary-head-block">
-									<UtxoBlockView
-										selector={block[EntityMetaKey.Selector]}
-										layout={EntityLayout.Value}
-									/>
-								</dd>
-							</div>
-						{/if}
+		<ResourceBoundary resource={utxoNetwork}>
+			{#snippet children(utxoNetwork)}
+				{@const block = utxoNetwork.fields.$$blocks?.values.at(0)}
+				{@const timestamp = utxoNetwork.fields.$$timestamps?.values.at(0)}
+				<dl class="network-summary-head" data-column-item="center">
+					{#if block != null}
+						<div>
+							<dt>Head block</dt>
+							<dd id="network-summary-head-block">
+								<UtxoBlockView
+									selector={block[EntityMetaKey.Selector]}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
 
-						{#if timestamp?.suggestedTransactionFeePerByteSats != null}
-							<div>
-								<dt>Suggested fee</dt>
-								<dd><NumberValue value={timestamp.suggestedTransactionFeePerByteSats} /> sat/vB</dd>
-							</div>
-						{/if}
-					</dl>
+					{#if timestamp?.suggestedTransactionFeePerByteSats != null}
+						<div>
+							<dt>Suggested fee</dt>
+							<dd><NumberValue value={timestamp.suggestedTransactionFeePerByteSats} /> sat/vB</dd>
+						</div>
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 
-			<ResourceBoundary resource={network}>
-				{#snippet children(network)}
-					{@const nativeAssetCount = network.fields.$$nativeAssets?.values.length ?? 0}
-					<dl data-column-item="center">
-						<div>
-							<dt>Environment</dt>
-							<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
-						</div>
+		<ResourceBoundary resource={network}>
+			{#snippet children(network)}
+				{@const nativeAssetCount = network.fields.$$nativeAssets?.values.length ?? 0}
+				<dl data-column-item="center">
+					<div>
+						<dt>Environment</dt>
+						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+					</div>
 
-						{#if nativeAssetCount > 0}
-							<div>
-								<dt>Native asset</dt>
-								<dd>{nativeAssetCount}</dd>
-							</div>
-						{/if}
-					</dl>
+					{#if nativeAssetCount > 0}
+						<div>
+							<dt>Native asset</dt>
+							<dd>{nativeAssetCount}</dd>
+						</div>
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -235,7 +262,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$nativeAssets',
 					}}
 					id={`${id}-list`}
@@ -269,7 +296,7 @@
 					emptyText="No faucets listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$faucetUrls',
 					}}
 					fieldSources={[
@@ -287,7 +314,7 @@
 					emptyText="No block explorers listed for this network yet."
 					entityFieldReference={{
 						entityType: EntityType.Network,
-						selector,
+						selector: selector.$network,
 						fieldName: '$$blockExplorerUrls',
 					}}
 					fieldSources={[

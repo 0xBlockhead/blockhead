@@ -60,7 +60,7 @@ test.describe('site data lifecycle', () => {
 
 				expect(
 					reloadProxies,
-					`expected zero /api-proxy/ after warm reload for ${pathname} (cold had ${coldProxies})`,
+					`expected zero /api-proxy/ after warm reload for ${pathname} (cold had ${coldProxies})`
 				).toBe(0)
 
 				expect(issues, `${pathname} warm\n${issues.join('\n')}`).toEqual([])
@@ -86,7 +86,7 @@ test.describe('site data lifecycle', () => {
 				if (coldProxies > 0)
 					expect(
 						freshProxies,
-						`expected /api-proxy/ on fresh browser profile for ${pathname}`,
+						`expected /api-proxy/ on fresh browser profile for ${pathname}`
 					).toBeGreaterThan(0)
 
 				expect(issuesCold, `${pathname} cold\n${issuesCold.join('\n')}`).toEqual([])

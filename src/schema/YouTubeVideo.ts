@@ -14,7 +14,7 @@ export enum YouTubeVideoSelector {
 
 
 const YouTubeVideoId = type(
-	'/^[A-Za-z0-9_-]{11}$/' as type.cast<string>,
+	'/^[A-Za-z0-9_-]{11}$/' as type.cast<string>
 )
 
 export enum YouTubeLiveBroadcastContent {
@@ -70,25 +70,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'viewCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'likeCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
 			name: 'durationSeconds',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'commentCount',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

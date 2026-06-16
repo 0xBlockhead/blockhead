@@ -27,7 +27,7 @@ export const getInfo = ({
 			init: {
 				headers: lndHeaders(macaroonHex),
 			},
-		},
+		}
 	)
 )
 
@@ -45,7 +45,7 @@ export const listChannels = ({
 			init: {
 				headers: lndHeaders(macaroonHex),
 			},
-		},
+		}
 	)
 )
 
@@ -65,7 +65,7 @@ export const listInvoices = ({
 			init: {
 				headers: lndHeaders(macaroonHex),
 			},
-		},
+		}
 	)
 )
 
@@ -85,6 +85,6 @@ export const listPayments = ({
 			init: {
 				headers: lndHeaders(macaroonHex),
 			},
-		},
+		}
 	)
 )

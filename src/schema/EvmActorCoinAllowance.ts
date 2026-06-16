@@ -98,7 +98,7 @@ export const toEvmActorCoinAllowanceEntitySelector = (
 	chainId: number,
 	address: `0x${string}`,
 	tokenContract: `0x${string}`,
-	spenderAddress: `0x${string}`,
+	spenderAddress: `0x${string}`
 ): EntitySelector<typeof schema, EntityType.EvmActorCoinAllowance> => ({
 	$actor: {
 		address,

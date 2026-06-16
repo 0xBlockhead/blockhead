@@ -17,7 +17,7 @@ const githubFilecoinFipProposalRows = async (
 	data: {
 		type: string
 		name: string
-	}[],
+	}[]
 ) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	return data.flatMap((githubContent) => {

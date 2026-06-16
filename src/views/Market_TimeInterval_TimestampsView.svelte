@@ -6,7 +6,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import type { MarketTimeInterval } from '$/constants/Market.ts'
-	import { marketOhlcCandleSources } from '$/constants/Market.ts'
+	import { marketOhlcCandleSources } from '$/sources/Source.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
@@ -43,11 +43,6 @@
 		>
 	> = $props()
 
-	import {
-		dedupeCandleEntitiesById,
-		marketTimeIntervalsEqual,
-	} from '$/lib/marketOhlcCandles.ts'
-
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
@@ -83,13 +78,17 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const market = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [...marketOhlcCandleSources],
-						limit: limit,
+			{@const market = subscribe(
+				entityFieldReference.entityType,
+				entityFieldReference.selector,
+				{
+					fields: {
+						[entityFieldReference.fieldName]: {
+							sources: [...marketOhlcCandleSources],
+							limit,
+						},
 					},
-				} }),
+				},
 			)}
 			{@const points = derive(
 				market,
@@ -97,18 +96,26 @@
 					const marketTimeIntervalTimestamps: readonly Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
 						market.fields[entityFieldReference.fieldName]?.values ?? []
 					)
+					const seenSelectorKeys = new Set<string>()
 					return (
-						(
-							timeInterval == null ?
-								dedupeCandleEntitiesById(marketTimeIntervalTimestamps)
-							:
-								dedupeCandleEntitiesById(marketTimeIntervalTimestamps).filter((marketTimeIntervalTimestamp) => (
-								marketTimeIntervalsEqual(
-									marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval,
-									timeInterval,
+						marketTimeIntervalTimestamps
+							.filter((marketTimeIntervalTimestamp) => {
+								const selectorKey = stringify(marketTimeIntervalTimestamp[EntityMetaKey.Selector])
+								if (
+									seenSelectorKeys.has(selectorKey)
+									|| (
+										timeInterval != null
+										&& (
+											marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.unit !== timeInterval.unit
+											|| marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.value !== timeInterval.value
+										)
+									)
 								)
-							))
-						)
+									return false
+
+								seenSelectorKeys.add(selectorKey)
+								return true
+							})
 							.map((value) => ({
 								value,
 							}))

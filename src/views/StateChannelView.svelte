@@ -21,7 +21,7 @@
 		href = resolve(
 			'/(assets)/(channels)/channel/[channelId]',
 			{ channelId: selector.id },
-			),
+		),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -38,10 +38,10 @@
 		>
 	> = $props()
 
-	const stateChannel = subscribe(EntityType.StateChannel,
+	const stateChannel = $derived(subscribe(EntityType.StateChannel,
 		selector,
 		({ sources: [Source.Local_Internal], fields: { status: true, createdAt: true, updatedAt: true, turnNum: true, totalDeposited: true, $network: true, $participant0: true, $participant1: true, ...(open ? ({ balance0: true, balance1: true, $asset: true, $room: true }) : ({  })) } }),
-	)
+	))
 
 
 	// Components
@@ -251,11 +251,11 @@
 							placeholderText="Loading state channel…"
 						>
 							{#snippet children(stateChannel)}
-									{#if stateChannel.fields.$network !== undefined}
-										<EvmNetworkView
-											selector={stateChannel.fields.$network[EntityMetaKey.Selector]}
+								{#if stateChannel.fields.$network !== undefined}
+									<EvmNetworkView
+										selector={stateChannel.fields.$network[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
-											open={false}
+										open={false}
 									/>
 								{/if}
 							{/snippet}
@@ -272,9 +272,8 @@
 						>
 							{#snippet children(stateChannel)}
 								{#if stateChannel.fields.$asset?.[EntityMetaKey.Selector] !== undefined}
-									{@const assetId = stateChannel.fields.$asset[EntityMetaKey.Selector]}
 									<EvmCoinInstanceView
-										selector={assetId}
+										selector={stateChannel.fields.$asset[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -295,7 +294,7 @@
 								{#if stateChannel.fields.$room?.[EntityMetaKey.Selector].id !== undefined}
 									<BlockheadRoomView
 										selector={stateChannel.fields.$room[EntityMetaKey.Selector]}
-									layout={EntityLayout.Value}
+										layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}
 									/>
@@ -342,9 +341,5 @@
 				</div>
 			{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details({ open })}
-
 	{/snippet}
 </EntityView>

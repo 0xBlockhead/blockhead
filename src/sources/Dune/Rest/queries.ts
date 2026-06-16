@@ -19,7 +19,7 @@ import type {
 
 const appendDuneExecutionResultsSearchParams = (
 	searchParams: URLSearchParams,
-	params: DuneGetExecutionResultsParams,
+	params: DuneGetExecutionResultsParams
 ) => {
 	if (params.allow_partial_results !== undefined) {
 		searchParams.set('allow_partial_results', String(params.allow_partial_results))
@@ -41,12 +41,12 @@ const appendDuneExecutionResultsSearchParams = (
 export async function getQuery(
 	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
 	queryId: number,
-	options?: { include_contributors?: boolean },
+	options?: { include_contributors?: boolean }
 ): Promise<DuneQueryMetadata> {
 	const contributorsQuerySuffix = options?.include_contributors ? '?include_contributors=true' : ''
 	return duneFetch<DuneQueryMetadata>(
 		publicEnv,
-		`/api/v1/query/${queryId}${contributorsQuerySuffix}`,
+		`/api/v1/query/${queryId}${contributorsQuerySuffix}`
 	)
 }
 
@@ -56,7 +56,7 @@ export async function getQuery(
 export async function executeQuery(
 	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
 	queryId: number,
-	body?: DuneExecuteQueryBody,
+	body?: DuneExecuteQueryBody
 ): Promise<DuneExecuteQueryResponse> {
 	return duneFetch<DuneExecuteQueryResponse>(publicEnv, `/api/v1/query/${queryId}/execute`, {
 		method: 'POST',
@@ -70,7 +70,7 @@ export async function executeQuery(
 export async function getExecutionResults(
 	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
 	executionId: string,
-	params?: DuneGetExecutionResultsParams,
+	params?: DuneGetExecutionResultsParams
 ): Promise<DuneExecutionResult> {
 	if (params == null) {
 		return duneFetch<DuneExecutionResult>(publicEnv, `/api/v1/execution/${executionId}/results`)
@@ -80,7 +80,7 @@ export async function getExecutionResults(
 	const search = searchParams.toString()
 	return duneFetch<DuneExecutionResult>(
 		publicEnv,
-		`/api/v1/execution/${executionId}/results${search ? `?${search}` : ''}`,
+		`/api/v1/execution/${executionId}/results${search ? `?${search}` : ''}`
 	)
 }
 
@@ -91,7 +91,7 @@ export async function getExecutionResults(
 export async function getLatestQueryResults(
 	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
 	queryId: number,
-	params?: DuneGetExecutionResultsParams,
+	params?: DuneGetExecutionResultsParams
 ): Promise<DuneExecutionResult> {
 	if (params == null) {
 		return duneFetch<DuneExecutionResult>(publicEnv, `/api/v1/query/${queryId}/results`)
@@ -103,7 +103,7 @@ export async function getLatestQueryResults(
 
 	return duneFetch<DuneExecutionResult>(
 		publicEnv,
-		`/api/v1/query/${queryId}/results${search ? `?${search}` : ''}`,
+		`/api/v1/query/${queryId}/results${search ? `?${search}` : ''}`
 	)
 }
 
@@ -113,7 +113,7 @@ export async function getLatestQueryResults(
  */
 export async function getUsage(
 	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
-	body?: { start_date?: string; end_date?: string },
+	body?: { start_date?: string; end_date?: string }
 ) {
 	return duneFetch<{
 		billingPeriods?: { credits_used?: number; credits_included?: number }[]

@@ -121,31 +121,31 @@ test.describe('/network/[caip2Namespace]:[caip2Reference]', () => {
 		await step(expect(
 			sectionResultOrPlaceholder(
 				smartAccountsSection,
-				'a[href*="/erc-4337/smart-account/"]',
+				'a[href*="/erc-4337/smart-account/"]'
 			)
 		).toBeAttached({ timeout: 120_000 }))
 		await step(expect(
 			sectionResultOrPlaceholder(
 				bundlersSection,
-				'a[href*="/erc-4337/bundler/"]',
+				'a[href*="/erc-4337/bundler/"]'
 			)
 		).toBeAttached({ timeout: 120_000 }))
 		await step(expect(
 			sectionResultOrPlaceholder(
 				paymastersSection,
-				'a[href*="/erc-4337/paymaster/"]',
+				'a[href*="/erc-4337/paymaster/"]'
 			)
 		).toBeAttached({ timeout: 120_000 }))
 		await step(expect(
 			sectionResultOrPlaceholder(
 				userOperationsSection,
-				'a[href*="/user-operation/"]',
+				'a[href*="/user-operation/"]'
 			)
 		).toBeAttached({ timeout: 120_000 }))
 		await step(expect(
 			sectionResultOrPlaceholder(
 				factoriesSection,
-				'a[href*="/erc-4337/account-factory/"]',
+				'a[href*="/erc-4337/account-factory/"]'
 			)
 		).toBeAttached({ timeout: 120_000 }))
 		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Upgrades"]')).toBeAttached(scrollAttach))

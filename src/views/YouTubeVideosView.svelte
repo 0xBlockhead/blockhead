@@ -2,17 +2,14 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -30,7 +27,7 @@
 		title = 'Videos',
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.YouTubeVideo>
-			id: string
+		id: string
 		limit?: number
 		open?: boolean
 		collapsible?: boolean
@@ -45,6 +42,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import YouTubeVideoView from '$/views/YouTubeVideoView.svelte'
 </script>
@@ -69,13 +67,13 @@
 	</div>
 
 	<EntitiesList
-	{CollapsibleProps}
-	entityType={EntityType.YouTubeVideo}
-	{id}
-	{title}
-	bind:open
-	{collapsible}
-	{href}
+		{CollapsibleProps}
+		entityType={EntityType.YouTubeVideo}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{href}
 	>
 		{#snippet Empty()}
 			<div data-row="wrap align-center gap-2">
@@ -102,77 +100,74 @@
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				{@const parent = subscribe(entityFieldReference.entityType,
-					entityFieldReference.selector,({ sources: [
+					entityFieldReference.selector,
+					({
+						sources: [
 							Source.Constants_Internal,
 							Source.Youtube_Rest,
 							Source.Piped_Rest,
-						], fields: { [entityFieldReference.fieldName]: {
-							sources: [
-								Source.Youtube_Rest,
-								Source.Piped_Rest,
-							],
-							limit,
+						],
+						fields: {
+							[entityFieldReference.fieldName]: {
+								sources: [
+									Source.Youtube_Rest,
+									Source.Piped_Rest,
+								],
+								limit,
+							},
 						},
-					} }),
+					})
 				)}
-				{@const videos = derive(
-					parent,
-					(parent) => {
-						const youTubeVideos: readonly Entity<typeof schema, EntityType.YouTubeVideo>[] = (
-							parent.fields[entityFieldReference.fieldName]?.values ?? []
-						)
-						return (
-							youTubeVideos.map((video) => ({
-								...video[EntityMetaKey.Selector],
-								sortKey: stringify(video[EntityMetaKey.Selector]),
-							}))
-						)
-					},
-				)}
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.YouTubeVideo}
-					id={`${id}-items`}
-					{title}
-					resource={videos}
+				<ResourceBoundary
+					resource={parent}
 					placeholderText="Loading videos…"
-					getKey={(video) => video.videoId}
-					getSortValue={(video) => video.sortKey}
-					placeholderKeys={new SvelteSet<string>()}
 				>
-					{#snippet Empty()}
-						<div data-row="wrap align-center gap-2">
-							<p data-text="muted">
-								No YouTube videos here yet.
-							</p>
-							<Tooltip contentProps={{ side: 'top' }}>
-								{#snippet Content()}
-									<p>
-										Rows are watchable uploads on YouTube itself.
+					{#snippet children(parent)}
+						<EntitiesList
+							collapsible={false}
+							showSummary={false}
+							entityType={EntityType.YouTubeVideo}
+							id={`${id}-items`}
+							{title}
+							items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
+							placeholderText="Loading videos…"
+							getKey={(video) => video[EntityMetaKey.Selector].videoId}
+							getSortValue={(video) => stringify(video[EntityMetaKey.Selector])}
+						>
+							{#snippet Empty()}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No YouTube videos here yet.
 									</p>
-									<p>
-										They are not social casts or decentralized storage objects.
-									</p>
-								{/snippet}
-								<abbr
-									class="entity-heading-tip"
-									aria-label="About YouTube videos"
-								>ⓘ</abbr>
-							</Tooltip>
-						</div>
-					{/snippet}
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Rows are watchable uploads on YouTube itself.
+											</p>
+											<p>
+												They are not social casts or decentralized storage objects.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="About YouTube videos"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							{/snippet}
 
-					{#snippet Item({
-						item: video,
-					})}
-						<YouTubeVideoView
-							selector={{ videoId: video.videoId }}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-						/>
+							{#snippet Item({
+								item: video,
+							})}
+								<YouTubeVideoView
+									selector={video[EntityMetaKey.Selector]}
+									layout={EntityLayout.SummaryDetails}
+									open={false}
+								/>
+							{/snippet}
+						</EntitiesList>
 					{/snippet}
-				</EntitiesList>
+				</ResourceBoundary>
 			{/if}
 		{/snippet}
 	</EntitiesList>

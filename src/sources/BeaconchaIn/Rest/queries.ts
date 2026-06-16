@@ -15,7 +15,7 @@ export const getEpoch = async (
 	}: {
 	apiBase: string
 	epoch: number | 'latest' | 'finalized'
-	},
+	}
 ): Promise<BeaconchaInEpoch | undefined> => {
 	const wire = await getJson<BeaconchaInResponse<BeaconchaInEpoch>>(
 		`${apiBase.replace(/\/$/, '')}/epoch/${String(epoch)}`,
@@ -26,7 +26,7 @@ export const getEpoch = async (
 					Authorization: `Bearer ${publicEnv.PUBLIC_BEACONCHAIN_API_KEY}`,
 				},
 			},
-	},
+	}
 	)
 	return wire.data
 }

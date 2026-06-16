@@ -17,7 +17,6 @@ export enum MediaSelector {
 }
 
 
-
 export enum MediaType {
 	Image = 'Image',
 	Video = 'Video',
