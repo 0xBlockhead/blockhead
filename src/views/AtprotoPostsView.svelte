@@ -44,7 +44,6 @@
 		>
 	> = $props()
 
-	import type { DeclarativeOrderBy } from '$/client/$client.svelte.ts'
 
 	const atprotoPostOrderBy = [
 		[
@@ -57,7 +56,7 @@
 			({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
 			'asc',
 		],
-	] as const satisfies DeclarativeOrderBy<AtprotoPostOrderFieldRow>
+	] as const
 
 
 	// Components

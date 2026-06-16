@@ -21,6 +21,18 @@ const baseFields = [
 		cardinality: EntityFieldCardinality.One,
 	},
 	{
+		name: 'optionalKind',
+		type: EntityFieldType.Primitive,
+		primitiveType: type.valueOf(VerifyType),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	{
+		name: 'manyKinds',
+		type: EntityFieldType.Primitive,
+		primitiveType: type.valueOf(VerifyType),
+		cardinality: EntityFieldCardinality.Many,
+	},
+	{
 		name: '$ref',
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
@@ -52,6 +64,12 @@ conditionalOn(baseFields, 'missing', [VerifyType.A])
 
 // @ts-expect-error discriminator must be primitive
 conditionalOn(baseFields, '$ref', [VerifyType.A])
+
+// @ts-expect-error discriminator must be required
+conditionalOn(baseFields, 'optionalKind', [VerifyType.A])
+
+// @ts-expect-error discriminator must be singular
+conditionalOn(baseFields, 'manyKinds', [VerifyType.A])
 
 // @ts-expect-error discriminator cannot itself be conditional
 conditionalOn(fieldsWithConditional, 'conditional', ['value'])

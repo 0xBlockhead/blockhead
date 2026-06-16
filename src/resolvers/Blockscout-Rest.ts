@@ -334,6 +334,8 @@ const evmInternalTransferEntityFromWire = ({
 	const createdAddress = hexLowerOfByteSize(wire.created_contract?.hash ?? '', 20)
 	const value = blockscoutQuantityToBigInt(wire.value) ?? 0n
 	const callType = evmInternalCallTypeFromWire(wire.type)
+	if (callType == null) return undefined
+
 	return {
 		[EntityMetaKey.Selector]: {
 			$network,
@@ -341,7 +343,7 @@ const evmInternalTransferEntityFromWire = ({
 			internalIndex,
 		},
 		value,
-		...(callType != null && { callType }),
+		callType,
 		...(wire.success != null && { success: wire.success }),
 		...(fromAddress != null && {
 			$from: {
@@ -1477,7 +1479,7 @@ export default {
 				$from: (transfer) => transfer.$from,
 				$to: (transfer) => transfer.$to,
 				value: (transfer) => transfer.value,
-				callType: (transfer) => transfer.callType,
+				callType: ({ callType }) => callType,
 				success: (transfer) => transfer.success,
 				$createdContract: (transfer) => transfer.$createdContract,
 			},

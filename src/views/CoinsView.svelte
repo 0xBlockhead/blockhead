@@ -82,9 +82,8 @@
 				),
 				'asc',
 			],
-		] as const satisfies DeclarativeOrderBy<CoinOrderFieldRow>
+		] as const
 	)
-	import type { DeclarativeOrderBy } from '$/client/$client.svelte.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
 

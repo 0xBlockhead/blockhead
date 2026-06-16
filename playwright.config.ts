@@ -6,7 +6,7 @@ import {
 } from './playwright.env.ts'
 
 const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === '1'
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173'
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:5173'
 
 export default defineConfig({
 	fullyParallel: false,
@@ -24,10 +24,10 @@ export default defineConfig({
 		:
 			{
 				webServer: {
-					command: 'pnpm run dev',
+					command: './node_modules/.bin/dotenvx run -f .env.local -- ./node_modules/.bin/vite dev --host 127.0.0.1',
 					url: baseURL,
 					timeout: 240_000,
-					/** Dedicated server (`PLAYWRIGHT_DEDICATED_SERVER=1`): avoids stale reused Vite client chunks when another dev PID left `.svelte-kit/generated` mid-HMR (stop `pnpm run dev` first if port 5173 is taken). */
+					/** Dedicated server (`PLAYWRIGHT_DEDICATED_SERVER=1`): avoids stale reused Vite client chunks when another dev PID left `.svelte-kit/generated` mid-HMR (stop the dev server first if port 5173 is taken). */
 					reuseExistingServer: process.env.PLAYWRIGHT_DEDICATED_SERVER !== '1',
 				},
 			}),

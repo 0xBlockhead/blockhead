@@ -41,7 +41,6 @@
 		href?: ComponentProps<typeof EntitiesList>['href']
 	} = $props()
 
-	import type { DeclarativeOrderBy } from '$/client/$client.svelte.ts'
 
 
 	// Components
@@ -91,7 +90,7 @@
 										({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
 										'asc',
 									],
-								] as const satisfies DeclarativeOrderBy<ActivityPubNoteOrderFieldRow>,
+								] as const,
 								limit,
 							},
 						},

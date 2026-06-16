@@ -22,7 +22,7 @@ const evmInternalTransferDiscriminatorFields = [
 		name: 'callType',
 		type: EntityFieldType.Primitive,
 		primitiveType: type.valueOf(EvmInternalCallType),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 ] as const satisfies readonly EntityFieldDefinition[]
 

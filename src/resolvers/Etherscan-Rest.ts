@@ -334,7 +334,7 @@ const evmInternalTransferEntityFromEtherscanWire = ({
 	txHash: `0x${string}`
 	internalIndex: number
 	wire: EtherscanInternalTransaction
-}): Entity<typeof schema, EntityType.EvmInternalTransfer> | undefined => {
+}) => {
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 	if (normalizedTxHash == null || internalIndex < 0) return undefined
 	const fromAddress = hexLowerOfByteSize(wire.from ?? '', 20)
@@ -342,6 +342,8 @@ const evmInternalTransferEntityFromEtherscanWire = ({
 	const createdAddress = hexLowerOfByteSize(wire.contractAddress ?? '', 20)
 	const value = etherscanQuantityToBigInt(wire.value) ?? 0n
 	const callType = evmInternalCallTypeFromWire(wire.type)
+	if (callType == null) return undefined
+
 	const entitySelector = {
 		$network,
 		txHash: normalizedTxHash,
@@ -350,7 +352,7 @@ const evmInternalTransferEntityFromEtherscanWire = ({
 	return {
 		[EntityMetaKey.Selector]: entitySelector,
 		value,
-		...(callType != null && { callType }),
+		callType,
 		...(wire.isError != null && { success: wire.isError === '0' }),
 		...(fromAddress != null && {
 			$from: {
@@ -569,10 +571,7 @@ export default {
 			},
 		})({
 			fields: {
-				value: (transfer) => {
-					if (transfer.value == null) throw new Error('Etherscan_Rest: internal transfer missing value')
-					return transfer.value
-				},
+				value: ({ value }) => value,
 				callType: (transfer) => transfer.callType,
 				success: (transfer) => transfer.success,
 				$from: (transfer) => transfer.$from,

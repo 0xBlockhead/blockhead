@@ -443,6 +443,7 @@ type NonConditionalScalarPrimitiveFieldName<
 		readonly name: infer _FieldName extends string
 		readonly type: EntityFieldType.Primitive
 		readonly primitiveType: SchemaType<string | number>
+		readonly cardinality: EntityFieldCardinality.One
 	} ?
 		_FieldName
 	:
@@ -460,11 +461,9 @@ type NonConditionalIndexedPrimitiveFieldName<
 		readonly name: infer _FieldName extends string
 		readonly type: EntityFieldType.Primitive
 		readonly primitiveType: SchemaType<string | number | readonly (string | number)[]>
-		readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne
+		readonly cardinality: EntityFieldCardinality.One
 	} ?
-		_Field['cardinality'] extends EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany ?
-			_FieldName
-		: _Field['primitiveType'] extends SchemaType<readonly (string | number)[]> ?
+		_Field['primitiveType'] extends SchemaType<readonly (string | number)[]> ?
 			_FieldName
 		:
 			never
@@ -496,14 +495,9 @@ type IndexedPrimitiveFieldItemValue<
 		readonly name: _FieldName
 		readonly type: EntityFieldType.Primitive
 		readonly primitiveType: SchemaType<infer _Value, infer _Scope>
-		readonly cardinality: EntityFieldCardinality
+		readonly cardinality: EntityFieldCardinality.One
 	} ?
-		_Field['cardinality'] extends EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany ?
-			_Value extends string | number ?
-				_Value
-			:
-				never
-		: _Value extends readonly (infer _Item extends string | number)[] ?
+		_Value extends readonly (infer _Item extends string | number)[] ?
 			_Item
 		:
 			never

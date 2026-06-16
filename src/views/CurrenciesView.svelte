@@ -73,7 +73,7 @@
 				),
 				'asc',
 			],
-		] as const satisfies DeclarativeOrderBy<CurrencyOrderFieldRow>
+		] as const
 	)
 
 	const currencyTimestampsFieldOrderBy = (
@@ -86,12 +86,11 @@
 					direction: 'desc',
 				},
 			],
-		] as const satisfies DeclarativeOrderBy<CurrencyOrderFieldRow>
+		] as const
 	)
 
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import type { DeclarativeOrderBy } from '$/client/$client.svelte.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
 
