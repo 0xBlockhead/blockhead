@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const polkadotExtrinsic = subscribe(EntityType.PolkadotExtrinsic,
-		selector,
-		({ fields: { hash: true, callName: true, success: true } }),
-	)
+	
 
 
 	// Components
@@ -65,7 +62,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={polkadotExtrinsic}
+			resource={proxy(EntityType.PolkadotExtrinsic, selector, ({ fields: { hash: true, callName: true, success: true } }))}
 			placeholderText={`Loading Polkadot Extrinsic...`}
 		>
 			{#snippet children(polkadotExtrinsic)}

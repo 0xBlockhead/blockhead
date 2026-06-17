@@ -9,7 +9,7 @@
 
 
 	// State
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -23,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const block = subscribe(EntityType.TronBlock, selector, ({ fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } }))
+	
 
 
 	// Components
@@ -65,7 +65,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={block}
+			resource={proxy(EntityType.TronBlock, selector, ({ fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } }))}
 			placeholderText="Loading TRON block..."
 		>
 			{#snippet children(block)}
@@ -115,7 +115,7 @@
 								<TronWitnessView
 									selector={block.fields.$witness[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>

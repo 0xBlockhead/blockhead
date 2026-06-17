@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,12 +27,7 @@
 		>
 	> = $props()
 
-	const block = subscribe(EntityType.NearBlock,
-		selector,
-		({ sources: [
-				Source.NearRpc_JsonRpc,
-			], fields: { hash: true, timestampMs: true, $$chunks: true, ...(open && ({ epochId: true })) } }),
-	)
+	
 
 
 	// Components
@@ -76,7 +71,12 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={block}
+			resource={proxy(EntityType.NearBlock,
+					selector,
+					({ sources: [
+							Source.NearRpc_JsonRpc,
+						], fields: { hash: true, timestampMs: true, $$chunks: true, ...(open && ({ epochId: true })) } }),
+				)}
 			placeholderText="Loading NEAR block…"
 		>
 			{#snippet children(block)}

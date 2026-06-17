@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const solanaTokenMint = subscribe(EntityType.SolanaTokenMint,
-		selector,
-		({ fields: { supply: true, decimals: true } }),
-	)
+	
 
 
 	// Components
@@ -57,7 +54,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={solanaTokenMint}
+			resource={proxy(EntityType.SolanaTokenMint,
+					selector,
+					({ fields: { supply: true, decimals: true } }),
+				)}
 			placeholderText={`Loading Solana Token Mint...`}
 		>
 			{#snippet children(solanaTokenMint)}

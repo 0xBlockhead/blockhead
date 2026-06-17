@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const zcashShieldedPool = subscribe(EntityType.ZcashShieldedPool,
-		selector,
-		({ fields: { activationNetworkUpgrade: true, noteProtocol: true } }),
-	)
+	
 
 
 	// Components
@@ -52,7 +49,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={zcashShieldedPool}
+			resource={proxy(EntityType.ZcashShieldedPool,
+					selector,
+					({ fields: { activationNetworkUpgrade: true, noteProtocol: true } }),
+				)}
 			placeholderText="Loading Zcash shielded pool…"
 		>
 			{#snippet children(zcashShieldedPool)}

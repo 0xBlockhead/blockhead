@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -43,11 +42,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StateChannelDepositView from '$/views/StateChannelDepositView.svelte'
 </script>
@@ -74,55 +75,43 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [Source.Local_Internal],
-					},
-				} }),
-			)}
-			{@const deposits = derive(
-				parent,
-				(parent) => (
-					[...(parent.fields[entityFieldReference.fieldName]?.values ?? [])]
-						.map((value) => ({
-							value,
-						}))
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.StateChannelDeposit}
-				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
-				getSortValue={(line) => (
-					stringify(line.value[EntityMetaKey.Selector])
-				)}
-				placeholderText="Loading channel deposits…"
-				resource={deposits}
-				{title}
-				href={EntitiesListProps.href ?? ''}
-				id={`${EntitiesListProps.id ?? 'channel-deposits'}:items`}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No deposit stateChannelDeposits on this channel yet.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item })}
-					{@const line = item.value}
-					{@const depositId = line[EntityMetaKey.Selector]}
-					<StateChannelDepositView
-						selector={depositId}
-						layout={EntityLayout.Summary}
-						open={false}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Local_Internal],
+				})} placeholderText="Loading channel deposits…">
+				{#snippet children(deposits)}
+					<EntitiesList
 						collapsible={false}
-						showTypeAnnotation={false}
-					/>
+						showSummary={false}
+						entityType={EntityType.StateChannelDeposit}
+						getKey={(item) => stringify(item.entitySelector)}
+						getSortValue={(item) => stringify(item.entitySelector)}
+						{title}
+						href={EntitiesListProps.href ?? ''}
+						id={`${EntitiesListProps.id ?? 'channel-deposits'}:items`}
+						items={deposits.entities}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No deposit stateChannelDeposits on this channel yet.
+							</p>
+						{/snippet}
+
+						{#snippet Item({ item })}
+							<StateChannelDepositView
+								selector={item.entitySelector}
+								layout={EntityLayout.Summary}
+
+								collapsible={false}
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

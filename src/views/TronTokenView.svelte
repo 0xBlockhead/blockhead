@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,10 @@
 		>
 	> = $props()
 
-	const token = subscribe(EntityType.TronToken,
+	const token = $derived(proxy(EntityType.TronToken,
 		selector,
 		({ fields: { standard: true, name: true, symbol: true, decimals: true, totalSupply: true, ...(open && ({ createdTimestampMs: true, holderCount: true })) } }),
-	)
+	))
 
 
 	// Components

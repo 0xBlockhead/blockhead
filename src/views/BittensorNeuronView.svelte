@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,12 +19,7 @@
 		open?: boolean
 	} = $props()
 
-	const neuron = subscribe(EntityType.BittensorNeuron,
-		selector,
-		({ sources: [
-				Source.Bittensor_JsonRpc,
-			], fields: { uid: true } }),
-	)
+	
 
 
 	// Components
@@ -59,7 +54,9 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={neuron}
+			resource={proxy(EntityType.BittensorNeuron, selector, ({ sources: [
+					Source.Bittensor_JsonRpc,
+				], fields: { uid: true } }))}
 			placeholderText="Loading Bittensor neuron…"
 		>
 			{#snippet children(neuron)}

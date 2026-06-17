@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -28,12 +28,7 @@
 		>
 	> = $props()
 
-	const tipset = subscribe(EntityType.FilecoinTipset,
-		selector,
-		({ sources: [
-				Source.Filfox_Rest,
-			], fields: { timestampMs: true, $$blocks: true, ...(open && ({ $parent: true, parentWeight: true })) } }),
-	)
+	
 
 
 	// Components
@@ -76,7 +71,9 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={tipset}
+			resource={proxy(EntityType.FilecoinTipset, selector, ({ sources: [
+					Source.Filfox_Rest,
+				], fields: { timestampMs: true, $$blocks: true, ...(open && ({ $parent: true, parentWeight: true })) } }))}
 			placeholderText="Loading tipset…"
 		>
 			{#snippet children(tipset)}
@@ -101,7 +98,7 @@
 									entityType={EntityType.FilecoinTipset}
 								entitySelector={tipset.fields.$parent[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>

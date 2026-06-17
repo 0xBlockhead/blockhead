@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -14,7 +12,7 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		title = 'Pool observations',
@@ -35,12 +33,15 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+
+
+	
 
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import LiquidityPool_TimestampView from '$/views/LiquidityPool_TimestampView.svelte'
 </script>
 
@@ -65,53 +66,41 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const pool = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Dexscreener_OpenApi,
-						],
-						limit: 64,
-					},
-				} }),
-			)}
-			{@const timestamps = derive(
-				pool,
-				(pool) => {
-					const liquidityPoolTimestamps: readonly Entity<typeof schema, EntityType.LiquidityPool_Timestamp>[] = pool.fields[entityFieldReference.fieldName]?.values ?? []
-					return liquidityPoolTimestamps.map((value) => ({
-						value,
-					}))
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				{...EntitiesListProps}
-				entityType={EntityType.LiquidityPool_Timestamp}
-				getKey={(timestamp) => stringify(timestamp.value[EntityMetaKey.Selector])}
-				getSortValue={(timestamp) => String(timestamp.value[EntityMetaKey.Selector].timestampMs)}
-				placeholderKeys={new SvelteSet<string>()}
-				resource={timestamps}
-				{title}
-				open={true}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No pool observations yet.
-					</p>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Dexscreener_OpenApi],
+					limit: 64,
+				})} placeholderText="Loading pool observations…">
+				{#snippet children(timestamps)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						{...EntitiesListProps}
+						entityType={EntityType.LiquidityPool_Timestamp}
+						getKey={(timestamp) => stringify(timestamp.entitySelector)}
+						getSortValue={(timestamp) => String(timestamp.entitySelector.timestampMs)}
+						placeholderKeys={new SvelteSet<string>()}
+						items={timestamps.entities}
+						{title}
+						open={true}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">No pool observations yet.</p>
+						{/snippet}
+						{#snippet Item({ item })}
+							<LiquidityPool_TimestampView
+								selector={item.entitySelector}
+								id={stringify(item.entitySelector)}
+								layout={EntityLayout.Summary}
 
-				{#snippet Item({ item })}
-					<LiquidityPool_TimestampView
-						selector={item.value[EntityMetaKey.Selector]}
-						id={stringify(item.value[EntityMetaKey.Selector])}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

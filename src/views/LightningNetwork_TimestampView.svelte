@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,12 +27,12 @@
 		>
 	> = $props()
 
-	const snapshot = subscribe(EntityType.LightningNetwork_Timestamp,
+	const snapshot = $derived(proxy(EntityType.LightningNetwork_Timestamp,
 		selector,
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 			], fields: { nodeCount: true, channelCount: true, totalCapacitySats: true, averageFeeRatePpm: true, medianFeeRatePpm: true, ...(open && ({ torNodeCount: true, clearnetNodeCount: true, unannouncedNodeCount: true, averageCapacitySats: true, medianCapacitySats: true })) } }),
-	)
+	))
 
 
 	// Components

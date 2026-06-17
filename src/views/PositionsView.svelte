@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
@@ -12,7 +10,7 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -35,12 +33,13 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import LiquidityPositionView from '$/views/LiquidityPositionView.svelte'
 </script>
 
@@ -65,53 +64,45 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.selector,({ fields: {
-			[entityFieldReference.fieldName]: {},
-		} }),
-	)}
-			{@const liquidityPositions = derive(
-		parent,
-		(parent) => {
-			const liquidityPositions: readonly Entity<typeof schema, EntityType.LiquidityPosition>[] = (
-				parent.fields[entityFieldReference.fieldName]?.values ?? []
-			)
-			return (
-				liquidityPositions.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.LiquidityPosition}
-				id={`${id}-items`}
-				href={href}
-				{title}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].id}
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName)}
 				placeholderText="Loading positions…"
-				resource={liquidityPositions}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-				open={true}
 			>
-				{#snippet Empty()}
+				{#snippet children(liquidityPositions)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.LiquidityPosition}
+						id={`${id}-items`}
+						href={href}
+						{title}
+						getKey={(position) => stringify(position.entitySelector)}
+						getSortValue={(position) => position.entitySelector.id}
+						placeholderText="Loading positions…"
+						items={liquidityPositions.entities}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+						open={true}
+					>
+						{#snippet Empty()}
 						<p data-text="muted">
 							No LP positions indexed yet.
 						</p>
 					{/snippet}
 
-				{#snippet Item({ item })}
+						{#snippet Item({ item })}
 						<LiquidityPositionView
-							selector={item.value[EntityMetaKey.Selector]}
+							selector={item.entitySelector}
 							layout={EntityLayout.Summary}
-							open={false}
+
 						/>
 					{/snippet}
 
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

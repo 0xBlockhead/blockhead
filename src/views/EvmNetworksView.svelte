@@ -2,16 +2,14 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
 		EntityMetaKey,
-		type EntityFieldDefinition,
 	} from '$/schema/$schema.ts'
 
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { entityDefinitionByType, schema } from '$/schema/index.ts'
+	import { schema } from '$/schema/index.ts'
 
 	import { stringify as stringifyId } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
@@ -19,7 +17,7 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -45,12 +43,10 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
@@ -74,61 +70,52 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: (
-							entityDefinitionByType[entityFieldReference.entityType].fields
-								.find((field: EntityFieldDefinition) => field.name === entityFieldReference.fieldName)
-								?.defaultSources
-							?? []
-						),
-						limit: 4096,
-					},
-				} }),
-			)}
-			{@const networks = derive(
-				parent,
-				(parent) => {
-					const evmNetworks: readonly Entity<typeof schema, EntityType.EvmNetwork>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
-					return evmNetworks.map((value) => ({ value }))
-				}
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmNetwork}
-				id={`${id}-items`}
-				href={href}
-				getKey={(line) => stringifyId(line.value[EntityMetaKey.Selector])}
-				getSortValue={(line) => (
-					Number(line.value[EntityMetaKey.Selector].caip2.reference) === 1 ?
-						0
-					:
-						Number.MAX_SAFE_INTEGER + Number(line.value[EntityMetaKey.Selector].caip2.reference)
-				)}
-				placeholderKeys={new SvelteSet<string | number>()}
+			<ResourceBoundary
+				resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					limit: 4096,
+				})}
 				placeholderText="Loading EVM networks…"
-				resource={networks}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-				open={true}
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No networks match this evmNetworks yet.
-					</p>
-				{/snippet}
+				{#snippet children(networks)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.EvmNetwork}
+						id={`${id}-items`}
+						href={href}
+						getKey={(network) => stringifyId(network[EntityMetaKey.Selector])}
+						getSortValue={(network) => (
+							Number(network[EntityMetaKey.Selector].caip2.reference) === 1 ?
+								0
+							:
+								Number.MAX_SAFE_INTEGER + Number(network[EntityMetaKey.Selector].caip2.reference)
+						)}
+						placeholderKeys={new SvelteSet<string | number>()}
+						placeholderText="Loading EVM networks…"
+						items={networks.values}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+						open={true}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No networks match this evmNetworks yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item: line })}
-					<EvmNetworkView
-						selector={line.value[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item: network })}
+							<EvmNetworkView
+								selector={network[EntityMetaKey.Selector]}
+								layout={EntityLayout.Summary}
+
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -38,17 +38,7 @@
 
 	const networkSelectorKey = stringify(selector)
 
-	const rssNetwork = subscribe(EntityType.RssNetwork,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$rssFeeds: ({ sources: [
-							Source.Constants_Internal,
-						] }), $$rssItems: ({ sources: [
-							Source.Rss_Rest,
-							Source.Rss2Json_Rest,
-						] }) }) : ({  })) } }),
-	)
+	
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
@@ -98,7 +88,14 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={rssNetwork}
+				resource={proxy(EntityType.RssNetwork, selector, ({ sources: [
+						Source.Constants_Internal,
+					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$rssFeeds: ({ sources: [
+									Source.Constants_Internal,
+								] }), $$rssItems: ({ sources: [
+									Source.Rss_Rest,
+									Source.Rss2Json_Rest,
+								] }) }) : ({  })) } }))}
 				placeholderText="Loading RSS hub directory…"
 			>
 				{#snippet children(rssNetwork)}

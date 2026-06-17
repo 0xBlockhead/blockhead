@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +35,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmBlobView from '$/views/EvmBlobView.svelte'
 </script>
@@ -68,48 +70,28 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parentEntityType = entityFieldReference.entityType}
-			{@const parent = subscribe(parentEntityType,
-				entityFieldReference.selector,({ fields: {
-					...(parentEntityType === EntityType.EvmNetwork && {
-						$$timestamps: {
-							sources: [
-								Source.Voltaire_JsonRpc,
-							],
-							limit: 1,
-						},
-					}),
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Voltaire_JsonRpc,
-						],
-						...(parentEntityType === EntityType.EvmNetwork && {
-							limit: 8,
-						}),
-					},
-				} }),
-			)}
-			{@const blobs = derive(
-				parent,
-				(parent) => (
-					parentEntityType === EntityType.EvmNetwork ?
-						(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-					:
-						(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-				),
-			)}
-			<div data-column="gap-3">
-				<EntitiesList
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Voltaire_JsonRpc],
+						limit: entityFieldReference.entityType === EntityType.EvmNetwork ? 8 : undefined,
+					})}
+				placeholderText="Loading blobs…"
+			>
+				{#snippet children(blobs)}
+					<EntitiesList
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.EvmBlob}
 					id={`${id}-items`}
 					{title}
 					open={true}
-						getKey={(row) => stringify(row[EntityMetaKey.Selector])}
-						getSortValue={(row) => stringify(row[EntityMetaKey.Selector])}
+						getKey={(row) => stringify(row.entitySelector)}
+						getSortValue={(row) => stringify(row.entitySelector)}
 					placeholderText="Loading blobs…"
-					resource={blobs}
+					items={blobs.entities}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
 				>
 					{#snippet Empty()}
@@ -120,13 +102,14 @@
 
 					{#snippet Item({ item })}
 						<EvmBlobView
-							selector={item[EntityMetaKey.Selector]}
+							selector={item.entitySelector}
 							layout={EntityLayout.Summary}
-							open={false}
+
 						/>
 					{/snippet}
 				</EntitiesList>
-			</div>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

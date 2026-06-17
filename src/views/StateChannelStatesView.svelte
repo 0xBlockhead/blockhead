@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -43,11 +42,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StateChannelStateView from '$/views/StateChannelStateView.svelte'
 </script>
@@ -74,56 +75,44 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [Source.Local_Internal],
-					},
-				} }),
-			)}
-			{@const states = derive(
-				parent,
-				(parent) => (
-					[...(parent.fields[entityFieldReference.fieldName]?.values ?? [])]
-						.map((value) => ({
-							value,
-						}))
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.StateChannelState}
-				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
-				getSortValue={(line) => (
-					stringify(line.value[EntityMetaKey.Selector])
-				)}
-				placeholderText="Loading channel states…"
-				resource={states}
-				{title}
-				href={EntitiesListProps.href ?? ''}
-				id={`${EntitiesListProps.id ?? 'channel-states'}:items`}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No signed states on this channel yet.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item })}
-					{@const line = item.value}
-					{@const stateId = line[EntityMetaKey.Selector]}
-					<StateChannelStateView
-						selector={stateId}
-						layout={EntityLayout.Summary}
-						open={false}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Local_Internal],
+				})} placeholderText="Loading channel states…">
+				{#snippet children(states)}
+					<EntitiesList
 						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.StateChannelState}
+						getKey={(item) => stringify(item.entitySelector)}
+						getSortValue={(item) => stringify(item.entitySelector)}
+						{title}
+						href={EntitiesListProps.href ?? ''}
+						id={`${EntitiesListProps.id ?? 'channel-states'}:items`}
+						items={states.entities}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No signed states on this channel yet.
+							</p>
+						{/snippet}
+
+						{#snippet Item({ item })}
+							<StateChannelStateView
+								selector={item.entitySelector}
+								layout={EntityLayout.Summary}
+
+								collapsible={false}
 						showParentChannel={false}
-						showTypeAnnotation={false}
-					/>
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

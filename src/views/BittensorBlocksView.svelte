@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,12 +34,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BittensorBlockView from '$/views/BittensorBlockView.svelte'
 </script>
 
@@ -62,49 +61,46 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Bittensor_JsonRpc,
-						],
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Bittensor_JsonRpc],
 						limit: 16,
-					},
-				} }),
-			)}
-			{@const blocks = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.BittensorBlock>[] => (
-					(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BittensorBlock}
-				id={`${id}-items`}
-				href={href}
-				getKey={(block) => stringify(block[EntityMetaKey.Selector])}
-				getSortValue={(block) => -Number(block[EntityMetaKey.Selector].blockNumber)}
-				open={true}
-				resource={blocks}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
+					})}
+				placeholderText="Loading blocks…"
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No recent blocks yet.
-					</p>
-				{/snippet}
+				{#snippet children(blocks)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BittensorBlock}
+						id={`${id}-items`}
+						href={href}
+						getKey={(block) => stringify(block.entitySelector)}
+						getSortValue={(block) => -Number(block.entitySelector.blockNumber)}
+						open={true}
+						items={blocks.entities}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No blocks listed yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item(context)}
-					<BittensorBlockView
-						selector={context!.item[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<BittensorBlockView
+							selector={item.entitySelector}
+							layout={EntityLayout.Summary}
+
+						/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

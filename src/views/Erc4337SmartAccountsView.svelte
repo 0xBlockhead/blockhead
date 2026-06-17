@@ -2,8 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+		import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +35,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Erc4337SmartAccountView from '$/views/Erc4337SmartAccountView.svelte'
 </script>
@@ -62,28 +64,29 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.selector,
-				({ fields: { $$erc4337SmartAccounts: ({ sources: [
+			<ResourceBoundary
+				resource={proxy(
+						EntityType.EvmNetwork,
+						entityFieldReference.selector,
+					).field('$$erc4337SmartAccounts', {
+						sources: [
 							Source.Blockscout_Rest,
-						], limit: 16 }) } }),
-			)}
-			{@const smartAccounts = derive(
-				network,
-				(network): readonly Entity<typeof schema, EntityType.Erc4337SmartAccount>[] => (
-					(network.fields.$$erc4337SmartAccounts?.values ?? [])
-				),
-			)}
-			<EntitiesList
+						],
+						limit: 16,
+					})}
+				placeholderText="Loading smart accounts…"
+			>
+				{#snippet children(smartAccounts)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.Erc4337SmartAccount}
 				id={`${id}-items`}
 				href={href}
-				getKey={(smartAccount) => stringify(smartAccount[EntityMetaKey.Selector])}
-				getSortValue={(smartAccount) => smartAccount[EntityMetaKey.Selector].address}
+				getKey={(smartAccount) => stringify(smartAccount.entitySelector)}
+				getSortValue={(smartAccount) => smartAccount.entitySelector.address}
 				placeholderText="Loading smart accounts…"
-				resource={smartAccounts}
+				items={smartAccounts.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -94,12 +97,15 @@
 
 				{#snippet Item({ item: smartAccount })}
 					<Erc4337SmartAccountView
-						selector={smartAccount[EntityMetaKey.Selector]}
+						selector={smartAccount.entitySelector}
+						resource={smartAccount}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

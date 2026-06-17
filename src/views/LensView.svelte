@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -36,15 +36,12 @@
 
 	const networkSelectorKey = stringify(selector)
 
-	const lensNetwork = subscribe(EntityType.LensNetwork,
-		selector,
-		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$lensAccounts: ({ sources: [
+	const lensNetwork = $derived(proxy(EntityType.LensNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$lensAccounts: ({ sources: [
 							Source.Constants_Internal,
 							Source.Lens_Graphql,
 						] }), $$lensPosts: ({ sources: [
 							Source.Lens_Graphql,
-						] }) }) : ({  })) } }),
-	)
+						] }) }) : ({  })) } })))
 
 
 	// Components

@@ -16,7 +16,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -56,39 +56,26 @@
 	)
 
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const ens = subscribe(EntityType.EnsName,
-		selector,
-		({ sources: [
-				Source.Voltaire_JsonRpc,
-				Source.TheGraph_Graphql,
-			], fields: { textRecords: true, ...(open ? ({ resolverTextKeys: true }) : ({  })) } }),
-	)
-
-	const textRecords = derive(ens, (ens) => (
-		recordKeysProp !== undefined ?
-			[...recordKeysProp]
-				.filter((key) => (
-					excludeRecordKeys == null
-					|| !excludeRecordKeys.has(key)
-				))
-		:
-			[
-				...[...new Set([
-					...(
-						ens.fields.textRecords === undefined ?
-							[]
-						:
-							Object.keys(ens.fields.textRecords)
+	const ens = $derived(
+		proxy(
+			EntityType.EnsName,
+			selector,
+			{
+				sources: [
+					Source.Voltaire_JsonRpc,
+					Source.TheGraph_Graphql,
+				],
+				fields: {
+					textRecords: true,
+					...(open ?
+						{ resolverTextKeys: true }
+					:
+						{}
 					),
-					...(ens.fields.resolverTextKeys?.values ?? []),
-				])].filter((key) => (
-					excludeRecordKeys == null
-					|| !excludeRecordKeys.has(key)
-				)),
-			]
-	))
+				},
+			}
+		)
+	)
 
 
 	// (Derived)
@@ -96,8 +83,10 @@
 		excludeRecordKeysProp === undefined ?
 			null
 		:
-			new SvelteSet(excludeRecordKeysProp),
+			new SvelteSet(excludeRecordKeysProp)
 	)
+
+	
 
 
 	// Components
@@ -116,7 +105,25 @@
 			`${String(rank(key)).padStart(4, '0')}:${key}`
 		)}
 		{id}
-		resource={textRecords}
+		items={
+		(
+			recordKeysProp !== undefined ?
+				[...recordKeysProp]
+			:
+				[...new Set([
+					...(
+						ens.current?.fields.textRecords === undefined ?
+							[]
+						:
+							Object.keys(ens.current.fields.textRecords)
+					),
+					...(ens.current?.fields.resolverTextKeys?.values ?? []),
+				])]
+		).filter((key) => (
+			excludeRecordKeys == null
+			|| !excludeRecordKeys.has(key)
+		))
+	}
 		{title}
 	>
 		{#snippet TypeAnnotationTooltip()}

@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,6 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -37,11 +34,14 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
 </script>
@@ -57,23 +57,19 @@
 >
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
+			<ResourceBoundary
+				resource={proxy(
+						EntityType.EvmNetwork,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
 						sources: [
 							Source.Beacon_Rest,
 						],
 						limit: 16,
-					},
-				} }),
-			)}
-			{@const validators = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.BeaconValidator>[] => (
-					parent.fields[entityFieldReference.fieldName]?.values
-					?? []
-				),
-			)}
+					})}
+				placeholderText="Loading validators…"
+			>
+				{#snippet children(validators)}
 			{#key stringify(entityFieldReference.selector)}
 				<EntitiesList
 					collapsible={false}
@@ -81,9 +77,9 @@
 					entityType={EntityType.BeaconValidator}
 					id={`${id}-items`}
 					href={href}
-					getKey={(validator) => String(validator[EntityMetaKey.Selector].validatorIndex)}
+					getKey={(validator) => String(validator.entitySelector.validatorIndex)}
 					placeholderText="Loading validators…"
-					resource={validators}
+					items={validators.entities}
 					{title}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
 					open={true}
@@ -96,13 +92,15 @@
 
 					{#snippet Item({ item: validator })}
 						<BeaconValidatorView
-							selector={validator[EntityMetaKey.Selector]}
+							selector={validator.entitySelector}
 							layout={EntityLayout.Summary}
-							open={false}
+
 						/>
 					{/snippet}
 				</EntitiesList>
 			{/key}
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

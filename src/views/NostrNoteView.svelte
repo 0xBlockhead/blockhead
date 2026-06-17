@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,9 +41,7 @@
 		>
 	> = $props()
 
-	const note = subscribe(EntityType.NostrNote,
-		selector,
-		({ sources: [
+	const note = $derived(proxy(EntityType.NostrNote, selector, ({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
 			], fields: { eventId: true, pubkey: true, content: true, createdAt: true, replyToEventId: true, rootEventId: true, tags: true, $replyToNote: true, $author: true, ...(open ? ({ $$replies: ({ sources: [
@@ -52,8 +50,7 @@
 						] }), $$reactions: ({ sources: [
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
-						] }) }) : ({  })) } }),
-	)
+						] }) }) : ({  })) } })))
 
 
 	// Components
@@ -167,8 +164,9 @@
 								<NostrProfileView
 									selector={note.fields.$author[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
+
 									open={false}
-								/>
+									/>
 					</dd>
 				</div>
 			{/if}
@@ -190,8 +188,12 @@
 										<svelte:self
 											selector={note.fields.$replyToNote[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
-											open={false}
-									/>
+
+									
+										open={false}
+
+									
+										/>
 								{:else if note.fields.replyToEventId}
 									<a
 										data-link

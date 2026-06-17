@@ -1,15 +1,13 @@
 <script lang="ts">
+import { stringify } from 'devalue'
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -25,12 +23,16 @@
 		open?: boolean
 	} = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
+
+
+	
 
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RedditSubreddit_TimestampView from '$/views/RedditSubreddit_TimestampView.svelte'
 </script>
 
@@ -50,50 +52,43 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.selector,({ sources: [
-				Source.Reddit_Rest,
-				Source.Reddit_PublicJson,
-			], fields: { [entityFieldReference.fieldName]: {
-				sources: [
-					Source.Reddit_Rest,
-					Source.Reddit_PublicJson,
-				],
-				limit: 64,
-			},
-		} }),
-	)}
-			{@const redditSubredditTimestamps = derive(
-		parent,
-		(parent) => {
-			const redditSubredditTimestamps: readonly Entity<typeof schema, EntityType.RedditSubreddit_Timestamp>[] = (
-				parent.fields[entityFieldReference.fieldName]?.values ?? []
-			)
-			return redditSubredditTimestamps.map((value) => ({
-				value,
-			}))
-		},
-	)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.RedditSubreddit_Timestamp}
-				id={`${id}-items`}
-				href={href}
-				{title}
-				open={true}
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+						{
+							sources: [Source.Reddit_Rest, Source.Reddit_PublicJson],
+						}
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Reddit_Rest, Source.Reddit_PublicJson],
+						limit: 64,
+					})}
+				placeholderText="Loading metric snapshots…"
 			>
-				{#snippet Item({ item })}
-						<RedditSubreddit_TimestampView
-							selector={item.value[EntityMetaKey.Selector]}
-							{href}
-							layout={EntityLayout.Summary}
-							open={false}
-							showTypeAnnotation={false}
-						/>
-					{/snippet}
+				{#snippet children(redditSubredditTimestamps)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.RedditSubreddit_Timestamp}
+						id={`${id}-items`}
+						href={href}
+						{title}
+						items={redditSubredditTimestamps.entities}
+						open={true}
+					>
+						{#snippet Item({ item })}
+							<RedditSubreddit_TimestampView
+								selector={item.entitySelector}
+								{href}
+								id={stringify(item.entitySelector)}
+								layout={EntityLayout.Summary}
 
-			</EntitiesList>
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

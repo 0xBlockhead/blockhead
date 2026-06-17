@@ -3,7 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +11,6 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -39,11 +37,14 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadAgentConversationTurnView from '$/views/BlockheadAgentConversationTurnView.svelte'
 </script>
@@ -71,45 +72,44 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const conversation = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Local_Internal,
-					], fields: { [entityFieldReference.fieldName]: {},
-				} }),
-			)}
-			{@const turns = derive(
-				conversation,
-				(conversation) => (
-					conversation.fields[entityFieldReference.fieldName]?.values
-					?? []
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BlockheadAgentConversationTurn}
-				id={`${id}-items`}
-				open={true}
-				getKey={(turn) => stringify(turn[EntityMetaKey.Selector])}
-				placeholderText="Loading turns…"
-				resource={turns}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No turns yet.
-					</p>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Local_Internal],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Local_Internal],
+				})} placeholderText="Loading turns…">
+				{#snippet children(turns)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BlockheadAgentConversationTurn}
+						id={`${id}-items`}
+						open={true}
+						items={turns.entities}
+						getKey={(turn) => stringify(turn.entitySelector)}
+						placeholderText="Loading turns…"
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No turns yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item: turn })}
-					<BlockheadAgentConversationTurnView
-						selector={turn[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<BlockheadAgentConversationTurnView
+								selector={item.entitySelector}
+								layout={EntityLayout.Summary}
+
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

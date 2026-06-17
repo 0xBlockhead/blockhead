@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -37,21 +37,7 @@
 		>
 	> = $props()
 
-	const network = subscribe(EntityType.YouTubeNetwork,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$youtubeChannels: ({ sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						] }), $$youtubeVideos: ({ sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						] }), $$youtubePlaylists: ({ sources: [
-							Source.Constants_Internal,
-							Source.Youtube_Rest,
-						] }) }) : ({  })) } }),
-	)
+	
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
@@ -98,7 +84,18 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={network}
+				resource={proxy(EntityType.YouTubeNetwork, selector, ({ sources: [
+						Source.Constants_Internal,
+					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$youtubeChannels: ({ sources: [
+									Source.Youtube_Rest,
+									Source.Piped_Rest,
+								] }), $$youtubeVideos: ({ sources: [
+									Source.Youtube_Rest,
+									Source.Piped_Rest,
+								] }), $$youtubePlaylists: ({ sources: [
+									Source.Constants_Internal,
+									Source.Youtube_Rest,
+								] }) }) : ({  })) } }))}
 				placeholderText="Loading YouTube hub directory…"
 			>
 				{#snippet children(network)}

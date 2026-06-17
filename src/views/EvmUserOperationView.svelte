@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,15 +9,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/user-operation/[userOperationHash=userOperationHash]', {
-				...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/user-operation/[userOperationHash=userOperationHash]', {
+				.caip2: ,
 				userOperationHash: selector.hash,
 		}),
 
@@ -59,12 +58,33 @@
 			>
 	> = $props()
 
-	const operation = subscribe(EntityType.EvmUserOperation,
-		selector,
-		({ sources: [
-				Source.Blockscout_Rest,
-			], fields: { $bundledTransaction: true, $sender: true, $block: true, timestampMs: true, successful: true, fee: true, nonce: true, entryPointVersion: true, $entryPoint: true, initCode: true, callData: true, sponsorType: true, $paymaster: true, $bundler: true, paymasterAndData: true, signature: true, callGasLimit: true, verificationGasLimit: true, preVerificationGas: true, maxFeePerGas: true, maxPriorityFeePerGas: true, gas: true, gasUsed: true, gasPrice: true } }),
-	)
+	const operation = $derived(proxy(EntityType.EvmUserOperation, selector, {
+		sources: [Source.Blockscout_Rest],
+	}))
+	const bundledTransaction = $derived(operation.$bundledTransaction)
+	const sender = $derived(operation.$sender)
+	const block = $derived(operation.$block)
+	const timestampMs = $derived(operation.timestampMs)
+	const successful = $derived(operation.successful)
+	const fee = $derived(operation.fee)
+	const nonce = $derived(operation.nonce)
+	const entryPointVersion = $derived(operation.entryPointVersion)
+	const entryPoint = $derived(operation.$entryPoint)
+	const initCode = $derived(operation.initCode)
+	const callData = $derived(operation.callData)
+	const sponsorType = $derived(operation.sponsorType)
+	const paymaster = $derived(operation.$paymaster)
+	const bundler = $derived(operation.$bundler)
+	const paymasterAndData = $derived(operation.paymasterAndData)
+	const signature = $derived(operation.signature)
+	const callGasLimit = $derived(operation.callGasLimit)
+	const verificationGasLimit = $derived(operation.verificationGasLimit)
+	const preVerificationGas = $derived(operation.preVerificationGas)
+	const maxFeePerGas = $derived(operation.maxFeePerGas)
+	const maxPriorityFeePerGas = $derived(operation.maxPriorityFeePerGas)
+	const gas = $derived(operation.gas)
+	const gasUsed = $derived(operation.gasUsed)
+	const gasPrice = $derived(operation.gasPrice)
 
 
 	// Components
@@ -141,8 +161,8 @@
 						resource={operation}
 					>
 						{#snippet children(operation)}
-							{#if operation.fields.successful !== undefined}
-								{String(operation.fields.successful)}
+							{#if operation.successful !== undefined}
+								{String(operation.successful)}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -157,12 +177,13 @@
 						resource={operation}
 					>
 						{#snippet children(operation)}
-							{#if operation.fields.$block !== undefined}
+							{#if operation.$block !== undefined}
 								<EvmBlockView
-									selector={operation.fields.$block[EntityMetaKey.Selector]}
+									selector={operation.$block.entitySelector}
 									layout={EntityLayout.Value}
+
 									open={false}
-								/>
+									/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -177,8 +198,8 @@
 						resource={operation}
 					>
 						{#snippet children(operation)}
-							{#if operation.fields.fee != null && operation.fields.fee !== ''}
-								{operation.fields.fee}
+							{#if operation.fee != null && operation.fee !== ''}
+								{operation.fee}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -193,8 +214,8 @@
 						resource={operation}
 					>
 						{#snippet children(operation)}
-							{#if operation.fields.nonce !== undefined}
-								<NumberValue value={operation.fields.nonce} />
+							{#if operation.nonce !== undefined}
+								<NumberValue value={operation.nonce} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -210,8 +231,8 @@
 							resource={operation}
 						>
 							{#snippet children(operation)}
-								{#if operation.fields.entryPointVersion != null}
-									{operation.fields.entryPointVersion}
+								{#if operation.entryPointVersion != null}
+									{operation.entryPointVersion}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -226,13 +247,14 @@
 							resource={operation}
 						>
 							{#snippet children(operation)}
-								{#if operation.fields.$entryPoint != null}
+								{#if operation.$entryPoint != null}
 									<EvmContractView
-										selector={operation.fields.$entryPoint[EntityMetaKey.Selector]}
+										selector={operation.$entryPoint.entitySelector}
 										layout={EntityLayout.Value}
-										open={false}
+
 										showTypeAnnotation={false}
-									/>
+										open={false}
+										/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -247,8 +269,8 @@
 							resource={operation}
 						>
 							{#snippet children(operation)}
-								{#if operation.fields.sponsorType != null}
-									{operation.fields.sponsorType}
+								{#if operation.sponsorType != null}
+									{operation.sponsorType}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -262,47 +284,47 @@
 		<ResourceBoundary resource={operation}>
 			{#snippet children(operation)}
 				<div class="entity-details" data-column="gap-2">
-					{#if operation.fields.$bundledTransaction != null}
+					{#if operation.$bundledTransaction != null}
 						<EvmTransactionView
-							selector={operation.fields.$bundledTransaction[EntityMetaKey.Selector]}
-							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
-								transactionId: operation.fields.$bundledTransaction[EntityMetaKey.Selector].txHash,
+							selector={operation.$bundledTransaction.entitySelector}
+							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+								.caip2: ,
+								transactionId: operation.$bundledTransaction.entitySelector.txHash,
 							})}
 							layout={EntityLayout.Summary}
-							open={false}
+
 							collapsible={false}
 							showTypeAnnotation={false}
 						/>
 					{/if}
 
-					{#if operation.fields.$sender != null}
+					{#if operation.$sender != null}
 						<Erc4337SmartAccountView
-							selector={operation.fields.$sender[EntityMetaKey.Selector]}
+							selector={operation.$sender.entitySelector}
 							layout={EntityLayout.Summary}
-							open={false}
+
 							collapsible={false}
 							showTypeAnnotation={false}
 							title="Sender smart account"
 						/>
 					{/if}
 
-					{#if operation.fields.$paymaster != null}
+					{#if operation.$paymaster != null}
 						<Erc4337PaymasterView
-							selector={operation.fields.$paymaster[EntityMetaKey.Selector]}
+							selector={operation.$paymaster.entitySelector}
 							layout={EntityLayout.Summary}
-							open={false}
+
 							collapsible={false}
 							showTypeAnnotation={false}
 							title="Paymaster"
 						/>
 					{/if}
 
-					{#if operation.fields.$bundler != null}
+					{#if operation.$bundler != null}
 						<Erc4337BundlerView
-							selector={operation.fields.$bundler[EntityMetaKey.Selector]}
+							selector={operation.$bundler.entitySelector}
 							layout={EntityLayout.Summary}
-							open={false}
+
 							collapsible={false}
 							showTypeAnnotation={false}
 							title="Bundler"
@@ -310,105 +332,105 @@
 					{/if}
 
 					<div data-column-item="center">
-						{#if operation.fields.callGasLimit !== undefined}
+						{#if operation.callGasLimit !== undefined}
 							<div>
 								<dt>Call gas limit</dt>
-								<dd><NumberValue value={operation.fields.callGasLimit} /></dd>
+								<dd><NumberValue value={operation.callGasLimit} /></dd>
 							</div>
 						{/if}
 
-						{#if operation.fields.verificationGasLimit !== undefined}
+						{#if operation.verificationGasLimit !== undefined}
 							<div>
 								<dt>Verification gas limit</dt>
-								<dd><NumberValue value={operation.fields.verificationGasLimit} /></dd>
+								<dd><NumberValue value={operation.verificationGasLimit} /></dd>
 							</div>
 						{/if}
 
-						{#if operation.fields.preVerificationGas !== undefined}
+						{#if operation.preVerificationGas !== undefined}
 							<div>
 								<dt>Pre-verification gas</dt>
-								<dd><NumberValue value={operation.fields.preVerificationGas} /></dd>
+								<dd><NumberValue value={operation.preVerificationGas} /></dd>
 							</div>
 						{/if}
 
-						{#if operation.fields.maxFeePerGas !== undefined}
+						{#if operation.maxFeePerGas !== undefined}
 							<div>
 								<dt>Max fee per gas</dt>
-								<dd><NumberValue value={operation.fields.maxFeePerGas} /></dd>
+								<dd><NumberValue value={operation.maxFeePerGas} /></dd>
 							</div>
 						{/if}
 
-						{#if operation.fields.maxPriorityFeePerGas !== undefined}
+						{#if operation.maxPriorityFeePerGas !== undefined}
 							<div>
 								<dt>Max priority fee per gas</dt>
-								<dd><NumberValue value={operation.fields.maxPriorityFeePerGas} /></dd>
+								<dd><NumberValue value={operation.maxPriorityFeePerGas} /></dd>
 							</div>
 						{/if}
 
-						{#if operation.fields.gas !== undefined}
+						{#if operation.gas !== undefined}
 							<div>
 								<dt>Gas</dt>
-								<dd><NumberValue value={operation.fields.gas} /></dd>
+								<dd><NumberValue value={operation.gas} /></dd>
 							</div>
 						{/if}
 
-						{#if operation.fields.gasUsed !== undefined}
+						{#if operation.gasUsed !== undefined}
 							<div>
 								<dt>Gas used</dt>
-								<dd><NumberValue value={operation.fields.gasUsed} /></dd>
+								<dd><NumberValue value={operation.gasUsed} /></dd>
 							</div>
 						{/if}
 
-						{#if operation.fields.gasPrice !== undefined}
+						{#if operation.gasPrice !== undefined}
 							<div>
 								<dt>Gas price</dt>
-								<dd><NumberValue value={operation.fields.gasPrice} /></dd>
+								<dd><NumberValue value={operation.gasPrice} /></dd>
 							</div>
 						{/if}
 
-						{#if operation.fields.initCode != null && operation.fields.initCode !== '0x'}
+						{#if operation.initCode != null && operation.initCode !== '0x'}
 							<div>
 								<dt>Init code</dt>
 								<dd>
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
-										value={operation.fields.initCode}
+										value={operation.initCode}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if operation.fields.callData != null && operation.fields.callData !== '0x'}
+						{#if operation.callData != null && operation.callData !== '0x'}
 							<div>
 								<dt>Call data</dt>
 								<dd>
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
-										value={operation.fields.callData}
+										value={operation.callData}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if operation.fields.paymasterAndData != null && operation.fields.paymasterAndData !== '0x'}
+						{#if operation.paymasterAndData != null && operation.paymasterAndData !== '0x'}
 							<div>
 								<dt>Paymaster data</dt>
 								<dd>
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
-										value={operation.fields.paymasterAndData}
+										value={operation.paymasterAndData}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if operation.fields.signature != null && operation.fields.signature !== '0x'}
+						{#if operation.signature != null && operation.signature !== '0x'}
 							<div>
 								<dt>Signature</dt>
 								<dd>
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
-										value={operation.fields.signature}
+										value={operation.signature}
 									/>
 								</dd>
 							</div>

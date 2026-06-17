@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -45,11 +43,10 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NostrArticleView from '$/views/NostrArticleView.svelte'
 </script>
@@ -75,7 +72,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
+			{@const parent = proxy(entityFieldReference.entityType,
 				entityFieldReference.selector,
 				(
 					entityFieldReference.entityType === EntityType.NostrNetwork ?
@@ -83,22 +80,26 @@
 							fieldOpen ?
 								{
 									sources: [Source.Constants_Internal],
-									$$nostrArticles: {
-										sources: [Source.NostrBand_Rest],
-										limit: limit,
-									},
-									$$nostrProfiles: {
-										sources: [
-											Source.Constants_Internal,
-											Source.NostrBand_Rest,
-											Source.Primal_Rest,
-										],
-										$$articles: {
+									fields: {
+										$$nostrArticles: {
+											sources: [Source.NostrBand_Rest],
+											limit: limit,
+										},
+										$$nostrProfiles: {
 											sources: [
+												Source.Constants_Internal,
 												Source.NostrBand_Rest,
 												Source.Primal_Rest,
 											],
-											limit: limit,
+											fields: {
+												$$articles: {
+													sources: [
+														Source.NostrBand_Rest,
+														Source.Primal_Rest,
+													],
+													limit: limit,
+												},
+											},
 										},
 									},
 								}
@@ -113,61 +114,56 @@
 								Source.NostrBand_Rest,
 								Source.Primal_Rest,
 							],
-							$$articles: {
-								sources: [
-									Source.NostrBand_Rest,
-									Source.Primal_Rest,
-								],
-								limit: limit,
+							fields: {
+								$$articles: {
+									sources: [
+										Source.NostrBand_Rest,
+										Source.Primal_Rest,
+									],
+									limit: limit,
+								},
 							},
 						}
 				),
 			)}
-			{@const articles = derive(
-				parent,
-				(parent) => {
-					const nostrArticles: readonly Entity<typeof schema, EntityType.NostrArticle>[] = (
-						entityFieldReference.entityType === EntityType.NostrNetwork ?
+			<ResourceBoundary resource={parent} placeholderText={`Loading ${title.toLowerCase()}…`}>
+				{#snippet children(parent)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.NostrArticle}
+						id={`${id}-items`}
+						{title}
+						items={entityFieldReference.entityType === EntityType.NostrNetwork ?
 							[
-								...(parent.$$nostrArticles ?? []),
-								...(parent.$$nostrProfiles ?? [])
-									.flatMap((profile: Entity<typeof schema, EntityType.NostrProfile>) => profile.$$articles ?? []),
+								...(parent?.['$$nostrArticles'].entities ?? []),
+								...(parent?.['$$nostrProfiles'].entities ?? [])
+									.flatMap((profile) => profile.current?.['$$articles'].entities ?? []),
 							]
 						:
-							(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-					)
-					return nostrArticles
-				},
-			)}
-			{#key `${stringify(entityFieldReference.selector)}-${limit}-${fieldOpen}`}
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.NostrArticle}
-					id={`${id}-items`}
-					{title}
-					getKey={(row) => stringify(row[EntityMetaKey.Selector])}
-					getSortValue={(row) => (
-						`${String(-(row.publishedAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Selector].identifier}`
-					)}
-					placeholderText={`Loading ${title.toLowerCase()}…`}
-					resource={articles}
-				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No articles yet.
-						</p>
-					{/snippet}
+							parent.fields[entityFieldReference.fieldName]?.entities ?? []}
+						getKey={(row) => stringify(row.entitySelector)}
+						getSortValue={(row) => (
+							`${String(-(row.current?.publishedAt ?? 0)).padStart(20, '0')}\0${row.entitySelector.identifier}`
+						)}
+						placeholderText={`Loading ${title.toLowerCase()}…`}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No articles yet.
+							</p>
+						{/snippet}
 
-					{#snippet Item({ item })}
-						<NostrArticleView
-							selector={item[EntityMetaKey.Selector]}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-						/>
-					{/snippet}
-				</EntitiesList>
-			{/key}
+						{#snippet Item({ item })}
+							<NostrArticleView
+								selector={item.entitySelector}
+								layout={EntityLayout.SummaryDetails}
+
+							/>
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

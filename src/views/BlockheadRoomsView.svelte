@@ -3,7 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
@@ -12,8 +11,7 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	// State
+		// State
 	let {
 		entityFieldReference,
 		title = 'Collaboration rooms',
@@ -39,11 +37,12 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadRoomView from '$/views/BlockheadRoomView.svelte'
 </script>
@@ -74,44 +73,43 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const global = subscribe(EntityType._Global,
+			{@const rooms = proxy(EntityType._Global,
 				entityFieldReference.selector,
-				({ sources: [Source.Local_Internal], fields: { $$blockheadRooms: true } }),
-			)}
+				{ sources: [Source.Local_Internal] },
+			).field('$$blockheadRooms', {
+				sources: [Source.Local_Internal],
+			})}
 
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BlockheadRoom}
-				id={`${id}-items`}
-				{title}
-				open={true}
-				getKey={(room) => stringify(room[EntityMetaKey.Selector])}
-				getSortValue={(room) => stringify(room[EntityMetaKey.Selector])}
-				resource={
-					derive(
-						global,
-						(global) => (
-							global['$$blockheadRooms'] ?? []
-						),
-					)
-				}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No rooms yet.
-					</p>
-				{/snippet}
+			<ResourceBoundary resource={rooms} placeholderText="Loading rooms…">
+				{#snippet children(rooms)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BlockheadRoom}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={rooms.entities}
+						getKey={(room) => stringify(room.entitySelector)}
+						getSortValue={(room) => stringify(room.entitySelector)}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No rooms yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item: room })}
-					<BlockheadRoomView
-						selector={room[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item: room })}
+							<BlockheadRoomView
+								selector={room.entitySelector}
+								layout={EntityLayout.Summary}
+
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

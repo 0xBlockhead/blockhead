@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,13 +38,7 @@
 		>
 	> = $props()
 
-	const atprotoActorTimestamp = subscribe(EntityType.AtprotoActor_Timestamp,
-		selector,
-		({ sources: [
-				Source.Atproto_Xrpc,
-				Source.Atproto_BskySocial_Xrpc,
-			], fields: { followersCount: true, followsCount: true, postsCount: true } }),
-	)
+	
 
 
 	// Components
@@ -80,7 +74,8 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={atprotoActorTimestamp}
+			resource={proxy(EntityType.AtprotoActor_Timestamp, selector, ({ sources: [
+				Source.Atproto_Xrpc,			], fields: { followersCount: true, followsCount: true, postsCount: true } }))}
 			placeholderText="Loading AT Protocol actor snapshot..."
 		>
 			{#snippet children(atprotoActorTimestamp)}

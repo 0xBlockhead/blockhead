@@ -3,14 +3,15 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
-	// State
-	import { subscribe } from '$/routes/+layout.svelte'
+	// Context
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	// State
 	let {
 		selector,
 		open = $bindable(true),
@@ -23,7 +24,17 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const utxoOutput = subscribe(EntityType.UtxoOutput, selector, ({ fields: { valueSats: true, scriptPubKeyAsm: true, scriptPubKeyHex: true, scriptPubKeyType: true, $address: true, isSpent: true } }))
+	const utxoOutput = $derived(proxy(
+		EntityType.UtxoOutput,
+		selector,
+	))
+	
+	
+	
+	
+	
+	
+
 
 
 	// Components
@@ -59,76 +70,74 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary
-			resource={utxoOutput}
-			placeholderText={`Loading UTXO Output...`}
-		>
-			{#snippet children(utxoOutput)}
-				<dl>
-					{#if utxoOutput.fields.valueSats != null}
+		<dl>
+			<ResourceBoundary resource={utxoOutput.valueSats} placeholderText="Loading output value...">
+				{#snippet children(valueSats)}
+					{#if valueSats != null}
 						<div>
 							<dt>Value Sats</dt>
-							<dd><NumberValue value={utxoOutput.fields.valueSats} /> sats</dd>
+							<dd><NumberValue value={valueSats} /> sats</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if utxoOutput.fields.scriptPubKeyAsm != null}
+			<ResourceBoundary resource={utxoOutput.scriptPubKeyAsm} placeholderText="Loading script pub key asm...">
+				{#snippet children(scriptPubKeyAsm)}
+					{#if scriptPubKeyAsm != null}
 						<div>
 							<dt>Script Pub Key Asm</dt>
-							<dd>
-								<TruncatedValue
-									value={utxoOutput.fields.scriptPubKeyAsm}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
+							<dd><TruncatedValue value={scriptPubKeyAsm} format={TruncatedValueFormat.Abbr} /></dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if utxoOutput.fields.scriptPubKeyHex != null}
+			<ResourceBoundary resource={utxoOutput.scriptPubKeyHex} placeholderText="Loading script pub key hex...">
+				{#snippet children(scriptPubKeyHex)}
+					{#if scriptPubKeyHex != null}
 						<div>
 							<dt>Script Pub Key Hex</dt>
-							<dd>
-								<TruncatedValue
-									value={utxoOutput.fields.scriptPubKeyHex}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
+							<dd><TruncatedValue value={scriptPubKeyHex} format={TruncatedValueFormat.Abbr} /></dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if utxoOutput.fields.scriptPubKeyType != null}
+			<ResourceBoundary resource={utxoOutput.scriptPubKeyType} placeholderText="Loading script pub key type...">
+				{#snippet children(scriptPubKeyType)}
+					{#if scriptPubKeyType != null}
 						<div>
 							<dt>Script Pub Key Type</dt>
-							<dd>
-								<TruncatedValue
-									value={utxoOutput.fields.scriptPubKeyType}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
+							<dd><TruncatedValue value={scriptPubKeyType} format={TruncatedValueFormat.Abbr} /></dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if utxoOutput.fields.$address}
+			<ResourceBoundary resource={utxoOutput.$address} placeholderText="Loading output address...">
+				{#snippet children(address)}
+					{#if address}
 						<div>
 							<dt>Address</dt>
 							<dd>
-								<UtxoAddressView
-									selector={utxoOutput.fields.$address[EntityMetaKey.Selector]}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
+								<UtxoAddressView selector={address.entitySelector} layout={EntityLayout.Title} />
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if utxoOutput.fields.isSpent != null}
+			<ResourceBoundary resource={utxoOutput.isSpent} placeholderText="Loading spent status...">
+				{#snippet children(isSpent)}
+					{#if isSpent != null}
 						<div>
 							<dt>Is Spent</dt>
-							<dd>{utxoOutput.fields.isSpent ? 'Yes' : 'No'}</dd>
+							<dd>{isSpent ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 </EntityView>

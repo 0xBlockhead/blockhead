@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,12 +27,9 @@
 		>
 	> = $props()
 
-	const asset = subscribe(EntityType.AssetInstance,
-		selector,
-		({ sources: [
+	const asset = $derived(proxy(EntityType.AssetInstance, selector, ({ sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, symbol: true, coinId: true, decimals: true } }),
-	)
+			], fields: { name: true, symbol: true, coinId: true, decimals: true } })))
 
 
 	// Components

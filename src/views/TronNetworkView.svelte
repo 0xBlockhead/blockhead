@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -25,7 +25,7 @@
 	} = $props()
 
 	const network = $derived(
-		subscribe(
+		proxy(
 			EntityType.Network,
 			selector.$network,
 			{
@@ -42,26 +42,7 @@
 		),
 	)
 
-	const tronNetwork = $derived(
-		subscribe(
-			EntityType.TronNetwork,
-			selector,
-			{
-				sources: [
-					Source.TronGrid_Rest,
-				],
-				fields: {
-					restEndpoints: true,
-					$$blocks: {
-						limit: 1,
-					},
-					$$timestamps: {
-						limit: 1,
-					},
-				},
-			},
-		),
-	)
+	
 
 
 	// (Derived)
@@ -124,7 +105,24 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={tronNetwork}>
+					<ResourceBoundary resource={proxy(
+							EntityType.TronNetwork,
+							selector,
+							{
+								sources: [
+									Source.TronGrid_Rest,
+								],
+								fields: {
+									restEndpoints: true,
+									$$blocks: {
+										limit: 1,
+									},
+									$$timestamps: {
+										limit: 1,
+									},
+								},
+							},
+						)}>
 						{#snippet children(tronNetwork)}
 							{@const block = tronNetwork.fields.$$blocks?.values.at(0)}
 							{#if block != null}

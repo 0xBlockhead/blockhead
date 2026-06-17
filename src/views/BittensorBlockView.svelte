@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -28,12 +28,7 @@
 		>
 	> = $props()
 
-	const block = subscribe(EntityType.BittensorBlock,
-		selector,
-		({ sources: [
-				Source.Bittensor_JsonRpc,
-			], fields: { hash: true, extrinsicCount: true, ...(open && ({ $parent: true, stateRoot: true, extrinsicsRoot: true })) } }),
-	)
+	
 
 
 	// Components
@@ -73,7 +68,12 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={block}
+			resource={proxy(EntityType.BittensorBlock,
+					selector,
+					({ sources: [
+							Source.Bittensor_JsonRpc,
+						], fields: { hash: true, extrinsicCount: true, ...(open && ({ $parent: true, stateRoot: true, extrinsicsRoot: true })) } }),
+				)}
 			placeholderText="Loading Bittensor block…"
 		>
 			{#snippet children(block)}

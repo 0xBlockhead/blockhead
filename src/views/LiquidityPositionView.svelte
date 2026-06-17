@@ -34,12 +34,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
-	const liquidityPosition = subscribe(EntityType.LiquidityPosition,
-		selector,
-		({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }),
-	)
+	
 
 
 	// Components
@@ -87,7 +84,7 @@
 
 	{#snippet Content({})}
 		<ResourceBoundary
-			resource={liquidityPosition}
+			resource={proxy(EntityType.LiquidityPosition, selector, ({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }))}
 			placeholderText="Loading position…"
 		>
 			{#snippet children(liquidityPosition)}
@@ -99,7 +96,7 @@
 									<EvmNetworkView
 										selector={liquidityPosition.fields.$pool[EntityMetaKey.Selector].$network}
 										layout={EntityLayout.Value}
-										open={false}
+
 									/>
 								{:else}
 									<span data-text="muted">No pool network loaded</span>
@@ -131,7 +128,7 @@
 											$actor: liquidityPosition.fields.$owner[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
-										open={false}
+
 									/>
 								</dd>
 							</div>

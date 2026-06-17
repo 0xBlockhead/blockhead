@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,11 +10,13 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { resolve } from '$app/paths'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
 		id,
+		limit = 12,
 		open = $bindable(true),
 		collapsible = true,
 		title = 'ATProto handles',
@@ -28,6 +28,7 @@
 				EntityType.AtprotoActor
 			>
 			id: string
+			limit?: number
 			open?: boolean
 			title?: string
 			collapsible?: boolean
@@ -39,13 +40,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -70,66 +72,59 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const atprotoNetwork = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				{
-					sources: [Source.Constants_Internal],
-					fields: {
-						protocolName: true,
-						$$atprotoActors: {
-							sources: [
-								Source.Constants_Internal,
-								Source.Atproto_Xrpc,
-								Source.Atproto_BskySocial_Xrpc,
-							],
-						},
-					},
-				},
-			)}
-			{@const actors = derive(
-				atprotoNetwork,
-					(atprotoNetwork) => {
-						const atprotoActors: readonly Entity<typeof schema, EntityType.AtprotoActor>[] = (
-					atprotoNetwork.fields.$$atprotoActors?.values ?? []
-						)
-						return (
-							atprotoActors.map((value) => ({
-								value,
-							}))
-						)
-					},
-			)}
-			{#key stringify(entityFieldReference.selector)}
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.AtprotoActor}
-					id={`${id}-items`}
-					{title}
-					open={true}
-					getSortValue={(row) => {
-						const actorId = row.value[EntityMetaKey.Selector]
-						return 'did' in actorId ? actorId.did : actorId.handle
-					}}
-					placeholderText="Loading DID directory…"
-					resource={actors}
-				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No actors yet.
-						</p>
-					{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Constants_Internal],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.Constants_Internal,
+						Source.Atproto_Xrpc,
+					],
+					limit,
+				})} placeholderText="Loading DID directory…">
+				{#snippet children(actors)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.AtprotoActor}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={actors.entities}
+						getKey={(actor) => stringify(actor.entitySelector)}
+						getSortValue={(actor) => ('did' in actor.entitySelector ? actor.entitySelector.did : actor.entitySelector.handle)}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No actors yet.
+							</p>
+						{/snippet}
 
-					{#snippet Item({ item })}
-						{@const actorId = item.value[EntityMetaKey.Selector]}
-						<AtprotoActorView
-							selector={actorId}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/snippet}
-				</EntitiesList>
-			{/key}
+						{#snippet Item({ item })}
+							{#if 'did' in item.entitySelector}
+								<a
+									href={resolve('/(social)/(atproto)/atproto/actor/[did]', {
+										did: encodeURIComponent(item.entitySelector.did),
+									})}
+								>
+									<TruncatedValue
+										value={item.entitySelector.did}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</a>
+							{:else}
+								<TruncatedValue
+									value={item.entitySelector.handle}
+									format={TruncatedValueFormat.Visual}
+								/>
+							{/if}
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

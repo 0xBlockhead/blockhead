@@ -12,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -32,13 +32,7 @@
 		>
 	> = $props()
 
-	const channel = $derived(subscribe(EntityType.LightningChannel,
-		selector,
-		({ sources: [
-				Source.LightningMempoolSpace_Rest,
-				Source.LightningLnd_Rest,
-			], fields: { shortChannelId: true, status: true, capacitySats: true, localBalanceSats: true, remoteBalanceSats: true, $node0: true, $node1: true, fundingTransactionId: true, fundingOutputIndex: true, feeRatePpm: true, active: true, private: true } }),
-	))
+	
 
 
 	// Components
@@ -73,7 +67,13 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={channel}
+			resource={proxy(EntityType.LightningChannel,
+		selector,
+		({ sources: [
+				Source.LightningMempoolSpace_Rest,
+				Source.LightningLnd_Rest,
+			], fields: { shortChannelId: true, status: true, capacitySats: true, localBalanceSats: true, remoteBalanceSats: true, $node0: true, $node1: true, fundingTransactionId: true, fundingOutputIndex: true, feeRatePpm: true, active: true, private: true } }),
+	)}
 			placeholderText="Loading channel…"
 		>
 			{#snippet children(lightningChannel)}

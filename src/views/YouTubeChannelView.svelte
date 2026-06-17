@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,7 +40,7 @@
 	> = $props()
 
 	const channel = $derived(
-		subscribe(
+		proxy(
 			EntityType.YouTubeChannel,
 			selector,
 			({ sources: [

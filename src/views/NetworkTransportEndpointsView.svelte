@@ -35,7 +35,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		parentEntityType,
@@ -65,11 +65,9 @@
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -89,7 +87,7 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(parentEntityType,
+			{@const parent = proxy(parentEntityType,
 				parentEntitySelector,
 				{
 					sources: [...fieldSources],
@@ -101,52 +99,49 @@
 					),
 				},
 			)}
-			{@const endpoints = derive(
-				parent,
-				(parent): NetworkTransportEndpoint[] => (
-					endpointFieldNames.flatMap((fieldName) => {
-						const tses = parent.fields[fieldName]
-						return tses?.values ?? []
-					})
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={listEntityType}
-				id={`${id}-items`}
-				href={href}
-				getKey={(endpoint) => endpoint.url}
-				open={true}
-				resource={endpoints}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">{emptyText}</p>
+			<ResourceBoundary resource={parent} placeholderText="Loading endpoints…">
+				{#snippet children(parent)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={listEntityType}
+						id={`${id}-items`}
+						href={href}
+						getKey={(endpoint) => endpoint.url}
+						open={true}
+						items={endpointFieldNames.flatMap((fieldName) => (
+							parent.fields[fieldName]?.values ?? []
+						))}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">{emptyText}</p>
+						{/snippet}
+
+						{#snippet Item({ item: endpoint })}
+							<dl data-column-item="center">
+								<div>
+									<dt>URL</dt>
+									<dd><code>{endpoint.url}</code></dd>
+								</div>
+
+								<div>
+									<dt>Transport</dt>
+									<dd>{endpoint.transportType}</dd>
+								</div>
+
+								{#if endpoint.providerName}
+									<div>
+										<dt>Provider</dt>
+										<dd>{endpoint.providerName}</dd>
+									</div>
+								{/if}
+							</dl>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-
-				{#snippet Item({ item: endpoint })}
-					<dl data-column-item="center">
-						<div>
-							<dt>URL</dt>
-							<dd><code>{endpoint.url}</code></dd>
-						</div>
-
-						<div>
-							<dt>Transport</dt>
-							<dd>{endpoint.transportType}</dd>
-						</div>
-
-						{#if endpoint.providerName}
-							<div>
-								<dt>Provider</dt>
-								<dd>{endpoint.providerName}</dd>
-							</div>
-						{/if}
-					</dl>
-				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

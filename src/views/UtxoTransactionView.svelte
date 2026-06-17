@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -9,15 +10,17 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
+		resource,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.UtxoTransaction>
+			resource?: EntityProxyResource<typeof schema, EntityType.UtxoTransaction>
 			open?: boolean
 		},
 		Pick<
@@ -27,9 +30,11 @@
 		>
 	> = $props()
 
-	const transaction = subscribe(EntityType.UtxoTransaction,
+	const transaction = $derived(resource ?? proxy(
+		EntityType.UtxoTransaction,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Esplora_Rest,
 				Source.Blockchair_Rest,
 				Source.ThreeXpl_Rest,
@@ -37,8 +42,16 @@
 				Source.LitecoinCore_JsonRpc,
 				Source.DogecoinCore_JsonRpc,
 				Source.Zcashd_JsonRpc,
-			], fields: { version: true, lockTime: true, sizeBytes: true, virtualSizeBytes: true, weightUnits: true, feeSats: true, isCoinbase: true } }),
-	)
+			],
+		},
+	))
+	
+	
+	
+	
+	
+	
+	
 
 
 	// Components
@@ -77,62 +90,104 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary
-			resource={transaction}
-			placeholderText="Loading transaction…"
-		>
-			{#snippet children(transaction)}
-				<dl>
-					{#if transaction.fields.version != null}
+		<dl>
+			<ResourceBoundary
+				resource={transaction.version}
+				placeholderText="Loading transaction version…"
+			>
+				{#snippet children(version)}
+					{#if version != null}
 						<div>
 							<dt>Version</dt>
-							<dd><NumberValue value={transaction.fields.version} /></dd>
+							<dd><NumberValue value={version} /></dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if transaction.fields.feeSats != null}
+			<ResourceBoundary
+				resource={transaction.feeSats}
+				placeholderText="Loading fee…"
+			>
+				{#snippet children(feeSats)}
+					{#if feeSats != null}
 						<div>
 							<dt>Fee</dt>
-							<dd>{transaction.fields.feeSats.toString()} sats</dd>
+							<dd>{feeSats.toString()} sats</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if transaction.fields.sizeBytes != null}
+			<ResourceBoundary
+				resource={transaction.sizeBytes}
+				placeholderText="Loading transaction size…"
+			>
+				{#snippet children(sizeBytes)}
+					{#if sizeBytes != null}
 						<div>
 							<dt>Size</dt>
-							<dd><NumberValue value={transaction.fields.sizeBytes} /> bytes</dd>
+							<dd><NumberValue value={sizeBytes} /> bytes</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if transaction.fields.virtualSizeBytes != null}
+			<ResourceBoundary
+				resource={transaction.virtualSizeBytes}
+				placeholderText="Loading virtual size…"
+			>
+				{#snippet children(virtualSizeBytes)}
+					{#if virtualSizeBytes != null}
 						<div>
 							<dt>Virtual size</dt>
-							<dd><NumberValue value={transaction.fields.virtualSizeBytes} /> vB</dd>
+							<dd><NumberValue value={virtualSizeBytes} /> vB</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if transaction.fields.weightUnits != null}
+			<ResourceBoundary
+				resource={transaction.weightUnits}
+				placeholderText="Loading weight…"
+			>
+				{#snippet children(weightUnits)}
+					{#if weightUnits != null}
 						<div>
 							<dt>Weight</dt>
-							<dd><NumberValue value={transaction.fields.weightUnits} /> WU</dd>
+							<dd><NumberValue value={weightUnits} /> WU</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if transaction.fields.lockTime != null}
+			<ResourceBoundary
+				resource={transaction.lockTime}
+				placeholderText="Loading lock time…"
+			>
+				{#snippet children(lockTime)}
+					{#if lockTime != null}
 						<div>
 							<dt>Lock time</dt>
-							<dd><NumberValue value={transaction.fields.lockTime} /></dd>
+							<dd><NumberValue value={lockTime} /></dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if transaction.fields.isCoinbase != null}
+			<ResourceBoundary
+				resource={transaction.isCoinbase}
+				placeholderText="Loading coinbase status…"
+			>
+				{#snippet children(isCoinbase)}
+					{#if isCoinbase != null}
 						<div>
 							<dt>Coinbase</dt>
-							<dd>{transaction.fields.isCoinbase ? 'Yes' : 'No'}</dd>
+							<dd>{isCoinbase ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 </EntityView>

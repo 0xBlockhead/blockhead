@@ -2,8 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+		import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +35,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Erc4337PaymasterView from '$/views/Erc4337PaymasterView.svelte'
 </script>
@@ -62,28 +64,29 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.selector,
-				({ fields: { $$erc4337Paymasters: ({ sources: [
+			<ResourceBoundary
+				resource={proxy(
+						EntityType.EvmNetwork,
+						entityFieldReference.selector,
+					).field('$$erc4337Paymasters', {
+						sources: [
 							Source.Blockscout_Rest,
-						], limit: 16 }) } }),
-			)}
-			{@const paymasters = derive(
-				network,
-				(network): readonly Entity<typeof schema, EntityType.Erc4337Paymaster>[] => (
-					(network.fields.$$erc4337Paymasters?.values ?? [])
-				),
-			)}
-			<EntitiesList
+						],
+						limit: 16,
+					})}
+				placeholderText="Loading paymasters…"
+			>
+				{#snippet children(paymasters)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.Erc4337Paymaster}
 				id={`${id}-items`}
 				href={href}
-				getKey={(paymaster) => stringify(paymaster[EntityMetaKey.Selector])}
-				getSortValue={(paymaster) => paymaster[EntityMetaKey.Selector].address}
+				getKey={(paymaster) => stringify(paymaster.entitySelector)}
+				getSortValue={(paymaster) => paymaster.entitySelector.address}
 				placeholderText="Loading paymasters…"
-				resource={paymasters}
+				items={paymasters.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -94,12 +97,15 @@
 
 				{#snippet Item({ item: paymaster })}
 					<Erc4337PaymasterView
-						selector={paymaster[EntityMetaKey.Selector]}
+						selector={paymaster.entitySelector}
+						resource={paymaster}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

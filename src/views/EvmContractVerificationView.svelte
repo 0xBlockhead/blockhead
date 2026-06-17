@@ -3,7 +3,6 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -11,16 +10,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
-			caip2Namespace: selector.$contract.$network.caip2.namespace,
-			caip2Reference: selector.$contract.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address]', {
+			caip2: ,
 			address: selector.$contract.address,
 		}),
 		layout = EntityLayout.SummaryDetails,
@@ -44,19 +42,16 @@
 		never
 	> = $props()
 
-	const verification = $derived(subscribe(EntityType.EvmContractVerification,
-		selector,
-		({ sources: [
-				Source.Sourcify_Rest,
-			], fields: { ...(open && ({ match: true, creationMatch: true, runtimeMatch: true, verifiedAtMs: true, matchId: true, $compilation: true, $sourceBundle: true })) } }),
-	))
-
-
-	// (Derived)
-	const verificationRow = $derived(
-		verification.ready ? verification.current : undefined,
-	)
-
+	const verification = $derived(proxy(EntityType.EvmContractVerification, selector, {
+		sources: [Source.Sourcify_Rest],
+	}))
+	const match = $derived(verification.match)
+	
+	
+	
+	
+	
+	
 	const verificationSelectorKey = $derived(
 		stringify(selector),
 	)
@@ -82,11 +77,11 @@
 >
 	{#snippet Value()}
 		<ResourceBoundary
-			resource={verification}
+			resource={match}
 			placeholderText="Loading verification…"
 		>
-			{#snippet children(verification)}
-				{verification.fields.match ?? 'Verified source'}
+			{#snippet children(match)}
+				{match ?? 'Verified source'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -105,102 +100,102 @@
 	})}
 		{#if contentOpen}
 			<dl data-column-item="center">
-				{#if verificationRow?.fields.match}
-					<div>
-						<dt>Match</dt>
-						<dd>
-							<ResourceBoundary
-								resource={verification}
-								placeholderText="Loading verification record…"
-							>
-								{#snippet children(verification)}
-									<code>{verification.fields.match}</code>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
-				{#if verificationRow?.fields.creationMatch}
-					<div>
-						<dt>Creation match</dt>
-						<dd>
-							<ResourceBoundary
-								resource={verification}
-								placeholderText="Loading verification record…"
-							>
-								{#snippet children(verification)}
-									<code>{verification.fields.creationMatch}</code>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
-				{#if verificationRow?.fields.runtimeMatch}
-					<div>
-						<dt>Runtime match</dt>
-						<dd>
-							<ResourceBoundary
-								resource={verification}
-								placeholderText="Loading verification record…"
-							>
-								{#snippet children(verification)}
-									<code>{verification.fields.runtimeMatch}</code>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
-				{#if verificationRow?.fields.verifiedAtMs}
-					<div>
-						<dt>Verified at</dt>
-						<dd>
-							<ResourceBoundary
-								resource={verification}
-								placeholderText="Loading verification record…"
-							>
-								{#snippet children(verification)}
-									<Timestamp timestamp={verification.fields.verifiedAtMs} />
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
-				{#if verificationRow?.fields.matchId}
-					<div>
-						<dt>Match id</dt>
-						<dd>
-							<ResourceBoundary
-								resource={verification}
-								placeholderText="Loading verification record…"
-							>
-								{#snippet children(verification)}
-									{verification.fields.matchId}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+				<ResourceBoundary
+					resource={match}
+					placeholderText="Loading verification record…"
+				>
+					{#snippet children(match)}
+						{#if match}
+							<div>
+								<dt>Match</dt>
+								<dd><code>{match}</code></dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary
+					resource={verification.creationMatch}
+					placeholderText="Loading verification record…"
+				>
+					{#snippet children(creationMatch)}
+						{#if creationMatch}
+							<div>
+								<dt>Creation match</dt>
+								<dd><code>{creationMatch}</code></dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary
+					resource={verification.runtimeMatch}
+					placeholderText="Loading verification record…"
+				>
+					{#snippet children(runtimeMatch)}
+						{#if runtimeMatch}
+							<div>
+								<dt>Runtime match</dt>
+								<dd><code>{runtimeMatch}</code></dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary
+					resource={verification.verifiedAtMs}
+					placeholderText="Loading verification record…"
+				>
+					{#snippet children(verifiedAtMs)}
+						{#if verifiedAtMs}
+							<div>
+								<dt>Verified at</dt>
+								<dd>
+									<Timestamp timestamp={verifiedAtMs} />
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary
+					resource={verification.matchId}
+					placeholderText="Loading verification record…"
+				>
+					{#snippet children(matchId)}
+						{#if matchId}
+							<div>
+								<dt>Match id</dt>
+								<dd>{matchId}</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			</dl>
 		{/if}
 	{/snippet}
 
 	{#snippet Details({ open })}
-		<ResourceBoundary resource={verification}>
-			{#snippet children(verification)}
-				{#if verification.fields.$compilation}
+		<ResourceBoundary resource={verification.$compilation}>
+			{#snippet children(compilation)}
+				{#if compilation}
 					<section id={`${verificationSelectorKey}:compilation`}>
 						<EvmContractCompilationView
-							selector={verification.fields.$compilation[EntityMetaKey.Selector]}
+							selector={compilation.entitySelector}
 							layout={EntityLayout.SummaryDetails}
 							open={true}
 						/>
 					</section>
 				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
-				{#if verification.fields.$sourceBundle}
+		<ResourceBoundary resource={verification.$sourceBundle}>
+			{#snippet children(sourceBundle)}
+				{#if sourceBundle}
 					<section id={`${verificationSelectorKey}:source-bundle`}>
 						<EvmContractSourceBundleView
-							selector={verification.fields.$sourceBundle[EntityMetaKey.Selector]}
+							selector={sourceBundle.entitySelector}
 							layout={EntityLayout.SummaryDetails}
 							open={true}
 						/>

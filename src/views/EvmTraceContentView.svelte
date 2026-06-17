@@ -44,8 +44,9 @@
 						$actor: { address: trace.from },
 					}}
 					layout={EntityLayout.Value}
+
 					open={false}
-				/>
+					/>
 			</dd>
 		</div>
 	{/if}
@@ -60,8 +61,9 @@
 						$actor: { address: trace.to },
 					}}
 					layout={EntityLayout.Value}
+
 					open={false}
-				/>
+					/>
 			</dd>
 		</div>
 	{/if}

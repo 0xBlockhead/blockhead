@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -19,12 +19,7 @@
 		selector: EntitySelector<typeof schema, EntityType.EnsName>
 	} = $props()
 
-	const ens = $derived(
-		subscribe(EntityType.EnsName,
-			selector,
-			({ sources: [Source.Voltaire_JsonRpc], fields: { $resolverContract: true } }),
-		),
-	)
+	
 
 
 	// Components
@@ -37,7 +32,10 @@
 
 <ResourceBoundary
 	placeholderText="Loading resolver…"
-	resource={ens}
+	resource={proxy(EntityType.EnsName,
+			selector,
+			({ sources: [Source.Voltaire_JsonRpc], fields: { $resolverContract: true } }),
+		)}
 >
 	{#snippet children(ens)}
 		{@const contractId = ens.fields.$resolverContract?.[EntityMetaKey.Selector]}
@@ -46,7 +44,7 @@
 				<EvmNetworkView
 					selector={{ chainId: ChainId.Ethereum }}
 					layout={EntityLayout.Summary}
-					open={false}
+
 				/>
 			</section>
 

@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +34,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmErrorView from '$/views/EvmErrorView.svelte'
 </script>
@@ -68,34 +68,27 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Local_Internal,
-						],
-					},
-				} }),
-			)}
-			{@const errors = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.EvmError>[] => (
-					parent.fields[entityFieldReference.fieldName]?.values
-					?? []
-				),
-			)}
-			<div data-column="gap-3">
-				<EntitiesList
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Local_Internal],
+					})}
+				placeholderText="Loading errors…"
+			>
+				{#snippet children(errors)}
+			<EntitiesList
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.EvmError}
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(error) => error[EntityMetaKey.Selector].hex}
-					getSortValue={(error) => error[EntityMetaKey.Selector].hex}
+					getKey={(error) => error.entitySelector.hex}
+					getSortValue={(error) => error.entitySelector.hex}
 					placeholderText="Loading revert/error selectors…"
-					resource={errors}
+					items={errors.entities}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
 				>
 					{#snippet Empty()}
@@ -106,15 +99,16 @@
 
 					{#snippet Item({ item })}
 						<EvmErrorView
-							selector={item[EntityMetaKey.Selector]}
+							selector={item.entitySelector}
 							layout={EntityLayout.Summary}
-							open={false}
+
 							collapsible={false}
 							showTypeAnnotation={false}
 						/>
 					{/snippet}
 				</EntitiesList>
-			</div>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

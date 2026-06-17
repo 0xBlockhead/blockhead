@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const daQuorum = subscribe(EntityType.ZeroGDaQuorum,
-		selector,
-		({ fields: { selectionMethod: true } }),
-	)
+	
 
 
 	// Components
@@ -58,7 +55,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={daQuorum}
+			resource={proxy(EntityType.ZeroGDaQuorum, selector, ({ fields: { selectionMethod: true } }))}
 			placeholderText="Loading 0G DA quorum…"
 		>
 			{#snippet children(daQuorum)}

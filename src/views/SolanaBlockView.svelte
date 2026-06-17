@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,12 +27,7 @@
 		>
 	> = $props()
 
-	const block = subscribe(EntityType.SolanaBlock,
-		selector,
-		({ sources: [
-				Source.Solana_JsonRpc,
-			], fields: { blockHeight: true, blockHash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentSlot: true, previousBlockHash: true })) } }),
-	)
+	
 
 
 	// Components
@@ -87,7 +82,12 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={block}
+			resource={proxy(EntityType.SolanaBlock,
+					selector,
+					({ sources: [
+							Source.Solana_JsonRpc,
+						], fields: { blockHeight: true, blockHash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentSlot: true, previousBlockHash: true })) } }),
+				)}
 			placeholderText="Loading Solana block…"
 		>
 			{#snippet children(block)}

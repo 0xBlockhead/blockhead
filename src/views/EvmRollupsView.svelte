@@ -12,8 +12,7 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	// State
+		// State
 	let {
 		entityFieldReference,
 		title = 'Rollups',
@@ -35,11 +34,15 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
+
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmRollupView from '$/views/EvmRollupView.svelte'
 </script>
@@ -61,24 +64,20 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
+			<ResourceBoundary
+				resource={proxy(
+						EntityType.EvmNetwork,
+						entityFieldReference.selector,
+					).field('$$settledRollups', {
 						sources: [
 							Source.L2Beat_Rest,
 						],
 						limit: 16,
-					},
-				} }),
-			)}
-			{@const rollups = derive(
-				network,
-				(network): readonly Entity<typeof schema, EntityType.EvmRollup>[] => (
-					network.fields[entityFieldReference.fieldName]?.values
-					?? []
-				),
-			)}
-			<EntitiesList
+					})}
+				placeholderText="Loading rollups…"
+			>
+				{#snippet children(rollups)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmRollup}
@@ -86,7 +85,7 @@
 				href={href}
 				getKey={(rollup) => rollup[EntityMetaKey.Selector].projectId}
 				placeholderText="Loading rollups…"
-				resource={rollups}
+				items={rollups.values}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -101,10 +100,12 @@
 					<EvmRollupView
 						selector={rollup[EntityMetaKey.Selector]}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

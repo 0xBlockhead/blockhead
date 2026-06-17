@@ -1,9 +1,9 @@
 <script lang="ts">
+import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,7 +11,6 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -38,11 +37,14 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadFarcasterAccountConnectionView from '$/views/BlockheadFarcasterAccountConnectionView.svelte'
 </script>
@@ -73,42 +75,46 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const global = subscribe(EntityType._Global,
-				entityFieldReference.selector,
-				({ sources: [Source.Local_Internal], fields: { $$blockheadFarcasterAccountConnections: true } }),
-			)}
-			{@const connections = derive(
-				global,
-				(global) => (
-					global['$$blockheadFarcasterAccountConnections'] ?? []
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BlockheadFarcasterAccountConnection}
-				getKey={(blockheadFarcasterAccountConnection) => String(blockheadFarcasterAccountConnection[EntityMetaKey.Selector].fid)}
-				getSortValue={(blockheadFarcasterAccountConnection) => blockheadFarcasterAccountConnection[EntityMetaKey.Selector].fid}
-				{title}
-				open={true}
-				resource={connections}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No linked accounts yet.
-					</p>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					EntityType._Global,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Local_Internal],
+					}
+				).field('$$blockheadFarcasterAccountConnections', {
+					sources: [Source.Local_Internal],
+				})} placeholderText="Loading linked accounts…">
+				{#snippet children(connections)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BlockheadFarcasterAccountConnection}
+						id={`${id}-items`}
+						open={true}
+						items={connections.entities}
+						getKey={(connection) => stringify(connection.entitySelector)}
+						getSortValue={(connection) => connection.entitySelector.fid}
+						placeholderText="Loading linked accounts…"
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No linked accounts yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item: connection })}
-					<BlockheadFarcasterAccountConnectionView
-						selector={{ fid: connection[EntityMetaKey.Selector].fid }}
-						layout={EntityLayout.Summary}
-						open={false}
-						title="Account"
-					/>
+						{#snippet Item({ item })}
+							<BlockheadFarcasterAccountConnectionView
+								selector={{ fid: item.entitySelector.fid }}
+								layout={EntityLayout.Summary}
+
+								title="Account"
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

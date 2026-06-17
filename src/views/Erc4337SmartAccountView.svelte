@@ -4,21 +4,23 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/erc-4337/smart-account/[address]', {
-				...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+		resource,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address]', {
+				.caip2: ,
 				address: selector.address,
 		}),
 		layout = EntityLayout.Summary,
@@ -29,6 +31,7 @@
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.Erc4337SmartAccount>
+			resource?: EntityProxyResource<typeof schema, EntityType.Erc4337SmartAccount>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -41,12 +44,23 @@
 		>
 	> = $props()
 
-	const smartAccount = subscribe(EntityType.Erc4337SmartAccount,
-		selector,
-		({ sources: [
+	const smartAccount = $derived(
+		resource ?? proxy(
+			EntityType.Erc4337SmartAccount,
+			selector,
+			{
+			sources: [
 				Source.Blockscout_Rest,
-			], fields: { userOperationsCount: true, $contract: true, $factory: true } }),
+			],
+		}
+		)
 	)
+
+	
+
+	const contract = $derived(smartAccount.field('$contract'))
+
+	const factory = $derived(smartAccount.field('$factory'))
 
 
 	// Components
@@ -93,39 +107,54 @@
 		href: _href,
 		open: contentOpen,
 	})}
-		<ResourceBoundary
-			placeholderText="Loading smart account…"
-			resource={smartAccount}
-		>
-			{#snippet children(smartAccount)}
-				<dl data-column-item="center">
-					{#if smartAccount.fields.userOperationsCount !== undefined}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				placeholderText="Loading smart account user operation count…"
+				resource={smartAccount.userOperationsCount}
+			>
+				{#snippet children(userOperationsCount)}
+					{#if userOperationsCount !== undefined}
 						<div>
 							<dt>User operations</dt>
-							<dd data-text="mono">{String(smartAccount.fields.userOperationsCount)}</dd>
+							<dd data-text="mono">{String(userOperationsCount)}</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if smartAccount.fields.$factory != null}
+			<ResourceBoundary
+				placeholderText="Loading smart account factory…"
+				resource={factory}
+			>
+				{#snippet children(factory)}
+					{#if factory?.entitySelector !== undefined}
 						<div>
 							<dt>Factory</dt>
 							<dd>
 								<Erc4337AccountFactoryView
-									selector={smartAccount.fields.$factory[EntityMetaKey.Selector]}
+									selector={factory.entitySelector}
 									layout={EntityLayout.Title}
-									open={false}
+
 									showTypeAnnotation={false}
-								/>
+									open={false}
+									/>
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if smartAccount.fields.$contract != null}
+			<ResourceBoundary
+				placeholderText="Loading smart account contract…"
+				resource={contract}
+			>
+				{#snippet children(contract)}
+					{#if contract?.entitySelector !== undefined}
 						<div>
 							<dt>Account contract</dt>
 							<dd>
 								<EvmContractView
-									selector={smartAccount.fields.$contract[EntityMetaKey.Selector]}
+									selector={contract.entitySelector}
 									layout={EntityLayout.Value}
 									open={true}
 									showTypeAnnotation={false}
@@ -133,8 +162,8 @@
 							</dd>
 						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 </EntityView>

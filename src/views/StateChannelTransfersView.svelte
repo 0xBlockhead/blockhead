@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -43,11 +42,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import StateChannelTransferView from '$/views/StateChannelTransferView.svelte'
 </script>
@@ -74,35 +75,23 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [Source.Local_Internal],
-					},
-				} }),
-			)}
-			{@const transfers = derive(
-				parent,
-				(parent) => (
-					[...(parent.fields[entityFieldReference.fieldName]?.values ?? [])]
-						.map((value) => ({
-							value,
-						}))
-				),
-			)}
-			<EntitiesList
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Local_Internal],
+				})} placeholderText="Loading channel transfers…">
+				{#snippet children(transfers)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.StateChannelTransfer}
-				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
-				getSortValue={(line) => (
-					stringify(line.value[EntityMetaKey.Selector])
-				)}
-				placeholderText="Loading channel transfers…"
-				resource={transfers}
+				getKey={(transfer) => stringify(transfer.entitySelector)}
+				getSortValue={(transfer) => stringify(transfer.entitySelector)}
 				{title}
 				href={EntitiesListProps.href ?? ''}
 				id={`${EntitiesListProps.id ?? 'channel-transfers'}:items`}
+				items={transfers.entities}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
@@ -112,18 +101,18 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const line = item.value}
-					{@const transferId = line[EntityMetaKey.Selector]}
 					<StateChannelTransferView
-						selector={transferId}
+						selector={item.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 						collapsible={false}
 						showParentChannel={false}
 						showTypeAnnotation={false}
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

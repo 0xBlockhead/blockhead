@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -37,12 +37,9 @@
 		>
 	> = $props()
 
-	const conversation = subscribe(EntityType.XmtpConversation,
-		selector,
-		({ sources: [
+	const conversation = $derived(proxy(EntityType.XmtpConversation, selector, ({ sources: [
 				Source.Local_Internal,
-			], fields: { peerInboxId: true, topic: true, createdAtMs: true, consentState: true } }),
-	)
+			], fields: { peerInboxId: true, topic: true, createdAtMs: true, consentState: true } })))
 
 
 	// Components

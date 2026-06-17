@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,7 +36,7 @@
 		>
 	> = $props()
 
-	const coinTimestamp = $derived(subscribe(EntityType.Coin_Timestamp,
+	const coinTimestamp = $derived(proxy(EntityType.Coin_Timestamp,
 		selector,
 		{
 			sources: [
@@ -187,8 +187,9 @@
 							<CoinView
 								selector={selector.$coin}
 								layout={EntityLayout.Title}
+
 								open={false}
-							/>
+								/>
 						</dd>
 					</div>
 					{#if (

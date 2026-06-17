@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,12 +19,12 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = subscribe(EntityType.SolanaNetwork_Timestamp,
+	const snapshot = $derived(proxy(EntityType.SolanaNetwork_Timestamp,
 		selector,
 		({ sources: [
 				Source.Solana_JsonRpc,
 			], fields: { absoluteSlot: true, blockHeight: true, epoch: true, slotIndex: true, slotsInEpoch: true, transactionCount: true, currentValidatorCount: true, delinquentValidatorCount: true, totalActivatedStakeLamports: true, solanaCoreVersion: true, featureSet: true, health: true } }),
-	)
+	))
 
 
 	// Components

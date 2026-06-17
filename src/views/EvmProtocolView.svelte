@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -31,13 +31,25 @@
 		never
 	> = $props()
 
-	const protocol = subscribe(EntityType.EvmProtocol,
+	const protocol = $derived(proxy(
+		EntityType.EvmProtocol,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Constants_Internal,
 				Source.Local_Internal,
-			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$evmTopics: true, $$evmSelectors: true, $$evmErrors: true }) : ({  })) } }),
-	)
+			],
+		},
+	))
+	
+	
+	
+	
+	
+	const evmTopics = $derived(protocol.field('$$evmTopics', { limit: 4096 }))
+	const evmSelectors = $derived(protocol.field('$$evmSelectors'))
+	const evmErrors = $derived(protocol.field('$$evmErrors'))
+
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
@@ -84,70 +96,65 @@
 
 	{#snippet Content({})}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={protocol}
-				placeholderText="Loading EVM protocol…"
-			>
-				{#snippet children(protocol)}
-					{#if protocol.fields.registryLabel}
-						<div>
-							<dt>Registry</dt>
-							<dd>{protocol.fields.registryLabel}</dd>
-						</div>
-					{:else if protocol.fields.protocolName}
-						<div>
-							<dt>Protocol</dt>
-							<dd>{protocol.fields.protocolName}</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Topics</dt>
-							<dd>{String(protocol.fields.$$evmTopics?.values.length ?? 0)}</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Selectors</dt>
-							<dd>{String(protocol.fields.$$evmSelectors?.values.length ?? 0)}</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Errors</dt>
-							<dd>{String(protocol.fields.$$evmErrors?.values.length ?? 0)}</dd>
-						</div>
-					{/if}
-
-					{#if open && protocol.fields.homeUrl}
-						<div>
-							<dt>Home</dt>
-							<dd>
-								<a href={protocol.fields.homeUrl}>{protocol.fields.homeUrl}</a>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && protocol.fields.docsUrl}
-						<div>
-							<dt>Docs</dt>
-							<dd>
-								<a href={protocol.fields.docsUrl}>{protocol.fields.docsUrl}</a>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && protocol.fields.topology}
-						<div>
-							<dt>Topology</dt>
-							<dd>{protocol.fields.topology}</dd>
-						</div>
+			<ResourceBoundary resource={protocol.registryLabel} placeholderText="Loading EVM registry…">
+				{#snippet children(registryLabel)}
+					{#if registryLabel}
+						<div><dt>Registry</dt><dd>{registryLabel}</dd></div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<ResourceBoundary resource={protocol.protocolName} placeholderText="Loading EVM protocol…">
+				{#snippet children(protocolName)}
+					{#if protocolName}
+						<div><dt>Protocol</dt><dd>{protocolName}</dd></div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			{#if open}
+				<ResourceBoundary resource={evmTopics} placeholderText="Loading topics…">
+					{#snippet children(evmTopics)}
+						<div><dt>Topics</dt><dd>{String(evmTopics.values.length)}</dd></div>
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary resource={evmSelectors} placeholderText="Loading selectors…">
+					{#snippet children(evmSelectors)}
+						<div><dt>Selectors</dt><dd>{String(evmSelectors.values.length)}</dd></div>
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary resource={evmErrors} placeholderText="Loading errors…">
+					{#snippet children(evmErrors)}
+						<div><dt>Errors</dt><dd>{String(evmErrors.values.length)}</dd></div>
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary resource={protocol.homeUrl} placeholderText="Loading home URL…">
+					{#snippet children(homeUrl)}
+						{#if homeUrl}
+							<div><dt>Home</dt><dd>{homeUrl}</dd></div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary resource={protocol.docsUrl} placeholderText="Loading docs URL…">
+					{#snippet children(docsUrl)}
+						{#if docsUrl}
+							<div><dt>Docs</dt><dd>{docsUrl}</dd></div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary resource={protocol.topology} placeholderText="Loading topology…">
+					{#snippet children(topology)}
+						{#if topology}
+							<div><dt>Topology</dt><dd>{topology}</dd></div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 		</dl>
 	{/snippet}
 

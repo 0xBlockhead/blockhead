@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const zeroGDataChunk = subscribe(EntityType.ZeroGDataChunk,
-		selector,
-		({ fields: { chunkRoot: true, sizeBytes: true } }),
-	)
+	
 
 
 	// Components
@@ -66,7 +63,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={zeroGDataChunk}
+			resource={proxy(EntityType.ZeroGDataChunk,
+					selector,
+					({ fields: { chunkRoot: true, sizeBytes: true } }),
+				)}
 			placeholderText={`Loading 0G data chunk...`}
 		>
 			{#snippet children(zeroGDataChunk)}

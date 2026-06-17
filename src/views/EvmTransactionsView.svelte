@@ -1,34 +1,49 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+import type { WithRest } from '$/typescript/WithRest.ts'
+import { stringify } from 'devalue'
+import { ListOrientation } from '$/components/ListOrientation.ts'
+
+type EvmTransactionsResource = EntityProxyFieldResource<
+	typeof schema,
+	EntityType.EvmBlock,
+	'$$transactions'
+> | EntityProxyFieldResource<
+	typeof schema,
+	EntityType.EvmNetwork,
+	'$$transactions'
+> | EntityProxyFieldResource<
+	typeof schema,
+	EntityType.EvmNetworkAccount,
+	'$$transactions'
+>
+
+type EvmBlockNumberSelector = Extract<
+	EntitySelector<typeof schema, EntityType.EvmBlock>,
+	{ readonly blockNumber: bigint }
+>
 
 
-	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
-	import { resolve } from '$app/paths'
+import { resolve } from '$app/paths'
 
 
 	// State
 	let {
-		entityFieldReference,
+		resource,
+		blockSelector,
 		title = 'Transactions',
 		open = $bindable(true),
 		collapsible = true,
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<
-				typeof schema,
-				EntityType.EvmTransaction
-			>
+			resource: EvmTransactionsResource
+			blockSelector?: EvmBlockNumberSelector
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -41,11 +56,10 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 </script>
@@ -56,7 +70,7 @@
 	{title}
 	bind:open
 	{collapsible}
-		{...EntitiesListProps}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -75,98 +89,58 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				entityFieldReference.entityType === EntityType.EvmBlock ?
-					({
-						fields: {
-						[entityFieldReference.fieldName]: {
-							sources: [
-								Source.Blockscout_Rest,
-								Source.Voltaire_JsonRpc,
-							],
-							limit: 100,
-						},
-					},
-					})
-				:
-					({
-						fields: {
-						[entityFieldReference.fieldName]: {
-							sources: [
-								Source.Blockscout_Rest,
-							],
-							limit: (
-								entityFieldReference.entityType === EntityType.EvmNetworkAccount ?
-									32
-								:
-									8
-							),
-						},
-					},
-					}),
-			)}
-			{@const transactions = derive(
-				parent,
-				(parent) => (
-					[...(parent.fields[entityFieldReference.fieldName]?.values ?? [])]
-						.map((value) => ({
-							value,
-						}))
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmTransaction}
-				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
-				getSortValue={(line) => (
-					line.value.transactionIndex !== undefined ?
-						-line.value.transactionIndex
-					:
-						stringify(line.value[EntityMetaKey.Selector])
-				)}
+			<ResourceBoundary
+				{resource}
 				placeholderText="Loading transactions…"
-				resource={transactions}
-				{title}
-				open={true}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No transactions yet.
-					</p>
-				{/snippet}
+				{#snippet children(transactions)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.EvmTransaction}
+						getKey={(transaction) => stringify(transaction.entitySelector)}
+						getSortValue={(transaction) => stringify(transaction.entitySelector)}
+						placeholderText="Loading transactions…"
+						items={transactions.entities}
+						{title}
+						open={true}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No transactions yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					{@const line = item.value}
-					{@const t = line[EntityMetaKey.Selector]}
-					{#if entityFieldReference.entityType === EntityType.EvmBlock}
-						<!-- href override: tx detail under block route, not network /transactions/tx -->
-						<EvmTransactionView
-							selector={t}
-							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId=evmTxHash]', {
-									caip2Namespace: entityFieldReference.selector.$network.caip2.namespace,
-									caip2Reference: entityFieldReference.selector.$network.caip2.reference,
-									blockNumber: String(entityFieldReference.selector.blockNumber),
-										transactionId: t.txHash,
-								})}
-							layout={EntityLayout.Summary}
-							open={false}
-							collapsible={false}
-							showTypeAnnotation={false}
-						/>
-						{:else if entityFieldReference.entityType === EntityType.EvmNetwork || entityFieldReference.entityType === EntityType.EvmNetworkAccount}
-						<EvmTransactionView
-							selector={t}
-							layout={EntityLayout.Summary}
-							open={false}
-							collapsible={false}
-							showTypeAnnotation={false}
-						/>
-					{/if}
+						{#snippet Item({ item })}
+							{@const t = item.entitySelector}
+							{#if blockSelector}
+								<!-- href override: tx detail under block route, not network /transactions/tx -->
+								<EvmTransactionView
+										selector={t}
+										href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId=evmTxHash]', {
+											caip2: `${blockSelector.$network.caip2.namespace}:${blockSelector.$network.caip2.reference}`,
+											blockNumber: String(blockSelector.blockNumber),
+											transactionId: t.txHash,
+										})}
+									layout={EntityLayout.Summary}
+
+									collapsible={false}
+									showTypeAnnotation={false}
+								/>
+							{:else}
+								<EvmTransactionView
+									selector={t}
+									layout={EntityLayout.Summary}
+
+									collapsible={false}
+									showTypeAnnotation={false}
+								/>
+							{/if}
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

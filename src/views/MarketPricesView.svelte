@@ -12,7 +12,6 @@
 		marketSpotPriceSources,
 	} from '$/sources/Source.ts'
 
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
@@ -20,7 +19,8 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { resolve } from '$app/paths'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -48,11 +48,12 @@
 	> = $props()
 
 
+	
+
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import MarketPriceView from '$/views/MarketPriceView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -80,52 +81,43 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary
-				resource={subscribe(entityFieldReference.entityType,
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
 					entityFieldReference.selector,
-					({
+					{
 						sources: [
 							...marketCatalogFieldSources,
 						],
-						fields: {
-							[entityFieldReference.fieldName]: {
-								sources: marketSpotPriceSources,
-								limit: limit,
-							},
-						},
-					})
-				)}
-			>
-				{#snippet children(market)}
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: marketSpotPriceSources,
+					limit,
+				})}>
+				{#snippet children(prices)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
 						entityType={EntityType.MarketPrice}
-						getKey={(row) => stringify(
-							row.value[EntityMetaKey.Selector],
+						getKey={(price) => stringify(price.entitySelector)}
+						getSortValue={(price) => (
+							price.entitySelector.$market.$base.kind === MarketAssetKind.Coin ?
+								price.entitySelector.$market.$base.$coin.coinId
+							:
+								''
 						)}
-							getSortValue={(row) => (
-								row.value[EntityMetaKey.Selector].$market.$base.kind === MarketAssetKind.Coin ?
-									row.value[EntityMetaKey.Selector].$market.$base.$coin.coinId
-								:
-									''
-							)}
-							open={true}
-							items={Object.values(
-								Object.groupBy(
-									market.fields[entityFieldReference.fieldName]?.values ?? [],
-									(price) => stringify(price[EntityMetaKey.Selector]),
-								),
-							)
-								.flatMap((group) => (
-									group == null ?
-										[]
+						open={true}
+						items={Object.values(
+							Object.groupBy(
+								prices.entities,
+								(price) => stringify(price.entitySelector),
+							),
+						)
+							.flatMap((group) => (
+								group == null ?
+									[]
 								:
 									[group[0]]
-							))
-							.map((value) => ({
-								value,
-							}))}
+							))}
 						{title}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
@@ -136,12 +128,26 @@
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<MarketPriceView
-								selector={item.value[EntityMetaKey.Selector]}
-								id={stringify(item.value[EntityMetaKey.Selector])}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
+							{@const marketPriceLabel = `${item.entitySelector.$market.$marketVenue.marketVenueId}:${
+								item.entitySelector.$market.$base.kind === MarketAssetKind.Coin ?
+									item.entitySelector.$market.$base.$coin.coinId
+								:
+									item.entitySelector.$market.$base.kind
+							}/${item.entitySelector.$market.$quote.kind === MarketAssetKind.Coin ?
+								item.entitySelector.$market.$quote.$coin.coinId
+							:
+								item.entitySelector.$market.$quote.kind
+							}`}
+							<a
+								href={resolve('/(assets)/(markets)/market/[marketKey]', {
+									marketKey: stringify(item.entitySelector.$market),
+								})}
+							>
+								<TruncatedValue
+									value={marketPriceLabel}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

@@ -86,7 +86,7 @@
 						<EvmNetworkView
 							selector={selector.$sourceTx.$network}
 							layout={EntityLayout.Title}
-							open={false}
+
 						/>
 					</dd>
 				</div>
@@ -96,14 +96,14 @@
 						<EvmTransactionView
 							selector={selector.$sourceTx}
 							href={resolve(
-								'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]',
+								'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]',
 								{
-										...{ caip2Namespace: selector.$sourceTx.$network.caip2.namespace, caip2Reference: selector.$sourceTx.$network.caip2.reference },
+										.caip2: ,
 										transactionId: selector.$sourceTx.txHash,
 								},
 							)}
 							layout={EntityLayout.Title}
-							open={false}
+
 						/>
 					</dd>
 				</div>
@@ -125,7 +125,7 @@
 									$actor: selector.$account,
 								}}
 								layout={EntityLayout.Title}
-								open={false}
+
 							/>
 						</dd>
 					</div>

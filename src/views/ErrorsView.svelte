@@ -1,8 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +34,12 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmErrorView from '$/views/EvmErrorView.svelte'
 </script>
@@ -68,58 +67,48 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Openchain_Rest,
-						],
-					},
-				} }),
-			)}
-			{@const errors = derive(
-				parent,
-				(parent) => {
-					const evmErrors: readonly Entity<typeof schema, EntityType.EvmError>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						evmErrors.map((evmEntity) => ({
-							evmEntity,
-						}))
-					)
-				},
-			)}
 			<div data-column="gap-3">
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.EvmError}
-					id={`${id}-items`}
-					{title}
-					open={true}
-					getKey={(envelope) => envelope.evmEntity[EntityMetaKey.Selector].hex}
-					getSortValue={(envelope) => envelope.evmEntity[EntityMetaKey.Selector].hex}
+				<ResourceBoundary
+					resource={proxy(
+							entityFieldReference.entityType,
+							entityFieldReference.selector,
+						).field(entityFieldReference.fieldName, {
+							sources: [Source.Openchain_Rest],
+						})}
 					placeholderText="Loading revert data…"
-					resource={errors}
-					UnorderedListProps={{ orientation: ListOrientation.Column }}
 				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No revert selectors yet.
-						</p>
-					{/snippet}
-
-					{#snippet Item({ item })}
-						<EvmErrorView
-							selector={item.evmEntity[EntityMetaKey.Selector]}
-							layout={EntityLayout.Summary}
-							open={false}
+					{#snippet children(errors)}
+						<EntitiesList
 							collapsible={false}
-							showTypeAnnotation={false}
-						/>
+							showSummary={false}
+							entityType={EntityType.EvmError}
+							id={`${id}-items`}
+							{title}
+							open={true}
+							getKey={(error) => error.entitySelector.hex}
+							getSortValue={(error) => error.entitySelector.hex}
+							placeholderText="Loading revert data…"
+							items={errors.entities}
+							UnorderedListProps={{ orientation: ListOrientation.Column }}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">
+									No revert selectors yet.
+								</p>
+							{/snippet}
+
+							{#snippet Item({ item })}
+								<EvmErrorView
+									selector={item.entitySelector}
+									layout={EntityLayout.Summary}
+
+									collapsible={false}
+									showTypeAnnotation={false}
+								/>
+							{/snippet}
+						</EntitiesList>
 					{/snippet}
-				</EntitiesList>
+				</ResourceBoundary>
 			</div>
 		{/if}
 	{/snippet}

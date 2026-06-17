@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const dogecoinAuxPowMerkleBranch = subscribe(EntityType.DogecoinAuxPowMerkleBranch,
-		selector,
-		({ fields: { branchHashes: true, index: true } }),
-	)
+	
 
 
 	// Components
@@ -54,7 +51,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={dogecoinAuxPowMerkleBranch}
+			resource={proxy(EntityType.DogecoinAuxPowMerkleBranch,
+					selector,
+					({ fields: { branchHashes: true, index: true } }),
+				)}
 			placeholderText={`Loading Dogecoin AuxPoW Merkle Branch...`}
 		>
 			{#snippet children(dogecoinAuxPowMerkleBranch)}

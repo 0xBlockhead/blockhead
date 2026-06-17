@@ -3,7 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +12,6 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -47,11 +45,14 @@
 	)
 
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadAgentConversationView from '$/views/BlockheadAgentConversationView.svelte'
 </script>
@@ -82,48 +83,45 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const global = subscribe(EntityType._Global,
-				entityFieldReference?.selector ?? globalId,
-				({ sources: [
-						Source.Local_Internal,
-					], fields: { $$blockheadAgentConversations: true } }),
-			)}
-			{@const conversations = derive(
-				global,
-				(global) => (
-					global.$$blockheadAgentConversations
-					?? []
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BlockheadAgentConversation}
-				id={`${id}-items`}
-				open={true}
-				getKey={(conversation) => stringify(conversation[EntityMetaKey.Selector])}
-				getSortValue={(conversation) => conversation[EntityMetaKey.Selector].id}
-				placeholderText="Loading conversations…"
-				resource={conversations}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No conversations yet.
-					</p>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					EntityType._Global,
+					entityFieldReference?.selector ?? globalId,
+					{
+						sources: [Source.Local_Internal],
+					}
+				).field('$$blockheadAgentConversations', {
+					sources: [Source.Local_Internal],
+				})} placeholderText="Loading conversations…">
+				{#snippet children(conversations)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BlockheadAgentConversation}
+						id={`${id}-items`}
+						open={true}
+						items={conversations.entities}
+						getKey={(conversation) => stringify(conversation.entitySelector)}
+						getSortValue={(conversation) => conversation.entitySelector.id}
+						placeholderText="Loading conversations…"
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No conversations yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item: conversation })}
-					<BlockheadAgentConversationView
-						selector={{
-							id: conversation[EntityMetaKey.Selector].id,
-						}}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<BlockheadAgentConversationView
+								selector={{ id: item.entitySelector.id }}
+								layout={EntityLayout.Summary}
+
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

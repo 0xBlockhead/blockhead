@@ -90,7 +90,7 @@
 							fieldName: '$$liquidityPools',
 						}}
 						id="pools"
-						open={hubOpen}
+						open={false}
 					/>
 				{/snippet}
 		</CollapsibleTabs>

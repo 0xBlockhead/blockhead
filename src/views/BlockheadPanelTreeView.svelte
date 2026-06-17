@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -39,14 +39,7 @@
 		>
 	> = $props()
 
-	const panelTree = subscribe(EntityType.BlockheadPanelTree,
-		selector,
-		{
-			sources: [
-				Source.Local_Internal,
-			],
-		},
-	)
+	
 
 
 	// Components
@@ -97,7 +90,11 @@
 			data-column="gap-2"
 			id={`${stringify(selector)}:metadata`}
 		>
-			<ResourceBoundary resource={panelTree}>
+			<ResourceBoundary resource={proxy(EntityType.BlockheadPanelTree, selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				})}>
 				{#snippet children(panelTree)}
 					<p data-text="muted">
 						No saved panel layout metadata yet.

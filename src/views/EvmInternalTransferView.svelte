@@ -3,7 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -16,16 +15,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-			caip2Namespace: selector.$network.caip2.namespace,
-			caip2Reference: selector.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+			caip2: ,
 			transactionId: selector.txHash,
 		}),
 		layout = EntityLayout.SummaryDetails,
@@ -49,6 +47,14 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
+
+	const transfer = $derived(proxy(EntityType.EvmInternalTransfer, selector, {
+		sources: [Source.Blockscout_Rest],
+	}))
+	const callType = $derived(transfer.callType)
+	
+	
+
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -89,74 +95,88 @@
 	{/snippet}
 
 	{#snippet Content()}
-		{@const transfer = subscribe(EntityType.EvmInternalTransfer,
-			selector,
-			({ sources: [Source.Blockscout_Rest], fields: { value: true, $from: true, $to: true, ...(open && ({ callType: true, success: true, $createdContract: true })) } }),
-		)}
 		<dl data-column-item="center">
+			{#if showParentTransaction}
+				<div>
+					<dt>Transaction</dt>
+					<dd>
+						<a
+							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+								caip2: ,
+								transactionId: selector.txHash,
+							})}
+						>
+							<TruncatedValue
+								value={selector.txHash}
+								format={TruncatedValueFormat.Abbr}
+							/>
+						</a>
+					</dd>
+				</div>
+			{/if}
+
+			<div>
+				<dt>Internal index</dt>
+				<dd>{String(selector.internalIndex)}</dd>
+			</div>
+
 			<ResourceBoundary
-				resource={transfer}
-				placeholderText="Loading internal transfer…"
+				resource={callType}
+				placeholderText="Loading call type…"
 			>
-				{#snippet children(transfer)}
-
-					{#if showParentTransaction}
-						<div>
-							<dt>Transaction</dt>
-							<dd>
-									<a
-										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-											caip2Namespace: selector.$network.caip2.namespace,
-											caip2Reference: selector.$network.caip2.reference,
-											transactionId: selector.txHash,
-										})}
-									>
-									<TruncatedValue
-										value={selector.txHash}
-										format={TruncatedValueFormat.Abbr}
-									/>
-								</a>
-							</dd>
-						</div>
-					{/if}
-
-					<div>
-						<dt>Internal index</dt>
-						<dd>{String(selector.internalIndex)}</dd>
-					</div>
-
-					{#if transfer.fields.callType}
+				{#snippet children(callType)}
+					{#if callType}
 						<div>
 							<dt>Call type</dt>
-							<dd>{evmInternalCallTypeByCallType[transfer.fields.callType].label}</dd>
+							<dd>{evmInternalCallTypeByCallType[callType].label}</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if transfer.fields.success !== undefined}
+			<ResourceBoundary
+				resource={transfer.success}
+				placeholderText="Loading status…"
+			>
+				{#snippet children(success)}
+					{#if success !== undefined}
 						<div>
 							<dt>Success</dt>
-							<dd>{transfer.fields.success ? 'Yes' : 'No'}</dd>
+							<dd>{success ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
+			<ResourceBoundary
+				resource={callType}
+				placeholderText="Loading created contract…"
+			>
+				{#snippet children(callType)}
 					{#if (
-						(
-							transfer.fields.callType === EvmInternalCallType.Create
-							|| transfer.fields.callType === EvmInternalCallType.Create2
-						)
-						&& transfer.fields.$createdContract
+						callType === EvmInternalCallType.Create
+						|| callType === EvmInternalCallType.Create2
 					)}
-						<div>
-							<dt>Created contract</dt>
-							<dd>
-								<EvmContractView
-									selector={transfer.fields.$createdContract[EntityMetaKey.Selector]}
-									layout={EntityLayout.Value}
-									open={true}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
+						<ResourceBoundary
+							resource={transfer.$createdContract}
+							placeholderText="Loading created contract…"
+						>
+							{#snippet children(createdContract)}
+								{#if createdContract}
+									<div>
+										<dt>Created contract</dt>
+										<dd>
+											<EvmContractView
+												selector={createdContract.entitySelector}
+												layout={EntityLayout.Value}
+												open={true}
+												showTypeAnnotation={false}
+											/>
+										</dd>
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

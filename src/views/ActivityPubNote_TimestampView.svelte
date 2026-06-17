@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -39,13 +39,7 @@
 		>
 	> = $props()
 
-	const activityPubNoteTimestamp = subscribe(EntityType.ActivityPubNote_Timestamp,
-		selector,
-		({ sources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			], fields: { favouriteCount: true, reblogCount: true, replyCount: true } }),
-	)
+	
 
 
 	// Components
@@ -81,7 +75,13 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={activityPubNoteTimestamp}
+			resource={proxy(EntityType.ActivityPubNote_Timestamp,
+					selector,
+					({ sources: [
+							Source.Mastodon_Rest,
+							Source.Fedi_Rest,
+						], fields: { favouriteCount: true, reblogCount: true, replyCount: true } }),
+				)}
 			placeholderText="Loading ActivityPub note snapshot..."
 		>
 			{#snippet children(activityPubNoteTimestamp)}

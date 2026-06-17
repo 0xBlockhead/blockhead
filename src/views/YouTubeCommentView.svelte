@@ -12,8 +12,7 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -53,7 +52,7 @@
 	> = $props()
 
 	const comment = $derived(
-		subscribe(
+		proxy(
 			EntityType.YouTubeComment,
 			selector,
 			({ sources: [
@@ -117,12 +116,12 @@
 		>
 			{#snippet children(comment)}
 				<TruncatedValue
-					value={(
+					value={
 						comment.fields.text ?
 							comment.fields.text.replaceAll('\n', ' ')
 						:
 							selector.commentId
-					)}
+					}
 					startLength={64}
 					endLength={16}
 					format={TruncatedValueFormat.Visual}
@@ -229,14 +228,16 @@
 										<YouTubeChannelView
 											selector={comment.fields.$author[EntityMetaKey.Selector]}
 											layout={EntityLayout.Value}
+
 											open={false}
-										/>
+											/>
 									{:else if comment.fields.authorChannelId}
 										<YouTubeChannelView
 											selector={{ channelId: comment.fields.authorChannelId }}
 											layout={EntityLayout.Value}
+
 											open={false}
-										/>
+											/>
 									{/if}
 								</dd>
 							</div>
@@ -256,8 +257,9 @@
 									<YouTubeVideoView
 										selector={comment.fields.$video[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								</dd>
 							</div>
 						{/if}
@@ -276,8 +278,12 @@
 									<YouTubeCommentView
 										selector={comment.fields.$parentComment[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
+
+									
 										open={false}
-									/>
+
+									
+										/>
 								</dd>
 							</div>
 						{/if}
@@ -291,7 +297,7 @@
 		open: _open,
 	})}
 		{#if _open}
-			{@const repliesParent = subscribe(EntityType.YouTubeComment,
+			{@const repliesParent = proxy(EntityType.YouTubeComment,
 				selector,
 				({ sources: [
 					Source.Youtube_Rest,
@@ -300,13 +306,20 @@
 					Source.Youtube_Rest,
 				], limit: 50 }) } }),
 			)}
-			{@const replies = derive(
-				repliesParent,
-				(repliesParent) => {
-					const youTubeComments: readonly Entity<typeof schema, EntityType.YouTubeComment>[] = repliesParent.fields.$$replies.values ?? []
-					return youTubeComments.map((reply) => reply[EntityMetaKey.Selector])
+			{@const replies = proxy(EntityType.YouTubeComment,
+				selector,
+				{
+					sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					],
 				},
-			)}
+			).field('$$replies', {
+				sources: [
+					Source.Youtube_Rest,
+				],
+				limit: 50,
+			})}
 			{@const repliesParentFields = repliesParent.current?.fields}
 			{#if repliesParentFields?.$parentComment === undefined}
 				<EntitiesList
@@ -316,12 +329,12 @@
 						commentId: encodeURIComponent(selector.commentId),
 					})}
 					id={`${idKey}:replies`}
-					title={(
+					title={
 						repliesParentFields?.$$replies != null ?
 							`Replies (${String(repliesParentFields.$$replies.values.length)})`
 						:
 							'Replies'
-					)}
+					}
 					collapsible={false}
 				>
 					{#snippet body()}
@@ -334,27 +347,27 @@
 								commentId: encodeURIComponent(selector.commentId),
 							})}
 							id={`${idKey}:replies-items`}
-							title={(
+							title={
 								repliesParentFields?.$$replies != null ?
 									`Replies (${String(repliesParentFields.$$replies.values.length)})`
 								:
 									'Replies'
-							)}
-							resource={replies}
+							}
+							items={replies.entities}
 							placeholderText="Loading replies…"
-							getKey={(row) => stringify(row)}
-							getSortValue={(youTubeComment) => youTubeComment.commentId}
+							getKey={(comment) => stringify(comment.entitySelector)}
+							getSortValue={(comment) => comment.entitySelector.commentId}
 							placeholderKeys={new SvelteSet<string>()}
 							open={true}
 						>
 							{#snippet Empty()}
 								<p data-text="muted">
-									{(
+									{
 										repliesParentFields?.$$replies.values.length === 0 ?
 											'No replies yet.'
 										:
 											'Replies could not be loaded.'
-									)}
+									}
 								</p>
 							{/snippet}
 
@@ -362,17 +375,18 @@
 								item: comment,
 							})}
 								<YouTubeCommentView
-									selector={{
-										videoId: comment.videoId,
-										commentId: comment.commentId,
-									}}
+									selector={comment.entitySelector}
 									href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
-										videoId: encodeURIComponent(comment.videoId),
-										commentId: encodeURIComponent(comment.commentId),
+										videoId: encodeURIComponent(comment.entitySelector.videoId),
+										commentId: encodeURIComponent(comment.entitySelector.commentId),
 									})}
 									layout={EntityLayout.SummaryDetails}
+
+								
 									open={false}
-								/>
+
+								
+									/>
 							{/snippet}
 						</EntitiesList>
 					{/snippet}

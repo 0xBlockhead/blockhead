@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -24,24 +24,18 @@
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
+	const network = $derived(proxy(EntityType.Network, selector, ({ sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } }),
-	)
+			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } })))
 
-	const zeroGNetwork = subscribe(EntityType.ZeroGNetwork,
-		{
+	const zeroGNetwork = $derived(proxy(EntityType.ZeroGNetwork, {
 			slug: '0g',
-		},
-		({ sources: [
+		}, ({ sources: [
 				Source.Constants_Internal,
 				Source.ZeroGChain_JsonRpc,
 				Source.ZeroGChainScan_Rest,
 				Source.ZeroGStorageScan_Rest,
-			], fields: { rpcEndpoints: true, storageEndpoints: true, $$blocks: ({ limit: 1 }), $consensusNetwork: true, $$timestamps: ({ limit: 1 }) } }),
-	)
+			], fields: { rpcEndpoints: true, storageEndpoints: true, $$blocks: ({ limit: 1 }), $consensusNetwork: true, $$timestamps: ({ limit: 1 }) } })))
 
 
 	// (Derived)
@@ -116,7 +110,8 @@
 											<EvmBlockView
 												selector={block[EntityMetaKey.Selector]}
 												layout={EntityLayout.Value}
-											/>
+												open={false}
+												/>
 										</dd>
 								</div>
 							{/if}

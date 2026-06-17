@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -36,8 +35,10 @@
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -99,70 +100,65 @@
 
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
-				{@const parent = subscribe(entityFieldReference.entityType,
-					entityFieldReference.selector,
-					({
-						sources: [
-							Source.Constants_Internal,
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						],
-						fields: {
-							[entityFieldReference.fieldName]: {
+				<ResourceBoundary
+					resource={proxy(
+							entityFieldReference.entityType,
+							entityFieldReference.selector,
+							{
 								sources: [
+									Source.Constants_Internal,
 									Source.Youtube_Rest,
 									Source.Piped_Rest,
 								],
-								limit,
-							},
-						},
-					})
-				)}
-				<ResourceBoundary
-					resource={parent}
+							}
+						).field(entityFieldReference.fieldName, {
+							sources: [
+								Source.Youtube_Rest,
+								Source.Piped_Rest,
+							],
+							limit,
+						})}
 					placeholderText="Loading videos…"
 				>
-					{#snippet children(parent)}
+					{#snippet children(videos)}
 						<EntitiesList
 							collapsible={false}
 							showSummary={false}
 							entityType={EntityType.YouTubeVideo}
 							id={`${id}-items`}
 							{title}
-							items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
+							items={videos.entities}
 							placeholderText="Loading videos…"
-							getKey={(video) => video[EntityMetaKey.Selector].videoId}
-							getSortValue={(video) => stringify(video[EntityMetaKey.Selector])}
+							getKey={(video) => video.entitySelector.videoId}
+							getSortValue={(video) => stringify(video.entitySelector)}
 						>
 							{#snippet Empty()}
 								<div data-row="wrap align-center gap-2">
-									<p data-text="muted">
-										No YouTube videos here yet.
-									</p>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
-											<p>
-												Rows are watchable uploads on YouTube itself.
-											</p>
-											<p>
-												They are not social casts or decentralized storage objects.
-											</p>
-										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="About YouTube videos"
-										>ⓘ</abbr>
-									</Tooltip>
-								</div>
+								<p data-text="muted">
+									No YouTube videos here yet.
+								</p>
+								<Tooltip contentProps={{ side: 'top' }}>
+									{#snippet Content()}
+										<p>
+											Rows are watchable uploads on YouTube itself.
+										</p>
+										<p>
+											They are not social casts or decentralized storage objects.
+										</p>
+									{/snippet}
+									<abbr
+										class="entity-heading-tip"
+										aria-label="About YouTube videos"
+									>ⓘ</abbr>
+								</Tooltip>
+							</div>
 							{/snippet}
 
-							{#snippet Item({
-								item: video,
-							})}
+							{#snippet Item({ item })}
 								<YouTubeVideoView
-									selector={video[EntityMetaKey.Selector]}
+									selector={item.entitySelector}
 									layout={EntityLayout.SummaryDetails}
-									open={false}
+
 								/>
 							{/snippet}
 						</EntitiesList>

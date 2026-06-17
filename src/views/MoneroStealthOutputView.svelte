@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const moneroStealthOutput = subscribe(EntityType.MoneroStealthOutput,
-		selector,
-		({ fields: { publicKey: true, commitment: true } }),
-	)
+	
 
 
 	// Components
@@ -65,7 +62,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={moneroStealthOutput}
+			resource={proxy(EntityType.MoneroStealthOutput, selector, ({ fields: { publicKey: true, commitment: true } }))}
 			placeholderText={`Loading Monero Stealth Output...`}
 		>
 			{#snippet children(moneroStealthOutput)}

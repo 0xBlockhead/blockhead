@@ -10,16 +10,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(beacon-epochs)/epoch/[epochNumber]', {
-				caip2Namespace: selector.$network.caip2.namespace,
-				caip2Reference: selector.$network.caip2.reference,
+			href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(beacon-epochs)/epoch/[epochNumber]', {
+				caip2: ,
 				epochNumber: String(selector.epoch),
 			}),
 		layout = EntityLayout.Summary,
@@ -40,7 +39,7 @@
 		>
 	> = $props()
 
-	const epoch = $derived(subscribe(EntityType.BeaconEpoch,
+	const epoch = $derived(proxy(EntityType.BeaconEpoch,
 		selector,
 		({ sources: [
 				Source.Beacon_Rest,

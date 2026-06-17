@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const polkadotPallet = subscribe(EntityType.PolkadotPallet,
-		selector,
-		({ fields: { index: true } }),
-	)
+	
 
 
 	// Components
@@ -53,7 +50,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={polkadotPallet}
+			resource={proxy(EntityType.PolkadotPallet,
+					selector,
+					({ fields: { index: true } }),
+				)}
 			placeholderText={`Loading Polkadot Pallet...`}
 		>
 			{#snippet children(polkadotPallet)}

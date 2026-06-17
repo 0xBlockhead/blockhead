@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -29,31 +28,30 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { formatValue } from '$/lib/number.ts'
 
 	const actorCoinDetailAnchorKey = $derived(stringify(selector))
-
-	const actorCoin = $derived(subscribe(EntityType.EvmNetworkActorCoinBalance,
-		selector,
-		({ sources: [Source.Allium_Rest], fields: { symbol: true, balance: true, $coinInstance: true, ...(open ? ({ decimals: true, usdValue: true }) : ({  })) } }),
-	))
-
-
-	// (Derived)
+	const actorCoin = $derived(proxy(EntityType.EvmNetworkActorCoinBalance, selector, {
+		sources: [Source.Allium_Rest],
+	}))
+	const symbol = $derived(actorCoin.symbol)
+	const balance = $derived(actorCoin.balance)
+	const coinInstance = $derived(actorCoin.$coinInstance)
+	
+	const decimals = $derived(actorCoin.decimals)
+	
 	const formattedBalance = $derived.by(() => {
-		const currentActorCoin = actorCoin.current
-
-		if (currentActorCoin?.fields.balance == null)
+		if (balance.current == null)
 			return undefined
 
-		if (currentActorCoin.fields.decimals == null || currentActorCoin.fields.decimals <= 0)
-			return formatValue(Number(currentActorCoin.fields.balance))
+		if (decimals.current == null || decimals.current <= 0)
+			return formatValue(Number(balance.current))
 
-		const divisor = 10n ** BigInt(currentActorCoin.fields.decimals)
-		const integerPart = currentActorCoin.fields.balance / divisor
-		const fractionalPart = currentActorCoin.fields.balance % divisor
-		const fractionalPartString = String(fractionalPart).padStart(currentActorCoin.fields.decimals, '0').replace(/0+$/, '')
+		const divisor = 10n ** BigInt(decimals.current)
+		const integerPart = balance.current / divisor
+		const fractionalPart = balance.current % divisor
+		const fractionalPartString = String(fractionalPart).padStart(decimals.current, '0').replace(/0+$/, '')
 
 		return (
 			fractionalPartString ?
@@ -84,25 +82,21 @@
 >
 	{#snippet Value()}
 		<ResourceBoundary
-			resource={actorCoin}
+			resource={balance}
 			placeholderText="Loading balance…"
 		>
-			{#snippet children(actorCoin)}
-				{formattedBalance ?? '—'}
-				{actorCoin.fields.symbol ?? ''}
-			{/snippet}
+			{formattedBalance ?? '—'}
+			{symbol.current ?? ''}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={actorCoin}
+			resource={balance}
 			placeholderText="Loading holding…"
 		>
-			{#snippet children(actorCoin)}
-				{formattedBalance ?? '—'}
-				{actorCoin.fields.symbol ?? ''}
-			{/snippet}
+			{formattedBalance ?? '—'}
+			{symbol.current ?? ''}
 		</ResourceBoundary>
 	{/snippet}
 
@@ -114,19 +108,20 @@
 				<dt>Account</dt>
 				<dd>
 					<ResourceBoundary
-						resource={actorCoin}
+						resource={coinInstance}
 						placeholderText="Loading account…"
 					>
-						{#snippet children(actorCoin)}
-							{#if actorCoin.fields.$coinInstance}
+						{#snippet children(coinInstance)}
+							{#if coinInstance}
 								<EvmNetworkAccountView
 									selector={{
-										$network: actorCoin.fields.$coinInstance[EntityMetaKey.Selector].$network,
+										$network: coinInstance.entitySelector.$network,
 										$actor: selector.$actor,
 									}}
 									layout={EntityLayout.Title}
+
 									open={false}
-								/>
+									/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -136,21 +131,31 @@
 				<dt>Asset</dt>
 				<dd>
 					<ResourceBoundary
-						resource={actorCoin}
+						resource={coinInstance}
 						placeholderText="Loading asset…"
 					>
-						{#snippet children(actorCoin)}
-							{#if actorCoin.fields.$coinInstance?.[EntityMetaKey.Selector].type === CoinInstanceType.NativeCurrency}
+						{#snippet children(coinInstance)}
+							{#if coinInstance?.entitySelector.type === CoinInstanceType.NativeCurrency}
 								Native gas token (chain issuance)
-							{:else if actorCoin.fields.$coinInstance?.$contract}
-								<EvmContractView
-									selector={actorCoin.fields.$coinInstance.$contract[EntityMetaKey.Selector]}
-									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
-								/>
 							{:else}
-								—
+								<ResourceBoundary
+									resource={actorCoin.$coinInstance.$contract}
+									placeholderText="Loading token contract…"
+								>
+									{#snippet children(coinInstanceContract)}
+										{#if coinInstanceContract}
+											<EvmContractView
+												selector={coinInstanceContract.entitySelector}
+												layout={EntityLayout.Value}
+
+												showTypeAnnotation={false}
+												open={false}
+												/>
+										{:else}
+											—
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -162,13 +167,13 @@
 					<dt>Balance</dt>
 					<dd>
 						<ResourceBoundary
-							resource={actorCoin}
+							resource={balance}
 							placeholderText="Loading balance…"
 						>
-							{#snippet children(actorCoin)}
-								{#if actorCoin.fields.balance !== undefined}
+							{#snippet children(balance)}
+								{#if balance !== undefined}
 									{formattedBalance}
-									{actorCoin.fields.symbol ?? ''}
+									{symbol.current ?? ''}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -181,12 +186,12 @@
 					<dt>USD value</dt>
 					<dd>
 						<ResourceBoundary
-							resource={actorCoin}
+							resource={actorCoin.usdValue}
 							placeholderText="Loading balance…"
 						>
-							{#snippet children(actorCoin)}
-								{#if actorCoin.fields.usdValue !== undefined}
-									{String(actorCoin.fields.usdValue)}
+							{#snippet children(usdValue)}
+								{#if usdValue !== undefined}
+									{String(usdValue)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -199,12 +204,12 @@
 					<dt>Decimals</dt>
 					<dd>
 						<ResourceBoundary
-							resource={actorCoin}
+							resource={decimals}
 							placeholderText="Loading balance…"
 						>
-							{#snippet children(actorCoin)}
-								{#if actorCoin.fields.decimals !== undefined}
-									{String(actorCoin.fields.decimals)}
+							{#snippet children(decimals)}
+								{#if decimals !== undefined}
+									{String(decimals)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -243,9 +248,9 @@
 				>
 					{#snippet children(actorCoin)}
 						{#if (
-							actorCoin.fields.symbol == null
-							&& actorCoin.fields.decimals == null
-							&& actorCoin.fields.balance == null
+							actorCoin.symbol == null
+							&& actorCoin.decimals == null
+							&& actorCoin.balance == null
 						)}
 							<div data-row="wrap align-center gap-2">
 								<p data-text="muted">

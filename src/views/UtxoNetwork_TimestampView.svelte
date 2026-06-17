@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,12 +19,30 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = subscribe(EntityType.UtxoNetwork_Timestamp,
+	const snapshot = $derived(proxy(
+		EntityType.UtxoNetwork_Timestamp,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Blockchair_Rest,
-			], fields: { bestBlockHeight: true, bestBlockHash: true, bestBlockTimeMs: true, blockCount: true, transactionCount: true, blocks24h: true, transactions24h: true, mempoolTransactionCount: true, mempoolSizeBytes: true, mempoolTps: true, averageTransactionFee24hSats: true, medianTransactionFee24hSats: true, suggestedTransactionFeePerByteSats: true, blockchainSizeBytes: true } }),
-	)
+			],
+		},
+	))
+	const bestBlockHeight = $derived(snapshot.bestBlockHeight)
+	const bestBlockHash = $derived(snapshot.bestBlockHash)
+	const bestBlockTimeMs = $derived(snapshot.bestBlockTimeMs)
+	const blockCount = $derived(snapshot.blockCount)
+	const transactionCount = $derived(snapshot.transactionCount)
+	const blocks24h = $derived(snapshot.blocks24h)
+	const transactions24h = $derived(snapshot.transactions24h)
+	const mempoolTransactionCount = $derived(snapshot.mempoolTransactionCount)
+	const mempoolSizeBytes = $derived(snapshot.mempoolSizeBytes)
+	const mempoolTps = $derived(snapshot.mempoolTps)
+	const averageTransactionFee24hSats = $derived(snapshot.averageTransactionFee24hSats)
+	const medianTransactionFee24hSats = $derived(snapshot.medianTransactionFee24hSats)
+	const suggestedTransactionFeePerByteSats = $derived(snapshot.suggestedTransactionFeePerByteSats)
+	const blockchainSizeBytes = $derived(snapshot.blockchainSizeBytes)
+
 
 
 	// Components
@@ -44,15 +62,12 @@
 >
 	{#snippet Value()}
 		<ResourceBoundary
-			resource={snapshot}
+			resource={bestBlockHeight}
 			placeholderText="Loading UTXO network snapshot…"
 		>
-			{#snippet children(snapshot)}
-				{#if snapshot.fields.bestBlockHeight !== undefined}
-					<NumberValue value={snapshot.fields.bestBlockHeight} />
-				{:else if snapshot.fields.mempoolTransactionCount !== undefined}
-					<NumberValue value={snapshot.fields.mempoolTransactionCount} />
-					in mempool
+			{#snippet children(bestBlockHeight)}
+				{#if bestBlockHeight !== undefined}
+					<NumberValue value={bestBlockHeight} />
 				{:else}
 					<Timestamp timestamp={selector.timestampMs} />
 				{/if}
@@ -62,111 +77,111 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={snapshot}
+			resource={bestBlockHeight}
 			placeholderText="Loading UTXO network snapshot…"
 		>
-			{#snippet children(snapshot)}
+			{#snippet children(bestBlockHeight)}
 				<dl data-column-item="center">
-					{#if snapshot.fields.bestBlockHeight !== undefined}
+					{#if bestBlockHeight !== undefined}
 						<div>
 							<dt>Best block</dt>
-							<dd><NumberValue value={snapshot.fields.bestBlockHeight} /></dd>
+							<dd><NumberValue value={bestBlockHeight} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.mempoolTransactionCount !== undefined}
+					{#if mempoolTransactionCount !== undefined}
 						<div>
 							<dt>Mempool transactions</dt>
-							<dd><NumberValue value={snapshot.fields.mempoolTransactionCount} /></dd>
+							<dd><NumberValue value={mempoolTransactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.suggestedTransactionFeePerByteSats !== undefined}
+					{#if suggestedTransactionFeePerByteSats !== undefined}
 						<div>
 							<dt>Suggested fee</dt>
-							<dd><NumberValue value={snapshot.fields.suggestedTransactionFeePerByteSats} /> sat/vB</dd>
+							<dd><NumberValue value={suggestedTransactionFeePerByteSats} /> sat/vB</dd>
 						</div>
 					{/if}
 
-					{#if snapshot.fields.bestBlockTimeMs !== undefined}
+					{#if bestBlockTimeMs !== undefined}
 						<div>
 							<dt>Best block time</dt>
-							<dd><Timestamp timestamp={snapshot.fields.bestBlockTimeMs} /></dd>
+							<dd><Timestamp timestamp={bestBlockTimeMs} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.bestBlockHash != null}
+					{#if open && bestBlockHash != null}
 						<div>
 							<dt>Best block hash</dt>
 							<dd>
 								<TruncatedValue
-									value={snapshot.fields.bestBlockHash}
+									value={bestBlockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.blockCount !== undefined}
+					{#if open && blockCount !== undefined}
 						<div>
 							<dt>Blocks</dt>
-							<dd><NumberValue value={snapshot.fields.blockCount} /></dd>
+							<dd><NumberValue value={blockCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.transactionCount !== undefined}
+					{#if open && transactionCount !== undefined}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={snapshot.fields.transactionCount} /></dd>
+							<dd><NumberValue value={transactionCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.blocks24h !== undefined}
+					{#if open && blocks24h !== undefined}
 						<div>
 							<dt>Blocks 24h</dt>
-							<dd><NumberValue value={snapshot.fields.blocks24h} /></dd>
+							<dd><NumberValue value={blocks24h} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.transactions24h !== undefined}
+					{#if open && transactions24h !== undefined}
 						<div>
 							<dt>Transactions 24h</dt>
-							<dd><NumberValue value={snapshot.fields.transactions24h} /></dd>
+							<dd><NumberValue value={transactions24h} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.mempoolSizeBytes !== undefined}
+					{#if open && mempoolSizeBytes !== undefined}
 						<div>
 							<dt>Mempool size</dt>
-							<dd><NumberValue value={snapshot.fields.mempoolSizeBytes} /> bytes</dd>
+							<dd><NumberValue value={mempoolSizeBytes} /> bytes</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.mempoolTps !== undefined}
+					{#if open && mempoolTps !== undefined}
 						<div>
 							<dt>Mempool TPS</dt>
-							<dd><NumberValue value={snapshot.fields.mempoolTps} /></dd>
+							<dd><NumberValue value={mempoolTps} /></dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.averageTransactionFee24hSats !== undefined}
+					{#if open && averageTransactionFee24hSats !== undefined}
 						<div>
 							<dt>Average fee 24h</dt>
-							<dd><NumberValue value={snapshot.fields.averageTransactionFee24hSats} /> sats</dd>
+							<dd><NumberValue value={averageTransactionFee24hSats} /> sats</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.medianTransactionFee24hSats !== undefined}
+					{#if open && medianTransactionFee24hSats !== undefined}
 						<div>
 							<dt>Median fee 24h</dt>
-							<dd><NumberValue value={snapshot.fields.medianTransactionFee24hSats} /> sats</dd>
+							<dd><NumberValue value={medianTransactionFee24hSats} /> sats</dd>
 						</div>
 					{/if}
 
-					{#if open && snapshot.fields.blockchainSizeBytes !== undefined}
+					{#if open && blockchainSizeBytes !== undefined}
 						<div>
 							<dt>Chain size</dt>
-							<dd><NumberValue value={snapshot.fields.blockchainSizeBytes} /> bytes</dd>
+							<dd><NumberValue value={blockchainSizeBytes} /> bytes</dd>
 						</div>
 					{/if}
 				</dl>

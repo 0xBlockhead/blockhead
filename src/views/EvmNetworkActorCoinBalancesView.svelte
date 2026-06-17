@@ -1,8 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -14,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -37,11 +35,12 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
@@ -71,38 +70,34 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(EntityType._Global,
-				{ scope: '$$actors' },
-				({ sources: [
-						Source.Local_Internal,
-					], fields: { $$actors: ({ sources: [
+			<ResourceBoundary
+				resource={proxy(
+						EntityType._Global,
+						{ scope: '$$actors' },
+						{
+							sources: [
+								Source.Local_Internal,
+							],
+						},
+					).field('$$actors', {
+						sources: [
 							Source.Local_Internal,
-						] }) } }),
-			)}
-			{@const actors = derive(
-				parent,
-				(parent) => {
-					const evmAccounts: readonly Entity<typeof schema, EntityType.EvmAccount>[] = (
-						parent.$$actors ?? []
-					)
-					return (
-						evmAccounts.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
+						],
+					})}
+				placeholderText={`Loading ${title.toLowerCase()}…`}
+			>
+				{#snippet children(actors)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmAccount}
 				{title}
 				open={true}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getKey={(actor) => stringify(actor.entitySelector)}
+				getSortValue={(actor) => stringify(actor.entitySelector)}
 				placeholderKeys={new SvelteSet<string>()}
 				placeholderText={`Loading ${title.toLowerCase()}…`}
-				resource={actors}
+				items={actors.entities}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
@@ -112,7 +107,7 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const id = item.value[EntityMetaKey.Selector]}
+					{@const id = item.entitySelector}
 					<EvmAccountView
 						selector={id}
 						layout={EntityLayout.SummaryDetails}
@@ -120,6 +115,8 @@
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

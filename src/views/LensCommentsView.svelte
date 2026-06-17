@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -46,11 +44,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LensPostView from '$/views/LensPostView.svelte'
 </script>
@@ -82,61 +82,43 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parentPost = subscribe(EntityType.LensPost,
-				entityFieldReference.selector,({ sources: [
-						Source.Lens_Graphql,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Lens_Graphql,
-						],
-						limit: limit,
-					},
-				} }),
-			)}
-			{@const comments = derive(
-				parentPost,
-				(parentPost) => {
-					const lensPosts: readonly Entity<typeof schema, EntityType.LensPost>[] = (
-						parentPost[entityFieldReference.fieldName]
-						?? []
-					)
-					return (
-						lensPosts
-							.map((comment, feedIndex) => ({
-								feedIndex,
-								result: comment,
-							}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.LensPost}
-				id={`${id}-items`}
-				{title}
-				getKey={(row) => stringify(row.result[EntityMetaKey.Selector])}
-				getSortValue={(row) => (
-					String(row.feedIndex).padStart(6, '0')
-				)}
-				placeholderText="Loading Lens comments…"
-				resource={comments}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No comments yet.
-					</p>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					EntityType.LensPost,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Lens_Graphql],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Lens_Graphql],
+					limit,
+				})} placeholderText="Loading Lens comments…">
+				{#snippet children(comments)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.LensPost}
+						id={`${id}-items`}
+						{title}
+						getKey={(comment) => stringify(comment.entitySelector)}
+						getSortValue={(comment) => stringify(comment.entitySelector)}
+						items={comments.entities}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No comments yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					{@const commentId = item.result[EntityMetaKey.Selector]}
-					<LensPostView
-						selector={{ id: commentId.id }}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<LensPostView
+								selector={{ id: item.entitySelector.id }}
+								layout={EntityLayout.Summary}
+
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -43,14 +42,15 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	const allowanceAnchorKey = $derived(stringify(selector))
-
-	const allowance = $derived(subscribe(EntityType.EvmActorCoinAllowance,
-		selector,
-		({ sources: [Source.Voltaire_JsonRpc], fields: { allowance: true, lastChecked: true, ...(open ? ({ $spenderContract: true }) : ({  })) } }),
-	))
+	const allowance = $derived(proxy(EntityType.EvmActorCoinAllowance, selector, {
+		sources: [Source.Voltaire_JsonRpc],
+	}))
+	const allowanceAmount = $derived(allowance.allowance)
+	
+	
 
 
 	// Components
@@ -75,22 +75,22 @@
 >
 	{#snippet Value()}
 		<ResourceBoundary
-			resource={allowance}
+			resource={allowanceAmount}
 			placeholderText="Loading allowance…"
 		>
-			{#snippet children(allowance)}
-				{allowance.fields.allowance !== undefined ? String(allowance.fields.allowance) : 'Allowance'}
+			{#snippet children(allowanceAmount)}
+				{allowanceAmount !== undefined ? String(allowanceAmount) : 'Allowance'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={allowance}
+			resource={allowanceAmount}
 			placeholderText="Loading allowance…"
 		>
-			{#snippet children(allowance)}
-				{allowance.fields.allowance !== undefined ? String(allowance.fields.allowance) : 'Allowance'}
+			{#snippet children(allowanceAmount)}
+				{allowanceAmount !== undefined ? String(allowanceAmount) : 'Allowance'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -106,7 +106,7 @@
 							$actor: selector.$actor,
 						}}
 						layout={EntityLayout.Title}
-						open={false}
+
 					/>
 				</dd>
 			</div>
@@ -125,7 +125,7 @@
 					<EvmContractView
 						selector={selector.$contract}
 						layout={EntityLayout.Value}
-						open={false}
+
 						showTypeAnnotation={false}
 					/>
 				</dd>
@@ -136,12 +136,12 @@
 					<dt>Allowance</dt>
 					<dd>
 						<ResourceBoundary
-							resource={allowance}
+							resource={allowanceAmount}
 							placeholderText="Loading allowance…"
 						>
-							{#snippet children(allowance)}
-								{#if allowance.fields.allowance !== undefined}
-									{String(allowance.fields.allowance)}
+							{#snippet children(allowanceAmount)}
+								{#if allowanceAmount !== undefined}
+									{String(allowanceAmount)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -154,12 +154,12 @@
 					<dt>Last checked</dt>
 					<dd>
 						<ResourceBoundary
-							resource={allowance}
-							placeholderText="Loading allowance…"
+							resource={allowance.lastChecked}
+							placeholderText="Loading last checked…"
 						>
-							{#snippet children(allowance)}
-								{#if allowance.fields.lastChecked !== undefined}
-									<Timestamp timestamp={allowance.fields.lastChecked} />
+							{#snippet children(lastChecked)}
+								{#if lastChecked !== undefined}
+									<Timestamp timestamp={lastChecked} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -172,15 +172,15 @@
 					<dt>Spender contract</dt>
 					<dd>
 						<ResourceBoundary
-							resource={allowance}
+							resource={allowance.$spenderContract}
 							placeholderText="Loading spender…"
 						>
-							{#snippet children(allowance)}
-								{#if allowance.fields.$spenderContract?.[EntityMetaKey.Selector]}
+							{#snippet children(spenderContract)}
+								{#if spenderContract}
 									<EvmContractView
-										selector={allowance.fields.$spenderContract[EntityMetaKey.Selector]}
+										selector={spenderContract.entitySelector}
 										layout={EntityLayout.Value}
-										open={false}
+
 										showTypeAnnotation={false}
 									/>
 								{:else}
@@ -225,8 +225,8 @@
 				>
 					{#snippet children(allowance)}
 						{#if (
-							allowance.fields.allowance == null
-							&& allowance.fields.lastChecked == null
+							allowance.allowance == null
+							&& allowance.lastChecked == null
 						)}
 							<div data-row="wrap align-center gap-2">
 								<p data-text="muted">

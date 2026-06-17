@@ -7,13 +7,13 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
 	} = $props()
 
-	const network = $derived(subscribe(EntityType.Network,
+	const network = $derived(proxy(EntityType.Network,
 		{
 			slug: params.networkSlug,
 		},

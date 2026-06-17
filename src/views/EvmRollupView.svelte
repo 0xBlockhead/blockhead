@@ -1,14 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -22,25 +21,22 @@
 		title?: string
 	} = $props()
 
-	const rollup = subscribe(EntityType.EvmRollup,
+	const rollup = $derived(proxy(
+		EntityType.EvmRollup,
 		selector,
 		{
 			sources: [
 				Source.L2Beat_Rest,
 			],
-			fields: {
-				$settlementNetwork: true,
-				name: true,
-				slug: true,
-				type: true,
-				category: true,
-				hostChain: true,
-				isArchived: true,
-				isUpcoming: true,
-				isUnderReview: true,
-			},
 		},
-	)
+	))
+	
+	
+	
+	
+	
+	
+
 
 
 	// Components
@@ -62,61 +58,74 @@
 	{/snippet}
 
 	{#snippet Content({})}
-		<ResourceBoundary
-			placeholderText="Loading rollup…"
-			resource={rollup}
-		>
-			{#snippet children(rollup)}
-				<dl data-column-item="center">
-					{#if rollup.fields.name !== undefined}
+		<dl data-column-item="center">
+			<ResourceBoundary resource={rollup.name} placeholderText="Loading rollup name…">
+				{#snippet children(name)}
+					{#if name !== undefined}
 						<div>
 							<dt>Name</dt>
-							<dd>{rollup.fields.name}</dd>
+							<dd>{name}</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if rollup.fields.type !== undefined}
+			<ResourceBoundary resource={rollup.type} placeholderText="Loading rollup type…">
+				{#snippet children(type)}
+					{#if type !== undefined}
 						<div>
 							<dt>Type</dt>
-							<dd>{rollup.fields.type}</dd>
+							<dd>{type}</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if rollup.fields.category !== undefined}
+			<ResourceBoundary resource={rollup.category} placeholderText="Loading rollup category…">
+				{#snippet children(category)}
+					{#if category !== undefined}
 						<div>
 							<dt>Category</dt>
-							<dd>{rollup.fields.category}</dd>
+							<dd>{category}</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if rollup.fields.hostChain !== undefined}
+			<ResourceBoundary resource={rollup.hostChain} placeholderText="Loading host chain…">
+				{#snippet children(hostChain)}
+					{#if hostChain !== undefined}
 						<div>
 							<dt>Host chain</dt>
-							<dd>{rollup.fields.hostChain}</dd>
+							<dd>{hostChain}</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if rollup.fields.$settlementNetwork !== undefined}
+			<ResourceBoundary resource={rollup.$settlementNetwork} placeholderText="Loading settlement network…">
+				{#snippet children(settlementNetwork)}
+					{#if settlementNetwork !== undefined}
 						<div>
 							<dt>Settlement network</dt>
 							<dd>
-								<EvmNetworkView
-									selector={rollup.fields.$settlementNetwork[EntityMetaKey.Selector]}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
+									<EvmNetworkView selector={settlementNetwork.entitySelector} layout={EntityLayout.Title} open={false} />
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if rollup.fields.isUnderReview === true}
+			<ResourceBoundary resource={rollup.isUnderReview} placeholderText="Loading rollup status…">
+				{#snippet children(isUnderReview)}
+					{#if isUnderReview === true}
 						<div>
 							<dt>Status</dt>
 							<dd>Under review</dd>
 						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 </EntityView>

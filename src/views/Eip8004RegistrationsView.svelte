@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -39,11 +37,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Eip8004RegistrationView from '$/views/Eip8004RegistrationView.svelte'
 </script>
@@ -77,39 +77,26 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Eip8004Scan_Rest,
-						],
-						limit: limit,
-					},
-				} }),
-			)}
-			{@const registrations = derive(
-				parent,
-				(parent) => {
-					const eip8004Registrations: readonly Entity<typeof schema, EntityType.EvmNft>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						eip8004Registrations.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
-			<EntitiesList
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.Eip8004Scan_Rest,
+					],
+					limit,
+				})} placeholderText="Loading registrations…">
+				{#snippet children(registrations)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				data-entity-field-name={entityFieldReference.fieldName}
 				data-entity-field-parent={stringify(entityFieldReference.selector)}
 				data-entity-field-type={entityFieldReference.entityType}
 				entityType={EntityType.EvmNft}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getKey={(registration) => stringify(registration.entitySelector)}
 				open={true}
-				resource={registrations}
+				items={registrations.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -121,12 +108,14 @@
 
 				{#snippet Item({ item })}
 					<Eip8004RegistrationView
-						selector={item.value[EntityMetaKey.Selector]}
+						selector={item.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

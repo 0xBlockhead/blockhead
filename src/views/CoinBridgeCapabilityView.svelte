@@ -17,7 +17,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -38,13 +38,10 @@
 		>
 	> = $props()
 
-	const capability = subscribe(EntityType.CoinBridgeCapability,
-		selector,
-		({ sources: [
+	const capability = $derived(proxy(EntityType.CoinBridgeCapability, selector, ({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
-			], fields: { ...(open && ({ railId: true, settlementModel: true, verificationModel: true, assetOutcome: true })) } }),
-	)
+			], fields: { ...(open && ({ railId: true, settlementModel: true, verificationModel: true, assetOutcome: true })) } })))
 
 
 	// Components

@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -35,19 +35,11 @@
 		>
 	> = $props()
 
-	const currencyTimestamp = subscribe(EntityType.Currency_Timestamp,
-		selector,
-		({ sources: [
+	const currencyTimestamp = $derived(proxy(EntityType.Currency_Timestamp, selector, ({ sources: [
 				Source.Constants_Internal,
-			], fields: { marketCap: true } }),
-	)
+			], fields: { marketCap: true } })))
 
-	const currency = subscribe(EntityType.Currency,
-		selector.$currency,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { name: true } }),
-	)
+	
 
 
 	// Components
@@ -149,7 +141,9 @@
 						<dt>Currency</dt>
 						<dd>
 							<ResourceBoundary
-								resource={currency}
+								resource={proxy(EntityType.Currency, selector.$currency, ({ sources: [
+										Source.Constants_Internal,
+									], fields: { name: true } }))}
 								placeholderText="Loading currency…"
 							>
 								{#snippet children(currency)}
@@ -176,7 +170,7 @@
 			<CurrencyView
 				selector={selector.$currency}
 				id={`${stringify(selector)}:currency`}
-				open={false}
+
 			/>
 		</section>
 

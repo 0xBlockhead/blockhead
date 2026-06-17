@@ -1,10 +1,9 @@
 <script lang="ts">
+import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,7 +35,7 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
@@ -62,49 +61,44 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Bittensor_JsonRpc,
-						],
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+						{
+							sources: [Source.Bittensor_JsonRpc],
+						}
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Bittensor_JsonRpc],
 						limit: 16,
-					},
-				} }),
-			)}
-			{@const timestamps = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.BittensorNetwork_Timestamp>[] => (
-					(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BittensorNetwork_Timestamp}
-				id={`${id}-items`}
-				href={href}
-				getKey={(timestamp) => stringify(timestamp[EntityMetaKey.Selector])}
-				getSortValue={(timestamp) => -timestamp[EntityMetaKey.Selector].timestampMs}
-				open={true}
-				resource={timestamps}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
+					})}
+				placeholderText="Loading metric snapshots…"
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No network snapshots yet.
-					</p>
-				{/snippet}
+				{#snippet children(timestamps)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BittensorNetwork_Timestamp}
+						id={`${id}-items`}
+						href={href}
+						open={true}
+						items={timestamps.entities}
+						getKey={(timestamp) => stringify(timestamp.entitySelector)}
+						getSortValue={(timestamp) => -timestamp.entitySelector.timestampMs}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Item({ item })}
+							<BittensorNetwork_TimestampView
+								selector={item.entitySelector}
+								{href}
+								layout={EntityLayout.Summary}
 
-				{#snippet Item(context)}
-					<BittensorNetwork_TimestampView
-						selector={context!.item[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

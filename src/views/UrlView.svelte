@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,7 +32,7 @@
 		>
 	> = $props()
 
-	const url = subscribe(EntityType.Url,
+	const url = $derived(proxy(EntityType.Url,
 		selector,
 		({ sources: [
 				Source.Constants_Internal,
@@ -41,7 +41,7 @@
 				Source.EthereumLists_Rest,
 				Source.Lifi_Rest,
 			], fields: { catalogName: true, catalogStandard: true, catalogIcon: true, openGraphTitle: true, openGraphDescription: true, publisher: true, $siteIcon: true, $openGraphImage: true } }),
-	)
+	))
 
 
 	// Components

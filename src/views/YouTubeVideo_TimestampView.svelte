@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -35,13 +35,7 @@
 		>
 	> = $props()
 
-	const youTubeVideoTimestamp = subscribe(EntityType.YouTubeVideo_Timestamp,
-		selector,
-		({ sources: [
-				Source.Youtube_Rest,
-				Source.Piped_Rest,
-			], fields: { viewCount: true, likeCount: true, commentCount: true } }),
-	)
+	
 
 
 	// Components
@@ -77,7 +71,13 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={youTubeVideoTimestamp}
+			resource={proxy(EntityType.YouTubeVideo_Timestamp,
+					selector,
+					({ sources: [
+							Source.Youtube_Rest,
+							Source.Piped_Rest,
+						], fields: { viewCount: true, likeCount: true, commentCount: true } }),
+				)}
 			placeholderText="Loading YouTube video snapshot..."
 		>
 			{#snippet children(youTubeVideoTimestamp)}

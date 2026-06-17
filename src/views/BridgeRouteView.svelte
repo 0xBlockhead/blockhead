@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,16 +32,13 @@
 		never
 	> = $props()
 
-	const bridgeRoute = subscribe(EntityType.BridgeRoute,
-		selector,
-		({ sources: [
+	const bridgeRoute = $derived(proxy(EntityType.BridgeRoute, selector, ({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			], fields: { $fromNetwork: true, $toNetwork: true, ...(open && ({ fromAmount: true, toAmount: true, toAmountMin: true, estimatedCostUsd: true, estimatedDurationSeconds: true, $$steps: ({ sources: [
 						Source.Constants_Internal,
 						Source.Lifi_Rest,
-					] }) })) } }),
-	)
+					] }) })) } })))
 
 
 	// Components
@@ -103,7 +100,7 @@
 									?? { chainId: selector.fromChainId }
 								}
 								layout={EntityLayout.Title}
-								open={false}
+
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -123,7 +120,7 @@
 									?? { chainId: selector.toChainId }
 								}
 								layout={EntityLayout.Title}
-								open={false}
+
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -168,7 +165,7 @@
 								$actor: { address: selector.fromAddress },
 							}}
 							layout={EntityLayout.Value}
-							open={false}
+
 						/>
 						</dd>
 					</div>

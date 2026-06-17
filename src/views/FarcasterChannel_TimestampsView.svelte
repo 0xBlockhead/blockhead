@@ -1,15 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -25,12 +23,13 @@
 		open?: boolean
 	} = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import FarcasterChannel_TimestampView from '$/views/FarcasterChannel_TimestampView.svelte'
 </script>
 
@@ -50,47 +49,41 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Farcaster_Rest,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Farcaster_Rest,
-						],
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+						{
+							sources: [Source.Snapchain_Rest],
+						}
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Snapchain_Rest],
 						limit: 64,
-					},
-				} }),
-			)}
-			{@const farcasterChannelTimestamps = derive(
-				parent,
-				(parent) => {
-					const farcasterChannelTimestamps: readonly Entity<typeof schema, EntityType.FarcasterChannel_Timestamp>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return farcasterChannelTimestamps.map((value) => ({
-						value,
-					}))
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.FarcasterChannel_Timestamp}
-				id={`${id}-items`}
-				href={href}
-				open={true}
-				resource={farcasterChannelTimestamps}
+					})}
+				placeholderText="Loading metric snapshots…"
 			>
-				{#snippet Item({ item })}
-					<FarcasterChannel_TimestampView
-						selector={item.value[EntityMetaKey.Selector]}
-						{href}
-						layout={EntityLayout.Summary}
-						open={false}
-						showTypeAnnotation={false}
-					/>
+				{#snippet children(farcasterChannelTimestamps)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.FarcasterChannel_Timestamp}
+						id={`${id}-items`}
+						href={href}
+						open={true}
+						items={farcasterChannelTimestamps.entities}
+					>
+						{#snippet Item({ item })}
+							<FarcasterChannel_TimestampView
+								selector={item.entitySelector}
+								{href}
+								layout={EntityLayout.Summary}
+
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

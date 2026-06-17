@@ -3,7 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
@@ -14,7 +13,7 @@
 
 	// State
 	import { normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -45,12 +44,15 @@
 		>
 	> = $props()
 
-	const log = $derived(
-		subscribe(EntityType.EvmLog,
-			selector,
-			({ fields: { topics: true, ...(open && ({ data: true, $emitter: true, $$tokenTransfers: true })) } }),
-		),
-	)
+	const log = $derived(proxy(
+		EntityType.EvmLog,
+		selector,
+	))
+	const topics = $derived(log.topics)
+	const data = $derived(log.data)
+	const emitter = $derived(log.$emitter)
+	const tokenTransfers = $derived(log.field('$$tokenTransfers'))
+
 
 
 	// Components
@@ -67,9 +69,8 @@
 <EntityView
 	entityType={EntityType.EvmLog}
 	entitySelector={selector}
-	href={href ?? resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]/log/[logIndex=nonNegativeInteger]', {
-		caip2Namespace: selector.$network.caip2.namespace,
-		caip2Reference: selector.$network.caip2.reference,
+	href={href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/log/[logIndex=nonNegativeInteger]', {
+		caip2: ,
 		transactionId: selector.txHash,
 		logIndex: String(selector.logIndex),
 	})}
@@ -86,23 +87,21 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={log}
+			resource={topics}
 			placeholderText="Loading receipt log…"
 		>
-			{#snippet children(log)}
+			{#snippet children(topics)}
 				<span data-row="wrap gap-2 align-baseline">
 					<span data-row="inline align-center gap-2 wrap">
 						<span>Receipt log </span>
-						<span data-badge="small">
-							#{selector.logIndex}
-						</span>
+						<span data-badge="small">#{selector.logIndex}</span>
 					</span>
-					{#if log.fields.topics?.[0]?.startsWith('0x')}
-						{@const topic0Hex = normalizeEvmTopicHex(log.fields.topics[0])}
+					{#if topics?.[0]?.startsWith('0x')}
+						{@const topic0Hex = normalizeEvmTopicHex(topics[0])}
 						<EvmTopicView
 							selector={{ hex: topic0Hex }}
 							layout={EntityLayout.Title}
-							open={false}
+
 						/>
 					{/if}
 				</span>
@@ -132,65 +131,55 @@
 						<dd>
 							<a
 								data-text="font-monospace"
-								href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-									caip2Namespace: selector.$network.caip2.namespace,
-									caip2Reference: selector.$network.caip2.reference,
+								href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+									caip2: ,
 									transactionId: selector.txHash,
 								})}
 							>
-								<TruncatedValue
-									value={selector.txHash}
-									format={TruncatedValueFormat.Abbr}
-								/>
+								<TruncatedValue value={selector.txHash} format={TruncatedValueFormat.Abbr} />
 							</a>
 						</dd>
 					</div>
 				{/if}
 
-				<ResourceBoundary
-					resource={log}
-					placeholderText="Loading receipt log…"
-				>
-					{#snippet children(log)}
-						{#if log.fields.$emitter}
+				<ResourceBoundary resource={emitter} placeholderText="Loading emitter contract…">
+					{#snippet children(emitter)}
+						{#if emitter}
 							<div>
 								<dt>Emitter contract</dt>
 								<dd>
 									<EvmContractView
-										selector={log.fields.$emitter[EntityMetaKey.Selector]}
+										selector={emitter.entitySelector}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
-									/>
+										open={false}
+										/>
 								</dd>
 							</div>
 						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-						{#if log.fields.topics?.length}
+				<ResourceBoundary resource={topics} placeholderText="Loading receipt log topics…">
+					{#snippet children(topics)}
+						{#if topics?.length}
 							<div>
 								<dt>Topics</dt>
 								<dd>
 									<ul>
-										{#each log.fields.topics as topic, topicIndex (`${topicIndex}:${topic ?? ''}`)}
+										{#each topics as topic, topicIndex (`${topicIndex}:${topic ?? ''}`)}
 											<li>
 												<span data-text="muted">topic {topicIndex}</span>
 												{#if topic?.startsWith('0x')}
 													{@const topicHex = normalizeEvmTopicHex(topic)}
 													{#if topicIndex === 0 && summaryUsesHeading}
-														<TruncatedValue
-															value={topic}
-															format={TruncatedValueFormat.Abbr}
-														/>
+														<TruncatedValue value={topic} format={TruncatedValueFormat.Abbr} />
 													{:else}
 														<a
 															data-text="font-monospace"
-															href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
-																hex: topicHex,
-															})}
+															href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', { hex: topicHex })}
 														>
-															<TruncatedValue
-																value={topic}
-																format={TruncatedValueFormat.Abbr}
-															/>
+															<TruncatedValue value={topic} format={TruncatedValueFormat.Abbr} />
 														</a>
 													{/if}
 												{:else if topic != null}
@@ -202,20 +191,23 @@
 								</dd>
 							</div>
 						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-						{#if log.fields.data}
+				<ResourceBoundary resource={data} placeholderText="Loading log data…">
+					{#snippet children(data)}
+						{#if data}
 							<div>
 								<dt>Data</dt>
-								<dd>
-									<TruncatedValue
-										value={log.fields.data}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</dd>
+								<dd><TruncatedValue value={data} format={TruncatedValueFormat.Visual} /></dd>
 							</div>
 						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-						{#if log.fields.$$tokenTransfers?.values.length}
+				<ResourceBoundary resource={tokenTransfers} placeholderText="Loading token transfers…">
+					{#snippet children(tokenTransfers)}
+						{#if tokenTransfers.values.length}
 							<div>
 								<dt>Token transfers</dt>
 								<dd>
@@ -230,23 +222,34 @@
 								</dd>
 							</div>
 						{/if}
-
-						{#if log.fields.topics?.length && log.fields.data != null && contentOpen}
-							<div>
-								<dt>ABI decode</dt>
-								<dd>
-									<EvmLogDecode
-										topics={log.fields.topics}
-										data={log.fields.data}
-										emitterContractId={log.fields.$emitter?.[EntityMetaKey.Selector]}
-										open={contentOpen}
-									/>
-								</dd>
-							</div>
-						{/if}
 					{/snippet}
 				</ResourceBoundary>
+
+				{#if contentOpen}
+					<ResourceBoundary resource={topics} placeholderText="Loading decode topics…">
+						{#snippet children(topics)}
+							<ResourceBoundary resource={data} placeholderText="Loading decode data…">
+								{#snippet children(data)}
+									{#if topics?.length && data != null}
+										<div>
+											<dt>ABI decode</dt>
+											<dd>
+												<EvmLogDecode
+													topics={topics}
+													{data}
+													emitterContractId={emitter?.entitySelector}
+													open={contentOpen}
+												/>
+											</dd>
+										</div>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						{/snippet}
+					</ResourceBoundary>
+				{/if}
 			</dl>
 		</div>
 	{/snippet}
+
 </EntityView>

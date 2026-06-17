@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,12 +19,12 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = subscribe(EntityType.NearNetwork_Timestamp,
+	const snapshot = $derived(proxy(EntityType.NearNetwork_Timestamp,
 		selector,
 		({ sources: [
 				Source.NearRpc_JsonRpc,
 			], fields: { headHeight: true, headHash: true, epochId: true, epochHeight: true, epochStartHeight: true, chunkCount: true, gasPriceYoctoNear: true, currentValidatorCount: true, nextValidatorCount: true, currentProposalCount: true, protocolVersion: true, latestProtocolVersion: true, nodeVersion: true, syncing: true } }),
-	)
+	))
 
 
 	// Components

@@ -15,7 +15,8 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { resolve } from '$app/paths'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -48,11 +49,12 @@
 	> = $props()
 
 
+	
+
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -67,7 +69,7 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			<code>$$thread</code> lists ancestor and reply posts around this at-URI from Atproto_Xrpc / Atproto_BskySocial_Xrpc <code>getPostThread</code> responses.
+			<code>$$thread</code> lists ancestor and reply posts around this at-URI from Atproto_Xrpc <code>getPostThread</code> responses.
 		</p>
 		<p>
 			Ordering follows record <code>createdAt</code> when available; empty lists mean no parent or replies were returned within the fetched depth window.
@@ -76,50 +78,34 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				{
-					sources: [
-						Source.Atproto_Xrpc,
-						Source.Atproto_BskySocial_Xrpc,
-					],
-					fields: {
-						[entityFieldReference.fieldName]: {
-							sources: [
-								Source.Atproto_Xrpc,
-								Source.Atproto_BskySocial_Xrpc,
-							],
-							orderBy: [
-								[
-									({ fieldRow }) => fieldRow.createdAt,
-									'asc',
-								],
-								[
-									({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
-									'asc',
-								],
-							] as const,
-							limit,
-						},
-					},
-				},
-			)}
 			<ResourceBoundary
-				resource={parent}
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+						{
+							sources: [
+							Source.Atproto_Xrpc,						],
+						}
+					).field(entityFieldReference.fieldName, {
+						sources: [
+							Source.Atproto_Xrpc,						],
+						limit,
+					})}
 				placeholderText={`Loading ${title.toLowerCase()}…`}
 			>
-				{#snippet children(parent)}
+				{#snippet children(thread)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
 						entityType={EntityType.AtprotoPost}
 						id={`${id}-items`}
 						href={href}
-						getKey={(atprotoPost) => atprotoPost[EntityMetaKey.Selector].uri}
-						placeholderText={`Loading ${title.toLowerCase()}…`}
-						items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
 						{title}
 						open={true}
+						getKey={(atprotoPost) => atprotoPost.entitySelector.uri}
+						getSortValue={(atprotoPost) => `${String(atprotoPost.current?.createdAt ?? 0).padStart(20, '0')}\0${atprotoPost.entitySelector.uri}`}
+						placeholderText={`Loading ${title.toLowerCase()}…`}
+						items={thread.entities}
 					>
 						{#snippet Empty()}
 							<p data-text="muted">
@@ -128,11 +114,16 @@
 						{/snippet}
 
 						{#snippet Item({ item })}
-							<AtprotoPostView
-								selector={{ uri: item[EntityMetaKey.Selector].uri }}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
+							<a
+								href={resolve('/(social)/(atproto)/atproto/post/[...uri]', {
+									uri: encodeURIComponent(item.entitySelector.uri),
+								})}
+							>
+								<TruncatedValue
+									value={item.current?.text ?? item.entitySelector.uri}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
 						{/snippet}
 					</EntitiesList>
 				{/snippet}

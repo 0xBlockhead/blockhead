@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,10 +27,7 @@
 		>
 	> = $props()
 
-	const zcashShieldedAction = subscribe(EntityType.ZcashShieldedAction,
-		selector,
-		({ fields: { actionKind: true, ...(open && ({ valueCommitment: true })) } }),
-	)
+	
 
 
 	// Components
@@ -66,7 +63,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={zcashShieldedAction}
+			resource={proxy(EntityType.ZcashShieldedAction, selector, ({ fields: { actionKind: true, ...(open && ({ valueCommitment: true })) } }))}
 			placeholderText="Loading Zcash shielded action…"
 		>
 			{#snippet children(zcashShieldedAction)}

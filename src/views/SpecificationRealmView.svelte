@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,12 +32,9 @@
 		never
 	> = $props()
 
-	const realm = subscribe(EntityType.SpecificationRealm,
-		selector,
-		({ sources: [
+	const realm = $derived(proxy(EntityType.SpecificationRealm, selector, ({ sources: [
 				Source.Constants_Internal,
-			], fields: { label: true, slug: true } }),
-	)
+			], fields: { label: true, slug: true } })))
 
 
 	// (Derived)
@@ -118,7 +115,7 @@
 				fieldName: '$$proposalKinds',
 			}}
 			id={`${stringify(selector)}:proposalKinds`}
-			open={false}
+
 			title="Proposal kinds"
 		/>
 	{/snippet}

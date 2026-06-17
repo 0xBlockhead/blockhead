@@ -1,21 +1,17 @@
 <script lang="ts">
+import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { resolve } from '$app/paths'
 
 
 	// State
@@ -45,11 +41,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RssItemView from '$/views/RssItemView.svelte'
 </script>
@@ -81,63 +80,52 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [
 						Source.Constants_Internal,
 						Source.Rss_Rest,
 						Source.Rss2Json_Rest,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Rss_Rest,
-							Source.Rss2Json_Rest,
-						],
-						limit: limit,
-					},
-				} }),
-			)}
-			{@const rssItems = derive(
-				parent,
-				(parent) => {
-					const rssItems: readonly Entity<typeof schema, EntityType.RssItem>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						rssItems
-							.map((value, index) => ({
-								selector: value[EntityMetaKey.Selector],
-								sortKey: index,
-							}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.RssItem}
-				id={`${id}-items`}
-				{title}
-				resource={rssItems}
-				placeholderText="Loading items…"
-				getKey={(rssItem) => stringify(rssItem.selector)}
-				getSortValue={(rssItem) => rssItem.sortKey}
-				placeholderKeys={new SvelteSet<string>()}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No RSS items here yet.
-					</p>
-				{/snippet}
+					],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.Rss_Rest,
+						Source.Rss2Json_Rest,
+					],
+					limit,
+				})} placeholderText="Loading items…">
+				{#snippet children(rssItems)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.RssItem}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={rssItems.entities}
+						getKey={(rssItem) => stringify(rssItem.entitySelector)}
+						getSortValue={(rssItem) => stringify(rssItem.entitySelector)}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+							No RSS items here yet.
+						</p>
+						{/snippet}
 
-				{#snippet Item({
-					item: rssItem,
-				})}
-					<RssItemView
-						selector={rssItem.selector}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<RssItemView
+							selector={item.entitySelector}
+							layout={EntityLayout.Title}
+
+						/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

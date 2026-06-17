@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const bitcoinCashBcmrMetadata = subscribe(EntityType.BitcoinCashBcmrMetadata,
-		selector,
-		({ fields: { name: true, description: true, symbol: true, decimals: true } }),
-	)
+	
 
 
 	// Components
@@ -54,7 +51,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={bitcoinCashBcmrMetadata}
+			resource={proxy(EntityType.BitcoinCashBcmrMetadata,
+					selector,
+					({ fields: { name: true, description: true, symbol: true, decimals: true } }),
+				)}
 			placeholderText={`Loading Bitcoin Cash Metadata Registry Entry...`}
 		>
 			{#snippet children(bitcoinCashBcmrMetadata)}

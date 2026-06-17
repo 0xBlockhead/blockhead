@@ -3,7 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,15 +11,14 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=caip2Namespace]:[caip2Reference=caip2Reference]', {
-			caip2Namespace: selector.$network.caip2.namespace,
-			caip2Reference: selector.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+			caip2: ,
 		}),
 		layout,
 		open = $bindable(true),
@@ -40,10 +38,19 @@
 		>
 	> = $props()
 
-	const mevRelayProposerPayloadDelivered = subscribe(EntityType.MevRelay_ProposerPayloadDelivered,
+	const mevRelayProposerPayloadDelivered = $derived(proxy(
+		EntityType.MevRelay_ProposerPayloadDelivered,
 		selector,
-		({ sources: [Source.MevRelay_Rest], fields: { builderPubkey: true, value: true, blockNumber: true, ...(open && ({ $executionBlock: true })) } }),
-	)
+		{
+			sources: [
+				Source.MevRelay_Rest,
+			],
+		},
+	))
+	
+	
+	
+
 
 
 	// (Derived)
@@ -95,23 +102,21 @@
 	{/snippet}
 
 	{#snippet Content({})}
-		<ResourceBoundary
-			placeholderText="Loading builder bid…"
-			resource={mevRelayProposerPayloadDelivered}
-		>
-			{#snippet children(mevRelayProposerPayloadDelivered)}
-				<dl data-column-item="center">
-					{#if mevRelayProposerPayloadDelivered.fields.value !== undefined}
+		<dl data-column-item="center">
+			<ResourceBoundary resource={mevRelayProposerPayloadDelivered.value} placeholderText="Loading builder bid value…">
+				{#snippet children(value)}
+					{#if value !== undefined}
 						<div>
 							<dt>Value</dt>
-							<dd>
-								<NumberValue value={mevRelayProposerPayloadDelivered.fields.value} />
-								wei
-							</dd>
+							<dd><NumberValue value={value} /> wei</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if mevRelayProposerPayloadDelivered.fields.builderPubkey !== undefined}
+			<ResourceBoundary resource={mevRelayProposerPayloadDelivered.builderPubkey} placeholderText="Loading builder pubkey…">
+				{#snippet children(builderPubkey)}
+					{#if builderPubkey !== undefined}
 						<div>
 							<dt>Builder pubkey</dt>
 							<dd>
@@ -119,28 +124,14 @@
 									format={TruncatedValueFormat.Abbr}
 									startLength={10}
 									endLength={8}
-									value={mevRelayProposerPayloadDelivered.fields.builderPubkey}
+									value={builderPubkey}
 								/>
 							</dd>
 						</div>
 					{/if}
-
-					{#if (
-						mevRelayProposerPayloadDelivered.fields.value === undefined
-						&& mevRelayProposerPayloadDelivered.fields.builderPubkey === undefined
-					)}
-						<div>
-							<dt>Builder bid</dt>
-							<dd>
-								<p data-text="muted">
-									No bid / builder pubkey fields yet.
-								</p>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({ open })}
@@ -181,16 +172,16 @@
 
 				{#snippet SectionMevIncludedBlock()}
 					<ResourceBoundary
-						resource={mevRelayProposerPayloadDelivered}
+						resource={mevRelayProposerPayloadDelivered.$executionBlock}
 						placeholderText="Loading block…"
 					>
-						{#snippet children(mevRelayProposerPayloadDelivered)}
+						{#snippet children(executionBlock)}
 							{#if (
 								open
-								&& mevRelayProposerPayloadDelivered.fields.$executionBlock !== undefined
+								&& executionBlock !== undefined
 							)}
 								<EvmBlockView
-									selector={mevRelayProposerPayloadDelivered.fields.$executionBlock[EntityMetaKey.Selector]}
+									selector={executionBlock.entitySelector}
 									layout={EntityLayout.Summary}
 								/>
 							{:else if open}

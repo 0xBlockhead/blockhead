@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -35,13 +35,7 @@
 		>
 	> = $props()
 
-	const redditSubredditTimestamp = subscribe(EntityType.RedditSubreddit_Timestamp,
-		selector,
-		({ sources: [
-				Source.Reddit_Rest,
-				Source.Reddit_PublicJson,
-			], fields: { subscriberCount: true, activeUserCount: true } }),
-	)
+	
 
 
 	// Components
@@ -77,7 +71,13 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={redditSubredditTimestamp}
+			resource={proxy(EntityType.RedditSubreddit_Timestamp,
+					selector,
+					({ sources: [
+							Source.Reddit_Rest,
+							Source.Reddit_PublicJson,
+						], fields: { subscriberCount: true, activeUserCount: true } }),
+				)}
 			placeholderText="Loading Reddit subreddit snapshot..."
 		>
 			{#snippet children(redditSubredditTimestamp)}

@@ -2,16 +2,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		title = 'Finality',
@@ -35,11 +32,14 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EthereumBeaconFinality_TimestampView from '$/views/EthereumBeaconFinality_TimestampView.svelte'
 </script>
@@ -61,30 +61,19 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
 						sources: [
 							Source.Beacon_Rest,
 						],
 						limit: 8,
-					},
-				} }),
-			)}
-			{@const beaconFinalityTimestamps = derive(
-				parent,
-				(parent) => {
-					const beaconFinalityTimestamps: readonly Entity<typeof schema, EntityType.EthereumBeaconFinality_Timestamp>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						beaconFinalityTimestamps
-							.map((value) => ({
-								value,
-							}))
-					)
-				},
-			)}
+					})}
+				placeholderText="Loading finality…"
+			>
+				{#snippet children(beaconFinalityTimestamps)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
@@ -92,18 +81,19 @@
 				id={`${id}-items`}
 				href={href}
 				open={true}
-				resource={beaconFinalityTimestamps}
+				items={beaconFinalityTimestamps.entities}
 			>
 				{#snippet Item({ item })}
-					{@const row = item.value}
 					<EthereumBeaconFinality_TimestampView
-						selector={row[EntityMetaKey.Selector]}
+						selector={item.entitySelector}
 						layout={EntityLayout.SummaryDetails}
 						open={true}
 						showTypeAnnotation={false}
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

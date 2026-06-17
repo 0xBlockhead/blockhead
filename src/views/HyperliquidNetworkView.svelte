@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -25,7 +25,7 @@
 	} = $props()
 
 	const network = $derived(
-		subscribe(
+		proxy(
 			EntityType.Network,
 			selector.$network,
 			{
@@ -44,28 +44,7 @@
 		),
 	)
 
-	const hyperliquidNetwork = $derived(
-		subscribe(
-			EntityType.HyperliquidNetwork,
-			selector,
-			{
-				sources: [
-					Source.Hyperliquid_JsonRpc,
-					Source.Hyperliquid_Rest,
-				],
-				fields: {
-					rpcEndpoints: true,
-					restEndpoints: true,
-					$$blocks: {
-						limit: 1,
-					},
-					$$timestamps: {
-						limit: 1,
-					},
-				},
-			},
-		),
-	)
+	
 
 
 	// (Derived)
@@ -132,7 +111,26 @@
 		open,
 	})}
 		<dl class="network-summary-head" data-column-item="center">
-			<ResourceBoundary resource={hyperliquidNetwork} placeholderText="Loading head block…">
+			<ResourceBoundary resource={proxy(
+					EntityType.HyperliquidNetwork,
+					selector,
+					{
+						sources: [
+							Source.Hyperliquid_JsonRpc,
+							Source.Hyperliquid_Rest,
+						],
+						fields: {
+							rpcEndpoints: true,
+							restEndpoints: true,
+							$$blocks: {
+								limit: 1,
+							},
+							$$timestamps: {
+								limit: 1,
+							},
+						},
+					},
+				)} placeholderText="Loading head block…">
 				{#snippet children(hyperliquidNetwork)}
 					{@const block = hyperliquidNetwork.fields.$$blocks?.values.at(0)}
 					{#if block != null}

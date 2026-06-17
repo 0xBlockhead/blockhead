@@ -9,7 +9,7 @@
 
 
 	// State
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -23,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const hyperliquidAccount = subscribe(EntityType.HyperliquidAccount, selector, ({ fields: { accountRole: true, $masterAccount: true, $agentAccount: true } }))
+	
 
 
 	// Components
@@ -50,7 +50,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={hyperliquidAccount}
+			resource={proxy(EntityType.HyperliquidAccount, selector, ({ fields: { accountRole: true, $masterAccount: true, $agentAccount: true } }))}
 			placeholderText={`Loading Hyperliquid Account...`}
 		>
 			{#snippet children(hyperliquidAccount)}
@@ -69,7 +69,7 @@
 								<Self
 									selector={hyperliquidAccount.fields.$masterAccount[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>
@@ -82,7 +82,7 @@
 								<Self
 									selector={hyperliquidAccount.fields.$agentAccount[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>

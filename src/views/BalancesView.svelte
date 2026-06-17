@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -35,6 +34,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -71,21 +72,19 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Allium_Rest,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Allium_Rest,
-						],
-					},
-				} }),
-			)}
 			<ResourceBoundary
-				resource={parent}
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+						{
+							sources: [Source.Allium_Rest],
+						}
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Allium_Rest],
+					})}
 				placeholderText={`Loading ${title.toLowerCase()}…`}
 			>
-				{#snippet children(parent)}
+				{#snippet children(balances)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
@@ -95,10 +94,10 @@
 						data-entity-field-name={entityFieldReference.fieldName}
 						data-entity-field-type={entityFieldReference.entityType}
 						data-entity-field-parent={stringify(entityFieldReference.selector)}
-						getKey={(evmNetworkActorCoinBalance) => stringify(evmNetworkActorCoinBalance[EntityMetaKey.Selector])}
+						getKey={(evmNetworkActorCoinBalance) => stringify(evmNetworkActorCoinBalance.entitySelector)}
 						placeholderKeys={new SvelteSet<string>()}
 						placeholderText={`Loading ${title.toLowerCase()}…`}
-						items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
+						items={balances.entities}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
 						{#snippet Empty()}
@@ -109,9 +108,9 @@
 
 						{#snippet Item({ item })}
 							<EvmNetworkActorCoinBalanceView
-								selector={item[EntityMetaKey.Selector]}
+								selector={item.entitySelector}
 								layout={EntityLayout.Summary}
-								open={false}
+
 							/>
 						{/snippet}
 					</EntitiesList>

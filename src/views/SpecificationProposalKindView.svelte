@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,14 +32,14 @@
 		never
 	> = $props()
 
-	const kind = $derived(subscribe(EntityType.SpecificationProposalKind,
+	const kind = $derived(proxy(EntityType.SpecificationProposalKind,
 		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true, labelPlural: true, slug: true } }),
 	))
 
-	const specificationRealm = $derived(subscribe(EntityType.SpecificationRealm,
+	const specificationRealm = $derived(proxy(EntityType.SpecificationRealm,
 		{
 			realm: selector.realm,
 		},

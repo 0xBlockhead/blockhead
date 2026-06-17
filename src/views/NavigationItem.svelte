@@ -158,14 +158,14 @@
 								}}
 								href={navHref}
 								layout={EntityLayout.Title}
-								open={false}
+
 							/>
 						{:else}
 							<EvmAccountView
 								selector={{ address: node.address.address }}
 								href={navHref}
 								layout={EntityLayout.Title}
-								open={false}
+
 							/>
 						{/if}
 					</span>
@@ -284,7 +284,7 @@
 										$actor: { address: node.address.address },
 									}}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							{:else if node.address}
 								<EvmAccountView
@@ -293,7 +293,7 @@
 										address: node.address.address,
 									})}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							{:else if node.icon}
 								<Icon

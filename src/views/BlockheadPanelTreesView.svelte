@@ -3,7 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
@@ -12,7 +11,6 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -35,11 +33,14 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadPanelTreeView from '$/views/BlockheadPanelTreeView.svelte'
 </script>
@@ -69,41 +70,45 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const global = subscribe(EntityType._Global,
-				entityFieldReference.selector,
-				({ sources: [Source.Local_Internal], fields: { $$blockheadPanelTrees: true } }),
-			)}
-			{@const panelTrees = derive(
-				global,
-				(global) => (
-					global.fields.$$blockheadPanelTrees?.values ?? []
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BlockheadPanelTree}
-				{title}
-				open={true}
-				getKey={(panelTree) => stringify(panelTree[EntityMetaKey.Selector])}
-				getSortValue={(panelTree) => panelTree[EntityMetaKey.Selector].id}
-				resource={panelTrees}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No saved layouts yet.
-					</p>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					EntityType._Global,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Local_Internal],
+					}
+				).field('$$blockheadPanelTrees', {
+					sources: [Source.Local_Internal],
+				})} placeholderText="Loading panel layouts…">
+				{#snippet children(panelTrees)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BlockheadPanelTree}
+						id={`${id}-items`}
+						open={true}
+						items={panelTrees.entities}
+						getKey={(panelTree) => stringify(panelTree.entitySelector)}
+						getSortValue={(panelTree) => panelTree.entitySelector.id}
+						placeholderText="Loading panel layouts…"
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No saved layouts yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item: panelTree })}
-					<BlockheadPanelTreeView
-						selector={panelTree[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<BlockheadPanelTreeView
+								selector={item.entitySelector}
+								layout={EntityLayout.Summary}
+
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

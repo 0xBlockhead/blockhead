@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -24,19 +24,11 @@
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.SolanaNetwork,
-		selector,
-		({ sources: [
+	const network = $derived(proxy(EntityType.SolanaNetwork, selector, ({ sources: [
 				Source.Constants_Internal,
-			], fields: { slug: true, name: true, environment: true, rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$accounts: ({ limit: 16 }), $$timestamps: ({ limit: 1 }) } }),
-	)
+			], fields: { slug: true, name: true, environment: true, rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$accounts: ({ limit: 16 }), $$timestamps: ({ limit: 1 }) } })))
 
-	const baseNetwork = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { $$nativeAssets: true } }),
-	)
+	
 
 
 	// (Derived)
@@ -135,7 +127,9 @@
 				{/snippet}
 			</ResourceBoundary>
 
-				<ResourceBoundary resource={baseNetwork}>
+				<ResourceBoundary resource={proxy(EntityType.Network, selector, ({ sources: [
+						Source.Constants_Internal,
+					], fields: { $$nativeAssets: true } }))}>
 					{#snippet children(baseNetwork)}
 						{@const nativeAssetCount = baseNetwork.fields.$$nativeAssets?.values.length ?? 0}
 						{#if nativeAssetCount > 0}

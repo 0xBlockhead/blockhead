@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -46,11 +44,10 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NostrNoteView from '$/views/NostrNoteView.svelte'
 </script>
@@ -76,7 +73,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
+			{@const parent = proxy(entityFieldReference.entityType,
 				entityFieldReference.selector,
 				(
 					entityFieldReference.entityType === EntityType.NostrNetwork ?
@@ -84,22 +81,26 @@
 							fieldOpen ?
 								{
 									sources: [Source.Constants_Internal],
-									$$nostrNotes: {
-										sources: [Source.NostrBand_Rest],
-										limit: limit,
-									},
-									$$nostrProfiles: {
-										sources: [
-											Source.Constants_Internal,
-											Source.NostrBand_Rest,
-											Source.Primal_Rest,
-										],
-										$$notes: {
+									fields: {
+										$$nostrNotes: {
+											sources: [Source.NostrBand_Rest],
+											limit: limit,
+										},
+										$$nostrProfiles: {
 											sources: [
+												Source.Constants_Internal,
 												Source.NostrBand_Rest,
 												Source.Primal_Rest,
 											],
-											limit: limit,
+											fields: {
+												$$notes: {
+													sources: [
+														Source.NostrBand_Rest,
+														Source.Primal_Rest,
+													],
+													limit: limit,
+												},
+											},
 										},
 									},
 								}
@@ -114,12 +115,14 @@
 								Source.NostrBand_Rest,
 								Source.Primal_Rest,
 							],
-							$$notes: {
-								sources: [
-									Source.NostrBand_Rest,
-									Source.Primal_Rest,
-								],
-								limit: limit,
+							fields: {
+								$$notes: {
+									sources: [
+										Source.NostrBand_Rest,
+										Source.Primal_Rest,
+									],
+									limit: limit,
+								},
 							},
 						}
 					:
@@ -128,64 +131,59 @@
 								Source.NostrBand_Rest,
 								Source.Primal_Rest,
 							],
-							$$replies: {
-								sources: [
-									Source.NostrBand_Rest,
-									Source.Primal_Rest,
-								],
-								limit: limit,
+							fields: {
+								$$replies: {
+									sources: [
+										Source.NostrBand_Rest,
+										Source.Primal_Rest,
+									],
+									limit: limit,
+								},
 							},
 						}
 				),
 			)}
-			{@const notes = derive(
-				parent,
-				(parent) => {
-					const nostrNotes: readonly Entity<typeof schema, EntityType.NostrNote>[] = (
-						entityFieldReference.entityType === EntityType.NostrNetwork ?
+			<ResourceBoundary resource={parent} placeholderText={`Loading ${title.toLowerCase()}…`}>
+				{#snippet children(parent)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.NostrNote}
+						id={`${id}-items`}
+						{title}
+						items={entityFieldReference.entityType === EntityType.NostrNetwork ?
 							[
-								...(parent.$$nostrNotes ?? []),
-								...(parent.$$nostrProfiles ?? [])
-									.flatMap((profile: Entity<typeof schema, EntityType.NostrProfile>) => profile.$$notes ?? []),
+								...(parent?.['$$nostrNotes'].entities ?? []),
+								...(parent?.['$$nostrProfiles'].entities ?? [])
+									.flatMap((profile) => profile.current?.['$$notes'].entities ?? []),
 							]
 						:
-							(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-					)
-					return nostrNotes
-				},
-			)}
-			{#key `${stringify(entityFieldReference.selector)}-${limit}-${fieldOpen}`}
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.NostrNote}
-					id={`${id}-items`}
-					{title}
-					getKey={(row) => row[EntityMetaKey.Selector].eventId}
-					getSortValue={(row) => (
-						`${String(-(row.createdAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Selector].eventId}`
-					)}
-					placeholderText={`Loading ${title.toLowerCase()}…`}
-					resource={notes}
-				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No notes yet.
-						</p>
-					{/snippet}
+							parent.fields[entityFieldReference.fieldName]?.entities ?? []}
+						getKey={(row) => row.entitySelector.eventId}
+						getSortValue={(row) => (
+							`${String(-(row.current?.createdAt ?? 0)).padStart(20, '0')}\0${row.entitySelector.eventId}`
+						)}
+						placeholderText={`Loading ${title.toLowerCase()}…`}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No notes yet.
+							</p>
+						{/snippet}
 
-					{#snippet Item({ item })}
-						<NostrNoteView
-							selector={{ eventId: item[EntityMetaKey.Selector].eventId }}
-							href={resolve('/(social)/(nostr)/nostr/note/[eventId]', {
-								eventId: item[EntityMetaKey.Selector].eventId,
-							})}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-						/>
-					{/snippet}
-				</EntitiesList>
-			{/key}
+						{#snippet Item({ item })}
+							<NostrNoteView
+								selector={{ eventId: item.entitySelector.eventId }}
+								href={resolve('/(social)/(nostr)/nostr/note/[eventId]', {
+									eventId: item.entitySelector.eventId,
+								})}
+								layout={EntityLayout.SummaryDetails}
+
+							/>
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

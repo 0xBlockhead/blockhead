@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,13 +27,7 @@
 		>
 	> = $props()
 
-	const block = subscribe(EntityType.CosmosBlock,
-		selector,
-		({ sources: [
-				Source.CometBft_Rest,
-				Source.CosmosSdk_Rest,
-			], fields: { hash: true, ...(open && ({ proposerConsensusAddress: true })), timestampMs: true } }),
-	)
+	
 
 
 	// Components
@@ -87,7 +81,13 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={block}
+			resource={proxy(EntityType.CosmosBlock,
+					selector,
+					({ sources: [
+							Source.CometBft_Rest,
+							Source.CosmosSdk_Rest,
+						], fields: { hash: true, ...(open && ({ proposerConsensusAddress: true })), timestampMs: true } }),
+				)}
 			placeholderText="Loading Cosmos block…"
 		>
 			{#snippet children(block)}

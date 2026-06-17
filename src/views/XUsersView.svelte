@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +34,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import XUserView from '$/views/XUserView.svelte'
 </script>
@@ -64,57 +64,45 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.selector,({ sources: [Source.Constants_Internal], fields: { [entityFieldReference.fieldName]: {
-				sources: [
-					Source.X_Rest,
-					Source.X_FxEmbed_Rest,
-				],
-			},
-		} }),
-	)}
-			{@const users = derive(
-		parent,
-		(parent) => {
-			const xUsers: readonly Entity<typeof schema, EntityType.XUser>[] = (
-				parent.fields[entityFieldReference.fieldName]?.values ?? []
-			)
-			return (
-				xUsers
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.XUser}
-				id={`${id}-items`}
-				href={href}
-				{title}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Selector])}
-				getSortValue={(row) => stringify(row.value[EntityMetaKey.Selector])}
-				resource={users}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-				open={true}
-			>
-				{#snippet Empty()}
-						<p data-text="muted">
-							No X profiles in this xUsers yet.
-						</p>
-					{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Constants_Internal],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.X_Rest, Source.X_FxEmbed_Rest],
+				})} placeholderText={`Loading ${title.toLowerCase()}…`}>
+				{#snippet children(users)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.XUser}
+						id={`${id}-items`}
+						href={href}
+						{title}
+						getKey={(row) => stringify(row.entitySelector)}
+						getSortValue={(row) => stringify(row.entitySelector)}
+						items={users.entities}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+						open={true}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No X profiles in this xUsers yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-						<XUserView
-							selector={item.value[EntityMetaKey.Selector]}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/snippet}
+						{#snippet Item({ item })}
+							<XUserView
+								selector={item.entitySelector}
+								layout={EntityLayout.Summary}
 
-			</EntitiesList>
+							/>
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

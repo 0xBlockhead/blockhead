@@ -15,7 +15,7 @@
 
 <Page>
 	<ActivityPubNotesView
-		href={resolve('/activitypub/notes')}
+		href={resolve('/(social)/(activitypub)/activitypub/notes')}
 		entityFieldReference={{
 			entityType: EntityType.ActivityPubNetwork,
 			selector: { scope: 'ActivityPubNetwork' },

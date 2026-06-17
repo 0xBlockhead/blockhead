@@ -6,7 +6,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 
 	import {
 		EvmTransactionEnvelopeType,
@@ -25,8 +24,8 @@
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-			...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+			.caip2: ,
 			transactionId: selector.txHash,
 		}),
 		title = selector.txHash,
@@ -50,45 +49,51 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
-	const evmTransaction = $derived(
-		open ?
-			subscribe(EntityType.EvmTransaction,
-				selector,
-				({ sources: [
-						Source.Blockscout_Rest,
-						Source.Voltaire_JsonRpc,
-						Source.ZeroGChain_JsonRpc,
-					], fields: {
-						$block: true,
-						$from: true,
-						$to: true,
-						$contract: true,
-						value: true,
-						kind: true,
-						envelopeType: true,
-						executionStatus: true,
-						gasUsed: true,
-						cumulativeGasUsed: true,
-						input: true,
-						nonce: true,
-						transactionIndex: true,
-						r: true,
-						s: true,
-						v: true,
-						gas: true,
-						gasPrice: true,
-						effectiveGasPrice: true,
-						maxFeePerGas: true,
-						maxPriorityFeePerGas: true,
-						blobGasUsed: true,
-						maxFeePerBlobGas: true,
-					} }),
-			)
-		:
-			undefined
-	)
+	const evmTransaction = $derived(proxy(EntityType.EvmTransaction, selector, {
+		sources: [
+			Source.Blockscout_Rest,
+			Source.Voltaire_JsonRpc,
+			Source.ZeroGChain_JsonRpc,
+		],
+	}))
+	const block = $derived(evmTransaction.$block)
+	const from = $derived(evmTransaction.$from)
+	const to = $derived(evmTransaction.$to)
+	const contract = $derived(evmTransaction.$contract)
+	const value = $derived(evmTransaction.value)
+	const kind = $derived(evmTransaction.kind)
+	const envelopeType = $derived(evmTransaction.envelopeType)
+	const executionStatus = $derived(evmTransaction.executionStatus)
+	const gasUsed = $derived(evmTransaction.gasUsed)
+	const cumulativeGasUsed = $derived(evmTransaction.cumulativeGasUsed)
+	const input = $derived(evmTransaction.input)
+	const nonce = $derived(evmTransaction.nonce)
+	const transactionIndex = $derived(evmTransaction.transactionIndex)
+	const r = $derived(evmTransaction.r)
+	const s = $derived(evmTransaction.s)
+	const v = $derived(evmTransaction.v)
+	const gas = $derived(evmTransaction.gas)
+	const gasPrice = $derived(evmTransaction.gasPrice)
+	const effectiveGasPrice = $derived(evmTransaction.effectiveGasPrice)
+	const maxFeePerGas = $derived(evmTransaction.maxFeePerGas)
+	const maxPriorityFeePerGas = $derived(evmTransaction.maxPriorityFeePerGas)
+	const blobGasUsed = $derived(evmTransaction.blobGasUsed)
+	const maxFeePerBlobGas = $derived(evmTransaction.maxFeePerBlobGas)
+	
+	const traceUnavailable = $derived(evmTransaction.traceUnavailable({
+		sources: [
+			Source.Blockscout_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
+	const traceRoot = $derived(evmTransaction.traceRoot({
+		sources: [
+			Source.Blockscout_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
 
 
 	// (Derived)
@@ -151,7 +156,7 @@
 	{/snippet}
 
 	{#snippet Content({ open })}
-		{#if open && evmTransaction !== undefined}
+		{#if open}
 			<ResourceBoundary
 				resource={evmTransaction}
 				placeholderText="Loading transaction…"
@@ -160,14 +165,14 @@
 					<dl data-column-item="center">
 						<div>
 							<dt>Kind</dt>
-							<dd>{evmTransactionKindByKind[transaction.fields.kind]?.label ?? String(transaction.fields.kind)}</dd>
+							<dd>{evmTransactionKindByKind[transaction.kind]?.label ?? String(transaction.kind)}</dd>
 						</div>
 
 						<div>
 							<dt>Value</dt>
 							<dd>
-								{#if transaction.fields.value !== undefined}
-									<NumberValue value={transaction.fields.value} />
+								{#if transaction.value !== undefined}
+									<NumberValue value={transaction.value} />
 								{/if}
 							</dd>
 						</div>
@@ -175,8 +180,8 @@
 						<div>
 							<dt>Status</dt>
 							<dd>
-								{#if transaction.fields.executionStatus !== undefined}
-									{evmTransactionExecutionStatusByExecutionStatus[transaction.fields.executionStatus]?.label ?? String(transaction.fields.executionStatus)}
+								{#if transaction.executionStatus !== undefined}
+									{evmTransactionExecutionStatusByExecutionStatus[transaction.executionStatus]?.label ?? String(transaction.executionStatus)}
 								{/if}
 							</dd>
 						</div>
@@ -184,8 +189,8 @@
 						<div>
 							<dt>Gas used</dt>
 							<dd>
-								{#if transaction.fields.gasUsed !== undefined}
-									<NumberValue value={transaction.fields.gasUsed} />
+								{#if transaction.gasUsed !== undefined}
+									<NumberValue value={transaction.gasUsed} />
 								{/if}
 							</dd>
 						</div>
@@ -193,12 +198,13 @@
 						<div>
 							<dt>Block</dt>
 							<dd>
-								{#if transaction.fields.$block?.[EntityMetaKey.Selector].blockNumber !== undefined}
+								{#if transaction.$block?.entitySelector !== undefined && 'blockNumber' in transaction.$block.entitySelector}
 									<EvmBlockView
-										selector={transaction.fields.$block[EntityMetaKey.Selector]}
+										selector={transaction.$block.entitySelector}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								{/if}
 							</dd>
 						</div>
@@ -206,15 +212,16 @@
 						<div>
 							<dt>From</dt>
 							<dd>
-								{#if transaction.fields.$from?.[EntityMetaKey.Selector].address !== undefined}
+								{#if transaction.$from?.entitySelector.address !== undefined}
 									<EvmNetworkAccountView
 										selector={{
 											$network: selector.$network,
-											$actor: transaction.fields.$from[EntityMetaKey.Selector],
+											$actor: transaction.$from.entitySelector,
 										}}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								{/if}
 							</dd>
 						</div>
@@ -222,15 +229,16 @@
 						<div>
 							<dt>To</dt>
 							<dd>
-								{#if transaction.fields.$to?.[EntityMetaKey.Selector].address !== undefined}
+								{#if transaction.$to?.entitySelector.address !== undefined}
 									<EvmNetworkAccountView
 										selector={{
 											$network: selector.$network,
-											$actor: transaction.fields.$to[EntityMetaKey.Selector],
+											$actor: transaction.$to.entitySelector,
 										}}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								{/if}
 							</dd>
 						</div>
@@ -238,13 +246,14 @@
 						<div>
 							<dt>Contract</dt>
 							<dd>
-								{#if transaction.fields.$contract?.[EntityMetaKey.Selector].address !== undefined}
+								{#if transaction.$contract?.entitySelector.address !== undefined}
 									<EvmContractView
-										selector={transaction.fields.$contract[EntityMetaKey.Selector]}
+										selector={transaction.$contract.entitySelector}
 										layout={EntityLayout.Value}
-										open={false}
+
 										showTypeAnnotation={false}
-									/>
+										open={false}
+										/>
 								{/if}
 							</dd>
 						</div>
@@ -253,8 +262,8 @@
 							<div>
 								<dt>Nonce</dt>
 								<dd>
-									{#if transaction.fields.nonce !== undefined}
-										{String(transaction.fields.nonce)}
+									{#if transaction.nonce !== undefined}
+										{String(transaction.nonce)}
 									{/if}
 								</dd>
 							</div>
@@ -264,8 +273,8 @@
 							<div>
 								<dt>Position in block</dt>
 								<dd>
-									{#if transaction.fields.transactionIndex !== undefined}
-										{String(transaction.fields.transactionIndex)}
+									{#if transaction.transactionIndex !== undefined}
+										{String(transaction.transactionIndex)}
 									{/if}
 								</dd>
 							</div>
@@ -275,8 +284,8 @@
 							<div>
 								<dt>Gas limit</dt>
 								<dd>
-									{#if transaction.fields.gas !== undefined}
-										<NumberValue value={transaction.fields.gas} />
+									{#if transaction.gas !== undefined}
+										<NumberValue value={transaction.gas} />
 									{/if}
 								</dd>
 							</div>
@@ -286,8 +295,8 @@
 							<div>
 								<dt>Gas price</dt>
 								<dd>
-									{#if transaction.fields.gasPrice !== undefined}
-										<NumberValue value={transaction.fields.gasPrice} />
+									{#if transaction.gasPrice !== undefined}
+										<NumberValue value={transaction.gasPrice} />
 									{/if}
 								</dd>
 							</div>
@@ -297,8 +306,8 @@
 							<div>
 								<dt>Transaction envelope type</dt>
 								<dd>
-									{#if transaction.fields.envelopeType !== undefined}
-										{evmTransactionEnvelopeTypeByEnvelopeType[transaction.fields.envelopeType]?.label ?? String(transaction.fields.envelopeType)}
+									{#if transaction.envelopeType !== undefined}
+										{evmTransactionEnvelopeTypeByEnvelopeType[transaction.envelopeType]?.label ?? String(transaction.envelopeType)}
 									{/if}
 								</dd>
 							</div>
@@ -310,38 +319,38 @@
 								<dd data-row="wrap align-center gap-2">
 									{#if (
 										(
-											transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
-											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
-											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
+											transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+											|| transaction.envelopeType === EvmTransactionEnvelopeType.Blob
+											|| transaction.envelopeType === EvmTransactionEnvelopeType.SetCode
 										)
-										&& transaction.fields.maxFeePerGas !== undefined
+										&& transaction.maxFeePerGas !== undefined
 									)}
 										<span>
 											max
-											<NumberValue value={transaction.fields.maxFeePerGas} />
+											<NumberValue value={transaction.maxFeePerGas} />
 										</span>
 									{/if}
 									{#if (
 										(
-											transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
-											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
-											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
+											transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+											|| transaction.envelopeType === EvmTransactionEnvelopeType.Blob
+											|| transaction.envelopeType === EvmTransactionEnvelopeType.SetCode
 										)
-										&& transaction.fields.maxPriorityFeePerGas !== undefined
+										&& transaction.maxPriorityFeePerGas !== undefined
 									)}
 										<span>
 											priority
-											<NumberValue value={transaction.fields.maxPriorityFeePerGas} />
+											<NumberValue value={transaction.maxPriorityFeePerGas} />
 										</span>
 									{/if}
 									{#if (
 										(
-											transaction.fields.envelopeType === EvmTransactionEnvelopeType.FeeMarket
-											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
-											|| transaction.fields.envelopeType === EvmTransactionEnvelopeType.SetCode
+											transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+											|| transaction.envelopeType === EvmTransactionEnvelopeType.Blob
+											|| transaction.envelopeType === EvmTransactionEnvelopeType.SetCode
 										)
-										&& transaction.fields.maxFeePerGas === undefined
-										&& transaction.fields.maxPriorityFeePerGas === undefined
+										&& transaction.maxFeePerGas === undefined
+										&& transaction.maxPriorityFeePerGas === undefined
 									)}
 										<span data-text="muted">Caps not indexed</span>
 									{/if}
@@ -353,8 +362,8 @@
 							<div>
 								<dt>Effective gas price</dt>
 								<dd>
-									{#if transaction.fields.effectiveGasPrice !== undefined}
-										<NumberValue value={transaction.fields.effectiveGasPrice} />
+									{#if transaction.effectiveGasPrice !== undefined}
+										<NumberValue value={transaction.effectiveGasPrice} />
 									{/if}
 								</dd>
 							</div>
@@ -364,9 +373,9 @@
 							<div>
 								<dt>Input data</dt>
 								<dd>
-									{#if transaction.fields.input !== undefined}
+									{#if transaction.input !== undefined}
 										<TruncatedValue
-											value={transaction.fields.input}
+											value={transaction.input}
 											format={TruncatedValueFormat.Abbr}
 										/>
 									{/if}
@@ -378,26 +387,26 @@
 							<div>
 								<dt>Signature</dt>
 								<dd data-row="wrap align-center gap-2">
-									{#if transaction.fields.r !== undefined}
+									{#if transaction.r !== undefined}
 										<span>
 											r
 											<TruncatedValue
-												value={transaction.fields.r}
+												value={transaction.r}
 												format={TruncatedValueFormat.Abbr}
 											/>
 										</span>
 									{/if}
-									{#if transaction.fields.s !== undefined}
+									{#if transaction.s !== undefined}
 										<span>
 											s
 											<TruncatedValue
-												value={transaction.fields.s}
+												value={transaction.s}
 												format={TruncatedValueFormat.Abbr}
 											/>
 										</span>
 									{/if}
-									{#if transaction.fields.v !== undefined}
-										<span>v {transaction.fields.v}</span>
+									{#if transaction.v !== undefined}
+										<span>v {transaction.v}</span>
 									{/if}
 								</dd>
 							</div>
@@ -405,24 +414,24 @@
 
 						{#if open}
 							{#if (
-								transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
-								&& transaction.fields.blobGasUsed !== undefined
+								transaction.envelopeType === EvmTransactionEnvelopeType.Blob
+								&& transaction.blobGasUsed !== undefined
 							)}
 								<div>
 									<dt>Blob gas used</dt>
 									<dd>
-										<NumberValue value={transaction.fields.blobGasUsed} />
+										<NumberValue value={transaction.blobGasUsed} />
 									</dd>
 								</div>
 							{/if}
 							{#if (
-								transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
-								&& transaction.fields.maxFeePerBlobGas !== undefined
+								transaction.envelopeType === EvmTransactionEnvelopeType.Blob
+								&& transaction.maxFeePerBlobGas !== undefined
 							)}
 								<div>
 									<dt>Max fee per blob gas</dt>
 									<dd>
-										<NumberValue value={transaction.fields.maxFeePerBlobGas} />
+										<NumberValue value={transaction.maxFeePerBlobGas} />
 									</dd>
 								</div>
 							{/if}
@@ -462,30 +471,28 @@
 			{/snippet}
 
 			{#snippet SectionCall({ id: _callId, label: _callLabel })}
-				{#if evmTransaction !== undefined}
-					<ResourceBoundary
+				<ResourceBoundary
 						resource={evmTransaction}
 						placeholderText="Loading transaction input…"
 					>
 						{#snippet children(transaction)}
-							{#if transaction.fields.input != null}
+							{#if transaction.input != null}
 								<EvmTransactionInputDecode
-									input={transaction.fields.input}
+									input={transaction.input}
 									open={true}
 								/>
 							{:else}
-								<p data-text="muted">No calldata on this transaction.fields.</p>
+								<p data-text="muted">No calldata on this transaction.</p>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/if}
 			{/snippet}
 
 			{#snippet SectionEvents({ id: _eventsId, label: _eventsLabel })}
 				<EvmLogsView
 					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-						...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+					href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+						.caip2: ,
 						transactionId: selector.txHash,
 					})}
 					entityFieldReference={{
@@ -501,24 +508,17 @@
 			{/snippet}
 
 			{#snippet SectionTrace({ id: _traceId, label: _traceLabel })}
-				{@const txTrace = subscribe(EntityType.EvmTransaction,
-					selector,
-					({ sources: [
-							Source.Blockscout_Rest,
-							Source.Voltaire_JsonRpc,
-						], fields: { traceRoot: true, traceUnavailable: true } }),
-				)}
 				<ResourceBoundary
-					resource={txTrace}
+					resource={traceRoot}
 					placeholderText="Loading call trace…"
 				>
-					{#snippet children(trace)}
-						{#if trace.fields.traceRoot != null}
+					{#snippet children(traceRoot)}
+						{#if traceRoot != null}
 							<EvmTraceTreeView
-								traceRoot={trace.fields.traceRoot}
+								traceRoot={traceRoot}
 								chainId={evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)}
 							/>
-						{:else if trace.fields.traceUnavailable}
+						{:else if traceUnavailable.current}
 							<p data-text="muted">
 								Call trace is not available from the configured RPC or explorer for this chain.
 							</p>
@@ -530,13 +530,12 @@
 			{/snippet}
 
 			{#snippet SectionBlobs({ id: _blobsId, label: _blobsLabel })}
-				{#if evmTransaction !== undefined}
-					<ResourceBoundary
+				<ResourceBoundary
 						resource={evmTransaction}
 						placeholderText=""
 					>
 						{#snippet children(transaction)}
-							{#if transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob}
+							{#if transaction.envelopeType === EvmTransactionEnvelopeType.Blob}
 								<EvmBlobsView
 									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
@@ -544,8 +543,8 @@
 										selector,
 										fieldName: '$$blobs',
 									}}
-									href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-											...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+											.caip2: ,
 											transactionId: selector.txHash,
 										})}
 									id={`${txSelectorKey}:blobs`}
@@ -555,7 +554,6 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/if}
 			{/snippet}
 
 			{#snippet SectionUserOperations({ id: _userOpsId, label: _userOpsLabel })}
@@ -567,7 +565,7 @@
 						fieldName: '$$userOperations',
 					}}
 					id={`${txSelectorKey}:user-operations`}
-					open={false}
+
 					title="User operations"
 				/>
 			{/snippet}

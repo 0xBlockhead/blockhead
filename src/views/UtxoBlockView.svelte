@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -9,15 +10,17 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
+		resource,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.UtxoBlock>
+			resource?: EntityProxyResource<typeof schema, EntityType.UtxoBlock>
 			open?: boolean
 		},
 		Pick<
@@ -27,17 +30,26 @@
 		>
 	> = $props()
 
-	const block = subscribe(EntityType.UtxoBlock,
+	const block = $derived(resource ?? proxy(
+		EntityType.UtxoBlock,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Esplora_Rest,
 				Source.Blockchair_Rest,
 				Source.ThreeXpl_Rest,
 				Source.BitcoinCore_JsonRpc,
 				Source.LitecoinCore_JsonRpc,
 				Source.DogecoinCore_JsonRpc,
-			], fields: { hash: true, transactionCount: true, timestampMs: true, ...(open && ({ sizeBytes: true, weightUnits: true, difficulty: true })) } }),
-	)
+			],
+		},
+	))
+	
+	
+	
+	
+	
+	
 
 
 	// Components
@@ -53,10 +65,10 @@
 	entityType={EntityType.UtxoBlock}
 	entitySelector={selector}
 	href={
-		'networkSlug' in selector.$network ?
-			`/network/${selector.$network.networkSlug}/blocks/${selector.height.toString()}`
-		:
+		'caip2' in selector.$network ?
 			`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/blocks/${selector.height.toString()}`
+		:
+			`/network/${selector.$network.slug}/blocks/${selector.height.toString()}`
 	}
 	title={`Block #${selector.height.toString()}`}
 	idDragPlainText={selector.height.toString()}
@@ -86,60 +98,109 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary
-			resource={block}
-			placeholderText="Loading block…"
-		>
-			{#snippet children(block)}
-				<dl data-column-item="center">
-					{#if selector.hash != null || block.fields.hash != null}
+		<dl data-column-item="center">
+			{#if 'hash' in selector && selector.hash != null}
+				<div>
+					<dt>Hash</dt>
+					<dd>
+						<TruncatedValue
+							value={selector.hash}
+							format={TruncatedValueFormat.Abbr}
+						/>
+					</dd>
+				</div>
+			{:else}
+				<ResourceBoundary
+					resource={block.hash}
+					placeholderText="Loading block hash…"
+				>
+					{#snippet children(blockHash)}
+						{#if blockHash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={selector.hash ?? block.fields.hash}
+									value={blockHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
-					{/if}
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 
-					{#if block.fields.transactionCount != null}
+			<ResourceBoundary
+				resource={block.transactionCount}
+				placeholderText="Loading transaction count…"
+			>
+				{#snippet children(transactionCount)}
+					{#if transactionCount != null}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={block.fields.transactionCount} /></dd>
+							<dd><NumberValue value={transactionCount} /></dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if block.fields.timestampMs != null}
+			<ResourceBoundary
+				resource={block.timestampMs}
+				placeholderText="Loading timestamp…"
+			>
+				{#snippet children(timestampMs)}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
-							<dd><Timestamp timestamp={block.fields.timestampMs} /></dd>
+							<dd><Timestamp timestamp={timestampMs} /></dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if open && block.fields.sizeBytes != null}
+			{#if open}
+				<ResourceBoundary
+					resource={block.sizeBytes}
+					placeholderText="Loading block size…"
+				>
+					{#snippet children(sizeBytes)}
+						{#if sizeBytes != null}
 						<div>
 							<dt>Size</dt>
-							<dd><NumberValue value={block.fields.sizeBytes} /> bytes</dd>
+							<dd><NumberValue value={sizeBytes} /> bytes</dd>
 						</div>
-					{/if}
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-					{#if open && block.fields.weightUnits != null}
+				<ResourceBoundary
+					resource={block.weightUnits}
+					placeholderText="Loading block weight…"
+				>
+					{#snippet children(weightUnits)}
+						{#if weightUnits != null}
 						<div>
 							<dt>Weight</dt>
-							<dd><NumberValue value={block.fields.weightUnits} /> WU</dd>
+							<dd><NumberValue value={weightUnits} /> WU</dd>
 						</div>
-					{/if}
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-					{#if open && block.fields.difficulty != null}
+				<ResourceBoundary
+					resource={block.difficulty}
+					placeholderText="Loading difficulty…"
+				>
+					{#snippet children(difficulty)}
+						{#if difficulty != null}
 						<div>
 							<dt>Difficulty</dt>
-							<dd><NumberValue value={block.fields.difficulty} /></dd>
+							<dd><NumberValue value={difficulty} /></dd>
 						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+		</dl>
 	{/snippet}
 </EntityView>

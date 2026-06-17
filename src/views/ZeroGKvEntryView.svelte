@@ -9,7 +9,7 @@
 
 
 	// State
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -23,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const zeroGKvEntry = subscribe(EntityType.ZeroGKvEntry, selector, ({ fields: { $logEntry: true, $owner: true, valueHash: true } }))
+	
 
 
 	// Components
@@ -61,7 +61,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={zeroGKvEntry}
+			resource={proxy(EntityType.ZeroGKvEntry, selector, ({ fields: { $logEntry: true, $owner: true, valueHash: true } }))}
 			placeholderText={`Loading 0G KV entry...`}
 		>
 			{#snippet children(zeroGKvEntry)}
@@ -73,7 +73,7 @@
 								<EvmAccountView
 									selector={zeroGKvEntry.fields.$owner[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>
@@ -98,7 +98,7 @@
 								<ZeroGStorageLogEntryView
 									selector={zeroGKvEntry.fields.$logEntry[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>

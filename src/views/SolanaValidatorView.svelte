@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const solanaValidator = subscribe(EntityType.SolanaValidator,
-		selector,
-		({ fields: { nodePubkey: true, activatedStakeLamports: true, commission: true, delinquent: true } }),
-	)
+	
 
 
 	// Components
@@ -57,7 +54,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={solanaValidator}
+			resource={proxy(EntityType.SolanaValidator,
+					selector,
+					({ fields: { nodePubkey: true, activatedStakeLamports: true, commission: true, delinquent: true } }),
+				)}
 			placeholderText={`Loading Solana Validator...`}
 		>
 			{#snippet children(solanaValidator)}

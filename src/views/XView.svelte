@@ -18,7 +18,7 @@
 
 	import { stringify } from 'devalue'
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	const selector: EntitySelector<typeof schema, EntityType.XNetwork> = {
 		scope: 'XNetwork',
@@ -29,18 +29,7 @@
 
 	const networkSelectorKey = $derived(stringify(selector))
 
-	const network = $derived(
-		subscribe(EntityType.XNetwork,
-			selector,
-			({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xUsers: ({ sources: [
-					Source.X_Rest,
-					Source.X_FxEmbed_Rest,
-				] }), $$xPosts: ({ sources: [
-					Source.X_Rest,
-					Source.X_FxEmbed_Rest,
-				] }) } }),
-		),
-	)
+	
 
 
 	// Components
@@ -85,7 +74,16 @@
 	})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={network}
+				resource={proxy(EntityType.XNetwork,
+						selector,
+						({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xUsers: ({ sources: [
+								Source.X_Rest,
+								Source.X_FxEmbed_Rest,
+							] }), $$xPosts: ({ sources: [
+								Source.X_Rest,
+								Source.X_FxEmbed_Rest,
+							] }) } }),
+					)}
 				placeholderText="Loading X network…"
 			>
 				{#snippet children(network)}

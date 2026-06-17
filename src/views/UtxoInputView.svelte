@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,15 @@
 		>
 	> = $props()
 
-	const utxoInput = subscribe(EntityType.UtxoInput,
+	const utxoInput = $derived(proxy(
+		EntityType.UtxoInput,
 		selector,
-		({ fields: { coinbaseScript: true, scriptSigAsm: true, sequence: true, witness: true } }),
-	)
+	))
+	
+	
+	
+	
+
 
 
 	// Components
@@ -65,59 +70,83 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary
-			resource={utxoInput}
-			placeholderText={`Loading UTXO Input...`}
-		>
-			{#snippet children(utxoInput)}
-				<dl>
-					{#if utxoInput.fields.coinbaseScript != null}
+		<dl>
+			<ResourceBoundary
+				resource={utxoInput.coinbaseScript}
+				placeholderText="Loading coinbase script..."
+			>
+				{#snippet children(coinbaseScript)}
+					{#if coinbaseScript != null}
 						<div>
 							<dt>Coinbase Script</dt>
 							<dd>
 								<TruncatedValue
-									value={utxoInput.fields.coinbaseScript}
+									value={coinbaseScript}
 									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								/>
+							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if utxoInput.fields.scriptSigAsm != null}
+			<ResourceBoundary
+				resource={utxoInput.scriptSigAsm}
+				placeholderText="Loading script sig asm..."
+			>
+				{#snippet children(scriptSigAsm)}
+					{#if scriptSigAsm != null}
 						<div>
 							<dt>Script Sig Asm</dt>
 							<dd>
 								<TruncatedValue
-									value={utxoInput.fields.scriptSigAsm}
+									value={scriptSigAsm}
 									format={TruncatedValueFormat.Abbr}
-								/></dd>
+								/>
+							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if utxoInput.fields.sequence != null}
+			<ResourceBoundary
+				resource={utxoInput.sequence}
+				placeholderText="Loading sequence..."
+			>
+				{#snippet children(sequence)}
+					{#if sequence != null}
 						<div>
 							<dt>Sequence</dt>
-							<dd><NumberValue value={utxoInput.fields.sequence} /></dd>
+							<dd><NumberValue value={sequence} /></dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if utxoInput.fields.witness.values.length}
+			<ResourceBoundary
+				resource={utxoInput.witness}
+				placeholderText="Loading witness..."
+			>
+				{#snippet children(witness)}
+					{#if witness?.values.length}
 						<div>
 							<dt>Witness</dt>
 							<dd>
 								<ul>
-									{#each utxoInput.fields.witness.values as witness (witness)}
+									{#each witness.values as witnessValue (witnessValue)}
 										<li>
 											<TruncatedValue
-												value={witness}
+												value={witnessValue}
 												format={TruncatedValueFormat.Abbr}
-											/></li>
+											/>
+										</li>
 									{/each}
 								</ul>
 							</dd>
 						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 </EntityView>

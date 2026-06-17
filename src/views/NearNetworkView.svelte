@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -24,19 +24,11 @@
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.NearNetwork,
-		selector,
-		({ sources: [
+	const network = $derived(proxy(EntityType.NearNetwork, selector, ({ sources: [
 				Source.Constants_Internal,
-			], fields: { slug: true, name: true, environment: true, rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1 }) } }),
-	)
+			], fields: { slug: true, name: true, environment: true, rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1 }) } })))
 
-	const baseNetwork = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { $$nativeAssets: true } }),
-	)
+	
 
 
 	// (Derived)
@@ -116,7 +108,9 @@
 						</div>
 					{/if}
 
-						<ResourceBoundary resource={baseNetwork}>
+						<ResourceBoundary resource={proxy(EntityType.Network, selector, ({ sources: [
+								Source.Constants_Internal,
+							], fields: { $$nativeAssets: true } }))}>
 							{#snippet children(baseNetwork)}
 								{@const nativeAssetCount = baseNetwork.fields.$$nativeAssets?.values.length ?? 0}
 								{#if nativeAssetCount > 0}

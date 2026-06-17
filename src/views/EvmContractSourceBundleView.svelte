@@ -9,16 +9,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
-			caip2Namespace: selector.$contract.$network.caip2.namespace,
-			caip2Reference: selector.$contract.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address]', {
+			caip2: ,
 			address: selector.$contract.address,
 		}),
 		layout = EntityLayout.SummaryDetails,
@@ -42,12 +41,10 @@
 		never
 	> = $props()
 
-	const sourceBundle = $derived(subscribe(EntityType.EvmContractSourceBundle,
-		selector,
-		({ sources: [
-				Source.Sourcify_Rest,
-			], fields: { ...(open && ({ files: true })) } }),
-	))
+	
+	const files = $derived(proxy(EntityType.EvmContractSourceBundle, selector, {
+		sources: [Source.Sourcify_Rest],
+	}).files)
 
 
 	// Components
@@ -67,13 +64,13 @@
 >
 	{#snippet Value()}
 		<ResourceBoundary
-			resource={sourceBundle}
+			resource={files}
 			placeholderText="Loading source bundle…"
 		>
-			{#snippet children(sourceBundle)}
-				{#if Object.keys(sourceBundle.fields.files ?? {}).length > 0}
+			{#snippet children(files)}
+				{#if Object.keys(files ?? {}).length > 0}
 					<code>
-						{String(Object.keys(sourceBundle.fields.files ?? {})[0])
+						{String(Object.keys(files ?? {})[0])
 							.split('/')
 							.at(-1)}
 					</code>
@@ -86,16 +83,16 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={sourceBundle}
+			resource={files}
 			placeholderText="Loading source bundle…"
 		>
-			{#snippet children(sourceBundle)}
-				{Object.keys(sourceBundle.fields.files ?? {}).length} file{(
-					Object.keys(sourceBundle.fields.files ?? {}).length === 1 ?
+			{#snippet children(files)}
+				{Object.keys(files ?? {}).length} file{
+					Object.keys(files ?? {}).length === 1 ?
 						''
 					:
 						's'
-				)}
+				}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -118,13 +115,13 @@
 					<dt>Source files</dt>
 					<dd>
 						<ResourceBoundary
-							resource={sourceBundle}
+							resource={files}
 							placeholderText="Loading source files…"
 						>
-							{#snippet children(sourceBundle)}
-								{#if Object.keys(sourceBundle.fields.files ?? {}).length > 0}
+							{#snippet children(files)}
+								{#if Object.keys(files ?? {}).length > 0}
 									<div data-column="gap-2">
-										{#each Object.entries(sourceBundle.fields.files ?? {}) as [path, content] (path)}
+										{#each Object.entries(files ?? {}) as [path, content] (path)}
 											<details>
 												<summary><code>{path}</code></summary>
 												<pre data-text="font-monospace">{content}</pre>

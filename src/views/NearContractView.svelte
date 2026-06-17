@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const nearContract = subscribe(EntityType.NearContract,
-		selector,
-		({ fields: { codeHash: true, codeSizeBytes: true } }),
-	)
+	
 
 
 	// Components
@@ -57,7 +54,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={nearContract}
+			resource={proxy(EntityType.NearContract,
+					selector,
+					({ fields: { codeHash: true, codeSizeBytes: true } }),
+				)}
 			placeholderText={`Loading NEAR Contract...`}
 		>
 			{#snippet children(nearContract)}

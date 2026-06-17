@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { SubscribeResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyCurrent } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -9,11 +9,11 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
-	type SwarmResource = SubscribeResult<typeof schema, EntityType.SwarmResource>
+	type SwarmResource = EntityProxyCurrent<typeof schema, EntityType.SwarmResource>
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -45,7 +45,7 @@
 	> = $props()
 
 	const swarm = $derived(
-		subscribe(EntityType.SwarmResource,
+		proxy(EntityType.SwarmResource,
 			selector,
 			({ sources: [Source.Swarm_Rest], fields: { canonicalUri: true, fileName: true, extension: true, gatewayOrigin: true, gatewayUrl: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, ...(open && ({ $media: true })) } }),
 		),

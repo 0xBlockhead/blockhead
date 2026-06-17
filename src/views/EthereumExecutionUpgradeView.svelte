@@ -11,16 +11,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
-			caip2Namespace: 'eip155',
-			caip2Reference: selector.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
+			caip2: ,
 				upgradeSlug: selector.upgradeId,
 			}),
 		open = $bindable(true),
@@ -40,12 +39,21 @@
 		>
 	> = $props()
 
-	const networkExecutionUpgrade = subscribe(EntityType.EthereumExecutionUpgrade,
+	const networkExecutionUpgrade = $derived(proxy(
+		EntityType.EthereumExecutionUpgrade,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, slug: true, ...(open && ({ protocol: true, activationBlock: true, activationEpoch: true, activationTimestampMs: true })) } }),
-	)
+			],
+		},
+	))
+	const name = $derived(networkExecutionUpgrade.name)
+	const protocol = $derived(networkExecutionUpgrade.protocol)
+	const activationBlock = $derived(networkExecutionUpgrade.activationBlock)
+	const activationEpoch = $derived(networkExecutionUpgrade.activationEpoch)
+	const activationTimestampMs = $derived(networkExecutionUpgrade.activationTimestampMs)
+
 
 
 	// Components
@@ -74,11 +82,11 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={networkExecutionUpgrade}
+			resource={name}
 			placeholderText="Loading execution upgrade…"
 		>
-			{#snippet children(networkExecutionUpgrade)}
-				{networkExecutionUpgrade.fields.name ?? selector.upgradeId}
+			{#snippet children(name)}
+				{name ?? selector.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -89,51 +97,52 @@
 		open: contentOpen,
 	})}
 		<ResourceBoundary
-			resource={networkExecutionUpgrade}
+			resource={name}
 			placeholderText="Loading execution upgrade…"
 		>
-			{#snippet children(networkExecutionUpgrade)}
+			{#snippet children(name)}
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
-				&& networkExecutionUpgrade.fields.protocol !== undefined
+				&& protocol !== undefined
 			)}
 				<div>
 					<dt>Execution fork</dt>
 					<dd>
-								{executionProtocolByProtocol[networkExecutionUpgrade.fields.protocol].label}
+								{executionProtocolByProtocol[protocol].label}
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkExecutionUpgrade.fields.activationBlock !== undefined}
+			{#if contentOpen && activationBlock !== undefined}
 				<div>
 					<dt>Activation block</dt>
 					<dd>
 									<EvmBlockView
 										selector={{
 											$network: selector.$network,
-											blockNumber: BigInt(networkExecutionUpgrade.fields.activationBlock),
+											blockNumber: BigInt(activationBlock),
 										}}
 										layout={EntityLayout.Value}
+
 										open={false}
-								/>
+										/>
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkExecutionUpgrade.fields.activationEpoch !== undefined}
+			{#if contentOpen && activationEpoch !== undefined}
 				<div>
 					<dt>Activation epoch</dt>
 					<dd>
-								<NumberValue value={networkExecutionUpgrade.fields.activationEpoch} />
+								<NumberValue value={activationEpoch} />
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkExecutionUpgrade.fields.activationTimestampMs !== undefined}
+			{#if contentOpen && activationTimestampMs !== undefined}
 				<div>
 					<dt>Activation time</dt>
 					<dd>
 								<Timestamp
-									timestamp={networkExecutionUpgrade.fields.activationTimestampMs}
+									timestamp={activationTimestampMs}
 								/>
 					</dd>
 				</div>
@@ -152,7 +161,7 @@
 				fieldName: '$$proposals',
 			}}
 			id={`${stringify(selector)}:proposals`}
-			open={false}
+
 			title="Specification proposals"
 		/>
 	{/snippet}

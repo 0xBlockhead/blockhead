@@ -37,22 +37,24 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+	
 	const href = $derived(
 		hrefProp ?? resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
 			hex: selector.hex,
-		}),
+		})
 	)
 
-	const topic = $derived(
-		subscribe(EntityType.EvmTopic,
-			selector,
-			({ sources: [
-					Source.Openchain_Rest,
-				], fields: { ...(open && ({ signatures: true })) } }),
-		),
-	)
+	const signatures = $derived(proxy(
+		EntityType.EvmTopic,
+		selector,
+		{
+			sources: [
+				Source.Openchain_Rest,
+			],
+		},
+	).signatures)
 
 
 	// Components
@@ -65,7 +67,7 @@
 <EntityView
 	entityType={EntityType.EvmTopic}
 	entitySelector={selector}
-	href={href}
+	{href}
 	{layout}
 	bind:open
 	{collapsible}
@@ -79,11 +81,11 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={topic}
+			resource={signatures}
 			placeholderText="Loading log topic…"
 		>
-			{#snippet children(topic)}
-				{topic.fields.signatures?.[0] ?? selector.hex}
+			{#snippet children(signatures)}
+				{signatures?.[0] ?? selector.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -117,17 +119,17 @@
 				{/if}
 				{#if contentOpen}
 					<ResourceBoundary
-						resource={topic}
+						resource={signatures}
 						placeholderText="Loading topic catalog signatures…"
 					>
-						{#snippet children(topic)}
-							{#if topic.fields.signatures?.length}
+						{#snippet children(signatures)}
+							{#if signatures?.length}
 								<div>
 									<dt>Signatures</dt>
 									<dd>
 										<ul>
-											{#each topic.fields.signatures as sig (sig)}
-												<li><code>{sig}</code></li>
+											{#each signatures as signature (signature)}
+												<li><code>{signature}</code></li>
 											{/each}
 										</ul>
 									</dd>

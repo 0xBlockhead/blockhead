@@ -1,8 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { ComponentProps } from 'svelte'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +34,12 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmActorCoinAllowanceView from '$/views/EvmActorCoinAllowanceView.svelte'
 </script>
@@ -72,24 +71,14 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {},
-				} }),
-			)}
-			{@const allowances = derive(
-				parent,
-				(parent) => {
-					const evmActorCoinAllowances: readonly Entity<typeof schema, EntityType.EvmActorCoinAllowance>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						evmActorCoinAllowances.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName)}
+				placeholderText={`Loading ${title.toLowerCase()}…`}
+			>
+				{#snippet children(allowances)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
@@ -99,11 +88,11 @@
 				data-entity-field-name={entityFieldReference.fieldName}
 				data-entity-field-type={entityFieldReference.entityType}
 				data-entity-field-parent={stringify(entityFieldReference.selector)}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+				getKey={(allowance) => stringify(allowance.entitySelector)}
+				getSortValue={(allowance) => stringify(allowance.entitySelector)}
 				placeholderKeys={new SvelteSet<string>()}
 				placeholderText={`Loading ${title.toLowerCase()}…`}
-				resource={allowances}
+				items={allowances.entities}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
@@ -113,14 +102,16 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const id = item.value[EntityMetaKey.Selector]}
+					{@const id = item.entitySelector}
 					<EvmActorCoinAllowanceView
 						selector={id}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

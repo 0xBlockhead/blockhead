@@ -9,7 +9,7 @@
 
 
 	// State
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -23,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const serviceProvider = subscribe(EntityType.ZeroGServiceProvider, selector, ({ fields: { serviceKind: true, $operator: true, verificationMethod: true, $$requests: true } }))
+	
 
 
 	// Components
@@ -55,7 +55,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={serviceProvider}
+			resource={proxy(EntityType.ZeroGServiceProvider, selector, ({ fields: { serviceKind: true, $operator: true, verificationMethod: true, $$requests: true } }))}
 			placeholderText="Loading 0G service provider…"
 		>
 			{#snippet children(serviceProvider)}
@@ -74,7 +74,7 @@
 								<EvmAccountView
 									selector={serviceProvider.fields.$operator[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>
@@ -97,7 +97,7 @@
 											<ZeroGServiceRequestView
 												selector={request[EntityMetaKey.Selector]}
 												layout={EntityLayout.Title}
-												open={false}
+
 											/>
 										</li>
 									{/each}

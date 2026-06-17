@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -32,7 +32,7 @@
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
@@ -57,27 +57,24 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const network = subscribe(EntityType.EvmNetwork,
-				selector,
-				({ sources: [
-						Source.Constants_Internal,
-					], fields: { consensusEndpoints: true } }),
-			)}
-			{@const endpoints = derive(
-				network,
-				(network) => (
-					network.fields.consensusEndpoints?.values
-					?? []
-				),
-			)}
 				<ResourceBoundary
-					resource={endpoints}
+					resource={
+		proxy(
+			EntityType.EvmNetwork,
+			selector,
+			{
+				sources: [
+					Source.Constants_Internal,
+				],
+			}
+		).consensusEndpoints
+	}
 					placeholderText="Loading consensus endpoints…"
 			>
 					{#snippet children(endpoints)}
-						{#if endpoints.length}
+						{#if endpoints.values.length}
 							<ul data-column="gap-2">
-								{#each endpoints as endpoint (endpoint.restBaseUrl)}
+								{#each endpoints.values as endpoint (endpoint.restBaseUrl)}
 									<li>
 					<dl data-column-item="center">
 						<div>

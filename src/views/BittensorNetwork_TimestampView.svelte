@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,12 +19,12 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = subscribe(EntityType.BittensorNetwork_Timestamp,
+	const snapshot = $derived(proxy(EntityType.BittensorNetwork_Timestamp,
 		selector,
 		({ sources: [
 				Source.Bittensor_JsonRpc,
 			], fields: { finalizedBlockNumber: true, finalizedBlockHash: true, runtimeSpecName: true, runtimeSpecVersion: true, runtimeImplVersion: true, peerCount: true, isSyncing: true, shouldHavePeers: true, subnetCount: true, subnetsInfoByteLength: true, dynamicInfoByteLength: true, metagraphsByteLength: true } }),
-	)
+	))
 
 
 	// Components

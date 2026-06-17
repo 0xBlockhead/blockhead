@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const cosmosValidator = subscribe(EntityType.CosmosValidator,
-		selector,
-		({ fields: { consensusPubkey: true, moniker: true, jailed: true, status: true, tokens: true } }),
-	)
+	
 
 
 	// Components
@@ -57,7 +54,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={cosmosValidator}
+			resource={proxy(EntityType.CosmosValidator, selector, ({ fields: { consensusPubkey: true, moniker: true, jailed: true, status: true, tokens: true } }))}
 			placeholderText={`Loading Cosmos Validator...`}
 		>
 			{#snippet children(cosmosValidator)}

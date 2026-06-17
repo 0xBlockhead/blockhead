@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -32,12 +32,7 @@
 		>
 	> = $props()
 
-	const lensAccountTimestamp = subscribe(EntityType.LensAccount_Timestamp,
-		selector,
-		({ sources: [
-				Source.Lens_Graphql,
-			], fields: { followerCount: true, followingCount: true } }),
-	)
+	
 
 
 	// Components
@@ -73,7 +68,12 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={lensAccountTimestamp}
+			resource={proxy(EntityType.LensAccount_Timestamp,
+					selector,
+					({ sources: [
+							Source.Lens_Graphql,
+						], fields: { followerCount: true, followingCount: true } }),
+				)}
 			placeholderText="Loading Lens account snapshot..."
 		>
 			{#snippet children(lensAccountTimestamp)}

@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -41,7 +41,7 @@
 		>
 	> = $props()
 
-	const transfer = $derived(subscribe(EntityType.StateChannelTransfer,
+	const transfer = $derived(proxy(EntityType.StateChannelTransfer,
 		selector,
 		({ sources: [Source.Local_Internal], fields: { amount: true, turnNum: true, status: true, timestamp: true, $from: true, $to: true, $channel: ({ fields: { $network: true } }) } }),
 	))
@@ -165,7 +165,7 @@
 											$actor: transfer.fields.$from[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								{:else}
 									<EvmAccountView
@@ -174,7 +174,7 @@
 											address: transfer.fields.$from[EntityMetaKey.Selector].address,
 										})}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								{/if}
 							</dd>
@@ -192,7 +192,7 @@
 											$actor: transfer.fields.$to[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								{:else}
 									<EvmAccountView
@@ -201,7 +201,7 @@
 											address: transfer.fields.$to[EntityMetaKey.Selector].address,
 										})}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								{/if}
 							</dd>

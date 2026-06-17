@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
@@ -43,11 +42,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmTokenTransferView from '$/views/EvmTokenTransferView.svelte'
 </script>
@@ -74,43 +76,27 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: (
-							entityFieldReference.entityType === EntityType.EvmNetwork ?
-								[
-									Source.Blockscout_Rest,
-								]
-							:
-								[
-									Source.Blockscout_Rest,
-									Source.Etherscan_Rest,
-								]
-						),
-					},
-				} }),
-			)}
-			{@const transfers = derive(
-				parent,
-				(parent) => (
-					[...(parent.fields[entityFieldReference.fieldName]?.values ?? [])]
-						.map((value) => ({
-							value,
-						}))
-				),
-			)}
-			<EntitiesList
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: entityFieldReference.entityType === EntityType.EvmNetwork ? [Source.Blockscout_Rest] : [Source.Blockscout_Rest, Source.Etherscan_Rest],
+					})}
+				placeholderText="Loading transfers…"
+			>
+				{#snippet children(transfers)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmTokenTransfer}
-				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
+				getKey={(line) => stringify(line.entitySelector)}
 				getSortValue={(line) => (
-					line.value[EntityMetaKey.Selector].logIndex
-					+ (line.value[EntityMetaKey.Selector].transferIndex / 1000)
+					line.entitySelector.logIndex
+					+ (line.entitySelector.transferIndex / 1000)
 			)}
 				placeholderText="Loading token transfers…"
-				resource={transfers}
+				items={transfers.entities}
 				{title}
 				href={EntitiesListProps.href ?? ''}
 				id={`${EntitiesListProps.id ?? 'token-transfers'}:items`}
@@ -124,16 +110,18 @@
 
 				{#snippet Item({ item })}
 					{@const line = item.value}
-					{@const transferId = line[EntityMetaKey.Selector]}
+					{@const transferId = line.entitySelector}
 					<EvmTokenTransferView
 						selector={transferId}
 						layout={EntityLayout.SummaryDetails}
-						open={false}
+
 						showParentTransaction={false}
 						showTypeAnnotation={false}
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

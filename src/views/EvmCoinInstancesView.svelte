@@ -3,8 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -14,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		title = 'Deployments',
@@ -43,11 +41,12 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 </script>
@@ -82,39 +81,28 @@
 
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
-				{@const parent = subscribe(entityFieldReference.entityType,
-					entityFieldReference.selector,({ sources: [
-							Source.Coingecko_Rest,
-							Source.CoinMarketCap_Rest,
-							Source.Coinpaprika_OpenApi,
-							Source.Defillama_OpenApi,
-							Source.Constants_Internal,
-						], fields: { [entityFieldReference.fieldName]: {
+				<ResourceBoundary
+					resource={proxy(
+							entityFieldReference.entityType,
+							entityFieldReference.selector,
+							{
+								sources: [
+									Source.Coingecko_Rest,
+									Source.CoinMarketCap_Rest,
+									Source.Coinpaprika_OpenApi,
+									Source.Defillama_OpenApi,
+									Source.Constants_Internal,
+								],
+							},
+						).field(entityFieldReference.fieldName, {
 							sources: [
 								Source.Constants_Internal,
 								Source.Coingecko_Rest,
 							],
-						},
-					} }),
-				)}
-				{@const coinInstances = derive(
-					parent,
-					(parent) => {
-						const evmCoinInstances: readonly Entity<typeof schema, EntityType.EvmCoinInstance>[] = (
-							parent.fields[entityFieldReference.fieldName]?.values ?? []
-						)
-						return (
-							evmCoinInstances
-								.filter((evmCoinInstance) => (
-									representationFilter == null
-									|| evmCoinInstance.representation === representationFilter
-								))
-								.map((value) => ({
-									value,
-								}))
-						)
-					},
-				)}
+						})}
+					placeholderText="Loading deployments…"
+				>
+					{#snippet children(coinInstances)}
 				<EntitiesList
 					collapsible={false}
 					showSummary={false}
@@ -122,10 +110,13 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-					getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
+					getKey={(coinInstance) => stringify(coinInstance.entitySelector)}
+					getSortValue={(coinInstance) => stringify(coinInstance.entitySelector)}
 					placeholderText="Loading deployments…"
-					resource={coinInstances}
+					items={coinInstances.entities.filter((coinInstance, index) => (
+						representationFilter == null
+						|| coinInstances.values[index]?.representation === representationFilter
+					))}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
 				>
 					{#snippet Empty()}
@@ -138,14 +129,16 @@
 					{/snippet}
 
 					{#snippet Item({ item })}
-						{@const coinInstanceId = item.value[EntityMetaKey.Selector]}
+						{@const coinInstanceId = item.entitySelector}
 						<EvmCoinInstanceView
 							selector={coinInstanceId}
 							layout={EntityLayout.Summary}
-							open={false}
+
 						/>
 					{/snippet}
 				</EntitiesList>
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 		{/snippet}
 	</EntitiesList>

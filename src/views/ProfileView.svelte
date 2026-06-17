@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -31,13 +31,10 @@
 		never
 	> = $props()
 
-	const farcasterUser = subscribe(EntityType.FarcasterUser,
-		farcasterUserId,
-		({ sources: [
+	const farcasterUser = $derived(proxy(EntityType.FarcasterUser, farcasterUserId, ({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
-			], fields: { username: true, displayName: true, $icon: true, bio: true, url: true, $primaryEvmAccount: true, $$verifiedAddresses: true } }),
-	)
+			], fields: { username: true, displayName: true, $icon: true, bio: true, url: true, $primaryEvmAccount: true, $$verifiedAddresses: true } })))
 
 
 	// (Derived)
@@ -176,7 +173,7 @@
 											address: farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector].address,
 										})}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								{/if}
 							{/snippet}
@@ -204,13 +201,13 @@
 															address: verification.$evmAccount[EntityMetaKey.Selector].address,
 														})}
 														layout={EntityLayout.Title}
-														open={false}
+
 													/>
 												{:else if verification.$solanaAccount}
 													<SolanaAccountView
 														selector={verification.$solanaAccount[EntityMetaKey.Selector]}
 														layout={EntityLayout.Title}
-														open={false}
+
 													/>
 												{:else}
 													<span data-text="mono muted">

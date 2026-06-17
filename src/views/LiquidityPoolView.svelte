@@ -36,14 +36,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
-	const pool = $derived(subscribe(EntityType.LiquidityPool,
-		selector,
-		({ fields: { $baseToken: true, $quoteToken: true, $hooks: true, baseTokenSymbol: true, quoteTokenSymbol: true, baseTokenDecimals: true, quoteTokenDecimals: true, fee: true, tickSpacing: true, v4PoolId: true, $$timestamps: ({ sources: [
-					Source.Dexscreener_OpenApi,
-				], limit: 64 }), pairCreatedAtMs: true, dexscreenerLabels: true, dexId: true, dexscreenerPairUrl: true } }),
-	))
+	
 
 
 	// Components
@@ -88,7 +83,12 @@
 
 	{#snippet Content({})}
 		<ResourceBoundary
-			resource={pool}
+			resource={proxy(EntityType.LiquidityPool,
+					selector,
+					({ fields: { $baseToken: true, $quoteToken: true, $hooks: true, baseTokenSymbol: true, quoteTokenSymbol: true, baseTokenDecimals: true, quoteTokenDecimals: true, fee: true, tickSpacing: true, v4PoolId: true, $$timestamps: ({ sources: [
+								Source.Dexscreener_OpenApi,
+							], limit: 64 }), pairCreatedAtMs: true, dexscreenerLabels: true, dexId: true, dexscreenerPairUrl: true } }),
+				)}
 			placeholderText="Loading pool…"
 		>
 			{#snippet children(pool)}
@@ -100,7 +100,7 @@
 								<EvmContractView
 									selector={pool.fields.$baseToken[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
-									open={false}
+
 									showTypeAnnotation={false}
 								/>
 							</dd>
@@ -113,7 +113,7 @@
 								<EvmContractView
 									selector={pool.fields.$quoteToken[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
-									open={false}
+
 									showTypeAnnotation={false}
 								/>
 							</dd>
@@ -159,7 +159,7 @@
 								<EvmContractView
 									selector={pool.fields.$hooks[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
-									open={false}
+
 									showTypeAnnotation={false}
 								/>
 							</dd>

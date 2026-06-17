@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +34,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 </script>
@@ -62,26 +62,25 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: { sources: [Source.Beacon_Rest] },
-				} }),
-			)}
-			{@const epochs = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.BeaconEpoch>[] => (
-					(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-				),
-			)}
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Beacon_Rest],
+					})}
+				placeholderText="Loading epochs…"
+			>
+				{#snippet children(epochs)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BeaconEpoch}
 				id={`${id}-items`}
 				href={href}
-				getKey={(epoch) => stringify(epoch[EntityMetaKey.Selector])}
-				getSortValue={(epoch) => -Number(epoch[EntityMetaKey.Selector].epoch)}
-				resource={epochs}
+				getKey={(epoch) => stringify(epoch.entitySelector)}
+				getSortValue={(epoch) => -Number(epoch.entitySelector.epoch)}
+				items={epochs.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -94,12 +93,14 @@
 
 				{#snippet Item({ item: epoch })}
 					<BeaconEpochView
-						selector={epoch[EntityMetaKey.Selector]}
+						selector={epoch.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

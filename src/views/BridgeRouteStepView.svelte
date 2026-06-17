@@ -21,7 +21,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -45,13 +45,10 @@
 		>
 	> = $props()
 
-	const step = subscribe(EntityType.BridgeRouteStep,
-		selector,
-		({ sources: [
+	const step = $derived(proxy(EntityType.BridgeRouteStep, selector, ({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
-			], fields: { $fromNetwork: true, $toNetwork: true, $fromToken: true, $toToken: true, ...(open && ({ stepType: true, tool: true, railId: true, settlementModel: true, verificationModel: true, assetOutcome: true })) } }),
-	)
+			], fields: { $fromNetwork: true, $toNetwork: true, $fromToken: true, $toToken: true, ...(open && ({ stepType: true, tool: true, railId: true, settlementModel: true, verificationModel: true, assetOutcome: true })) } })))
 
 
 	// Components
@@ -81,12 +78,12 @@
 			placeholderText="Loading…"
 		>
 			{#snippet children(step)}
-				{(
+				{
 					step.fields.tool != null && step.fields.tool !== '' ?
 						(bridgeToolByKey[step.fields.tool]?.label ?? step.fields.tool)
 					:
 						`Step ${selector.index + 1}`
-				)}
+				}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -124,12 +121,12 @@
 					>
 						{#snippet children(step)}
 							{#if step.fields.tool !== undefined}
-								{(
+								{
 									step.fields.tool !== '' ?
 										(bridgeToolByKey[step.fields.tool]?.label ?? step.fields.tool)
 									:
 										step.fields.tool
-								)}
+								}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -220,7 +217,7 @@
 								<EvmNetworkView
 									selector={step.fields.$fromNetwork[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							{/if}
 						{/snippet}
@@ -240,7 +237,7 @@
 								<EvmNetworkView
 									selector={step.fields.$toNetwork[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							{/if}
 						{/snippet}
@@ -261,7 +258,7 @@
 									<EvmCoinInstanceView
 										selector={step.fields.$fromToken[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
-										open={false}
+
 										showTypeAnnotation={false}
 									/>
 								{/if}
@@ -284,7 +281,7 @@
 									<EvmCoinInstanceView
 										selector={step.fields.$toToken[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
-										open={false}
+
 										showTypeAnnotation={false}
 									/>
 								{/if}

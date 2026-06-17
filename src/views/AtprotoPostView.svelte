@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,13 +38,12 @@
 
 	const idKey = $derived(stringify(selector))
 
-	const post = $derived(subscribe(EntityType.AtprotoPost,
+	const post = $derived(proxy(EntityType.AtprotoPost,
 		selector,
-		{
-			sources: [
-				Source.Atproto_Xrpc,
-				Source.Atproto_BskySocial_Xrpc,
-			],
+			{
+				sources: [
+					Source.Atproto_Xrpc,
+				],
 			fields: {
 				text: true,
 				createdAt: true,
@@ -56,7 +55,6 @@
 					$$timestamps: {
 						sources: [
 							Source.Atproto_Xrpc,
-							Source.Atproto_BskySocial_Xrpc,
 						],
 						limit: 1,
 					},
@@ -70,7 +68,6 @@
 
 	// Components
 	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
-	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
 	import AtprotoPost_TimestampsView from '$/views/AtprotoPost_TimestampsView.svelte'
 	import AtprotoPostThreadView from '$/views/AtprotoPostThreadView.svelte'
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
@@ -184,8 +181,9 @@
 								<AtprotoActorView
 									selector={post.fields.$author[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
+
 									open={false}
-								/>
+									/>
 							</dd>
 						</div>
 					{/if}
@@ -194,11 +192,16 @@
 						<div>
 							<dt>Reply to</dt>
 							<dd>
-									<AtprotoPostView
-										selector={post.fields.$parent[EntityMetaKey.Selector]}
-										layout={EntityLayout.Title}
-										open={false}
-								/>
+								<a
+									href={resolve('/(social)/(atproto)/atproto/post/[...uri]', {
+										uri: encodeURIComponent(post.fields.$parent[EntityMetaKey.Selector].uri),
+									})}
+								>
+									<TruncatedValue
+										value={post.fields.$parent[EntityMetaKey.Selector].uri}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -207,11 +210,16 @@
 						<div>
 							<dt>Thread root</dt>
 							<dd>
-									<AtprotoPostView
-										selector={post.fields.$root[EntityMetaKey.Selector]}
-										layout={EntityLayout.Title}
-									open={false}
-								/>
+								<a
+									href={resolve('/(social)/(atproto)/atproto/post/[...uri]', {
+										uri: encodeURIComponent(post.fields.$root[EntityMetaKey.Selector].uri),
+									})}
+								>
+									<TruncatedValue
+										value={post.fields.$root[EntityMetaKey.Selector].uri}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -271,26 +279,27 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<CollapsibleTabs
-			id={`${idKey}:carousel-post`}
-			sectionIdPrefix={idKey}
-				sections={collapsibleTabsSections([
-					{ id: 'thread', label: 'Thread' },
-					{ id: 'repository', label: 'Repository' },
-					{ id: 'metric-snapshots', label: 'Metrics' },
-				])}
-			data-card
-		>
-			{#snippet Summary({ open: _postSummaryOpen })}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Thread & repository
-					</HeadingComponent>
-				</header>
-			{/snippet}
+		{#if _open}
+			<CollapsibleTabs
+				id={`${idKey}:carousel-post`}
+				sectionIdPrefix={idKey}
+					sections={collapsibleTabsSections([
+						{ id: 'thread', label: 'Thread' },
+						{ id: 'repository', label: 'Repository' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
+				data-card
+			>
+				{#snippet Summary({ open: _postSummaryOpen })}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Thread & repository
+						</HeadingComponent>
+					</header>
+				{/snippet}
 
 			{#snippet SectionThread()}
 				<header
@@ -338,6 +347,7 @@
 					title="Metric snapshots"
 				/>
 			{/snippet}
-		</CollapsibleTabs>
-		{/snippet}
+			</CollapsibleTabs>
+		{/if}
+			{/snippet}
 	</EntityView>

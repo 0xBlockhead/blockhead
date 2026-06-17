@@ -2,17 +2,14 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+		import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { resolve } from '$app/paths'
+		import { resolve } from '$app/paths'
 
 
 	// State
@@ -38,12 +35,16 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
+
+
+	
 
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmNetwork_GasFee_BlockView from '$/views/EvmNetwork_GasFee_BlockView.svelte'
 </script>
 
@@ -67,56 +68,42 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Constants_Internal,
-						Source.Voltaire_JsonRpc,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Voltaire_JsonRpc,
-						],
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Voltaire_JsonRpc],
 						limit: 64,
-					},
-				} }),
-			)}
-			{@const gasFeeBlocks = derive(
-				parent,
-				(parent) => {
-					const gasFeeBlocks: readonly Entity<typeof schema, EntityType.EvmNetwork_GasFee_Block>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						gasFeeBlocks
-							.map((value) => ({
-								value,
-							}))
-					)
-				},
-			)}
-			<EntitiesList
+					})}
+				placeholderText="Loading gasFeeBlocks…"
+			>
+				{#snippet children(gasFeeBlocks)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmNetwork_GasFee_Block}
 				id={`${id}-items`}
 				href={href}
 				open={true}
-				resource={gasFeeBlocks}
+				items={gasFeeBlocks.entities}
 			>
 				{#snippet Item({ item })}
-					{@const row = item.value}
-					{@const rowId = row[EntityMetaKey.Selector]}
+					{@const row = item}
+					{@const rowId = row.entitySelector}
 					<EvmNetwork_GasFee_BlockView
 						selector={rowId}
-						href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]', {
-							caip2Namespace: rowId.$network.caip2.namespace,
-							caip2Reference: rowId.$network.caip2.reference,
+						href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber]', {
+							caip2: ,
 								blockNumber: String(rowId.blockNumber),
 						})}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

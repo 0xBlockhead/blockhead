@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const nearAction = subscribe(EntityType.NearAction,
-		selector,
-		({ fields: { actionKind: true, methodName: true, depositYoctoNear: true } }),
-	)
+	
 
 
 	// Components
@@ -65,7 +62,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={nearAction}
+			resource={proxy(EntityType.NearAction,
+					selector,
+					({ fields: { actionKind: true, methodName: true, depositYoctoNear: true } }),
+				)}
 			placeholderText={`Loading NEAR Action...`}
 		>
 			{#snippet children(nearAction)}

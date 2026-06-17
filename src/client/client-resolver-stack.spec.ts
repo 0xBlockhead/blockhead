@@ -17,6 +17,7 @@ import {
 	type EntityCollectionsContext,
 	type SubscribeResult,
 } from '$/client/$client.svelte.ts'
+import { createEntityProxy } from '$/client/$proxy.svelte.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
@@ -300,6 +301,7 @@ type FixtureLiveStart = {
 type FixtureRootLiveStart = {
 	readonly source: Source
 	readonly signal: AbortSignal
+	readonly parentEntitySelector: ResolveLivePublisherContext<typeof fixtureSchema, EntityType.Network>['parentEntitySelector']
 	readonly fields: ResolveLivePublisherContext<typeof fixtureSchema, EntityType.Network>['fields']
 }
 
@@ -681,6 +683,7 @@ const fixtureResolverIndexes = (
 						rootLiveStarts.push({
 							source: Source.Farcaster_Rest,
 							signal: context.signal,
+							parentEntitySelector: context.parentEntitySelector,
 							fields: context.fields,
 						})
 						return () => {
@@ -851,6 +854,259 @@ const networkIds = (
 		}
 	}>>>
 ) => result.fields.$$networks.values.map((value) => value.id)
+
+const createFixtureProxy = (
+	context: EntityCollectionsContext<typeof fixtureSchema>
+) => createEntityProxy(
+	context,
+	(entityType, entitySelector, selection) => subscribeEntity(
+		context,
+		entityType,
+		entitySelector,
+		selection
+	)
+)
+
+
+describe('Entity proxy resource pattern fixtures', () => {
+	it('keeps property access in resource mode until awaited', async () => {
+		const { context } = await createFixtureContext()
+		const network = createFixtureProxy(context)(EntityType.Network, {
+			id: 'parent',
+		})
+		const name = network.name
+
+		expect(typeof name.then).toBe('function')
+		expect(name.current).toBeUndefined()
+		expect(await name).toBe('Parent')
+		expect(name.current).toBe('Parent')
+		expect(network.current?.name).toBe('Parent')
+	})
+
+	it('treats field calls as parameter selection instead of unwrapping', async () => {
+		const { context } = await createFixtureContext()
+		const networks = createFixtureProxy(context)(EntityType.Network, {
+			id: 'parent',
+		}).$$networks({
+			sources: [
+				Source.Constants_Internal,
+				Source.Local_Internal,
+			],
+			count: true,
+		})
+
+		expect(typeof networks.then).toBe('function')
+		expect(networks.current).toBeUndefined()
+		expect(await networks).toEqual(expect.objectContaining({
+			totalCount: 2,
+		}))
+		expect(networks.current?.values.map((network) => network.id)).toEqual(expect.arrayContaining([
+			'network-a',
+			'network-d',
+		]))
+	})
+
+	it('preserves field-local source priority independently from root sources', async () => {
+		const { context } = await createFixtureContext()
+		const network = createFixtureProxy(context)(EntityType.Network, {
+			id: 'parent',
+		}, {
+			sources: [
+				Source.Local_Internal,
+			],
+		})
+
+		expect(await network.name({
+			sources: [
+				Source.Constants_Internal,
+				Source.Local_Internal,
+			],
+		})).toBe('Constants Parent')
+		expect(context.entityCollections[EntityType.Network].toArray.some((entity) => (
+			entity[EntityMetaKey.Source] === Source.Constants_Internal
+			&& entity[EntityMetaKey.SelectorKey] === entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+				id: 'parent',
+			})
+		))).toBe(false)
+	})
+
+	it('returns a proxy entity from single reference fields and resolves child fields independently', async () => {
+		const { context } = await createFixtureContext()
+		const primaryNetwork = createFixtureProxy(context)(EntityType.Network, {
+			id: 'parent',
+		}).$primaryNetwork({
+			sources: [
+				Source.Local_Internal,
+			],
+		})
+		const primaryNetworkName = primaryNetwork.name({
+			sources: [
+				Source.Constants_Internal,
+				Source.Local_Internal,
+			],
+		})
+
+		expect(await primaryNetwork).toEqual(expect.objectContaining({
+			name: 'Constants Parent',
+		}))
+		expect(primaryNetwork.current?.entityType).toBe(EntityType.Network)
+		expect(primaryNetwork.current?.entitySelector).toEqual({
+			id: 'network-a',
+		})
+		expect(primaryNetworkName.current).toBe('Constants Parent')
+	})
+
+	it('returns many-reference entities without waiting for child fields', async () => {
+		const { context, calls } = await createFixtureContext()
+		const networks = await createFixtureProxy(context)(EntityType.Network, {
+			id: 'parent',
+		}).$$networks({
+			sources: [
+				Source.Blockscout_Rest,
+			],
+		})
+
+		expect(networks.values.map((network) => network.id)).toEqual([
+			'network-a',
+			'network-b',
+			'network-c',
+		])
+		expect(networks.entities.map((entity) => entity.entitySelector)).toEqual([
+			{
+				id: 'network-a',
+			},
+			{
+				id: 'network-b',
+			},
+			{
+				id: 'network-c',
+			},
+		])
+		expect(calls.some((call) => (
+			call.source === Source.Local_Internal
+			&& call.context.parentSelectorKeys.includes(entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+				id: 'network-a',
+			}))
+		))).toBe(false)
+		expect(await networks.entities[0].name({
+			sources: [
+				Source.Local_Internal,
+			],
+		})).toBe('Network A')
+	})
+
+	it('projects live field and count writes into proxy field resources', async () => {
+		const {
+			context,
+			liveStarts,
+		} = await createFixtureContext()
+		const networks = createFixtureProxy(context)(EntityType.Network, {
+			id: 'parent',
+		}).$$networks({
+			sources: [
+				Source.Farcaster_Rest,
+			],
+			count: true,
+		})
+
+		await networks
+		await expect.poll(() => liveStarts.filter((start) => start.source === Source.Farcaster_Rest).length).toBe(1)
+		expect(networks.current?.values).toEqual([])
+		expect(networks.current?.totalCount).toBeUndefined()
+
+		liveStarts[0].field.replaceRows([
+			{
+				source: Source.Farcaster_Rest,
+				value: fixtureReference('network-live', 'Live Network', 0),
+			},
+		])
+		liveStarts[0].field.count.replaceRows([
+			{
+				source: Source.Farcaster_Rest,
+				value: 1,
+			},
+		])
+
+		await expect.poll(() => networks.current?.values.map((value) => value.id)).toEqual([
+			'network-live',
+		])
+		await expect.poll(() => networks.current?.totalCount).toBe(1)
+	})
+
+	it('projects live counts into paged proxy field resources', async () => {
+		const {
+			context,
+			liveStarts,
+		} = await createFixtureContext()
+		const networks = createFixtureProxy(context)(EntityType.Network, {
+			id: 'parent',
+		}).$$networks({
+			sources: [
+				Source.Farcaster_Rest,
+			],
+			limit: 1,
+			count: true,
+		})
+
+		await networks
+		await expect.poll(() => liveStarts.filter((start) => start.source === Source.Farcaster_Rest).length).toBe(1)
+		expect(networks.current?.values).toEqual([])
+		expect(networks.current?.totalCount).toBeUndefined()
+
+		liveStarts[0].field.replaceRows([
+			{
+				source: Source.Farcaster_Rest,
+				value: fixtureReference('network-live', 'Live Network', 0),
+			},
+		])
+		liveStarts[0].field.count.replaceRows([
+			{
+				source: Source.Farcaster_Rest,
+				value: 123,
+			},
+		])
+
+		await expect.poll(() => networks.current?.values.map((value) => value.id)).toEqual([
+			'network-live',
+		])
+		await expect.poll(() => networks.current?.totalCount).toBe(123)
+	})
+
+	it('starts root live publishers independently for different parent selectors', async () => {
+		const {
+			context,
+			rootLiveStarts,
+		} = await createFixtureContext()
+		const proxy = createFixtureProxy(context)
+		const parentNetworks = proxy(EntityType.Network, {
+			id: 'parent',
+		}).$$networks({
+			sources: [
+				Source.Farcaster_Rest,
+			],
+		})
+		const childNetworks = proxy(EntityType.Network, {
+			id: 'network-a',
+		}).$$networks({
+			sources: [
+				Source.Farcaster_Rest,
+			],
+		})
+
+		await parentNetworks
+		await childNetworks
+
+		await expect.poll(() => rootLiveStarts.filter((start) => start.source === Source.Farcaster_Rest).length).toBe(2)
+		expect(rootLiveStarts.map((start) => start.parentEntitySelector)).toEqual(expect.arrayContaining([
+			{
+				id: 'parent',
+			},
+			{
+				id: 'network-a',
+			},
+		]))
+	})
+})
 
 
 describe('subscribeEntity Resolver Stack fixtures', () => {

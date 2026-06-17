@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const nearChunk = subscribe(EntityType.NearChunk,
-		selector,
-		({ fields: { shardId: true, gasUsed: true } }),
-	)
+	
 
 
 	// Components
@@ -67,7 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={nearChunk}
+			resource={proxy(EntityType.NearChunk, selector, ({ fields: { shardId: true, gasUsed: true } }))}
 			placeholderText={`Loading NEAR Chunk...`}
 		>
 			{#snippet children(nearChunk)}

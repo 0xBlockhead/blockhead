@@ -15,7 +15,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,7 +40,7 @@
 		>
 	> = $props()
 
-	const currency = $derived(subscribe(EntityType.Currency,
+	const currency = $derived(proxy(EntityType.Currency,
 		selector,
 		({ sources: [
 				Source.Constants_Internal,
@@ -161,8 +161,9 @@
 					timestampMs: currencyCatalogSnapshotTimestampMs,
 				}}
 				layout={EntityLayout.Title}
+
 				open={false}
-			/>
+				/>
 		</section>
 
 		<CollapsibleTabs

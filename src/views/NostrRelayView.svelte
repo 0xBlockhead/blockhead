@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -39,12 +39,9 @@
 		>
 	> = $props()
 
-	const relay = subscribe(EntityType.NostrRelay,
-		selector,
-		({ sources: [
+	const relay = $derived(proxy(EntityType.NostrRelay, selector, ({ sources: [
 				Source.NostrBand_Rest,
-			], fields: { name: true, description: true, software: true, version: true, supportedNipCount: true, isPaid: true } }),
-	)
+			], fields: { name: true, description: true, software: true, version: true, supportedNipCount: true, isPaid: true } })))
 
 
 	// (Derived)

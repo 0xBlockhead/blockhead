@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,12 +19,12 @@
 		open?: boolean
 	} = $props()
 
-	const metagraph = subscribe(EntityType.BittensorMetagraph_Timestamp,
+	const metagraph = $derived(proxy(EntityType.BittensorMetagraph_Timestamp,
 		selector,
 		({ sources: [
 				Source.Bittensor_JsonRpc,
 			], fields: { metagraphByteLength: true, neuronCount: true } }),
-	)
+	))
 
 
 	// Components

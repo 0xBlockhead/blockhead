@@ -9,16 +9,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]', {
-			caip2Namespace: selector.$network.caip2.namespace,
-			caip2Reference: selector.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+			caip2: ,
 		}),
 		layout = EntityLayout.Summary,
 		title: titleProp,
@@ -40,29 +39,20 @@
 		>
 	> = $props()
 
-
-	// Functions
-	const title = (
-		titleProp
-		?? `Validator #${selector.validatorIndex.toLocaleString()}`
-	)
-
-
-	const validator = subscribe(EntityType.BeaconValidator,
+	const validator = $derived(proxy(
+		EntityType.BeaconValidator,
 		selector,
 		{
 			sources: [
 				Source.Beacon_Rest,
 			],
-			fields: {
-				balanceGwei: true,
-				effectiveBalanceGwei: true,
-				pubkey: true,
-				slashed: true,
-				status: true,
-			},
 		},
-	)
+	))
+	
+	
+	
+	
+	
 
 
 	// Components
@@ -79,7 +69,7 @@
 	href={href}
 		{layout}
 	bind:open
-	{title}
+	title={titleProp ?? `Validator #${selector.validatorIndex.toLocaleString()}`}
 		{collapsible}
 		{...EntityViewProps}
 >
@@ -109,51 +99,79 @@
 			<dl data-column-item="center">
 				{#if open}
 					<ResourceBoundary
-						placeholderText="Loading beacon validator…"
-						resource={validator}
+						placeholderText="Loading validator balance…"
+						resource={validator.balanceGwei}
 					>
-						{#snippet children(validator)}
-							{#if validator.fields.balanceGwei !== undefined}
+						{#snippet children(balanceGwei)}
+							{#if balanceGwei !== undefined}
 								<div>
 									<dt>Balance</dt>
 									<dd>
-										<NumberValue value={validator.fields.balanceGwei} />
+										<NumberValue value={balanceGwei} />
 										gwei
 									</dd>
 								</div>
 							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-							{#if validator.fields.effectiveBalanceGwei !== undefined}
+					<ResourceBoundary
+						placeholderText="Loading effective balance…"
+						resource={validator.effectiveBalanceGwei}
+					>
+						{#snippet children(effectiveBalanceGwei)}
+							{#if effectiveBalanceGwei !== undefined}
 								<div>
 									<dt>Effective balance</dt>
 									<dd>
-										<NumberValue value={validator.fields.effectiveBalanceGwei} />
+										<NumberValue value={effectiveBalanceGwei} />
 										gwei
 									</dd>
 								</div>
 							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-							{#if validator.fields.status !== undefined}
+					<ResourceBoundary
+						placeholderText="Loading validator status…"
+						resource={validator.status}
+					>
+						{#snippet children(status)}
+							{#if status !== undefined}
 								<div>
 									<dt>Status</dt>
-									<dd>{validator.fields.status}</dd>
+									<dd>{status}</dd>
 								</div>
 							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-							{#if validator.fields.slashed !== undefined}
+					<ResourceBoundary
+						placeholderText="Loading slashing status…"
+						resource={validator.slashed}
+					>
+						{#snippet children(slashed)}
+							{#if slashed !== undefined}
 								<div>
 									<dt>Slashed</dt>
-									<dd>{validator.fields.slashed ? 'Yes' : 'No'}</dd>
+									<dd>{slashed ? 'Yes' : 'No'}</dd>
 								</div>
 							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-							{#if validator.fields.pubkey !== undefined}
+					<ResourceBoundary
+						placeholderText="Loading validator pubkey…"
+						resource={validator.pubkey}
+					>
+						{#snippet children(pubkey)}
+							{#if pubkey !== undefined}
 								<div>
 									<dt>Pubkey</dt>
 									<dd>
 										<TruncatedValue
 											format={TruncatedValueFormat.Visual}
-											value={validator.fields.pubkey}
+											value={pubkey}
 										/>
 									</dd>
 								</div>

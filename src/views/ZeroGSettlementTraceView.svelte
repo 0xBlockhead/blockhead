@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const zeroGSettlementTrace = subscribe(EntityType.ZeroGSettlementTrace,
-		selector,
-		({ fields: { settlementTransactionHash: true, acknowledgementSignature: true, rewardAmount: true } }),
-	)
+	
 
 
 	// Components
@@ -67,7 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={zeroGSettlementTrace}
+			resource={proxy(EntityType.ZeroGSettlementTrace, selector, ({ fields: { settlementTransactionHash: true, acknowledgementSignature: true, rewardAmount: true } }))}
 			placeholderText={`Loading 0G settlement trace...`}
 		>
 			{#snippet children(zeroGSettlementTrace)}

@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,9 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		entityFieldReference,
@@ -35,11 +35,12 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmSelectorView from '$/views/EvmSelectorView.svelte'
 </script>
@@ -69,54 +70,44 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Openchain_Rest,
-						],
-					},
-				} }),
-			)}
-			{@const selectors = derive(
-				parent,
-				(parent) => {
-					const evmSelectors: readonly Entity<typeof schema, EntityType.EvmSelector>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						evmSelectors.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmSelector}
-				getKey={(envelope) => envelope.value[EntityMetaKey.Selector].hex}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].hex}
-				open={true}
-				resource={selectors}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Openchain_Rest],
+					})}
+				placeholderText="Loading selectors…"
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No contract function selectors indexed yet.
-					</p>
-				{/snippet}
+				{#snippet children(selectors)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.EvmSelector}
+						getKey={(selector) => selector.entitySelector.hex}
+						getSortValue={(selector) => selector.entitySelector.hex}
+						open={true}
+						items={selectors.entities}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No contract function selectors indexed yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					<EvmSelectorView
-						selector={item.value[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-						showTypeAnnotation={false}
-					/>
+						{#snippet Item({ item })}
+							<EvmSelectorView
+								selector={item.entitySelector}
+								layout={EntityLayout.Summary}
+
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

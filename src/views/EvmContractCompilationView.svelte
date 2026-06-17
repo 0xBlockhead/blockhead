@@ -9,16 +9,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
-			caip2Namespace: selector.$contract.$network.caip2.namespace,
-			caip2Reference: selector.$contract.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address]', {
+			caip2: ,
 			address: selector.$contract.address,
 		}),
 		layout = EntityLayout.SummaryDetails,
@@ -42,12 +41,16 @@
 		never
 	> = $props()
 
-	const compilation = $derived(subscribe(EntityType.EvmContractCompilation,
-		selector,
-		({ sources: [
-				Source.Sourcify_Rest,
-			], fields: { ...(open && ({ language: true, compiler: true, compilerVersion: true, name: true, fullyQualifiedName: true, compilerSettingsJson: true, storageLayoutJson: true })) } }),
-	))
+	const compilation = $derived(proxy(EntityType.EvmContractCompilation, selector, {
+		sources: [Source.Sourcify_Rest],
+	}))
+	const language = $derived(compilation.language)
+	
+	
+	
+	const fullyQualifiedName = $derived(compilation.fullyQualifiedName)
+	
+	
 
 
 	// Components
@@ -68,13 +71,13 @@
 >
 	{#snippet Value()}
 		<ResourceBoundary
-			resource={compilation}
+			resource={fullyQualifiedName}
 			placeholderText="Loading compilation…"
 		>
-			{#snippet children(compilation)}
-				{compilation.fields.fullyQualifiedName
-					?? compilation.fields.name
-					?? compilation.fields.language
+			{#snippet children(fullyQualifiedName)}
+				{fullyQualifiedName
+					?? (compilation.name).current
+					?? language.current
 					?? 'Compilation'}
 			{/snippet}
 		</ResourceBoundary>
@@ -98,12 +101,12 @@
 					<dt>Language</dt>
 					<dd>
 						<ResourceBoundary
-							resource={compilation}
+							resource={language}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.fields.language}
-									{compilation.fields.language}
+							{#snippet children(language)}
+								{#if language}
+									{language}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -113,12 +116,12 @@
 					<dt>Compiler</dt>
 					<dd>
 						<ResourceBoundary
-							resource={compilation}
+							resource={compilation.compiler}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.fields.compiler}
-									{compilation.fields.compiler}
+							{#snippet children(compiler)}
+								{#if compiler}
+									{compiler}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -128,12 +131,12 @@
 					<dt>Compiler version</dt>
 					<dd>
 						<ResourceBoundary
-							resource={compilation}
+							resource={compilation.compilerVersion}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.fields.compilerVersion}
-									{compilation.fields.compilerVersion}
+							{#snippet children(compilerVersion)}
+								{#if compilerVersion}
+									{compilerVersion}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -143,12 +146,12 @@
 					<dt>Fully qualified name</dt>
 					<dd>
 						<ResourceBoundary
-							resource={compilation}
+							resource={fullyQualifiedName}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.fields.fullyQualifiedName}
-									<code>{compilation.fields.fullyQualifiedName}</code>
+							{#snippet children(fullyQualifiedName)}
+								{#if fullyQualifiedName}
+									<code>{fullyQualifiedName}</code>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -158,13 +161,13 @@
 					<dt>Compiler settings</dt>
 					<dd>
 						<ResourceBoundary
-							resource={compilation}
+							resource={compilation.compilerSettingsJson}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.fields.compilerSettingsJson}
+							{#snippet children(compilerSettingsJson)}
+								{#if compilerSettingsJson}
 									<TruncatedValue
-										value={compilation.fields.compilerSettingsJson}
+										value={compilerSettingsJson}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -176,13 +179,13 @@
 					<dt>Storage layout</dt>
 					<dd>
 						<ResourceBoundary
-							resource={compilation}
+							resource={compilation.storageLayoutJson}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.fields.storageLayoutJson}
+							{#snippet children(storageLayoutJson)}
+								{#if storageLayoutJson}
 									<TruncatedValue
-										value={compilation.fields.storageLayoutJson}
+										value={storageLayoutJson}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}

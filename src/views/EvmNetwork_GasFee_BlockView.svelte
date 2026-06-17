@@ -9,16 +9,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]', {
-			caip2Namespace: selector.$network.caip2.namespace,
-			caip2Reference: selector.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber]', {
+			caip2: ,
 			blockNumber: String(selector.blockNumber),
 		}),
 		layout,
@@ -37,10 +36,23 @@
 		>
 	> = $props()
 
-	const networkGasFeeBlock = subscribe(EntityType.EvmNetwork_GasFee_Block,
+	const networkGasFeeBlock = $derived(proxy(
+		EntityType.EvmNetwork_GasFee_Block,
 		selector,
-		({ sources: [Source.Voltaire_JsonRpc], fields: { baseFeePerGas: true, legacyGasPrice: true, maxPriorityFeePerGas: true, gasUsedRatio: true, priorityFeeRewardAt50thPercentile: true } }),
-	)
+		{
+			sources: [
+				Source.Voltaire_JsonRpc,
+			],
+		},
+	))
+	const baseFeePerGas = $derived(networkGasFeeBlock.baseFeePerGas)
+	
+	
+	
+	
+	
+	
+
 
 
 	// Components
@@ -62,19 +74,14 @@
 	{#snippet Value()}
 		<ResourceBoundary
 			placeholderText="Loading gas snapshot…"
-			resource={networkGasFeeBlock}
+			resource={baseFeePerGas}
 		>
-			{#snippet children(networkGasFeeBlock)}
-				{#if networkGasFeeBlock.fields.baseFeePerGas !== undefined}
-					<NumberValue value={networkGasFeeBlock.fields.baseFeePerGas} />
-					wei
-				{:else if networkGasFeeBlock.fields.legacyGasPrice !== undefined}
-					<NumberValue value={networkGasFeeBlock.fields.legacyGasPrice} />
+			{#snippet children(baseFeePerGas)}
+				{#if baseFeePerGas !== undefined}
+					<NumberValue value={baseFeePerGas} />
 					wei
 				{:else}
-					<span>
-						block {String(selector.blockNumber)}
-					</span>
+					<span>block {String(selector.blockNumber)}</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -83,21 +90,16 @@
 	{#snippet Title()}
 		<ResourceBoundary
 			placeholderText="Loading gas snapshot…"
-			resource={networkGasFeeBlock}
+			resource={baseFeePerGas}
 		>
-			{#snippet children(networkGasFeeBlock)}
-				{#if networkGasFeeBlock.fields.baseFeePerGas !== undefined}
-					<NumberValue value={networkGasFeeBlock.fields.baseFeePerGas} />
-					wei
-				{:else if networkGasFeeBlock.fields.legacyGasPrice !== undefined}
-					<NumberValue value={networkGasFeeBlock.fields.legacyGasPrice} />
+			{#snippet children(baseFeePerGas)}
+				{#if baseFeePerGas !== undefined}
+					<NumberValue value={baseFeePerGas} />
 					wei
 				{:else}
-					<span>
-						block {String(selector.blockNumber)}
-					</span>
+					<span>block {String(selector.blockNumber)}</span>
 				{/if}
-	{/snippet}
+			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
@@ -111,87 +113,65 @@
 	{/snippet}
 
 	{#snippet Content({})}
-		<ResourceBoundary
-			placeholderText="Loading gas snapshot…"
-			resource={networkGasFeeBlock}
-		>
-			{#snippet children(networkGasFeeBlock)}
-				<dl data-column-item="center">
-					{#if networkGasFeeBlock.fields.baseFeePerGas !== undefined}
-						<div>
-							<dt>Base fee</dt>
-							<dd>
-								<NumberValue value={networkGasFeeBlock.fields.baseFeePerGas} />
-								wei
-							</dd>
-						</div>
+		<dl data-column-item="center">
+			<ResourceBoundary resource={baseFeePerGas} placeholderText="Loading base fee…">
+				{#snippet children(baseFeePerGas)}
+					{#if baseFeePerGas !== undefined}
+						<div><dt>Base fee</dt><dd><NumberValue value={baseFeePerGas} /> wei</dd></div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if networkGasFeeBlock.fields.legacyGasPrice !== undefined}
-						<div>
-							<dt>Suggested gas price</dt>
-							<dd>
-								<NumberValue value={networkGasFeeBlock.fields.legacyGasPrice} />
-								wei
-							</dd>
-						</div>
+			<ResourceBoundary resource={networkGasFeeBlock.legacyGasPrice} placeholderText="Loading gas price…">
+				{#snippet children(legacyGasPrice)}
+					{#if legacyGasPrice !== undefined}
+						<div><dt>Suggested gas price</dt><dd><NumberValue value={legacyGasPrice} /> wei</dd></div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if networkGasFeeBlock.fields.maxPriorityFeePerGas !== undefined}
-						<div>
-							<dt>Max priority fee</dt>
-							<dd>
-								<NumberValue value={networkGasFeeBlock.fields.maxPriorityFeePerGas} />
-								wei
-							</dd>
-						</div>
+			<ResourceBoundary resource={networkGasFeeBlock.maxPriorityFeePerGas} placeholderText="Loading priority fee…">
+				{#snippet children(maxPriorityFeePerGas)}
+					{#if maxPriorityFeePerGas !== undefined}
+						<div><dt>Max priority fee</dt><dd><NumberValue value={maxPriorityFeePerGas} /> wei</dd></div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if (
-						open
-						&& networkGasFeeBlock.fields.gasUsedRatio !== undefined
-					)}
-						<div>
-							<dt>Gas used ratio</dt>
-							<dd>{String(networkGasFeeBlock.fields.gasUsedRatio)}</dd>
-						</div>
-					{/if}
+			{#if open}
+				<ResourceBoundary resource={networkGasFeeBlock.gasUsedRatio} placeholderText="Loading gas used ratio…">
+					{#snippet children(gasUsedRatio)}
+						{#if gasUsedRatio !== undefined}
+							<div><dt>Gas used ratio</dt><dd>{String(gasUsedRatio)}</dd></div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-					{#if (
-						open
-						&& networkGasFeeBlock.fields.priorityFeeRewardAt50thPercentile !== undefined
-					)}
-						<div>
-							<dt>Priority fee at 50th percentile</dt>
-							<dd>
-								<NumberValue value={networkGasFeeBlock.fields.priorityFeeRewardAt50thPercentile} />
-								wei
-							</dd>
-						</div>
-					{/if}
+				<ResourceBoundary resource={networkGasFeeBlock.priorityFeeRewardAt50thPercentile} placeholderText="Loading priority fee percentile…">
+					{#snippet children(priorityFeeRewardAt50thPercentile)}
+						{#if priorityFeeRewardAt50thPercentile !== undefined}
+							<div><dt>Priority fee at 50th percentile</dt><dd><NumberValue value={priorityFeeRewardAt50thPercentile} /> wei</dd></div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-					{#if networkGasFeeBlock.fields.baseFeePerBlobGas !== undefined}
-						<div>
-							<dt>Blob base fee</dt>
-							<dd>
-								<NumberValue value={networkGasFeeBlock.fields.baseFeePerBlobGas} />
-								wei
-							</dd>
-						</div>
-					{/if}
+				<ResourceBoundary resource={networkGasFeeBlock.baseFeePerBlobGas} placeholderText="Loading blob base fee…">
+					{#snippet children(baseFeePerBlobGas)}
+						{#if baseFeePerBlobGas !== undefined}
+							<div><dt>Blob base fee</dt><dd><NumberValue value={baseFeePerBlobGas} /> wei</dd></div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-					{#if (
-						open
-						&& networkGasFeeBlock.fields.blobGasUsedRatio !== undefined
-					)}
-						<div>
-							<dt>Blob gas used ratio</dt>
-							<dd>{String(networkGasFeeBlock.fields.blobGasUsedRatio)}</dd>
-						</div>
-					{/if}
-
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				<ResourceBoundary resource={networkGasFeeBlock.blobGasUsedRatio} placeholderText="Loading blob gas used ratio…">
+					{#snippet children(blobGasUsedRatio)}
+						{#if blobGasUsedRatio !== undefined}
+							<div><dt>Blob gas used ratio</dt><dd>{String(blobGasUsedRatio)}</dd></div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+		</dl>
 	{/snippet}
+
 </EntityView>

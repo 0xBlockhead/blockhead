@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -30,10 +30,7 @@
 		never
 	> = $props()
 
-	const leverage = subscribe(EntityType.Leverage,
-		selector,
-		({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }),
-	)
+	
 
 
 	// Components
@@ -81,7 +78,7 @@
 
 	{#snippet Content({})}
 		<ResourceBoundary
-			resource={leverage}
+			resource={proxy(EntityType.Leverage, selector, ({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }))}
 			placeholderText="Loading leverage row…"
 		>
 			{#snippet children(leverage)}
@@ -93,7 +90,7 @@
 									<EvmNetworkView
 										selector={leverage.fields.$pool[EntityMetaKey.Selector].$network}
 										layout={EntityLayout.Value}
-										open={false}
+
 									/>
 								{:else}
 									<span data-text="muted">No pool network loaded</span>
@@ -125,7 +122,7 @@
 											$actor: leverage.fields.$owner[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
-										open={false}
+
 									/>
 								</dd>
 							</div>

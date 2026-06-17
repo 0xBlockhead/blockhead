@@ -1,18 +1,15 @@
 <script lang="ts">
+import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -32,11 +29,14 @@
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RedditSubredditView from '$/views/RedditSubredditView.svelte'
 </script>
@@ -71,60 +71,50 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [
 						Source.Constants_Internal,
 						Source.Reddit_Rest,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Reddit_Rest,
-							Source.Reddit_PublicJson,
-						],
-					},
-				} }),
-			)}
-			{@const subreddits = derive(
-				parent,
-				(parent) => {
-					const redditSubreddits: readonly Entity<typeof schema, EntityType.RedditSubreddit>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						redditSubreddits.map((value) => ({
-							selector: value[EntityMetaKey.Selector],
-						}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.RedditSubreddit}
-				id={`${id}-items`}
-				{title}
-				open={true}
-				resource={subreddits}
-				placeholderText="Loading subreddits…"
-				getKey={(subreddit) => stringify(subreddit.selector)}
-				getSortValue={(subreddit) => subreddit.selector.name}
-				placeholderKeys={new SvelteSet<string>()}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No subreddits in this Reddit hub yet.
-					</p>
-				{/snippet}
+					],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.Reddit_Rest,
+						Source.Reddit_PublicJson,
+					],
+				})} placeholderText="Loading subreddits…">
+				{#snippet children(subreddits)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.RedditSubreddit}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={subreddits.entities}
+						getKey={(subreddit) => stringify(subreddit.entitySelector)}
+						getSortValue={(subreddit) => subreddit.entitySelector.name}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+							No subreddits in this Reddit hub yet.
+						</p>
+						{/snippet}
 
-				{#snippet Item({
-					item: subreddit,
-				})}
-					<RedditSubredditView
-						selector={subreddit.selector}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<RedditSubredditView
+							selector={item.entitySelector}
+							layout={EntityLayout.Summary}
+
+						/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

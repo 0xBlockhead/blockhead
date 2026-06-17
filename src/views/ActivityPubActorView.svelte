@@ -36,21 +36,21 @@
 	> = $props()
 
 	import { htmlToPlainText } from '$/lib/html.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	const idKey = $derived(stringify(selector))
 
 	const sources = $derived(
-		selector.instanceOrigin === mastodonInstanceByKey.mastodon_social.origin ?
+		'instanceOrigin' in selector && selector.instanceOrigin === mastodonInstanceByKey.mastodon_social.origin ?
 			[Source.Mastodon_Rest]
-		: selector.instanceOrigin === fediInstanceBySlug.fosstodon.origin ?
+		: 'instanceOrigin' in selector && selector.instanceOrigin === fediInstanceBySlug.fosstodon.origin ?
 			[Source.Fedi_Rest]
 		:
 			[]
 	)
 
 	const actor = $derived(
-		subscribe(EntityType.ActivityPubActor,
+		proxy(EntityType.ActivityPubActor,
 			selector,
 			({
 				sources,
@@ -115,7 +115,7 @@
 			{#snippet children(actor)}
 				{#if actor.fields.$icon}
 					<IconComponent
-						alt={actor.fields.displayName ?? actor.fields.acct ?? actor.fields.username ?? ('localAccountId' in selector ? selector.localAccountId : selector.acct)}
+						alt={actor.fields.displayName ?? actor.fields.acct ?? actor.fields.username ?? ('localAccountId' in selector ? selector.localAccountId : 'acct' in selector ? selector.acct : selector.activityStreamsUri)}
 						shape={IconShape.Circle}
 						src={actor.fields.$icon[EntityMetaKey.Selector].url}
 					/>
@@ -126,7 +126,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={'localAccountId' in selector ? selector.localAccountId : `@${selector.acct}`}
+			value={'localAccountId' in selector ? selector.localAccountId : 'acct' in selector ? `@${selector.acct}` : selector.activityStreamsUri}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -140,7 +140,7 @@
 				{actor.fields.displayName
 					?? actor.fields.acct
 					?? actor.fields.username
-					?? ('localAccountId' in selector ? selector.localAccountId : selector.acct)}
+					?? ('localAccountId' in selector ? selector.localAccountId : 'acct' in selector ? selector.acct : selector.activityStreamsUri)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -154,7 +154,7 @@
 					actor.fields.displayName
 					?? actor.fields.acct
 					?? actor.fields.username
-					?? ('localAccountId' in selector ? selector.localAccountId : selector.acct)}
+					?? ('localAccountId' in selector ? selector.localAccountId : 'acct' in selector ? selector.acct : selector.activityStreamsUri)}
 				{#if actor.fields.username && actor.fields.username !== activityPubSummaryHeadingLine}
 					<span data-text="muted">
 						@{actor.fields.username}
@@ -205,7 +205,7 @@
 								actor.fields.displayName
 								?? actor.fields.acct
 								?? actor.fields.username
-								?? ('localAccountId' in selector ? selector.localAccountId : selector.acct)}
+								?? ('localAccountId' in selector ? selector.localAccountId : 'acct' in selector ? selector.acct : selector.activityStreamsUri)}
 
 						{#if actor.fields.acct && actor.fields.acct !== activityPubSummaryHeadingLine}
 							<div>
@@ -380,23 +380,26 @@
 						placeholderText="Loading actor…"
 					>
 						{#snippet children(actor)}
-							<ActivityPubNotesView
-								CollapsibleProps={{ canToggle: false }}
-								entityFieldReference={{
-									entityType: EntityType.ActivityPubActor,
-									selector: {
-										instanceOrigin: selector.instanceOrigin,
-										localAccountId: 'localAccountId' in selector ? selector.localAccountId : actor.fields.localAccountId,
-									},
-									fieldName: '$$notes',
-								}}
-								fieldOpen={_open}
-								id={`${idKey}:activity-notes-activityPubActors`}
-								orderByCreatedAt="desc"
-								placeholderText="Loading Mastodon outbox statuses…"
-								{sources}
-								title="Outbox"
-							/>
+							{@const localAccountId = 'localAccountId' in selector ? selector.localAccountId : actor.fields.localAccountId}
+							{#if 'instanceOrigin' in selector && localAccountId != null}
+								<ActivityPubNotesView
+									CollapsibleProps={{ canToggle: false }}
+									entityFieldReference={{
+										entityType: EntityType.ActivityPubActor,
+										selector: {
+											instanceOrigin: selector.instanceOrigin,
+											localAccountId,
+										},
+										fieldName: '$$notes',
+									}}
+									fieldOpen={_open}
+									id={`${idKey}:activity-notes-activityPubActors`}
+									orderByCreatedAt="desc"
+									placeholderText="Loading Mastodon outbox statuses…"
+									{sources}
+									title="Outbox"
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
@@ -407,23 +410,26 @@
 						placeholderText="Loading actor…"
 					>
 						{#snippet children(actor)}
-							<ActivityPubActor_TimestampsView
-								entityFieldReference={{
-									entityType: EntityType.ActivityPubActor,
-									selector: {
-										instanceOrigin: selector.instanceOrigin,
-										localAccountId: 'localAccountId' in selector ? selector.localAccountId : actor.fields.localAccountId,
-									},
-									fieldName: '$$timestamps',
-								}}
-								href={resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-									instanceOrigin: encodeURIComponent(selector.instanceOrigin),
-									localAccountId: 'localAccountId' in selector ? selector.localAccountId : actor.fields.localAccountId,
-								})}
-								id={`${idKey}:metric-snapshots`}
-								{sources}
-								title="Metric snapshots"
-							/>
+							{@const localAccountId = 'localAccountId' in selector ? selector.localAccountId : actor.fields.localAccountId}
+							{#if 'instanceOrigin' in selector && localAccountId != null}
+								<ActivityPubActor_TimestampsView
+									entityFieldReference={{
+										entityType: EntityType.ActivityPubActor,
+										selector: {
+											instanceOrigin: selector.instanceOrigin,
+											localAccountId,
+										},
+										fieldName: '$$timestamps',
+									}}
+									href={resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+										instanceOrigin: encodeURIComponent(selector.instanceOrigin),
+										localAccountId,
+									})}
+									id={`${idKey}:metric-snapshots`}
+									{sources}
+									title="Metric snapshots"
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}

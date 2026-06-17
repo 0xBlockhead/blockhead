@@ -5,11 +5,9 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { CoinId } from '$/constants/Coin.ts'
 	import { catalogCoinIdentitySources } from '$/sources/Source.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	type CoinOrderFieldRow = {
@@ -61,7 +59,7 @@
 	const globalCoinsFieldOrderBy = (
 		[
 			[
-				({ fieldRow }) => (
+				({ fieldRow }: { fieldRow: CoinOrderFieldRow }) => (
 					fieldRow.marketCapRank
 				),
 				{
@@ -69,7 +67,7 @@
 				},
 			],
 			[
-				({ fieldRow }) => (
+				({ fieldRow }: { fieldRow: CoinOrderFieldRow }) => (
 					fieldRow.marketCapUsd
 				),
 				{
@@ -77,15 +75,17 @@
 				},
 			],
 			[
-				({ fieldRow }) => (
+				({ fieldRow }: { fieldRow: CoinOrderFieldRow }) => (
 					fieldRow.valueKey
 				),
 				'asc',
 			],
 		] as const
 	)
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -121,22 +121,23 @@
 		{/snippet}
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
-				{@const parent = subscribe(entityFieldReference.entityType,
-					entityFieldReference.selector,({ sources: catalogCoinIdentitySources, fields: { [entityFieldReference.fieldName]: {
+				<ResourceBoundary
+					resource={proxy(
+							entityFieldReference.entityType,
+							entityFieldReference.selector,
+							{
+								sources: catalogCoinIdentitySources,
+							}
+						).field(entityFieldReference.fieldName, {
 							sources: catalogCoinIdentitySources,
 							orderBy: [...globalCoinsFieldOrderBy],
 							limit,
-						},
-					} }),
-				)}
-				<ResourceBoundary
-					resource={parent}
+						})}
 				>
-					{#snippet children(parent)}
+					{#snippet children(coins)}
 						<UnorderedList
-							items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
-							getKey={(coin) => stringify(coin[EntityMetaKey.Selector])}
-							placeholderKeys={new SvelteSet<string | number>()}
+							items={coins.entities}
+							getKey={(coin) => stringify(coin.entitySelector)}
 							orientation={ListOrientation.Column}
 						>
 						{#snippet Empty()}
@@ -145,15 +146,12 @@
 							</p>
 						{/snippet}
 
-						{#snippet Item({
-							item: coin,
-						})}
-							{@const selector = coin[EntityMetaKey.Selector]}
+						{#snippet Item({ item: coin })}
 							<CoinView
-								selector={selector}
-								id={stringify(selector)}
+								selector={coin.entitySelector}
+								id={stringify(coin.entitySelector)}
 								layout={EntityLayout.Summary}
-								open={false}
+
 							/>
 						{/snippet}
 						</UnorderedList>

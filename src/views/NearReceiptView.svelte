@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,10 +27,7 @@
 		>
 	> = $props()
 
-	const nearReceipt = subscribe(EntityType.NearReceipt,
-		selector,
-		({ fields: { $predecessor: true, $receiver: true } }),
-	)
+	
 
 
 	// Components
@@ -58,7 +55,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={nearReceipt}
+			resource={proxy(EntityType.NearReceipt, selector, ({ fields: { $predecessor: true, $receiver: true } }))}
 			placeholderText="Loading NEAR Receipt..."
 		>
 			{#snippet children(nearReceipt)}
@@ -70,7 +67,7 @@
 								<NearAccountView
 									selector={nearReceipt.fields.$predecessor[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
-									open={false}
+
 									showTypeAnnotation={false}
 								/>
 							</dd>
@@ -84,7 +81,7 @@
 								<NearAccountView
 									selector={nearReceipt.fields.$receiver[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
-									open={false}
+
 									showTypeAnnotation={false}
 								/>
 							</dd>

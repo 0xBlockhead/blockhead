@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,10 +38,7 @@
 		variant: 'trending',
 	}
 
-	const network = subscribe(EntityType.FarcasterNetwork,
-		selector,
-		({ sources: [Source.Farcaster_Rest], fields: { ...(open ? ({ protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$channels: true, $$users: ({ sources: [Source.Snapchain_Rest] }) }) : ({  })) } }),
-	)
+	const network = $derived(proxy(EntityType.FarcasterNetwork, selector, ({ sources: [Source.Farcaster_Rest], fields: { ...(open ? ({ protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$channels: true, $$users: ({ sources: [Source.Snapchain_Rest] }) }) : ({  })) } })))
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',

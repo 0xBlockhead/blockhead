@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -70,7 +70,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const global = subscribe(EntityType._Global,
+			{@const global = proxy(EntityType._Global,
 				entityFieldReference.selector,
 				({
 					sources: [Source.Local_Internal],
@@ -106,7 +106,7 @@
 							<BlockheadFarcasterAccountConnectionView
 								selector={item[EntityMetaKey.Selector]}
 								layout={EntityLayout.Summary}
-								open={false}
+
 								title="Farcaster account"
 							/>
 						{/snippet}

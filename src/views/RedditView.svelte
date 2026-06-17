@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -33,18 +33,7 @@
 
 	const networkSelectorKey = stringify(selector)
 
-	const redditNetwork = subscribe(EntityType.RedditNetwork,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$redditLinks: ({ sources: [
-							Source.Reddit_Rest,
-							Source.Reddit_PublicJson,
-						] }), $$redditSubreddits: ({ sources: [
-							Source.Reddit_Rest,
-							Source.Reddit_PublicJson,
-						] }) }) : ({  })) } }),
-	)
+	
 
 
 	// Components
@@ -87,7 +76,15 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={redditNetwork}
+				resource={proxy(EntityType.RedditNetwork, selector, ({ sources: [
+						Source.Constants_Internal,
+					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$redditLinks: ({ sources: [
+									Source.Reddit_Rest,
+									Source.Reddit_PublicJson,
+								] }), $$redditSubreddits: ({ sources: [
+									Source.Reddit_Rest,
+									Source.Reddit_PublicJson,
+								] }) }) : ({  })) } }))}
 				placeholderText="Loading Reddit…"
 			>
 				{#snippet children(redditNetwork)}

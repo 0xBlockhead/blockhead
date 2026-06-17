@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -40,13 +40,10 @@
 		>
 	> = $props()
 
-	const repost = subscribe(EntityType.NostrRepost,
-		selector,
-		({ sources: [
+	const repost = $derived(proxy(EntityType.NostrRepost, selector, ({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
-			], fields: { eventId: true, pubkey: true, createdAt: true, repostedEventId: true, $author: true, $repostedArticle: true, $repostedNote: ({ fields: { content: true } }) } }),
-	)
+			], fields: { eventId: true, pubkey: true, createdAt: true, repostedEventId: true, $author: true, $repostedArticle: true, $repostedNote: ({ fields: { content: true } }) } })))
 
 
 	// Components
@@ -92,8 +89,9 @@
 					<NostrArticleView
 						selector={repost.fields.$repostedArticle[EntityMetaKey.Selector]}
 						layout={EntityLayout.Title}
+
 						open={false}
-					/>
+						/>
 				{:else if repost.fields.repostedEventId}
 					<TruncatedValue
 						value={repost.fields.repostedEventId}
@@ -171,8 +169,9 @@
 									<NostrProfileView
 										selector={repost.fields.$author[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -191,8 +190,9 @@
 									<NostrNoteView
 										selector={repost.fields.$repostedNote[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -211,8 +211,9 @@
 									<NostrArticleView
 										selector={repost.fields.$repostedArticle[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

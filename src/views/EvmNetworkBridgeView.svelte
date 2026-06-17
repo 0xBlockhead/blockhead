@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -9,10 +10,11 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
+		resource,
 		href = selector.url,
 		open = $bindable(true),
 		collapsible = true,
@@ -20,6 +22,7 @@
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.EvmNetworkBridge>
+			resource?: EntityProxyResource<typeof schema, EntityType.EvmNetworkBridge>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -30,13 +33,17 @@
 		>
 	> = $props()
 
-	const bridge = subscribe(EntityType.EvmNetworkBridge,
+	
+	const relationshipType = $derived(((resource ?? proxy(
+		EntityType.EvmNetworkBridge,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
-			], fields: { ...(open && ({ relationshipType: true })) } }),
-	)
+			],
+		},
+	))).relationshipType)
 
 
 	// Components
@@ -94,12 +101,12 @@
 			{#if open}
 				<ResourceBoundary
 					placeholderText="Loading Chainlist / Ethereum Lists bridge mapping…"
-					resource={bridge}
+					resource={relationshipType}
 				>
-					{#snippet children(bridge)}
+					{#snippet children(relationshipType)}
 						<div>
 							<dt>Relationship</dt>
-							<dd>{bridge.fields.relationshipType}</dd>
+							<dd>{relationshipType}</dd>
 						</div>
 					{/snippet}
 				</ResourceBoundary>

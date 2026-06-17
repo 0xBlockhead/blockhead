@@ -24,7 +24,7 @@
 
 	// Context
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -75,7 +75,7 @@
 
 
 	const coin = $derived(
-		subscribe(
+		proxy(
 			EntityType.Coin,
 			selector,
 			{
@@ -136,12 +136,10 @@
 		marketKind: catalogCoinSpotUsdMarketByCoinId[selector.coinId].marketKind,
 	})
 
-	const catalogUsdMarketLabel = $derived(
-		catalogUsdMarketId.marketKind === MarketKind.Spot ?
-			`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217}`
-		:
-			`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217} (${marketKindByMarketKind[catalogUsdMarketId.marketKind].label})`
-	)
+	
+
+
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -283,7 +281,7 @@
 												coinId: selector.coinId,
 											})}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								{/if}
 							{/snippet}
@@ -431,7 +429,10 @@
 									<a href={resolve('/(assets)/(markets)/market/[marketKey]', {
 										marketKey: encodeURIComponent(stringify(catalogUsdMarketId)),
 									})}>
-									{catalogUsdMarketLabel}
+									{catalogUsdMarketId.marketKind === MarketKind.Spot ?
+											`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217}`
+										:
+											`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217} (${marketKindByMarketKind[catalogUsdMarketId.marketKind].label})`}
 								</a>
 								<span data-text="muted">
 									— spot quote and OHLC on the market page.

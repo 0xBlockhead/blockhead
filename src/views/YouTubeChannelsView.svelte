@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -34,8 +33,10 @@
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -71,53 +72,48 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				({
-					sources: [
-						Source.Constants_Internal,
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					],
-					fields: {
-						[entityFieldReference.fieldName]: {
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+						{
 							sources: [
+								Source.Constants_Internal,
 								Source.Youtube_Rest,
 								Source.Piped_Rest,
 							],
-						},
-					},
-				})
-			)}
-			<ResourceBoundary
-				resource={parent}
+						}
+					).field(entityFieldReference.fieldName, {
+						sources: [
+							Source.Youtube_Rest,
+							Source.Piped_Rest,
+						],
+					})}
 				placeholderText="Loading channels…"
 			>
-				{#snippet children(parent)}
+				{#snippet children(channels)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
 						entityType={EntityType.YouTubeChannel}
 						id={`${id}-items`}
 						{title}
-						items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
+						items={channels.entities}
 						placeholderText="Loading channels…"
-						getKey={(channel) => stringify(channel[EntityMetaKey.Selector])}
-						getSortValue={(channel) => channel[EntityMetaKey.Selector].channelId}
+						getKey={(channel) => stringify(channel.entitySelector)}
+						getSortValue={(channel) => channel.entitySelector.channelId}
 					>
 						{#snippet Empty()}
 							<p data-text="muted">
-								No channels in this YouTube hub yet.
-							</p>
+							No channels in this YouTube hub yet.
+						</p>
 						{/snippet}
 
-						{#snippet Item({
-							item: channel,
-						})}
+						{#snippet Item({ item })}
 							<YouTubeChannelView
-								selector={channel[EntityMetaKey.Selector]}
+								selector={item.entitySelector}
 								layout={EntityLayout.SummaryDetails}
-								open={false}
+
 							/>
 						{/snippet}
 					</EntitiesList>

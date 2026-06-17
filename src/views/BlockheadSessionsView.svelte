@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -14,8 +12,7 @@
 
 	// Context
 	import { writeLocalBlockheadSession } from '$/collections/localMutations.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { appClient, subscribe } from '$/routes/+layout.svelte'
+	import { appClient, proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -44,6 +41,8 @@
 		>
 	> = $props()
 
+	
+
 	let sessionName = $state('')
 
 
@@ -56,6 +55,7 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSessionView from '$/views/BlockheadSessionView.svelte'
 </script>
@@ -86,29 +86,6 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Local_Internal,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Local_Internal,
-						],
-					},
-				} }),
-			)}
-			{@const sessions = derive(
-				parent,
-				(parent) => {
-					const blockheadSessions: readonly Entity<typeof schema, EntityType.BlockheadSession>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						blockheadSessions.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
 			<form
 				data-row="align-center"
 				onsubmit={(event) => {
@@ -132,32 +109,42 @@
 				</button>
 			</form>
 
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BlockheadSession}
-				id={`${id}-items`}
-				{title}
-				open={true}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				resource={sessions}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No sessions yet.
-					</p>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Local_Internal],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Local_Internal],
+				})} placeholderText="Loading sessions…">
+				{#snippet children(sessions)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BlockheadSession}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						getKey={(session) => stringify(session.entitySelector)}
+						getSortValue={(session) => stringify(session.entitySelector)}
+						items={sessions.entities}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">No sessions yet.</p>
+						{/snippet}
 
-				{#snippet Item({ item: envelope })}
-					<BlockheadSessionView
-						selector={envelope.value[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<BlockheadSessionView
+								selector={item.entitySelector}
+								layout={EntityLayout.Summary}
+
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

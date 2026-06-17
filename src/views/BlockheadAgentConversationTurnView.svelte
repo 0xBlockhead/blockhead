@@ -14,7 +14,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -35,7 +35,7 @@
 	> = $props()
 
 	const turn = $derived.by(() => (
-		subscribe(EntityType.BlockheadAgentConversationTurn,
+		proxy(EntityType.BlockheadAgentConversationTurn,
 			selector,
 			({ sources: [
 				Source.Local_Internal,
@@ -229,8 +229,12 @@
 									<svelte:self
 										selector={{ id: turn.fields.parentId }}
 										layout={EntityLayout.Title}
+
+									
 										open={false}
-									/>
+
+									
+										/>
 								{:else}
 									<span data-text="muted">
 										Root turn.

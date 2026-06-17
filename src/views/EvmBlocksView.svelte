@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -37,22 +36,7 @@
 		>
 	> = $props()
 
-	const network = $derived(
-		subscribe(
-			entityFieldReference.entityType,
-			entityFieldReference.selector,
-			{
-				fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Voltaire_JsonRpc,
-						],
-						limit: 16,
-					},
-				},
-			},
-		),
-	)
+	
 
 
 	// Components
@@ -86,10 +70,19 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary
-				resource={network}
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [
+							Source.Voltaire_JsonRpc,
+						],
+						limit: 16,
+						count: true,
+					})}
 				placeholderText="Loading execution blocks…"
 			>
-				{#snippet children(network)}
+				{#snippet children(blocks)}
 					<div data-column="gap-3">
 						<EntitiesList
 							collapsible={false}
@@ -98,11 +91,11 @@
 							id={`${id}-items`}
 							{title}
 							open={true}
-							getKey={(row) => String(row[EntityMetaKey.Selector].blockNumber)}
+							getKey={(row) => String(row.entitySelector.blockNumber)}
 							getSortValue={(row) => (
-								-Number(row[EntityMetaKey.Selector].blockNumber)
+								-Number(row.entitySelector.blockNumber)
 							)}
-							items={network.fields[entityFieldReference.fieldName]?.values ?? []}
+							items={blocks.entities}
 							UnorderedListProps={{ orientation: ListOrientation.Column }}
 						>
 							{#snippet Empty()}
@@ -113,9 +106,9 @@
 
 							{#snippet Item({ item })}
 								<EvmBlockView
-									selector={item[EntityMetaKey.Selector]}
+									selector={item.entitySelector}
 									layout={EntityLayout.Summary}
-									open={false}
+
 								/>
 							{/snippet}
 						</EntitiesList>

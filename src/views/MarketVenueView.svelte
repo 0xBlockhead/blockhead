@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -35,12 +35,9 @@
 		>
 	> = $props()
 
-	const marketVenue = subscribe(EntityType.MarketVenue,
-		selector,
-		({ sources: [
+	const marketVenue = $derived(proxy(EntityType.MarketVenue, selector, ({ sources: [
 				Source.Constants_Internal,
-			], fields: { label: true } }),
-	)
+			], fields: { label: true } })))
 
 
 	// Components
@@ -106,7 +103,7 @@
 				selector,
 				fieldName: '$$markets',
 			}}
-			open={false}
+
 			title="Markets"
 		/>
 	{/snippet}

@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,12 +19,7 @@
 		open?: boolean
 	} = $props()
 
-	const networkStack = subscribe(EntityType.NetworkStack,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { label: true } }),
-	)
+	
 
 
 	// Components
@@ -42,7 +37,9 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={networkStack}
+			resource={proxy(EntityType.NetworkStack, selector, ({ sources: [
+				Source.Constants_Internal,
+			], fields: { label: true } }))}
 		>
 			{#snippet children(stack)}
 				{stack.fields.label}

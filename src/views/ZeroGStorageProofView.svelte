@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const zeroGStorageProof = subscribe(EntityType.ZeroGStorageProof,
-		selector,
-		({ fields: { proofKind: true, verifiedAtBlock: true } }),
-	)
+	
 
 
 	// Components
@@ -67,7 +64,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={zeroGStorageProof}
+			resource={proxy(EntityType.ZeroGStorageProof,
+					selector,
+					({ fields: { proofKind: true, verifiedAtBlock: true } }),
+				)}
 			placeholderText={`Loading 0G storage proof...`}
 		>
 			{#snippet children(zeroGStorageProof)}

@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -43,7 +43,7 @@
 	> = $props()
 
 	const farcasterUserResource = $derived(
-		subscribe(EntityType.FarcasterUser,
+		proxy(EntityType.FarcasterUser,
 			selector,
 			({ sources: [
 				Source.Neynar_Rest,
@@ -183,7 +183,7 @@
 										url: farcasterUser.fields.url,
 									}}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							{/if}
 						{/snippet}
@@ -226,7 +226,7 @@
 										address: farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector].address,
 									})}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>
@@ -254,13 +254,13 @@
 																address: verification.$evmAccount[EntityMetaKey.Selector].address,
 															})}
 															layout={EntityLayout.Title}
-															open={false}
+
 														/>
 													{:else if verification.$solanaAccount}
 														<SolanaAccountView
 															selector={verification.$solanaAccount[EntityMetaKey.Selector]}
 															layout={EntityLayout.Title}
-															open={false}
+
 														/>
 													{:else}
 														<span data-text="mono muted">
@@ -347,50 +347,44 @@
 				>
 					{#snippet body()}
 						{#if open}
-							{@const farcasterUserCasts = subscribe(EntityType.FarcasterUser,
+							{@const casts = proxy(EntityType.FarcasterUser,
 								selector,
-								({ fields: { $$casts: true } }),
-							)}
-							{@const casts = derive(
-								farcasterUserCasts,
-								(farcasterUserCasts) => (
-									[...(farcasterUserCasts.$$casts ?? [])].map((result) => ({
-										result,
-									}))
-								),
-							)}
-							<EntitiesList
-								collapsible={false}
-								showSummary={false}
-								entityType={EntityType.FarcasterCast}
-								href={resolve('/farcaster/feed')}
-								id={`farcaster-user:${String(selector.fid)}:casts-farcasterUsers-items`}
-								placeholderText="Loading casts (Farcaster FID + cast hash)…"
-								resource={casts}
-								title="Casts"
-								getKey={(row) => stringify(row.result[EntityMetaKey.Selector])}
-								getSortValue={(row) => (
-									[...stringify(row.result[EntityMetaKey.Selector])].map((character) => (
-										String.fromCharCode(0xffff - character.charCodeAt(0))
-									)).join('')
-								)}
-								open={true}
-							>
-								{#snippet Empty()}
-									<p data-text="muted">
-										No casts yet.
-									</p>
-								{/snippet}
+							).field('$$casts')}
+							<ResourceBoundary resource={casts} placeholderText="Loading casts (Farcaster FID + cast hash)…">
+								{#snippet children(casts)}
+									<EntitiesList
+										collapsible={false}
+										showSummary={false}
+										entityType={EntityType.FarcasterCast}
+										href={resolve('/farcaster/feed')}
+										id={`farcaster-user:${String(selector.fid)}:casts-farcasterUsers-items`}
+										placeholderText="Loading casts (Farcaster FID + cast hash)…"
+										items={casts.entities}
+										title="Casts"
+										getKey={(cast) => stringify(cast.entitySelector)}
+										getSortValue={(cast) => (
+											[...stringify(cast.entitySelector)].map((character) => (
+												String.fromCharCode(0xffff - character.charCodeAt(0))
+											)).join('')
+										)}
+										open={true}
+									>
+										{#snippet Empty()}
+											<p data-text="muted">
+												No casts yet.
+											</p>
+										{/snippet}
 
-								{#snippet Item({ item })}
-									{@const castId = item.result[EntityMetaKey.Selector]}
-									<FarcasterCastView
-										selector={castId}
-										layout={EntityLayout.Summary}
-										variant="feed"
-									/>
+										{#snippet Item({ item })}
+											<FarcasterCastView
+												selector={item.entitySelector}
+												layout={EntityLayout.Summary}
+												variant="feed"
+											/>
+										{/snippet}
+									</EntitiesList>
 								{/snippet}
-							</EntitiesList>
+							</ResourceBoundary>
 						{/if}
 					{/snippet}
 				</EntitiesList>

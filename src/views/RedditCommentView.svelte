@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const comment = $derived(
-		subscribe(
+		proxy(
 			EntityType.RedditComment,
 			selector,
 			({ sources: [
@@ -99,12 +99,12 @@
 		>
 			{#snippet children(comment)}
 				<TruncatedValue
-					value={(
+					value={
 						comment.fields.body ?
 							comment.fields.body.replaceAll('\n', ' ')
 						:
 							selector.fullname
-					)}
+					}
 					startLength={64}
 					endLength={16}
 					format={TruncatedValueFormat.Visual}
@@ -194,8 +194,12 @@
 									<RedditCommentView
 										selector={comment.fields.$parentComment[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
-										open={false}
-								/>
+
+								
+									open={false}
+
+								
+									/>
 							</dd>
 						</div>
 					{/if}
@@ -207,8 +211,9 @@
 								<RedditLinkView
 									selector={comment.fields.$link[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
+
 									open={false}
-								/>
+									/>
 							</dd>
 						</div>
 					{/if}

@@ -179,6 +179,7 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 
 export const e2eRouteRestSegmentFixtures: Record<string, string> = {
 	contentPath: 'index.html',
+	uri: encodeURIComponent(atprotoNetworkSeedPosts[0].uri),
 }
 
 

@@ -4,7 +4,6 @@
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -17,9 +16,8 @@
 	let {
 		selector,
 		title = 'Contract',
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(contracts)/contract/[address]', {
-			caip2Namespace: selector.$network.caip2.namespace,
-			caip2Reference: selector.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address]', {
+			caip2: ,
 			address: selector.address,
 		}),
 		open = $bindable(true),
@@ -42,28 +40,29 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
-	const contract = $derived(subscribe(EntityType.EvmContract,
-		selector,
-		({ sources: [
-				Source.Local_Internal,
-				Source.Constants_Internal,
-				Source.Sourcify_Rest,
-				Source.Blockscout_Rest,
-				Source.Etherscan_Rest,
-				...(open ?
-					[
-						Source.Voltaire_JsonRpc,
-					]
-				:
-					[]),
-				], fields: { precompileName: ({ sources: [
-						Source.Constants_Internal,
-					] }), ...(open && ({ $deployer: true, $creationTransaction: true, $implementation: true, codeHash: true, code: true, abi: true, storageSlotReads: true, $verification: ({ sources: [
-							Source.Sourcify_Rest,
-						], fields: { match: true, creationMatch: true, runtimeMatch: true, verifiedAtMs: true, $compilation: ({ fields: { fullyQualifiedName: true, name: true } }), $sourceBundle: true } }) })) } }),
-	))
+	const contract = $derived(proxy(EntityType.EvmContract, selector, {
+		sources: [
+			Source.Local_Internal,
+			Source.Constants_Internal,
+			Source.Sourcify_Rest,
+			Source.Blockscout_Rest,
+			Source.Etherscan_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
+	const precompileName = $derived(contract.field('precompileName', {
+		sources: [Source.Constants_Internal],
+	}))
+	
+	
+	
+	
+	
+	
+	
+	const compilationName = $derived(contract.$verification.$compilation.name)
 
 
 	// Components
@@ -93,39 +92,62 @@
 				$actor: { address: selector.address },
 			}}
 			layout={EntityLayout.Value}
+
 			open={false}
-		/>
+			/>
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			placeholderText="Loading contract…"
-			resource={contract}
-		>
-			{#snippet children(contract)}
-				{#if contract.fields.precompileName}
-					{contract.fields.precompileName}
-				{:else if contract.fields.$verification?.entity.fields.$compilation?.entity.fields.fullyQualifiedName}
-					<code>
-						{contract.fields.$verification.entity.fields.$compilation.entity.fields.fullyQualifiedName
-							.split(':')[0]
-							.split('/')
-							.at(-1)}
-					</code>
-				{:else if contract.fields.$verification?.entity.fields.$compilation?.entity.fields.name}
-					{contract.fields.$verification.entity.fields.$compilation.entity.fields.name}
-				{:else}
-						<EvmNetworkAccountView
-							selector={{
-								$network: selector.$network,
-								$actor: { address: selector.address },
-							}}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<ResourceBoundary
+				placeholderText="Loading contract…"
+				resource={precompileName}
+			>
+				{#snippet children(precompileName)}
+					{#if precompileName}
+						{precompileName}
+					{:else}
+						<ResourceBoundary
+							placeholderText="Loading contract name…"
+							resource={contract.$verification.$compilation.fullyQualifiedName}
+						>
+							{#snippet children(compilationFullyQualifiedName)}
+								{#if compilationFullyQualifiedName}
+									<code>
+										{compilationFullyQualifiedName
+											.split(':')[0]
+											.split('/')
+											.at(-1)}
+									</code>
+								{:else if compilationName.current}
+									{compilationName.current}
+								{:else}
+									<EvmNetworkAccountView
+										selector={{
+											$network: selector.$network,
+											$actor: { address: selector.address },
+										}}
+										layout={EntityLayout.Value}
+
+										open={false}
+										/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{:else}
+			<EvmNetworkAccountView
+				selector={{
+					$network: selector.$network,
+					$actor: { address: selector.address },
+				}}
+				layout={EntityLayout.Value}
+
+				open={false}
+				/>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ open })}
@@ -137,10 +159,10 @@
 				</div>
 				<ResourceBoundary
 					placeholderText="Loading contract details…"
-					resource={contract}
+					resource={precompileName}
 				>
-					{#snippet children(contract)}
-						{#if open && contract.fields.precompileName}
+					{#snippet children(precompileName)}
+						{#if open && precompileName}
 							<div>
 								<dt>Address</dt>
 								<dd>
@@ -150,95 +172,139 @@
 											$actor: { address: selector.address },
 										}}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								</dd>
 							</div>
 						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-						{#if open && !contract.fields.precompileName && contract.fields.$deployer}
+				{#if open}
+					<ResourceBoundary
+						placeholderText="Loading deployer…"
+						resource={contract.$deployer}
+					>
+						{#snippet children(deployer)}
+							{#if !precompileName.current && deployer}
 							<div>
 								<dt>Deployer</dt>
 								<dd>
 									<EvmNetworkAccountView
 										selector={{
 											$network: selector.$network,
-											$actor: contract.fields.$deployer[EntityMetaKey.Selector],
+											$actor: deployer.entitySelector,
 										}}
-										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(accounts)/account/[address]', {
-											caip2Namespace: selector.$network.caip2.namespace,
-											caip2Reference: selector.$network.caip2.reference,
-											address: contract.fields.$deployer[EntityMetaKey.Selector].address,
+										href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address]', {
+											caip2: ,
+											address: deployer.entitySelector.address,
 										})}
 										layout={EntityLayout.Title}
+
 										open={false}
-									/>
+										/>
 								</dd>
 							</div>
 						{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-						{#if open && !contract.fields.precompileName && contract.fields.$creationTransaction}
+					<ResourceBoundary
+						placeholderText="Loading creation transaction…"
+						resource={contract.$creationTransaction}
+					>
+						{#snippet children(creationTransaction)}
+							{#if !precompileName.current && creationTransaction}
 							<div>
 								<dt>Creation transaction</dt>
 								<dd>
 									<EvmTransactionView
-										selector={contract.fields.$creationTransaction[EntityMetaKey.Selector]}
-										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-											caip2Namespace: selector.$network.caip2.namespace,
-											caip2Reference: selector.$network.caip2.reference,
-											transactionId: contract.fields.$creationTransaction[EntityMetaKey.Selector].txHash,
+										selector={creationTransaction.entitySelector}
+										href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+											caip2: ,
+											transactionId: creationTransaction.entitySelector.txHash,
 										})}
 										layout={EntityLayout.Title}
+
 										open={false}
-									/>
+										/>
 								</dd>
 							</div>
 						{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-						{#if open && !contract.fields.precompileName && contract.fields.$implementation}
+					<ResourceBoundary
+						placeholderText="Loading implementation…"
+						resource={contract.$implementation}
+					>
+						{#snippet children(implementation)}
+							{#if !precompileName.current && implementation}
 							<div>
 								<dt>Implementation</dt>
 								<dd>
 									<Self
-										selector={contract.fields.$implementation[EntityMetaKey.Selector]}
+										selector={implementation.entitySelector}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								</dd>
 							</div>
 						{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-						{#if open && contract.fields.codeHash}
+					<ResourceBoundary
+						placeholderText="Loading bytecode hash…"
+						resource={contract.codeHash}
+					>
+						{#snippet children(codeHash)}
+						{#if codeHash}
 							<div>
 								<dt>Bytecode hash</dt>
 								<dd>
 									<TruncatedValue
-										value={contract.fields.codeHash}
+										value={codeHash}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
 							</div>
 						{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-						{#if open && contract.fields.code}
+					<ResourceBoundary
+						placeholderText="Loading runtime bytecode…"
+						resource={contract.code}
+					>
+						{#snippet children(code)}
+						{#if code}
 							<div>
 								<dt>Runtime bytecode</dt>
 								<dd>
 									<TruncatedValue
-										value={contract.fields.code}
+										value={code}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
 							</div>
 						{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-						{#if open && !contract.fields.precompileName}
-							{#if open && contract.fields.abi !== undefined}
+					{#if !precompileName.current}
+						<ResourceBoundary
+							placeholderText="Loading ABI…"
+							resource={contract.abi}
+						>
+							{#snippet children(abi)}
+							{#if abi !== undefined}
 								<div>
 									<dt>ABI</dt>
 									<dd>
 										<EvmAbiView
-											abi={contract.fields.abi}
+											abi={abi}
 										/>
 									</dd>
 								</div>
@@ -248,9 +314,10 @@
 									<dd>No ABI JSON yet.</dd>
 								</div>
 							{/if}
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
+				{/if}
 			</dl>
 		</div>
 	{/snippet}

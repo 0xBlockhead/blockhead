@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const nearExecutionOutcome = subscribe(EntityType.NearExecutionOutcome,
-		selector,
-		({ fields: { status: true, gasBurnt: true } }),
-	)
+	
 
 
 	// Components
@@ -57,7 +54,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={nearExecutionOutcome}
+			resource={proxy(EntityType.NearExecutionOutcome, selector, ({ fields: { status: true, gasBurnt: true } }))}
 			placeholderText={`Loading NEAR Execution Outcome...`}
 		>
 			{#snippet children(nearExecutionOutcome)}

@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,7 +10,8 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { resolve } from '$app/paths'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -38,13 +38,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -69,62 +70,71 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const activityPubNetwork = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				{
-					sources: [Source.Constants_Internal],
-					fields: {
-						protocolName: true,
-						$$activityPubActors: {
-							sources: [
-								Source.Constants_Internal,
-								Source.Mastodon_Rest,
-								Source.Fedi_Rest,
-							],
-						},
-					},
-				},
-			)}
-			{@const actors = derive(
-				activityPubNetwork,
-				(activityPubNetwork) => (
-					activityPubNetwork.fields.$$activityPubActors?.values ?? []
-				),
-			)}
-			{#key stringify(entityFieldReference.selector)}
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.ActivityPubActor}
-					id={`${id}-items`}
-					{title}
-					open={true}
-					getSortValue={(activityPubActor) => {
-						const actorId = activityPubActor[EntityMetaKey.Selector]
-						return 'localAccountId' in actorId ?
-							`${actorId.instanceOrigin}\0${actorId.localAccountId}`
-						:
-							`${actorId.instanceOrigin}\0${actorId.acct}`
-					}}
-					placeholderText="Loading Mastodon actor directory…"
-					resource={actors}
-				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No actors yet.
-						</p>
-					{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Constants_Internal],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.Constants_Internal,
+						Source.Mastodon_Rest,
+						Source.Fedi_Rest,
+					],
+				})} placeholderText="Loading Mastodon actor directory…">
+				{#snippet children(actors)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.ActivityPubActor}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={actors.entities}
+						getKey={(activityPubActor) => stringify(activityPubActor.entitySelector)}
+						getSortValue={(activityPubActor) => ('localAccountId' in activityPubActor.entitySelector ?
+								`${activityPubActor.entitySelector.instanceOrigin}\0${activityPubActor.entitySelector.localAccountId}`
+							: 'acct' in activityPubActor.entitySelector ?
+								`${activityPubActor.entitySelector.instanceOrigin}\0${activityPubActor.entitySelector.acct}`
+							:
+								activityPubActor.entitySelector.activityStreamsUri)}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No actors yet.
+							</p>
+						{/snippet}
 
-					{#snippet Item({ item })}
-						{@const actorId = item[EntityMetaKey.Selector]}
-						<ActivityPubActorView
-							selector={actorId}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/snippet}
-				</EntitiesList>
-			{/key}
+						{#snippet Item({ item })}
+							{@const activityPubActorLabel = 'localAccountId' in item.entitySelector ?
+								`${item.entitySelector.instanceOrigin}/${item.entitySelector.localAccountId}`
+							: 'acct' in item.entitySelector ?
+								`${item.entitySelector.instanceOrigin}/@${item.entitySelector.acct}`
+							:
+								item.entitySelector.activityStreamsUri}
+							{#if 'localAccountId' in item.entitySelector && String(item.entitySelector.localAccountId) !== '-1'}
+								<a
+									href={resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+										instanceOrigin: encodeURIComponent(item.entitySelector.instanceOrigin),
+										localAccountId: item.entitySelector.localAccountId,
+									})}
+								>
+									<TruncatedValue
+										value={activityPubActorLabel}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</a>
+							{:else}
+								<TruncatedValue
+									value={activityPubActorLabel}
+									format={TruncatedValueFormat.Visual}
+								/>
+							{/if}
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

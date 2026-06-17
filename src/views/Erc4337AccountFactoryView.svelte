@@ -4,21 +4,23 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/erc-4337/account-factory/[address]', {
-				...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+		resource,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address]', {
+				.caip2: ,
 				address: selector.address,
 		}),
 		layout = EntityLayout.Summary,
@@ -29,6 +31,7 @@
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.Erc4337AccountFactory>
+			resource?: EntityProxyResource<typeof schema, EntityType.Erc4337AccountFactory>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -41,12 +44,21 @@
 			>
 	> = $props()
 
-	const accountFactory = subscribe(EntityType.Erc4337AccountFactory,
-		selector,
-		({ sources: [
+	const accountFactory = $derived(
+		resource ?? proxy(
+			EntityType.Erc4337AccountFactory,
+			selector,
+			{
+			sources: [
 				Source.Blockscout_Rest,
-			], fields: { userOperationsCount: true, $contract: true } }),
+			],
+		}
+		)
 	)
+
+	
+
+	const contract = $derived(accountFactory.field('$contract'))
 
 
 	// Components
@@ -92,31 +104,41 @@
 		href: _href,
 		open: contentOpen,
 	})}
-		<ResourceBoundary
-			placeholderText="Loading account factory…"
-			resource={accountFactory}
-		>
-			{#snippet children(accountFactory)}
-				<dl data-column-item="center">
-					{#if accountFactory.fields.userOperationsCount !== undefined}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				placeholderText="Loading account factory user operation count…"
+				resource={accountFactory.userOperationsCount}
+			>
+				{#snippet children(userOperationsCount)}
+					{#if userOperationsCount !== undefined}
 						<div>
 							<dt>User operations</dt>
-							<dd data-text="mono">{String(accountFactory.fields.userOperationsCount)}</dd>
+							<dd data-text="mono">{String(userOperationsCount)}</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				placeholderText="Loading factory contract…"
+				resource={contract}
+			>
+				{#snippet children(contract)}
+					{#if contract?.entitySelector !== undefined}
 					<div>
 						<dt>Factory contract</dt>
 						<dd>
 							<EvmContractView
-								selector={accountFactory.fields.$contract[EntityMetaKey.Selector]}
+								selector={contract.entitySelector}
 								layout={EntityLayout.Value}
 								open={true}
 								showTypeAnnotation={false}
 							/>
 						</dd>
 					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 </EntityView>

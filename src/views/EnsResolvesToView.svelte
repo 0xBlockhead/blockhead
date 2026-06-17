@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -20,12 +20,7 @@
 		selector: EntitySelector<typeof schema, EntityType.EnsName>
 	} = $props()
 
-	const ens = $derived(
-		subscribe(EntityType.EnsName,
-			selector,
-			({ sources: [Source.Voltaire_JsonRpc], fields: { $resolvedActor: true } }),
-		),
-	)
+	
 
 
 	// Components
@@ -38,7 +33,10 @@
 
 <ResourceBoundary
 	placeholderText="Loading forward resolution…"
-	resource={ens}
+	resource={proxy(EntityType.EnsName,
+			selector,
+			({ sources: [Source.Voltaire_JsonRpc], fields: { $resolvedActor: true } }),
+		)}
 >
 	{#snippet children(ens)}
 		{@const resolvedActorId = ens.fields.$resolvedActor?.[EntityMetaKey.Selector]}
@@ -47,7 +45,7 @@
 				<EvmNetworkView
 					selector={{ chainId: ChainId.Ethereum }}
 					layout={EntityLayout.Summary}
-					open={false}
+
 				/>
 			</section>
 

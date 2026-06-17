@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -35,13 +35,7 @@
 		>
 	> = $props()
 
-	const redditCommentTimestamp = subscribe(EntityType.RedditComment_Timestamp,
-		selector,
-		({ sources: [
-				Source.Reddit_Rest,
-				Source.Reddit_PublicJson,
-			], fields: { score: true } }),
-	)
+	
 
 
 	// Components
@@ -77,7 +71,13 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={redditCommentTimestamp}
+			resource={proxy(EntityType.RedditComment_Timestamp,
+					selector,
+					({ sources: [
+							Source.Reddit_Rest,
+							Source.Reddit_PublicJson,
+						], fields: { score: true } }),
+				)}
 			placeholderText="Loading Reddit comment snapshot..."
 		>
 			{#snippet children(redditCommentTimestamp)}

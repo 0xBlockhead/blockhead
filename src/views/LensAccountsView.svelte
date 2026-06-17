@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -35,11 +34,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LensAccountView from '$/views/LensAccountView.svelte'
 </script>
@@ -63,56 +64,46 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const lensNetwork = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				{
-					sources: [Source.Constants_Internal],
-					fields: {
-						protocolName: true,
-						$$lensAccounts: {
-							sources: [
-								Source.Constants_Internal,
-								Source.Lens_Graphql,
-							],
-						},
-					},
-				},
-			)}
-			{@const accounts = derive(
-				lensNetwork,
-				(lensNetwork) => (
-					lensNetwork.fields.$$lensAccounts?.values
-					?? []
-				),
-			)}
-			{#key stringify(entityFieldReference.selector)}
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.LensAccount}
-					id={`${id}-items`}
-					{title}
-					open={true}
-					getKey={(row) => stringify(row[EntityMetaKey.Selector])}
-					getSortValue={(row) => stringify(row[EntityMetaKey.Selector])}
-					placeholderText="Loading Lens network…"
-					resource={accounts}
-				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No Lens profiles for this slice yet.
-						</p>
-					{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Constants_Internal],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.Constants_Internal,
+						Source.Lens_Graphql,
+					],
+				})} placeholderText="Loading Lens network…">
+				{#snippet children(accounts)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.LensAccount}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={accounts.entities}
+						getKey={(account) => stringify(account.entitySelector)}
+						getSortValue={(account) => stringify(account.entitySelector)}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No Lens profiles for this slice yet.
+							</p>
+						{/snippet}
 
-					{#snippet Item({ item })}
-						<LensAccountView
-							selector={item[EntityMetaKey.Selector]}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/snippet}
-				</EntitiesList>
-			{/key}
+						{#snippet Item({ item })}
+							<LensAccountView
+								selector={item.entitySelector}
+								layout={EntityLayout.Summary}
+
+							/>
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

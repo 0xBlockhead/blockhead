@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -37,11 +35,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import StateChannelView from '$/views/StateChannelView.svelte'
@@ -92,37 +92,24 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [Source.Local_Internal],
-					},
-				} }),
-			)}
-			{@const stateChannels = derive(
-				parent,
-				(parent) => {
-					const stateChannels: readonly Entity<typeof schema, EntityType.StateChannel>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						stateChannels.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
-			<EntitiesList
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Local_Internal],
+				})} placeholderText="Loading state channels…">
+				{#snippet children(stateChannels)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				data-entity-field-name={entityFieldReference.fieldName}
 				data-entity-field-parent={stringify(entityFieldReference.selector)}
 				data-entity-field-type={entityFieldReference.entityType}
 				entityType={EntityType.StateChannel}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].id}
+				getKey={(stateChannel) => stringify(stateChannel.entitySelector)}
+				getSortValue={(stateChannel) => stateChannel.entitySelector.id}
 				open={true}
-				resource={stateChannels}
+				items={stateChannels.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -150,12 +137,14 @@
 
 				{#snippet Item({ item })}
 					<StateChannelView
-						selector={item.value[EntityMetaKey.Selector]}
+						selector={item.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

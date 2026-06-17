@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -20,11 +20,11 @@
 		selector,
 		href = selector.variant === 'trending' ?
 			resolve('/farcaster/feed/trending')
-		: selector.variant === 'byUser' ?
+		: selector.variant === 'byUser' && 'fid' in selector ?
 			resolve('/(social)/(farcaster)/farcaster/feed/user/[userId]', {
 				userId: String(selector.fid),
 	})
-		: selector.variant === 'byChannel' ?
+		: selector.variant === 'byChannel' && 'channelId' in selector ?
 			resolve('/(social)/(farcaster)/farcaster/feed/channel/[channelId]', {
 				channelId: selector.channelId,
 	})
@@ -46,14 +46,11 @@
 		>
 	> = $props()
 
-	const feed = subscribe(EntityType.FarcasterFeed,
-		selector,
-		({ sources: [
+	const feed = $derived(proxy(EntityType.FarcasterFeed, selector, ({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
 				Source.Farcaster_Rest,
-			], fields: { label: true } }),
-	)
+			], fields: { label: true } })))
 
 
 	// Components
@@ -74,16 +71,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		{#if selector.variant === 'byUser'}
+		{#if selector.variant === 'byUser' && 'fid' in selector}
 			<span>
 				FID {String(selector.fid)}
 			</span>
-		{:else if selector.variant === 'byChannel'}
+		{:else if selector.variant === 'byChannel' && 'channelId' in selector}
 			<TruncatedValue
 				value={`/${selector.channelId}`}
 				format={TruncatedValueFormat.Visual}
 			/>
-		{:else if selector.variant === 'following'}
+		{:else if selector.variant === 'following' && 'viewerFid' in selector}
 			<span>
 				FID {String(selector.viewerFid)}
 			</span>
@@ -105,9 +102,9 @@
 					&& feed.fields.label !== ''
 				) ?
 					feed.fields.label
-				: selector.variant === 'byUser' ?
+				: selector.variant === 'byUser' && 'fid' in selector ?
 					`FID ${String(selector.fid)}`
-				: selector.variant === 'byChannel' ?
+				: selector.variant === 'byChannel' && 'channelId' in selector ?
 					selector.channelId
 				:
 					farcasterFeedKindByVariant[selector.variant].label

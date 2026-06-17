@@ -1,19 +1,18 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldValues, EntitySelector } from '$/schema/$schema.ts'
+	import type { EntityProxyCurrent } from '$/client/$proxy.svelte.ts'
+	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/Source.ts'
 
-	type ResourceFields = {
-		fields: Partial<EntityFieldValues<typeof schema, EntityType.BlockheadAgentConversation>>
-	}
 
+	type Conversation = EntityProxyCurrent<typeof schema, EntityType.BlockheadAgentConversation>
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -39,7 +38,7 @@
 	> = $props()
 
 	const conversation = $derived.by(() => (
-		subscribe(EntityType.BlockheadAgentConversation,
+		proxy(EntityType.BlockheadAgentConversation,
 			selector,
 			({ sources: [
 				Source.Local_Internal,
@@ -72,7 +71,7 @@
 
 	{#snippet Title()}
 		{#if true}
-			{#snippet ConversationHeading(conversation: ResourceFields)}
+			{#snippet ConversationHeading(conversation: Conversation)}
 				{conversation.fields.name ?? selector.id}
 			{/snippet}
 
@@ -96,7 +95,7 @@
 	{#snippet Content({})}
 		{#if open}
 			{#if true}
-				{#snippet ConversationSystemPromptProse(conversation: ResourceFields)}
+				{#snippet ConversationSystemPromptProse(conversation: Conversation)}
 					{#if conversation.fields.systemPrompt !== ''}
 						<p>
 							{conversation.fields.systemPrompt}
@@ -121,7 +120,7 @@
 				<dt>Pinned</dt>
 				<dd>
 					{#if true}
-						{#snippet ConversationPinnedRow(conversation: ResourceFields)}
+						{#snippet ConversationPinnedRow(conversation: Conversation)}
 							{conversation.fields.pinned ? 'Yes' : 'No'}
 						{/snippet}
 
@@ -138,7 +137,7 @@
 				<dt>Last activity</dt>
 				<dd>
 					{#if true}
-						{#snippet ConversationLastActivityRow(conversation: ResourceFields)}
+						{#snippet ConversationLastActivityRow(conversation: Conversation)}
 							{#if conversation.fields.updatedAt !== undefined}
 								<Timestamp
 									timestamp={conversation.fields.updatedAt}
@@ -166,7 +165,7 @@
 					<dt>Created</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationCreatedRow(conversation: ResourceFields)}
+							{#snippet ConversationCreatedRow(conversation: Conversation)}
 								{#if conversation.fields.createdAt !== undefined}
 									<Timestamp
 										timestamp={conversation.fields.createdAt}
@@ -189,7 +188,7 @@
 					<dt>Updated</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationUpdatedRow(conversation: ResourceFields)}
+							{#snippet ConversationUpdatedRow(conversation: Conversation)}
 								{#if conversation.fields.updatedAt !== undefined}
 									<Timestamp
 										timestamp={conversation.fields.updatedAt}
@@ -212,7 +211,7 @@
 					<dt>Default connection</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationConnectionRow(conversation: ResourceFields)}
+							{#snippet ConversationConnectionRow(conversation: Conversation)}
 								{#if conversation.fields.defaultConnectionId != null && conversation.fields.defaultConnectionId !== ''}
 									<TruncatedValue
 										value={conversation.fields.defaultConnectionId}
@@ -240,7 +239,7 @@
 					<dt>Default model</dt>
 					<dd>
 						{#if true}
-							{#snippet ConversationModelRow(conversation: ResourceFields)}
+							{#snippet ConversationModelRow(conversation: Conversation)}
 								{#if conversation.fields.defaultModelId != null && conversation.fields.defaultModelId !== ''}
 									<TruncatedValue
 										value={conversation.fields.defaultModelId}

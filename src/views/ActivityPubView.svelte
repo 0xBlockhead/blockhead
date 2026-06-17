@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -34,17 +34,7 @@
 		never
 	> = $props()
 
-	const activityPubNetwork = subscribe(EntityType.ActivityPubNetwork,
-		selector,
-		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, instanceTitle: ({ sources: [Source.Mastodon_Rest] }), instanceVersion: ({ sources: [Source.Mastodon_Rest] }), fediInstanceTitle: ({ sources: [Source.Fedi_Rest] }), fediInstanceVersion: ({ sources: [Source.Fedi_Rest] }), $$activityPubActors: ({ sources: [
-							Source.Constants_Internal,
-							Source.Mastodon_Rest,
-							Source.Fedi_Rest,
-						] }), $$activityPubNotes: ({ sources: [
-							Source.Mastodon_Rest,
-							Source.Fedi_Rest,
-						] }) }) : ({  })) } }),
-	)
+	
 
 
 	// (Derived)
@@ -93,7 +83,14 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={activityPubNetwork}
+				resource={proxy(EntityType.ActivityPubNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, instanceTitle: ({ sources: [Source.Mastodon_Rest] }), instanceVersion: ({ sources: [Source.Mastodon_Rest] }), fediInstanceTitle: ({ sources: [Source.Fedi_Rest] }), fediInstanceVersion: ({ sources: [Source.Fedi_Rest] }), $$activityPubActors: ({ sources: [
+						Source.Constants_Internal,
+						Source.Mastodon_Rest,
+						Source.Fedi_Rest,
+					] }), $$activityPubNotes: ({ sources: [
+						Source.Mastodon_Rest,
+						Source.Fedi_Rest,
+					] }) }) : ({  })) } }))}
 				placeholderText="Loading ActivityPub federation slice…"
 			>
 				{#snippet children(activityPubNetwork)}

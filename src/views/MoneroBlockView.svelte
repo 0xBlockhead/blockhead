@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,12 +27,7 @@
 		>
 	> = $props()
 
-	const block = subscribe(EntityType.MoneroBlock,
-		selector,
-		({ sources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			], fields: { hash: true, timestampMs: true, $$transactions: true, ...(open && ({ difficulty: true, weightBytes: true })) } }),
-	)
+	
 
 
 	// Components
@@ -76,7 +71,12 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={block}
+			resource={proxy(EntityType.MoneroBlock,
+					selector,
+					({ sources: [
+							Source.MoneroDaemonRpc_JsonRpc,
+						], fields: { hash: true, timestampMs: true, $$transactions: true, ...(open && ({ difficulty: true, weightBytes: true })) } }),
+				)}
 			placeholderText="Loading Monero block…"
 		>
 			{#snippet children(block)}

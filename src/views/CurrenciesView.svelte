@@ -2,35 +2,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
-
-	type CurrencyOrderFieldRow = {
-		$$timestamps?: {
-			0?: {
-				marketCap?: bigint
-			}
-		}
-		marketCap?: bigint
-		[EntityMetaKey.Selector]: {
-			iso4217: string
-		}
-		[EntityMetaKey.Value]: {
-			[EntityMetaKey.Selector]: {
-				iso4217: string
-			}
-			$$timestamps?: {
-				0?: {
-					marketCap?: bigint
-				}
-			}
-			marketCap?: bigint
-		}
-	}
 
 
 	// State
@@ -55,49 +30,17 @@
 		>
 	> = $props()
 
-
-	// Functions
-	const globalCurrenciesFieldOrderBy = (
-		[
-			[
-				({ fieldRow }) => (
-					fieldRow.$$timestamps?.[0]?.marketCap
-				),
-				{
-					direction: 'desc',
-				},
-			],
-			[
-				({ fieldRow }) => (
-					fieldRow[EntityMetaKey.Selector].iso4217
-				),
-				'asc',
-			],
-		] as const
-	)
-
-	const currencyTimestampsFieldOrderBy = (
-		[
-			[
-				({ fieldRow }) => (
-					fieldRow.marketCap
-				),
-				{
-					direction: 'desc',
-				},
-			],
-		] as const
-	)
+	// Context
+	import { resolve } from '$app/paths'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
-
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import CurrencyView from '$/views/CurrencyView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -125,58 +68,58 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Constants_Internal,
-					], fields: { [entityFieldReference.fieldName]: {
-						orderBy: [...globalCurrenciesFieldOrderBy],
-						limit: 512,
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Constants_Internal],
+					}
+				).field(entityFieldReference.fieldName, {
+					fields: {
 						$$timestamps: {
 							sources: [
 								Source.Constants_Internal,
 							],
-							orderBy: currencyTimestampsFieldOrderBy,
 							limit: 1,
 							fields: {
 								marketCap: true,
 							},
 						},
 					},
-				} }),
-			)}
-			{@const currencies = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.Currency>[] => (
-					parent.fields[entityFieldReference.fieldName]?.values ?? []
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				{...EntitiesListProps}
-				entityType={EntityType.Currency}
-				getKey={(currency) => currency[EntityMetaKey.Selector].iso4217}
-				getSortValue={(currency) => (
-					-Number(currency.$$timestamps?.[0]?.marketCap ?? 0)
-				)}
-				resource={currencies}
-				{title}
-				open={true}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No currencies in this context yet.
-					</p>
-				{/snippet}
+				})} placeholderText="Loading currencies…">
+				{#snippet children(currencies)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						{...EntitiesListProps}
+						entityType={EntityType.Currency}
+						getKey={(currency) => currency.entitySelector.iso4217}
+						getSortValue={(currency) => -Number(currency.current?.$$timestamps.entities[0]?.current?.marketCap ?? 0)}
+						items={currencies.entities}
+						{title}
+						open={true}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No currencies in this context yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					<CurrencyView
-						selector={item[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<a
+								href={resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+									iso4217: item.entitySelector.iso4217,
+								})}
+							>
+								<TruncatedValue
+									value={item.entitySelector.iso4217}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

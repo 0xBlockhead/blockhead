@@ -19,7 +19,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -67,17 +67,7 @@
 	)
 
 
-	const market = subscribe(EntityType.Market,
-		selector,
-		({ sources: (
-				selector.marketKind === MarketKind.Spot ?
-					[]
-				:
-					[...marketDerivativeObservationSources]
-			), fields: { ...(open && selector.marketKind !== MarketKind.Spot && ({ $$derivativeTimestamps: ({ sources: [
-							...marketDerivativeObservationSources,
-						], limit: 64 }) })) } }),
-		)
+	
 
 
 	// Components
@@ -101,12 +91,12 @@
 	{open}
 	{collapsible}
 	{...EntityViewProps}
-	title={(
+	title={
 		selector.marketKind === MarketKind.Spot ?
 			`${selector.$marketVenue.marketVenueId}:${marketAssetSymbol(selector.$base)}-${marketAssetSymbol(selector.$quote)}`
 		:
 			`${selector.$marketVenue.marketVenueId}:${marketAssetSymbol(selector.$base)}-${marketAssetSymbol(selector.$quote)} (${marketKindByMarketKind[selector.marketKind].label})`
-	)}
+	}
 >
 	{#snippet Content({})}
 		<dl data-column-item="center">
@@ -121,11 +111,16 @@
 						selector={selector.$marketVenue}
 						layout={EntityLayout.Value}
 						showTypeAnnotation={false}
-					/>
+						open={false}
+						/>
 				</dd>
 			</div>
 				{#if selector.marketKind !== MarketKind.Spot}
-					<ResourceBoundary resource={market}>
+					<ResourceBoundary resource={proxy(EntityType.Market, selector, ({ sources: (
+							[...marketDerivativeObservationSources]
+						), fields: { ...(open && ({ $$derivativeTimestamps: ({ sources: [
+										...marketDerivativeObservationSources,
+									], limit: 64 }) })) } }))}>
 						{#snippet children(market)}
 							{@const derivativeTimestamp = market.fields.$$derivativeTimestamps?.values.at(0)}
 							{#if derivativeTimestamp != null}
@@ -135,7 +130,7 @@
 										<Market_Derivative_TimestampView
 											selector={derivativeTimestamp[EntityMetaKey.Selector]}
 											layout={EntityLayout.Value}
-											open={false}
+
 											showTypeAnnotation={false}
 										/>
 									</dd>
@@ -152,19 +147,26 @@
 							selector={selector.$base.$coin}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
-						/>
+							open={false}
+							/>
 					{:else if selector.$base.kind === MarketAssetKind.CoinInstance}
-						<EvmCoinInstanceView
-							selector={selector.$base.$coinInstance}
-							layout={EntityLayout.Value}
-							showTypeAnnotation={false}
-						/>
+						{#if '$contract' in selector.$base.$coinInstance && selector.$base.$coinInstance.$network.caip2.namespace === 'eip155'}
+							<EvmCoinInstanceView
+								selector={selector.$base.$coinInstance}
+								layout={EntityLayout.Value}
+								showTypeAnnotation={false}
+								open={false}
+								/>
+						{:else}
+							<span>Native currency</span>
+						{/if}
 					{:else}
 						<CurrencyView
 							selector={selector.$base.$currency}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
-						/>
+							open={false}
+							/>
 					{/if}
 				</dd>
 			</div>
@@ -176,19 +178,26 @@
 							selector={selector.$quote.$coin}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
-						/>
+							open={false}
+							/>
 					{:else if selector.$quote.kind === MarketAssetKind.CoinInstance}
-						<EvmCoinInstanceView
-							selector={selector.$quote.$coinInstance}
-							layout={EntityLayout.Value}
-							showTypeAnnotation={false}
-						/>
+						{#if '$contract' in selector.$quote.$coinInstance && selector.$quote.$coinInstance.$network.caip2.namespace === 'eip155'}
+							<EvmCoinInstanceView
+								selector={selector.$quote.$coinInstance}
+								layout={EntityLayout.Value}
+								showTypeAnnotation={false}
+								open={false}
+								/>
+						{:else}
+							<span>Native currency</span>
+						{/if}
 					{:else}
 						<CurrencyView
 							selector={selector.$quote.$currency}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
-						/>
+							open={false}
+							/>
 					{/if}
 				</dd>
 			</div>

@@ -16,7 +16,8 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { resolve } from '$app/paths'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -59,11 +60,12 @@
 	] as const
 
 
+	
+
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -90,79 +92,73 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{#if fieldOpen}
-				{@const atprotoNetworkOrAccount = subscribe(entityFieldReference.entityType,
-					entityFieldReference.selector,
-					(
-						entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+				<ResourceBoundary
+					resource={proxy(
+							entityFieldReference.entityType,
+							entityFieldReference.selector,
+							...(entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+								[
+									{
+										sources: [Source.Constants_Internal],
+									},
+								]
+							:
+								[]
+							)
+						).field(
+							entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+								'$$atprotoPosts'
+							:
+								'$$posts',
 							{
-								sources: [Source.Constants_Internal],
-								fields: {
-									protocolName: true,
-									$$atprotoPosts: {
-										sources: [
+								sources: (
+									entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+										[
 											Source.Constants_Internal,
 											Source.Atproto_Xrpc,
-											Source.Atproto_BskySocial_Xrpc,
-										],
-										orderBy: [...atprotoPostOrderBy],
-										limit: limit,
-									},
-								},
-							}
-						:
-							{
-								fields: {
-									$$posts: {
-										sources: [
-											Source.Atproto_Xrpc,
-											Source.Atproto_BskySocial_Xrpc,
-										],
-										orderBy: [...atprotoPostOrderBy],
-										limit: limit,
-									},
-								},
-							}
-					),
-				)}
-				{#key `${stringify(entityFieldReference.selector)}-${limit}`}
-					<ResourceBoundary
-						resource={atprotoNetworkOrAccount}
-						placeholderText={`Loading ${title.toLowerCase()}…`}
-					>
-						{#snippet children(atprotoNetworkOrAccount)}
-							<EntitiesList
-								collapsible={false}
-								showSummary={false}
-								entityType={EntityType.AtprotoPost}
-								id={`${id}-items`}
-								{title}
-								open={true}
-								getKey={(atprotoPost) => atprotoPost[EntityMetaKey.Selector].uri}
-								placeholderText={`Loading ${title.toLowerCase()}…`}
-								items={
-									entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-										atprotoNetworkOrAccount.fields.$$atprotoPosts?.values ?? []
+										]
 									:
-										atprotoNetworkOrAccount.fields.$$posts?.values ?? []
-								}
-							>
-								{#snippet Empty()}
-									<p data-text="muted">
-										No posts yet.
-									</p>
-								{/snippet}
+										[
+											Source.Atproto_Xrpc,					]
+								),
+								limit,
+							}
+						)}
+					placeholderText={`Loading ${title.toLowerCase()}…`}
+				>
+					{#snippet children(posts)}
+						<EntitiesList
+							collapsible={false}
+							showSummary={false}
+							entityType={EntityType.AtprotoPost}
+							id={`${id}-items`}
+							{title}
+							open={true}
+							getKey={(atprotoPost) => atprotoPost.entitySelector.uri}
+							placeholderText={`Loading ${title.toLowerCase()}…`}
+							items={posts.entities}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">
+									No posts yet.
+								</p>
+							{/snippet}
 
-								{#snippet Item({ item })}
-									<AtprotoPostView
-										selector={{ uri: item[EntityMetaKey.Selector].uri }}
-										layout={EntityLayout.Summary}
-										open={false}
+							{#snippet Item({ item })}
+								<a
+									href={resolve('/(social)/(atproto)/atproto/post/[...uri]', {
+										uri: encodeURIComponent(item.entitySelector.uri),
+									})}
+								>
+									<TruncatedValue
+										value={item.entitySelector.uri}
+										format={TruncatedValueFormat.Visual}
 									/>
-								{/snippet}
-							</EntitiesList>
-						{/snippet}
-					</ResourceBoundary>
-				{/key}
+								</a>
+							{/snippet}
+						</EntitiesList>
+					{/snippet}
+				</ResourceBoundary>
 			{:else}
 				<p data-text="muted">
 					Facet idle—no posts request.

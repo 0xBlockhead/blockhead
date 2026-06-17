@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,12 +34,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BittensorNeuronView from '$/views/BittensorNeuronView.svelte'
 </script>
 
@@ -62,48 +61,45 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Bittensor_JsonRpc,
-						],
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Bittensor_JsonRpc],
 						limit: 32,
-					},
-				} }),
-			)}
-			{@const neurons = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.BittensorNeuron>[] => (
-					(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BittensorNeuron}
-				id={`${id}-items`}
-				href={href}
-				getKey={(neuron) => stringify(neuron[EntityMetaKey.Selector])}
-				getSortValue={(neuron) => neuron[EntityMetaKey.Selector].uid}
-				open={true}
-				resource={neurons}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
+					})}
+				placeholderText="Loading neurons…"
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No neurons listed yet.
-					</p>
-				{/snippet}
+				{#snippet children(neurons)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BittensorNeuron}
+						id={`${id}-items`}
+						href={href}
+						getKey={(neuron) => stringify(neuron.entitySelector)}
+						getSortValue={(neuron) => neuron.entitySelector.uid}
+						open={true}
+						items={neurons.entities}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No neurons listed yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item(context)}
-					<BittensorNeuronView
-						selector={context!.item[EntityMetaKey.Selector]}
-						layout={EntityLayout.SummaryInline}
-					/>
+						{#snippet Item({ item })}
+							<BittensorNeuronView
+							selector={item.entitySelector}
+							layout={EntityLayout.SummaryInline}
+						/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

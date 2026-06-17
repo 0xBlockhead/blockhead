@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const bitcoinCashCashTokenCommitment = subscribe(EntityType.BitcoinCashCashTokenCommitment,
-		selector,
-		({ fields: { commitmentHex: true } }),
-	)
+	
 
 
 	// Components
@@ -53,7 +50,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={bitcoinCashCashTokenCommitment}
+			resource={proxy(EntityType.BitcoinCashCashTokenCommitment, selector, ({ fields: { commitmentHex: true } }))}
 			placeholderText={`Loading Bitcoin Cash CashToken Commitment...`}
 		>
 			{#snippet children(bitcoinCashCashTokenCommitment)}

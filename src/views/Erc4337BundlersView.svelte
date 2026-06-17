@@ -2,8 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+		import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +35,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Erc4337BundlerView from '$/views/Erc4337BundlerView.svelte'
 </script>
@@ -62,28 +64,29 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.selector,
-				({ fields: { $$erc4337Bundlers: ({ sources: [
+			<ResourceBoundary
+				resource={proxy(
+						EntityType.EvmNetwork,
+						entityFieldReference.selector,
+					).field('$$erc4337Bundlers', {
+						sources: [
 							Source.Blockscout_Rest,
-						], limit: 16 }) } }),
-			)}
-			{@const bundlers = derive(
-				network,
-				(network): readonly Entity<typeof schema, EntityType.Erc4337Bundler>[] => (
-					(network.fields.$$erc4337Bundlers?.values ?? [])
-				),
-			)}
-			<EntitiesList
+						],
+						limit: 16,
+					})}
+				placeholderText="Loading bundlers…"
+			>
+				{#snippet children(bundlers)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.Erc4337Bundler}
 				id={`${id}-items`}
 				href={href}
-				getKey={(bundler) => stringify(bundler[EntityMetaKey.Selector])}
-				getSortValue={(bundler) => bundler[EntityMetaKey.Selector].address}
+				getKey={(bundler) => stringify(bundler.entitySelector)}
+				getSortValue={(bundler) => bundler.entitySelector.address}
 				placeholderText="Loading bundlers…"
-				resource={bundlers}
+				items={bundlers.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -94,12 +97,15 @@
 
 				{#snippet Item({ item: bundler })}
 					<Erc4337BundlerView
-						selector={bundler[EntityMetaKey.Selector]}
+						selector={bundler.entitySelector}
+						resource={bundler}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

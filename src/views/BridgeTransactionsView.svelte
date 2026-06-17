@@ -2,23 +2,16 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-
-	type BridgeTxRow = {
-		value: Entity<typeof schema, EntityType.BridgeTransaction>
-	}
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -41,11 +34,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BridgeTransactionView from '$/views/BridgeTransactionView.svelte'
 </script>
@@ -75,41 +70,22 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Local_Internal,
-						],
-					},
-				} }),
-			)}
-			{@const bridgeTransactions = derive(
-				parent,
-				(parent): BridgeTxRow[] => {
-					const bridgeTransactions: readonly Entity<typeof schema, EntityType.BridgeTransaction>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						bridgeTransactions.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
-			<EntitiesList
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Local_Internal],
+				})} placeholderText="Loading bridge transactions…">
+				{#snippet children(bridgeTransactions)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BridgeTransaction}
 				{title}
 				open={true}
-				resource={bridgeTransactions}
-				placeholderText="Loading bridge transactions…"
-				getKey={(bridgeTransaction) => stringify(bridgeTransaction.value[EntityMetaKey.Selector])}
-				getSortValue={(bridgeTransaction) => (
-					`${String(bridgeTransaction.value[EntityMetaKey.Selector].createdAt)}\0${stringify(bridgeTransaction.value[EntityMetaKey.Selector])}`
-				)}
-				placeholderKeys={new SvelteSet<string | number>()}
+				items={bridgeTransactions.entities}
+				getKey={(bridgeTransaction) => stringify(bridgeTransaction.entitySelector)}
+				getSortValue={(bridgeTransaction) => `${String(bridgeTransaction.entitySelector.createdAt)}\0${stringify(bridgeTransaction.entitySelector)}`}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
@@ -118,17 +94,16 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item({
-					item: bridgeTransaction,
-				})}
-					{@const id = bridgeTransaction.value[EntityMetaKey.Selector]}
+				{#snippet Item({ item: bridgeTransaction })}
 					<BridgeTransactionView
-						selector={id}
+						selector={bridgeTransaction.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

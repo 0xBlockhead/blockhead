@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const moneroRingMember = subscribe(EntityType.MoneroRingMember,
-		selector,
-		({ fields: { globalOutputIndex: true } }),
-	)
+	
 
 
 	// Components
@@ -65,7 +62,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={moneroRingMember}
+			resource={proxy(EntityType.MoneroRingMember,
+					selector,
+					({ fields: { globalOutputIndex: true } }),
+				)}
 			placeholderText={`Loading Monero Ring Member...`}
 		>
 			{#snippet children(moneroRingMember)}

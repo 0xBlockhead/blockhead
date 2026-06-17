@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,12 +27,7 @@
 		>
 	> = $props()
 
-	const invoice = subscribe(EntityType.LightningInvoice,
-		selector,
-		({ sources: [
-				Source.LightningLnd_Rest,
-			], fields: { memo: true, valueMsat: true, amountPaidMsat: true, state: true, paymentRequest: true } }),
-	)
+	
 
 
 	// Components
@@ -58,7 +53,12 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={invoice}
+			resource={proxy(EntityType.LightningInvoice,
+		selector,
+		({ sources: [
+				Source.LightningLnd_Rest,
+			], fields: { memo: true, valueMsat: true, amountPaidMsat: true, state: true, paymentRequest: true } }),
+	)}
 			placeholderText="Loading invoice…"
 		>
 			{#snippet children(lightningInvoice)}

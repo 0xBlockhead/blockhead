@@ -9,7 +9,7 @@
 
 
 	// State
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -23,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const zeroGDaNode = subscribe(EntityType.ZeroGDaNode, selector, ({ fields: { $quorum: true, $operator: true, endpoint: true } }))
+	
 
 
 	// Components
@@ -51,7 +51,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={zeroGDaNode}
+			resource={proxy(EntityType.ZeroGDaNode, selector, ({ fields: { $quorum: true, $operator: true, endpoint: true } }))}
 			placeholderText={`Loading 0G DA node...`}
 		>
 			{#snippet children(zeroGDaNode)}
@@ -63,7 +63,7 @@
 								<EvmAccountView
 									selector={zeroGDaNode.fields.$operator[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>
@@ -83,7 +83,7 @@
 								<ZeroGDaQuorumView
 									selector={zeroGDaNode.fields.$quorum[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>

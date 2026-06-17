@@ -12,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,10 +40,7 @@
 		>
 	> = $props()
 
-	const connection = subscribe(EntityType.BlockheadFarcasterAccountConnection,
-		selector,
-		({ sources: [Source.Neynar_Rest], fields: { displayName: true, username: true, $icon: true, ...(open ? ({ bio: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } }),
-	)
+	const connection = $derived(proxy(EntityType.BlockheadFarcasterAccountConnection, selector, ({ sources: [Source.Neynar_Rest], fields: { displayName: true, username: true, $icon: true, ...(open ? ({ bio: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } })))
 
 
 	// (Derived)

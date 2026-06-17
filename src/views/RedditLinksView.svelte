@@ -1,17 +1,14 @@
 <script lang="ts">
+import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -33,11 +30,14 @@
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RedditLinkView from '$/views/RedditLinkView.svelte'
 </script>
@@ -69,62 +69,51 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [
 						Source.Constants_Internal,
 						Source.Reddit_Rest,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Reddit_Rest,
-							Source.Reddit_PublicJson,
-						],
-						limit,
-					},
-				} }),
-			)}
-			{@const links = derive(
-				parent,
-				(parent) => {
-					const redditLinks: readonly Entity<typeof schema, EntityType.RedditLink>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						redditLinks.map((link, index) => ({
-							...link[EntityMetaKey.Selector],
-							sortKey: index,
-						}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.RedditLink}
-				id={`${id}-items`}
-				{title}
-				open={true}
-				resource={links}
-				placeholderText="Loading submissions…"
-				getKey={(link) => link.fullname}
-				getSortValue={(link) => link.sortKey}
-				placeholderKeys={new SvelteSet<string>()}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No Reddit submissions here yet.
-					</p>
-				{/snippet}
+					],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.Reddit_Rest,
+						Source.Reddit_PublicJson,
+					],
+					limit,
+				})} placeholderText="Loading submissions…">
+				{#snippet children(links)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.RedditLink}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={links.entities}
+						getKey={(link) => link.entitySelector.fullname}
+						getSortValue={(link) => link.entitySelector.fullname}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+							No Reddit submissions here yet.
+						</p>
+						{/snippet}
 
-					{#snippet Item({
-						item: link,
-					})}
-						<RedditLinkView
-							selector={{ fullname: link.fullname }}
+						{#snippet Item({ item })}
+							<RedditLinkView
+							selector={item.entitySelector}
 							layout={EntityLayout.Summary}
-							open={false}
+
 						/>
-					{/snippet}
-			</EntitiesList>
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

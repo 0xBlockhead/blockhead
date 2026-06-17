@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,12 +19,12 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = subscribe(EntityType.CosmosNetwork_Timestamp,
+	const snapshot = $derived(proxy(EntityType.CosmosNetwork_Timestamp,
 		selector,
 		({ sources: [
 				Source.CosmosSdk_Rest,
 			], fields: { latestBlockHeight: true, latestBlockHash: true, latestBlockTimeMs: true, latestBlockTransactionCount: true, chainId: true, nodeNetwork: true, applicationName: true, applicationVersion: true, cosmosSdkVersion: true, isSyncing: true, validatorCount: true, bondedValidatorCount: true, bondedTokens: true, notBondedTokens: true, governanceProposalCount: true } }),
-	)
+	))
 
 
 	// Components

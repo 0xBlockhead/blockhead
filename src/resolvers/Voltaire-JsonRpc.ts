@@ -1376,6 +1376,7 @@ export default {
 								'$$beaconEpochs',
 								'$$beaconSlots',
 							] as const
+							const recentBlockDepth = Math.max(1, resolverContextRowLimit(ctx.trigger))
 							const backstop = setInterval(
 								() => { void fields.invalidate(allLiveFieldNames) },
 								30_000
@@ -1458,10 +1459,14 @@ export default {
 													$network: parentEntitySelector,
 													timestampMs: Date.now(),
 												},
-												blockHeight: currentHead,
+										blockHeight: currentHead,
 											},
 										}])
-										await writeRecentBlocksForTransport(jsonRpcTransport)
+										fields.$$blocks.count.replaceRows([{
+											source: Source.Voltaire_JsonRpc,
+											value: Number(currentHead) + 1,
+										}])
+										await writeRecentBlocksForTransport(jsonRpcTransport, recentBlockDepth)
 										for await (const event of iterateBlockStreamEvents({
 											provider,
 											include: 'transactions',
@@ -1489,6 +1494,11 @@ export default {
 														blockHeight: chainHead,
 													},
 												}])
+												fields.$$blocks.count.replaceRows([{
+													source: Source.Voltaire_JsonRpc,
+													value: Number(chainHead) + 1,
+												}])
+												await writeRecentBlocksForTransport(jsonRpcTransport, recentBlockDepth)
 											} catch {
 												// invalidate scheduled refetch
 											}
@@ -1505,13 +1515,11 @@ export default {
 												blockHeight: event.metadata.chainHead,
 											},
 										}])
-										await fields['$$blocks'].invalidate()
-
-										if (event.blocks.length > 0) {
-											await writeRecentBlocksForTransport(jsonRpcTransport, event.blocks.length)
-										} else {
-											await writeRecentBlocksForTransport(jsonRpcTransport, 1)
-										}
+										fields.$$blocks.count.replaceRows([{
+											source: Source.Voltaire_JsonRpc,
+											value: Number(event.metadata.chainHead) + 1,
+										}])
+										await writeRecentBlocksForTransport(jsonRpcTransport, recentBlockDepth)
 
 										if (event.blocks.length > 0)
 											await fields.invalidate(activityFields)
@@ -1665,36 +1673,70 @@ export default {
 					const {
 						getRecentBlockWiresForRpcUrl,
 					} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-					const jsonRpcTransport = voltaireJsonRpcUrlWithTransportForChain(chainIdFromEvmNetworkId(entitySelector))
-					if (jsonRpcTransport == null) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
-					const { blockNumbers, wires } = await getRecentBlockWiresForRpcUrl({
-						...jsonRpcTransport,
-						recentBlockDepth: subsetRowLimit,
-					})
-					return (
-						wires
-							.flatMap((wire, index) => (
-							wire == null ?
-								[]
-							:
-								(() => {
-									const blockNumber = blockNumbers[index]
-									const value = networkScopedEvmBlockFieldsFromVoltaireBlockRpc(
-										chainIdFromEvmNetworkId(entitySelector),
-										{
-											...wire,
-											number: String(Hex.fromBigInt(blockNumber)),
-										}
-								)
-									return value == null ? [] : [value]
-								})()
-							))
-					)
+					const chainId = chainIdFromEvmNetworkId(entitySelector)
+					const jsonRpcTransports = voltaireJsonRpcTransportCandidatesForChain(chainId)
+					if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
+					const errors: string[] = []
+					for (const jsonRpcTransport of jsonRpcTransports) {
+						try {
+							const { wires } = await getRecentBlockWiresForRpcUrl({
+								...jsonRpcTransport,
+								recentBlockDepth: subsetRowLimit,
+							})
+							return (
+								wires
+									.flatMap((wire) => (
+									wire == null ?
+										[]
+									:
+										(() => {
+											const value = networkScopedEvmBlockFieldsFromVoltaireBlockRpc(
+												chainId,
+												wire
+										)
+											return value == null ? [] : [value]
+										})()
+									))
+							)
+						} catch (error) {
+							errors.push(`${jsonRpcTransport.rpcUrl} (${jsonRpcTransport.transportType}): ${errorMessage(error)}`)
+						}
+					}
+					throw allJsonRpcEndpointsFailedError(chainId, '$$blocks', errors)
 				}
 			},
 		})({
 			fields: {
 				$$blocks: (entity) => entity,
+			},
+		}),
+
+		defineResolver(Source.Voltaire_JsonRpc, {
+			entityType: EntityType.EvmNetwork,
+			resolve: {
+				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
+					const {
+						getChainHeadNumberForRpcUrl,
+					} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
+					const chainId = chainIdFromEvmNetworkId(entitySelector)
+					const jsonRpcTransports = voltaireJsonRpcTransportCandidatesForChain(chainId)
+					if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
+					const errors: string[] = []
+					for (const jsonRpcTransport of jsonRpcTransports) {
+						try {
+							return Number(await getChainHeadNumberForRpcUrl(jsonRpcTransport)) + 1
+						} catch (error) {
+							errors.push(`${jsonRpcTransport.rpcUrl} (${jsonRpcTransport.transportType}): ${errorMessage(error)}`)
+						}
+					}
+					throw allJsonRpcEndpointsFailedError(chainId, '$$blocks count', errors)
+				}
+			},
+		})({
+			fields: {
+				$$blocks: {
+					resolveCount: (count) => count,
+				},
 			},
 		}),
 

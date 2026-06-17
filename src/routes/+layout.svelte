@@ -106,6 +106,7 @@
 		})
 
 	export const subscribe = appClient.subscribe
+	export const proxy = appClient.proxy
 </script>
 
 

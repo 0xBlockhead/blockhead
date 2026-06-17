@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { MarketKind } from '$/constants/Market.ts'
@@ -15,7 +13,7 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		title = 'Markets',
@@ -42,12 +40,13 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MarketView from '$/views/MarketView.svelte'
 </script>
 
@@ -79,23 +78,32 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						...marketCatalogFieldSources,
-					], fields: { [entityFieldReference.fieldName]: {
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+						{
+							sources: [
+								...marketCatalogFieldSources,
+							],
+						}
+					).field(entityFieldReference.fieldName, {
 						limit: 8192,
-					},
-				} }),
-			)}
-			{@const markets = derive(
-				parent,
-				(parent) => {
-					const markets: readonly Entity<typeof schema, EntityType.Market>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
-					return (
-						Object.values(
+					})}
+				placeholderText="Loading markets…"
+			>
+				{#snippet children(markets)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.Market}
+						getKey={(row) => stringify(row.entitySelector)}
+						getSortValue={(row) => stringify(row.entitySelector)}
+						open={true}
+						items={Object.values(
 							Object.groupBy(
-								markets,
-								(market) => stringify(market[EntityMetaKey.Selector]),
+								markets.entities,
+								(market) => stringify(market.entitySelector),
 							),
 						)
 							.flatMap((group) => (
@@ -107,42 +115,33 @@
 							.filter((market) => (
 								(
 									filterMarketVenueId == null
-									|| market[EntityMetaKey.Selector].$marketVenue.marketVenueId === filterMarketVenueId
+									|| market.entitySelector.$marketVenue.marketVenueId === filterMarketVenueId
 								)
 								&& (
 									filterMarketKind == null
-									|| market[EntityMetaKey.Selector].marketKind === filterMarketKind
+									|| market.entitySelector.marketKind === filterMarketKind
 								)
-							))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.Market}
-				getKey={(row) => stringify(row[EntityMetaKey.Selector])}
-				getSortValue={(row) => stringify(row[EntityMetaKey.Selector])}
-				open={true}
-				resource={markets}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No markets in this context yet.
-					</p>
-				{/snippet}
+							))}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No markets in this context yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					<MarketView
-						selector={item[EntityMetaKey.Selector]}
-						id={stringify(item[EntityMetaKey.Selector])}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<MarketView
+								selector={item.entitySelector}
+								id={stringify(item.entitySelector)}
+								layout={EntityLayout.Summary}
+
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

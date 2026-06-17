@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -35,11 +33,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmNetworkBridgeView from '$/views/EvmNetworkBridgeView.svelte'
 </script>
@@ -69,41 +70,25 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Constants_Internal,
-						Source.Chainlist_Rest,
-						Source.EthereumLists_Rest,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Chainlist_Rest,
-							Source.EthereumLists_Rest,
-						],
-					},
-				} }),
-			)}
-			{@const bridges = derive(
-				parent,
-				(parent) => {
-					const evmNetworkBridges: readonly Entity<typeof schema, EntityType.EvmNetworkBridge>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						evmNetworkBridges.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
-			<EntitiesList
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest],
+					})}
+				placeholderText="Loading bridges…"
+			>
+				{#snippet children(bridges)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmNetworkBridge}
 				{title}
 				open={true}
-				getKey={(envelope) => envelope.value[EntityMetaKey.Selector].url}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].url}
-				resource={bridges}
+				getKey={(envelope) => envelope.entitySelector.url}
+				getSortValue={(envelope) => envelope.entitySelector.url}
+				items={bridges.entities}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
@@ -114,12 +99,14 @@
 
 				{#snippet Item({ item: envelope })}
 					<EvmNetworkBridgeView
-						selector={envelope.value[EntityMetaKey.Selector]}
+						selector={envelope.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

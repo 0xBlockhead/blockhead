@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,10 +27,7 @@
 		>
 	> = $props()
 
-	const solanaProgram = subscribe(EntityType.SolanaProgram,
-		selector,
-		({ fields: { name: true, $programAccount: true, $upgradeAuthority: true } }),
-	)
+	
 
 
 	// Components
@@ -58,7 +55,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={solanaProgram}
+			resource={proxy(EntityType.SolanaProgram, selector, ({ fields: { name: true, $programAccount: true, $upgradeAuthority: true } }))}
 			placeholderText={`Loading Solana Program...`}
 		>
 			{#snippet children(solanaProgram)}
@@ -77,8 +74,9 @@
 								<SolanaAccountView
 									selector={solanaProgram.fields.$programAccount[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
+
 									open={false}
-								/>
+									/>
 							</dd>
 						</div>
 					{/if}
@@ -90,8 +88,9 @@
 								<SolanaAccountView
 									selector={solanaProgram.fields.$upgradeAuthority[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
+
 									open={false}
-								/>
+									/>
 							</dd>
 						</div>
 					{/if}

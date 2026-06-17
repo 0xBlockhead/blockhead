@@ -41,15 +41,12 @@
 	> = $props()
 
 	import { syndicationHtmlToSafeHtml } from '$/lib/markdown.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
-	const item = subscribe(EntityType.RssItem,
-		selector,
-		({ sources: [
+	const item = $derived(proxy(EntityType.RssItem, selector, ({ sources: [
 				Source.Rss_Rest,
 				Source.Rss2Json_Rest,
-			], fields: { title: true, link: true, publishedAt: true, $feed: true, ...(open ? ({ description: true, content: true, author: true, updatedAt: true, categories: true, enclosureUrl: true, commentsUrl: true }) : ({  })) } }),
-	)
+			], fields: { title: true, link: true, publishedAt: true, $feed: true, ...(open ? ({ description: true, content: true, author: true, updatedAt: true, categories: true, enclosureUrl: true, commentsUrl: true }) : ({  })) } })))
 
 
 	// Components
@@ -140,8 +137,9 @@
 								<RssFeedView
 									selector={item.fields.$feed[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
+
 									open={false}
-								/>
+									/>
 							</dd>
 						</div>
 					{/if}

@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,16 +10,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
-			caip2Namespace: selector.$network.caip2.namespace,
-			caip2Reference: selector.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
+			caip2: ,
 				upgradeSlug: selector.upgradeId,
 		}),
 		open = $bindable(true),
@@ -39,12 +37,22 @@
 		>
 	> = $props()
 
-	const networkUpgrade = subscribe(EntityType.EthereumNetworkUpgrade,
+	const networkUpgrade = $derived(proxy(
+		EntityType.EthereumNetworkUpgrade,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, activationBlock: true, activationEpoch: true, activationTimestampMs: true, $networkExecutionUpgrade: true, ...(open ? ({ $networkConsensusUpgrade: true }) : ({  })) } }),
-	)
+			],
+		},
+	))
+	const name = $derived(networkUpgrade.name)
+	const activationBlock = $derived(networkUpgrade.activationBlock)
+	const activationEpoch = $derived(networkUpgrade.activationEpoch)
+	const activationTimestampMs = $derived(networkUpgrade.activationTimestampMs)
+	const networkExecutionUpgrade = $derived(networkUpgrade.$networkExecutionUpgrade)
+	const networkConsensusUpgrade = $derived(networkUpgrade.$networkConsensusUpgrade)
+
 
 
 	// Components
@@ -74,12 +82,9 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{(
-			networkUpgrade.ready ?
-				(networkUpgrade.current?.fields.name ?? selector.upgradeId)
-			:
-				selector.upgradeId
-		)}
+		{
+			name.current ?? selector.upgradeId
+		}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -97,72 +102,75 @@
 		open: contentOpen,
 	})}
 		<ResourceBoundary
-			resource={networkUpgrade}
+			resource={name}
 			placeholderText="Loading network upgrade…"
 		>
-			{#snippet children(networkUpgrade)}
+			{#snippet children(name)}
 				<dl data-column-item="center">
-					{#if contentOpen && networkUpgrade.fields.activationBlock !== undefined}
+					{#if contentOpen && activationBlock !== undefined}
 						<div>
 							<dt>Activation block</dt>
 							<dd>
 									<EvmBlockView
 										selector={{
 											$network: selector.$network,
-											blockNumber: BigInt(networkUpgrade.fields.activationBlock),
+											blockNumber: BigInt(activationBlock),
 										}}
 										layout={EntityLayout.Value}
+
 										open={false}
-								/>
+										/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if networkUpgrade.fields.activationEpoch !== undefined}
+					{#if activationEpoch !== undefined}
 						<div>
 							<dt>Activation epoch</dt>
 							<dd>
-								<NumberValue value={networkUpgrade.fields.activationEpoch} />
+								<NumberValue value={activationEpoch} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if networkUpgrade.fields.activationTimestampMs !== undefined}
+					{#if activationTimestampMs !== undefined}
 						<div>
 							<dt>Activation time</dt>
 							<dd>
 								<Timestamp
-									timestamp={networkUpgrade.fields.activationTimestampMs}
+									timestamp={activationTimestampMs}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-						{#if open && networkUpgrade.fields.$networkExecutionUpgrade}
+						{#if open && networkExecutionUpgrade.current?.entitySelector !== undefined}
 							<div>
 								<dt>Execution layer</dt>
 								<dd>
 								<EthereumExecutionUpgradeView
-									selector={networkUpgrade.fields.$networkExecutionUpgrade[EntityMetaKey.Selector]}
+									selector={networkExecutionUpgrade.current.entitySelector}
 									layout={EntityLayout.Value}
-									open={false}
+
 									showTypeAnnotation={false}
+									open={false}
 									/>
 								</dd>
 							</div>
 						{/if}
 
 						{#if open}
-							{#if networkUpgrade.fields.$networkConsensusUpgrade}
+							{#if networkConsensusUpgrade.current?.entitySelector !== undefined}
 								<div>
 								<dt>Consensus layer</dt>
 								<dd>
 									<EthereumConsensusUpgradeView
-										selector={networkUpgrade.fields.$networkConsensusUpgrade[EntityMetaKey.Selector]}
+										selector={networkConsensusUpgrade.current.entitySelector}
 									layout={EntityLayout.Value}
-										open={false}
+
 										showTypeAnnotation={false}
-									/>
+										open={false}
+										/>
 								</dd>
 							</div>
 						{/if}
@@ -181,7 +189,7 @@
 				fieldName: '$$proposals',
 			}}
 			id={`${stringify(selector)}:proposals`}
-			open={false}
+
 			title="Specification proposals"
 		/>
 	{/snippet}

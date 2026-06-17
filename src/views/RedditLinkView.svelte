@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const link = $derived(
-		subscribe(
+		proxy(
 			EntityType.RedditLink,
 			selector,
 			({ sources: [
@@ -172,8 +172,9 @@
 								<RedditSubredditView
 									selector={link.fields.$subreddit[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
+
 									open={false}
-								/>
+									/>
 							</dd>
 						</div>
 					{/if}

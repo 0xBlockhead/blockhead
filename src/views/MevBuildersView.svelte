@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,6 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -35,11 +32,14 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MevBuilderView from '$/views/MevBuilderView.svelte'
 </script>
@@ -55,32 +55,26 @@
 >
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.MevRelay_Rest,
-						],
+			<ResourceBoundary
+				resource={proxy(
+						EntityType.EvmNetwork,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.MevRelay_Rest],
 						limit: 16,
-					},
-				} }),
-			)}
-			{@const builders = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.MevBuilder>[] => (
-					parent.fields[entityFieldReference.fieldName]?.values
-					?? []
-				),
-			)}
+					})}
+				placeholderText="Loading builders…"
+			>
+				{#snippet children(builders)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.MevBuilder}
 				id={`${id}-items`}
 				href={href}
-				getKey={(builder) => builder[EntityMetaKey.Selector].builderPubkey}
+				getKey={(builder) => builder.entitySelector.builderPubkey}
 				placeholderText="Loading builders…"
-				resource={builders}
+				items={builders.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -91,12 +85,14 @@
 
 				{#snippet Item({ item: builder })}
 					<MevBuilderView
-						selector={builder[EntityMetaKey.Selector]}
+						selector={builder.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

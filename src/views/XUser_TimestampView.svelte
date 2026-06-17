@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -31,10 +31,7 @@
 		>
 	> = $props()
 
-	const xUserTimestamp = subscribe(EntityType.XUser_Timestamp,
-		selector,
-		({ fields: { followerCount: true, followingCount: true, tweetCount: true, listedCount: true } }),
-	)
+	
 
 
 	// Components
@@ -70,7 +67,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={xUserTimestamp}
+			resource={proxy(EntityType.XUser_Timestamp, selector, ({ fields: { followerCount: true, followingCount: true, tweetCount: true, listedCount: true } }))}
 			placeholderText="Loading X user snapshot..."
 		>
 			{#snippet children(xUserTimestamp)}

@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,10 +36,7 @@
 
 	const networkSelectorKey = stringify(selector)
 
-	const network = subscribe(EntityType.XmtpNetwork,
-		selector,
-		({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xmtpConversations: ({ sources: [Source.Local_Internal] }) } }),
-		)
+	
 
 
 	// Components
@@ -86,7 +83,7 @@
 		<dl data-column-item="center">
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={network}
+					resource={proxy(EntityType.XmtpNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xmtpConversations: ({ sources: [Source.Local_Internal] }) } }))}
 					placeholderText="Loading XMTP network…"
 				>
 					{#snippet children(network)}

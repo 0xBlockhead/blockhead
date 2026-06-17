@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -31,7 +31,7 @@
 		>
 	> = $props()
 
-	const walletAccount = $derived(subscribe(EntityType.BlockheadWalletAccount,
+	const walletAccount = $derived(proxy(EntityType.BlockheadWalletAccount,
 		selector,
 		({ sources: [
 				Source.Local_Internal,
@@ -112,7 +112,7 @@
 							<dd>
 								<NetworkView
 									selector={walletAccount.fields.$network[EntityMetaKey.Selector]}
-									open={false}
+
 									layout={EntityLayout.Value}
 								/>
 							</dd>

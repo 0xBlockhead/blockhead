@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const zeroGStorageLogEntry = subscribe(EntityType.ZeroGStorageLogEntry,
-		selector,
-		({ fields: { sequenceNumber: true, commitment: true } }),
-	)
+	
 
 
 	// Components
@@ -67,7 +64,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={zeroGStorageLogEntry}
+			resource={proxy(EntityType.ZeroGStorageLogEntry,
+					selector,
+					({ fields: { sequenceNumber: true, commitment: true } }),
+				)}
 			placeholderText={`Loading 0G storage log entry...`}
 		>
 			{#snippet children(zeroGStorageLogEntry)}

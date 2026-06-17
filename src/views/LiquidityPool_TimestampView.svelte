@@ -38,14 +38,11 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
-	const poolTimestamp = subscribe(EntityType.LiquidityPool_Timestamp,
-		selector,
-		({ sources: [
+	const poolTimestamp = $derived(proxy(EntityType.LiquidityPool_Timestamp, selector, ({ sources: [
 				Source.Dexscreener_OpenApi,
-			], fields: { $parentLiquidityPool: true, priceUsd: true, priceNative: true, liquidityUsd: true, volumeUsd24h: true, priceChangePercent24h: true, transactionBuys24h: true, transactionSells24h: true, marketCapUsd: true, fdvUsd: true, transport: true } }),
-	)
+			], fields: { $parentLiquidityPool: true, priceUsd: true, priceNative: true, liquidityUsd: true, volumeUsd24h: true, priceChangePercent24h: true, transactionBuys24h: true, transactionSells24h: true, marketCapUsd: true, fdvUsd: true, transport: true } })))
 
 
 	// Components
@@ -110,8 +107,9 @@
 							<LiquidityPoolView
 								selector={poolTimestamp.fields.$parentLiquidityPool?.[EntityMetaKey.Selector] ?? selector.$liquidityPool}
 								layout={EntityLayout.Title}
+
 								open={false}
-							/>
+								/>
 						</dd>
 					</div>
 

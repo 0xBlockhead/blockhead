@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const nearAccessKey = subscribe(EntityType.NearAccessKey,
-		selector,
-		({ fields: { nonce: true, permission: true } }),
-	)
+	
 
 
 	// Components
@@ -57,7 +54,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={nearAccessKey}
+			resource={proxy(EntityType.NearAccessKey,
+					selector,
+					({ fields: { nonce: true, permission: true } }),
+				)}
 			placeholderText={`Loading NEAR Access Key...`}
 		>
 			{#snippet children(nearAccessKey)}

@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -31,7 +31,7 @@
 		>
 	> = $props()
 
-	const node = $derived(subscribe(EntityType.LightningNode,
+	const node = $derived(proxy(EntityType.LightningNode,
 		selector,
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,

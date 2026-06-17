@@ -63,10 +63,10 @@
 	)
 
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	const marketPrice = $derived(
-		subscribe(EntityType.MarketPrice,
+		proxy(EntityType.MarketPrice,
 			selector,
 			({
 				sources: marketSpotPriceSources,
@@ -139,9 +139,10 @@
 					<Market_TimestampView
 						selector={headQuoteId}
 						layout={EntityLayout.Value}
-						open={false}
+
 						showTypeAnnotation={false}
-					/>
+						open={false}
+						/>
 				{:else}
 					<span>
 						Quote stream
@@ -180,9 +181,10 @@
 								<Market_TimestampView
 									selector={headQuoteId}
 									layout={EntityLayout.Value}
-									open={false}
+
 									showTypeAnnotation={false}
-								/>
+									open={false}
+									/>
 							{:else}
 								<div data-row="wrap align-center gap-2">
 									<p data-text="muted">
@@ -192,7 +194,7 @@
 										{#snippet Content()}
 											<p>
 												Quotes are timestamped marketPrices on <code>Market_Timestamp</code>
-												(<code>$$quotes</code>), not fields on this stream header.
+												(<code>$quotes</code>), not fields on this stream header.
 											</p>
 										{/snippet}
 										<abbr
@@ -218,9 +220,10 @@
 							<MarketView
 								selector={marketPrice.fields.$parentMarket?.[EntityMetaKey.Selector] ?? selector.$market}
 								layout={EntityLayout.Title}
-								open={false}
+
 								showTypeAnnotation={false}
-							/>
+								open={false}
+								/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -239,7 +242,7 @@
 				selector,
 				fieldName: '$$quotes',
 			}}
-			open={false}
+
 			title="Quotes"
 		/>
 	{/snippet}

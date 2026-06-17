@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const session = $derived(
-		subscribe(EntityType.BlockheadSession,
+		proxy(EntityType.BlockheadSession,
 			selector,
 			({ sources: [
 					Source.Local_Internal,

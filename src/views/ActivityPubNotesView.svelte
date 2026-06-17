@@ -15,7 +15,8 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { resolve } from '$app/paths'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		id,
@@ -47,11 +48,12 @@
 	} = $props()
 
 
+	
+
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import ActivityPubNoteView from '$/views/ActivityPubNoteView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -76,65 +78,62 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{#if fieldOpen}
-				{@const parent = subscribe(entityFieldReference.entityType,
-					entityFieldReference.selector,
-					{
-						fields: {
-							[entityFieldReference.fieldName]: {
-								sources,
-								orderBy: [
-									[
-										({ fieldRow }) => fieldRow.localStatusId,
-										orderByCreatedAt,
-									],
-									[
-										({ fieldRow }) => fieldRow[EntityMetaKey.SelectorKey],
-										'asc',
-									],
-								] as const,
-								limit,
-							},
-						},
-					},
-				)}
-				{#key `${stringify(entityFieldReference.selector)}-${limit}-${orderByCreatedAt}`}
-					<ResourceBoundary
-						resource={parent}
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector
+					).field(entityFieldReference.fieldName, {
+						sources,
+						orderBy: [
+							[
+								({ fieldRow }) => fieldRow.localStatusId,
+								orderByCreatedAt,
+							],
+						] as const,
+						limit,
+					})}
+				placeholderText={placeholderText}
+			>
+				{#snippet children(notes)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.ActivityPubNote}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						getKey={(activityPubNote) => stringify(activityPubNote.entitySelector)}
 						placeholderText={placeholderText}
+						items={notes.entities}
 					>
-						{#snippet children(parent)}
-							<EntitiesList
-								collapsible={false}
-								showSummary={false}
-								entityType={EntityType.ActivityPubNote}
-								id={`${id}-items`}
-								{title}
-								open={true}
-								getKey={(activityPubNote) => stringify(activityPubNote[EntityMetaKey.Selector])}
-								{placeholderText}
-								items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
-							>
-								{#snippet Empty()}
-									<p data-text="muted">
-										No notes yet.
-									</p>
-								{/snippet}
-
-								{#snippet Item({ item })}
-									<ActivityPubNoteView
-										selector={{
-											instanceOrigin: item[EntityMetaKey.Selector].instanceOrigin,
-											localStatusId: item[EntityMetaKey.Selector].localStatusId,
-										}}
-										layout={EntityLayout.Summary}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{/snippet}
-							</EntitiesList>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No notes yet.
+							</p>
 						{/snippet}
-					</ResourceBoundary>
-				{/key}
+
+						{#snippet Item({ item })}
+							<a
+								href={'localStatusId' in item.entitySelector ?
+									resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
+										instanceOrigin: encodeURIComponent(item.entitySelector.instanceOrigin),
+										localStatusId: item.entitySelector.localStatusId,
+									})
+								:
+									item.entitySelector.activityStreamsUri}
+							>
+								<TruncatedValue
+									value={'localStatusId' in item.entitySelector ?
+										`${item.entitySelector.instanceOrigin}/${item.entitySelector.localStatusId}`
+									:
+										item.entitySelector.activityStreamsUri}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</a>
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 			{:else}
 				<p data-text="muted">
 					Facet idle—no timeline request.

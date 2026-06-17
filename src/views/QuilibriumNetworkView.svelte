@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -24,22 +24,16 @@
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
+	const network = $derived(proxy(EntityType.Network, selector, ({ sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } }),
-	)
+			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } })))
 
-	const quilibriumNetwork = subscribe(EntityType.QuilibriumNetwork,
-		{
+	const quilibriumNetwork = $derived(proxy(EntityType.QuilibriumNetwork, {
 			slug: 'quilibrium',
-		},
-		({ sources: [
+		}, ({ sources: [
 				Source.QuilibriumDocs_Rest,
 				Source.QuilibriumNodeRpc_Grpc,
-			], fields: { docsEndpoints: true, nodeInterfaces: true, protocolFacts: true, serviceLayers: true, $protocolDocument: true, $masterShard: true } }),
-	)
+			], fields: { docsEndpoints: true, nodeInterfaces: true, protocolFacts: true, serviceLayers: true, $protocolDocument: true, $masterShard: true } })))
 
 
 	// (Derived)

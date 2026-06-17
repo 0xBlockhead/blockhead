@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const transfer = subscribe(EntityType.TronTokenTransfer,
-		selector,
-		({ fields: { standard: true, amount: true, timestampMs: true } }),
-	)
+	
 
 
 	// Components
@@ -54,7 +51,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={transfer}
+			resource={proxy(EntityType.TronTokenTransfer,
+					selector,
+					({ fields: { standard: true, amount: true, timestampMs: true } }),
+				)}
 			placeholderText="Loading TRON token transfer..."
 		>
 			{#snippet children(transfer)}

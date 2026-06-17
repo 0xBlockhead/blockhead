@@ -2,10 +2,8 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ActionType, actionTypeDefinitions } from '$/constants/actions.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -18,8 +16,7 @@
 		deleteLocalBlockheadSessionAction,
 		writeLocalBlockheadSessionAction,
 	} from '$/collections/localMutations.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { appClient, subscribe } from '$/routes/+layout.svelte'
+		import { appClient, proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -53,6 +50,8 @@
 	)
 
 
+	
+
 	// Actions
 	const writeSessionAction = (indexInSequence: number) => {
 		writeLocalBlockheadSessionAction(
@@ -66,6 +65,7 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSessionActionView from '$/views/BlockheadSessionActionView.svelte'
 </script>
@@ -87,31 +87,6 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Local_Internal,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Local_Internal,
-						],
-					},
-				} }),
-			)}
-			{@const actions = derive(
-				parent,
-				(parent) => {
-					const blockheadSessionActions: readonly Entity<typeof schema, EntityType.BlockheadSessionAction>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						blockheadSessionActions
-							.toSorted((left, right) => (left.indexInSequence ?? 0) - (right.indexInSequence ?? 0))
-							.map((value) => ({
-								value,
-							}))
-					)
-				},
-			)}
 			<form
 				data-row="align-center"
 				onsubmit={(event) => {
@@ -139,43 +114,58 @@
 				</button>
 			</form>
 
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BlockheadSessionAction}
-				id={`${id}-items`}
-				{title}
-				open={true}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				getSortValue={(envelope) => String(envelope.value.indexInSequence ?? 0)}
-				resource={actions}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No actions yet.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item: envelope })}
-					<BlockheadSessionActionView
-						selector={envelope.value[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
-
-					<button
-						type="button"
-						onclick={() => deleteLocalBlockheadSessionAction(
-							appClient,
-							entityFieldReference.selector,
-							envelope.value[EntityMetaKey.Selector],
-						)}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Local_Internal],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Local_Internal],
+					fields: {
+						indexInSequence: true,
+					},
+				})} placeholderText="Loading actions…">
+				{#snippet children(actions)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BlockheadSessionAction}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						getKey={(action) => stringify(action.entitySelector)}
+						getSortValue={(action) => String(action.current?.indexInSequence ?? 0)}
+						items={actions.entities}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
-						Remove
-					</button>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No actions yet.
+							</p>
+						{/snippet}
+
+						{#snippet Item({ item })}
+							<BlockheadSessionActionView
+								selector={item.entitySelector}
+								layout={EntityLayout.Summary}
+
+							/>
+
+							<button
+								type="button"
+								onclick={() => deleteLocalBlockheadSessionAction(
+									appClient,
+									entityFieldReference.selector,
+									item.entitySelector,
+								)}
+							>
+								Remove
+							</button>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const cosmosMessage = subscribe(EntityType.CosmosMessage,
-		selector,
-		({ fields: { typeUrl: true } }),
-	)
+	
 
 
 	// Components
@@ -64,7 +61,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={cosmosMessage}
+			resource={proxy(EntityType.CosmosMessage, selector, ({ fields: { typeUrl: true } }))}
 			placeholderText={`Loading Cosmos Message...`}
 		>
 			{#snippet children(cosmosMessage)}

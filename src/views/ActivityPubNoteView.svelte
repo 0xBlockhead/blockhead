@@ -20,13 +20,16 @@
 	// State
 	let {
 		selector,
-		href = resolve(
-			'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]',
-			{
-				instanceOrigin: encodeURIComponent(selector.instanceOrigin),
-				localStatusId: selector.localStatusId,
-			},
-		),
+		href = 'localStatusId' in selector ?
+			resolve(
+				'/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]',
+				{
+					instanceOrigin: encodeURIComponent(selector.instanceOrigin),
+					localStatusId: selector.localStatusId,
+				},
+			)
+		:
+			undefined,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(true),
 		...EntityViewProps
@@ -44,14 +47,14 @@
 	> = $props()
 
 	import { htmlToPlainText } from '$/lib/html.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	const idKey = $derived(stringify(selector))
 
 	const sources = $derived(
-		selector.instanceOrigin === mastodonInstanceByKey.mastodon_social.origin ?
+		'instanceOrigin' in selector && selector.instanceOrigin === mastodonInstanceByKey.mastodon_social.origin ?
 			[Source.Mastodon_Rest]
-		: selector.instanceOrigin === fediInstanceBySlug.fosstodon.origin ?
+		: 'instanceOrigin' in selector && selector.instanceOrigin === fediInstanceBySlug.fosstodon.origin ?
 			[Source.Fedi_Rest]
 		:
 			[]
@@ -65,7 +68,7 @@
 	})
 
 	const note = $derived(
-		subscribe(
+		proxy(
 			EntityType.ActivityPubNote,
 			selector,
 			({
@@ -123,7 +126,7 @@
 >
 	{#snippet Value()}
 		<TruncatedValue
-			value={selector.localStatusId}
+			value={'localStatusId' in selector ? selector.localStatusId : selector.activityStreamsUri}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -158,7 +161,7 @@
 						endLength={16}
 						format={TruncatedValueFormat.Visual}
 						startLength={64}
-						value={selector.localStatusId}
+						value={'localStatusId' in selector ? selector.localStatusId : selector.activityStreamsUri}
 					/>
 				{/if}
 			{/snippet}
@@ -231,11 +234,11 @@
 								<div>
 									<dt>{note.fields.$reblogOf ? 'Boosted by' : 'Author'}</dt>
 									<dd>
-										<ActivityPubActorView
-											selector={note.fields.$author[EntityMetaKey.Selector]}
-											layout={EntityLayout.Title}
-											open={false}
-										/>
+											<ActivityPubActorView
+												selector={note.fields.$author[EntityMetaKey.Selector]}
+												layout={EntityLayout.Title}
+												open={false}
+											/>
 									</dd>
 								</div>
 							{/if}
@@ -254,11 +257,11 @@
 							<div>
 								<dt>In reply to</dt>
 								<dd>
-									<ActivityPubNoteView
-										selector={note.fields.$inReplyTo[EntityMetaKey.Selector]}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
+										<ActivityPubNoteView
+											selector={note.fields.$inReplyTo[EntityMetaKey.Selector]}
+											layout={EntityLayout.Title}
+											open={false}
+										/>
 								</dd>
 							</div>
 						{/if}
@@ -273,17 +276,24 @@
 				>
 					{#snippet children(note)}
 						{#if note.fields.$reblogOf && (
-							note.fields.$reblogOf[EntityMetaKey.Selector].instanceOrigin !== selector.instanceOrigin
-							|| note.fields.$reblogOf[EntityMetaKey.Selector].localStatusId !== selector.localStatusId
+							!('localStatusId' in selector)
+							|| (
+								'localStatusId' in selector
+								&& 'localStatusId' in note.fields.$reblogOf[EntityMetaKey.Selector]
+								&& (
+									note.fields.$reblogOf[EntityMetaKey.Selector].instanceOrigin !== selector.instanceOrigin
+									|| note.fields.$reblogOf[EntityMetaKey.Selector].localStatusId !== selector.localStatusId
+								)
+							)
 						)}
 							<div>
 								<dt>Reblog of</dt>
 								<dd>
-									<ActivityPubNoteView
-										selector={note.fields.$reblogOf[EntityMetaKey.Selector]}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
+										<ActivityPubNoteView
+											selector={note.fields.$reblogOf[EntityMetaKey.Selector]}
+											layout={EntityLayout.Title}
+											open={false}
+										/>
 								</dd>
 							</div>
 						{/if}
@@ -540,7 +550,7 @@
 						selector,
 						fieldName: '$$timestamps',
 					}}
-					href={href}
+					href={href ?? ''}
 					id={`${idKey}:metric-snapshots`}
 					{sources}
 					title="Metric snapshots"

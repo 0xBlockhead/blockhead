@@ -21,7 +21,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -53,13 +53,10 @@
 		>
 	> = $props()
 
-	const marketTimeIntervalTimestamp = subscribe(EntityType.Market_TimeInterval_Timestamp,
-		selector,
-		({ sources: [
+	const marketTimeIntervalTimestamp = $derived(proxy(EntityType.Market_TimeInterval_Timestamp, selector, ({ sources: [
 				Source.Constants_Internal,
 				...marketOhlcCandleSources,
-			], fields: { $parentMarket: true, close: true, ...(open && ({ open: true, high: true, low: true, volume: true, quoteVolume: true, tradeCount: true, vwap: true })) } }),
-	)
+			], fields: { $parentMarket: true, close: true, ...(open && ({ open: true, high: true, low: true, volume: true, quoteVolume: true, tradeCount: true, vwap: true })) } })))
 
 
 	// (Derived)
@@ -178,8 +175,9 @@
 							<MarketView
 								selector={marketTimeIntervalTimestamp.fields.$parentMarket?.[EntityMetaKey.Selector] ?? selector.$market}
 								layout={EntityLayout.Title}
+
 								open={false}
-							/>
+								/>
 						</dd>
 					</div>
 

@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -37,7 +37,7 @@
 	> = $props()
 
 	const user = $derived(
-		subscribe(
+		proxy(
 			EntityType.XUser,
 			selector,
 			{

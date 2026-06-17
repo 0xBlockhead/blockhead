@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const dataBlob = subscribe(EntityType.ZeroGDataBlob,
-		selector,
-		({ fields: { sizeBytes: true, erasureCodingScheme: true, aggregatedSignature: true } }),
-	)
+	
 
 
 	// Components
@@ -72,7 +69,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={dataBlob}
+			resource={proxy(EntityType.ZeroGDataBlob, selector, ({ fields: { sizeBytes: true, erasureCodingScheme: true, aggregatedSignature: true } }))}
 			placeholderText="Loading 0G data blob…"
 		>
 			{#snippet children(dataBlob)}

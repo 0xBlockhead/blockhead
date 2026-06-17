@@ -14,7 +14,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,7 +41,7 @@
 	> = $props()
 
 	const atprotoNetwork = $derived(
-		subscribe(EntityType.AtprotoNetwork,
+		proxy(EntityType.AtprotoNetwork,
 			selector,
 			{
 				sources: [Source.Constants_Internal],
@@ -55,9 +55,7 @@
 						$$atprotoActors: {
 							sources: [
 								Source.Constants_Internal,
-								Source.Atproto_Xrpc,
-								Source.Atproto_BskySocial_Xrpc,
-							],
+								Source.Atproto_Xrpc,							],
 						},
 					}),
 				},

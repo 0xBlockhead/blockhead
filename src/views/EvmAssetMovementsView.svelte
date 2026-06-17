@@ -3,13 +3,12 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -24,15 +23,20 @@
 		CollapsibleProps?: ComponentProps<typeof EvmInternalTransfersView>['CollapsibleProps']
 	} = $props()
 
-	const evmTransaction = $derived(
-		subscribe(EntityType.EvmTransaction,
-			selector,
-			({ sources: [
-					Source.Blockscout_Rest,
-					Source.Voltaire_JsonRpc,
-				], fields: { value: true, $from: true, $to: true } }),
-		)
-	)
+	const evmTransaction = $derived(proxy(
+		EntityType.EvmTransaction,
+		selector,
+		{
+			sources: [
+				Source.Blockscout_Rest,
+				Source.Voltaire_JsonRpc,
+			],
+		},
+	))
+	
+	
+	
+
 
 
 	// Components
@@ -47,68 +51,84 @@
 
 <section data-column="gap-2">
 	<ResourceBoundary
-		resource={evmTransaction}
-		placeholderText="Loading asset movements…"
+		resource={evmTransaction.value}
+		placeholderText="Loading signed envelope value…"
 	>
-		{#snippet children(evmTransaction)}
-			{#if evmTransaction.fields.value !== undefined && evmTransaction.fields.value > 0n}
+		{#snippet children(value)}
+			{#if value !== undefined && value > 0n}
 				<div data-row="wrap gap-2 align-baseline">
 					<span data-text="annotation">Signed envelope</span>
-					{#if evmTransaction.fields.$from?.[EntityMetaKey.Selector].address !== undefined}
-						<EvmNetworkAccountView
-							selector={{
-								$network: selector.$network,
-								$actor: evmTransaction.fields.$from[EntityMetaKey.Selector],
-							}}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					{/if}
+					<ResourceBoundary
+						resource={evmTransaction.$from}
+						placeholderText="Loading sender…"
+					>
+						{#snippet children(from)}
+							{#if from?.entitySelector.address !== undefined}
+								<EvmNetworkAccountView
+									selector={{
+										$network: selector.$network,
+										$actor: from.entitySelector,
+									}}
+									layout={EntityLayout.Title}
+
+									open={false}
+									/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 					<span data-text="muted">sent</span>
-					<NumberValue value={evmTransaction.fields.value} />
+					<NumberValue value={value} />
 					<span data-text="muted">to</span>
-					{#if evmTransaction.fields.$to?.[EntityMetaKey.Selector].address !== undefined}
-						<EvmNetworkAccountView
-							selector={{
-								$network: selector.$network,
-								$actor: evmTransaction.fields.$to[EntityMetaKey.Selector],
-							}}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					{/if}
+					<ResourceBoundary
+						resource={evmTransaction.$to}
+						placeholderText="Loading recipient…"
+					>
+						{#snippet children(to)}
+							{#if to?.entitySelector.address !== undefined}
+								<EvmNetworkAccountView
+									selector={{
+										$network: selector.$network,
+										$actor: to.entitySelector,
+									}}
+									layout={EntityLayout.Title}
+
+									open={false}
+									/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</div>
 			{/if}
-
-			<EvmInternalTransfersView
-				{CollapsibleProps}
-				href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-					...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
-					transactionId: selector.txHash,
-					})}
-				entityFieldReference={{
-					entityType: EntityType.EvmTransaction,
-					selector,
-					fieldName: '$$internalTransfers',
-				}}
-				id={`${id}:internal-transfers`}
-				collapsible={false}
-				title="Internal native transfers"
-			/>
-			<EvmTokenTransfersView
-				{CollapsibleProps}
-				href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-					...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
-					transactionId: selector.txHash,
-					})}
-				entityFieldReference={{
-					entityType: EntityType.EvmTransaction,
-					selector,
-					fieldName: '$$tokenTransfers',
-				}}
-				id={`${id}:token-transfers`}
-				collapsible={false}
-			/>
 		{/snippet}
 	</ResourceBoundary>
+
+	<EvmInternalTransfersView
+		{CollapsibleProps}
+		href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+			.caip2: ,
+			transactionId: selector.txHash,
+		})}
+		entityFieldReference={{
+			entityType: EntityType.EvmTransaction,
+			selector,
+			fieldName: '$$internalTransfers',
+		}}
+		id={`${id}:internal-transfers`}
+		collapsible={false}
+		title="Internal native transfers"
+	/>
+	<EvmTokenTransfersView
+		{CollapsibleProps}
+		href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+			.caip2: ,
+			transactionId: selector.txHash,
+		})}
+		entityFieldReference={{
+			entityType: EntityType.EvmTransaction,
+			selector,
+			fieldName: '$$tokenTransfers',
+		}}
+		id={`${id}:token-transfers`}
+		collapsible={false}
+	/>
 </section>

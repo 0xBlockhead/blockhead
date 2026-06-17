@@ -13,7 +13,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -43,11 +43,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
@@ -72,19 +75,20 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.selector,
-				({ fields: { [entityFieldReference.fieldName]: ({ sources: [
+			<ResourceBoundary
+				resource={proxy(
+						EntityType.EvmNetwork,
+						entityFieldReference.selector,
+					).field('$$contracts', {
+						sources: [
 							Source.Blockscout_Rest,
-						], limit: 16 }) } }),
-			)}
-			{@const contracts = derive(
-				network,
-				(network): readonly Entity<typeof schema, EntityType.EvmContract>[] => (
-					(network.fields[entityFieldReference.fieldName]?.values ?? [])
-				),
-			)}
-			<div data-column="gap-3">
+						],
+						limit: 16,
+					})}
+				placeholderText="Loading contracts…"
+			>
+				{#snippet children(contracts)}
+					<div data-column="gap-3">
 				<EntitiesList
 					collapsible={false}
 					showSummary={false}
@@ -96,7 +100,7 @@
 					getKey={(row) => stringify(row[EntityMetaKey.Selector])}
 					getSortValue={(row) => row[EntityMetaKey.Selector].address}
 					placeholderText="Loading verified contracts…"
-					resource={contracts}
+					items={contracts.values}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
 				>
 					{#snippet Empty()}
@@ -109,11 +113,13 @@
 						<EvmContractView
 							selector={item[EntityMetaKey.Selector]}
 							layout={EntityLayout.Summary}
-							open={false}
+
 						/>
 					{/snippet}
 				</EntitiesList>
 			</div>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

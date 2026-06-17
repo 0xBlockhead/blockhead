@@ -2,18 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -43,11 +40,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import RssFeedView from '$/views/RssFeedView.svelte'
 </script>
@@ -79,40 +78,24 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Constants_Internal,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Constants_Internal,
-						],
-					},
-				} }),
-			)}
-			{@const feeds = derive(
-				parent,
-				(parent) => {
-					const rssFeeds: readonly Entity<typeof schema, EntityType.RssFeed>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						rssFeeds.map((value) => ({
-							selector: value[EntityMetaKey.Selector],
-						}))
-					)
-				},
-			)}
-			<EntitiesList
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Constants_Internal],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Constants_Internal],
+				})} placeholderText="Loading feeds…">
+				{#snippet children(feeds)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.RssFeed}
 				{id}
 				{title}
-				resource={feeds}
-				placeholderText="Loading feeds…"
-				getKey={(feed) => stringify(feed.selector)}
-				getSortValue={(feed) => feed.selector.feedUrl}
-				placeholderKeys={new SvelteSet<string>()}
+				getKey={(feed) => stringify(feed.__selector)}
+				getSortValue={(feed) => feed.__selector.feedUrl}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
@@ -120,16 +103,16 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item({
-					item: feed,
-				})}
+				{#snippet Item({ item })}
 					<RssFeedView
-						selector={feed.selector}
+						selector={item.__selector}
 						layout={EntityLayout.SummaryDetails}
-						open={false}
+
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

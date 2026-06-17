@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -18,8 +18,8 @@
 	let {
 		routeChildren,
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blobs)/blob/[transactionId]/[blobIndex]', {
-			...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blobs)/blob/[transactionId]/[blobIndex]', {
+			.caip2: ,
 			transactionId: selector.txHash,
 			blobIndex: selector.blobIndex.toString(),
 		}),
@@ -38,31 +38,13 @@
 		>
 	> = $props()
 
-	const blob = $derived(
-		open ?
-			subscribe(EntityType.EvmBlob,
-				selector,
-				({
-					fields: {
-						kzgCommitment: {
-							sources: [
-								Source.Blobscan_Rest,
-							],
-						},
-						blobDataStorageReferences: {
-							sources: [
-								Source.Blobscan_Rest,
-							],
-						},
-					},
-				}),
-			)
-		:
-			undefined
-	)
-
-
-	// (Derived)
+	const blob = $derived(proxy(EntityType.EvmBlob, selector))
+	const kzgCommitment = $derived(blob.field('kzgCommitment', {
+		sources: [Source.Blobscan_Rest],
+	}))
+	const blobDataStorageReferences = $derived(blob.field('blobDataStorageReferences', {
+		sources: [Source.Blobscan_Rest],
+	}))
 	const blobSelectorKey = $derived(
 		stringify(selector),
 	)
@@ -102,23 +84,21 @@
 				#{String(selector.blobIndex)}
 			</span>
 
-			{#if blob !== undefined}
-				<ResourceBoundary
-					resource={blob}
-					placeholderText="Loading blob…"
-				>
-					{#snippet children(blob)}
-						{#if blob.fields.kzgCommitment !== undefined}
-							<small>
-								<TruncatedValue
-									value={blob.fields.kzgCommitment}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</small>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
+			<ResourceBoundary
+				resource={kzgCommitment}
+				placeholderText="Loading blob…"
+			>
+				{#snippet children(kzgCommitment)}
+					{#if kzgCommitment !== undefined}
+						<small>
+							<TruncatedValue
+								value={kzgCommitment}
+								format={TruncatedValueFormat.Abbr}
+							/>
+						</small>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</span>
 	{/snippet}
 
@@ -146,67 +126,62 @@
 			<div>
 				<dt>KZG commitment</dt>
 				<dd data-column="gap-1">
-					{#if blob !== undefined}
-						<ResourceBoundary
-							resource={blob}
-							placeholderText="Loading blob…"
-						>
-							{#snippet children(blob)}
-								{#if blob.fields.kzgCommitment !== undefined}
-									<div data-row="wrap align-start gap-2">
-										<TruncatedValue
-											format={TruncatedValueFormat.Visual}
-											value={blob.fields.kzgCommitment}
-										/>
-										{#if true}
-											<Tooltip
-												contentProps={{ side: 'top' }}
-												Content={BlobscanIndexerPayloadTooltip}
-											>
-												<abbr
-													class="entity-heading-tip"
-													aria-label="Blobscan indexer payload"
-												>ⓘ</abbr>
-											</Tooltip>
+					<ResourceBoundary
+						resource={kzgCommitment}
+						placeholderText="Loading blob…"
+					>
+						{#snippet children(kzgCommitment)}
+							{#if kzgCommitment !== undefined}
+								<div data-row="wrap align-start gap-2">
+									<TruncatedValue
+										format={TruncatedValueFormat.Visual}
+										value={kzgCommitment}
+									/>
 
-											{#snippet BlobscanIndexerPayloadTooltip()}
-												<p><code>GET /blobs/:versionedHash</code> data from the Blobscan REST API. Only on chains their indexer hosts.</p>
-											{/snippet}
-										{/if}
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/if}
+									<Tooltip
+										contentProps={{ side: 'top' }}
+										Content={BlobscanIndexerPayloadTooltip}
+									>
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Blobscan indexer payload"
+										>ⓘ</abbr>
+									</Tooltip>
+
+									{#snippet BlobscanIndexerPayloadTooltip()}
+										<p><code>GET /blobs/:versionedHash</code> data from the Blobscan REST API. Only on chains their indexer hosts.</p>
+									{/snippet}
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 			<div>
 				<dt>Blob storage</dt>
 				<dd>
-					{#if blob !== undefined}
-						<ResourceBoundary
-							resource={blob}
-							placeholderText="Loading blob storage references…"
-						>
-							{#snippet children(blob)}
-								{#if blob.fields.blobDataStorageReferences?.length}
-									<ul>
-										{#each blob.fields.blobDataStorageReferences as reference (
-											`${reference.storage}:${reference.reference}`
-										)}
-											<li>
-												<span>{reference.storage}</span>
-												<TruncatedValue
-													value={reference.reference}
-													format={TruncatedValueFormat.Visual}
-												/>
-											</li>
-										{/each}
-									</ul>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/if}
+					<ResourceBoundary
+						resource={blobDataStorageReferences}
+						placeholderText="Loading blob storage references…"
+					>
+						{#snippet children(blobDataStorageReferences)}
+							{#if blobDataStorageReferences?.length}
+								<ul>
+									{#each blobDataStorageReferences as reference (
+										`${reference.storage}:${reference.reference}`
+									)}
+										<li>
+											<span>{reference.storage}</span>
+											<TruncatedValue
+												value={reference.reference}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</li>
+									{/each}
+								</ul>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 
@@ -214,8 +189,8 @@
 				<div>
 					<dt>Transaction</dt>
 					<dd>
-						<a href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
+						<a href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+								.caip2: ,
 								transactionId: selector.txHash,
 							})}>
 							<TruncatedValue

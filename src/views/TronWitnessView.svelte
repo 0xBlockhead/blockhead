@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,12 +27,7 @@
 		>
 	> = $props()
 
-	const witness = subscribe(EntityType.TronWitness,
-		selector,
-		({ sources: [
-				Source.TronGrid_Rest,
-			], fields: { url: true, voteCount: true, totalProduced: true, totalMissed: true, latestBlockHeight: true, active: true } }),
-	)
+	
 
 
 	// Components
@@ -59,7 +54,9 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={witness}
+			resource={proxy(EntityType.TronWitness, selector, ({ sources: [
+					Source.TronGrid_Rest,
+				], fields: { url: true, voteCount: true, totalProduced: true, totalMissed: true, latestBlockHeight: true, active: true } }))}
 			placeholderText="Loading TRON witness..."
 		>
 			{#snippet children(witness)}

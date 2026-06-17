@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -42,12 +42,9 @@
 	> = $props()
 
 
-	const peer = subscribe(EntityType.BlockheadRoomPeer,
-		selector,
-		({ sources: [
+	const peer = $derived(proxy(EntityType.BlockheadRoomPeer, selector, ({ sources: [
 				Source.Local_Internal,
-			], fields: { displayName: true, isConnected: true, ...(open ? ({ $room: true, peerId: true, joinedAt: true, lastSeenAt: true, connectedAt: true, disconnectedAt: true }) : ({  })) } }),
-	)
+			], fields: { displayName: true, isConnected: true, ...(open ? ({ $room: true, peerId: true, joinedAt: true, lastSeenAt: true, connectedAt: true, disconnectedAt: true }) : ({  })) } })))
 
 
 	// Components
@@ -137,8 +134,9 @@
 									<BlockheadRoomView
 										selector={peer.fields.$room[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
+
 										open={false}
-									/>
+										/>
 								</dd>
 							</div>
 						{/if}

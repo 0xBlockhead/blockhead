@@ -1,9 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -37,11 +35,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NetworkUpgradeView from '$/views/EthereumNetworkUpgradeView.svelte'
 </script>
@@ -66,37 +66,25 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Constants_Internal,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Constants_Internal,
-						],
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Constants_Internal],
 						limit: 512,
-					},
-				} }),
-			)}
-			{@const upgrades = derive(
-				parent,
-				(parent) => {
-					const upgrades: readonly Entity<typeof schema, EntityType.EthereumNetworkUpgrade>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return upgrades
-						.map((value) => ({
-							value,
-						}))
-				},
-			)}
-			<EntitiesList
+					})}
+				placeholderText="Loading upgrades…"
+			>
+				{#snippet children(upgrades)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EthereumNetworkUpgrade}
 				id={`${id}-items`}
 				href={href}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				resource={upgrades}
+				getKey={(upgrade) => stringify(upgrade.entitySelector)}
+				items={upgrades.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -107,14 +95,16 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item({ item: envelope })}
+				{#snippet Item({ item: upgrade })}
 					<NetworkUpgradeView
-						selector={envelope.value[EntityMetaKey.Selector]}
+						selector={upgrade.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,12 +19,12 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = subscribe(EntityType.TronNetwork_Timestamp,
+	const snapshot = $derived(proxy(EntityType.TronNetwork_Timestamp,
 		selector,
 		({ sources: [
 				Source.TronGrid_Rest,
 			], fields: { latestBlockHeight: true, latestBlockHash: true, latestBlockTimeMs: true, latestBlockTransactionCount: true, witnessCount: true, activeWitnessCount: true, nodeBlockHeight: true, solidityBlockHeight: true, currentPeerCount: true, maintenanceIntervalMs: true, transactionFeeSun: true, createAccountFeeSun: true } }),
-	)
+	))
 
 
 	// Components

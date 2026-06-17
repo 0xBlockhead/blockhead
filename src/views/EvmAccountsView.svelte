@@ -1,8 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,7 +14,7 @@
 
 	// Context
 	import { writeLocalWatchedEvmAccount } from '$/collections/localMutations.ts'
-	import { appClient, subscribe } from '$/routes/+layout.svelte'
+	import { appClient, proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -43,7 +41,7 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 	let watchAddressInput = $state('')
 	let watchAddressError = $state<string | undefined>(
@@ -69,6 +67,7 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
@@ -131,28 +130,18 @@
 				{/if}
 			</form>
 
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
 						sources: [
 							Source.Local_Internal,
 						],
-					},
-				} }),
-			)}
-			{@const actors = derive(
-				parent,
-				(parent) => {
-					const evmAccounts: readonly Entity<typeof schema, EntityType.EvmAccount>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						evmAccounts.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
+					})}
+				placeholderText="Loading watched accounts…"
+			>
+				{#snippet children(actors)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
@@ -160,11 +149,11 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(evmAccount) => stringify(evmAccount.value[EntityMetaKey.Selector])}
-				getSortValue={(evmAccount) => evmAccount.value[EntityMetaKey.Selector].address.toLowerCase()}
+				getKey={(evmAccount) => stringify(evmAccount.entitySelector)}
+				getSortValue={(evmAccount) => evmAccount.entitySelector.address.toLowerCase()}
 				placeholderKeys={new SvelteSet<string>()}
 				placeholderText="Loading watched accounts…"
-				resource={actors}
+				items={actors.entities}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
@@ -173,18 +162,20 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{@const aid = item.value[EntityMetaKey.Selector]}
+					{@const aid = item.entitySelector}
 					<EvmAccountView
 						selector={aid}
 						href={resolve('/account/[address]', {
 							address: aid.address,
 						})}
 						layout={EntityLayout.Summary}
-						open={false}
+
 						title="Account"
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

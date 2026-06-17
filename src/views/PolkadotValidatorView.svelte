@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const polkadotValidator = subscribe(EntityType.PolkadotValidator,
-		selector,
-		({ fields: { commissionPerBillion: true, totalStakePlancks: true } }),
-	)
+	
 
 
 	// Components
@@ -57,7 +54,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={polkadotValidator}
+			resource={proxy(EntityType.PolkadotValidator, selector, ({ fields: { commissionPerBillion: true, totalStakePlancks: true } }))}
 			placeholderText={`Loading Polkadot Validator...`}
 		>
 			{#snippet children(polkadotValidator)}

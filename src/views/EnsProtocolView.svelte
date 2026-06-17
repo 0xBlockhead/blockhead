@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -31,10 +31,7 @@
 		never
 	> = $props()
 
-	const protocol = subscribe(EntityType.EnsProtocol,
-		selector,
-		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true }) : ({  })) } }),
-	)
+	
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
@@ -80,7 +77,10 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={protocol}
+				resource={proxy(EntityType.EnsProtocol,
+						selector,
+						({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true }) : ({  })) } }),
+					)}
 				placeholderText="Loading ENS protocol…"
 			>
 				{#snippet children(protocol)}

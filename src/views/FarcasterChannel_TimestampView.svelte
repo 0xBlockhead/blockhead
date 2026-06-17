@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -35,12 +35,7 @@
 		>
 	> = $props()
 
-	const farcasterChannelTimestamp = subscribe(EntityType.FarcasterChannel_Timestamp,
-		selector,
-		({ sources: [
-				Source.Farcaster_Rest,
-			], fields: { followerCount: true, memberCount: true } }),
-	)
+	
 
 
 	// Components
@@ -76,7 +71,12 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={farcasterChannelTimestamp}
+			resource={proxy(EntityType.FarcasterChannel_Timestamp,
+					selector,
+					({ sources: [
+							Source.Farcaster_Rest,
+						], fields: { followerCount: true, memberCount: true } }),
+				)}
 			placeholderText="Loading Farcaster channel snapshot..."
 		>
 			{#snippet children(farcasterChannelTimestamp)}

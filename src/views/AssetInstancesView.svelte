@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -34,11 +32,13 @@
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 </script>
@@ -60,43 +60,40 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Constants_Internal,
-					], fields: { [entityFieldReference.fieldName]: {},
-				} }),
-			)}
-			{@const assets = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.AssetInstance>[] => (
-					parent.fields[entityFieldReference.fieldName]?.values
-					?? []
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.AssetInstance}
-				id={`${id}-items`}
-				href={href}
-				getKey={(asset) => `${asset[EntityMetaKey.Selector].kind}:${asset[EntityMetaKey.Selector].assetKey}`}
-				open={true}
-				resource={assets}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">{emptyText}</p>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Constants_Internal],
+					}
+				).field(entityFieldReference.fieldName)} placeholderText={`Loading ${title.toLowerCase()}…`}>
+				{#snippet children(assets)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.AssetInstance}
+						id={`${id}-items`}
+						href={href}
+						{title}
+						getKey={(asset) => `${asset.entitySelector.kind}:${asset.entitySelector.assetKey}`}
+						items={assets.entities}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+						open={true}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">{emptyText}</p>
+						{/snippet}
 
-				{#snippet Item({ item: asset })}
-					<AssetInstanceView
-						selector={asset[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<AssetInstanceView
+								selector={asset.entitySelector}
+								layout={EntityLayout.Summary}
+
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

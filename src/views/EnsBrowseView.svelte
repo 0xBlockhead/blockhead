@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -19,9 +19,6 @@
 		searchError = null
 		searchTerm = trimmed
 	}
-
-
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	let searchInput = $state('')
 
@@ -55,37 +52,28 @@
 
 
 	// (Derived)
-	const ensSearch = $derived(
+	const ensSearchMatches = $derived(
 		searchTerm == null ?
 			undefined
 		:
-			subscribe(EntityType.EnsSearch,
+			proxy(
+				EntityType.EnsSearch,
 				{
 					query: searchTerm,
-				},
-				({ fields: { $$ensNames: ({ sources: [
-							Source.TheGraph_Graphql,
-						], limit: 32 }) } }),
-			),
-	)
-
-	const ensSearchMatches = $derived(
-		ensSearch == null ?
-			undefined
-		:
-			derive(
-				ensSearch,
-				(ensSearch) => (
-					ensSearch.fields.$$ensNames?.values ?? []
-				),
-			),
+				}
+			).field('$$ensNames', {
+				sources: [
+					Source.TheGraph_Graphql,
+				],
+				limit: 32,
+			}),
 	)
 
 	const reverseAccount = $derived(
 		reverseAddress == null ?
 			undefined
 		:
-			subscribe(EntityType.EvmAccount,
+			proxy(EntityType.EvmAccount,
 				{
 					address: reverseAddress,
 				},
@@ -162,12 +150,12 @@
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.EnsName}
-					getKey={(ensName) => ensName[EntityMetaKey.Selector].name}
-					getSortValue={(ensName) => ensName[EntityMetaKey.Selector].name}
+					getKey={(ensName) => ensName.entitySelector.name}
+					getSortValue={(ensName) => ensName.entitySelector.name}
 					href={resolve('/ens')}
 					id="ens-substring-search-results-items"
+					items={ensSearchMatches.entities}
 					open={true}
-					resource={ensSearchMatches}
 					title={`Substring matches for "${searchTerm}"`}
 				>
 					{#snippet Empty()}
@@ -178,9 +166,9 @@
 
 					{#snippet Item({ item })}
 						<EnsView
-							selector={item[EntityMetaKey.Selector]}
+							selector={item.entitySelector}
 							layout={EntityLayout.Summary}
-							open={false}
+
 							showTypeAnnotation={false}
 						/>
 					{/snippet}
@@ -242,7 +230,7 @@
 								$actor: { address: reverseAddress },
 							}}
 							layout={EntityLayout.Title}
-							open={false}
+
 						/>
 					</dd>
 				</div>

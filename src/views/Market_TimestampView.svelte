@@ -12,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -41,9 +41,7 @@
 		>
 	> = $props()
 
-	const marketTimestamp = subscribe(EntityType.Market_Timestamp,
-		selector,
-		({ sources: [
+	const marketTimestamp = $derived(proxy(EntityType.Market_Timestamp, selector, ({ sources: [
 				Source.Blockscout_Rest,
 				Source.Coingecko_Rest,
 				Source.Coingecko_OpenApi,
@@ -51,8 +49,7 @@
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_OpenApi,
 				Source.TradingView_Rest,
-			], fields: { price: true, ...(open && ({ caip19: true, marketCap: true, volume24h: true, transport: true, providerAssetId: true })) } }),
-	)
+			], fields: { price: true, ...(open && ({ caip19: true, marketCap: true, volume24h: true, transport: true, providerAssetId: true })) } })))
 
 
 	// Components
@@ -171,8 +168,9 @@
 							<MarketView
 								selector={selector.$market}
 								layout={EntityLayout.Title}
+
 								open={false}
-							/>
+								/>
 						</dd>
 					</div>
 

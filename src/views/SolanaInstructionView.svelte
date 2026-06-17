@@ -10,7 +10,7 @@
 
 
 	// State
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -68,7 +68,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={subscribe(EntityType.SolanaInstruction, selector, ({ fields: { $program: true, parsedType: true, data: true, stackHeight: true, $$accounts: true } }))}
+			resource={proxy(EntityType.SolanaInstruction, selector, ({ fields: { $program: true, parsedType: true, data: true, stackHeight: true, $$accounts: true } }))}
 			placeholderText="Loading Solana Instruction..."
 		>
 			{#snippet children(solanaInstruction)}
@@ -80,7 +80,7 @@
 								<SolanaProgramView
 									selector={solanaInstruction.fields.$program[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>
@@ -122,7 +122,7 @@
 											<SolanaAccountView
 												selector={account[EntityMetaKey.Selector]}
 												layout={EntityLayout.Title}
-												open={false}
+
 											/>
 										</li>
 									{/each}

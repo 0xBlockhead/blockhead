@@ -3,7 +3,6 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { schema } from '$/schema/index.ts'
@@ -41,16 +40,32 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
-	const coinInstance = $derived(subscribe(EntityType.EvmCoinInstance,
-		selector,
-		({ sources: [
-				Source.Coingecko_Rest,
-				Source.Constants_Internal,
-				Source.Lifi_Rest,
-			], fields: { coinId: true, $icon: true, name: true, symbol: true, ...(open ? ({ $contract: true, decimals: true, caip19: true, representation: true, $canonicalInstance: ({ sources: [Source.Coingecko_Rest] }), $$outboundBridgeCapabilities: ({ sources: [Source.Lifi_Rest] }), $$inboundBridgeCapabilities: ({ sources: [Source.Lifi_Rest] }) }) : ({  })) } }),
-	))
+	const coinInstance = $derived(proxy(EntityType.EvmCoinInstance, selector, {
+		sources: [
+			Source.Coingecko_Rest,
+			Source.Constants_Internal,
+			Source.Lifi_Rest,
+		],
+	}))
+	const coinId = $derived(coinInstance.coinId)
+	const icon = $derived(coinInstance.$icon)
+	const name = $derived(coinInstance.name)
+	const symbol = $derived(coinInstance.symbol)
+	const contract = $derived(coinInstance.$contract)
+	const decimals = $derived(coinInstance.decimals)
+	const caip19 = $derived(coinInstance.caip19)
+	const representation = $derived(coinInstance.representation)
+	const canonicalInstance = $derived(coinInstance.$canonicalInstance({
+		sources: [Source.Coingecko_Rest],
+	}))
+	const outboundBridgeCapabilities = $derived(coinInstance.$$outboundBridgeCapabilities({
+		sources: [Source.Lifi_Rest],
+	}))
+	const inboundBridgeCapabilities = $derived(coinInstance.$$inboundBridgeCapabilities({
+		sources: [Source.Lifi_Rest],
+	}))
 
 	// (Derived)
 	const coinInstanceKey = $derived(
@@ -96,10 +111,10 @@
 			resource={coinInstance}
 		>
 			{#snippet children(coinInstance)}
-				{#if coinInstance.fields.$icon?.[EntityMetaKey.Selector].url !== undefined}
+				{#if coinInstance.$icon?.entitySelector.url !== undefined}
 					<IconComponent
-						src={coinInstance.fields.$icon[EntityMetaKey.Selector].url}
-						alt={coinInstance.fields.symbol ?? coinInstance.fields.name ?? ''}
+						src={coinInstance.$icon.entitySelector.url}
+						alt={coinInstance.symbol ?? coinInstance.name ?? ''}
 					/>
 				{/if}
 			{/snippet}
@@ -112,7 +127,7 @@
 		>
 			{#snippet children(coinInstance)}
 				<span>
-					{coinInstance.fields.coinId}
+					{coinInstance.coinId}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -124,7 +139,7 @@
 			placeholderText="Loading…"
 		>
 			{#snippet children(coinInstance)}
-				{coinInstance.fields.symbol ?? coinInstance.fields.name ?? (
+				{coinInstance.symbol ?? coinInstance.name ?? (
 					selector.type === CoinInstanceType.NativeCurrency ?
 						`Native (${evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`)})`
 					:
@@ -160,9 +175,9 @@
 							{#if selector.type === CoinInstanceType.NativeCurrency}
 								Native
 							{:else}
-								{#if coinInstance.fields.$contract}
+								{#if coinInstance.$contract}
 									<EvmContractView
-										selector={coinInstance.fields.$contract[EntityMetaKey.Selector]}
+										selector={coinInstance.$contract.entitySelector}
 										layout={EntityLayout.Value}
 										open={true}
 										showTypeAnnotation={false}
@@ -175,68 +190,72 @@
 					</div>
 					{#if (
 						open
-						&& coinInstance.fields.name !== undefined
+						&& coinInstance.name !== undefined
 					)}
 						<div>
 							<dt>Name</dt>
-							<dd>{coinInstance.fields.name}</dd>
+							<dd>{coinInstance.name}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& coinInstance.fields.symbol !== undefined
+						&& coinInstance.symbol !== undefined
 					)}
 						<div>
 							<dt>Symbol</dt>
-							<dd>{coinInstance.fields.symbol}</dd>
+							<dd>{coinInstance.symbol}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& coinInstance.fields.decimals !== undefined
+						&& coinInstance.decimals !== undefined
 					)}
 						<div>
 							<dt>Decimals</dt>
-							<dd>{String(coinInstance.fields.decimals)}</dd>
+							<dd>{String(coinInstance.decimals)}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& coinInstance.fields.caip19 !== undefined
+						&& coinInstance.caip19 !== undefined
 					)}
 						<div>
 							<dt>CAIP-19</dt>
-							<dd>{coinInstance.fields.caip19}</dd>
+							<dd>{coinInstance.caip19}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& coinInstance.fields.representation !== undefined
+						&& coinInstance.representation !== undefined
 					)}
 						<div>
 							<dt>Representation</dt>
 							<dd>
-								{coinInstanceRepresentationByRepresentation[coinInstance.fields.representation].label}
+								{coinInstanceRepresentationByRepresentation[coinInstance.representation].label}
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& coinInstance.fields.$canonicalInstance
+						&& coinInstance.$canonicalInstance
 					)}
 						<div>
 							<dt>Canonical deployment</dt>
 							<dd>
 								<EvmCoinInstanceView
-									selector={coinInstance.fields.$canonicalInstance[EntityMetaKey.Selector]}
+									selector={coinInstance.$canonicalInstance.entitySelector}
 									layout={EntityLayout.Title}
+
+								
 									open={false}
-								/>
+
+								
+									/>
 							</dd>
 						</div>
 					{/if}
@@ -271,7 +290,7 @@
 					{/snippet}
 
 					{#snippet SectionBridgeOutbound({ id, label })}
-						{#if (coinInstance.fields.$$outboundBridgeCapabilities?.values ?? []).length}
+						{#if (coinInstance.$$outboundBridgeCapabilities?.values ?? []).length}
 							<CoinBridgeCapabilitiesView
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve('/bridge')}
@@ -287,7 +306,7 @@
 					{/snippet}
 
 					{#snippet SectionBridgeInbound({ id, label })}
-						{#if (coinInstance.fields.$$inboundBridgeCapabilities?.values ?? []).length}
+						{#if (coinInstance.$$inboundBridgeCapabilities?.values ?? []).length}
 							<CoinBridgeCapabilitiesView
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve('/bridge')}

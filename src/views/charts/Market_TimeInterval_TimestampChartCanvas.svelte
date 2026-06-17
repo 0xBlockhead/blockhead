@@ -1,10 +1,8 @@
 <script lang="ts">
 	// Types/constants
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
+	import type { ComponentProps } from 'svelte'
+	import type Market_TimeInterval_TimestampView from '$/views/Market_TimeInterval_TimestampView.svelte'
 
 
 	// State
@@ -18,7 +16,7 @@
 		height = '22rem',
 	}: {
 		title?: string
-		points?: readonly Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[]
+		points?: readonly ComponentProps<typeof Market_TimeInterval_TimestampView>['resource'][]
 		priceDecimals?: number
 		min?: number
 		max?: number
@@ -40,8 +38,8 @@
 	const chartRangeSummary = $derived.by(() => {
 		if (points.length === 0)
 			return null
-		const firstMs = points[0][EntityMetaKey.Selector].timestampMs
-		const lastMs = points[points.length - 1][EntityMetaKey.Selector].timestampMs
+		const firstMs = points[0].entitySelector.timestampMs
+		const lastMs = points[points.length - 1].entitySelector.timestampMs
 		return (
 			{
 				count: points.length,
@@ -106,12 +104,12 @@
 			data-scroll-item="inline-attached overflow-end"
 			data-marketTimeIntervalTimestamps="unstyled"
 		>
-			{#each points as point (stringify(point[EntityMetaKey.Selector]))}
-				{@const open = Number(point.open ?? 0n) / (10 ** priceDecimals)}
-				{@const high = Number(point.high ?? 0n) / (10 ** priceDecimals)}
-				{@const low = Number(point.low ?? 0n) / (10 ** priceDecimals)}
-				{@const close = Number(point.close ?? 0n) / (10 ** priceDecimals)}
-				{@const candleTimestampMs = point[EntityMetaKey.Selector].timestampMs}
+			{#each points as point (stringify(point.entitySelector))}
+				{@const open = Number(point.current?.open ?? 0n) / (10 ** priceDecimals)}
+				{@const high = Number(point.current?.high ?? 0n) / (10 ** priceDecimals)}
+				{@const low = Number(point.current?.low ?? 0n) / (10 ** priceDecimals)}
+				{@const close = Number(point.current?.close ?? 0n) / (10 ** priceDecimals)}
+				{@const candleTimestampMs = point.entitySelector.timestampMs}
 
 				<li
 					aria-label={`${new Date(candleTimestampMs).toLocaleString()}: open ${formatChartPrice(open)}, high ${formatChartPrice(high)}, low ${formatChartPrice(low)}, close ${formatChartPrice(close)}`}

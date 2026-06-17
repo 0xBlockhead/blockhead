@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -39,30 +39,22 @@
 	const idKey = $derived(stringify(selector))
 
 	const actor = $derived(
-		subscribe(EntityType.AtprotoActor,
+		proxy(EntityType.AtprotoActor,
 			selector,
-			({
-				sources: [
-					Source.Atproto_Xrpc,
-					Source.Atproto_BskySocial_Xrpc,
-				],
-				fields: {
-					did: true,
-					displayName: true,
+				({
+					sources: [
+						Source.Atproto_Xrpc,
+					],
+					fields: {
+						did: true,
+						displayName: true,
 					handle: true,
 					$icon: true,
 					...(open && {
-						$banner: true,
-						description: true,
-						$$timestamps: ({
-							sources: [
-								Source.Atproto_Xrpc,
-								Source.Atproto_BskySocial_Xrpc,
-							],
-							limit: 1,
+							$banner: true,
+							description: true,
+							indexedAt: true,
 						}),
-						indexedAt: true,
-					}),
 				},
 			}),
 		),
@@ -70,7 +62,6 @@
 
 
 	// Components
-	import AtprotoActor_TimestampsView from '$/views/AtprotoActor_TimestampsView.svelte'
 	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityView from '$/components/EntityView.svelte'
@@ -80,7 +71,6 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
@@ -194,32 +184,6 @@
 					placeholderText="Loading profile…"
 				>
 					{#snippet children(actor)}
-						<SocialMetricSnapshotRows
-							metrics={[
-								{
-									label: 'Followers',
-									value: actor.fields.$$timestamps?.values.at(0)?.followersCount,
-								},
-								{
-									label: 'Following',
-									value: actor.fields.$$timestamps?.values.at(0)?.followsCount,
-								},
-								{
-									label: 'Posts',
-									value: actor.fields.$$timestamps?.values.at(0)?.postsCount,
-								},
-							]}
-						/>
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-
-			{#if open}
-				<ResourceBoundary
-					resource={actor}
-					placeholderText="Loading profile…"
-				>
-					{#snippet children(actor)}
 						{#if actor.fields.$banner != null}
 							<div>
 								<dt>Banner</dt>
@@ -268,7 +232,6 @@
 				sections={collapsibleTabsSections([
 					{ id: 'profile-details', label: 'Lexicon identity' },
 					{ id: 'activity-posts', label: 'Posts' },
-					{ id: 'metric-snapshots', label: 'Metrics' },
 				])}
 			data-card
 		>
@@ -343,29 +306,6 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionMetricSnapshots()}
-					<ResourceBoundary
-						resource={actor}
-						placeholderText="Loading profile…"
-					>
-						{#snippet children(actor)}
-							<AtprotoActor_TimestampsView
-								entityFieldReference={{
-									entityType: EntityType.AtprotoActor,
-									selector: {
-										did: actor.fields.did,
-									},
-									fieldName: '$$timestamps',
-								}}
-								href={resolve('/(social)/(atproto)/atproto/actor/[did]', {
-									did: encodeURIComponent(actor.fields.did),
-								})}
-								id={`${idKey}:metric-snapshots`}
-								title="Metric snapshots"
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
 		</CollapsibleTabs>
 		{/snippet}
 	</EntityView>

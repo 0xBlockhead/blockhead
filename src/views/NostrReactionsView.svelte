@@ -1,20 +1,16 @@
 <script lang="ts">
+import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { resolve } from '$app/paths'
 
 
 	// State
@@ -44,11 +40,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NostrReactionView from '$/views/NostrReactionView.svelte'
 </script>
@@ -79,63 +78,54 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [
 						Source.NostrBand_Rest,
 						Source.Primal_Rest,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.NostrBand_Rest,
-							Source.Primal_Rest,
-						],
+					],
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.NostrBand_Rest,
+						Source.Primal_Rest,
+					],
+					limit,
+					fields: {
+						createdAt: true,
 					},
-				} }),
-			)}
-			{@const reactions = derive(
-				parent,
-				(parent) => {
-					const nostrReactions: readonly Entity<typeof schema, EntityType.NostrReaction>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						nostrReactions
-							.map((reaction) => ({
-								selector: reaction[EntityMetaKey.Selector],
-								sortKey: (
-									`${String(-(reaction.createdAt ?? 0)).padStart(20, '0')}\0${reaction[EntityMetaKey.Selector].eventId}`
-								),
-							}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.NostrReaction}
-				id={`${id}-items`}
-				{title}
-				resource={reactions}
-				placeholderText="Loading reactions…"
-				getKey={(row) => row.selector.eventId}
-				getSortValue={(row) => row.sortKey}
-				placeholderKeys={new SvelteSet<string>()}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No reactions yet.
-					</p>
-				{/snippet}
+				})} placeholderText="Loading reactions…">
+				{#snippet children(reactions)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.NostrReaction}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={reactions.entities}
+						getKey={(reaction) => reaction.entitySelector.eventId}
+						getSortValue={(reaction) => `${String(-(reaction.current?.createdAt ?? 0)).padStart(20, '0')}\0${reaction.entitySelector.eventId}`}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+							No reactions yet.
+						</p>
+						{/snippet}
 
-				{#snippet Item({
-					item: reaction,
-				})}
-					<NostrReactionView
-						selector={reaction.selector}
-						layout={EntityLayout.SummaryDetails}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<NostrReactionView
+							selector={item.entitySelector}
+							layout={EntityLayout.SummaryDetails}
+
+						/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

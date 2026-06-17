@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,6 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -40,11 +37,14 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BlockheadSourceView from '$/views/BlockheadSourceView.svelte'
 </script>
@@ -78,56 +78,42 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Local_Internal,
-						],
-					},
-				} }),
-			)}
-			{@const sources = derive(
-				parent,
-				(parent) => {
-					const blockheadSources: readonly Entity<typeof schema, EntityType.BlockheadSource>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						blockheadSources.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BlockheadSource}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				id={`${id}-items`}
-				open={true}
-				resource={sources}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No saved endpoints yet.
-					</p>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector
+				).field(entityFieldReference.fieldName, {
+					sources: [Source.Local_Internal],
+				})} placeholderText="Loading sources…">
+				{#snippet children(sources)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BlockheadSource}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={sources.entities}
+						getKey={(source) => stringify(source.entitySelector)}
+						getSortValue={(source) => stringify(source.entitySelector)}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+							No saved endpoints yet.
+						</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					{@const srcId = item.value[EntityMetaKey.Selector]}
-					<BlockheadSourceView
-						layout={EntityLayout.Summary}
-						open={false}
-						sourceId={srcId.id}
-						title="Source"
-					/>
+						{#snippet Item({ item })}
+							<BlockheadSourceView
+							layout={EntityLayout.Summary}
+
+							sourceId={item.entitySelector.id}
+							title="Source"
+						/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

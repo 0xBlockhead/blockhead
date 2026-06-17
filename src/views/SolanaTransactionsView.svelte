@@ -1,19 +1,17 @@
 <script lang="ts">
+import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
-	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -33,11 +31,13 @@
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SolanaTransactionView from '$/views/SolanaTransactionView.svelte'
 </script>
@@ -57,32 +57,26 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Solana_JsonRpc,
-						],
-						limit: 16,
-					},
-				} }),
-			)}
-			{@const transactions = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.SolanaTransaction>[] => (
-					(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-				),
-			)}
-			<EntitiesList
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.Solana_JsonRpc,
+					],
+					limit: 16,
+				})} placeholderText="Loading transactions…">
+				{#snippet children(transactions)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.SolanaTransaction}
 				id={`${id}-items`}
 				{href}
-				getKey={(transaction) => stringify(transaction[EntityMetaKey.Selector])}
-				getSortValue={(transaction) => -Number(transaction.slot ?? 0n)}
+				getKey={(transaction) => stringify(transaction.entitySelector)}
+				getSortValue={(transaction) => -Number(transaction.entitySelector.slot ?? 0n)}
 				open={true}
-				resource={transactions}
+				items={transactions.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -90,14 +84,16 @@
 					<p data-text="muted">No recent transactions yet.</p>
 				{/snippet}
 
-				{#snippet Item(context)}
+				{#snippet Item({ item })}
 					<SolanaTransactionView
-						selector={context!.item[EntityMetaKey.Selector]}
+						selector={item.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

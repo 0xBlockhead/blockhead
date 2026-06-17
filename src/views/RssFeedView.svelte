@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,16 +41,13 @@
 		>
 	> = $props()
 
-	const feed = subscribe(EntityType.RssFeed,
-		selector,
-		({ sources: [
+	const feed = $derived(proxy(EntityType.RssFeed, selector, ({ sources: [
 				Source.Rss_Rest,
 				Source.Rss2Json_Rest,
 			], fields: { title: true, description: true, link: true, siteUrl: true, language: true, lastBuildDate: true, imageUrl: true, ...(open ? ({ $$items: ({ sources: [
 							Source.Rss_Rest,
 							Source.Rss2Json_Rest,
-						] }) }) : ({  })) } }),
-	)
+						] }) }) : ({  })) } })))
 
 	const idKey = stringify(selector)
 

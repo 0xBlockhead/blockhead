@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -39,11 +37,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CoinBridgeCapabilityView from '$/views/CoinBridgeCapabilityView.svelte'
 </script>
@@ -76,50 +76,40 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: (
-						entityFieldReference.entityType === EntityType.Coin ?
-							[
-								Source.Constants_Internal,
-								Source.Coingecko_Rest,
-							]
-						:
-							[
-								Source.Constants_Internal,
-								Source.Coingecko_Rest,
-								Source.Lifi_Rest,
-							]
-					), fields: { [entityFieldReference.fieldName]: {
-						sources: [
-							Source.Constants_Internal,
-							Source.Lifi_Rest,
-						],
-					},
-				} }),
-			)}
-			{@const capabilities = derive(
-				parent,
-				(parent) => {
-					const coinBridgeCapabilities: readonly Entity<typeof schema, EntityType.CoinBridgeCapability>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						coinBridgeCapabilities
-							.map((value) => ({
-								value,
-							}))
-					)
-				},
-			)}
-			<EntitiesList
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: (
+							entityFieldReference.entityType === EntityType.Coin ?
+								[
+									Source.Constants_Internal,
+									Source.Coingecko_Rest,
+								]
+							:
+								[
+									Source.Constants_Internal,
+									Source.Coingecko_Rest,
+									Source.Lifi_Rest,
+								]
+						),
+					}
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.Constants_Internal,
+						Source.Lifi_Rest,
+					],
+				})} placeholderText="Loading bridge capabilities…">
+				{#snippet children(capabilities)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.CoinBridgeCapability}
 				{title}
 				open={true}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				resource={capabilities}
+				items={capabilities.entities}
+				getKey={(capability) => stringify(capability.entitySelector)}
+				getSortValue={(capability) => stringify(capability.entitySelector)}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
@@ -128,14 +118,16 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item({ item: envelope })}
+				{#snippet Item({ item })}
 					<CoinBridgeCapabilityView
-						selector={envelope.value[EntityMetaKey.Selector]}
+						selector={item.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

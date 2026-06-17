@@ -1,19 +1,17 @@
 <script lang="ts">
+import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
-	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -33,11 +31,13 @@
 		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import HyperliquidSpotAssetView from '$/views/HyperliquidSpotAssetView.svelte'
 </script>
@@ -57,31 +57,25 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Hyperliquid_Rest,
-						],
-						limit: 16,
-					},
-				} }),
-			)}
-			{@const assets = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.HyperliquidSpotAsset>[] => (
-					(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-				),
-			)}
-			<EntitiesList
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.Hyperliquid_Rest,
+					],
+					limit: 16,
+				})} placeholderText="Loading assets…">
+				{#snippet children(assets)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.HyperliquidSpotAsset}
 				id={`${id}-items`}
 				href={href}
-				getKey={(asset) => stringify(asset[EntityMetaKey.Selector])}
+				getKey={(asset) => stringify(asset.entitySelector)}
 				open={true}
-				resource={assets}
+				items={assets.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -89,14 +83,16 @@
 					<p data-text="muted">No spot assets yet.</p>
 				{/snippet}
 
-				{#snippet Item(context)}
+				{#snippet Item({ item })}
 					<HyperliquidSpotAssetView
-						selector={context!.item[EntityMetaKey.Selector]}
+						selector={item.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

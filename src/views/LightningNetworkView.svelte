@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -31,20 +31,14 @@
 		>
 	> = $props()
 
-	const lightningNetwork = subscribe(EntityType.LightningNetwork,
-		selector,
-		({ sources: [
+	const lightningNetwork = $derived(proxy(EntityType.LightningNetwork, selector, ({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
-			], fields: { name: true, $settlementNetwork: true, $$timestamps: ({ limit: 1 }) } }),
-	)
+			], fields: { name: true, $settlementNetwork: true, $$timestamps: ({ limit: 1 }) } })))
 
-	const settlementNetwork = subscribe(EntityType.Network,
-		selector.$network,
-		({ sources: [
+	const settlementNetwork = $derived(proxy(EntityType.Network, selector.$network, ({ sources: [
 				Source.Constants_Internal,
-			], fields: { $$nativeAssets: true, $$blockExplorerUrls: true, $$faucetUrls: true } }),
-	)
+			], fields: { $$nativeAssets: true, $$blockExplorerUrls: true, $$faucetUrls: true } })))
 
 
 	// Components
@@ -103,7 +97,8 @@
 								<NetworkView
 									selector={row.fields.$settlementNetwork[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
-								/>
+									open={false}
+									/>
 							</dd>
 						</div>
 					{/if}

@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -30,18 +30,16 @@
 		>
 	> = $props()
 
-	const attestation = subscribe(EntityType.BeaconAttestation,
+	const attestation = $derived(proxy(
+		EntityType.BeaconAttestation,
 		selector,
 		{
-			sources: [
-				Source.Beacon_Rest,
-			],
-			fields: {
-				committeeIndex: true,
-				aggregationBits: true,
-			},
+			sources: [Source.Beacon_Rest],
 		},
-	)
+	))
+	
+	const aggregationBits = $derived(attestation.aggregationBits)
+
 
 
 	// (Derived)
@@ -91,24 +89,24 @@
 	{#snippet Content()}
 		{#if open}
 			<ResourceBoundary
-				resource={attestation}
+				resource={attestation.committeeIndex}
 				placeholderText="Loading attestation…"
 			>
-				{#snippet children(attestation)}
+				{#snippet children(committeeIndex)}
 					<dl data-column-item="center">
-						{#if attestation.fields.committeeIndex !== undefined}
+						{#if committeeIndex !== undefined}
 							<div>
 								<dt>Committee index</dt>
-								<dd><NumberValue value={attestation.fields.committeeIndex} /></dd>
+								<dd><NumberValue value={committeeIndex} /></dd>
 							</div>
 						{/if}
 
-						{#if attestation.fields.aggregationBits !== undefined}
+						{#if aggregationBits !== undefined}
 							<div>
 								<dt>Aggregation bits</dt>
 								<dd>
 									<TruncatedValue
-										value={attestation.fields.aggregationBits}
+										value={aggregationBits}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								</dd>

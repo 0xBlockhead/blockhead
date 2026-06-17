@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const quilibriumProver = subscribe(EntityType.QuilibriumProver,
-		selector,
-		({ fields: { publicKey: true, version: true } }),
-	)
+	
 
 
 	// Components
@@ -56,7 +53,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={quilibriumProver}
+			resource={proxy(EntityType.QuilibriumProver,
+					selector,
+					({ fields: { publicKey: true, version: true } }),
+				)}
 			placeholderText={`Loading Quilibrium Prover...`}
 		>
 			{#snippet children(quilibriumProver)}

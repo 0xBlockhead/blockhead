@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const subreddit = $derived(
-		subscribe(
+		proxy(
 			EntityType.RedditSubreddit,
 			selector,
 			({ sources: [

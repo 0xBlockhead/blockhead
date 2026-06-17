@@ -37,14 +37,11 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
-	const sharedAddress = subscribe(EntityType.BlockheadSharedAddress,
-		selector,
-		({ sources: [
+	const sharedAddress = $derived(proxy(EntityType.BlockheadSharedAddress, selector, ({ sources: [
 				Source.Local_Internal,
-			], fields: { peerId: true, sharedAt: true, ...(open ? ({ $account: true, $room: true, $network: true, targetPeerIds: true }) : ({  })) } }),
-	)
+			], fields: { peerId: true, sharedAt: true, ...(open ? ({ $account: true, $room: true, $network: true, targetPeerIds: true }) : ({  })) } })))
 
 
 	// (Derived)
@@ -134,7 +131,7 @@
 											$actor: sharedAddress.fields.$account[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								</dd>
 							</div>

@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,12 +19,12 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = subscribe(EntityType.HyperliquidNetwork_Timestamp,
+	const snapshot = $derived(proxy(EntityType.HyperliquidNetwork_Timestamp,
 		selector,
 		({ sources: [
 				Source.Hyperliquid_Rest,
 			], fields: { perpMarketCount: true, spotAssetCount: true, spotPairCount: true, validatorCount: true, activeValidatorCount: true, jailedValidatorCount: true, totalStake: true } }),
-	)
+	))
 
 
 	// Components

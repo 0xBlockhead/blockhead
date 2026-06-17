@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,6 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -35,11 +32,14 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BeaconSlashingView from '$/views/BeaconSlashingView.svelte'
 </script>
@@ -61,31 +61,25 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Beacon_Rest,
-						],
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Beacon_Rest],
 						limit: 16,
-					},
-				} }),
-			)}
-			{@const slashings = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.BeaconSlashing>[] => (
-					parent.fields[entityFieldReference.fieldName]?.values
-					?? []
-				),
-			)}
+					})}
+				placeholderText="Loading slashings…"
+			>
+				{#snippet children(slashings)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BeaconSlashing}
 				id={`${id}-items`}
 				href={href}
-				getKey={(slashing) => `${String(slashing[EntityMetaKey.Selector].slot)}:${slashing[EntityMetaKey.Selector].kind}:${String(slashing[EntityMetaKey.Selector].index)}`}
-				resource={slashings}
+				getKey={(slashing) => `${String(slashing.entitySelector.slot)}:${slashing.entitySelector.kind}:${String(slashing.entitySelector.index)}`}
+				items={slashings.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -96,12 +90,14 @@
 
 				{#snippet Item({ item: slashing })}
 					<BeaconSlashingView
-						selector={slashing[EntityMetaKey.Selector]}
+						selector={slashing.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

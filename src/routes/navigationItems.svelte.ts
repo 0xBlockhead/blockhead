@@ -76,7 +76,20 @@ export const useNavigationItems = () => {
 					href: '/networks',
 					icon: '🌐',
 					defaultIsOpen: true,
-					children: [],
+					children: [
+						{
+							id: 'explore-networks-bitcoin',
+							title: 'Bitcoin',
+							href: '/network/bitcoin',
+							icon: '₿',
+						},
+						{
+							id: 'explore-networks-ethereum',
+							title: 'Ethereum',
+							href: '/network/ethereum',
+							icon: 'Ξ',
+						},
+					],
 				},
 				{
 					id: 'explore-contracts',

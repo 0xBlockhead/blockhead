@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,12 +27,7 @@
 		>
 	> = $props()
 
-	const htlc = subscribe(EntityType.LightningHtlc,
-		selector,
-		({ sources: [
-				Source.LightningLnd_Rest,
-			], fields: { direction: true, amountMsat: true, expiryHeight: true, hashLock: true, state: true } }),
-	)
+	
 
 
 	// Components
@@ -67,7 +62,12 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={htlc}
+			resource={proxy(EntityType.LightningHtlc,
+		selector,
+		({ sources: [
+				Source.LightningLnd_Rest,
+			], fields: { direction: true, amountMsat: true, expiryHeight: true, hashLock: true, state: true } }),
+	)}
 			placeholderText="Loading HTLC…"
 		>
 			{#snippet children(row)}

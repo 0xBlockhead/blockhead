@@ -12,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 		>
 	> = $props()
 
-	const walletConnection = $derived(subscribe(EntityType.BlockheadWalletConnection,
+	const walletConnection = $derived(proxy(EntityType.BlockheadWalletConnection,
 		selector,
 		({ sources: [
 				Source.Local_Internal,
@@ -118,7 +118,7 @@
 							<dd>
 								<BlockheadWalletAccountView
 									selector={walletConnection.fields.$activeAccount.__selector}
-									open={false}
+
 								/>
 							</dd>
 						</div>
@@ -208,11 +208,11 @@
 					{/snippet}
 
 					{#snippet SectionWalletAccounts()}
-						{#if walletConnection.fields.$connectedAccounts.length}
+						{#if walletConnection.fields.$$connectedAccounts.entities.length}
 							<ul data-column="gap-1">
-								{#each walletConnection.fields.$connectedAccounts as account (stringify(account))}
+								{#each walletConnection.fields.$$connectedAccounts.entities as account (stringify(account.entitySelector))}
 									<li>
-										<BlockheadWalletAccountView selector={account.__selector} />
+										<BlockheadWalletAccountView selector={account.entitySelector} />
 									</li>
 								{/each}
 							</ul>

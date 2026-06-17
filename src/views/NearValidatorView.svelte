@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const nearValidator = subscribe(EntityType.NearValidator,
-		selector,
-		({ fields: { publicKey: true, stakeYoctoNear: true } }),
-	)
+	
 
 
 	// Components
@@ -57,7 +54,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={nearValidator}
+			resource={proxy(EntityType.NearValidator,
+					selector,
+					({ fields: { publicKey: true, stakeYoctoNear: true } }),
+				)}
 			placeholderText={`Loading NEAR Validator...`}
 		>
 			{#snippet children(nearValidator)}

@@ -98,11 +98,20 @@ export const searchPosts = async ({
 	limit?: number
 	q: string
 }) => (
-	bskyPublicXrpcGet<BskyAppViewSearchPostsResponse>(
-		'/app.bsky.feed.searchPosts',
+	getJson<BskyAppViewSearchPostsResponse>(
+		`${atprotoAppViewBySlug.bsky_public.origin}${atprotoAppViewBySlug.bsky_public.xrpcPath}/app.bsky.feed.searchPosts?${(
+			new URLSearchParams({
+				limit: String(limit),
+				q,
+			}).toString()
+		)}`,
 		{
-			limit,
-			q,
+			origins: [
+				{
+					origin: atprotoAppViewBySlug.bsky_public.origin,
+					corsEnabled: false,
+				},
+			],
 		}
 	)
 )

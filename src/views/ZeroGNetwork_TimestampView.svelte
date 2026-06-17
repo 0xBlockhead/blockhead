@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,13 +19,13 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = subscribe(EntityType.ZeroGNetwork_Timestamp,
+	const snapshot = $derived(proxy(EntityType.ZeroGNetwork_Timestamp,
 		selector,
 		({ sources: [
 				Source.ZeroGChain_JsonRpc,
 				Source.ZeroGStorageScan_Rest,
 			], fields: { headBlockNumber: true, headBlockHash: true, headTimestampMs: true, transactionCount: true, gasUsed: true, gasLimit: true, baseFeePerGas: true, storageLogSyncHeight: true, storageLayer1LogSyncHeight: true, storageTransactionCount: true, latestDataRoot: true, latestDataSizeBytes: true, latestStorageTxHash: true, storageMinerCount: true, latestStorageMiner: true, storageFeeTotal: true, storageRewardTotal: true, storageTotalWinCount: true, expiredFileCount: true, prunedFileCount: true } }),
-	)
+	))
 
 
 	// Components

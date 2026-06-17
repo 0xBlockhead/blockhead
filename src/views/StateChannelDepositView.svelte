@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 		>
 	> = $props()
 
-	const deposit = $derived(subscribe(EntityType.StateChannelDeposit,
+	const deposit = $derived(proxy(EntityType.StateChannelDeposit,
 		selector,
 		({ sources: [Source.Local_Internal], fields: { availableBalance: true, lockedBalance: true, lastUpdated: true, $account: true, $network: true } }),
 	))
@@ -84,7 +84,7 @@
 								address: deposit.fields.$account[EntityMetaKey.Selector].address,
 							})}
 							layout={EntityLayout.Value}
-							open={false}
+
 						/>
 					{:else}
 						{#if Value}
@@ -120,7 +120,7 @@
 											$actor: deposit.fields.$account[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								{:else}
 									<EvmAccountView
@@ -129,7 +129,7 @@
 											address: deposit.fields.$account[EntityMetaKey.Selector].address,
 										})}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								{/if}
 							</dd>

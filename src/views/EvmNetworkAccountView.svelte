@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -19,9 +18,8 @@
 	let {
 		pageContent,
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(accounts)/account/[address]', {
-			caip2Namespace: selector.$network.caip2.namespace,
-			caip2Reference: selector.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address]', {
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 			address: selector.$actor.address,
 		}),
 		title = 'Network account',
@@ -44,71 +42,48 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	const evmNetworkAccountDetailAnchorKey = $derived(stringify(selector))
 
-	const network = $derived(
-		subscribe(EntityType.EvmNetwork,
-			selector.$network,
-			({ sources: [
-					Source.Constants_Internal,
-					...(open ?
-						[
-							Source.Chainlist_Rest,
-							Source.EthereumLists_Rest,
-							Source.Lifi_Rest,
-						]
-					:
-						[]
-					),
-				], fields: { name: true, $icon: ({ sources: [
-						Source.Constants_Internal,
-						Source.Chainlist_Rest,
-					] }) } }),
-		),
-	)
+	const network = $derived(proxy(EntityType.EvmNetwork, selector.$network, {
+		sources: [
+			Source.Constants_Internal,
+			Source.Chainlist_Rest,
+			Source.EthereumLists_Rest,
+			Source.Lifi_Rest,
+		],
+	}))
+	const networkName = $derived(network.name)
+	const networkIcon = $derived(network.$icon({
+		sources: [
+			Source.Constants_Internal,
+			Source.Chainlist_Rest,
+		],
+	}))
 
-	const actor = $derived(
-		subscribe(EntityType.EvmAccount,
-			selector.$actor,
-			({ sources: [
-					Source.Voltaire_JsonRpc,
-				], fields: { $primaryName: true, $icon: true } }),
-		),
-	)
+	const actor = $derived(proxy(EntityType.EvmAccount, selector.$actor, {
+		sources: [Source.Voltaire_JsonRpc],
+	}))
+	const primaryName = $derived(actor.$primaryName)
+	const actorIcon = $derived(actor.$icon)
 
-	const evmNetworkAccount = $derived(
-		subscribe(EntityType.EvmNetworkAccount,
-			selector,
-			{
-				...(open && {
-					sources: [
-						Source.Blockscout_Rest,
-					],
-				}),
-				fields: {
-					...(open && {
-						$$ownedCoins: {
-							sources: [
-								Source.Allium_Rest,
-							],
-						},
-						isContract: true,
-						$$transactions: true,
-						$$tokenTransfers: true,
-						$$internalTransfers: true,
-						transactionCount: true,
-						tokenTransferCount: true,
-						firstTransactionAt: true,
-						lastTransactionAt: true,
-						nftCount: true,
-						contractPositions: true,
-					}),
-				},
-			},
-		),
-	)
+	const evmNetworkAccount = $derived(proxy(EntityType.EvmNetworkAccount, selector, {
+		sources: [Source.Blockscout_Rest],
+	}))
+	const ownedCoins = $derived(evmNetworkAccount.field('$$ownedCoins', {
+		sources: [Source.Allium_Rest],
+	}))
+	const isContract = $derived(evmNetworkAccount.isContract)
+	const transactions = $derived(evmNetworkAccount.$$transactions)
+	const tokenTransfers = $derived(evmNetworkAccount.$$tokenTransfers)
+	const internalTransfers = $derived(evmNetworkAccount.$$internalTransfers)
+	const transactionCount = $derived(evmNetworkAccount.transactionCount)
+	const tokenTransferCount = $derived(evmNetworkAccount.tokenTransferCount)
+	const firstTransactionAt = $derived(evmNetworkAccount.firstTransactionAt)
+	const lastTransactionAt = $derived(evmNetworkAccount.lastTransactionAt)
+	const nftCount = $derived(evmNetworkAccount.nftCount)
+	const contractPositions = $derived(evmNetworkAccount.contractPositions)
 
 
 	// Components
@@ -152,7 +127,7 @@
 			{/snippet}
 
 			{#snippet children(actor)}
-				{@const avatarUrl = actor.fields.$icon?.[EntityMetaKey.Selector].url}
+				{@const avatarUrl = actor.$icon?.entitySelector.url}
 				<IconComponent
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
@@ -167,8 +142,8 @@
 			resource={actor}
 		>
 			{#snippet children(actor)}
-				{#if actor.fields.$primaryName?.[EntityMetaKey.Selector].name}
-					{actor.fields.$primaryName?.[EntityMetaKey.Selector].name}
+				{#if actor.$primaryName?.entitySelector.name}
+					{actor.$primaryName?.entitySelector.name}
 				{:else}
 					<TruncatedValue
 						format={TruncatedValueFormat.Visual}
@@ -186,7 +161,7 @@
 		/>
 
 		<small data-row="inline align-center wrap" data-text="muted">
-			{' '}on{' '}
+			on
 			<ResourceBoundary
 				resource={network}
 				placeholderText="···"
@@ -195,8 +170,9 @@
 					<EvmNetworkView
 						selector={selector.$network}
 						layout={EntityLayout.Title}
+
 						open={false}
-					/>
+						/>
 				{/snippet}
 			</ResourceBoundary>
 		</small>
@@ -244,8 +220,9 @@
 						<EvmNetworkView
 							selector={selector.$network}
 							layout={EntityLayout.Value}
+
 							open={false}
-						/>
+							/>
 					</dd>
 				</div>
 			{/if}
@@ -258,8 +235,8 @@
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(evmNetworkAccount)}
-								{#if evmNetworkAccount.fields.transactionCount !== undefined}
-									<NumberValue value={evmNetworkAccount.fields.transactionCount} />
+								{#if evmNetworkAccount.transactionCount !== undefined}
+									<NumberValue value={evmNetworkAccount.transactionCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -272,7 +249,7 @@
 					placeholderText="Loading network activity…"
 				>
 					{#snippet children(evmNetworkAccount)}
-						{#if evmNetworkAccount.fields.isContract === true}
+						{#if evmNetworkAccount.isContract === true}
 							<div>
 								<dt>Contract</dt>
 								<dd>
@@ -283,7 +260,8 @@
 										}}
 										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
-									/>
+										open={false}
+										/>
 								</dd>
 							</div>
 						{/if}
@@ -299,8 +277,8 @@
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(evmNetworkAccount)}
-								{#if evmNetworkAccount.fields.tokenTransferCount !== undefined}
-									<NumberValue value={evmNetworkAccount.fields.tokenTransferCount} />
+								{#if evmNetworkAccount.tokenTransferCount !== undefined}
+									<NumberValue value={evmNetworkAccount.tokenTransferCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -316,8 +294,8 @@
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(evmNetworkAccount)}
-								{#if evmNetworkAccount.fields.nftCount !== undefined}
-									<NumberValue value={evmNetworkAccount.fields.nftCount} />
+								{#if evmNetworkAccount.nftCount !== undefined}
+									<NumberValue value={evmNetworkAccount.nftCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -333,8 +311,8 @@
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(evmNetworkAccount)}
-								{#if evmNetworkAccount.fields.firstTransactionAt !== undefined}
-									<Timestamp timestamp={evmNetworkAccount.fields.firstTransactionAt} />
+								{#if evmNetworkAccount.firstTransactionAt !== undefined}
+									<Timestamp timestamp={evmNetworkAccount.firstTransactionAt} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -350,8 +328,8 @@
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(evmNetworkAccount)}
-								{#if evmNetworkAccount.fields.lastTransactionAt !== undefined}
-									<Timestamp timestamp={evmNetworkAccount.fields.lastTransactionAt} />
+								{#if evmNetworkAccount.lastTransactionAt !== undefined}
+									<Timestamp timestamp={evmNetworkAccount.lastTransactionAt} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -401,9 +379,9 @@
 					placeholderText="Loading positions…"
 				>
 					{#snippet children(evmNetworkAccount)}
-						{#if (evmNetworkAccount.fields.contractPositions?.values ?? []).length}
+						{#if (evmNetworkAccount.contractPositions?.values ?? []).length}
 							<ul data-evmNetworkAccounts="unstyled">
-								{#each evmNetworkAccount.fields.contractPositions?.values ?? [] as contractPosition (`${contractPosition.protocol.key}:${contractPosition.name}`)}
+								{#each evmNetworkAccount.contractPositions?.values ?? [] as contractPosition (`${contractPosition.protocol.key}:${contractPosition.name}`)}
 									<li data-column="gap-1">
 										<div data-row="wrap align-baseline gap-2">
 											<strong>{contractPosition.name}</strong>
@@ -417,7 +395,8 @@
 														address: contractPosition.pool.address,
 													}}
 													layout={EntityLayout.Title}
-												/>
+													open={false}
+													/>
 												{#if contractPosition.pool.name != null}
 													<span data-text="muted">{contractPosition.pool.name}</span>
 												{/if}
@@ -431,7 +410,7 @@
 							</ul>
 						{:else}
 							<p data-text="muted">
-								No contract positions on this evmNetworkAccount.fields.
+								No contract positions on this evmNetworkAccount.
 							</p>
 						{/if}
 					{/snippet}
@@ -446,15 +425,15 @@
 				{ id: 'activity-transactions', label: 'Transactions' },
 				...(
 					!evmNetworkAccount.ready
-					|| evmNetworkAccount.current?.fields.tokenTransferCount !== undefined
-					|| (evmNetworkAccount.current?.fields.$$tokenTransfers?.values.length ?? 0) > 0
+					|| evmNetworkAccount.current?.tokenTransferCount !== undefined
+					|| (evmNetworkAccount.current?.$$tokenTransfers?.values.length ?? 0) > 0
 				) ?
 					([{ id: 'activity-token-transfers', label: 'Token transfers' }] as const)
 				:
 					[],
 				...(
 					!evmNetworkAccount.ready
-					|| (evmNetworkAccount.current?.fields.$$internalTransfers?.values.length ?? 0) > 0
+					|| (evmNetworkAccount.current?.$$internalTransfers?.values.length ?? 0) > 0
 				) ?
 					([{ id: 'activity-internal-transfers', label: 'Internal transfers' }] as const)
 				:
@@ -474,11 +453,10 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={href}
 					collapsible={false}
-					entityFieldReference={{
-						entityType: EntityType.EvmNetworkAccount,
-						selector,
-						fieldName: '$$transactions',
-					}}
+					resource={evmNetworkAccount.field('$$transactions', {
+						sources: [Source.Blockscout_Rest],
+						limit: 32,
+					})}
 					id={`${evmNetworkAccountDetailAnchorKey}:activity-tx`}
 				/>
 			{/snippet}

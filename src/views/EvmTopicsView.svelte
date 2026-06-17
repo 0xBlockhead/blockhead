@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -35,11 +33,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmTopicView from '$/views/EvmTopicView.svelte'
 </script>
@@ -69,32 +69,24 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						Source.Local_Internal,
-					], fields: { [entityFieldReference.fieldName]: {
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
 						limit: 4096,
-					},
-				} }),
-			)}
-			{@const topics = derive(
-				parent,
-				(parent) => {
-					const evmTopics: readonly Entity<typeof schema, EntityType.EvmTopic>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values
-						?? []
-					)
-					return evmTopics
-				},
-			)}
+					})}
+				placeholderText="Loading topics…"
+			>
+				{#snippet children(topics)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmTopic}
-				getKey={(topic) => topic[EntityMetaKey.Selector].hex}
-				getSortValue={(topic) => topic[EntityMetaKey.Selector].hex}
+				getKey={(topic) => topic.entitySelector.hex}
+				getSortValue={(topic) => topic.entitySelector.hex}
 				placeholderText="Loading indexed log topics…"
-				resource={topics}
+				items={topics.entities}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				{title}
 				open={true}
@@ -107,14 +99,16 @@
 
 				{#snippet Item({ item })}
 					<EvmTopicView
-						selector={item[EntityMetaKey.Selector]}
+						selector={item.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 						collapsible={false}
 						showTypeAnnotation={false}
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

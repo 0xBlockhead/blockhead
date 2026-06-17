@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,9 +41,7 @@
 		>
 	> = $props()
 
-	const profile = subscribe(EntityType.NostrProfile,
-		selector,
-		({ sources: [
+	const profile = $derived(proxy(EntityType.NostrProfile, selector, ({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
 			], fields: { pubkey: true, displayName: true, about: true, nip05: true, lud16: true, lud06: true, website: true, metadataUpdatedAt: true, $icon: true, $banner: true, ...(open ? ({ $$notes: ({ sources: [
@@ -55,8 +53,7 @@
 						] }), $$reposts: ({ sources: [
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
-						] }) }) : ({  })) } }),
-	)
+						] }) }) : ({  })) } })))
 
 
 	// (Derived)

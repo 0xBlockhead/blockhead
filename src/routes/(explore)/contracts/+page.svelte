@@ -16,9 +16,9 @@
 <Page>
 	<EvmContractsView
 		href={resolve(
-			'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/contracts',
+			'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/contracts',
 			{
-				...{ caip2Namespace: 'eip155' as const, caip2Reference: `${1}` },
+				.caip2: `eip155:${1}`,
 			},
 		)}
 		entityFieldReference={{

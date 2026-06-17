@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -25,25 +25,19 @@
 	} = $props()
 
 	const network = $derived(
-		subscribe(
+		proxy(
 			EntityType.Network,
 			selector.$network,
 			{
 				sources: [
 					Source.Constants_Internal,
 				],
-				fields: {
-					slug: true,
-					name: true,
-					environment: true,
-					$$nativeAssets: true,
-				},
 			},
 		),
 	)
 
 	const utxoNetwork = $derived(
-		subscribe(
+		proxy(
 			EntityType.UtxoNetwork,
 			selector,
 			{
@@ -57,20 +51,21 @@
 					Source.BitcoinCashNode_JsonRpc,
 					Source.Zcashd_JsonRpc,
 				],
-				fields: {
-					$$blocks: {
-						limit: 1,
-					},
-					$$timestamps: {
-						limit: 1,
-						fields: {
-							suggestedTransactionFeePerByteSats: true,
-						},
-					},
-				},
 			},
 		),
 	)
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
 
 
 	// (Derived)
@@ -102,25 +97,25 @@
 	{layout}
 >
 	{#snippet Value()}
-		<ResourceBoundary resource={network}>
+		<ResourceBoundary resource={network.slug}>
 			{#snippet Pending()}
 				<span data-text="muted">Resolving network...</span>
 			{/snippet}
 
-			{#snippet children(network)}
-				<span>{network.fields.slug}</span>
+			{#snippet children(slug)}
+				<span>{slug}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={network}>
+		<ResourceBoundary resource={network.name}>
 			{#snippet Pending()}
 				<span data-text="muted">Resolving network...</span>
 			{/snippet}
 
-			{#snippet children(network)}
-				{network.fields.name}
+			{#snippet children(name)}
+				{name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -130,51 +125,67 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary resource={utxoNetwork}>
-			{#snippet children(utxoNetwork)}
-				{@const block = utxoNetwork.fields.$$blocks?.values.at(0)}
-				{@const timestamp = utxoNetwork.fields.$$timestamps?.values.at(0)}
-				<dl class="network-summary-head" data-column-item="center">
-					{#if block != null}
+		<dl class="network-summary-head" data-column-item="center">
+			<ResourceBoundary resource={
+		utxoNetwork.field('$$blocks', {
+			limit: 1,
+		})
+	}>
+				{#snippet children(blocks)}
+					{#if blocks.values.at(0) != null}
 						<div>
 							<dt>Head block</dt>
 							<dd id="network-summary-head-block">
 								<UtxoBlockView
-									selector={block[EntityMetaKey.Selector]}
+									selector={blocks.values.at(0)[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if timestamp?.suggestedTransactionFeePerByteSats != null}
+			<ResourceBoundary resource={
+		utxoNetwork.field('$$timestamps', {
+			limit: 1,
+			fields: {
+				suggestedTransactionFeePerByteSats: true,
+			},
+		})
+	}>
+				{#snippet children(timestamps)}
+					{#if timestamps.values.at(0)?.suggestedTransactionFeePerByteSats != null}
 						<div>
 							<dt>Suggested fee</dt>
-							<dd><NumberValue value={timestamp.suggestedTransactionFeePerByteSats} /> sat/vB</dd>
+							<dd><NumberValue value={timestamps.values.at(0).suggestedTransactionFeePerByteSats} /> sat/vB</dd>
 						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 
-		<ResourceBoundary resource={network}>
-			{#snippet children(network)}
-				{@const nativeAssetCount = network.fields.$$nativeAssets?.values.length ?? 0}
-				<dl data-column-item="center">
+		<dl data-column-item="center">
+			<ResourceBoundary resource={network.environment}>
+				{#snippet children(environment)}
 					<div>
 						<dt>Environment</dt>
-						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
+						<dd>{networkEnvironmentByEnvironment[environment].label}</dd>
 					</div>
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if nativeAssetCount > 0}
+			<ResourceBoundary resource={network.field('$$nativeAssets')}>
+				{#snippet children(nativeAssets)}
+					{#if nativeAssets.values.length > 0}
 						<div>
 							<dt>Native asset</dt>
-							<dd>{nativeAssetCount}</dd>
+							<dd>{nativeAssets.values.length}</dd>
 						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

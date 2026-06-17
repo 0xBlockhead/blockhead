@@ -9,13 +9,13 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
 		layout = EntityLayout.Summary,
 		title: titleProp,
-		open = $bindable(false),
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: WithRest<
 		{
@@ -30,17 +30,10 @@
 		>
 	> = $props()
 
-	const committee = subscribe(EntityType.BeaconSyncCommittee,
-		selector,
-		{
-			sources: [
-				Source.Beacon_Rest,
-			],
-			fields: {
-				validatorIndices: true,
-			},
-		},
-	)
+	
+	
+	
+
 
 
 	// (Derived)
@@ -82,12 +75,18 @@
 					<dt>Validators</dt>
 					<dd>
 						<ResourceBoundary
-							resource={committee}
+							resource={proxy(
+									EntityType.BeaconSyncCommittee,
+									selector,
+									{
+										sources: [Source.Beacon_Rest],
+									},
+								).validatorIndices}
 							placeholderText="Loading sync committee…"
 						>
-							{#snippet children(committee)}
-								{#if committee.fields.validatorIndices !== undefined}
-									<NumberValue value={committee.fields.validatorIndices.length} />
+							{#snippet children(validatorIndices)}
+								{#if validatorIndices !== undefined}
+									<NumberValue value={validatorIndices.length} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

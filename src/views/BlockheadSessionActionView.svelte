@@ -11,7 +11,7 @@
 
 	// Context
 	import { updateLocalBlockheadSessionActionType } from '$/collections/localMutations.ts'
-	import { appClient, subscribe } from '$/routes/+layout.svelte'
+	import { proxy, appClient } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -33,7 +33,7 @@
 	> = $props()
 
 	const sessionAction = $derived(
-		subscribe(EntityType.BlockheadSessionAction,
+		proxy(EntityType.BlockheadSessionAction,
 			selector,
 			({ sources: [
 					Source.Local_Internal,

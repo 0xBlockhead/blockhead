@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,6 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -38,11 +35,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
@@ -92,73 +92,44 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Dexscreener_OpenApi,
-						],
-							limit: limit,
-					},
-				} }),
-			)}
-			{@const liquidityPools = derive(
-				parent,
-				(parent) => {
-					const liquidityPools: readonly Entity<typeof schema, EntityType.LiquidityPool>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						liquidityPools.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				data-entity-field-name={entityFieldReference.fieldName}
-				data-entity-field-parent={stringify(entityFieldReference.selector)}
-				data-entity-field-type={entityFieldReference.entityType}
-				entityType={EntityType.LiquidityPool}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].id}
-				open={true}
-				resource={liquidityPools}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<div data-row="wrap align-center gap-2">
-						<p data-text="muted">
-							No Dexscreener pair liquidityPools in this slice yet.
-						</p>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									Each row is a Dexscreener pair id on a supported network (token pair, volume, TVL).
-								</p>
-								<p>
-									Individual LP ranges are listed under positions, not here.
-								</p>
-							{/snippet}
-							<abbr
-								class="entity-heading-tip"
-								aria-label="About pool liquidityPools"
-							>ⓘ</abbr>
-						</Tooltip>
-					</div>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					sources: [
+						Source.Dexscreener_OpenApi,
+					],
+					limit,
+				})} placeholderText="Loading liquidity pools…">
+				{#snippet children(liquidityPools)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						data-entity-field-name={entityFieldReference.fieldName}
+						data-entity-field-parent={stringify(entityFieldReference.selector)}
+						data-entity-field-type={entityFieldReference.entityType}
+						entityType={EntityType.LiquidityPool}
+						getKey={(liquidityPool) => stringify(liquidityPool.entitySelector)}
+						getSortValue={(liquidityPool) => liquidityPool.entitySelector.id}
+						open={true}
+						items={liquidityPools.entities}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">No Dexscreener pair liquidityPools in this slice yet.</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					<LiquidityPoolView
-						selector={item.value[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<LiquidityPoolView
+							selector={item.entitySelector}
+							layout={EntityLayout.Summary}
+
+						/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -9,7 +9,7 @@
 
 
 	// State
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -23,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const hyperliquidValidator = subscribe(EntityType.HyperliquidValidator, selector, ({ fields: { name: true, $signer: true, commission: true, recentBlockCount: true, isActive: true, stake: true, isJailed: true } }))
+	
 
 
 	// Components
@@ -47,7 +47,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={hyperliquidValidator}
+			resource={proxy(EntityType.HyperliquidValidator, selector, ({ fields: { name: true, $signer: true, commission: true, recentBlockCount: true, isActive: true, stake: true, isJailed: true } }))}
 			placeholderText={`Loading Hyperliquid Validator...`}
 		>
 			{#snippet children(hyperliquidValidator)}
@@ -66,7 +66,7 @@
 								<HyperliquidAccountView
 									selector={hyperliquidValidator.fields.$signer[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>

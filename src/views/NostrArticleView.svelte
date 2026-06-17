@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -46,7 +46,7 @@
 	> = $props()
 
 	const article = $derived(
-		subscribe(EntityType.NostrArticle,
+		proxy(EntityType.NostrArticle,
 			selector,
 			({ sources: [
 				Source.NostrBand_Rest,
@@ -167,8 +167,9 @@
 								<NostrProfileView
 									selector={article.fields.$author[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
+
 									open={false}
-								/>
+									/>
 							</dd>
 						</div>
 					{/if}

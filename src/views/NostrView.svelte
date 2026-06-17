@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -34,16 +34,7 @@
 		never
 	> = $props()
 
-	const network = subscribe(EntityType.NostrNetwork,
-		selector,
-		({ sources: [
-				Source.Constants_Internal,
-			], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$nostrProfiles: ({ sources: [
-							Source.Constants_Internal,
-							Source.NostrBand_Rest,
-							Source.Primal_Rest,
-						] }), $$nostrNotes: ({ sources: [Source.NostrBand_Rest] }), $$nostrRelays: ({ sources: [Source.NostrBand_Rest] }), $$nostrReposts: ({ sources: [Source.NostrBand_Rest] }), $$nostrArticles: ({ sources: [Source.NostrBand_Rest] }) }) : ({  })) } }),
-	)
+	
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
@@ -92,7 +83,13 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={network}
+				resource={proxy(EntityType.NostrNetwork, selector, ({ sources: [
+						Source.Constants_Internal,
+					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$nostrProfiles: ({ sources: [
+									Source.Constants_Internal,
+									Source.NostrBand_Rest,
+									Source.Primal_Rest,
+								] }), $$nostrNotes: ({ sources: [Source.NostrBand_Rest] }), $$nostrRelays: ({ sources: [Source.NostrBand_Rest] }), $$nostrReposts: ({ sources: [Source.NostrBand_Rest] }), $$nostrArticles: ({ sources: [Source.NostrBand_Rest] }) }) : ({  })) } }))}
 				placeholderText="Loading Nostr hub directory…"
 			>
 			{#snippet children(network)}

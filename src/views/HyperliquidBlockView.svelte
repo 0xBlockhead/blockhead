@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const hyperliquidBlock = subscribe(EntityType.HyperliquidBlock,
-		selector,
-		({ fields: { hash: true, timestampMs: true } }),
-	)
+	
 
 
 	// Components
@@ -66,7 +63,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={hyperliquidBlock}
+			resource={proxy(EntityType.HyperliquidBlock,
+					selector,
+					({ fields: { hash: true, timestampMs: true } }),
+				)}
 			placeholderText="Loading Hyperliquid block…"
 		>
 			{#snippet children(hyperliquidBlock)}

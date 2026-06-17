@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -35,7 +35,7 @@
 	> = $props()
 
 	const post = $derived(
-		subscribe(
+		proxy(
 			EntityType.XPost,
 			selector,
 			({
@@ -172,8 +172,9 @@
 								<XUserView
 									selector={post.fields.$author[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
+
 									open={false}
-								/>
+									/>
 							</dd>
 						</div>
 					{/if}
@@ -221,8 +222,12 @@
 									<svelte:self
 										selector={post.fields.$replyToPost[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
+
+									
 										open={false}
-									/>
+
+									
+										/>
 								</dd>
 							</div>
 						{/if}
@@ -241,8 +246,12 @@
 									<svelte:self
 										selector={post.fields.$quotedPost[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
+
+									
 										open={false}
-									/>
+
+									
+										/>
 								</dd>
 							</div>
 						{/if}
@@ -334,8 +343,12 @@
 										<svelte:self
 											selector={post.fields.$replyToPost[EntityMetaKey.Selector]}
 											layout={EntityLayout.Value}
+
+										
 											open={false}
-										/>
+
+										
+											/>
 									</div>
 								{/if}
 
@@ -345,8 +358,12 @@
 										<svelte:self
 											selector={post.fields.$quotedPost[EntityMetaKey.Selector]}
 											layout={EntityLayout.Value}
+
+										
 											open={false}
-										/>
+
+										
+											/>
 									</div>
 								{/if}
 

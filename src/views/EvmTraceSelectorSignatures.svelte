@@ -5,7 +5,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selectorHex,
@@ -13,10 +13,7 @@
 		selectorHex: `0x${string}`
 	} = $props()
 
-	const evmSelector = subscribe(EntityType.EvmSelector,
-		{ hex: selectorHex },
-		({ sources: [Source.Openchain_Rest], fields: { signatures: true } }),
-	)
+	
 
 
 	// Components
@@ -25,13 +22,21 @@
 
 
 <ResourceBoundary
-	resource={evmSelector}
+	resource={proxy(
+			EntityType.EvmSelector,
+			{ hex: selectorHex },
+			{
+				sources: [
+					Source.Openchain_Rest,
+				],
+			},
+		).signatures}
 	placeholderText=""
 >
-	{#snippet children(selector)}
-		{#if selector.fields.signatures?.length}
+	{#snippet children(signatures)}
+		{#if signatures?.length}
 			<code data-row="wrap gap-1">
-				{#each selector.fields.signatures as signature (signature)}
+				{#each signatures as signature (signature)}
 					<span>{signature}</span>
 				{/each}
 			</code>

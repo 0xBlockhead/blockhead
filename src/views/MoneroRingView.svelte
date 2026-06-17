@@ -1,17 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -29,12 +27,11 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MoneroRingMemberView from '$/views/MoneroRingMemberView.svelte'
 </script>
@@ -63,36 +60,32 @@
 		>
 			{#snippet body()}
 				{#if open}
-					{@const moneroRing = subscribe(EntityType.MoneroRing,
+					{@const moneroRingMembers = proxy(EntityType.MoneroRing,
 						selector,
-						({ fields: { $$members: true } }),
-					)}
-					{@const moneroRingMembers = derive(
-						moneroRing,
-						(moneroRing): readonly Entity<typeof schema, EntityType.MoneroRingMember>[] => (
-							moneroRing.fields.$$members?.values ?? []
-						),
-					)}
-					<EntitiesList
-						collapsible={false}
-						showSummary={false}
-						entityType={EntityType.MoneroRingMember}
-						href={`#${encodeURIComponent(`${stringify(selector)}:members`)}`}
-						id={`${stringify(selector)}:members-items`}
-						title="Ring members"
-						open={true}
-						resource={moneroRingMembers}
-						placeholderText="Loading Monero ring members..."
-						getKey={(row) => stringify(row[EntityMetaKey.Selector])}
-					>
-						{#snippet Item({ item: member })}
-							<MoneroRingMemberView
-								selector={member[EntityMetaKey.Selector]}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
+					).field('$$members')}
+					<ResourceBoundary resource={moneroRingMembers} placeholderText="Loading Monero ring members...">
+						{#snippet children(moneroRingMembers)}
+							<EntitiesList
+								collapsible={false}
+								showSummary={false}
+								entityType={EntityType.MoneroRingMember}
+								href={`#${encodeURIComponent(`${stringify(selector)}:members`)}`}
+								id={`${stringify(selector)}:members-items`}
+								title="Ring members"
+								open={true}
+								items={moneroRingMembers.entities}
+								getKey={(row) => stringify(row.entitySelector)}
+							>
+								{#snippet Item({ item: member })}
+									<MoneroRingMemberView
+										selector={member.entitySelector}
+										layout={EntityLayout.Summary}
+
+									/>
+								{/snippet}
+							</EntitiesList>
 						{/snippet}
-					</EntitiesList>
+					</ResourceBoundary>
 				{/if}
 			{/snippet}
 		</EntitiesList>

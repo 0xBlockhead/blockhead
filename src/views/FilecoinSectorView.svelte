@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const filecoinSector = subscribe(EntityType.FilecoinSector,
-		selector,
-		({ fields: { sealedCid: true, activationEpoch: true, expirationEpoch: true } }),
-	)
+	
 
 
 	// Components
@@ -66,7 +63,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={filecoinSector}
+			resource={proxy(EntityType.FilecoinSector, selector, ({ fields: { sealedCid: true, activationEpoch: true, expirationEpoch: true } }))}
 			placeholderText={`Loading Filecoin Sector...`}
 		>
 			{#snippet children(filecoinSector)}

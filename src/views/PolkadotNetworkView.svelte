@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -25,7 +25,7 @@
 	} = $props()
 
 	const network = $derived(
-		subscribe(
+		proxy(
 			EntityType.Network,
 			selector.$network,
 			{
@@ -42,27 +42,7 @@
 		),
 	)
 
-	const polkadotNetwork = $derived(
-		subscribe(
-			EntityType.PolkadotNetwork,
-			selector,
-			{
-				sources: [
-					Source.Polkadot_JsonRpc,
-					Source.SubstrateSidecar_Rest,
-				],
-				fields: {
-					rpcEndpoints: true,
-					$$blocks: {
-						limit: 1,
-					},
-					$$timestamps: {
-						limit: 1,
-					},
-				},
-			},
-		),
-	)
+	
 
 
 	// (Derived)
@@ -125,7 +105,25 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={polkadotNetwork}>
+					<ResourceBoundary resource={proxy(
+							EntityType.PolkadotNetwork,
+							selector,
+							{
+								sources: [
+									Source.Polkadot_JsonRpc,
+									Source.SubstrateSidecar_Rest,
+								],
+								fields: {
+									rpcEndpoints: true,
+									$$blocks: {
+										limit: 1,
+									},
+									$$timestamps: {
+										limit: 1,
+									},
+								},
+							},
+						)}>
 						{#snippet children(polkadotNetwork)}
 							{@const block = polkadotNetwork.fields.$$blocks?.values.at(0)}
 							{#if block != null}

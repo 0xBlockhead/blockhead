@@ -40,14 +40,11 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
-	const registration = subscribe(EntityType.EvmNft,
-		selector,
-		({ sources: [
+	const registration = $derived(proxy(EntityType.EvmNft, selector, ({ sources: [
 				Source.Eip8004Scan_Rest,
-			], fields: { format: true, name: true, description: true, image: true, fetchedAt: true, $agentWallet: true } }),
-	)
+			], fields: { format: true, name: true, description: true, image: true, fetchedAt: true, $agentWallet: true } })))
 
 
 	// Components
@@ -127,7 +124,7 @@
 							<EvmNetworkView
 								selector={selector.$contract.$network}
 								layout={EntityLayout.Value}
-								open={false}
+
 							/>
 						</dd>
 					</div>
@@ -164,7 +161,7 @@
 								<EvmAccountView
 									selector={registration.fields.$agentWallet[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
-									open={false}
+
 								/>
 							</dd>
 						</div>

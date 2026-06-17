@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const dogecoinAuxPowParentBlockHeader = subscribe(EntityType.DogecoinAuxPowParentBlockHeader,
-		selector,
-		({ fields: { hash: true, merkleRoot: true, nonce: true } }),
-	)
+	
 
 
 	// Components
@@ -54,7 +51,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={dogecoinAuxPowParentBlockHeader}
+			resource={proxy(EntityType.DogecoinAuxPowParentBlockHeader,
+					selector,
+					({ fields: { hash: true, merkleRoot: true, nonce: true } }),
+				)}
 			placeholderText={`Loading Dogecoin AuxPoW Parent Header...`}
 		>
 			{#snippet children(dogecoinAuxPowParentBlockHeader)}

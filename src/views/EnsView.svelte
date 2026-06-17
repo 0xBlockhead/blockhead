@@ -51,14 +51,14 @@
 	} from '$/lib/ensContentHash.ts'
 
 	import { resolveMediaUrlTransport } from '$/lib/media.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
 	} as const
 
 	const ens = $derived(
-		subscribe(EntityType.EnsName,
+		proxy(EntityType.EnsName,
 			selector,
 			({ sources: [
 				Source.Voltaire_JsonRpc,
@@ -822,12 +822,12 @@
 										{@const coinAddress = coinAddresses[coinType]}
 										{#if coinAddress !== undefined}
 											<div>
-												<dt>{(
+												<dt>{
 													coinType in ensCoinTypeLabelByKey ?
 														ensCoinTypeLabelByKey[coinType].label
 													:
 														`Coin type ${String(coinType)}`
-												)}</dt>
+												}</dt>
 												<dd>
 													<TruncatedValue
 														value={coinAddress}

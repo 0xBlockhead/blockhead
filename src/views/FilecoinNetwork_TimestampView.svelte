@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -20,7 +20,7 @@
 	} = $props()
 
 	const snapshot = $derived(
-		subscribe(
+		proxy(
 			EntityType.FilecoinNetwork_Timestamp,
 			selector,
 			{

@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const polkadotAccount = subscribe(EntityType.PolkadotAccount,
-		selector,
-		({ fields: { nonce: true, freeBalancePlancks: true } }),
-	)
+	
 
 
 	// Components
@@ -57,7 +54,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={polkadotAccount}
+			resource={proxy(EntityType.PolkadotAccount,
+					selector,
+					({ fields: { nonce: true, freeBalancePlancks: true } }),
+				)}
 			placeholderText={`Loading Polkadot Account...`}
 		>
 			{#snippet children(polkadotAccount)}

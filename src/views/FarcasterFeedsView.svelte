@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -66,7 +66,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parentNetwork = subscribe(EntityType.FarcasterNetwork,
+			{@const parentNetwork = proxy(EntityType.FarcasterNetwork,
 				entityFieldReference.selector,
 				({
 					fields: {
@@ -104,7 +104,7 @@
 							<FarcasterFeedView
 								selector={item[EntityMetaKey.Selector]}
 								layout={EntityLayout.Summary}
-								open={false}
+
 							/>
 						{/snippet}
 					</EntitiesList>

@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -25,7 +25,7 @@
 	} = $props()
 
 	const network = $derived(
-		subscribe(
+		proxy(
 			EntityType.Network,
 			selector.$network,
 			{
@@ -42,27 +42,7 @@
 		),
 	)
 
-	const cosmosNetwork = $derived(
-		subscribe(
-			EntityType.CosmosNetwork,
-			selector,
-			{
-				sources: [
-					Source.CosmosSdk_Rest,
-					Source.CometBft_Rest,
-				],
-				fields: {
-					$$blocks: {
-						limit: 1,
-					},
-					$$timestamps: {
-						limit: 1,
-					},
-					restEndpoints: true,
-				},
-			},
-		),
-	)
+	
 
 
 	// (Derived)
@@ -126,7 +106,25 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={cosmosNetwork}>
+					<ResourceBoundary resource={proxy(
+							EntityType.CosmosNetwork,
+							selector,
+							{
+								sources: [
+									Source.CosmosSdk_Rest,
+									Source.CometBft_Rest,
+								],
+								fields: {
+									$$blocks: {
+										limit: 1,
+									},
+									$$timestamps: {
+										limit: 1,
+									},
+									restEndpoints: true,
+								},
+							},
+						)}>
 						{#snippet children(cosmosNetwork)}
 							{@const block = cosmosNetwork.fields.$$blocks?.values.at(0)}
 							{#if block != null}

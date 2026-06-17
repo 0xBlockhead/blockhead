@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,16 @@
 		>
 	> = $props()
 
-	const utxoAddress = subscribe(EntityType.UtxoAddress,
+	const utxoAddress = $derived(proxy(
+		EntityType.UtxoAddress,
 		selector,
-		({ fields: { balanceSats: true, transactionCount: true, unspentOutputCount: true, totalReceivedSats: true, totalSpentSats: true } }),
-	)
+	))
+	
+	
+	
+	
+	
+
 
 
 	// Components
@@ -56,48 +62,78 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary
-			resource={utxoAddress}
-			placeholderText="Loading UTXO address..."
-		>
-			{#snippet children(utxoAddress)}
-				<dl>
-					{#if utxoAddress.fields.balanceSats != null}
+		<dl>
+			<ResourceBoundary
+				resource={utxoAddress.balanceSats}
+				placeholderText="Loading UTXO address balance..."
+			>
+				{#snippet children(balanceSats)}
+					{#if balanceSats != null}
 						<div>
 							<dt>Balance</dt>
-							<dd><NumberValue value={utxoAddress.fields.balanceSats} /> sats</dd>
+							<dd><NumberValue value={balanceSats} /> sats</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if utxoAddress.fields.transactionCount != null}
+			<ResourceBoundary
+				resource={utxoAddress.transactionCount}
+				placeholderText="Loading UTXO address transaction count..."
+			>
+				{#snippet children(transactionCount)}
+					{#if transactionCount != null}
 						<div>
 							<dt>Transactions</dt>
-							<dd><NumberValue value={utxoAddress.fields.transactionCount} /></dd>
+							<dd><NumberValue value={transactionCount} /></dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if utxoAddress.fields.unspentOutputCount != null}
+			<ResourceBoundary
+				resource={utxoAddress.unspentOutputCount}
+				placeholderText="Loading UTXO count..."
+			>
+				{#snippet children(unspentOutputCount)}
+					{#if unspentOutputCount != null}
 						<div>
 							<dt>UTXOs</dt>
-							<dd><NumberValue value={utxoAddress.fields.unspentOutputCount} /></dd>
+							<dd><NumberValue value={unspentOutputCount} /></dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if open && utxoAddress.fields.totalReceivedSats != null}
-						<div>
-							<dt>Total received</dt>
-							<dd><NumberValue value={utxoAddress.fields.totalReceivedSats} /> sats</dd>
-						</div>
-					{/if}
+			{#if open}
+				<ResourceBoundary
+					resource={utxoAddress.totalReceivedSats}
+					placeholderText="Loading total received..."
+				>
+					{#snippet children(totalReceivedSats)}
+						{#if totalReceivedSats != null}
+							<div>
+								<dt>Total received</dt>
+								<dd><NumberValue value={totalReceivedSats} /> sats</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-					{#if open && utxoAddress.fields.totalSpentSats != null}
-						<div>
-							<dt>Total spent</dt>
-							<dd><NumberValue value={utxoAddress.fields.totalSpentSats} /> sats</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				<ResourceBoundary
+					resource={utxoAddress.totalSpentSats}
+					placeholderText="Loading total spent..."
+				>
+					{#snippet children(totalSpentSats)}
+						{#if totalSpentSats != null}
+							<div>
+								<dt>Total spent</dt>
+								<dd><NumberValue value={totalSpentSats} /> sats</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+		</dl>
 	{/snippet}
 </EntityView>

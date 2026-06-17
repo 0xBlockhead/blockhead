@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -20,13 +20,13 @@
 		open?: boolean
 	} = $props()
 
-	const subnet = subscribe(EntityType.BittensorSubnet,
+	const subnet = $derived(proxy(EntityType.BittensorSubnet,
 		selector,
 		({ sources: [
 				Source.Constants_Internal,
 				Source.Bittensor_JsonRpc,
 			], fields: { netuid: true, name: true, subnetInfoByteLength: true, dynamicInfoByteLength: true, hyperparamsByteLength: true } }),
-	)
+	))
 
 
 	// Components

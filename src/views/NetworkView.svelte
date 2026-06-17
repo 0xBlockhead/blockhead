@@ -13,7 +13,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -30,24 +30,11 @@
 		open?: boolean
 	} = $props()
 
-	const network = $derived(
-		subscribe(
-			EntityType.Network,
-			selector,
-			{
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-					slug: true,
-					...('caip2' in selector && { caip2: true }),
-					namespace: true,
-					environment: true,
-				},
-			},
-		),
-	)
+	
+
+	
+
+	
 
 
 	// Components
@@ -72,11 +59,36 @@
 
 
 <ResourceBoundary
-	resource={network}
+	resource={proxy(
+			EntityType.Network,
+			selector,
+			{
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					name: true,
+					slug: true,
+					caip2: true,
+					namespace: true,
+					environment: true,
+				},
+			},
+	)}
 >
 	{#snippet children(row)}
-		{@const networkCaip2 = row.fields.caip2}
-		{@const networkSlug = row.fields.slug}
+		{@const networkCaip2 = row.caip2 ?? (
+		'caip2' in selector ?
+			selector.caip2
+		:
+			undefined
+	)}
+		{@const networkSlug = row.slug ?? (
+		'slug' in selector ?
+			selector.slug
+		:
+			undefined
+	)}
 		{@const networkHref = href ?? (
 			networkCaip2 == null ?
 				networkSlug == null ?
@@ -86,9 +98,8 @@
 						networkSlug,
 					})
 				:
-					resolve('/(explore)/(networks)/network/[caip2Namespace=caip2Namespace]:[caip2Reference=caip2Reference]', {
-						caip2Namespace: networkCaip2.namespace,
-						caip2Reference: networkCaip2.reference,
+					resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+						caip2: ,
 					})
 		)}
 		{@const networkSelector = (
@@ -97,7 +108,7 @@
 			:
 				{ caip2: networkCaip2 }
 		)}
-		{@const networkNamespace = row.fields.namespace ?? (
+		{@const networkNamespace = row.namespace ?? (
 			networkCaip2 == null ?
 				undefined
 			:
@@ -230,24 +241,24 @@
 			>
 
 				{#snippet Title()}
-					{row.fields.name}
+					{row.name}
 				{/snippet}
 
 				{#snippet Content()}
 					<dl>
-						{#if row.fields.caip2 != null}
+						{#if row.caip2 != null}
 							<div>
 								<dt>CAIP-2</dt>
 								<dd>
-									{row.fields.caip2.namespace}:{row.fields.caip2.reference}
+									{row.caip2.namespace}:{row.caip2.reference}
 								</dd>
 							</div>
 						{/if}
 
-						{#if row.fields.environment !== undefined}
+						{#if row.environment !== undefined}
 							<div>
 								<dt>Environment</dt>
-								<dd>{networkEnvironmentByEnvironment[row.fields.environment].label}</dd>
+								<dd>{networkEnvironmentByEnvironment[row.environment].label}</dd>
 							</div>
 						{/if}
 					</dl>

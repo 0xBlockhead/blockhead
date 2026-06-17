@@ -1,14 +1,12 @@
 <script lang="ts">
+import { stringify } from 'devalue'
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -24,12 +22,16 @@
 		open?: boolean
 	} = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
+
+
+	
 
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import XUser_TimestampView from '$/views/XUser_TimestampView.svelte'
 </script>
 
@@ -49,44 +51,39 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.selector,({ fields: { [entityFieldReference.fieldName]: {
-				limit: 64,
-			},
-		} }),
-	)}
-			{@const xUserTimestamps = derive(
-		parent,
-		(parent) => {
-			const xUserTimestamps: readonly Entity<typeof schema, EntityType.XUser_Timestamp>[] = (
-				parent.fields[entityFieldReference.fieldName]?.values ?? []
-			)
-			return xUserTimestamps.map((value) => ({
-				value,
-			}))
-		},
-	)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.XUser_Timestamp}
-				id={`${id}-items`}
-				href={href}
-				{title}
-				resource={xUserTimestamps}
-				open={true}
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector
+					).field(entityFieldReference.fieldName, {
+						limit: 64,
+					})}
+				placeholderText="Loading metric snapshots…"
 			>
-				{#snippet Item({ item })}
-						<XUser_TimestampView
-							selector={item.value[EntityMetaKey.Selector]}
-							{href}
-							layout={EntityLayout.Summary}
-							open={false}
-							showTypeAnnotation={false}
-						/>
-					{/snippet}
+				{#snippet children(xUserTimestamps)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.XUser_Timestamp}
+						id={`${id}-items`}
+						href={href}
+						{title}
+						items={xUserTimestamps.entities}
+						open={true}
+					>
+						{#snippet Item({ item })}
+							<XUser_TimestampView
+								selector={item.entitySelector}
+								{href}
+								id={stringify(item.entitySelector)}
+								layout={EntityLayout.Summary}
 
-			</EntitiesList>
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,12 +27,7 @@
 		>
 	> = $props()
 
-	const market = subscribe(EntityType.HyperliquidPerpMarket,
-		selector,
-		({ sources: [
-				Source.Hyperliquid_Rest,
-			], fields: { maxLeverage: true, onlyIsolated: true } }),
-	)
+	
 
 
 	// Components
@@ -62,7 +57,12 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={market}
+			resource={proxy(EntityType.HyperliquidPerpMarket,
+					selector,
+					({ sources: [
+							Source.Hyperliquid_Rest,
+						], fields: { maxLeverage: true, onlyIsolated: true } }),
+				)}
 			placeholderText="Loading Hyperliquid market…"
 		>
 			{#snippet children(market)}

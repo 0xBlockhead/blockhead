@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 		>
 	> = $props()
 
-	const lensPost = $derived(subscribe(EntityType.LensPost,
+	const lensPost = $derived(proxy(EntityType.LensPost,
 		selector,
 		{
 			sources: [
@@ -105,12 +105,12 @@
 					format={TruncatedValueFormat.Visual}
 					startLength={42}
 					endLength={14}
-					value={(
+					value={
 						lensPost.fields.text
 							? lensPost.fields.text
 						:
 							selector.id
-					)}
+					}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -176,8 +176,9 @@
 								<LensAccountView
 									selector={lensPost.fields.$author[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
+
 									open={false}
-								/>
+									/>
 							</dd>
 						</div>
 					{/if}
@@ -203,9 +204,12 @@
 							<svelte:self
 								selector={lensPost.fields.$quoteOf[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
-								open={false}
+
 									showTypeAnnotation={false}
-								/>
+								
+									open={false}
+								
+									/>
 							</dd>
 						</div>
 					{/if}
@@ -217,8 +221,12 @@
 							<svelte:self
 								selector={lensPost.fields.$commentOn[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-								open={false}
-								/>
+
+								
+									open={false}
+
+								
+									/>
 							</dd>
 						</div>
 					{/if}
@@ -279,7 +287,7 @@
 		<CollapsibleTabs
 			id={`${postDetailKey}:carousel-lens-post`}
 			sectionIdPrefix={postDetailKey}
-			sections={(
+			sections={
 				routeChildren ?
 						collapsibleTabsSections([
 							{ id: 'lens-post-text', label: 'Text' },
@@ -293,7 +301,7 @@
 							{ id: 'lens-post-comments', label: 'Comments' },
 							{ id: 'metric-snapshots', label: 'Metrics' },
 						])
-				)}
+				}
 			data-card
 		>
 			{#snippet Summary({ open: _summaryOpen })}

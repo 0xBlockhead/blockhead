@@ -63,7 +63,7 @@
 							}}
 							onRemove={() => walletRuntime.disconnect(connection.walletId)}
 							href={resolve('/~/accounts')}
-							open={false}
+
 						/>
 					{/each}
 				</div>

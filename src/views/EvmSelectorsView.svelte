@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +34,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmSelectorView from '$/views/EvmSelectorView.svelte'
 </script>
@@ -68,34 +68,27 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Local_Internal,
-						],
-					},
-				} }),
-			)}
-			{@const selectors = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.EvmSelector>[] => (
-					parent.fields[entityFieldReference.fieldName]?.values
-					?? []
-				),
-			)}
-			<div data-column="gap-3">
-				<EntitiesList
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Local_Internal],
+					})}
+				placeholderText="Loading selectors…"
+			>
+				{#snippet children(selectors)}
+			<EntitiesList
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.EvmSelector}
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(evmSelector) => evmSelector[EntityMetaKey.Selector].hex}
-					getSortValue={(evmSelector) => evmSelector[EntityMetaKey.Selector].hex}
+					getKey={(evmSelector) => evmSelector.entitySelector.hex}
+					getSortValue={(evmSelector) => evmSelector.entitySelector.hex}
 					placeholderText="Loading 4-byte selectors…"
-					resource={selectors}
+					items={selectors.entities}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
 				>
 					{#snippet Empty()}
@@ -106,15 +99,16 @@
 
 					{#snippet Item({ item })}
 						<EvmSelectorView
-							selector={item[EntityMetaKey.Selector]}
+							selector={item.entitySelector}
 							layout={EntityLayout.Summary}
-							open={false}
+
 							collapsible={false}
 							showTypeAnnotation={false}
 						/>
 					{/snippet}
 				</EntitiesList>
-			</div>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

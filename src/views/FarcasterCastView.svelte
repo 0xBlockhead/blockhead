@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,7 +36,7 @@
 	> = $props()
 
 	const cast = $derived(
-		subscribe(EntityType.FarcasterCast,
+		proxy(EntityType.FarcasterCast,
 			selector,
 			({ sources: [
 				Source.Neynar_Rest,
@@ -112,7 +112,7 @@
 		>
 			{#snippet children(cast)}
 				<TruncatedValue
-					value={(
+					value={
 						cast.fields.fid != null && cast.fields.hash != null ?
 							`FID ${String(cast.fields.fid)} / ${cast.fields.hash}`
 						: 'username' in selector && 'hashPrefix' in selector ?
@@ -121,7 +121,7 @@
 							selector.clientUrl
 						:
 							stringify(selector)
-					)}
+					}
 					startLength={18}
 					endLength={10}
 					format={TruncatedValueFormat.Visual}
@@ -138,12 +138,12 @@
 			{#snippet children(cast)}
 				{@const castText = cast.fields.text?.replaceAll('\n', ' ') ?? ''}
 				<TruncatedValue
-					value={(
+					value={
 						castText === '' ?
 							'Cast'
 						:
 							castText
-					)}
+					}
 					startLength={56}
 					endLength={24}
 					format={TruncatedValueFormat.Abbr}

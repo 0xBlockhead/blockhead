@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const litecoinMwebPegOut = subscribe(EntityType.LitecoinMwebPegOut,
-		selector,
-		({ fields: { amountLitoshis: true } }),
-	)
+	
 
 
 	// Components
@@ -65,7 +62,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={litecoinMwebPegOut}
+			resource={proxy(EntityType.LitecoinMwebPegOut, selector, ({ fields: { amountLitoshis: true } }))}
 			placeholderText={`Loading Litecoin MWEB Peg-out...`}
 		>
 			{#snippet children(litecoinMwebPegOut)}

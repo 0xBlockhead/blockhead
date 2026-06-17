@@ -15,9 +15,8 @@
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]', {
-			caip2Namespace: selector.$network.caip2.namespace,
-			caip2Reference: selector.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+			caip2: ,
 		}),
 		layout,
 		open = $bindable(true),
@@ -36,14 +35,24 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
-	const networkBeaconFinalityTimestamp = subscribe(EntityType.EthereumBeaconFinality_Timestamp,
+	const networkBeaconFinalityTimestamp = $derived(proxy(
+		EntityType.EthereumBeaconFinality_Timestamp,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Beacon_Rest,
-			], fields: { currentJustifiedCheckpointEpoch: true, currentJustifiedCheckpointRoot: true, previousJustifiedCheckpointEpoch: true, previousJustifiedCheckpointRoot: true, finalizedCheckpointEpoch: true, finalizedCheckpointRoot: true } }),
-	)
+			],
+		},
+	))
+	
+	
+	
+	
+	const finalizedCheckpointEpoch = $derived(networkBeaconFinalityTimestamp.finalizedCheckpointEpoch)
+	
+
 
 
 	// Components
@@ -66,34 +75,23 @@
 >
 	{#snippet Value()}
 		<ResourceBoundary
-			resource={networkBeaconFinalityTimestamp}
+			resource={finalizedCheckpointEpoch}
 			placeholderText="Loading finality…"
 		>
-			{#snippet children(networkBeaconFinalityTimestamp)}
-				{#if networkBeaconFinalityTimestamp.fields.finalizedCheckpointEpoch !== undefined}
+			{#snippet children(finalizedCheckpointEpoch)}
+				{#if finalizedCheckpointEpoch !== undefined}
 					<BeaconEpochView
 						selector={{
 							$network: selector.$network,
-							epoch: networkBeaconFinalityTimestamp.fields.finalizedCheckpointEpoch,
+							epoch: finalizedCheckpointEpoch,
 						}}
 						layout={EntityLayout.Value}
+
 						open={false}
-					/>
+						/>
 					finalized
-				{:else if networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointEpoch !== undefined}
-					<BeaconEpochView
-						selector={{
-							$network: selector.$network,
-							epoch: networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointEpoch,
-						}}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-					justified
 				{:else}
-					<span>
-						chain {String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}
-					</span>
+					<span>chain {String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -101,34 +99,23 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={networkBeaconFinalityTimestamp}
+			resource={finalizedCheckpointEpoch}
 			placeholderText="Loading finality…"
 		>
-			{#snippet children(networkBeaconFinalityTimestamp)}
-				{#if networkBeaconFinalityTimestamp.fields.finalizedCheckpointEpoch !== undefined}
+			{#snippet children(finalizedCheckpointEpoch)}
+				{#if finalizedCheckpointEpoch !== undefined}
 					<BeaconEpochView
 						selector={{
 							$network: selector.$network,
-							epoch: networkBeaconFinalityTimestamp.fields.finalizedCheckpointEpoch,
+							epoch: finalizedCheckpointEpoch,
 						}}
 						layout={EntityLayout.Value}
+
 						open={false}
-					/>
+						/>
 					finalized
-				{:else if networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointEpoch !== undefined}
-					<BeaconEpochView
-						selector={{
-							$network: selector.$network,
-							epoch: networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointEpoch,
-						}}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-					justified
 				{:else}
-					<span>
-						chain {String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}
-					</span>
+					<span>chain {String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -141,73 +128,72 @@
 	{/snippet}
 
 	{#snippet Content({})}
-		<ResourceBoundary
-			resource={networkBeaconFinalityTimestamp}
-			placeholderText="Loading finality…"
-		>
-			{#snippet children(networkBeaconFinalityTimestamp)}
-				<dl data-column-item="center">
-					<div>
-						<dt>As of</dt>
-						<dd>
-							<Timestamp
-								timestamp={selector.timestampMs}
-							/>
-						</dd>
-					</div>
-					<div>
-						<dt>Justified</dt>
-						<dd data-row="wrap align-start gap-2">
-							<BeaconEpochView
-								selector={{
-									$network: selector.$network,
-									epoch: networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointEpoch,
-								}}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-							<TruncatedValue
-								format={TruncatedValueFormat.Abbr}
-								value={networkBeaconFinalityTimestamp.fields.currentJustifiedCheckpointRoot}
-							/>
-						</dd>
-					</div>
-					<div>
-						<dt>Finalized</dt>
-						<dd data-row="wrap align-start gap-2">
-							<BeaconEpochView
-								selector={{
-									$network: selector.$network,
-									epoch: networkBeaconFinalityTimestamp.fields.finalizedCheckpointEpoch,
-								}}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-							<TruncatedValue
-								format={TruncatedValueFormat.Abbr}
-								value={networkBeaconFinalityTimestamp.fields.finalizedCheckpointRoot}
-							/>
-						</dd>
-					</div>
-					<div>
-						<dt>Previous justified</dt>
-						<dd data-row="wrap align-start gap-2">
-							<BeaconEpochView
-								selector={{
-									$network: selector.$network,
-									epoch: networkBeaconFinalityTimestamp.fields.previousJustifiedCheckpointEpoch,
-								}}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-							<TruncatedValue
-								format={TruncatedValueFormat.Abbr}
-								value={networkBeaconFinalityTimestamp.fields.previousJustifiedCheckpointRoot}
-							/>
-						</dd>
-					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+		<dl data-column-item="center">
+			<div>
+				<dt>As of</dt>
+				<dd><Timestamp timestamp={selector.timestampMs} /></dd>
+			</div>
+
+			<ResourceBoundary resource={networkBeaconFinalityTimestamp.currentJustifiedCheckpointEpoch} placeholderText="Loading justified checkpoint…">
+				{#snippet children(currentJustifiedCheckpointEpoch)}
+					{#if currentJustifiedCheckpointEpoch !== undefined}
+						<div>
+							<dt>Justified</dt>
+							<dd data-row="wrap align-start gap-2">
+									<BeaconEpochView selector={{ $network: selector.$network, epoch: currentJustifiedCheckpointEpoch }} layout={EntityLayout.Title} open={false} />
+								<ResourceBoundary resource={networkBeaconFinalityTimestamp.currentJustifiedCheckpointRoot} placeholderText="Loading justified root…">
+									{#snippet children(currentJustifiedCheckpointRoot)}
+										{#if currentJustifiedCheckpointRoot !== undefined}
+											<TruncatedValue format={TruncatedValueFormat.Abbr} value={currentJustifiedCheckpointRoot} />
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary resource={finalizedCheckpointEpoch} placeholderText="Loading finalized checkpoint…">
+				{#snippet children(finalizedCheckpointEpoch)}
+					{#if finalizedCheckpointEpoch !== undefined}
+						<div>
+							<dt>Finalized</dt>
+							<dd data-row="wrap align-start gap-2">
+									<BeaconEpochView selector={{ $network: selector.$network, epoch: finalizedCheckpointEpoch }} layout={EntityLayout.Title} open={false} />
+								<ResourceBoundary resource={networkBeaconFinalityTimestamp.finalizedCheckpointRoot} placeholderText="Loading finalized root…">
+									{#snippet children(finalizedCheckpointRoot)}
+										{#if finalizedCheckpointRoot !== undefined}
+											<TruncatedValue format={TruncatedValueFormat.Abbr} value={finalizedCheckpointRoot} />
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary resource={networkBeaconFinalityTimestamp.previousJustifiedCheckpointEpoch} placeholderText="Loading previous justified checkpoint…">
+				{#snippet children(previousJustifiedCheckpointEpoch)}
+					{#if previousJustifiedCheckpointEpoch !== undefined}
+						<div>
+							<dt>Previous justified</dt>
+							<dd data-row="wrap align-start gap-2">
+									<BeaconEpochView selector={{ $network: selector.$network, epoch: previousJustifiedCheckpointEpoch }} layout={EntityLayout.Title} open={false} />
+								<ResourceBoundary resource={networkBeaconFinalityTimestamp.previousJustifiedCheckpointRoot} placeholderText="Loading previous justified root…">
+									{#snippet children(previousJustifiedCheckpointRoot)}
+										{#if previousJustifiedCheckpointRoot !== undefined}
+											<TruncatedValue format={TruncatedValueFormat.Abbr} value={previousJustifiedCheckpointRoot} />
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
+
 </EntityView>

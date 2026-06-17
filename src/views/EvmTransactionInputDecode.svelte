@@ -22,7 +22,7 @@
 	} from '$/lib/calldata-decode.ts'
 
 	import { normalizeEvmSelectorHex } from '$/lib/signature-paths.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	const emptySelectorHex: `0x${string}` = '0x00000000'
 
@@ -35,17 +35,21 @@
 			null,
 	)
 
-	const selector = subscribe(EntityType.EvmSelector,
+	const selector = $derived(proxy(
+		EntityType.EvmSelector,
 		(
 			selectorHex != null ?
 				{ hex: selectorHex }
 			:
-					{ hex: emptySelectorHex }
+				{ hex: emptySelectorHex }
 		) satisfies EntitySelector<typeof schema, EntityType.EvmSelector>,
-		({ sources: [
+		{
+			sources: [
 				Source.Openchain_Rest,
-			], fields: { signatures: true } }),
-	)
+			],
+		},
+	))
+	const signatures = $derived(selector.signatures)
 
 
 	const decodedCall = $derived.by(() => {
@@ -91,7 +95,7 @@
 
 		{#if open}
 			<ResourceBoundary
-				resource={selector}
+				resource={signatures}
 				placeholderText="Loading function signatures…"
 			>
 				{#snippet children()}

@@ -1,15 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -25,12 +23,13 @@
 		open?: boolean
 	} = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import YouTubeVideo_TimestampView from '$/views/YouTubeVideo_TimestampView.svelte'
 </script>
 
@@ -50,50 +49,41 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.selector,({ sources: [
-				Source.Youtube_Rest,
-				Source.Piped_Rest,
-			], fields: { [entityFieldReference.fieldName]: {
-				sources: [
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-				],
-				limit: 64,
-			},
-		} }),
-	)}
-			{@const youTubeVideoTimestamps = derive(
-		parent,
-		(parent) => {
-			const youTubeVideoTimestamps: readonly Entity<typeof schema, EntityType.YouTubeVideo_Timestamp>[] = (
-				parent.fields[entityFieldReference.fieldName]?.values ?? []
-			)
-			return youTubeVideoTimestamps.map((value) => ({
-				value,
-			}))
-		},
-	)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.YouTubeVideo_Timestamp}
-				id={`${id}-items`}
-				href={href}
-				{title}
-				open={true}
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+						{
+							sources: [Source.Youtube_Rest, Source.Piped_Rest],
+						}
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Youtube_Rest, Source.Piped_Rest],
+						limit: 64,
+					})}
+				placeholderText="Loading metric snapshots…"
 			>
-				{#snippet Item({ item })}
-						<YouTubeVideo_TimestampView
-							selector={item.value[EntityMetaKey.Selector]}
-							{href}
-							layout={EntityLayout.Summary}
-							open={false}
-							showTypeAnnotation={false}
-						/>
-					{/snippet}
+				{#snippet children(youTubeVideoTimestamps)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.YouTubeVideo_Timestamp}
+						id={`${id}-items`}
+						{href}
+						open={true}
+						items={youTubeVideoTimestamps.entities}
+					>
+						{#snippet Item({ item })}
+							<YouTubeVideo_TimestampView
+								selector={item.entitySelector}
+								{href}
+								layout={EntityLayout.Summary}
 
-			</EntitiesList>
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

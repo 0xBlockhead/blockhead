@@ -15,9 +15,8 @@
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]', {
-			caip2Namespace: selector.$network.caip2.namespace,
-			caip2Reference: selector.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+			caip2: ,
 		}),
 		layout,
 		open = $bindable(true),
@@ -36,12 +35,20 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
-	const networkTxpoolTimestamp = subscribe(EntityType.EvmNetwork_Txpool_Timestamp,
+	const networkTxpoolTimestamp = $derived(proxy(
+		EntityType.EvmNetwork_Txpool_Timestamp,
 		selector,
-		({ sources: [Source.Voltaire_JsonRpc], fields: { pendingCount: true, queuedCount: true } }),
-	)
+		{
+			sources: [
+				Source.Voltaire_JsonRpc,
+			],
+		},
+	))
+	const pendingCount = $derived(networkTxpoolTimestamp.pendingCount)
+	const queuedCount = $derived(networkTxpoolTimestamp.queuedCount)
+
 
 
 	// Components
@@ -63,15 +70,15 @@
 >
 	{#snippet Value()}
 		<ResourceBoundary
-			resource={networkTxpoolTimestamp}
+			resource={pendingCount}
 			placeholderText="Loading mempool…"
 		>
-			{#snippet children(networkTxpoolTimestamp)}
-				{#if networkTxpoolTimestamp.fields.pendingCount !== undefined}
-					<NumberValue value={networkTxpoolTimestamp.fields.pendingCount} />
+			{#snippet children(pendingCount)}
+				{#if pendingCount !== undefined}
+					<NumberValue value={pendingCount} />
 					pending
-				{:else if networkTxpoolTimestamp.fields.queuedCount !== undefined}
-					<NumberValue value={networkTxpoolTimestamp.fields.queuedCount} />
+				{:else if queuedCount !== undefined}
+					<NumberValue value={queuedCount} />
 					queued
 				{:else}
 					<span>
@@ -84,15 +91,15 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={networkTxpoolTimestamp}
+			resource={pendingCount}
 			placeholderText="Loading mempool…"
 		>
-			{#snippet children(networkTxpoolTimestamp)}
-				{#if networkTxpoolTimestamp.fields.pendingCount !== undefined}
-					<NumberValue value={networkTxpoolTimestamp.fields.pendingCount} />
+			{#snippet children(pendingCount)}
+				{#if pendingCount !== undefined}
+					<NumberValue value={pendingCount} />
 					pending
-				{:else if networkTxpoolTimestamp.fields.queuedCount !== undefined}
-					<NumberValue value={networkTxpoolTimestamp.fields.queuedCount} />
+				{:else if queuedCount !== undefined}
+					<NumberValue value={queuedCount} />
 					queued
 				{:else}
 					<span>
@@ -129,10 +136,10 @@
 						<dd>
 							<ResourceBoundary
 								placeholderText="Loading mempool snapshot…"
-								resource={networkTxpoolTimestamp}
+								resource={pendingCount}
 							>
 								{#snippet children(networkTxpoolTimestamp)}
-									<NumberValue value={networkTxpoolTimestamp.fields.pendingCount} />
+									<NumberValue value={pendingCount} />
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -145,10 +152,10 @@
 						<dd>
 							<ResourceBoundary
 								placeholderText="Loading mempool snapshot…"
-								resource={networkTxpoolTimestamp}
+								resource={pendingCount}
 							>
 								{#snippet children(networkTxpoolTimestamp)}
-									<NumberValue value={networkTxpoolTimestamp.fields.queuedCount} />
+									<NumberValue value={queuedCount} />
 								{/snippet}
 							</ResourceBoundary>
 						</dd>

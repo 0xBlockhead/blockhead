@@ -2,16 +2,17 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// State
-	import { subscribe } from '$/routes/+layout.svelte'
+	// Context
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	// State
 	let {
 		selector,
 		layout = EntityLayout.Summary,
@@ -28,18 +29,20 @@
 		Pick<ComponentProps<typeof EntityView>, 'showTypeAnnotation'>
 	> = $props()
 
-	const withdrawal = subscribe(EntityType.BeaconWithdrawal,
+	const withdrawal = $derived(proxy(
+		EntityType.BeaconWithdrawal,
 		selector,
 		{
-			sources: [Source.Beacon_Rest],
-			fields: {
-				validatorIndex: true,
-				$validator: true,
-				$account: true,
-				amountGwei: true,
-			},
+			sources: [
+				Source.Beacon_Rest,
+			],
 		},
-	)
+	))
+	
+	
+	
+	
+
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -75,54 +78,76 @@
 
 	{#snippet Content()}
 		{#if open}
-			<ResourceBoundary
-				resource={withdrawal}
-				placeholderText="Loading withdrawal…"
-			>
-				{#snippet children(withdrawal)}
-					<dl data-column-item="center">
-						{#if withdrawal.fields.validatorIndex !== undefined}
+			<dl data-column-item="center">
+				<ResourceBoundary
+					resource={withdrawal.validatorIndex}
+					placeholderText="Loading validator index…"
+				>
+					{#snippet children(validatorIndex)}
+						{#if validatorIndex !== undefined}
 							<div>
 								<dt>Validator index</dt>
-								<dd><NumberValue value={withdrawal.fields.validatorIndex} /></dd>
+								<dd><NumberValue value={validatorIndex} /></dd>
 							</div>
 						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-						{#if withdrawal.fields.$validator !== undefined}
+				<ResourceBoundary
+					resource={withdrawal.$validator}
+					placeholderText="Loading validator…"
+				>
+					{#snippet children(validator)}
+						{#if validator !== undefined}
 							<div>
 								<dt>Validator</dt>
 								<dd>
 									<BeaconValidatorView
-										selector={withdrawal.fields.$validator[EntityMetaKey.Selector]}
+										selector={validator.entitySelector}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								</dd>
 							</div>
 						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-						{#if withdrawal.fields.$account !== undefined}
+				<ResourceBoundary
+					resource={withdrawal.$account}
+					placeholderText="Loading recipient…"
+				>
+					{#snippet children(account)}
+						{#if account !== undefined}
 							<div>
 								<dt>Recipient</dt>
 								<dd>
 									<EvmAccountView
-										selector={withdrawal.fields.$account[EntityMetaKey.Selector]}
+										selector={account.entitySelector}
 										layout={EntityLayout.Title}
+
 										open={false}
-									/>
+										/>
 								</dd>
 							</div>
 						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-						{#if withdrawal.fields.amountGwei !== undefined}
+				<ResourceBoundary
+					resource={withdrawal.amountGwei}
+					placeholderText="Loading withdrawal amount…"
+				>
+					{#snippet children(amountGwei)}
+						{#if amountGwei !== undefined}
 							<div>
 								<dt>Amount (gwei)</dt>
-								<dd><NumberValue value={withdrawal.fields.amountGwei} /></dd>
+								<dd><NumberValue value={amountGwei} /></dd>
 							</div>
 						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
+					{/snippet}
+				</ResourceBoundary>
+			</dl>
 		{/if}
 	{/snippet}
 </EntityView>

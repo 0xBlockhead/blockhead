@@ -11,16 +11,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
-			caip2Namespace: 'eip155',
-			caip2Reference: selector.$network.caip2.reference,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
+			caip2: ,
 				upgradeSlug: selector.upgradeId,
 			}),
 		open = $bindable(true),
@@ -40,16 +39,23 @@
 		>
 	> = $props()
 
-	const networkConsensusUpgrade = subscribe(EntityType.EthereumConsensusUpgrade,
+	const networkConsensusUpgrade = $derived(proxy(
+		EntityType.EthereumConsensusUpgrade,
 		selector,
-		({ sources: [
+		{
+			sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, slug: true, ...(open && ({ protocol: true, activationBlock: true, activationEpoch: true, activationTimestampMs: true, previousForkVersion: ({ sources: [
-						Source.Beacon_Rest,
-					] }), currentForkVersion: ({ sources: [
-						Source.Beacon_Rest,
-					] }) })) } }),
-	)
+			],
+		},
+	))
+	const name = $derived(networkConsensusUpgrade.name)
+	const protocol = $derived(networkConsensusUpgrade.protocol)
+	const activationBlock = $derived(networkConsensusUpgrade.activationBlock)
+	const activationEpoch = $derived(networkConsensusUpgrade.activationEpoch)
+	const activationTimestampMs = $derived(networkConsensusUpgrade.activationTimestampMs)
+	const previousForkVersion = $derived(networkConsensusUpgrade.previousForkVersion)
+	const currentForkVersion = $derived(networkConsensusUpgrade.currentForkVersion)
+
 
 
 	// Components
@@ -79,11 +85,11 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={networkConsensusUpgrade}
+			resource={name}
 			placeholderText="Loading consensus upgrade…"
 		>
-			{#snippet children(networkConsensusUpgrade)}
-				{networkConsensusUpgrade.fields.name ?? selector.upgradeId}
+			{#snippet children(name)}
+				{name ?? selector.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -94,73 +100,74 @@
 		open: contentOpen,
 	})}
 		<ResourceBoundary
-			resource={networkConsensusUpgrade}
+			resource={name}
 			placeholderText="Loading consensus upgrade…"
 		>
-			{#snippet children(networkConsensusUpgrade)}
+			{#snippet children(name)}
 		<dl data-column-item="center">
 			{#if (
 				contentOpen
-				&& networkConsensusUpgrade.fields.protocol !== undefined
+				&& protocol !== undefined
 			)}
 				<div>
 					<dt>Consensus fork</dt>
 					<dd>
-								{consensusProtocolByProtocol[networkConsensusUpgrade.fields.protocol].label}
+								{consensusProtocolByProtocol[protocol].label}
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.fields.activationBlock !== undefined}
+			{#if contentOpen && activationBlock !== undefined}
 				<div>
 					<dt>Activation block</dt>
 					<dd>
 									<EvmBlockView
 										selector={{
 											$network: selector.$network,
-											blockNumber: BigInt(networkConsensusUpgrade.fields.activationBlock),
+											blockNumber: BigInt(activationBlock),
 										}}
 										layout={EntityLayout.Value}
+
 										open={false}
-								/>
+										/>
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.fields.activationEpoch !== undefined}
+			{#if contentOpen && activationEpoch !== undefined}
 				<div>
 					<dt>Activation epoch</dt>
 					<dd>
-								<NumberValue value={networkConsensusUpgrade.fields.activationEpoch} />
+								<NumberValue value={activationEpoch} />
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.fields.activationTimestampMs !== undefined}
+			{#if contentOpen && activationTimestampMs !== undefined}
 				<div>
 					<dt>Activation time</dt>
 					<dd>
 								<Timestamp
-									timestamp={networkConsensusUpgrade.fields.activationTimestampMs}
+									timestamp={activationTimestampMs}
 								/>
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.fields.previousForkVersion !== undefined}
+			{#if contentOpen && previousForkVersion !== undefined}
 				<div>
 					<dt>Previous fork version</dt>
 					<dd>
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
-									value={networkConsensusUpgrade.fields.previousForkVersion}
+									value={previousForkVersion}
 								/>
 					</dd>
 				</div>
 			{/if}
-			{#if contentOpen && networkConsensusUpgrade.fields.currentForkVersion !== undefined}
+			{#if contentOpen && currentForkVersion !== undefined}
 				<div>
 					<dt>Current fork version</dt>
 					<dd>
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
-									value={networkConsensusUpgrade.fields.currentForkVersion}
+									value={currentForkVersion}
 								/>
 					</dd>
 				</div>
@@ -179,7 +186,7 @@
 				fieldName: '$$proposals',
 			}}
 			id={`${stringify(selector)}:proposals`}
-			open={false}
+
 			title="Specification proposals"
 		/>
 	{/snippet}

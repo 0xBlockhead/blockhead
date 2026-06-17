@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import type { MarketTimeInterval } from '$/constants/Market.ts'
 	import { marketOhlcCandleSources } from '$/sources/Source.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -43,13 +41,16 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
+
+
+	
 
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Market_TimeInterval_TimestampView from '$/views/Market_TimeInterval_TimestampView.svelte'
 </script>
 
@@ -78,78 +79,58 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const market = subscribe(
-				entityFieldReference.entityType,
-				entityFieldReference.selector,
-				{
-					fields: {
-						[entityFieldReference.fieldName]: {
-							sources: [...marketOhlcCandleSources],
-							limit,
-						},
-					},
-				},
-			)}
-			{@const points = derive(
-				market,
-				(market) => {
-					const marketTimeIntervalTimestamps: readonly Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
-						market.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					const seenSelectorKeys = new Set<string>()
-					return (
-						marketTimeIntervalTimestamps
-							.filter((marketTimeIntervalTimestamp) => {
-								const selectorKey = stringify(marketTimeIntervalTimestamp[EntityMetaKey.Selector])
-								if (
-									seenSelectorKeys.has(selectorKey)
-									|| (
-										timeInterval != null
-										&& (
-											marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.unit !== timeInterval.unit
-											|| marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.value !== timeInterval.value
-										)
-									)
-								)
-									return false
-
-								seenSelectorKeys.add(selectorKey)
-								return true
-							})
-							.map((value) => ({
-								value,
-							}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.Market_TimeInterval_Timestamp}
-				getKey={(marketTimeIntervalTimestamp) => stringify(marketTimeIntervalTimestamp.value[EntityMetaKey.Selector])}
-				getSortValue={(marketTimeIntervalTimestamp) => -marketTimeIntervalTimestamp.value[EntityMetaKey.Selector].timestampMs}
-				placeholderKeys={new SvelteSet<string>()}
-				open={true}
-				resource={points}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [...marketOhlcCandleSources],
+						limit,
+					})}
+				placeholderText="Loading OHLC candles…"
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No OHLC candles yet.
-					</p>
-				{/snippet}
+				{#snippet children(points)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.Market_TimeInterval_Timestamp}
+						getKey={(marketTimeIntervalTimestamp) => stringify(marketTimeIntervalTimestamp.entitySelector)}
+						getSortValue={(marketTimeIntervalTimestamp) => -marketTimeIntervalTimestamp.entitySelector.timestampMs}
+						placeholderKeys={new SvelteSet<string>()}
+						open={true}
+						items={Object.values(
+							Object.groupBy(
+								points.entities.filter((point) => (
+									timeInterval == null
+									|| (
+										point.entitySelector.timeInterval.unit === timeInterval.unit
+										&& point.entitySelector.timeInterval.value === timeInterval.value
+									)
+								)),
+								(point) => stringify(point.entitySelector),
+							),
+						)
+							.flatMap((group) => group == null ? [] : [group[0]])}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No OHLC candles yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					{@const row = item.value}
-					<Market_TimeInterval_TimestampView
-						selector={row[EntityMetaKey.Selector]}
-						id={stringify(row[EntityMetaKey.Selector])}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<Market_TimeInterval_TimestampView
+								selector={item.entitySelector}
+								id={stringify(item.entitySelector)}
+								layout={EntityLayout.Summary}
+
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

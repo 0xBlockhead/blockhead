@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const zeroGConsensusNetwork = subscribe(EntityType.ZeroGConsensusNetwork,
-		selector,
-		({ fields: { sharedStakingStatusSource: true } }),
-	)
+	
 
 
 	// Components
@@ -56,7 +53,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={zeroGConsensusNetwork}
+			resource={proxy(EntityType.ZeroGConsensusNetwork, selector, ({ fields: { sharedStakingStatusSource: true } }))}
 			placeholderText={`Loading 0G consensus network...`}
 		>
 			{#snippet children(zeroGConsensusNetwork)}

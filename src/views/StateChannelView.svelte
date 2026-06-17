@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 		>
 	> = $props()
 
-	const stateChannel = $derived(subscribe(EntityType.StateChannel,
+	const stateChannel = $derived(proxy(EntityType.StateChannel,
 		selector,
 		({ sources: [Source.Local_Internal], fields: { status: true, createdAt: true, updatedAt: true, turnNum: true, totalDeposited: true, $network: true, $participant0: true, $participant1: true, ...(open ? ({ balance0: true, balance1: true, $asset: true, $room: true }) : ({  })) } }),
 	))
@@ -86,7 +86,7 @@
 										$actor: stateChannel.fields.$participant0[EntityMetaKey.Selector],
 									}}
 									layout={EntityLayout.Value}
-									open={false}
+
 								/>
 							{:else}
 								<EvmAccountView
@@ -106,7 +106,7 @@
 										$actor: stateChannel.fields.$participant1[EntityMetaKey.Selector],
 									}}
 									layout={EntityLayout.Value}
-									open={false}
+
 								/>
 							{:else}
 								<EvmAccountView
@@ -255,7 +255,7 @@
 									<EvmNetworkView
 										selector={stateChannel.fields.$network[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								{/if}
 							{/snippet}
@@ -275,7 +275,7 @@
 									<EvmCoinInstanceView
 										selector={stateChannel.fields.$asset[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
-										open={false}
+
 									/>
 								{/if}
 							{/snippet}
@@ -295,7 +295,7 @@
 									<BlockheadRoomView
 										selector={stateChannel.fields.$room[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
-										open={false}
+
 										showTypeAnnotation={false}
 									/>
 								{/if}

@@ -37,22 +37,24 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+	
 	const href = $derived(
 		hrefProp ?? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
 			hex: selector.hex,
-		}),
+		})
 	)
 
-	const decodedSelector = $derived(
-		subscribe(EntityType.EvmSelector,
-			selector,
-			({ sources: [
-					Source.Openchain_Rest,
-				], fields: { ...(open && ({ signatures: true })) } }),
-		),
-	)
+	const signatures = $derived(proxy(
+		EntityType.EvmSelector,
+		selector,
+		{
+			sources: [
+				Source.Openchain_Rest,
+			],
+		},
+	).signatures)
 
 
 	// Components
@@ -65,7 +67,7 @@
 <EntityView
 	entityType={EntityType.EvmSelector}
 	entitySelector={selector}
-	href={href}
+	{href}
 	{layout}
 	bind:open
 	{collapsible}
@@ -79,11 +81,11 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={decodedSelector}
+			resource={signatures}
 			placeholderText="Loading decoded function selector…"
 		>
-			{#snippet children(selector)}
-				{selector.fields.signatures?.[0] ?? selector.hex}
+			{#snippet children(signatures)}
+				{signatures?.[0] ?? selector.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -120,14 +122,14 @@
 						<dt>Signatures</dt>
 						<dd>
 							<ResourceBoundary
-								resource={decodedSelector}
+								resource={signatures}
 								placeholderText="Loading decoded calldata prefixes…"
 							>
-								{#snippet children(selector)}
-									{#if selector.fields.signatures?.length}
+								{#snippet children(signatures)}
+									{#if signatures?.length}
 										<ul>
-											{#each selector.fields.signatures as sig (sig)}
-												<li><code>{sig}</code></li>
+											{#each signatures as signature (signature)}
+												<li><code>{signature}</code></li>
 											{/each}
 										</ul>
 									{:else}

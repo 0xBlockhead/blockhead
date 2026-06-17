@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -40,13 +40,10 @@
 		>
 	> = $props()
 
-	const reaction = subscribe(EntityType.NostrReaction,
-		selector,
-		({ sources: [
+	const reaction = $derived(proxy(EntityType.NostrReaction, selector, ({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
-			], fields: { eventId: true, pubkey: true, createdAt: true, $author: true, $targetNote: true, $targetArticle: true, content: true } }),
-	)
+			], fields: { eventId: true, pubkey: true, createdAt: true, $author: true, $targetNote: true, $targetArticle: true, content: true } })))
 
 
 	// Components
@@ -162,8 +159,9 @@
 									<NostrProfileView
 										selector={reaction.fields.$author[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -182,8 +180,9 @@
 									<NostrNoteView
 										selector={reaction.fields.$targetNote[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -202,8 +201,9 @@
 									<NostrArticleView
 										selector={reaction.fields.$targetArticle[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

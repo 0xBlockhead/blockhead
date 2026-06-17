@@ -2,16 +2,14 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		title = 'Market venues',
@@ -34,11 +32,13 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import MarketVenueView from '$/views/MarketVenueView.svelte'
 </script>
@@ -68,34 +68,28 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
+					sources: [
 						Source.Constants_Internal,
-					], fields: { [entityFieldReference.fieldName]: {
-						fields: {
-							label: true,
-						},
+					],
+					fields: {
+						label: true,
 					},
-				} }),
-			)}
-			{@const marketVenues = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.MarketVenue>[] => (
-					parent.fields[entityFieldReference.fieldName]?.values ?? []
-				),
-			)}
-			<EntitiesList
+				})} placeholderText="Loading market venues…">
+				{#snippet children(marketVenues)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.MarketVenue}
-				getKey={(marketVenue) => marketVenue[EntityMetaKey.Selector].marketVenueId}
-				getSortValue={(marketVenue) => (
-					marketVenue.label ?? marketVenue[EntityMetaKey.Selector].marketVenueId
-				)}
-				resource={marketVenues}
+				getKey={(marketVenue) => marketVenue.entitySelector.marketVenueId}
+				getSortValue={(marketVenue) => marketVenue.current?.label ?? marketVenue.entitySelector.marketVenueId}
 				{title}
 				open={true}
+				items={marketVenues.entities}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
@@ -105,12 +99,14 @@
 
 				{#snippet Item({ item })}
 					<MarketVenueView
-						selector={item[EntityMetaKey.Selector]}
+						selector={item.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
-			</EntitiesList>
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

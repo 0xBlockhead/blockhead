@@ -1,14 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -24,12 +22,13 @@
 		open?: boolean
 	} = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import XPost_TimestampView from '$/views/XPost_TimestampView.svelte'
 </script>
 
@@ -49,44 +48,37 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.selector,({ fields: { [entityFieldReference.fieldName]: {
-				limit: 64,
-			},
-		} }),
-	)}
-			{@const xPostTimestamps = derive(
-		parent,
-		(parent) => {
-			const xPostTimestamps: readonly Entity<typeof schema, EntityType.XPost_Timestamp>[] = (
-				parent.fields[entityFieldReference.fieldName]?.values ?? []
-			)
-			return xPostTimestamps.map((value) => ({
-				value,
-			}))
-		},
-	)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.XPost_Timestamp}
-				id={`${id}-items`}
-				href={href}
-				{title}
-				resource={xPostTimestamps}
-				open={true}
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector
+					).field(entityFieldReference.fieldName, {
+						limit: 64,
+					})}
+				placeholderText="Loading metric snapshots…"
 			>
-				{#snippet Item({ item })}
-						<XPost_TimestampView
-							selector={item.value[EntityMetaKey.Selector]}
-							{href}
-							layout={EntityLayout.Summary}
-							open={false}
-							showTypeAnnotation={false}
-						/>
-					{/snippet}
+				{#snippet children(xPostTimestamps)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.XPost_Timestamp}
+						id={`${id}-items`}
+						{href}
+						open={true}
+						items={xPostTimestamps.entities}
+					>
+						{#snippet Item({ item })}
+							<XPost_TimestampView
+								selector={item.entitySelector}
+								{href}
+								layout={EntityLayout.Summary}
 
-			</EntitiesList>
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

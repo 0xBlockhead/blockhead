@@ -12,7 +12,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -41,7 +41,7 @@
 	> = $props()
 
 	const video = $derived(
-		subscribe(
+		proxy(
 			EntityType.YouTubeVideo,
 			selector,
 			({ sources: [
@@ -287,8 +287,9 @@
 									<YouTubeChannelView
 										selector={video.fields.$author[EntityMetaKey.Selector]}
 										layout={EntityLayout.Title}
+
 										open={false}
-									/>
+										/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

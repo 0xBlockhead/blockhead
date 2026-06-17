@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const moneroTransaction = subscribe(EntityType.MoneroTransaction,
-		selector,
-		({ fields: { version: true, unlockTime: true, feeAtomicUnits: true } }),
-	)
+	
 
 
 	// Components
@@ -57,7 +54,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={moneroTransaction}
+			resource={proxy(EntityType.MoneroTransaction,
+					selector,
+					({ fields: { version: true, unlockTime: true, feeAtomicUnits: true } }),
+				)}
 			placeholderText={`Loading Monero Transaction...`}
 		>
 			{#snippet children(moneroTransaction)}

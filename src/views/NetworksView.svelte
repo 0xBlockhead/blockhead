@@ -2,21 +2,17 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { stringify as stringifyId } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	// State
+		// State
 	let {
 		title = 'Networks',
 		open = $bindable(true),
@@ -41,11 +37,14 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
@@ -67,61 +66,50 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				({ sources: [
-					Source.Constants_Internal,
-				], fields: { [entityFieldReference.fieldName]: {
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+					{
+						sources: [Source.Constants_Internal],
+					}
+				).field(entityFieldReference.fieldName, {
 					limit: 4096,
-				},
-				} })
-			)}
-			{@const filteredNetworks = derive(
-				parent,
-				(parent) => {
-					const networks: readonly Entity<typeof schema, EntityType.Network>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
-					return (
-						networks
-							.filter((value) => (
-								networkSelectors == null
-								|| networkSelectors.some((networkSelector) => (
-									stringifyId(networkSelector) === stringifyId(value[EntityMetaKey.Selector])
-								))
+				})} placeholderText="Loading networks…">
+				{#snippet children(networks)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.Network}
+						id={`${id}-items`}
+						href={href}
+						{title}
+						getKey={(network) => stringifyId(network.entitySelector)}
+						getSortValue={(network) => stringifyId(network.entitySelector)}
+						items={networks.entities.filter((network) => (
+							networkSelectors == null
+							|| networkSelectors.some((networkSelector) => (
+								stringifyId(networkSelector) === stringifyId(network.entitySelector)
 							))
-							.map((value) => ({ value }))
-					)
-				}
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.Network}
-				id={`${id}-items`}
-				href={href}
-				{title}
-				getKey={(line) => stringifyId(line.value[EntityMetaKey.Selector])}
-				getSortValue={(line) => stringifyId(line.value[EntityMetaKey.Selector])}
-				placeholderKeys={new SvelteSet<string | number>()}
-				placeholderText="Loading networks…"
-				resource={filteredNetworks}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-				open={true}
-			>
-				{#snippet Empty()}
-						<p data-text="muted">
-							No networks match this networks yet.
-						</p>
-					{/snippet}
+						))}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+						open={true}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No networks match this networks yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item: line })}
-						<NetworkView
-							selector={line.value[EntityMetaKey.Selector]}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/snippet}
+						{#snippet Item({ item })}
+							<NetworkView
+								selector={item.entitySelector}
+								layout={EntityLayout.Summary}
 
-			</EntitiesList>
+							/>
+						{/snippet}
+					</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

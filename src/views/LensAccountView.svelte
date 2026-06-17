@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,7 +36,7 @@
 
 	const idKey = $derived(stringify(selector))
 
-	const lensAccount = $derived(subscribe(EntityType.LensAccount,
+	const lensAccount = $derived(proxy(EntityType.LensAccount,
 		selector,
 		{
 			sources: [

@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
@@ -12,7 +10,6 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -35,11 +32,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import LiquidityPositionView from '$/views/LiquidityPositionView.svelte'
@@ -89,68 +89,41 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {},
-				} }),
-			)}
-			{@const liquidityPositions = derive(
-				parent,
-				(parent) => {
-					const liquidityPositions: readonly Entity<typeof schema, EntityType.LiquidityPosition>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						liquidityPositions.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				data-entity-field-name={entityFieldReference.fieldName}
-				data-entity-field-parent={stringify(entityFieldReference.selector)}
-				data-entity-field-type={entityFieldReference.entityType}
-				entityType={EntityType.LiquidityPosition}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].id}
-				open={true}
-				resource={liquidityPositions}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<div data-row="wrap align-center gap-2">
-						<p data-text="muted">
-							No LP positions indexed yet.
-						</p>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									Positions require an execution RPC or subgraph that reads NonfungiblePositionManager NFTs for connected accounts.
-								</p>
-								<p>
-									Pool pair liquidityPositions from Dexscreener live under liquidity pools, not here.
-								</p>
-							{/snippet}
-							<abbr
-								class="entity-heading-tip"
-								aria-label="About LP positions"
-							>ⓘ</abbr>
-						</Tooltip>
-					</div>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector,
+				).field(entityFieldReference.fieldName, {
 
-				{#snippet Item({ item })}
-					<LiquidityPositionView
-						selector={item.value[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+				})} placeholderText="Loading LP positions…">
+				{#snippet children(liquidityPositions)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						data-entity-field-name={entityFieldReference.fieldName}
+						data-entity-field-parent={stringify(entityFieldReference.selector)}
+						data-entity-field-type={entityFieldReference.entityType}
+						entityType={EntityType.LiquidityPosition}
+						getKey={(liquidityPosition) => stringify(liquidityPosition.entitySelector)}
+						getSortValue={(liquidityPosition) => liquidityPosition.entitySelector.id}
+						open={true}
+						items={liquidityPositions.entities}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">No LP positions indexed yet.</p>
+						{/snippet}
+
+						{#snippet Item({ item })}
+							<LiquidityPositionView
+							selector={item.entitySelector}
+							layout={EntityLayout.Summary}
+
+						/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,7 +40,7 @@
 	> = $props()
 
 	const playlist = $derived(
-		subscribe(
+		proxy(
 			EntityType.YouTubePlaylist,
 			selector,
 			({ sources: [
@@ -171,8 +171,9 @@
 									<YouTubeChannelView
 										selector={playlist.fields.$channel[EntityMetaKey.Selector]}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								</dd>
 							</div>
 						{/if}

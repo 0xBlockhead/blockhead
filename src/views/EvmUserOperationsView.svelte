@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,9 +9,10 @@
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +35,12 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EvmUserOperationView from '$/views/EvmUserOperationView.svelte'
@@ -63,56 +63,53 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parentEntityType = entityFieldReference.entityType}
-			{@const parent = subscribe(parentEntityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
 						sources: [
 							Source.Blockscout_Rest,
 						],
 						limit: 16,
-					},
-				} }),
-			)}
-			{@const userOperations = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.EvmUserOperation>[] => (
-					parent.fields[entityFieldReference.fieldName]?.values
-					?? []
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmUserOperation}
-				id={`${id}-items`}
-				href={href}
-				getKey={(userOperation) => stringify(userOperation[EntityMetaKey.Selector])}
+					})}
 				placeholderText="Loading user operations…"
-				resource={userOperations}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-				open={true}
 			>
-				{#snippet Empty()}
-					<p data-text="muted">No user operations.</p>
-				{/snippet}
-
-				{#snippet Item({ item: userOperation })}
-					<EvmUserOperationView
-						selector={userOperation[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
+				{#snippet children(userOperations)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.EvmUserOperation}
+						id={`${id}-items`}
+						href={href}
+						getKey={(userOperation) => stringify(userOperation.entitySelector)}
+						placeholderText="Loading user operations…"
+						items={userOperations.entities}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+						open={true}
 					>
-						{#snippet HeadingSnippet()}
-							<TruncatedValue
-								format={TruncatedValueFormat.Visual}
-								value={userOperation[EntityMetaKey.Selector].hash}
-							/>
+						{#snippet Empty()}
+							<p data-text="muted">No user operations.</p>
 						{/snippet}
-					</EvmUserOperationView>
+
+						{#snippet Item({ item: userOperation })}
+							<EvmUserOperationView
+								selector={userOperation.entitySelector}
+								layout={EntityLayout.Summary}
+
+							>
+								{#snippet HeadingSnippet()}
+									<TruncatedValue
+										format={TruncatedValueFormat.Visual}
+										value={userOperation.entitySelector.hash}
+									/>
+								{/snippet}
+							</EvmUserOperationView>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

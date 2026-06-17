@@ -9,16 +9,15 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-			href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(beacon-slots)/slot/[slotNumber]', {
-				caip2Namespace: selector.$network.caip2.namespace,
-				caip2Reference: selector.$network.caip2.reference,
+			href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(beacon-slots)/slot/[slotNumber]', {
+				caip2: ,
 				slotNumber: String(selector.slot),
 			}),
 		layout = EntityLayout.Summary,
@@ -39,7 +38,7 @@
 		>
 	> = $props()
 
-	const slot = $derived(subscribe(EntityType.BeaconSlot,
+	const slot = $derived(proxy(EntityType.BeaconSlot,
 		selector,
 		({ sources: [
 				Source.Beacon_Rest,
@@ -131,8 +130,9 @@
 											epoch: slot.fields.epoch,
 										}}
 										layout={EntityLayout.Value}
+
 										open={false}
-									/>
+										/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

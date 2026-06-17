@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,12 +27,7 @@
 		>
 	> = $props()
 
-	const zone = subscribe(EntityType.LogosZone,
-		selector,
-		({ sources: [
-				Source.LogosDocs_Rest,
-			], fields: { zoneKind: true } }),
-	)
+	
 
 
 	// Components
@@ -61,7 +56,9 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={zone}
+			resource={proxy(EntityType.LogosZone, selector, ({ sources: [
+					Source.LogosDocs_Rest,
+				], fields: { zoneKind: true } }))}
 			placeholderText="Loading Logos zone…"
 		>
 			{#snippet children(zone)}

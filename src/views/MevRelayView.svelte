@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -30,17 +30,9 @@
 		>
 	> = $props()
 
-	const relay = subscribe(EntityType.MevRelay,
-		selector,
-		{
-			sources: [
-				Source.Constants_Internal,
-			],
-			fields: {
-				url: true,
-			},
-		},
-	)
+	
+	
+
 
 
 	// (Derived)
@@ -77,15 +69,21 @@
 	{#snippet Content()}
 		{#if open}
 			<ResourceBoundary
-				resource={relay}
+				resource={proxy(
+						EntityType.MevRelay,
+						selector,
+						{
+							sources: [Source.Constants_Internal],
+						},
+					).url}
 				placeholderText="Loading MEV relay…"
 			>
-				{#snippet children(relay)}
+				{#snippet children(url)}
 					<dl data-column-item="center">
-						{#if relay.fields.url !== undefined}
+						{#if url !== undefined}
 							<div>
 								<dt>URL</dt>
-								<dd>{relay.fields.url}</dd>
+								<dd>{url}</dd>
 							</div>
 						{/if}
 					</dl>

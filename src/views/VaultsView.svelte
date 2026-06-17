@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
@@ -12,7 +10,6 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -38,11 +35,14 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import VaultView from '$/views/VaultView.svelte'
@@ -87,54 +87,41 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-							limit: limit,
-					},
-				} }),
-			)}
-			{@const vaults = derive(
-				parent,
-				(parent) => {
-					const vaults: readonly Entity<typeof schema, EntityType.Vault>[] = (
-						parent.fields[entityFieldReference.fieldName]?.values ?? []
-					)
-					return (
-						vaults.map((value) => ({
-							value,
-						}))
-					)
-				},
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				data-entity-field-name={entityFieldReference.fieldName}
-				data-entity-field-parent={stringify(entityFieldReference.selector)}
-				data-entity-field-type={entityFieldReference.entityType}
-				entityType={EntityType.Vault}
-				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Selector])}
-				getSortValue={(envelope) => envelope.value[EntityMetaKey.Selector].id}
-				open={true}
-				resource={vaults}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No vault vaults in this slice yet.
-					</p>
-				{/snippet}
+			<ResourceBoundary resource={proxy(
+					entityFieldReference.entityType,
+					entityFieldReference.selector
+				).field(entityFieldReference.fieldName, {
+					limit,
+				})} placeholderText="Loading vaults…">
+				{#snippet children(vaults)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.Vault}
+						id={`${id}-items`}
+						{title}
+						open={true}
+						items={vaults.entities}
+						getKey={(vault) => stringify(vault.entitySelector)}
+						getSortValue={(vault) => vault.entitySelector.id}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+							No vault vaults in this slice yet.
+						</p>
+						{/snippet}
 
-				{#snippet Item({ item })}
-					<VaultView
-						selector={item.value[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<VaultView
+							selector={item.entitySelector}
+							layout={EntityLayout.Summary}
+
+						/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

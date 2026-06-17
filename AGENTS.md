@@ -1,20 +1,30 @@
 ## Agents
 
 - Reply in a concise style; avoid repetition or filler
-- Be DRY and declarative
-- Inline derived intermediate variables, especially if used once (same in markup: no one-off `{@const}` / `const` / `$derived` when the value is only referenced once—inline it)
-- Prefer direct, explicit code over wrapper layers: keep the core data flow visible at the call site, and inline trivial wrapping / unwrapping / grouping / ungrouping helpers.
 - Assistant / handoff summaries: Do not respond with large JSON blobs, `devalue` / `stringify(entityId)` dumps, or other machine-oriented payloads into chat summaries; describe intent and point to paths or small code citations instead
+
+
+## Editing, Syntax, Style
+
+- Be DRY and declarative
+- Prefer direct, explicit code over wrapper layers: keep the core data flow visible at the call site, and inline trivial wrapping / unwrapping / grouping / ungrouping helpers.
 - Name variables, snippets, callback parameters, and arguments by what they are; never abbreviate identifiers.
-- Do not introduce new files or helper functions without proper justification, a detailed plan, and explicit permission; helpers are acceptable only when you are at least 90% confident they remove real repeated complexity or encode meaningful domain / transport logic.
-- Composer 2.5: this is NOT a React / Motion project. do not use `</motion>` to close HTML tags.
-- Do not write codemod scripts to do HTML wrapping/unwrapping refactors. If you make a mistake, do not git revert when there are existing working changes
-- `modern-web-guidance` skill: invoke when editing CSS rules or `src/components`. Not strictly needed for other tasks like editing Svelte components.
-
-### Editing
-
 - End files with a single line break
 - Avoid trailing spaces
+- Keep correct indentation levels when editing or moving large chunks of code
+- Always inline single-use derivable intermediate variables
+- Do not introduce new variables, files or helper functions without proper justification, a detailed plan, and explicit permission; helpers and intermediate variables are acceptable only when you are at least 90% confident they remove real repeated complexity or encode meaningful domain / transport logic.
+- Bulk edits: use temporary/one-off scripts using the language's official AST tool to bulk edit syntax patterns in multiple files. If there are many files, edit one, check correctness, double the number of file edits, check correctness, and repeat.
+- Do not write codemod scripts to do HTML wrapping/unwrapping refactors.
+- Never git revert to correct a mistake when there are existing working changes
+- `modern-web-guidance` skill: invoke only when editing uncommonly used HTML tags, CSS rules or `src/components`.
+- Composer 2.5: this is NOT a React / Motion project. do not use `</motion>` to close HTML tags.
+
+
+## Bash commands
+
+- Always quote file names
+- Use "~" for the $HOME directory. Avoid user directory names.
 
 
 ## Git
@@ -87,12 +97,6 @@
 - **`corsEnabled` must match reality** — if the browser console shows CORS blocks for an origin marked `true`, flip it to `false` and route through the proxy. Catalog execution RPC hosts: `$/constants/ExecutionRpcOrigins.ts` (Voltaire provider + `jsonRpc` client).
 - When `corsEnabled: false`, the browser routes through `/api-proxy/{absoluteUrl}`; SSR keeps direct `fetch`. When `corsEnabled: true`, the browser uses direct cross-origin `fetch` (public RPCs, CORS-enabled APIs).
 - Adding a new proxied host: extend the provider’s `origins` in `src/sources/<Provider>/index.ts` (or shared constants), then wire the transport client through `corsFetch` / `getJson`.
-
-### Entity views — Lens, liquidity, markets
-
-- `LensView` / `LensPostsView`: `LensNetwork` hub (scope, profile and publication counts). Registry carousel sections use `data-scroll-marker-label` (`Profiles`, `Recent publications`). Prefer roles, scroll markers, and existing network-style hooks over new `data-e2e` attributes.
-- Liquidity — pool vs position: `LiquidityPoolView` is the pool (pair, fee, curve liquidity, token addresses). `LiquidityPositionView` and `LeverageView` are positions (pool ref, owner, ticks, position liquidity, token amounts). Lists `LiquidityPoolsView` and `LiquidityPositionsView` follow the same `EntitiesList` field-reference pattern as other domains; do not introduce `data-view` or speculative `data-e2e` hooks.
-- Markets — OHLC, prices, intervals: `MarketView` anchors base/quote/venue and composes spot & index rows (`MarketPricesView`, `MarketPriceView`) with per-candle OHLC via `MarketOhlcHub` / `Market_TimeInterval_TimestampsView` on `$$marketTimeIntervalTimestamps` (one `Market_TimeInterval_Timestamp` row per candle; chart queries the field list for the selected interval). `MarketPrice` is stream identity only; spot/index prints are `Market_Timestamp` rows on `$$quotes` (`Market_TimestampView` / `Market_TimestampsView`). Single-candle detail uses `Market_TimeInterval_TimestampView`. Reuse carousel/`data-scroll-marker-label` patterns from `MarketView` and `NetworkView`; keep Playwright hooks sparing per above.
 
 
 ## TypeScript
@@ -181,7 +185,6 @@
 - Unexported module-local helpers used only while assembling those rows and lookups are fine. Normalize checked-in wire/catalog units into schema field shapes here (e.g. seconds vs milliseconds on activation timestamps), not in resolvers or `src/lib/**`. Do not add runtime enrichment, network fetches, caches, or resolver-like denormalization to constants; checked-in catalog rows are the snapshot.
 - One canonical `as const` row array per catalog (`as const satisfies …` on the array). Lookups in `// Lookups` are derived from that array (`Object.fromEntries`, group-by)—do not maintain a second copy of the same data.
 - Name source arrays with the plain plural domain noun and lookup maps as `singularByKey` or `singularBy<Field>`; do not use generic suffixes like `Rows`, `Entries`, `Fields`, or `Bags`.
-- Lookup values must be catalog or domain rows (or arrays of them): `currencyByIso4217`, `coinById`, enum-label rows (`networkEnvironmentByEnvironment`), grouped catalog ids (`catalogCoinUsdMarketIdByCoinId`, `catalogMarketsWithCoinAsQuoteByQuoteCoinId`). Do not prebuild schema field shapes in constants (entity ids, market asset legs, `{ $currency, timestampMs }` maps)—inline those at resolvers/views from the catalog key you already have.
 - Do not export maps or `Set`s whose values are primitives only (REST URL strings, venue ids, booleans, `*LabelById` strings, wire-key `Set`s, id→enum scalar). Read primitives from a row (`beaconRestBaseByExecutionChainId[chainId].restBaseUrl`).
 - Lookup exports from `Object.fromEntries` / `Object.groupBy`: no `: Record<…>` on the binding and no `satisfies` on the call—let inference carry the map type.
 - Sections: `// Types` → `// Constants` → `// Lookups`, with two blank lines between each.
@@ -198,14 +201,7 @@
 
 - Svelte 5 runes; NEVER legacy Svelte 4 (`$:`, `onMount`, `writable`)
 - Prefer single expressions and inline logic
-
-### SvelteKit-shaped resources
-
-- SvelteKit remote `query()` is the reference implementation for low-level resource reactivity. Before changing `TanStackLiveQueryResource`, `ResourceBoundary`, or route resource fixtures, read `node_modules/@sveltejs/kit/src/runtime/client/remote-functions/query/instance.svelte.js` and preserve its two-surface contract: getters (`current`, `loading`, `ready`, `error`) and promise methods (`then`, `catch`, `finally`) must both observe the same resource-owned state machine.
-- `ResourceBoundary` is a pure consumer of SvelteKit-shaped resources. It must not accept TanStack live-query snapshots directly, inspect TanStack state, branch on `Symbol.toStringTag`, call `subscribeChanges`, install resource `.subscribe` listeners, key/remount children to force updates, or choose between TanStack and SvelteKit modes.
-- The TanStack/source notification hook belongs in the TanStack-to-SvelteKit resource adapter, not in views, routes, or `ResourceBoundary`. App-level `subscribe(...)` may manage product resource lifecycle, but the boundary contract remains only `current` / `loading` / `ready` / `error` / `then` / `catch` / `finally`.
-- Resource tests must prove direct getter reads and promise reads. Do not hide stale adapter reactivity with parent-local state updates, fixture-side `await tick()` before reading `.then`, boundary remount keys, debug-only direct displays, or softened assertions that no real view depends on.
-- A resource/boundary fix is not complete until Playwright proves visible DOM updates from a TanStack/source notification through both a direct resource getter read and `ResourceBoundary`, without route reload.
+- Use temporary/one-off Svelte AST scripts to bulk edit syntax patterns in multiple files. If there are many files, edit one, check correctness, double the number of file edits, check correctness, and repeat.
 
 - File layout:
 	- two blank lines between:
@@ -406,6 +402,15 @@
 - Display truncation: use `<TruncatedValue>` / `<Address>` (manual truncation is only OK for non-display logic). Entity card headings and secondary ids follow Entity Views → Entity summary row (no JSON-shaped summary ids).
 
 ---
+
+
+### SvelteKit-shaped resources
+
+- SvelteKit remote `query()` is the reference implementation for low-level resource reactivity. Before changing `TanStackLiveQueryResource`, `ResourceBoundary`, or route resource fixtures, read `node_modules/@sveltejs/kit/src/runtime/client/remote-functions/query/instance.svelte.js` and preserve its two-surface contract: getters (`current`, `loading`, `ready`, `error`) and promise methods (`then`, `catch`, `finally`) must both observe the same resource-owned state machine.
+- `ResourceBoundary` is a pure consumer of SvelteKit-shaped resources. It must not accept TanStack live-query snapshots directly, inspect TanStack state, branch on `Symbol.toStringTag`, call `subscribeChanges`, install resource `.subscribe` listeners, key/remount children to force updates, or choose between TanStack and SvelteKit modes.
+- The TanStack/source notification hook belongs in the TanStack-to-SvelteKit resource adapter, not in views, routes, or `ResourceBoundary`. App-level `subscribe(...)` may manage product resource lifecycle, but the boundary contract remains only `current` / `loading` / `ready` / `error` / `then` / `catch` / `finally`.
+- Resource tests must prove direct getter reads and promise reads. Do not hide stale adapter reactivity with parent-local state updates, fixture-side `await tick()` before reading `.then`, boundary remount keys, debug-only direct displays, or softened assertions that no real view depends on.
+- A resource/boundary fix is not complete until Playwright proves visible DOM updates from a TanStack/source notification through both a direct resource getter read and `ResourceBoundary`, without route reload.
 
 
 ## Import topology (`src/**`)
@@ -925,7 +930,6 @@ Checks — New routes must not match any Bad row above.
 ### Validation
 
 Visit page with Playwright, collect console errors, read them, iterate until none appear
-
 
 ## TanStack DB queries
 

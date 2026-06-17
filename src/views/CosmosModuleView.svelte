@@ -9,7 +9,7 @@
 
 
 	// State
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -23,7 +23,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const cosmosModule = subscribe(EntityType.CosmosModule, selector, ({ fields: { $authority: true } }))
+	
 
 
 	// Components
@@ -46,7 +46,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={cosmosModule}
+			resource={proxy(EntityType.CosmosModule, selector, ({ fields: { $authority: true } }))}
 			placeholderText={`Loading Cosmos Module...`}
 		>
 			{#snippet children(cosmosModule)}
@@ -58,7 +58,7 @@
 								<CosmosAccountView
 									selector={cosmosModule.fields.$authority[EntityMetaKey.Selector]}
 									layout={EntityLayout.Title}
-									open={false}
+
 								/>
 							</dd>
 						</div>

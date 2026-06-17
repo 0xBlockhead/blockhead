@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,12 +19,12 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = subscribe(EntityType.PolkadotNetwork_Timestamp,
+	const snapshot = $derived(proxy(EntityType.PolkadotNetwork_Timestamp,
 		selector,
 		({ sources: [
 				Source.Polkadot_JsonRpc,
 			], fields: { finalizedBlockNumber: true, finalizedBlockHash: true, finalizedExtrinsicCount: true, runtimeSpecName: true, runtimeSpecVersion: true, transactionVersion: true, stateVersion: true, peerCount: true, isSyncing: true, shouldHavePeers: true } }),
-	)
+	))
 
 
 	// Components

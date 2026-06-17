@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,6 @@
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +33,14 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import BeaconSyncCommitteeView from '$/views/BeaconSyncCommitteeView.svelte'
 </script>
@@ -62,31 +62,25 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Beacon_Rest,
-						],
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Beacon_Rest],
 						limit: 4,
-					},
-				} }),
-			)}
-			{@const committees = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.BeaconSyncCommittee>[] => (
-					parent.fields[entityFieldReference.fieldName]?.values
-					?? []
-				),
-			)}
+					})}
+				placeholderText="Loading committees…"
+			>
+				{#snippet children(committees)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BeaconSyncCommittee}
 				id={`${id}-items`}
 				href={href}
-				getKey={(committee) => stringify(committee[EntityMetaKey.Selector])}
-				resource={committees}
+				getKey={(committee) => stringify(committee.entitySelector)}
+				items={committees.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -97,12 +91,14 @@
 
 				{#snippet Item({ item: committee })}
 					<BeaconSyncCommitteeView
-						selector={committee[EntityMetaKey.Selector]}
+						selector={committee.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

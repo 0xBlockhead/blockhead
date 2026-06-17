@@ -37,22 +37,24 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+	
 	const href = $derived(
 		hrefProp ?? resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
 			hex: selector.hex,
-		}),
+		})
 	)
 
-	const evmError = $derived(
-		subscribe(EntityType.EvmError,
-			selector,
-			({ sources: [
-					Source.Openchain_Rest,
-				], fields: { ...(open && ({ signatures: true })) } }),
-		),
-	)
+	const signatures = $derived(proxy(
+		EntityType.EvmError,
+		selector,
+		{
+			sources: [
+				Source.Openchain_Rest,
+			],
+		},
+	).signatures)
 
 
 	// Components
@@ -65,7 +67,7 @@
 <EntityView
 	entityType={EntityType.EvmError}
 	entitySelector={selector}
-	href={href}
+	{href}
 	{layout}
 	bind:open
 	{collapsible}
@@ -79,11 +81,11 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={evmError}
+			resource={signatures}
 			placeholderText="Loading error…"
 		>
-			{#snippet children(evmError)}
-				{evmError.fields.signatures?.[0] ?? selector.hex}
+			{#snippet children(signatures)}
+				{signatures?.[0] ?? selector.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -117,17 +119,17 @@
 				{/if}
 				{#if contentOpen}
 					<ResourceBoundary
-						resource={evmError}
+						resource={signatures}
 						placeholderText="Loading catalog matches…"
 					>
-						{#snippet children(evmError)}
-							{#if evmError.fields.signatures?.length}
+						{#snippet children(signatures)}
+							{#if signatures?.length}
 								<div>
 									<dt>Signatures</dt>
 									<dd>
 										<ul>
-											{#each evmError.fields.signatures as sig (sig)}
-												<li><code>{sig}</code></li>
+											{#each signatures as signature (signature)}
+												<li><code>{signature}</code></li>
 											{/each}
 										</ul>
 									</dd>

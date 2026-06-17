@@ -3,7 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -41,8 +40,10 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -77,53 +78,48 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				({
-					sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					],
-					fields: {
-						[entityFieldReference.fieldName]: {
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+						{
 							sources: [
 								Source.Youtube_Rest,
 								Source.Piped_Rest,
 							],
-							limit,
-						},
-					},
-				})
-			)}
-			<ResourceBoundary
-				resource={parent}
+						}
+					).field(entityFieldReference.fieldName, {
+						sources: [
+							Source.Youtube_Rest,
+							Source.Piped_Rest,
+						],
+						limit,
+					})}
 				placeholderText="Loading comment thread…"
 			>
-				{#snippet children(parent)}
+				{#snippet children(comments)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
 						entityType={EntityType.YouTubeComment}
 						id={`${id}-items`}
 						{title}
-						items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
+						items={comments.entities}
 						placeholderText="Loading comment thread…"
-						getKey={(comment) => stringify(comment[EntityMetaKey.Selector])}
-						getSortValue={(comment) => comment[EntityMetaKey.Selector].commentId}
+						getKey={(comment) => stringify(comment.entitySelector)}
+						getSortValue={(comment) => comment.entitySelector.commentId}
 					>
 						{#snippet Empty()}
 							<p data-text="muted">
-								No comments yet.
-							</p>
+							No comments yet.
+						</p>
 						{/snippet}
 
-						{#snippet Item({
-							item: comment,
-						})}
+						{#snippet Item({ item })}
 							<YouTubeCommentView
-								selector={comment[EntityMetaKey.Selector]}
+								selector={item.entitySelector}
 								layout={EntityLayout.SummaryDetails}
-								open={false}
+
 							/>
 						{/snippet}
 					</EntitiesList>

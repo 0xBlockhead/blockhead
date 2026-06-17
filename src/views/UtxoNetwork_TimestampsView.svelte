@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+		import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,11 +34,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import UtxoNetwork_TimestampView from '$/views/UtxoNetwork_TimestampView.svelte'
 </script>
@@ -62,9 +62,11 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
 						sources: [
 							Source.Blockchair_Rest,
 							Source.Esplora_Rest,
@@ -76,25 +78,20 @@
 							Source.Zcashd_JsonRpc,
 						],
 						limit: 16,
-					},
-				} }),
-			)}
-			{@const timestamps = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.UtxoNetwork_Timestamp>[] => (
-					(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-				),
-			)}
-			<EntitiesList
+					})}
+				placeholderText="Loading timestamps…"
+			>
+				{#snippet children(timestamps)}
+					<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.UtxoNetwork_Timestamp}
 				id={`${id}-items`}
 				href={href}
-				getKey={(timestamp) => stringify(timestamp[EntityMetaKey.Selector])}
-				getSortValue={(timestamp) => -timestamp[EntityMetaKey.Selector].timestampMs}
+				getKey={(timestamp) => stringify(timestamp.entitySelector)}
+				getSortValue={(timestamp) => -timestamp.entitySelector.timestampMs}
 				open={true}
-				resource={timestamps}
+				items={timestamps.entities}
 				{title}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -106,12 +103,14 @@
 
 				{#snippet Item(context)}
 					<UtxoNetwork_TimestampView
-						selector={context!.item[EntityMetaKey.Selector]}
+						selector={context!.item.entitySelector}
 						layout={EntityLayout.Summary}
-						open={false}
+
 					/>
 				{/snippet}
 			</EntitiesList>
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

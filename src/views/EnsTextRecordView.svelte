@@ -14,7 +14,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,15 +32,7 @@
 		recordId: string
 	} = $props()
 
-	const ens = $derived(
-		subscribe(EntityType.EnsName,
-			selector,
-			({ sources: [
-				Source.Voltaire_JsonRpc,
-				Source.TheGraph_Graphql,
-			], fields: { textRecords: true } }),
-		)
-	)
+	
 
 
 	// (Derived)
@@ -101,7 +93,13 @@
 	{#snippet Content()}
 		<ResourceBoundary
 			placeholderText="Loading text record…"
-			resource={ens}
+			resource={proxy(EntityType.EnsName,
+					selector,
+					({ sources: [
+						Source.Voltaire_JsonRpc,
+						Source.TheGraph_Graphql,
+					], fields: { textRecords: true } }),
+				)}
 		>
 			{#snippet children(ens)}
 				{@const recordValue = ens.fields.textRecords?.[recordId]}

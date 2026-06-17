@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -37,11 +35,12 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
@@ -66,45 +65,45 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const network = subscribe(EntityType.EvmNetwork,
-				entityFieldReference.selector,
-				({ fields: { $$contracts: ({ sources: [Source.Blockscout_Rest] }) } }),
-			)}
-			{@const contracts = derive(
-				network,
-				(network): readonly Entity<typeof schema, EntityType.EvmContract>[] => (
-					(network.fields.$$contracts?.values ?? [])
-				),
-			)}
 			{#key stringify(entityFieldReference.selector)}
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.EvmContract}
-					id={`${id}-items`}
-					href={href}
-					getKey={(contract) => stringify(contract[EntityMetaKey.Selector])}
-					getSortValue={(contract) => contract[EntityMetaKey.Selector].address}
+				<ResourceBoundary
+					resource={proxy(EntityType.EvmNetwork, entityFieldReference.selector)
+						.field('$$contracts', {
+							sources: [Source.Blockscout_Rest],
+						})}
 					placeholderText="Loading contracts…"
-					resource={contracts}
-					{title}
-					UnorderedListProps={{ orientation: ListOrientation.Column }}
-					open={true}
 				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No verified contracts yet.
-						</p>
-					{/snippet}
+					{#snippet children(contracts)}
+						<EntitiesList
+							collapsible={false}
+							showSummary={false}
+							entityType={EntityType.EvmContract}
+							id={`${id}-items`}
+							href={href}
+							getKey={(contract) => stringify(contract.entitySelector)}
+							getSortValue={(contract) => contract.entitySelector.address}
+							placeholderText="Loading contracts…"
+							items={contracts.entities}
+							{title}
+							UnorderedListProps={{ orientation: ListOrientation.Column }}
+							open={true}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">
+									No verified contracts yet.
+								</p>
+							{/snippet}
 
-					{#snippet Item({ item: contract })}
-						<EvmContractView
-							selector={contract[EntityMetaKey.Selector]}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
+							{#snippet Item({ item: contract })}
+								<EvmContractView
+									selector={contract.entitySelector}
+									layout={EntityLayout.Summary}
+
+								/>
+							{/snippet}
+						</EntitiesList>
 					{/snippet}
-				</EntitiesList>
+				</ResourceBoundary>
 			{/key}
 		{/if}
 	{/snippet}

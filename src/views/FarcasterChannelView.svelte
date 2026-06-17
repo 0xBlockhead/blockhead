@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,7 +36,7 @@
 	> = $props()
 
 	const channel = $derived(
-		subscribe(EntityType.FarcasterChannel,
+		proxy(EntityType.FarcasterChannel,
 			selector,
 			({ sources: [
 				Source.Farcaster_Rest,
@@ -241,9 +241,9 @@
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
 							{#snippet children(channel)}
-								{#if channel.fields.$$moderators?.values.length}
+								{#if channel.fields.$moderators?.values.length}
 									<ul>
-										{#each channel.fields.$$moderators.values as mod (String(mod[EntityMetaKey.Selector].fid))}
+										{#each channel.fields.$moderators.values as mod (String(mod[EntityMetaKey.Selector].fid))}
 											<li>
 												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
 													userId: String(mod[EntityMetaKey.Selector].fid),

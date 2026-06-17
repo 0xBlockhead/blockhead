@@ -2,9 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -13,7 +11,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		entityFieldReference,
@@ -36,12 +34,13 @@
 		>
 	> = $props()
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BittensorSubnetView from '$/views/BittensorSubnetView.svelte'
 </script>
 
@@ -62,49 +61,46 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ fields: {
-					[entityFieldReference.fieldName]: {
-						sources: [
-							Source.Bittensor_JsonRpc,
-						],
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+					).field(entityFieldReference.fieldName, {
+						sources: [Source.Bittensor_JsonRpc],
 						limit: 32,
-					},
-				} }),
-			)}
-			{@const subnets = derive(
-				parent,
-				(parent): readonly Entity<typeof schema, EntityType.BittensorSubnet>[] => (
-					(parent.fields[entityFieldReference.fieldName]?.values ?? [])
-				),
-			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.BittensorSubnet}
-				id={`${id}-items`}
-				href={href}
-				getKey={(subnet) => stringify(subnet[EntityMetaKey.Selector])}
-				getSortValue={(subnet) => subnet[EntityMetaKey.Selector].netuid}
-				open={true}
-				resource={subnets}
-				{title}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
+					})}
+				placeholderText="Loading subnets…"
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No subnets listed yet.
-					</p>
-				{/snippet}
+				{#snippet children(subnets)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.BittensorSubnet}
+						id={`${id}-items`}
+						href={href}
+						getKey={(subnet) => stringify(subnet.entitySelector)}
+						getSortValue={(subnet) => subnet.entitySelector.netuid}
+						open={true}
+						items={subnets.entities}
+						{title}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No subnets listed yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item(context)}
-					<BittensorSubnetView
-						selector={context!.item[EntityMetaKey.Selector]}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+						{#snippet Item({ item })}
+							<BittensorSubnetView
+							selector={item.entitySelector}
+							layout={EntityLayout.Summary}
+
+						/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>

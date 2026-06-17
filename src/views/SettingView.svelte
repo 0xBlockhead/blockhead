@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,9 +32,7 @@
 		never
 	> = $props()
 
-	const global = subscribe(EntityType._Global,
-		selector,
-		({ sources: [
+	const global = $derived(proxy(EntityType._Global, selector, ({ sources: [
 				Source.Local_Internal,
 				...(
 					open ?
@@ -42,8 +40,7 @@
 					:
 						[]
 				),
-			], fields: { ...(open ? ({ duneCreditsUsed: true, duneCreditsIncluded: true }) : ({  })) } }),
-	)
+			], fields: { ...(open ? ({ duneCreditsUsed: true, duneCreditsIncluded: true }) : ({  })) } })))
 
 
 	// Components

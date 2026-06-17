@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -28,12 +28,7 @@
 		>
 	> = $props()
 
-	const block = subscribe(EntityType.PolkadotBlock,
-		selector,
-		({ sources: [
-				Source.SubstrateSidecar_Rest,
-			], fields: { hash: true, $$extrinsics: true, $$events: true, ...(open && ({ $parent: true, stateRoot: true, extrinsicsRoot: true })) } }),
-	)
+	
 
 
 	// Components
@@ -48,10 +43,10 @@
 	entityType={EntityType.PolkadotBlock}
 	entitySelector={selector}
 	href={
-		'networkSlug' in selector.$network ?
-			`/network/${selector.$network.networkSlug}/blocks/${selector.blockNumber.toString()}`
-		:
+		'caip2' in selector.$network ?
 			`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/blocks/${selector.blockNumber.toString()}`
+		:
+			`/network/${selector.$network.slug}/blocks/${selector.blockNumber.toString()}`
 	}
 	title={`Block #${selector.blockNumber.toString()}`}
 	idDragPlainText={selector.blockNumber.toString()}
@@ -82,17 +77,22 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={block}
+			resource={proxy(EntityType.PolkadotBlock,
+					selector,
+					({ sources: [
+							Source.SubstrateSidecar_Rest,
+						], fields: { hash: true, $$extrinsics: true, $$events: true, ...(open && ({ $parent: true, stateRoot: true, extrinsicsRoot: true })) } }),
+				)}
 			placeholderText="Loading Polkadot block…"
 		>
 			{#snippet children(block)}
 				<dl data-column-item="center">
-					{#if selector.hash != null || block.fields.hash != null}
+					{#if ('hash' in selector && selector.hash != null) || block.fields.hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={selector.hash ?? block.fields.hash}
+									value={'hash' in selector ? selector.hash : block.fields.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

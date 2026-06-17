@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const litecoinMwebTransaction = subscribe(EntityType.LitecoinMwebTransaction,
-		selector,
-		({ fields: { kernelOffset: true } }),
-	)
+	
 
 
 	// Components
@@ -64,7 +61,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={litecoinMwebTransaction}
+			resource={proxy(EntityType.LitecoinMwebTransaction, selector, ({ fields: { kernelOffset: true } }))}
 			placeholderText={`Loading Litecoin MWEB Transaction...`}
 		>
 			{#snippet children(litecoinMwebTransaction)}

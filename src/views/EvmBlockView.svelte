@@ -3,7 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -11,18 +10,20 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]', {
-			caip2Namespace: selector.$network.caip2.namespace,
-			caip2Reference: selector.$network.caip2.reference,
-			blockNumber: selector.blockNumber.toString(),
-		}),
+		href = 'blockNumber' in selector ?
+			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber]', {
+				caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
+				blockNumber: selector.blockNumber.toString(),
+			})
+		:
+			undefined,
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -40,31 +41,19 @@
 		>
 	> = $props()
 
-	const block = $derived(
-		subscribe(
-			EntityType.EvmBlock,
-			selector,
-			{
-				sources: [
-					Source.Voltaire_JsonRpc,
-				],
-				fields: {
-					hash: true,
-					timestamp: true,
-					transactionCount: true,
-					...(open && {
-						gasUsed: true,
-						gasLimit: true,
-						baseFeePerGas: true,
-						blobGasUsed: true,
-						excessBlobGas: true,
-						$parent: true,
-						$miner: true,
-					}),
-				},
-			},
-		),
-	)
+	const block = $derived(proxy(EntityType.EvmBlock, selector, {
+		sources: [Source.Voltaire_JsonRpc],
+	}))
+	const hash = $derived(block.hash)
+	const timestamp = $derived(block.timestamp)
+	const transactionCount = $derived(block.transactionCount)
+	const gasUsed = $derived(block.gasUsed)
+	const gasLimit = $derived(block.gasLimit)
+	const baseFeePerGas = $derived(block.baseFeePerGas)
+	const blobGasUsed = $derived(block.blobGasUsed)
+	const excessBlobGas = $derived(block.excessBlobGas)
+	const parent = $derived(block.$parent)
+	const miner = $derived(block.$miner)
 
 
 	// (Derived)
@@ -92,15 +81,15 @@
 	entityType={EntityType.EvmBlock}
 	entitySelector={selector}
 	href={href}
-	title={`Block #${String(selector.blockNumber)}`}
-	idDragPlainText={String(selector.blockNumber)}
+	title={'blockNumber' in selector ? `Block #${String(selector.blockNumber)}` : `Block ${selector.hash}`}
+	idDragPlainText={'blockNumber' in selector ? String(selector.blockNumber) : selector.hash}
 	bind:open
 	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(selector.blockNumber)}
+			{'blockNumber' in selector ? `#${String(selector.blockNumber)}` : selector.hash}
 		</span>
 	{/snippet}
 
@@ -108,7 +97,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Block </span>
 			<span data-badge="small">
-				#{String(selector.blockNumber)}
+				{'blockNumber' in selector ? `#${String(selector.blockNumber)}` : selector.hash}
 			</span>
 		</span>
 	{/snippet}
@@ -137,9 +126,9 @@
 							placeholderText="Loading block…"
 						>
 							{#snippet children(block)}
-								{#if block.fields.hash}
+								{#if block.hash}
 									<TruncatedValue
-										value={block.fields.hash}
+										value={block.hash}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -156,8 +145,8 @@
 							placeholderText="Loading block…"
 						>
 							{#snippet children(block)}
-								{#if block.fields.transactionCount !== undefined}
-									<NumberValue value={block.fields.transactionCount} />
+								{#if block.transactionCount !== undefined}
+									<NumberValue value={block.transactionCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -172,9 +161,9 @@
 							placeholderText="Loading block…"
 						>
 							{#snippet children(block)}
-								{#if block.fields.timestamp !== undefined}
+								{#if block.timestamp !== undefined}
 									<Timestamp
-										timestamp={block.fields.timestamp}
+										timestamp={block.timestamp}
 									/>
 								{/if}
 							{/snippet}
@@ -191,8 +180,8 @@
 								placeholderText="Loading block…"
 							>
 								{#snippet children(block)}
-									{#if block.fields.gasUsed !== undefined}
-										<NumberValue value={block.fields.gasUsed} />
+									{#if block.gasUsed !== undefined}
+										<NumberValue value={block.gasUsed} />
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -209,8 +198,8 @@
 								placeholderText="Loading block…"
 							>
 								{#snippet children(block)}
-									{#if block.fields.gasLimit !== undefined}
-										<NumberValue value={block.fields.gasLimit} />
+									{#if block.gasLimit !== undefined}
+										<NumberValue value={block.gasLimit} />
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -227,8 +216,8 @@
 								placeholderText="Loading block…"
 							>
 								{#snippet children(block)}
-									{#if block.fields.baseFeePerGas !== undefined}
-										<NumberValue value={block.fields.baseFeePerGas} />
+									{#if block.baseFeePerGas !== undefined}
+										<NumberValue value={block.baseFeePerGas} />
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -245,8 +234,8 @@
 								placeholderText="Loading block…"
 							>
 								{#snippet children(block)}
-									{#if block.fields.blobGasUsed !== undefined}
-										<NumberValue value={block.fields.blobGasUsed} />
+									{#if block.blobGasUsed !== undefined}
+										<NumberValue value={block.blobGasUsed} />
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -263,8 +252,8 @@
 								placeholderText="Loading block…"
 							>
 								{#snippet children(block)}
-									{#if block.fields.excessBlobGas !== undefined}
-										<NumberValue value={block.fields.excessBlobGas} />
+									{#if block.excessBlobGas !== undefined}
+										<NumberValue value={block.excessBlobGas} />
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -281,13 +270,13 @@
 								placeholderText="Loading block…"
 							>
 								{#snippet children(block)}
-									{#if block.fields.$parent}
-										<EvmBlockView
-											selector={block.fields.$parent[EntityMetaKey.Selector]}
-											layout={EntityLayout.Value}
-											open={false}
-										/>
-									{/if}
+									{#if block.$parent}
+											<EvmBlockView
+												selector={block.$parent.entitySelector}
+												layout={EntityLayout.Value}
+												open={false}
+											/>
+										{/if}
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -303,15 +292,16 @@
 								placeholderText="Loading block…"
 							>
 								{#snippet children(block)}
-									{#if block.fields.$miner}
+									{#if block.$miner}
 										<EvmNetworkAccountView
 											selector={{
 												$network: selector.$network,
-												$actor: block.fields.$miner[EntityMetaKey.Selector],
+												$actor: block.$miner.entitySelector,
 											}}
 											layout={EntityLayout.Title}
+
 											open={false}
-										/>
+											/>
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -361,12 +351,13 @@
 						placeholderText="Loading chain info…"
 					>
 						{#snippet children(block)}
-							{#if block.fields.$parent}
-								<EvmBlockView
-									selector={block.fields.$parent[EntityMetaKey.Selector]}
-									layout={EntityLayout.Value}
-								/>
-							{/if}
+							{#if block.$parent}
+									<EvmBlockView
+										selector={block.$parent.entitySelector}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								{/if}
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
@@ -374,16 +365,21 @@
 				{#snippet SectionTransactions({ id: _txId, label: _txLabel })}
 					<EvmTransactionsView
 						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/transactions', {
-							caip2Namespace: selector.$network.caip2.namespace,
-							caip2Reference: selector.$network.caip2.reference,
-							blockNumber: String(selector.blockNumber),
+							href={'blockNumber' in selector ?
+								resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber]/(block)/transactions', {
+									caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
+									blockNumber: String(selector.blockNumber),
+								})
+						:
+							undefined}
+						resource={block.field('$$transactions', {
+							sources: [
+								Source.Blockscout_Rest,
+								Source.Voltaire_JsonRpc,
+							],
+							limit: 100,
 						})}
-						entityFieldReference={{
-							entityType: EntityType.EvmBlock,
-							selector,
-							fieldName: '$$transactions',
-						}}
+						blockSelector={'blockNumber' in selector ? selector : undefined}
 						id="transactions"
 						collapsible={false}
 						open={true}

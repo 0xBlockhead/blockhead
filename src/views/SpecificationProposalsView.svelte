@@ -2,20 +2,17 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationProposal.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 
 
 	// Context
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		title = 'Proposals',
@@ -46,7 +43,6 @@
 		>
 	> = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
 
 	const specificationProposalSources = [
 		Source.BitcoinBips_Github,
@@ -127,89 +123,58 @@
 	)
 
 
+	
+
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ProposalView from '$/views/SpecificationProposalView.svelte'
 </script>
 
-
-<EntitiesList
-	{...EntitiesListProps}
-	entityType={EntityType.SpecificationProposal}
-	{title}
-	bind:open
-	{id}
-	href={href}
-	{collapsible}
-	layout={EntitiesListLayout.Default}
->
-	{#snippet TypeAnnotationTooltip()}
-			<p>
-				These proposal cards come from public standards repositories for Bitcoin BIPs, Zcash ZIPs, Filecoin FIPs, Solana SIMDs, CAIPs, ENSIPs, and Ethereum EIPs/ERCs.
-			</p>
-			<p>
-				They document design specs—not live on-chain vote tallies for a particular DAO.
-			</p>
-		{/snippet}
-
-	{#snippet body()}
-		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.selector,({ sources: [
+<ResourceBoundary resource={proxy(
+		entityFieldReference.entityType,
+		entityFieldReference.selector,
+		{
+			sources: [
 				Source.Constants_Internal,
 				...selectedSpecificationProposalSources,
-			], fields: { [entityFieldReference.fieldName]: {
-				sources: selectedSpecificationProposalSources,
-				limit: 2048,
-			},
-		} }),
-	)}
-			{@const proposals = derive(
-		parent,
-		(parent) => {
-			const specificationProposals: readonly Entity<typeof schema, EntityType.SpecificationProposal>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
-			return (
-				specificationProposals
-					.filter((proposal) => (
-						(effectiveFilterRealm == null || proposal[EntityMetaKey.Selector].realm === effectiveFilterRealm)
-						&& (effectiveFilterCategory == null || proposal[EntityMetaKey.Selector].category === effectiveFilterCategory)
-					))
-					.map((proposal) => ({
-						result: proposal,
-					}))
-			)
-		},
-	)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.SpecificationProposal}
-				id={`${id}-items`}
-				href={href}
-				{title}
-				getKey={(row) => stringify(row.result[EntityMetaKey.Selector])}
-				getSortValue={(row) => row.result[EntityMetaKey.Selector].number}
-				placeholderKeys={new SvelteSet<string | number>()}
-				resource={proposals}
-				open={true}
-			>
-				{#snippet Empty()}
-						<p data-text="muted">
-							No proposals in this slice yet.
-						</p>
-					{/snippet}
+			],
+		}
+	).field(entityFieldReference.fieldName, {
+		sources: selectedSpecificationProposalSources,
+		limit: 2048,
+	})}>
+	{#snippet children(proposals)}
+		<EntitiesList
+			{...EntitiesListProps}
+			entityType={EntityType.SpecificationProposal}
+			{title}
+			bind:open
+			{id}
+			href={href}
+			{collapsible}
+			layout={EntitiesListLayout.Default}
+			items={proposals.entities}
+			getKey={(proposal) => stringify(proposal.entitySelector)}
+		>
+			{#snippet TypeAnnotationTooltip()}
+				<p>
+					These proposal cards come from public standards repositories for Bitcoin BIPs, Zcash ZIPs, Filecoin FIPs, Solana SIMDs, CAIPs, ENSIPs, and Ethereum EIPs/ERCs.
+				</p>
+				<p>
+					They document design specs—not live on-chain vote tallies for a particular DAO.
+				</p>
+			{/snippet}
 
-				{#snippet Item({ item })}
-						{@const proposalEntitySelector = item.result[EntityMetaKey.Selector]}
-						<ProposalView
-							selector={proposalEntitySelector}
-							layout={EntityLayout.SummaryInline}
-							open={false}
-						/>
-					{/snippet}
+			{#snippet Item({ item })}
+				<ProposalView
+					selector={item.entitySelector}
+					layout={EntityLayout.Summary}
 
-			</EntitiesList>
-		{/if}
+					showTypeAnnotation={false}
+				/>
+			{/snippet}
+		</EntitiesList>
 	{/snippet}
-</EntitiesList>
+</ResourceBoundary>

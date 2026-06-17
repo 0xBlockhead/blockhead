@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,10 +26,7 @@
 		>
 	> = $props()
 
-	const account = subscribe(EntityType.TronAccount,
-		selector,
-		({ fields: { name: true, balanceSun: true, totalTransactionCount: true, isContract: true, ...(open && ({ createdTimestampMs: true, latestOperationTimestampMs: true, bandwidthRemaining: true, energyRemaining: true })) } }),
-	)
+	
 
 
 	// Components
@@ -58,7 +55,10 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={account}
+			resource={proxy(EntityType.TronAccount,
+					selector,
+					({ fields: { name: true, balanceSun: true, totalTransactionCount: true, isContract: true, ...(open && ({ createdTimestampMs: true, latestOperationTimestampMs: true, bandwidthRemaining: true, energyRemaining: true })) } }),
+				)}
 			placeholderText="Loading TRON account..."
 		>
 			{#snippet children(account)}

@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -36,8 +35,10 @@
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
+
+	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -73,70 +74,66 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const parent = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				entityFieldReference.entityType === EntityType.YouTubeNetwork ?
-					{
-						sources: [
-							Source.Constants_Internal,
-							Source.Youtube_Rest,
-						],
-						fields: {
-							[entityFieldReference.fieldName]: {
+			<ResourceBoundary
+				resource={proxy(
+						entityFieldReference.entityType,
+						entityFieldReference.selector,
+						(entityFieldReference.entityType === EntityType.YouTubeNetwork ?
+							{
 								sources: [
 									Source.Constants_Internal,
 									Source.Youtube_Rest,
 								],
-								limit,
-							},
-						},
-					}
-				:
-					{
-						sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						],
-						fields: {
-							[entityFieldReference.fieldName]: {
+							}
+						:
+							{
 								sources: [
 									Source.Youtube_Rest,
 									Source.Piped_Rest,
 								],
-								limit,
-							},
-						},
-					},
-			)}
-			<ResourceBoundary
-				resource={parent}
+							})
+					).field(entityFieldReference.fieldName, {
+						...(entityFieldReference.entityType === EntityType.YouTubeNetwork ?
+							{
+								sources: [
+									Source.Constants_Internal,
+									Source.Youtube_Rest,
+								],
+							}
+						:
+							{
+								sources: [
+									Source.Youtube_Rest,
+									Source.Piped_Rest,
+								],
+							}),
+						limit,
+					})}
 				placeholderText="Loading playlists…"
 			>
-				{#snippet children(parent)}
+				{#snippet children(playlists)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
 						entityType={EntityType.YouTubePlaylist}
 						id={`${id}-items`}
 						{title}
-						items={parent.fields[entityFieldReference.fieldName]?.values ?? []}
+						items={playlists.entities}
 						placeholderText="Loading playlists…"
-						getKey={(playlist) => stringify(playlist[EntityMetaKey.Selector])}
-						getSortValue={(playlist) => stringify(playlist[EntityMetaKey.Selector])}
+						getKey={(playlist) => stringify(playlist.entitySelector)}
+						getSortValue={(playlist) => stringify(playlist.entitySelector)}
 					>
 						{#snippet Empty()}
 							<p data-text="muted">
-								No playlists in this scope yet.
-							</p>
+							No playlists in this scope yet.
+						</p>
 						{/snippet}
 
-						{#snippet Item({
-							item: playlist,
-						})}
+						{#snippet Item({ item })}
 							<YouTubePlaylistView
-								selector={playlist[EntityMetaKey.Selector]}
+								selector={item.entitySelector}
 								layout={EntityLayout.SummaryDetails}
-								open={false}
+
 							/>
 						{/snippet}
 					</EntitiesList>

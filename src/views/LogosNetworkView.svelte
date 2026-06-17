@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -23,12 +23,9 @@
 		open?: boolean
 	} = $props()
 
-	const network = subscribe(EntityType.Network,
-		selector,
-		({ sources: [
+	const network = $derived(proxy(EntityType.Network, selector, ({ sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true } }),
-	)
+			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true } })))
 
 
 	// (Derived)

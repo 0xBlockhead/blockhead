@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -9,12 +8,10 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import { normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -43,12 +40,14 @@
 		>
 	> = $props()
 
+	
+
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import EvmTopicView from '$/views/EvmTopicView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import EvmLogView from '$/views/EvmLogView.svelte'
 </script>
 
 
@@ -76,89 +75,54 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmLog}
-				getKey={(line) => stringify(line.value[EntityMetaKey.Selector])}
-				getSortValue={(line) => line.value[EntityMetaKey.Selector].logIndex}
-				placeholderText="Loading receipt logs…"
-				resource={derive(
-					subscribe(
+			<ResourceBoundary
+				resource={proxy(
 						entityFieldReference.entityType,
 						entityFieldReference.selector,
-						{
-							fields: {
-								[entityFieldReference.fieldName]: {
-									sources: [
-										Source.Blockscout_Rest,
-										Source.Voltaire_JsonRpc,
-									],
-									fields: {
-										topics: true,
-									},
-								},
-							},
+					).field(entityFieldReference.fieldName, {
+						sources: [
+							Source.Blockscout_Rest,
+							Source.Voltaire_JsonRpc,
+						],
+						fields: {
+							topics: true,
 						},
-					),
-					(parent) => (
-						[...(parent.fields.$$logs?.values ?? [])]
-							.map((value, index) => ({
-								value: {
-									[EntityMetaKey.Selector]: value[EntityMetaKey.Selector],
-									topics: parent.fields.$$logs?.entities[index]?.fields.topics ?? [],
-								},
-							}))
-					),
-				)}
-				{title}
-				href={EntitiesListProps.href ?? ''}
-				id={`${EntitiesListProps.id ?? 'receipt-logs'}:items`}
-				open={true}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
+					})}
+				placeholderText="Loading receipt logs…"
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No receipt logs on this transaction.
-					</p>
-				{/snippet}
-
-				{#snippet Item({ item })}
-					{@const line = item.value}
-					{@const logId = line[EntityMetaKey.Selector]}
-					<EntityView
-						entityType={EntityType.EvmLog}
-						entitySelector={logId}
-						layout={EntityLayout.Summary}
+				{#snippet children(logs)}
+					<EntitiesList
 						collapsible={false}
-						showTypeAnnotation={false}
+						showSummary={false}
+						entityType={EntityType.EvmLog}
+						getKey={(log) => stringify(log.entitySelector)}
+						getSortValue={(log) => log.entitySelector.logIndex}
+						placeholderText="Loading receipt logs…"
+						items={logs.entities}
+						{title}
+						href={EntitiesListProps.href ?? ''}
+						id={`${EntitiesListProps.id ?? 'receipt-logs'}:items`}
+						open={true}
+						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
-						{#snippet Value()}
-							<span data-badge="small">
-								#{logId.logIndex}
-							</span>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No receipt logs on this transaction.
+							</p>
 						{/snippet}
 
-						{#snippet Title()}
-							<span data-row="wrap gap-2 align-baseline">
-								<span data-row="inline align-center gap-2 wrap">
-									<span>Receipt log </span>
-									<span data-badge="small">
-										#{logId.logIndex}
-									</span>
-								</span>
-								{#if line.topics[0]?.startsWith('0x')}
-									<EvmTopicView
-										selector={{ hex: normalizeEvmTopicHex(line.topics[0]) }}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
-								{/if}
-							</span>
+						{#snippet Item({ item })}
+							<EvmLogView
+								selector={item.entitySelector}
+								layout={EntityLayout.Summary}
+
+								collapsible={false}
+								showTypeAnnotation={false}
+							/>
 						{/snippet}
-					</EntityView>
+					</EntitiesList>
 				{/snippet}
-			</EntitiesList>
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntitiesList>
