@@ -5,8 +5,8 @@ import {
 	type MarketIdLabelInput,
 } from '$/constants/Market.ts'
 import {
+	catalogCoinSpotUsdMarkets,
 	catalogCoinSpotUsdMarketByCoinId,
-	catalogSpotMarketsWithCurrencyAsQuote,
 	type CatalogCoinCurrencyMarket,
 	type CatalogCurrencyCurrencyMarket,
 	catalogSpotMarketsWithCurrencyAsBase,
@@ -21,10 +21,8 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { stringify } from 'devalue'
 import { _GlobalSelector } from '$/schema/_Global.ts'
-import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
 import { CurrencySelector } from '$/schema/Currency.ts'
-import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
 
 const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinCurrencyMarket) => ({
 	$base: {
@@ -60,38 +58,6 @@ export default {
 	source: Source.TradingView_Rest,
 
 	resolvers: [
-		defineResolver(Source.TradingView_Rest, {
-			entityType: EntityType.Market_Timestamp,
-			resolve: {
-				[Market_TimestampSelector.MarketTimestampMsFeedKey]: async ({ $market }) => {
-					if ($market.marketKind !== MarketKind.Spot)
-						throw new Error('TradingView_Rest: Market_Timestamp is spot-only')
-					if ($market.$base.kind !== MarketAssetKind.Coin)
-						throw new Error('TradingView_Rest: market base must be catalog coin')
-					if (stringify(marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId])) !== stringify($market))
-						throw new Error('TradingView_Rest: Market_Timestamp is catalog coin USD market only')
-					const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
-					const { getCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
-					const market = tradingViewMarketByCoinId[$market.$base.$coin.coinId]
-					if (market == null) throw new Error('TradingView_Rest: coin market not mapped')
-					const quote = (await getCryptoQuotes([market.ticker])).find((cryptoQuote) => cryptoQuote.ticker === market.ticker)
-					if (quote == null) throw new Error('TradingView_Rest: quote not returned')
-
-					return {
-						price: BigInt(Math.round(quote.price * 1e8)),
-						transport: 'tradingview-crypto-quotes-usd-1e8',
-						providerAssetId: market.ticker,
-					}
-				}
-			},
-		})({
-			fields: {
-				price: (snapshot) => snapshot.price,
-				transport: (snapshot) => snapshot.transport,
-				providerAssetId: (snapshot) => snapshot.providerAssetId,
-			},
-		}),
-
 		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
@@ -218,8 +184,8 @@ export default {
 					const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 					const markets = (
 						iso4217 === Iso4217.USD ?
-							catalogSpotMarketsWithCurrencyAsQuote.filter((catalogMarket) => (
-							tradingViewMarketByCoinId[catalogMarket.baseCoinId] != null
+							catalogCoinSpotUsdMarkets.filter((catalogMarket) => (
+								tradingViewMarketByCoinId[catalogMarket.baseCoinId] != null
 							))
 						:
 							[]
@@ -257,38 +223,5 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.TradingView_Rest, {
-			entityType: EntityType.MarketPrice,
-			resolve: {
-				[MarketPriceSelector.Market]: async ({ $market }) => {
-					if ($market.marketKind !== MarketKind.Spot)
-						throw new Error('TradingView_Rest: MarketPrice $$quotes is spot-only')
-					if ($market.$base.kind !== MarketAssetKind.Coin)
-						throw new Error('TradingView_Rest: market base must be catalog coin')
-					if (stringify(marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId])) !== stringify($market))
-						throw new Error('TradingView_Rest: MarketPrice $$quotes is catalog coin USD market only')
-					const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
-					const { getCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
-					const market = tradingViewMarketByCoinId[$market.$base.$coin.coinId]
-					if (market == null) throw new Error('TradingView_Rest: coin market not mapped')
-					const quote = (await getCryptoQuotes([market.ticker])).find((cryptoQuote) => cryptoQuote.ticker === market.ticker)
-					if (quote == null) throw new Error('TradingView_Rest: quote not returned')
-
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$market: $market,
-								timestampMs: Date.now(),
-								feedKey: market.ticker,
-							},
-						},
-					]
-				}
-			},
-		})({
-			fields: {
-				$$quotes: (snapshot) => snapshot,
-			},
-		}),
 	],
 }

@@ -240,18 +240,18 @@ export const getCoinOhlc = async ({
 	publicEnv,
 	coingeckoId,
 	vs,
-	days,
+	lookbackDayCount,
 }: {
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
 	coingeckoId: string
 	vs: string
-	days: number
+	lookbackDayCount: number
 }): Promise<OhlcCandle[]> => {
 	if (coingeckoId.trim() === '') return []
 
 	const searchParams = new URLSearchParams()
 	searchParams.set('vs_currency', vs)
-	searchParams.set('days', String(days))
+	searchParams.set('days', String(lookbackDayCount))
 
 	const res = await coingeckoRestFetch(
 		publicEnv,

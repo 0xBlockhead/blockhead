@@ -154,6 +154,7 @@
 		},
 		{
 			"files": [
+				"src/state/wallets/adapters/eip1193.ts",
 				"src/**/*.svelte",
 				"src/**/*.svelte.ts",
 				"src/resolvers/**/*.ts",

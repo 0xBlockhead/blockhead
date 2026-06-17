@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
@@ -22,6 +21,8 @@
 
 	// Context
 	import { subscribe } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		title = 'Spot quote index',
@@ -45,6 +46,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -62,10 +65,10 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Each row is one spot or index quote stream for a market pair, venue, provider, and optional feed key.
+			Each row is one spot or index quote stream for a market pair and venue.
 		</p>
 		<p>
-			Open the row for timestamped quote prints on <code>$$quotes</code>. Interval candles live on the market OHLC index.
+			Provider feed identity lives on timestamped quote prints under <code>$$quotes</code>. Interval candles live on the market OHLC index.
 		</p>
 	{/snippet}
 
@@ -77,22 +80,23 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const market = subscribe(entityFieldReference.entityType,
-				entityFieldReference.selector,({ sources: [
-						...marketCatalogFieldSources,
-					], fields: { [entityFieldReference.fieldName]: {
-						sources: marketSpotPriceSources,
-						limit: limit,
-					},
-				} }),
-			)}
 			<ResourceBoundary
-				resource={market}
+				resource={subscribe(entityFieldReference.entityType,
+					entityFieldReference.selector,
+					({
+						sources: [
+							...marketCatalogFieldSources,
+						],
+						fields: {
+							[entityFieldReference.fieldName]: {
+								sources: marketSpotPriceSources,
+								limit: limit,
+							},
+						},
+					})
+				)}
 			>
 				{#snippet children(market)}
-					{@const marketPrices: readonly Entity<typeof schema, EntityType.MarketPrice>[] = (
-						market.fields[entityFieldReference.fieldName]?.values ?? []
-					)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
@@ -100,22 +104,22 @@
 						getKey={(row) => stringify(
 							row.value[EntityMetaKey.Selector],
 						)}
-						getSortValue={(row) => (
-							row.value[EntityMetaKey.Selector].$market.$base.kind === MarketAssetKind.Coin ?
-								row.value[EntityMetaKey.Selector].$market.$base.$coin.coinId
-							:
-								''
-						)}
-						open={true}
-						items={Object.values(
-							Object.groupBy(
-								marketPrices,
-								(price) => stringify(price[EntityMetaKey.Selector]),
-							),
-						)
-							.flatMap((group) => (
-								group == null ?
-									[]
+							getSortValue={(row) => (
+								row.value[EntityMetaKey.Selector].$market.$base.kind === MarketAssetKind.Coin ?
+									row.value[EntityMetaKey.Selector].$market.$base.$coin.coinId
+								:
+									''
+							)}
+							open={true}
+							items={Object.values(
+								Object.groupBy(
+									market.fields[entityFieldReference.fieldName]?.values ?? [],
+									(price) => stringify(price[EntityMetaKey.Selector]),
+								),
+							)
+								.flatMap((group) => (
+									group == null ?
+										[]
 								:
 									[group[0]]
 							))

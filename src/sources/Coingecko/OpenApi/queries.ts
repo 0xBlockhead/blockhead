@@ -8,7 +8,7 @@ import { stringify } from 'devalue'
 
 import { throwHttpError } from '$/lib/http.ts'
 import type { CoinId } from '$/constants/Coin.ts'
-import { MarketAssetKind, coingeckoOhlcDayWindowLengths } from '$/constants/Market.ts'
+import { MarketAssetKind, marketOhlcDayLookbackValues } from '$/constants/Market.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -49,7 +49,7 @@ const coingeckoOpenApiOhlcDaysByWindow = {
 	180: '180',
 	365: '365',
 } as const satisfies Record<
-	(typeof coingeckoOhlcDayWindowLengths)[number] | 180 | 365,
+	(typeof marketOhlcDayLookbackValues)[number] | 180 | 365,
 	'1' | '7' | '14' | '30' | '90' | '180' | '365'
 >
 
@@ -116,17 +116,17 @@ export const getCoinOhlc = async ({
 	publicEnv,
 	coingeckoId,
 	vsCurrency,
-	days,
+	lookbackDayCount,
 }: {
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
 	coingeckoId: string
 	vsCurrency: string
-	days: number
+	lookbackDayCount: number
 }): Promise<OhlcCandle[]> => {
 	if (coingeckoId.trim() === '') return []
 
 	const daysParam = Object.entries(coingeckoOpenApiOhlcDaysByWindow)
-		.find(([windowDays]) => Number(windowDays) === days)?.[1]
+		.find(([windowDays]) => Number(windowDays) === lookbackDayCount)?.[1]
 	if (daysParam == null) return []
 
 	const searchParams = new URLSearchParams()

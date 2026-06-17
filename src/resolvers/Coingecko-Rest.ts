@@ -3,16 +3,17 @@ import type { CoinId } from '$/constants/Coin.ts'
 import {
 	MarketAssetKind,
 	MarketKind,
-	MarketTimeIntervalUnit,
-	coingeckoOhlcDayWindowLengths,
+	marketOhlcDefaultLookbackDayCount,
+	marketOhlcDailyTimeInterval,
+	marketOhlcDayLookbackValues,
 	type MarketIdLabelInput,
 } from '$/constants/Market.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
 import {
+	catalogCoinSpotUsdMarkets,
 	catalogCoinSpotUsdMarketByCoinId,
 	catalogSpotMarketsWithCoinAsQuote,
 	catalogSpotMarketsWithCurrencyAsBase,
-	catalogSpotMarketsWithCurrencyAsQuote,
 	type CatalogCoinCoinMarket,
 	type CatalogCoinCurrencyMarket,
 	type CatalogCurrencyCurrencyMarket,
@@ -141,13 +142,18 @@ export default {
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin_Timestamp,
 			resolve: {
-				[Coin_TimestampSelector.CoinTimestampMs]: async ({ $coin }, context) => {
+				[Coin_TimestampSelector.CoinTimestampMs]: async ({ $coin, timestampMs: timestampMsSelector }, context) => {
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 					const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 					const coingeckoId = idByCoinId[$coin.coinId]
 					if (coingeckoId == null) throw new Error('Coingecko_Rest: coin not mapped')
 					const coin = await getCoin(context.publicEnv, coingeckoId)
 					if (coin == null) throw new Error('Coingecko_Rest: coin not returned by API')
+					const timestampMs = Date.parse(coin.market_data?.last_updated ?? '')
+					if (!Number.isFinite(timestampMs))
+						throw new Error('Coingecko_Rest: coin market-data clock missing')
+					if (timestampMs !== timestampMsSelector)
+						throw new Error('Coingecko_Rest: Coin_Timestamp id does not match market-data clock')
 					return {
 						...(coin.market_data?.market_cap_rank != null
 						&& Number.isFinite(coin.market_data.market_cap_rank) && {
@@ -174,39 +180,6 @@ export default {
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
-				[EvmCoinInstanceSelector.NetworkType]: async ({ $network, type }) => {
-					if (type !== CoinInstanceType.NativeCurrency)
-						throw new Error('Coingecko_Rest: NetworkType supports native currency only')
-
-					const { CoinId } = await import('$/constants/Coin.ts')
-					const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
-					const knownCoinIds = Object.values(CoinId)
-					const chain = (
-						await fetchRpcsJson()
-					)
-						.find((candidateChain) => (
-							candidateChain.chainId === Number($network.caip2.reference)
-						))
-					if (chain == null) throw new Error('Coingecko_Rest: native coin chain not in chainlist')
-
-					const symbol = chain.nativeCurrency.symbol.toUpperCase()
-					const nativeCurrency = {
-						coinId: knownCoinIds.find((candidateCoinId) => candidateCoinId === symbol) ?? CoinId.Unknown,
-						name: chain.nativeCurrency.name,
-						symbol,
-						decimals: chain.nativeCurrency.decimals,
-						slip44: chain.slip44,
-					}
-					const nativeCurrencyName = nativeCurrency.name
-					return {
-						coinId: nativeCurrency.coinId,
-						...(nativeCurrencyName !== '' && { name: nativeCurrencyName }),
-						symbol: nativeCurrency.symbol,
-						decimals: nativeCurrency.decimals,
-						...(nativeCurrency.slip44 != null && { caip19: `eip155:${Number($network.caip2.reference)}/slip44:${nativeCurrency.slip44}` }),
-						$icon: undefined,
-					}
-				},
 				[EvmCoinInstanceSelector.NetworkTypeContract]: async ({ $contract, $network, type }, context) => {
 					if (type !== CoinInstanceType.Erc20Token)
 						throw new Error('Coingecko_Rest: NetworkTypeContract supports ERC-20 only')
@@ -273,7 +246,7 @@ export default {
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
-				[Market_TimestampSelector.MarketTimestampMsFeedKey]: async ({ $market, timestampMs: timestampMsSelector }, context) => {
+				[Market_TimestampSelector.MarketTimestampMsFeedKey]: async ({ $market, feedKey, timestampMs: timestampMsSelector }, context) => {
 					if ($market.marketKind !== MarketKind.Spot)
 						throw new Error('Coingecko_Rest: Market_Timestamp is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
@@ -286,6 +259,8 @@ export default {
 					const coinId = $market.$base.$coin.coinId
 					const coingeckoId = idByCoinId[coinId]
 					if (coingeckoId == null) throw new Error('Coingecko_Rest: coin price not mapped')
+					if (feedKey !== coingeckoId)
+						throw new Error('Coingecko_Rest: Market_Timestamp feedKey does not match Coingecko id')
 
 					const spot = await getCoinMarketSpot(
 						publicEnv,
@@ -327,7 +302,7 @@ export default {
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey]: async ({ $market, timeInterval, timestampMs: timestampMsSelector, feedKey }, context) => {
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market, timeInterval, timestampMs: timestampMsSelector }, context) => {
 					if ($market.marketKind !== MarketKind.Spot)
 						throw new Error('Coingecko_Rest: OHLC is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
@@ -337,10 +312,8 @@ export default {
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 					const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
 					const publicEnv = context.publicEnv
-					if (timeInterval.unit !== MarketTimeIntervalUnit.Day)
-						throw new Error('Coingecko_Rest: OHLC timeInterval must be day-based')
-					if (!coingeckoOhlcDayWindowLengths.some((value) => value === timeInterval.value))
-						throw new Error('Coingecko_Rest: OHLC day window not supported')
+					if (timeInterval.unit !== marketOhlcDailyTimeInterval.unit || timeInterval.value !== marketOhlcDailyTimeInterval.value)
+						throw new Error('Coingecko_Rest: OHLC timeInterval must be daily')
 					const coinId = $market.$base.$coin.coinId
 					const coingeckoId = idByCoinId[coinId]
 					if (coingeckoId == null) throw new Error('Coingecko_Rest: OHLC coin not mapped')
@@ -348,7 +321,7 @@ export default {
 						publicEnv,
 						coingeckoId,
 						vs: 'usd',
-						days: timeInterval.value,
+						lookbackDayCount: marketOhlcDefaultLookbackDayCount,
 					})
 					const ohlcCandle = ohlcCandles.find(([timestampMs]) => (
 						Math.floor(timestampMs) === timestampMsSelector
@@ -358,9 +331,8 @@ export default {
 					return {
 						[EntityMetaKey.Selector]: {
 							$market,
-							timeInterval,
+							timeInterval: marketOhlcDailyTimeInterval,
 							timestampMs: Math.floor(timestampMs),
-							feedKey,
 						} satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>,
 						open: BigInt(Math.round(open * 1e8)),
 						high: BigInt(Math.round(high * 1e8)),
@@ -432,13 +404,16 @@ export default {
 					if (coingeckoId == null) throw new Error('Coingecko_Rest: coin not mapped')
 					const coin = await getCoin(context.publicEnv, coingeckoId)
 					if (coin == null) throw new Error('Coingecko_Rest: coin not returned by API')
+					const timestampMs = Date.parse(coin.market_data?.last_updated ?? '')
+					if (!Number.isFinite(timestampMs))
+						throw new Error('Coingecko_Rest: coin market-data clock missing')
 					return [
 						{
 							[EntityMetaKey.Selector]: {
 								$coin: {
 									coinId,
 								},
-								timestampMs: Date.now(),
+								timestampMs,
 							},
 							...(coin.market_data?.market_cap_rank != null
 							&& Number.isFinite(coin.market_data.market_cap_rank) && {
@@ -522,10 +497,6 @@ export default {
 						0,
 						Math.min(catalogCoinIds.length, Math.max(1, Math.ceil(lim / 24)))
 					)
-					const previewTimeInterval = {
-						unit: MarketTimeIntervalUnit.Day,
-						value: 7,
-					}
 					return (
 						(await Promise.all(previewCoinIds.map(async (coinId) => {
 						const $market = marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId])
@@ -537,14 +508,13 @@ export default {
 							publicEnv,
 							coingeckoId,
 							vs: 'usd',
-							days: previewTimeInterval.value,
+							lookbackDayCount: 7,
 						})
 						return ohlcCandles.map(([timestampMs, open, high, low, close]) => ({
 							[EntityMetaKey.Selector]: {
 								$market,
-								timeInterval: previewTimeInterval,
+								timeInterval: marketOhlcDailyTimeInterval,
 								timestampMs: Math.floor(timestampMs),
-								feedKey: coingeckoId,
 							} satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>,
 							open: BigInt(Math.round(open * 1e8)),
 							high: BigInt(Math.round(high * 1e8)),
@@ -707,7 +677,7 @@ export default {
 					return (
 						(
 						iso4217 === Iso4217.USD ?
-							catalogSpotMarketsWithCurrencyAsQuote.filter((catalogMarket) => (
+							catalogCoinSpotUsdMarkets.filter((catalogMarket) => (
 								idByCoinId[catalogMarket.baseCoinId] != null
 							))
 						:
@@ -840,23 +810,18 @@ export default {
 					if (coingeckoId == null) throw new Error('Coingecko_Rest: OHLC coin not mapped')
 					const lim = resolverContextRowLimit(context)
 					return (
-						(await Promise.all(coingeckoOhlcDayWindowLengths.map(async (value) => {
-						const timeInterval = {
-							unit: MarketTimeIntervalUnit.Day,
-							value,
-						}
+						(await Promise.all([marketOhlcDayLookbackValues.find((value) => value >= lim) ?? marketOhlcDefaultLookbackDayCount].map(async (value) => {
 						const ohlcCandles = await getCoinOhlc({
 							publicEnv,
 							coingeckoId,
 							vs: 'usd',
-							days: value,
+							lookbackDayCount: value,
 						})
 						return ohlcCandles.map(([timestampMs, open, high, low, close]) => ({
 							[EntityMetaKey.Selector]: {
 								$market: entitySelector,
-								timeInterval,
+								timeInterval: marketOhlcDailyTimeInterval,
 								timestampMs: Math.floor(timestampMs),
-								feedKey: coingeckoId,
 							} satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>,
 							open: BigInt(Math.round(open * 1e8)),
 							high: BigInt(Math.round(high * 1e8)),
@@ -926,7 +891,7 @@ export default {
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey]: async ({ $market }: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 					{
 						[EntityMetaKey.Selector]: $market,
 					}

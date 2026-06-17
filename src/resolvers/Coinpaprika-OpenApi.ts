@@ -6,15 +6,15 @@ import type { CoinId } from '$/constants/Coin.ts'
 import {
 	MarketAssetKind,
 	MarketKind,
-	MarketTimeIntervalUnit,
+	marketOhlcDailyTimeInterval,
 	type MarketIdLabelInput,
 } from '$/constants/Market.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
 import {
+	catalogCoinSpotUsdMarkets,
 	catalogCoinSpotUsdMarketByCoinId,
 	catalogSpotMarketsWithCoinAsQuote,
 	catalogSpotMarketsWithCurrencyAsBase,
-	catalogSpotMarketsWithCurrencyAsQuote,
 	type CatalogCoinCoinMarket,
 	type CatalogCoinCurrencyMarket,
 	type CatalogCurrencyCurrencyMarket,
@@ -138,7 +138,7 @@ export default {
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
-				[Market_TimestampSelector.MarketTimestampMsFeedKey]: async ({ $market, timestampMs: timestampMsSelector }, context) => {
+				[Market_TimestampSelector.MarketTimestampMsFeedKey]: async ({ $market, feedKey, timestampMs: timestampMsSelector }, context) => {
 					if ($market.marketKind !== MarketKind.Spot)
 						throw new Error('Coinpaprika_OpenApi: Market_Timestamp is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
@@ -150,6 +150,8 @@ export default {
 					const coinId: CoinId = $market.$base.$coin.coinId
 					const coinpaprikaId = idByCoinId[coinId]
 					if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: coin price not mapped')
+					if (feedKey !== coinpaprikaId)
+						throw new Error('Coinpaprika_OpenApi: Market_Timestamp feedKey does not match Coinpaprika id')
 
 					const ticker = await getTickerById({
 						publicEnv: context.publicEnv,
@@ -187,7 +189,7 @@ export default {
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey]: async ({ $market, timeInterval, timestampMs: timestampMsSelector, feedKey }, context) => {
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market, timeInterval, timestampMs: timestampMsSelector }, context) => {
 					if ($market.marketKind !== MarketKind.Spot)
 						throw new Error('Coinpaprika_OpenApi: OHLC is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
@@ -200,17 +202,15 @@ export default {
 						getOhlcvHistoricalRows,
 						getOhlcvTodayRows,
 					} = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
-					if (timeInterval.unit !== MarketTimeIntervalUnit.Day)
-						throw new Error('Coinpaprika_OpenApi: OHLC timeInterval must be day-based')
+					if (timeInterval.unit !== marketOhlcDailyTimeInterval.unit || timeInterval.value !== marketOhlcDailyTimeInterval.value)
+						throw new Error('Coinpaprika_OpenApi: OHLC timeInterval must be daily')
 					const ohlcDayWindows = getOhlcDayWindowValues(context.publicEnv)
-					if (!ohlcDayWindows.includes(timeInterval.value))
-						throw new Error('Coinpaprika_OpenApi: OHLC day window not supported for current API plan')
 					const coinId = $market.$base.$coin.coinId
 					const coinpaprikaId = idByCoinId[coinId]
 					if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: OHLC coin not mapped')
 
 					const ohlcCandles = (
-						timeInterval.value === 1 ?
+						(ohlcDayWindows.at(-1) ?? marketOhlcDailyTimeInterval.value) === 1 ?
 							await getOhlcvTodayRows({
 								publicEnv: context.publicEnv,
 								coinpaprikaId,
@@ -219,7 +219,7 @@ export default {
 							await getOhlcvHistoricalRows({
 								publicEnv: context.publicEnv,
 								coinpaprikaId,
-								days: timeInterval.value,
+								lookbackDayCount: ohlcDayWindows.at(-1) ?? marketOhlcDailyTimeInterval.value,
 							})
 					)
 					const ohlcCandle = ohlcCandles.find(([timestampMs]) => (
@@ -230,9 +230,8 @@ export default {
 					return {
 						[EntityMetaKey.Selector]: {
 							$market,
-							timeInterval,
+							timeInterval: marketOhlcDailyTimeInterval,
 							timestampMs: Math.floor(timestampMs),
-							feedKey,
 						} satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>,
 						open: BigInt(Math.round(open * 1e8)),
 						high: BigInt(Math.round(high * 1e8)),
@@ -428,7 +427,7 @@ export default {
 					return (
 						(
 						iso4217 === Iso4217.USD ?
-							catalogSpotMarketsWithCurrencyAsQuote.filter((catalogMarket) => (
+							catalogCoinSpotUsdMarkets.filter((catalogMarket) => (
 								idByCoinId[catalogMarket.baseCoinId] != null
 							))
 						:
@@ -487,11 +486,7 @@ export default {
 					const coinpaprikaId = idByCoinId[coinId]
 					const lim = resolverContextRowLimit(context)
 					return (
-						(await Promise.all(ohlcDayWindows.map(async (value) => {
-							const timeInterval = {
-								unit: MarketTimeIntervalUnit.Day,
-								value,
-							}
+						(await Promise.all([ohlcDayWindows.at(-1) ?? marketOhlcDailyTimeInterval.value].map(async (value) => {
 							const ohlcCandles = (
 								value === 1 ?
 									await getOhlcvTodayRows({
@@ -502,15 +497,14 @@ export default {
 									await getOhlcvHistoricalRows({
 										publicEnv: context.publicEnv,
 										coinpaprikaId,
-										days: value,
+										lookbackDayCount: value,
 									})
 							)
 							return ohlcCandles.map(([timestampMs, open, high, low, close, quoteVolume]) => ({
 								[EntityMetaKey.Selector]: {
 									$market: entitySelector,
-									timeInterval,
+									timeInterval: marketOhlcDailyTimeInterval,
 									timestampMs: Math.floor(timestampMs),
-									feedKey: coinpaprikaId,
 								} satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>,
 								open: BigInt(Math.round(open * 1e8)),
 								high: BigInt(Math.round(high * 1e8)),
@@ -592,7 +586,7 @@ export default {
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey]: async ({ $market }: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 					{
 						[EntityMetaKey.Selector]: $market,
 					}

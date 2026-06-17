@@ -60,11 +60,11 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[FarcasterUserSelector.Fid]: async (entitySelector) => {
+				[FarcasterUserSelector.Fid]: async ({ fid }) => {
 					const { getPrimaryAddress } = await import('$/sources/Farcaster/Rest/queries.ts')
-					const ethRaw = await getPrimaryAddress({ fid: entitySelector.fid })
+					const ethRaw = await getPrimaryAddress({ fid })
 					const solRaw = await getPrimaryAddress({
-						fid: entitySelector.fid,
+						fid,
 						protocol: 'solana',
 					})
 					const ethAddress = optionalNonemptyString(ethRaw ?? undefined)
@@ -75,12 +75,12 @@ export default {
 						:
 							[((evmAddress) => ({
 								[EntityMetaKey.Selector]: {
-									fid: entitySelector.fid,
+									fid,
 									protocol: 'ethereum' as const,
 									address: evmAddress,
 								},
 								$user: {
-									[EntityMetaKey.Selector]: entitySelector,
+									[EntityMetaKey.Selector]: { fid },
 								},
 								$evmAccount: {
 									[EntityMetaKey.Selector]: {
@@ -95,12 +95,12 @@ export default {
 					:
 						[{
 							[EntityMetaKey.Selector]: {
-								fid: entitySelector.fid,
+								fid,
 								protocol: 'solana' as const,
 								address: solAddress,
 							},
 							$user: {
-								[EntityMetaKey.Selector]: entitySelector,
+								[EntityMetaKey.Selector]: { fid },
 							},
 							$solanaAccount: {
 								[EntityMetaKey.Selector]: {
@@ -346,23 +346,23 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
-				[FarcasterChannelSelector.Id]: async (entitySelector) => {
+				[FarcasterChannelSelector.Id]: async ({ id }) => {
 					const {
 						getChannelFollowersCount,
 						getChannelMembersCount,
 					} = await import('$/sources/Farcaster/Rest/queries.ts')
 					const [followerCount, memberCount] = await Promise.all([
 						getChannelFollowersCount({
-							channelId: entitySelector.id,
+							channelId: id,
 						}),
 						getChannelMembersCount({
-							channelId: entitySelector.id,
+							channelId: id,
 						}),
 					])
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$channel: entitySelector,
+								$channel: { id },
 								timestampMs: Date.now(),
 							},
 							followerCount,

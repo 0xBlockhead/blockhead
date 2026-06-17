@@ -22,7 +22,7 @@
 			did: 'did' in selector ? selector.did : selector.handle,
 		}),
 		open = $bindable(true),
-			...EntityViewProps
+		...EntityViewProps
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.AtprotoActor>
@@ -41,13 +41,30 @@
 	const actor = $derived(
 		subscribe(EntityType.AtprotoActor,
 			selector,
-			({ sources: [
-				Source.Atproto_Xrpc,
-				Source.Atproto_BskySocial_Xrpc,
-			], fields: { did: true, displayName: true, handle: true, $icon: true, ...(open ? ({ $banner: true, description: true, followersCount: true, followsCount: true, postsCount: true, $$timestamps: ({ sources: [
-							Source.Atproto_Xrpc,
-							Source.Atproto_BskySocial_Xrpc,
-						], limit: 1 }), indexedAt: true }) : ({  })) } }),
+			({
+				sources: [
+					Source.Atproto_Xrpc,
+					Source.Atproto_BskySocial_Xrpc,
+				],
+				fields: {
+					did: true,
+					displayName: true,
+					handle: true,
+					$icon: true,
+					...(open && {
+						$banner: true,
+						description: true,
+						$$timestamps: ({
+							sources: [
+								Source.Atproto_Xrpc,
+								Source.Atproto_BskySocial_Xrpc,
+							],
+							limit: 1,
+						}),
+						indexedAt: true,
+					}),
+				},
+			}),
 		),
 	)
 
@@ -181,15 +198,15 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: actor.fields.$$timestamps?.values.at(0)?.followersCount ?? actor.fields.followersCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.followersCount,
 								},
 								{
 									label: 'Following',
-									value: actor.fields.$$timestamps?.values.at(0)?.followsCount ?? actor.fields.followsCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.followsCount,
 								},
 								{
 									label: 'Posts',
-									value: actor.fields.$$timestamps?.values.at(0)?.postsCount ?? actor.fields.postsCount,
+									value: actor.fields.$$timestamps?.values.at(0)?.postsCount,
 								},
 							]}
 						/>

@@ -1,4 +1,3 @@
-import { type } from 'arktype'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -36,18 +35,6 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'feedKey',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetwork,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
 			name: '$parentMarket',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Market,
@@ -75,7 +62,6 @@ export default {
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_OpenApi,
 				Source.Defillama_Rest,
-				Source.TradingView_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

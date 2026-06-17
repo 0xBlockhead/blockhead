@@ -81,7 +81,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:bitcoin"
-				networkIds={[{ networkSlug: 'bitcoin' }]}
+				networkSelectors={[{ slug: 'bitcoin' }]}
 				open
 				title={label}
 			/>
@@ -96,7 +96,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:lightning"
-				networkIds={[{ networkSlug: 'lightning' }]}
+				networkSelectors={[{ slug: 'lightning' }]}
 				open
 				title={label}
 			/>
@@ -111,7 +111,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:zcash"
-				networkIds={[{ networkSlug: 'zcash' }]}
+				networkSelectors={[{ slug: 'zcash' }]}
 				open
 				title={label}
 			/>
@@ -126,7 +126,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:filecoin"
-				networkIds={[{ networkSlug: 'filecoin' }]}
+				networkSelectors={[{ slug: 'filecoin' }]}
 				open
 				title={label}
 			/>
@@ -141,7 +141,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:solana"
-				networkIds={[{ networkSlug: 'solana' }]}
+				networkSelectors={[{ slug: 'solana' }]}
 				open
 				title={label}
 			/>
@@ -156,7 +156,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:cosmos-sdk-comet-bft"
-				networkIds={[{ networkSlug: 'cosmos' }]}
+				networkSelectors={[{ slug: 'cosmos' }]}
 				open
 				title={label}
 			/>
@@ -171,7 +171,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:polkadot-sdk"
-				networkIds={[{ networkSlug: 'polkadot' }]}
+				networkSelectors={[{ slug: 'polkadot' }]}
 				open
 				title={label}
 			/>
@@ -186,7 +186,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:hyperliquid"
-				networkIds={[{ networkSlug: 'hyperliquid' }]}
+				networkSelectors={[{ slug: 'hyperliquid' }]}
 				open
 				title={label}
 			/>
@@ -201,7 +201,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:logos"
-				networkIds={[{ networkSlug: 'logos' }]}
+				networkSelectors={[{ slug: 'logos' }]}
 				open
 				title={label}
 			/>
@@ -216,7 +216,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:quilibrium"
-				networkIds={[{ networkSlug: 'quilibrium' }]}
+				networkSelectors={[{ slug: 'quilibrium' }]}
 				open
 				title={label}
 			/>
@@ -231,7 +231,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:near"
-				networkIds={[{ networkSlug: 'near' }]}
+				networkSelectors={[{ slug: 'near' }]}
 				open
 				title={label}
 			/>
@@ -246,7 +246,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:monero"
-				networkIds={[{ networkSlug: 'monero' }]}
+				networkSelectors={[{ slug: 'monero' }]}
 				open
 				title={label}
 			/>
@@ -261,7 +261,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:litecoin"
-				networkIds={[{ networkSlug: 'litecoin' }]}
+				networkSelectors={[{ slug: 'litecoin' }]}
 				open
 				title={label}
 			/>
@@ -276,7 +276,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:dogecoin"
-				networkIds={[{ networkSlug: 'dogecoin' }]}
+				networkSelectors={[{ slug: 'dogecoin' }]}
 				open
 				title={label}
 			/>
@@ -291,7 +291,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:bitcoin-cash"
-				networkIds={[{ networkSlug: 'bitcoin-cash' }]}
+				networkSelectors={[{ slug: 'bitcoin-cash' }]}
 				open
 				title={label}
 			/>
@@ -306,7 +306,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:tron"
-				networkIds={[{ networkSlug: 'tron' }]}
+				networkSelectors={[{ slug: 'tron' }]}
 				open
 				title={label}
 			/>
@@ -321,7 +321,7 @@
 					fieldName: '$$networks',
 				}}
 				id="networks:zero-g"
-				networkIds={[{ networkSlug: '0g' }]}
+				networkSelectors={[{ slug: '0g' }]}
 				open
 				title={label}
 			/>

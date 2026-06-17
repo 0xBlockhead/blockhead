@@ -23,12 +23,16 @@ export type RpcTransaction = {
 	gasPrice?: string
 	maxFeePerGas?: string
 	maxPriorityFeePerGas?: string
+	r?: string
+	s?: string
+	v?: string
 	input?: string
 	nonce?: string
 	transactionIndex?: string
 	type?: string
 	value?: string
 	maxFeePerBlobGas?: string
+	blobVersionedHashes?: readonly string[]
 }
 
 export type RpcLog = {

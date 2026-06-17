@@ -4,9 +4,9 @@
 	import type { EntitySelector } from '$/schema/$schema.ts'
 
 	import {
-		coingeckoOhlcDayWindowLengths,
+		marketOhlcDailyTimeInterval,
+		marketOhlcDayLookbackValues,
 		MarketAssetKind,
-		MarketTimeIntervalUnit,
 	} from '$/constants/Market.ts'
 
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -21,22 +21,14 @@
 	let {
 		id,
 		market,
-		timeInterval = $bindable(
-			{
-				unit: MarketTimeIntervalUnit.Day,
-				value: 7,
-			},
-		),
+		lookbackDayCount = $bindable(7),
 		listOpen = false,
 		chartTitlePrefix,
 		candlesListTitle = 'OHLC candles',
 	}: {
 		id: string
 		market: EntitySelector<typeof schema, EntityType.Market>
-		timeInterval?: {
-			unit: MarketTimeIntervalUnit
-			value: number
-		}
+		lookbackDayCount?: number
 		listOpen?: boolean
 		/** When set (e.g. on coin detail), omits repeating the coin id in chart chrome. */
 		chartTitlePrefix?: string
@@ -44,16 +36,7 @@
 	} = $props()
 
 	const timeIntervalLabel = $derived(
-		timeInterval.unit === MarketTimeIntervalUnit.Day ?
-			`${String(timeInterval.value)}d`
-		: timeInterval.unit === MarketTimeIntervalUnit.Hour ?
-			`${String(timeInterval.value)}h`
-		: timeInterval.unit === MarketTimeIntervalUnit.Minute ?
-			`${String(timeInterval.value)}m`
-		: timeInterval.unit === MarketTimeIntervalUnit.Second ?
-			`${String(timeInterval.value)}s`
-		:
-			`${String(timeInterval.value)}`
+		`${String(lookbackDayCount)}d`
 	)
 
 	const entityFieldReference = $derived(
@@ -80,24 +63,18 @@
 	data-column="gap-3"
 >
 	<nav
-		aria-label="OHLC interval"
+		aria-label="OHLC lookback"
 		data-row="wrap gap-2"
 	>
-		{#each coingeckoOhlcDayWindowLengths as windowLength (windowLength)}
+		{#each marketOhlcDayLookbackValues as windowLength (windowLength)}
 			<button
 				type="button"
 				class="interval-tab"
 				class:interval-tab-active={
-					timeInterval.unit === MarketTimeIntervalUnit.Day
-					&& timeInterval.value === windowLength
+					lookbackDayCount === windowLength
 				}
 				onclick={() => {
-					timeInterval = (
-						{
-							unit: MarketTimeIntervalUnit.Day,
-							value: windowLength,
-						}
-					)
+					lookbackDayCount = windowLength
 				}}
 			>
 				{`${String(windowLength)}d`}
@@ -107,7 +84,8 @@
 
 	<MarketTimeIntervalTimestampChart
 		entityFieldReference={entityFieldReference}
-		{timeInterval}
+		timeInterval={marketOhlcDailyTimeInterval}
+		limit={lookbackDayCount}
 		title={
 			chartTitlePrefix != null ?
 				`${chartTitlePrefix} · ${timeIntervalLabel} · USD`
@@ -126,7 +104,8 @@
 		entityFieldReference={entityFieldReference}
 		id={`${id}:candles`}
 		open={listOpen}
-		{timeInterval}
+		timeInterval={marketOhlcDailyTimeInterval}
+		limit={lookbackDayCount}
 		title={`${candlesListTitle} · ${timeIntervalLabel}`}
 	/>
 </section>

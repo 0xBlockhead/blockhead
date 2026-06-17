@@ -322,13 +322,13 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[RedditSubredditSelector.Name]: async (entitySelector) => {
+				[RedditSubredditSelector.Name]: async ({ name }) => {
 					const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const data = (await getSubredditAbout(entitySelector.name)).data
+					const data = (await getSubredditAbout(name)).data
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$subreddit: entitySelector,
+								$subreddit: { name },
 								timestampMs: Date.now(),
 							},
 							...(data.subscribers != null && { subscriberCount: data.subscribers }),
@@ -373,16 +373,16 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: async (entitySelector) => {
+				[RedditLinkSelector.Fullname]: async ({ fullname }) => {
 					const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const redditThing = (await getInfo(entitySelector.fullname))
+					const redditThing = (await getInfo(fullname))
 						.data
 						.children[0]
 					if (redditThing.kind !== 't3') throw new Error('Reddit_PublicJson: link not found')
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$link: entitySelector,
+								$link: { fullname },
 								timestampMs: Date.now(),
 							},
 							...(redditThing.data.score != null && { score: redditThing.data.score }),
@@ -448,16 +448,16 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[RedditCommentSelector.Fullname]: async (entitySelector) => {
+				[RedditCommentSelector.Fullname]: async ({ fullname }) => {
 					const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-					const redditThing = (await getInfo(entitySelector.fullname))
+					const redditThing = (await getInfo(fullname))
 						.data
 						.children[0]
 					if (redditThing.kind !== 't1') throw new Error('Reddit_PublicJson: comment not found')
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$comment: entitySelector,
+								$comment: { fullname },
 								timestampMs: Date.now(),
 							},
 							...(redditThing.data.score != null && { score: redditThing.data.score }),

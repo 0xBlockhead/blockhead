@@ -9,7 +9,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
 import { SolanaTransactionSelector } from '$/schema/SolanaTransaction.ts'
-import { SolanaInstructionSelector } from '$/schema/SolanaInstruction.ts'
+import { SolanaInstructionKind, SolanaInstructionSelector } from '$/schema/SolanaInstruction.ts'
 
 const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { slug: string }) => {
 	if (
@@ -56,9 +56,9 @@ const heliusInstructionRows = (
 	(transaction.instructions ?? []).map((instruction, instructionIndex) => ({
 		[EntityMetaKey.Selector]: {
 			$transaction: transactionId,
-			instructionPath: [instructionIndex],
+			instructionKind: SolanaInstructionKind.Instruction,
+			instructionIndex,
 		},
-		instructionIndex,
 		$program: {
 			[EntityMetaKey.Selector]: {
 				$network: transactionId.$network,
@@ -104,81 +104,78 @@ export default {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
 				[SolanaTransactionSelector.NetworkSignature]: async (entitySelector, context) => {
-				const transaction = await getTransaction(
-					entitySelector,
-					context
-				)
-				return {
-					...heliusTransactionFields(
-						entitySelector.$network,
-						transaction
-					),
-					$$instructions: heliusInstructionRows(
+					const transaction = await getTransaction(
 						entitySelector,
-						transaction
-					),
-				}
-			}
+						context
+					)
+					return {
+						...heliusTransactionFields(
+							entitySelector.$network,
+							transaction
+						),
+						$$instructions: heliusInstructionRows(
+							entitySelector,
+							transaction
+						),
+					}
+				},
 			}
 		})({
-				fields: {
-			$block: (transaction) => transaction.$block,
-			slot: (transaction) => transaction.slot,
-			$feePayer: (transaction) => transaction.$feePayer,
-			feeLamports: (transaction) => transaction.feeLamports,
-			status: (transaction) => transaction.status,
-			$$instructions: (transaction) => transaction.$$instructions.map((instruction) => ({
-				[EntityMetaKey.Selector]: instruction[EntityMetaKey.Selector],
-			})),
-		},
-			}),
+			fields: {
+				$block: (transaction) => transaction.$block,
+				slot: (transaction) => transaction.slot,
+				$feePayer: (transaction) => transaction.$feePayer,
+				feeLamports: (transaction) => transaction.feeLamports,
+				status: (transaction) => transaction.status,
+				$$instructions: (transaction) => transaction.$$instructions.map((instruction) => ({
+					[EntityMetaKey.Selector]: instruction[EntityMetaKey.Selector],
+				})),
+			},
+		}),
 
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
-				[SolanaInstructionSelector.SolanaTransactionInstructionPath]: async ({ $transaction, instructionPath }, context) => {
-				const transaction = await getTransaction(
-					$transaction,
-					context
-				)
-				const instruction = heliusInstructionRows(
-					$transaction,
-					transaction
-				).find((instruction) => (
-					instruction[EntityMetaKey.Selector].instructionPath.length === instructionPath.length
-					&& instruction[EntityMetaKey.Selector].instructionPath.every((index, indexIndex) => index === instructionPath[indexIndex])
-				))
-				if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${$transaction.signature}:${instructionPath.join('.')}`)
-				return instruction
-			}
+				[SolanaInstructionSelector.SolanaTransactionInstruction]: async ({ $transaction, instructionIndex }, context) => {
+					const transaction = await getTransaction(
+						$transaction,
+						context
+					)
+					const instruction = heliusInstructionRows(
+						$transaction,
+						transaction
+					).find((instruction) => instruction[EntityMetaKey.Selector].instructionIndex === instructionIndex)
+					if (instruction == null) throw new Error(`Helius_Rest: instruction not found for ${$transaction.signature}:${String(instructionIndex)}`)
+					return instruction
+				},
 			}
 		})({
-				fields: {
-			$program: (instruction) => instruction.$program,
-			data: (instruction) => instruction.data,
-			$$accounts: (instruction) => instruction.$$accounts,
-		},
-			}),
+			fields: {
+				$program: (instruction) => instruction.$program,
+				data: (instruction) => instruction.data,
+				$$accounts: (instruction) => instruction.$$accounts,
+			},
+		}),
 
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
 				[SolanaTransactionSelector.NetworkSignature]: async (entitySelector, context) => (
-				heliusInstructionRows(
-					entitySelector,
-					await getTransaction(
+					heliusInstructionRows(
 						entitySelector,
-						context
+						await getTransaction(
+							entitySelector,
+							context
+						)
 					)
-				)
-			)
+				),
 			}
 		})({
-				fields: {
-			$$instructions: (instructions) => instructions.map((instruction) => ({
-				[EntityMetaKey.Selector]: instruction[EntityMetaKey.Selector],
-			})),
-		},
-			}),
+			fields: {
+				$$instructions: (instructions) => instructions.map((instruction) => ({
+					[EntityMetaKey.Selector]: instruction[EntityMetaKey.Selector],
+				})),
+			},
+		}),
 	],
 }

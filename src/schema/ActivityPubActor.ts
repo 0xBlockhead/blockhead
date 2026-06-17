@@ -12,6 +12,7 @@ import { Source } from '$/sources/Source.ts'
 export enum ActivityPubActorSelector {
 	LocalAccountId = 'localAccountId',
 	Acct = 'acct',
+	ActivityStreamsUri = 'activityStreamsUri',
 }
 
 
@@ -34,6 +35,12 @@ export default {
 			fields: [
 				'instanceOrigin',
 				'acct',
+			],
+		},
+		{
+			name: ActivityPubActorSelector.ActivityStreamsUri,
+			fields: [
+				'activityStreamsUri',
 			],
 		},
 	],
@@ -105,7 +112,7 @@ export default {
 			name: 'activityStreamsUri',
 			type: EntityFieldType.Primitive,
 			primitiveType: UrlString,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'website',

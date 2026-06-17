@@ -117,6 +117,32 @@
 	)
 
 
+	const idPrefix = $derived(
+		stringify(selector)
+	)
+
+	const catalogUsdMarketId = $derived({
+		$base: {
+			kind: MarketAssetKind.Coin,
+			$coin: { coinId: catalogCoinSpotUsdMarketByCoinId[selector.coinId].baseCoinId },
+		},
+		$quote: {
+			kind: MarketAssetKind.Currency,
+			$currency: { iso4217: catalogCoinSpotUsdMarketByCoinId[selector.coinId].quoteIso4217 },
+		},
+		$marketVenue: {
+			marketVenueId: catalogCoinSpotUsdMarketByCoinId[selector.coinId].marketVenueId,
+		},
+		marketKind: catalogCoinSpotUsdMarketByCoinId[selector.coinId].marketKind,
+	})
+
+	const catalogUsdMarketLabel = $derived(
+		catalogUsdMarketId.marketKind === MarketKind.Spot ?
+			`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217}`
+		:
+			`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217} (${marketKindByMarketKind[catalogUsdMarketId.marketKind].label})`
+	)
+
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
@@ -199,31 +225,35 @@
 			<div>
 				<dt>Market cap rank</dt>
 				<dd>
-					<ResourceBoundary resource={coin}>
-						{#snippet children(coin)}
-							{@const marketCapRank = coin.fields.$$timestamps.values.at(0)?.marketCapRank}
-							{#if marketCapRank != null && Number.isFinite(marketCapRank)}
-								{String(marketCapRank)}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+						<ResourceBoundary resource={coin}>
+							{#snippet children(coin)}
+								{#if (
+									coin.fields.$$timestamps?.values.at(0)?.marketCapRank != null
+									&& Number.isFinite(coin.fields.$$timestamps.values.at(0)?.marketCapRank)
+								)}
+									{String(coin.fields.$$timestamps.values.at(0)?.marketCapRank)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
 				</dd>
 			</div>
 
 			<div>
 				<dt>Market cap</dt>
 				<dd>
-					<ResourceBoundary resource={coin}>
-						{#snippet children(coin)}
-							{@const marketCapUsd = coin.fields.$$timestamps.values.at(0)?.marketCapUsd}
-							{#if marketCapUsd != null && Number.isFinite(marketCapUsd)}
-								<CurrencyAmount
-									currency="USD"
-									scale={1}
-									value={marketCapUsd}
-								/>
-							{/if}
-						{/snippet}
+						<ResourceBoundary resource={coin}>
+							{#snippet children(coin)}
+								{#if (
+									coin.fields.$$timestamps?.values.at(0)?.marketCapUsd != null
+									&& Number.isFinite(coin.fields.$$timestamps.values.at(0)?.marketCapUsd)
+								)}
+									<CurrencyAmount
+										currency="USD"
+										scale={1}
+										value={coin.fields.$$timestamps.values.at(0)?.marketCapUsd}
+									/>
+								{/if}
+							{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
@@ -234,23 +264,24 @@
 			)}
 				<div>
 					<dt>Latest snapshot</dt>
-					<dd>
-						<ResourceBoundary resource={coin}>
-							{#snippet children(coin)}
-								{@const headTimestampId = (
-									(coin.fields.$$timestamps?.values ?? [])
+						<dd>
+							<ResourceBoundary resource={coin}>
+								{#snippet children(coin)}
+									{#if (coin.fields.$$timestamps?.values ?? [])
 										.toSorted((leftRow, rightRow) => (
 											rightRow[EntityMetaKey.Selector].timestampMs
 												- leftRow[EntityMetaKey.Selector].timestampMs
 										))[0]
-										?.[EntityMetaKey.Selector]
-								)}
-								{#if headTimestampId}
-									<Coin_TimestampView
-										selector={headTimestampId}
-										href={resolve('/(assets)/(coins)/coin/[coinId]', {
-											coinId: selector.coinId,
-										})}
+										?.[EntityMetaKey.Selector]}
+										<Coin_TimestampView
+											selector={(coin.fields.$$timestamps?.values ?? [])
+												.toSorted((leftRow, rightRow) => (
+													rightRow[EntityMetaKey.Selector].timestampMs
+														- leftRow[EntityMetaKey.Selector].timestampMs
+												))[0][EntityMetaKey.Selector]}
+											href={resolve('/(assets)/(coins)/coin/[coinId]', {
+												coinId: selector.coinId,
+											})}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -281,28 +312,6 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{@const idPrefix = stringify(selector)}
-		{@const catalogUsdMarketId = {
-			$base: {
-				kind: MarketAssetKind.Coin,
-				$coin: { coinId: catalogCoinSpotUsdMarketByCoinId[selector.coinId].baseCoinId },
-			},
-			$quote: {
-				kind: MarketAssetKind.Currency,
-				$currency: { iso4217: catalogCoinSpotUsdMarketByCoinId[selector.coinId].quoteIso4217 },
-			},
-			$marketVenue: {
-				marketVenueId: catalogCoinSpotUsdMarketByCoinId[selector.coinId].marketVenueId,
-			},
-			marketKind: catalogCoinSpotUsdMarketByCoinId[selector.coinId].marketKind,
-		}}
-		{@const catalogUsdMarketLabel = (
-			catalogUsdMarketId.marketKind === MarketKind.Spot ?
-				`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217}`
-			:
-				`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217} (${marketKindByMarketKind[catalogUsdMarketId.marketKind].label})`
-		)}
-		{@const catalogUsdMarketHref = `/market/${encodeURIComponent(stringify(catalogUsdMarketId))}`}
 		<ResourceBoundary resource={coin}>
 			{#snippet children(coin)}
 				<div class="coin-view-carousel-groups">
@@ -419,7 +428,9 @@
 
 						{#snippet SectionCatalogUsdMarket({ id, label })}
 							<p>
-								<a href={catalogUsdMarketHref}>
+									<a href={resolve('/(assets)/(markets)/market/[marketKey]', {
+										marketKey: encodeURIComponent(stringify(catalogUsdMarketId)),
+									})}>
 									{catalogUsdMarketLabel}
 								</a>
 								<span data-text="muted">

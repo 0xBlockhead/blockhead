@@ -10,8 +10,6 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import type { EntityFieldValues } from '$/schema/$schema.ts'
-import type { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
@@ -29,13 +27,10 @@ import { ActivityPubNetworkSelector } from '$/schema/ActivityPubNetwork.ts'
 const mastodonLocalAccountId = (
 	account: MastodonApiV1Account | null | undefined
 ) => (
-	optionalNonemptyString(account?.acct)
-	?? (
-		account?.id != null ?
-			String(account.id)
-		:
-			undefined
-	)
+	account?.id == null ?
+		undefined
+	:
+		String(account.id)
 )
 
 const mastodonMediaTypeFromWire = (wireType: string | undefined) => (
@@ -80,7 +75,9 @@ const mediaEntitiesFromMastodonAttachments = (
 const activityPubNoteFieldsFromMastodonStatus = (
 	status: MastodonApiV1Status,
 	instanceOrigin: string
-): Partial<EntityFieldValues<typeof schema, EntityType.ActivityPubNote>> => {
+) => {
+	if (status.id == null)
+		throw new Error('Fedi_Rest: ActivityPub note missing local status id')
 	const createdAt = Date.parse(status.created_at ?? '')
 	const editedAt = optionalTimestampMs(status.edited_at ?? undefined)
 	const content = optionalNonemptyString(status.content)
@@ -88,6 +85,8 @@ const activityPubNoteFieldsFromMastodonStatus = (
 	const spoilerText = optionalNonemptyString(status.spoiler_text)
 	const statusUrl = optionalNonemptyString(status.url)
 	const activityStreamsUri = optionalNonemptyString(status.uri)
+	if (activityStreamsUri == null)
+		throw new Error('Fedi_Rest: ActivityPub note missing ActivityStreams URI')
 	const visibility = (
 		status.visibility === 'public' ?
 			'public' as const
@@ -104,6 +103,8 @@ const activityPubNoteFieldsFromMastodonStatus = (
 					undefined
 	)
 	return {
+		instanceOrigin,
+		localStatusId: String(status.id),
 		...(content != null && { content }),
 		...(Number.isFinite(createdAt) && { createdAt }),
 		...(editedAt != null && { editedAt }),
@@ -112,7 +113,7 @@ const activityPubNoteFieldsFromMastodonStatus = (
 		...(language != null && { language }),
 		...(spoilerText != null && { spoilerText }),
 		...(statusUrl != null && { statusUrl }),
-		...(activityStreamsUri != null && { activityStreamsUri }),
+		activityStreamsUri,
 		$$media: mediaEntitiesFromMastodonAttachments(status.media_attachments),
 		$author: (
 			(() => {
@@ -170,6 +171,8 @@ const activityPubActorFieldsFromMastodonAccount = (
 	const createdAt = optionalTimestampMs(account.created_at)
 	if (acct == null)
 		throw new Error('Fedi_Rest: ActivityPub actor account missing acct')
+	if (activityStreamsUri == null)
+		throw new Error('Fedi_Rest: ActivityPub actor account missing ActivityStreams URI')
 
 	return {
 		instanceOrigin,
@@ -193,7 +196,7 @@ const activityPubActorFieldsFromMastodonAccount = (
 			}
 		))(mediaFromUrl(resolveAvatarUrl(account.header, { siteOrigin: instanceOrigin }), MediaType.Image)),
 		...(profileUrl != null && { profileUrl }),
-		...(activityStreamsUri != null && { activityStreamsUri }),
+		activityStreamsUri,
 		...(website != null && { website }),
 		...(account.bot != null && { bot: account.bot }),
 		...(account.locked != null && { locked: account.locked }),
@@ -225,9 +228,9 @@ export default {
 			resolve: {
 				[ActivityPubActorSelector.LocalAccountId]: async ({ instanceOrigin, localAccountId }, context) => {
 					const publicEnv = context.publicEnv
-					const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
+					const { assertInstanceMatches, getAccountByLocalAccountId } = await import('$/sources/Fedi/Rest/queries.ts')
 					assertInstanceMatches(instanceOrigin)
-					const a = await getAccount(publicEnv, localAccountId)
+					const a = await getAccountByLocalAccountId(publicEnv, localAccountId)
 					return activityPubActorFieldsFromMastodonAccount(
 						a,
 						instanceOrigin,
@@ -236,12 +239,22 @@ export default {
 				},
 				[ActivityPubActorSelector.Acct]: async ({ instanceOrigin, acct }, context) => {
 					const publicEnv = context.publicEnv
-					const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
+					const { assertInstanceMatches, getAccountByAcct } = await import('$/sources/Fedi/Rest/queries.ts')
 					assertInstanceMatches(instanceOrigin)
-					const a = await getAccount(publicEnv, acct)
+					const a = await getAccountByAcct(publicEnv, acct)
 					return activityPubActorFieldsFromMastodonAccount(
 						a,
 						instanceOrigin,
+						fediAvatarUrl
+					)
+				},
+				[ActivityPubActorSelector.ActivityStreamsUri]: async ({ activityStreamsUri }, context) => {
+					const publicEnv = context.publicEnv
+					const { getAccountByActivityStreamsUri } = await import('$/sources/Fedi/Rest/queries.ts')
+					const a = await getAccountByActivityStreamsUri(publicEnv, activityStreamsUri)
+					return activityPubActorFieldsFromMastodonAccount(
+						a,
+						new URL(activityStreamsUri).origin,
 						fediAvatarUrl
 					)
 				},
@@ -277,10 +290,20 @@ export default {
 					assertInstanceMatches(instanceOrigin)
 					const s = await getStatus(publicEnv, localStatusId)
 					return activityPubNoteFieldsFromMastodonStatus(s, instanceOrigin)
-				}
+				},
+				[ActivityPubNoteSelector.ActivityStreamsUri]: async ({ activityStreamsUri }, context) => {
+					const publicEnv = context.publicEnv
+					const {
+						getStatusByActivityStreamsUri,
+					} = await import('$/sources/Fedi/Rest/queries.ts')
+					const s = await getStatusByActivityStreamsUri(publicEnv, activityStreamsUri)
+					return activityPubNoteFieldsFromMastodonStatus(s, new URL(activityStreamsUri).origin)
+				},
 			},
 		})({
 			fields: {
+				instanceOrigin: (note) => note.instanceOrigin,
+				localStatusId: (note) => note.localStatusId,
 				content: (note) => note.content,
 				createdAt: (note) => note.createdAt,
 				editedAt: (note) => note.editedAt,
@@ -290,7 +313,7 @@ export default {
 				spoilerText: (note) => note.spoilerText,
 				statusUrl: (note) => note.statusUrl,
 				activityStreamsUri: (note) => note.activityStreamsUri,
-				$$media: (note) => note.$$media ?? [],
+				$$media: (note) => note.$$media,
 				$author: (note) => note.$author,
 				$inReplyTo: (note) => note.$inReplyTo,
 				$reblogOf: (note) => note.$reblogOf,
@@ -302,14 +325,16 @@ export default {
 			resolve: {
 				[ActivityPubActor_TimestampSelector.ActivityPubActorTimestampMs]: async ({ $actor }, context) => {
 					const publicEnv = context.publicEnv
-					const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
-					assertInstanceMatches($actor.instanceOrigin)
-					const account = await getAccount(
-						publicEnv,
+					const { assertInstanceMatches, getAccountByAcct, getAccountByActivityStreamsUri, getAccountByLocalAccountId } = await import('$/sources/Fedi/Rest/queries.ts')
+					if ('instanceOrigin' in $actor)
+						assertInstanceMatches($actor.instanceOrigin)
+					const account = await (
 						'localAccountId' in $actor ?
-						$actor.localAccountId
-					:
-						$actor.acct
+							getAccountByLocalAccountId(publicEnv, $actor.localAccountId)
+						: 'activityStreamsUri' in $actor ?
+							getAccountByActivityStreamsUri(publicEnv, $actor.activityStreamsUri)
+						:
+							getAccountByAcct(publicEnv, $actor.acct)
 					)
 					return {
 						...(account.followers_count != null && { followersCount: account.followers_count }),
@@ -331,12 +356,15 @@ export default {
 			resolve: {
 				[ActivityPubNote_TimestampSelector.ActivityPubNoteTimestampMs]: async ({ $note }, context) => {
 					const publicEnv = context.publicEnv
-					const {
-						assertInstanceMatches,
-						getStatus,
-					} = await import('$/sources/Fedi/Rest/queries.ts')
-					assertInstanceMatches($note.instanceOrigin)
-					const status = await getStatus(publicEnv, $note.localStatusId)
+					const { assertInstanceMatches, getStatus, getStatusByActivityStreamsUri } = await import('$/sources/Fedi/Rest/queries.ts')
+					if ('instanceOrigin' in $note)
+						assertInstanceMatches($note.instanceOrigin)
+					const status = await (
+						'localStatusId' in $note ?
+							getStatus(publicEnv, $note.localStatusId)
+						:
+							getStatusByActivityStreamsUri(publicEnv, $note.activityStreamsUri)
+					)
 					return {
 						...(status.favourites_count != null && { favouriteCount: status.favourites_count }),
 						...(status.reblogs_count != null && { reblogCount: status.reblogs_count }),
@@ -466,9 +494,9 @@ export default {
 			resolve: {
 				[ActivityPubActorSelector.LocalAccountId]: async ({ instanceOrigin, localAccountId }, context) => {
 					const publicEnv = context.publicEnv
-					const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
+					const { assertInstanceMatches, getAccountByLocalAccountId } = await import('$/sources/Fedi/Rest/queries.ts')
 					assertInstanceMatches(instanceOrigin)
-					const account = await getAccount(publicEnv, localAccountId)
+					const account = await getAccountByLocalAccountId(publicEnv, localAccountId)
 					return [
 						{
 							[EntityMetaKey.Selector]: {
@@ -486,15 +514,33 @@ export default {
 				},
 				[ActivityPubActorSelector.Acct]: async ({ instanceOrigin, acct }, context) => {
 					const publicEnv = context.publicEnv
-					const { assertInstanceMatches, getAccount } = await import('$/sources/Fedi/Rest/queries.ts')
+					const { assertInstanceMatches, getAccountByAcct } = await import('$/sources/Fedi/Rest/queries.ts')
 					assertInstanceMatches(instanceOrigin)
-					const account = await getAccount(publicEnv, acct)
+					const account = await getAccountByAcct(publicEnv, acct)
 					return [
 						{
 							[EntityMetaKey.Selector]: {
 								$actor: {
 									instanceOrigin,
 									localAccountId: String(account.id),
+								},
+								timestampMs: Date.now(),
+							},
+							...(account.followers_count != null && { followersCount: account.followers_count }),
+							...(account.following_count != null && { followingCount: account.following_count }),
+							...(account.statuses_count != null && { statusesCount: account.statuses_count }),
+						},
+					]
+				},
+				[ActivityPubActorSelector.ActivityStreamsUri]: async ({ activityStreamsUri }, context) => {
+					const publicEnv = context.publicEnv
+					const { getAccountByActivityStreamsUri } = await import('$/sources/Fedi/Rest/queries.ts')
+					const account = await getAccountByActivityStreamsUri(publicEnv, activityStreamsUri)
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$actor: {
+									activityStreamsUri,
 								},
 								timestampMs: Date.now(),
 							},
@@ -516,11 +562,11 @@ export default {
 			resolve: {
 				[ActivityPubActorSelector.LocalAccountId]: async ({ instanceOrigin, localAccountId }, context) => {
 					const publicEnv = context.publicEnv
-					const { assertInstanceMatches, listAccountStatuses } = await import('$/sources/Fedi/Rest/queries.ts')
+					const { assertInstanceMatches, listAccountStatusesByLocalAccountId } = await import('$/sources/Fedi/Rest/queries.ts')
 					assertInstanceMatches(instanceOrigin)
 					const limit = resolverContextRowLimit(context)
 					return (
-						(await listAccountStatuses(publicEnv, localAccountId, limit))
+						(await listAccountStatusesByLocalAccountId(publicEnv, localAccountId, limit))
 							.flatMap((s) => (
 							s.id == null ?
 								[]
@@ -535,7 +581,29 @@ export default {
 								]
 							))
 					)
-				}
+				},
+				[ActivityPubActorSelector.ActivityStreamsUri]: async ({ activityStreamsUri }, context) => {
+					const publicEnv = context.publicEnv
+					const { getAccountByActivityStreamsUri, listAccountStatusesByLocalAccountId } = await import('$/sources/Fedi/Rest/queries.ts')
+					const account = await getAccountByActivityStreamsUri(publicEnv, activityStreamsUri)
+					const limit = resolverContextRowLimit(context)
+					return (
+						(await listAccountStatusesByLocalAccountId(publicEnv, String(account.id), limit))
+							.flatMap((s) => (
+							s.id == null ?
+								[]
+							:
+								[
+									{
+										[EntityMetaKey.Selector]: {
+											instanceOrigin: new URL(activityStreamsUri).origin,
+											localStatusId: String(s.id),
+										},
+									},
+								]
+							))
+					)
+				},
 			},
 		})({
 			fields: {
@@ -565,7 +633,27 @@ export default {
 							...(status.replies_count != null && { replyCount: status.replies_count }),
 						},
 					]
-				}
+				},
+				[ActivityPubNoteSelector.ActivityStreamsUri]: async ({ activityStreamsUri }, context) => {
+					const publicEnv = context.publicEnv
+					const {
+						getStatusByActivityStreamsUri,
+					} = await import('$/sources/Fedi/Rest/queries.ts')
+					const status = await getStatusByActivityStreamsUri(publicEnv, activityStreamsUri)
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$note: {
+									activityStreamsUri,
+								},
+								timestampMs: Date.now(),
+							},
+							...(status.favourites_count != null && { favouriteCount: status.favourites_count }),
+							...(status.reblogs_count != null && { reblogCount: status.reblogs_count }),
+							...(status.replies_count != null && { replyCount: status.replies_count }),
+						},
+					]
+				},
 			},
 		})({
 			fields: {
@@ -603,7 +691,37 @@ export default {
 								]
 							))
 					)
-				}
+				},
+				[ActivityPubNoteSelector.ActivityStreamsUri]: async ({ activityStreamsUri }, context) => {
+					const publicEnv = context.publicEnv
+					const {
+						getStatusByActivityStreamsUri,
+						getStatusContext,
+					} = await import('$/sources/Fedi/Rest/queries.ts')
+					const status = await getStatusByActivityStreamsUri(publicEnv, activityStreamsUri)
+					if (status.id == null)
+						return []
+					const { ancestors = [], descendants = [] } = await getStatusContext(publicEnv, String(status.id))
+					return (
+						[
+							...ancestors,
+							...descendants,
+						]
+							.flatMap((s) => (
+							s.id == null || String(s.id) === String(status.id) ?
+								[]
+							:
+								[
+									{
+										[EntityMetaKey.Selector]: {
+											instanceOrigin: new URL(activityStreamsUri).origin,
+											localStatusId: String(s.id),
+										},
+									},
+								]
+							))
+					)
+				},
 			},
 		})({
 			fields: {

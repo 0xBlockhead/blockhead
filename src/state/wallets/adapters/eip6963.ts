@@ -4,7 +4,7 @@ import {
 	onAccountsChanged,
 	onChainChanged,
 	requestAccounts,
-} from '$/lib/eip1193.ts'
+} from './eip1193.ts'
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 import { SvelteMap } from 'svelte/reactivity'

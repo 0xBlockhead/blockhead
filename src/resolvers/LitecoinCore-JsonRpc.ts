@@ -36,7 +36,6 @@ export default {
 					assertLitecoinMainnet($network)
 					const {
 						getBlock,
-						getBlockHash,
 					} = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
 					const block = await getBlock({
 						rpcUrl: bitcoinNetworkBySlug.litecoin.litecoinCoreRpcUrl,
@@ -80,12 +79,6 @@ export default {
 										$network,
 										txId: transaction.txid,
 									},
-									version: transaction.version,
-									lockTime: transaction.locktime,
-									sizeBytes: transaction.size,
-									virtualSizeBytes: transaction.vsize,
-									weightUnits: transaction.weight,
-									isCoinbase: transaction.vin.some((input) => input.coinbase != null),
 								}
 						)),
 					}

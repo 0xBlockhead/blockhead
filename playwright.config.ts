@@ -7,6 +7,7 @@ import {
 
 const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === '1'
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:5173'
+const webServerUrl = new URL(baseURL)
 
 export default defineConfig({
 	fullyParallel: false,
@@ -24,7 +25,7 @@ export default defineConfig({
 		:
 			{
 				webServer: {
-					command: './node_modules/.bin/dotenvx run -f .env.local -- ./node_modules/.bin/vite dev --host 127.0.0.1',
+					command: `./node_modules/.bin/dotenvx run -f .env.local -- ./node_modules/.bin/vite dev --host ${webServerUrl.hostname} --port ${webServerUrl.port}`,
 					url: baseURL,
 					timeout: 240_000,
 					/** Opt-in reuse only: stale Vite/SvelteKit generated route state makes route-settlement failures non-deterministic. */

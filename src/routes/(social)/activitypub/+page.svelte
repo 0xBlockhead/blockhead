@@ -10,5 +10,6 @@
 		selector={{
 			scope: 'ActivityPubNetwork',
 		}}
+		open={false}
 	/>
 </Page>

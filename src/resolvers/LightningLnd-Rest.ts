@@ -104,11 +104,6 @@ const paymentStatusFromLnd = (status: string | null | undefined): LightningPayme
 				LightningPaymentStatus.Unknown
 )
 
-const lndTransport = (context: SourceResolverContext<Source.LightningLnd_Rest>) => ({
-	restBaseUrl: context.publicEnv.PUBLIC_LND_REST_BASE_URL,
-	macaroonHex: context.publicEnv.PUBLIC_LND_MACAROON_HEX,
-})
-
 const channelFieldsFromLndChannel = (
 	channel: LndChannel,
 	localPublicKey?: string
@@ -220,12 +215,12 @@ const htlcFieldsFromLndHtlc = (
 
 const lndChannels = async (context: SourceResolverContext<Source.LightningLnd_Rest>) => {
 	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
-	return (await listChannels(lndTransport(context))).channels ?? []
+	return (await listChannels(context.publicEnv)).channels ?? []
 }
 
 const lndInfo = async (context: SourceResolverContext<Source.LightningLnd_Rest>) => {
 	const { getInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
-	return getInfo(lndTransport(context))
+	return getInfo(context.publicEnv)
 }
 
 export default {
@@ -321,7 +316,9 @@ export default {
 					assertLightningNetwork($network)
 					const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
 					const invoice = (
-						(await listInvoices(lndTransport(context))).invoices ?? []
+						(await listInvoices({
+							publicEnv: context.publicEnv,
+						})).invoices ?? []
 					).find((invoice) => invoicePaymentHash(invoice) === paymentHash)
 					if (invoice == null)
 						throw new Error(`LightningLnd_Rest: invoice not found ${paymentHash}`)
@@ -351,7 +348,9 @@ export default {
 					assertLightningNetwork($network)
 					const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
 					const payment = (
-						(await listPayments(lndTransport(context))).payments ?? []
+						(await listPayments({
+							publicEnv: context.publicEnv,
+						})).payments ?? []
 					).find((payment) => payment.payment_hash === paymentHash)
 					if (payment == null)
 						throw new Error(`LightningLnd_Rest: payment not found ${paymentHash}`)
@@ -452,7 +451,7 @@ export default {
 					const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
 					return (
 						(await listInvoices({
-							...lndTransport(context),
+							publicEnv: context.publicEnv,
 							numMaxInvoices: resolverContextRowLimit(context),
 						})).invoices ?? []
 					).flatMap((invoice) => (
@@ -479,7 +478,7 @@ export default {
 					const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
 					return (
 						(await listPayments({
-							...lndTransport(context),
+							publicEnv: context.publicEnv,
 							maxPayments: resolverContextRowLimit(context),
 						})).payments ?? []
 					).map(paymentFieldsFromLndPayment)

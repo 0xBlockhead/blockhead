@@ -39,6 +39,7 @@ import {
 	NetworkStackId,
 	networkStackByNetworkStackId,
 } from '$/constants/NetworkStack.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import {
 	ExecutionEnvironmentId,
 	executionEnvironmentByExecutionEnvironmentId,
@@ -52,27 +53,24 @@ import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import {
 	proposalCategoryById,
 	ProposalCategory,
-	proposalKindIds,
+	proposalKinds,
 	proposalKindAllowedInRealmByKey,
 	SpecificationRealm,
 	specificationRealmById,
 } from '$/constants/SpecificationProposal.ts'
 import { activityPubNetworkSeedActors } from '$/constants/Social/ActivityPub.ts'
-import { atprotoNetworkSeedActors } from '$/constants/Social/Atproto.ts'
+import {
+	atprotoNetworkSeedActors,
+	atprotoNetworkSeedPosts,
+} from '$/constants/Social/Atproto.ts'
 import { lensNetworkSeedAccounts } from '$/constants/Social/Lens.ts'
 import {
 	nostrNetworkSeedProfiles,
 	nostrNetworkSeedRelays,
 } from '$/constants/Social/Nostr.ts'
-import { nearMainnetRpcEndpoints } from '$/sources/NearRpc/index.ts'
 import { redditNetworkSeedSubreddits } from '$/constants/Social/Reddit.ts'
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
-import { solanaMainnetRpcEndpoints } from '$/sources/Solana/index.ts'
 import { swarmProtocolByScope } from '$/constants/SwarmProtocol.ts'
-import { zeroGChainId } from '$/constants/ZeroGNetwork.ts'
-import { zeroGMainnetRpcEndpoints } from '$/sources/ZeroG/Chain/JsonRpc/index.ts'
-import { zeroGMainnetExplorerEndpoints } from '$/sources/ZeroG/ChainScan/Rest/index.ts'
-import { zeroGMainnetStorageEndpoints } from '$/sources/ZeroG/StorageScan/Rest/index.ts'
 import {
 	youtubeNetworkSeedChannels,
 	youtubeNetworkSeedPlaylists,
@@ -310,6 +308,8 @@ const nativeAssetCoinIdByNamespace = {
 	[NetworkNamespace.Zcash]: CoinId.ZEC,
 	[NetworkNamespace.ZeroG]: CoinId._0G,
 } as const satisfies Record<NetworkNamespace, CoinId | undefined>
+
+const zeroGChainId = 16661
 
 const zeroGEvmNetworkId = {
 	caip2: {
@@ -819,17 +819,14 @@ export default {
 			resolve: {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
-					const { executionEndpointsByChainId } = await import('$/constants/ExecutionEndpoints.ts')
 					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
 					const beaconRestBase = beaconRestBaseByExecutionChainId[Number(caip2.reference)]
-					const executionEndpoints = executionEndpointsByChainId[Number(caip2.reference)] ?? []
 					return {
 						slug: network.slug,
 						name: network.name,
 						caip2,
 						namespace: network.namespace,
 						environment: network.environment,
-						executionEndpoints: [...executionEndpoints],
 						consensusEndpoints: (
 							beaconRestBase == null ?
 								[]
@@ -851,7 +848,6 @@ export default {
 				caip2: (network) => network.caip2,
 				namespace: () => NetworkNamespace.Evm,
 				environment: (network) => network.environment,
-				executionEndpoints: (network) => network.executionEndpoints,
 				consensusEndpoints: (network) => network.consensusEndpoints,
 			},
 		}),
@@ -922,7 +918,11 @@ export default {
 						namespace: network.namespace,
 						environment: network.environment,
 						rpcEndpoints: [
-							...nearMainnetRpcEndpoints,
+							{
+								url: 'https://rpc.mainnet.near.org',
+								transportType: TransportType.Http,
+								providerName: 'NEAR',
+							},
 						],
 					}
 				}
@@ -950,13 +950,25 @@ export default {
 						environment: network.environment,
 						chainId: zeroGChainId,
 						rpcEndpoints: [
-							...zeroGMainnetRpcEndpoints,
+							{
+								url: 'https://evmrpc.0g.ai',
+								transportType: TransportType.Http,
+								providerName: '0G',
+							},
 						],
 						explorerEndpoints: [
-							...zeroGMainnetExplorerEndpoints,
+							{
+								url: 'https://chainscan.0g.ai',
+								transportType: TransportType.Http,
+								providerName: '0G ChainScan',
+							},
 						],
 						storageEndpoints: [
-							...zeroGMainnetStorageEndpoints,
+							{
+								url: 'https://storagescan.0g.ai',
+								transportType: TransportType.Http,
+								providerName: '0G StorageScan',
+							},
 						],
 						$executionNetwork: {
 							[EntityMetaKey.Selector]: zeroGEvmNetworkId,
@@ -1014,7 +1026,16 @@ export default {
 						namespace: network.namespace,
 						environment: network.environment,
 						rpcEndpoints: [
-							...solanaMainnetRpcEndpoints,
+							{
+								url: 'https://api.mainnet.solana.com',
+								transportType: TransportType.Http,
+								providerName: 'Solana Labs',
+							},
+							{
+								url: 'wss://api.mainnet.solana.com',
+								transportType: TransportType.WebSocket,
+								providerName: 'Solana Labs',
+							},
 						],
 					}
 				}
@@ -1828,8 +1849,8 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => (
-					proposalKindIds.map((proposalKindId) => ({
-						[EntityMetaKey.Selector]: proposalKindId,
+					proposalKinds.map((proposalKind) => ({
+						[EntityMetaKey.Selector]: proposalKind,
 					}))
 				)
 			},
@@ -1843,12 +1864,12 @@ export default {
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
 				[SpecificationRealmSelector.Realm]: async (entitySelector: EntitySelector<typeof schema, EntityType.SpecificationRealm>) => (
-					proposalKindIds
-						.filter((proposalKindId) => (
-						proposalKindId.realm === entitySelector.realm
+					proposalKinds
+						.filter((proposalKind) => (
+						proposalKind.realm === entitySelector.realm
 						))
-						.map((proposalKindId) => ({
-							[EntityMetaKey.Selector]: proposalKindId,
+						.map((proposalKind) => ({
+							[EntityMetaKey.Selector]: proposalKind,
 						}))
 				)
 			},
@@ -2183,7 +2204,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey]: async ({ $market }: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
+				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }: EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 					{
 						[EntityMetaKey.Selector]: $market,
 					}
@@ -2531,20 +2552,37 @@ export default {
 					}))
 				)
 			},
-		})({
-			fields: {
-				$$atprotoActors: (entity) => entity,
-			},
-		}),
+			})({
+				fields: {
+					$$atprotoActors: (entity) => entity,
+				},
+			}),
 
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.ActivityPubNetwork,
-			resolve: {
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType.AtprotoNetwork,
+				resolve: {
+					[AtprotoNetworkSelector.Scope]: async () => (
+						atprotoNetworkSeedPosts.map((post) => ({
+							[EntityMetaKey.Selector]: {
+								uri: post.uri,
+							},
+						}))
+					)
+				},
+			})({
+				fields: {
+					$$atprotoPosts: (entity) => entity,
+				},
+			}),
+
+			defineResolver(Source.Constants_Internal, {
+				entityType: EntityType.ActivityPubNetwork,
+				resolve: {
 				[ActivityPubNetworkSelector.Scope]: async () => (
 					activityPubNetworkSeedActors.map((actor) => ({
 						[EntityMetaKey.Selector]: {
 							instanceOrigin: actor.instanceOrigin,
-							localAccountId: actor.localAccountId,
+							acct: actor.acct,
 						},
 					}))
 				)

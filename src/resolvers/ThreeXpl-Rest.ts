@@ -402,13 +402,6 @@ export default {
 								$network,
 								txId,
 							},
-							$block: {
-								[EntityMetaKey.Selector]: {
-									$network,
-									height,
-									hash,
-								},
-							},
 						}))
 				}
 			},

@@ -1126,6 +1126,27 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 			})
 	})
 
+	it('does not materialize snapshot fields a resolver did not declare', async () => {
+		const { context, calls } = await createFixtureContext()
+		const result = await subscribeEntity(context, EntityType.Network, {
+			id: 'parent',
+		}, {
+			sources: [
+				Source.MetadataVision_Rest,
+			],
+			fields: {
+				name: true,
+			},
+		})
+
+		expect(result.fields.name).toBeUndefined()
+		expect(calls.some((call) => call.source === Source.MetadataVision_Rest)).toBe(true)
+		expect(context.entityCollections[EntityType.Network].toArray.some((entity) => (
+			entity[EntityMetaKey.Source] === Source.MetadataVision_Rest
+			&& 'name' in entity[EntityMetaKey.Fields]
+		))).toBe(false)
+	})
+
 	it('reuses derived selector rows for later selector-equivalent entity requests', async () => {
 		const { context, calls } = await createFixtureContext()
 		await subscribeEntity(context, EntityType.Network, {
@@ -2886,6 +2907,36 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 			row[EntityMetaKey.Source] === Source.Amboss_Graphql
 		))).toBe(false)
 		subscription.unsubscribe()
+	})
+
+	it('rejects non-object count filter payloads before resolver execution', async () => {
+		await withExpectedCollectionErrors([
+			'expected object filterKey payload',
+		], async () => {
+			const { context, calls } = await createFixtureContext()
+			const countCollection = context.entityFieldCountCollections[EntityType.Network].$$networks
+			if (countCollection == null)
+				throw new Error('expected fixture count collection')
+
+			const subscription = countCollection.subscribeChanges(() => {}, {
+				includeInitialState: true,
+				where: (count) => and(
+					eq(count[EntityMetaKey.ParentSelectorKey], entitySelectorKey(fixtureSchema, fixtureEntityDefinition, {
+						id: 'parent',
+					})),
+					eq(count.filterKey, stringify('not a count filter payload')),
+					inArray(count[EntityMetaKey.Source], [
+						Source.Local_Internal,
+					])
+				),
+			})
+
+			await expect.poll(() => context.queryClient.getQueryCache().getAll().some((query) => (
+				String(query.state.error).includes('expected object filterKey payload')
+			))).toBe(true)
+			expect(calls).toEqual([])
+			subscription.unsubscribe()
+		})
 	})
 
 	it('uses successful count facets when a compatible count facet fails', async () => {

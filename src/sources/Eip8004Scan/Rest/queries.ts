@@ -1,19 +1,13 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { getJson } from '$/lib/http.ts'
-import {
-	eip8004ScanOrigins,
-	eip8004ScanPublicBase,
-} from '$/sources/Eip8004Scan/Rest/constants.ts'
+import Eip8004Scan from '$/sources/Eip8004Scan/index.ts'
+import { eip8004ScanPublicBase } from '$/sources/Eip8004Scan/Rest/constants.ts'
 import type {
 	Eip8004ScanAgentDetailResponse,
 	Eip8004ScanAgentsListResponse,
 	NormalizedEip8004ScanAgentDetail,
 	NormalizedEip8004ScanAgent,
 } from '$/sources/Eip8004Scan/Rest/types.ts'
-
-const corsOptions = {
-	origins: eip8004ScanOrigins,
-} as const
 
 const contractAddressFromWire = (
 	value: string | null | undefined
@@ -82,7 +76,9 @@ export const fetchAgentList = async ({
 	page?: number
 } = {}): Promise<NormalizedEip8004ScanAgent[]> => {
 	const url = `${eip8004ScanPublicBase}/agents?limit=${String(limit)}&page=${String(page)}`
-	const wire = await getJson<Eip8004ScanAgentsListResponse>(url, corsOptions)
+	const wire = await getJson<Eip8004ScanAgentsListResponse>(url, {
+		origins: Eip8004Scan.origins,
+	})
 	const rows = wire.data ?? []
 	return (
 		rows
@@ -99,7 +95,9 @@ export const fetchAgentDetail = async ({
 	tokenId: string
 }): Promise<NormalizedEip8004ScanAgentDetail | undefined> => {
 	const url = `${eip8004ScanPublicBase}/agents/${String(chainId)}/${encodeURIComponent(tokenId)}`
-	const wire = await getJson<Eip8004ScanAgentDetailResponse>(url, corsOptions)
+	const wire = await getJson<Eip8004ScanAgentDetailResponse>(url, {
+		origins: Eip8004Scan.origins,
+	})
 	const row = wire.data
 	if (row == null) {
 		return undefined

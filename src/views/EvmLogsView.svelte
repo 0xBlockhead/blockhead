@@ -102,11 +102,11 @@
 						},
 					),
 					(parent) => (
-						[...(parent.fields.$$logs?.entities ?? [])]
-							.map((entity) => ({
+						[...(parent.fields.$$logs?.values ?? [])]
+							.map((value, index) => ({
 								value: {
-									[EntityMetaKey.Selector]: entity.entitySelector,
-									topics: entity.fields.topics,
+									[EntityMetaKey.Selector]: value[EntityMetaKey.Selector],
+									topics: parent.fields.$$logs?.entities[index]?.fields.topics ?? [],
 								},
 							}))
 					),

@@ -28,9 +28,10 @@ const authHeaders = (publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>): Record<st
 export const fediGet = async <T>(
 	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
 	path: string,
-	search?: Record<string, string | undefined>
+	search?: Record<string, string | undefined>,
+	apiVersion = 'v1'
 ) => (
-	getJson<T>(`${fediInstanceBySlug.fosstodon.origin}/api/v1${path}${qs(search ?? {})}`, {
+	getJson<T>(`${fediInstanceBySlug.fosstodon.origin}/api/${apiVersion}${path}${qs(search ?? {})}`, {
 		origins: Fedi.origins,
 		init: { headers: authHeaders(publicEnv) },
 	})

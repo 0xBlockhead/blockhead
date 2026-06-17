@@ -1,6 +1,6 @@
 /**
- * Serial crawl of every discovered `+page` route. Stops on the first runtime, boundary,
- * or resolver console failure so an agent can fix and re-run without waiting for the full matrix.
+ * Serial crawl of every discovered `+page` route. Stops on the first app-shell,
+ * page-error, critical-console, or failed-settlement signal so an agent can fix and re-run without waiting for the full matrix.
  *
  * ```
  * pnpm run test:e2e:failfast
@@ -76,10 +76,10 @@ const visitRouteFailFast = async (
 		const { step, flushArtifacts } = setupRouteViewSmokePage(page)
 		try {
 			await step(page.goto(pathname, {
-				waitUntil: 'domcontentloaded',
+				waitUntil: 'load',
 				timeout: routeViewSmokeTimeoutsMs.goto,
 			}))
-			await step(expect(page.locator('#main')).toBeAttached({
+			await step(expect(page.locator('#main')).toBeVisible({
 				timeout: routeViewSmokeTimeoutsMs.mainSelector,
 			}))
 			const main = page.locator('#main')
@@ -120,23 +120,28 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 		await visitRouteFailFast(page, testInfo, probePath!)
 	})
 
-	test('every +page URL until first failure', async ({ page }, testInfo) => {
+	test('every +page URL until first failure', async ({ browser }, testInfo) => {
 		test.skip(probePath != null && probePath !== '', 'E2E_PROBE_PATH skips full matrix')
 		const pageUrls = await selectPathnames()
 		const perRouteBudgetMs = routeViewSmokeTimeoutsMs.test + 30_000
 		testInfo.setTimeout(pageUrls.length * perRouteBudgetMs + 60_000)
-		page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-		await installChainlistRpcsJsonStub(page)
 
 		for (const [index, pathname] of pageUrls.entries()) {
 			console.log(`[route-errors-failfast] ${index + 1}/${pageUrls.length} ${pathname}`)
 			await test.step(pathname, async () => {
-				await withRouteTimeout(
-					pathname,
-					index,
-					pageUrls.length,
-					visitRouteFailFast(page, testInfo, pathname)
-				)
+				const page = await browser.newPage()
+				try {
+					page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
+					await installChainlistRpcsJsonStub(page)
+					await withRouteTimeout(
+						pathname,
+						index,
+						pageUrls.length,
+						visitRouteFailFast(page, testInfo, pathname)
+					)
+				} finally {
+					await page.close()
+				}
 			})
 		}
 	})

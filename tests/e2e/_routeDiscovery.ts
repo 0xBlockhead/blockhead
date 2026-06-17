@@ -22,7 +22,7 @@ const encodeUrlSegment = (segment: string) => (
 	segment === '~' ?
 		'~'
 	:
-		encodeURIComponent(segment).replaceAll('%3A', ':')
+		encodeURIComponent(segment)
 )
 
 const bracketSegmentToParamKey = (segment: string) => (

@@ -285,14 +285,14 @@ export default {
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost,
 			resolve: {
-				[XPostSelector.Id]: async (entitySelector, context) => {
+				[XPostSelector.Id]: async ({ id }, context) => {
 					const { getTweet } = await import('$/sources/X/Rest/queries.ts')
-					const tweet = (await getTweet(context.publicEnv, entitySelector.id)).data
+					const tweet = (await getTweet(context.publicEnv, id)).data
 					if (tweet == null) throw new Error('X_Rest: post not found')
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$post: entitySelector,
+								$post: { id },
 								timestampMs: Date.now(),
 							},
 							likeCount: tweet.public_metrics?.like_count,

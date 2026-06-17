@@ -40,15 +40,6 @@ export default {
 	],
 
 	fields: [
-		{
-			name: 'caip2',
-			type: EntityFieldType.Primitive,
-			primitiveType: type({
-				namespace: type.unit('solana'),
-				reference: 'string',
-			}),
-			cardinality: EntityFieldCardinality.One,
-		},
 		networkFields[0],
 		networkFields[1],
 		networkFields[2],

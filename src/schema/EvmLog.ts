@@ -18,26 +18,6 @@ export enum EvmLogSelector {
 
 const evmLogBaseFields = [
 	{
-		name: 'txHash',
-		type: EntityFieldType.Primitive,
-		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Voltaire_JsonRpc,
-			Source.Blockscout_Rest,
-		],
-	},
-	{
-		name: 'logIndex',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Voltaire_JsonRpc,
-			Source.Blockscout_Rest,
-		],
-	},
-	{
 		name: 'topics',
 		type: EntityFieldType.Primitive,
 		primitiveType: ZeroExHex.array(),
@@ -138,12 +118,40 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+			],
 		},
 		{
 			name: 'logIndex',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: '$transaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmTransaction,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: '$block',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmBlock,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+			],
 		},
 		...evmLogBaseFields,
 		{

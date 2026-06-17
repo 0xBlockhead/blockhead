@@ -47,6 +47,7 @@ export type SolanaRpcInstruction = {
 	}
 	accounts?: string[]
 	data?: string
+	stackHeight?: number
 }
 
 export type SolanaRpcAccountInfo = {

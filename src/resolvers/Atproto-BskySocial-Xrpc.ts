@@ -17,6 +17,32 @@ import { AtprotoPostSelector } from '$/schema/AtprotoPost.ts'
 import { AtprotoActor_TimestampSelector } from '$/schema/AtprotoActor_Timestamp.ts'
 import { AtprotoPost_TimestampSelector } from '$/schema/AtprotoPost_Timestamp.ts'
 import { AtprotoNetworkSelector } from '$/schema/AtprotoNetwork.ts'
+import type { BskyAppViewPostView } from '$/sources/AtprotoBsky/Rest/types.ts'
+
+const atprotoPostFieldsFromPostView = (postView: BskyAppViewPostView) => {
+	const atprotoRecord = postView.record
+	const createdAt = optionalTimestampMs(atprotoRecord.createdAt)
+	const parentUri = optionalNonemptyString(atprotoRecord.reply?.parent?.uri)
+	const rootUri = optionalNonemptyString(atprotoRecord.reply?.root?.uri)
+	const text = optionalNonemptyString(atprotoRecord.text)
+	const indexedAt = optionalTimestampMs(postView.indexedAt)
+	const selfLabelValues = (
+		atprotoRecord.labels?.values
+			?.map((labelValue) => optionalNonemptyString(labelValue.val))
+			.filter((value): value is string => value != null)
+	)
+	return {
+		uri: postView.uri,
+		$author: { [EntityMetaKey.Selector]: { did: postView.author.did } },
+		...(text != null && { text }),
+		...(createdAt != null && { createdAt }),
+		...(indexedAt != null && { indexedAt }),
+		...(atprotoRecord.langs != null && atprotoRecord.langs.length > 0 && { langs: atprotoRecord.langs }),
+		...(selfLabelValues != null && selfLabelValues.length > 0 && { selfLabelValues }),
+		...(parentUri != null && { $parent: { [EntityMetaKey.Selector]: { uri: parentUri } } }),
+		...(rootUri != null && { $root: { [EntityMetaKey.Selector]: { uri: rootUri } } }),
+	}
+}
 
 
 export default {
@@ -50,9 +76,6 @@ export default {
 							$banner: bannerMedia,
 						}
 					))(mediaFromUrl(profile.banner, MediaType.Image)),
-						...(profile.followersCount != null && { followersCount: profile.followersCount }),
-						...(profile.followsCount != null && { followsCount: profile.followsCount }),
-						...(profile.postsCount != null && { postsCount: profile.postsCount }),
 						...(indexedAt != null && { indexedAt }),
 						...(description != null && { description }),
 					}
@@ -81,9 +104,6 @@ export default {
 							$banner: bannerMedia,
 						}
 					))(mediaFromUrl(profile.banner, MediaType.Image)),
-						...(profile.followersCount != null && { followersCount: profile.followersCount }),
-						...(profile.followsCount != null && { followsCount: profile.followsCount }),
-						...(profile.postsCount != null && { postsCount: profile.postsCount }),
 						...(indexedAt != null && { indexedAt }),
 						...(description != null && { description }),
 					}
@@ -96,9 +116,6 @@ export default {
 				handle: (actor) => actor.handle,
 				$icon: (actor) => actor.$icon,
 				$banner: (actor) => actor.$banner,
-				followersCount: (actor) => actor.followersCount,
-				followsCount: (actor) => actor.followsCount,
-				postsCount: (actor) => actor.postsCount,
 				indexedAt: (actor) => actor.indexedAt,
 				description: (actor) => actor.description,
 			},
@@ -111,43 +128,16 @@ export default {
 					const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 					const postView = (await getPosts([uri])).posts.at(0)
 					if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
-					const atprotoRecord = postView.record
-					const createdAt = Date.parse(atprotoRecord.createdAt)
-					const parentUri = optionalNonemptyString(atprotoRecord.reply?.parent?.uri)
-					const rootUri = optionalNonemptyString(atprotoRecord.reply?.root?.uri)
-					const text = optionalNonemptyString(atprotoRecord.text)
-					const indexedAt = optionalTimestampMs(postView.indexedAt)
-					const selfLabelValues = (
-						atprotoRecord.labels?.values
-							?.map((labelValue) => optionalNonemptyString(labelValue.val))
-							.filter((value): value is string => value != null)
-					)
-					return {
-						$author: { [EntityMetaKey.Selector]: { did: postView.author.did } },
-						...(text != null && { text }),
-						...(Number.isFinite(createdAt) && { createdAt }),
-						...(indexedAt != null && { indexedAt }),
-						...(postView.likeCount != null && { likeCount: postView.likeCount }),
-						...(postView.repostCount != null && { repostCount: postView.repostCount }),
-						...(postView.replyCount != null && { replyCount: postView.replyCount }),
-						...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
-						...(atprotoRecord.langs != null && atprotoRecord.langs.length > 0 && { langs: atprotoRecord.langs }),
-						...(selfLabelValues != null && selfLabelValues.length > 0 && { selfLabelValues }),
-						...(parentUri != null && { $parent: { [EntityMetaKey.Selector]: { uri: parentUri } } }),
-						...(rootUri != null && { $root: { [EntityMetaKey.Selector]: { uri: rootUri } } }),
-					}
+					return atprotoPostFieldsFromPostView(postView)
 				}
 			},
 		})({
 			fields: {
+				uri: (post) => post.uri,
 				$author: (post) => post.$author,
 				text: (post) => post.text,
 				createdAt: (post) => post.createdAt,
 				indexedAt: (post) => post.indexedAt,
-				likeCount: (post) => post.likeCount,
-				repostCount: (post) => post.repostCount,
-				replyCount: (post) => post.replyCount,
-				quoteCount: (post) => post.quoteCount,
 				langs: (post) => post.langs,
 				selfLabelValues: (post) => post.selfLabelValues,
 				$parent: (post) => post.$parent,
@@ -272,9 +262,6 @@ export default {
 								},
 								timestampMs: Date.now(),
 							},
-							...(profile.followersCount != null && { followersCount: profile.followersCount }),
-							...(profile.followsCount != null && { followsCount: profile.followsCount }),
-							...(profile.postsCount != null && { postsCount: profile.postsCount }),
 						},
 					]
 				},
@@ -289,9 +276,6 @@ export default {
 								},
 								timestampMs: Date.now(),
 							},
-							...(profile.followersCount != null && { followersCount: profile.followersCount }),
-							...(profile.followsCount != null && { followsCount: profile.followsCount }),
-							...(profile.postsCount != null && { postsCount: profile.postsCount }),
 						},
 					]
 				},
@@ -316,8 +300,11 @@ export default {
 					return (
 						feed
 							.flatMap((feedItem) => {
-							if (feedItem.post.author.did !== did) return []
-							return [{ [EntityMetaKey.Selector]: { uri: feedItem.post.uri } }]
+								if (feedItem.post.author.did !== did) return []
+								return [{
+									[EntityMetaKey.Selector]: { uri: feedItem.post.uri },
+									...atprotoPostFieldsFromPostView(feedItem.post),
+								}]
 							})
 					)
 				},
@@ -332,8 +319,11 @@ export default {
 					return (
 						feed
 							.flatMap((feedItem) => {
-							if (feedItem.post.author.handle !== handle) return []
-							return [{ [EntityMetaKey.Selector]: { uri: feedItem.post.uri } }]
+								if (feedItem.post.author.handle !== handle) return []
+								return [{
+									[EntityMetaKey.Selector]: { uri: feedItem.post.uri },
+									...atprotoPostFieldsFromPostView(feedItem.post),
+								}]
 							})
 					)
 				},
@@ -347,20 +337,16 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost,
 			resolve: {
-				[AtprotoPostSelector.Uri]: async (entitySelector) => {
+				[AtprotoPostSelector.Uri]: async ({ uri }) => {
 					const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-					const postView = (await getPosts([entitySelector.uri])).posts.at(0)
+					const postView = (await getPosts([uri])).posts.at(0)
 					if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$post: entitySelector,
+								$post: { uri },
 								timestampMs: Date.now(),
 							},
-							...(postView.likeCount != null && { likeCount: postView.likeCount }),
-							...(postView.repostCount != null && { repostCount: postView.repostCount }),
-							...(postView.replyCount != null && { replyCount: postView.replyCount }),
-							...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
 						},
 					]
 				}
@@ -384,21 +370,37 @@ export default {
 					const threadPostUri = optionalNonemptyString(thread.post.uri)
 					if (threadPostUri == null)
 						throw new Error(`Atproto_BskySocial_Xrpc: post thread not found for ${uri}`)
-					const ancestors: { [EntityMetaKey.Selector]: { uri: string } }[] = []
+					const ancestors: {
+						[EntityMetaKey.Selector]: { uri: string }
+						uri: string
+						createdAt?: number
+					}[] = []
 					let parent = thread.parent
 					while (parent != null) {
 						const parentUri = optionalNonemptyString(parent.post.uri)
 						if (parentUri == null) break
-						if (parentUri !== uri)
-							ancestors.unshift({ [EntityMetaKey.Selector]: { uri: parentUri } })
+						if (parentUri !== uri) {
+							ancestors.unshift({
+								[EntityMetaKey.Selector]: { uri: parentUri },
+								...atprotoPostFieldsFromPostView(parent.post),
+							})
+						}
 						parent = parent.parent
 					}
-					const descendants: { [EntityMetaKey.Selector]: { uri: string } }[] = []
+					const descendants: {
+						[EntityMetaKey.Selector]: { uri: string }
+						uri: string
+						createdAt?: number
+					}[] = []
 					const walkReplies = (node: NonNullable<typeof thread>) => {
 						for (const reply of node.replies ?? []) {
 							const replyUri = optionalNonemptyString(reply.post.uri)
-							if (replyUri != null && replyUri !== uri)
-								descendants.push({ [EntityMetaKey.Selector]: { uri: replyUri } })
+							if (replyUri != null && replyUri !== uri) {
+								descendants.push({
+									[EntityMetaKey.Selector]: { uri: replyUri },
+									...atprotoPostFieldsFromPostView(reply.post),
+								})
+							}
 							if (replyUri != null) walkReplies(reply)
 						}
 					}

@@ -1,8 +1,8 @@
 import { stringify } from 'devalue'
 
 import {
-	atprotoProbeDid,
-	atprotoProbePostUri,
+	atprotoNetworkSeedActors,
+	atprotoNetworkSeedPosts,
 } from '$/constants/Social/Atproto.ts'
 import {
 	CAST_HASH_32,
@@ -73,9 +73,9 @@ export const routeViewSmokePathByLabel: Record<string, `/${string}`> = {
 	atprotoHub: '/atproto',
 	atprotoActors: '/atproto/actors',
 	atprotoPosts: '/atproto/posts',
-	atprotoActor: `/atproto/actor/${atprotoProbeDid}`,
-	atprotoActorPosts: `/atproto/actor/${atprotoProbeDid}/posts`,
-	atprotoPostDetail: `/atproto/post/${encodeURIComponent(atprotoProbePostUri)}`,
+	atprotoActor: `/atproto/actor/${atprotoNetworkSeedActors[0].did}`,
+	atprotoActorPosts: `/atproto/actor/${atprotoNetworkSeedActors[0].did}/posts`,
+	atprotoPostDetail: `/atproto/post/${encodeURIComponent(atprotoNetworkSeedPosts[0].uri)}`,
 	activitypubHub: '/activitypub',
 	activitypubActors: '/activitypub/actors',
 	activitypubNotes: '/activitypub/notes',

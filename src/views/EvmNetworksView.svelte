@@ -91,18 +91,9 @@
 			{@const networks = derive(
 				parent,
 				(parent) => {
-					const chainIds = new SvelteSet<number>()
 					const evmNetworks: readonly Entity<typeof schema, EntityType.EvmNetwork>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
-					return (
-						evmNetworks
-							.flatMap((value) => {
-								const chainId = Number(value[EntityMetaKey.Selector].caip2.reference)
-								if (chainIds.has(chainId)) return []
-								chainIds.add(chainId)
-								return [{ value }]
-							})
-					)
-				},
+					return evmNetworks.map((value) => ({ value }))
+				}
 			)}
 			<EntitiesList
 				collapsible={false}

@@ -96,6 +96,11 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.AtprotoPost,
 			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Atproto_Xrpc,
+				Source.Atproto_BskySocial_Xrpc,
+			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

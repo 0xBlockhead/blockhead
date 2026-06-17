@@ -10,5 +10,6 @@
 		selector={{
 			scope: 'AtprotoNetwork',
 		}}
+		open={false}
 	/>
 </Page>

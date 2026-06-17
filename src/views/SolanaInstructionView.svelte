@@ -5,6 +5,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { SolanaInstructionKind } from '$/schema/SolanaInstruction.ts'
 	import { schema } from '$/schema/index.ts'
 
 
@@ -23,6 +24,13 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
+	const instructionId = $derived(
+		selector.instructionKind === SolanaInstructionKind.InnerInstruction ?
+			`${String(selector.instructionIndex)}.${String(selector.innerInstructionIndex)}`
+		:
+			String(selector.instructionIndex),
+	)
+
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,14 +43,17 @@
 <EntityView
 	entityType={EntityType.SolanaInstruction}
 	entitySelector={selector}
-	title={`Instruction #${selector.instructionPath.join('.')}`}
-	idDragPlainText={selector.instructionPath.join('.')}
+	title={selector.instructionKind === SolanaInstructionKind.InnerInstruction ?
+		`Inner instruction #${instructionId}`
+	:
+		`Instruction #${instructionId}`}
+	idDragPlainText={instructionId}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-badge="small">
-			#{selector.instructionPath.join('.')}
+			#{instructionId}
 		</span>
 	{/snippet}
 
@@ -57,7 +68,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={subscribe(EntityType.SolanaInstruction, selector, ({ fields: { $program: true, parsedType: true, data: true, $$accounts: true } }))}
+			resource={subscribe(EntityType.SolanaInstruction, selector, ({ fields: { $program: true, parsedType: true, data: true, stackHeight: true, $$accounts: true } }))}
 			placeholderText="Loading Solana Instruction..."
 		>
 			{#snippet children(solanaInstruction)}
@@ -94,7 +105,14 @@
 						</div>
 					{/if}
 
-					{#if solanaInstruction.fields.$$accounts != null && solanaInstruction.fields.$$accounts?.values.length}
+					{#if solanaInstruction.fields.stackHeight != null}
+						<div>
+							<dt>Stack Height</dt>
+							<dd>{solanaInstruction.fields.stackHeight}</dd>
+						</div>
+					{/if}
+
+					{#if solanaInstruction.fields.$$accounts != null && solanaInstruction.fields.$$accounts.values.length}
 						<div>
 							<dt>Accounts</dt>
 							<dd>

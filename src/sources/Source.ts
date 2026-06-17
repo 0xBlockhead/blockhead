@@ -126,18 +126,19 @@ export const marketDerivativeObservationSources = [
 /** Resolvers for `MarketPrice` / `$$marketPrices` (spot USD streams). */
 export const marketSpotPriceSources = [
 	Source.Constants_Internal,
+	Source.Blockscout_Rest,
 	Source.Coingecko_Rest,
 	Source.Coingecko_OpenApi,
 	Source.CoinMarketCap_Rest,
 	Source.Coinpaprika_OpenApi,
 	Source.Defillama_OpenApi,
+	Source.Defillama_Rest,
 ] as const
 
 /** Resolvers for `Market_TimeInterval_Timestamp` / `$$marketTimeIntervalTimestamps`. */
 export const marketOhlcCandleSources = [
 	Source.Coingecko_Rest,
 	Source.Coingecko_OpenApi,
-	Source.Defillama_OpenApi,
 	Source.Coinpaprika_OpenApi,
 	Source.CoinMarketCap_Rest,
 ] as const

@@ -3,7 +3,10 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
+	import {
+		atprotoNetworkSeedActors,
+		atprotoNetworkSeedPosts,
+	} from '$/constants/Social/Atproto.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -37,13 +40,29 @@
 		never
 	> = $props()
 
-	const atprotoNetwork = subscribe(EntityType.AtprotoNetwork,
-		selector,
-		({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$atprotoActors: ({ sources: [
-							Source.Constants_Internal,
-							Source.Atproto_Xrpc,
-							Source.Atproto_BskySocial_Xrpc,
-						] }) }) : ({  })) } }),
+	const atprotoNetwork = $derived(
+		subscribe(EntityType.AtprotoNetwork,
+			selector,
+			{
+				sources: [Source.Constants_Internal],
+				fields: {
+					protocolName: true,
+					registryLabel: true,
+					...(open && {
+						homeUrl: true,
+						docsUrl: true,
+						topology: true,
+						$$atprotoActors: {
+							sources: [
+								Source.Constants_Internal,
+								Source.Atproto_Xrpc,
+								Source.Atproto_BskySocial_Xrpc,
+							],
+						},
+					}),
+				},
+			}
+		)
 	)
 
 
@@ -216,14 +235,14 @@
 				<ul>
 					<li>
 						<a href={resolve('/(social)/(atproto)/atproto/actor/[did]', {
-							did: encodeURIComponent(atprotoProbeDid),
+							did: encodeURIComponent(atprotoNetworkSeedActors[0].did),
 						})}>
 							Actor example
 						</a>
 					</li>
 					<li>
-						<a href={resolve('/(social)/(atproto)/atproto/post/[uri]', {
-							uri: encodeURIComponent(atprotoProbePostUri),
+						<a href={resolve('/(social)/(atproto)/atproto/post/[...uri]', {
+							uri: encodeURIComponent(atprotoNetworkSeedPosts[0].uri),
 						})}>
 							Post example
 						</a>

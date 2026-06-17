@@ -145,7 +145,7 @@
 						<!-- href override: tx detail under block route, not network /transactions/tx -->
 						<EvmTransactionView
 							selector={t}
-							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]', {
+							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId=evmTxHash]', {
 									caip2Namespace: entityFieldReference.selector.$network.caip2.namespace,
 									caip2Reference: entityFieldReference.selector.$network.caip2.reference,
 									blockNumber: String(entityFieldReference.selector.blockNumber),

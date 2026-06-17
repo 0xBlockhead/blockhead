@@ -1,5 +1,4 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { stringify } from 'devalue'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -30,11 +29,20 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertCosmosHub = (network: NetworkId) => {
 	if (
-		stringify(network) !== stringify({ caip2: cosmosNetworkBySlug.cosmos.caip2 })
-		&& stringify(network) !== stringify({ slug: 'cosmos' })
+		(
+			'slug' in network
+			&& network.slug === 'cosmos'
+		)
+		|| (
+			'caip2' in network
+			&& network.caip2.namespace === cosmosNetworkBySlug.cosmos.caip2.namespace
+			&& network.caip2.reference === cosmosNetworkBySlug.cosmos.caip2.reference
+		)
 	) {
-		throw new Error('CosmosSdk_Rest: unsupported network')
+		return
 	}
+
+	throw new Error('CosmosSdk_Rest: unsupported network')
 }
 
 const cosmosValidatorFields = (validator: {

@@ -20,7 +20,7 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/(social)/(atproto)/atproto/post/[uri]', {
+	href={resolve('/(social)/(atproto)/atproto/post/[...uri]', {
 		uri: encodeURIComponent(uri),
 	})}
 	id={uri}

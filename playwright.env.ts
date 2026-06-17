@@ -2,8 +2,8 @@ import type { BrowserContextOptions } from '@playwright/test'
 
 
 export const playwrightHeadless = () => (
-	process.env.PLAYWRIGHT_HEADLESS === '1'
-	|| process.env.PLAYWRIGHT_HEADLESS?.toLowerCase() === 'true'
+	process.env.PLAYWRIGHT_HEADLESS !== '0'
+	&& process.env.PLAYWRIGHT_HEADLESS?.toLowerCase() !== 'false'
 )
 
 export const playwrightColorScheme = (): NonNullable<BrowserContextOptions['colorScheme']> => {

@@ -1,6 +1,9 @@
 import { stringify } from 'devalue'
 
-import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
+import {
+	atprotoNetworkSeedActors,
+	atprotoNetworkSeedPosts,
+} from '$/constants/Social/Atproto.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { specificationRealms } from '$/constants/SpecificationProposal.ts'
 import {
@@ -130,8 +133,8 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	test: 'test',
 	marketKey: stringify(ethUsdCatalogMarket),
 	instanceOrigin: 'https://mastodon.social',
-	did: atprotoProbeDid,
-	uri: atprotoProbePostUri,
+	did: atprotoNetworkSeedActors[0].did,
+	uri: atprotoNetworkSeedPosts[0].uri,
 	epochNumber: '300000',
 	slotNumber: '9500000',
 	timestampMs: '0',
@@ -149,6 +152,7 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	tokenId: '104776',
 	reference: swarmDocsLandingReference,
 	pubkey: NOSTR_PROBE_PUBKEY,
+	kind: '30023',
 	eventId: NOSTR_PROBE_NOTE_EVENT_ID,
 	relayKey: NOSTR_PROBE_RELAY_URL,
 	identifier: NOSTR_PROBE_ARTICLE_IDENTIFIER,

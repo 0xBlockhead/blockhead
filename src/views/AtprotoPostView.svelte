@@ -18,11 +18,11 @@
 	// State
 	let {
 		selector,
-		href = resolve('/(social)/(atproto)/atproto/post/[uri]', {
+		href = resolve('/(social)/(atproto)/atproto/post/[...uri]', {
 			uri: encodeURIComponent(selector.uri),
 		}),
 		open = $bindable(true),
-			...EntityViewProps
+		...EntityViewProps
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.AtprotoPost>

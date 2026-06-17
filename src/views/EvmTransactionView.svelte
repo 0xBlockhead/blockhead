@@ -25,7 +25,7 @@
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+		href = resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
 			...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
 			transactionId: selector.txHash,
 		}),
@@ -60,7 +60,31 @@
 						Source.Blockscout_Rest,
 						Source.Voltaire_JsonRpc,
 						Source.ZeroGChain_JsonRpc,
-					], fields: { $block: true, $from: true, $to: true, $contract: true, value: true, kind: true, envelopeType: true, executionStatus: true, gasUsed: true, input: true, nonce: true, transactionIndex: true, gas: true, gasPrice: true, effectiveGasPrice: true } }),
+					], fields: {
+						$block: true,
+						$from: true,
+						$to: true,
+						$contract: true,
+						value: true,
+						kind: true,
+						envelopeType: true,
+						executionStatus: true,
+						gasUsed: true,
+						cumulativeGasUsed: true,
+						input: true,
+						nonce: true,
+						transactionIndex: true,
+						r: true,
+						s: true,
+						v: true,
+						gas: true,
+						gasPrice: true,
+						effectiveGasPrice: true,
+						maxFeePerGas: true,
+						maxPriorityFeePerGas: true,
+						blobGasUsed: true,
+						maxFeePerBlobGas: true,
+					} }),
 			)
 		:
 			undefined
@@ -351,6 +375,35 @@
 						{/if}
 
 						{#if open}
+							<div>
+								<dt>Signature</dt>
+								<dd data-row="wrap align-center gap-2">
+									{#if transaction.fields.r !== undefined}
+										<span>
+											r
+											<TruncatedValue
+												value={transaction.fields.r}
+												format={TruncatedValueFormat.Abbr}
+											/>
+										</span>
+									{/if}
+									{#if transaction.fields.s !== undefined}
+										<span>
+											s
+											<TruncatedValue
+												value={transaction.fields.s}
+												format={TruncatedValueFormat.Abbr}
+											/>
+										</span>
+									{/if}
+									{#if transaction.fields.v !== undefined}
+										<span>v {transaction.fields.v}</span>
+									{/if}
+								</dd>
+							</div>
+						{/if}
+
+						{#if open}
 							{#if (
 								transaction.fields.envelopeType === EvmTransactionEnvelopeType.Blob
 								&& transaction.fields.blobGasUsed !== undefined
@@ -431,7 +484,7 @@
 			{#snippet SectionEvents({ id: _eventsId, label: _eventsLabel })}
 				<EvmLogsView
 					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+					href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
 						...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
 						transactionId: selector.txHash,
 					})}
@@ -491,7 +544,7 @@
 										selector,
 										fieldName: '$$blobs',
 									}}
-									href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+									href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
 											...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
 											transactionId: selector.txHash,
 										})}

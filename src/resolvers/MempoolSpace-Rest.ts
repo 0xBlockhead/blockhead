@@ -337,14 +337,6 @@ export default {
 							height: BigInt(block.height),
 							hash: block.id,
 						},
-						hash: block.id,
-						timestampMs: block.timestamp * 1000,
-						merkleRoot: block.merkle_root,
-						nonce: block.nonce,
-						difficulty: block.difficulty,
-						sizeBytes: block.size,
-						weightUnits: block.weight,
-						transactionCount: block.tx_count,
 					}))
 				}
 			},
@@ -413,27 +405,6 @@ export default {
 								$transaction: entitySelector,
 								inputIndex,
 							},
-							...(input.txid != null && input.vout != null && {
-								$spentOutput: {
-									[EntityMetaKey.Selector]: {
-										$transaction: {
-											$network: entitySelector.$network,
-											txId: input.txid,
-										},
-										outputIndex: input.vout,
-									},
-								},
-							}),
-							...(input.scriptsig != null && {
-								coinbaseScript: input.scriptsig,
-							}),
-							...(input.scriptsig_asm != null && {
-								scriptSigAsm: input.scriptsig_asm,
-							}),
-							sequence: input.sequence,
-							...(input.witness != null && {
-								witness: input.witness,
-							}),
 						}
 					))
 				)
@@ -454,20 +425,6 @@ export default {
 								$transaction: entitySelector,
 								outputIndex,
 							},
-							valueSats: BigInt(output.value),
-							...(output.scriptpubkey_asm != null && {
-								scriptPubKeyAsm: output.scriptpubkey_asm,
-							}),
-							scriptPubKeyHex: output.scriptpubkey,
-							scriptPubKeyType: output.scriptpubkey_type,
-							...(output.scriptpubkey_address != null && {
-								$address: {
-									[EntityMetaKey.Selector]: {
-										$network: entitySelector.$network,
-										address: output.scriptpubkey_address,
-									},
-								},
-							}),
 						}
 					))
 				)

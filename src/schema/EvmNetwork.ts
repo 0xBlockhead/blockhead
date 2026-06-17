@@ -103,7 +103,7 @@ export default {
 			primitiveType: executionEndpointField,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Constants_Internal,
+				Source.Voltaire_JsonRpc,
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
 				Source.Lifi_Rest,

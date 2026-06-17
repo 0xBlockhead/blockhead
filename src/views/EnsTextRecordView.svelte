@@ -32,15 +32,40 @@
 		recordId: string
 	} = $props()
 
-	const ens = subscribe(EntityType.EnsName,
-		selector,
-		({ sources: [Source.Voltaire_JsonRpc], fields: { textRecords: true } }),
+	const ens = $derived(
+		subscribe(EntityType.EnsName,
+			selector,
+			({ sources: [
+				Source.Voltaire_JsonRpc,
+				Source.TheGraph_Graphql,
+			], fields: { textRecords: true } }),
+		)
 	)
 
 
 	// (Derived)
 	const recordLabel = $derived(
 		ensTextRecordLabelByKey[recordId]?.label ?? recordId,
+	)
+
+
+	// Functions
+	const hrefForTextRecord = (
+		recordValue: string,
+		textRecordLinkEntry: (typeof ensTextRecordLinks)[number] | undefined,
+	) => (
+		textRecordLinkEntry == null ?
+			undefined
+		: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.Value ?
+			recordValue
+		: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.Mailto ?
+			`mailto:${recordValue}`
+		: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.Prefix ?
+			`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue}`
+		: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.PrefixStripAt ?
+			`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue.startsWith('@') ? recordValue.slice(1) : recordValue}`
+		:
+			undefined
 	)
 
 
@@ -61,11 +86,11 @@
 		<span>{recordLabel}</span>
 	{/snippet}
 
-		{#snippet Title()}
-			{#if Value}
-				{@render Value()}
-			{/if}
-		{/snippet}
+	{#snippet Title()}
+		{#if Value}
+			{@render Value()}
+		{/if}
+	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -84,19 +109,10 @@
 					candidate.keys.some((candidateKey) => candidateKey === recordId)
 				))}
 				{@const externalHref = (
-					recordValue !== undefined && textRecordLinkEntry != null ?
-						(
-							textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.Value ?
-								recordValue
-							: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.Mailto ?
-								`mailto:${recordValue}`
-							: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.Prefix ?
-								`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue}`
-								: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.PrefixStripAt ?
-									`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue.startsWith('@') ? recordValue.slice(1) : recordValue}` : undefined
-							)
-						:
-							undefined
+					recordValue === undefined ?
+						undefined
+					:
+						hrefForTextRecord(recordValue, textRecordLinkEntry)
 				)}
 				<dl data-column-item="center">
 					<div>

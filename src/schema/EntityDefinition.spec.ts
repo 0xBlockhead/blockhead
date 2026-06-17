@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { type as arktype } from 'arktype'
 
 import {
+	conditionalOn,
 	EntityFieldCardinality,
 	EntityFieldType,
 	EntityMetaKey,
@@ -15,6 +16,8 @@ import {
 import { NetworkNamespace, networks } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
+import { ActivityPubNoteSelector } from '$/schema/ActivityPubNote.ts'
 
 enum ParentSelector {
 	Slug = 'slug',
@@ -107,6 +110,17 @@ const fixtureSchema = [
 	Parent,
 	Child,
 ] as const satisfies Schema
+
+const selectorFieldIsRequired = (
+	fieldDefinition: EntityFieldDefinition | undefined,
+	selectorFields: readonly string[]
+) => (
+	fieldDefinition?.cardinality === EntityFieldCardinality.One
+	|| (
+		fieldDefinition?.when != null
+		&& selectorFields.includes(fieldDefinition.when.fieldName)
+	)
+)
 
 describe('entity selectors', () => {
 	it('matches exact named selector field sets', () => {
@@ -332,7 +346,7 @@ describe('entity selectors', () => {
 				]))
 				return entityDefinition.selectors.flatMap((selector) => (
 					selector.fields.flatMap((fieldName) => (
-						fieldDefinitionByName[fieldName]?.cardinality === EntityFieldCardinality.One ?
+						selectorFieldIsRequired(fieldDefinitionByName[fieldName], selector.fields) ?
 							[]
 						:
 							[`${entityDefinition.entityType}.${selector.name}.${fieldName}`]
@@ -340,6 +354,107 @@ describe('entity selectors', () => {
 				))
 			})
 			).toEqual([])
+	})
+
+	it('keeps entity field definitions unique by name', () => {
+		expect(
+			schema.flatMap((entityDefinition) => {
+				const fieldNames = entityFieldDefinitions(entityDefinition).map((fieldDefinition) => fieldDefinition.name)
+				return fieldNames.flatMap((fieldName, fieldIndex) => (
+					fieldNames.indexOf(fieldName) === fieldIndex ?
+						[]
+					:
+						[`${entityDefinition.entityType}.${fieldName}`]
+				))
+			})
+		).toEqual([])
+	})
+
+	it('keeps market quote feed identity separate from OHLC interval identity', () => {
+		const marketPrice = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.MarketPrice)
+		const marketTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.Market_Timestamp)
+		const marketTimeIntervalTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.Market_TimeInterval_Timestamp)
+		if (marketPrice == null || marketTimestamp == null || marketTimeIntervalTimestamp == null)
+			throw new Error('missing market timestamp schema definitions')
+
+		expect(marketPrice.selectors.map((selector) => selector.fields)).toEqual([[
+			'$market',
+		]])
+		expect(entityFieldDefinitions(marketPrice).some((fieldDefinition) => (
+			fieldDefinition.name === 'feedKey'
+			|| fieldDefinition.name === '$network'
+		))).toBe(false)
+		expect(marketTimestamp.selectors.map((selector) => selector.fields)).toEqual([[
+			'$market',
+			'timestampMs',
+			'feedKey',
+		]])
+		expect(entityFieldDefinitions(marketTimestamp).find((fieldDefinition) => fieldDefinition.name === 'feedKey')?.cardinality).toBe(EntityFieldCardinality.One)
+		expect(marketTimeIntervalTimestamp.selectors.map((selector) => selector.fields)).toEqual([[
+			'$market',
+			'timeInterval',
+			'timestampMs',
+		]])
+		expect(entityFieldDefinitions(marketTimeIntervalTimestamp).some((fieldDefinition) => fieldDefinition.name === 'feedKey')).toBe(false)
+	})
+
+	it('keeps Solana instruction identity on explicit RPC instruction coordinates', () => {
+		const solanaInstruction = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.SolanaInstruction)
+		expect(solanaInstruction).toBeDefined()
+		const fieldNames = solanaInstruction == null ? [] : entityFieldDefinitions(solanaInstruction).map((fieldDefinition) => fieldDefinition.name)
+		const selectors = solanaInstruction?.selectors ?? []
+
+		expect(fieldNames).not.toContain('instructionPath')
+		expect(selectors.map((selector) => selector.fields)).toContainEqual([
+			'$transaction',
+			'instructionKind',
+			'instructionIndex',
+		])
+		expect(selectors.map((selector) => selector.fields)).toContainEqual([
+			'$transaction',
+			'instructionKind',
+			'instructionIndex',
+			'innerInstructionIndex',
+		])
+	})
+
+	it('keeps Nostr article identity on full addressable event coordinates', () => {
+		const nostrArticle = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.NostrArticle)
+		expect(nostrArticle).toBeDefined()
+		const selectors = nostrArticle?.selectors ?? []
+
+		expect(selectors.map((selector) => selector.fields)).toEqual([[
+			'kind',
+			'pubkey',
+			'identifier',
+		]])
+	})
+
+	it('keeps EVM block identity addressable by number and hash', () => {
+		const evmBlock = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.EvmBlock)
+		expect(evmBlock).toBeDefined()
+		const fieldNames = evmBlock == null ? [] : entityFieldDefinitions(evmBlock).map((fieldDefinition) => fieldDefinition.name)
+		const selectors = evmBlock?.selectors ?? []
+
+		expect(fieldNames).toContain('hash')
+		expect(fieldNames).toContain('parentHash')
+		expect(selectors.map((selector) => selector.fields)).toContainEqual([
+			'$network',
+			'blockNumber',
+		])
+		expect(selectors.map((selector) => selector.fields)).toContainEqual([
+			'$network',
+			'hash',
+		])
+	})
+
+	it('keeps EVM log parent references structured', () => {
+		const evmLog = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.EvmLog)
+		expect(evmLog).toBeDefined()
+		const fieldNames = evmLog == null ? [] : entityFieldDefinitions(evmLog).map((fieldDefinition) => fieldDefinition.name)
+
+		expect(fieldNames).toContain('$transaction')
+		expect(fieldNames).toContain('$block')
 	})
 
 	it('keeps selector reference fields recursive through referenced selectors', () => {
@@ -359,7 +474,7 @@ describe('entity selectors', () => {
 					if (fieldDefinition == null)
 						return [`${[...path, entityDefinition.entityType, selector.name, fieldName].join('.')}: missing field`]
 
-					if (fieldDefinition.cardinality !== EntityFieldCardinality.One)
+					if (!selectorFieldIsRequired(fieldDefinition, selector.fields))
 						return [`${[...path, entityDefinition.entityType, selector.name, fieldName].join('.')}: selector field must be required`]
 
 					if (fieldDefinition.type !== EntityFieldType.EntityReference)
@@ -442,7 +557,9 @@ describe('entity selectors', () => {
 					return (
 						discriminator.type === EntityFieldType.Primitive
 						&& discriminator.cardinality === EntityFieldCardinality.One
-						&& !(discriminator.primitiveType(fieldDefinition.when.values) instanceof arktype.errors) ?
+						&& !(discriminator.primitiveType(fieldDefinition.when.values) instanceof arktype.errors)
+						&& Number.isInteger(fieldDefinition.when.itemIndex)
+						&& fieldDefinition.when.itemIndex >= 0 ?
 							[]
 						:
 							[`${entityDefinition.entityType}.${fieldDefinition.name}.${fieldDefinition.when.fieldName}`]
@@ -450,6 +567,38 @@ describe('entity selectors', () => {
 				})
 			})
 			).toEqual([])
+	})
+
+	it('rejects invalid indexed conditional discriminator positions at construction', () => {
+		const fields = [
+			{
+				name: 'topics',
+				type: EntityFieldType.Primitive,
+				primitiveType: arktype('string').array(),
+				cardinality: EntityFieldCardinality.One,
+			},
+		] as const satisfies readonly EntityFieldDefinition[]
+		const values = [
+			'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+		] as const
+
+		expect(() => conditionalOn(
+			fields,
+			'topics',
+			values,
+			{
+				itemIndex: -1,
+			}
+		)).toThrow(/Invalid conditional field index/)
+
+		expect(() => conditionalOn(
+			fields,
+			'topics',
+			values,
+			{
+				itemIndex: 0.5,
+			}
+		)).toThrow(/Invalid conditional field index/)
 	})
 
 	it('keeps provisional network identifiers out of canonical CAIP-2 modeling', () => {
@@ -469,6 +618,7 @@ describe('entity selectors', () => {
 			EntityType.ElementsNetwork,
 			EntityType.HyperliquidNetwork,
 			EntityType.LightningNetwork,
+			EntityType.LogosZone,
 			EntityType.NearNetwork,
 			EntityType.QuilibriumNetwork,
 			EntityType.TronNetwork,
@@ -505,6 +655,30 @@ describe('entity selectors', () => {
 				:
 					[]
 			))
+			).toEqual([])
+
+		expect(
+			[
+				'src/views/LightningNodeView.svelte',
+				'src/views/LightningChannelView.svelte',
+			].flatMap((filePath) => {
+				const contents = readFileSync(filePath, 'utf8')
+
+				return [
+					...(
+						contents.includes('networkSlug') ?
+							[`${filePath}:networkSlug`]
+						:
+							[]
+					),
+					...(
+						contents.includes('selector.$network.caip2') ?
+							[`${filePath}:selector.$network.caip2`]
+						:
+							[]
+					),
+				]
+			})
 			).toEqual([])
 	})
 
@@ -769,6 +943,21 @@ describe('entity selectors', () => {
 		)
 	})
 
+	it('keeps ActivityPub actor federation URI as an explicit selector', () => {
+		const activityPubActor = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.ActivityPubActor)
+		if (activityPubActor == null)
+			throw new Error('ActivityPub actor schema row missing')
+
+		expect(activityPubActor.selectors.find((selector) => selector.name === ActivityPubActorSelector.ActivityStreamsUri)?.fields).toEqual([
+			'activityStreamsUri',
+		])
+		expect(validateEntitySelector(schema, activityPubActor, {
+			activityStreamsUri: 'https://mastodon.social/users/Gargron',
+		}).name).toBe(ActivityPubActorSelector.ActivityStreamsUri)
+		expect(entityFieldDefinitions(activityPubActor).find((fieldDefinition) => fieldDefinition.name === 'activityStreamsUri')?.cardinality).toBe(EntityFieldCardinality.One)
+		expect(activityPubActor.selectors.some((selector) => selector.fields.includes('profileUrl'))).toBe(false)
+	})
+
 	it('keeps migrated ActivityPub note observations off stable note headers', () => {
 		const activityPubNote = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.ActivityPubNote)
 		const activityPubNoteTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.ActivityPubNote_Timestamp)
@@ -788,6 +977,62 @@ describe('entity selectors', () => {
 				'favouriteCount',
 				'reblogCount',
 				'replyCount',
+			])
+		)
+	})
+
+	it('keeps ActivityPub note federation URI as an explicit selector', () => {
+		const activityPubNote = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.ActivityPubNote)
+		if (activityPubNote == null)
+			throw new Error('ActivityPub note schema row missing')
+
+		expect(activityPubNote.selectors.find((selector) => selector.name === ActivityPubNoteSelector.ActivityStreamsUri)?.fields).toEqual([
+			'activityStreamsUri',
+		])
+		expect(validateEntitySelector(schema, activityPubNote, {
+			activityStreamsUri: 'https://mastodon.social/users/Gargron/statuses/116539053870420123',
+		}).name).toBe(ActivityPubNoteSelector.ActivityStreamsUri)
+		expect(entityFieldDefinitions(activityPubNote).find((fieldDefinition) => fieldDefinition.name === 'activityStreamsUri')?.cardinality).toBe(EntityFieldCardinality.One)
+		expect(activityPubNote.selectors.some((selector) => selector.fields.includes('statusUrl'))).toBe(false)
+	})
+
+	it('keeps migrated Atproto observations off stable actor and post headers', () => {
+		const atprotoActor = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.AtprotoActor)
+		const atprotoActorTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.AtprotoActor_Timestamp)
+		const atprotoPost = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.AtprotoPost)
+		const atprotoPostTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.AtprotoPost_Timestamp)
+
+		if (atprotoActor == null || atprotoActorTimestamp == null || atprotoPost == null || atprotoPostTimestamp == null)
+			throw new Error('Atproto schema rows missing')
+
+		expect(entityFieldDefinitions(atprotoActor).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
+			expect.arrayContaining([
+				'followersCount',
+				'followsCount',
+				'postsCount',
+			])
+		)
+		expect(entityFieldDefinitions(atprotoActorTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
+			expect.arrayContaining([
+				'followersCount',
+				'followsCount',
+				'postsCount',
+			])
+		)
+		expect(entityFieldDefinitions(atprotoPost).map((fieldDefinition) => fieldDefinition.name)).not.toEqual(
+			expect.arrayContaining([
+				'likeCount',
+				'repostCount',
+				'replyCount',
+				'quoteCount',
+			])
+		)
+		expect(entityFieldDefinitions(atprotoPostTimestamp).map((fieldDefinition) => fieldDefinition.name)).toEqual(
+			expect.arrayContaining([
+				'likeCount',
+				'repostCount',
+				'replyCount',
+				'quoteCount',
 			])
 		)
 	})

@@ -32,18 +32,10 @@
 >
 	{#snippet Summary({ open: _open })}
 		<ActivityPubActorView
-			selector={
-				decodeURIComponent(localAccountId).includes('@') ?
-					{
-						instanceOrigin: decodeURIComponent(instanceOrigin),
-						acct: decodeURIComponent(localAccountId),
-					}
-				:
-					{
-						instanceOrigin: decodeURIComponent(instanceOrigin),
-						localAccountId: decodeURIComponent(localAccountId),
-					}
-			}
+			selector={{
+				instanceOrigin: decodeURIComponent(instanceOrigin),
+				localAccountId: decodeURIComponent(localAccountId),
+			}}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

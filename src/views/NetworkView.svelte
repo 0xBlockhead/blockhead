@@ -41,7 +41,7 @@
 				fields: {
 					name: true,
 					slug: true,
-					caip2: true,
+					...('caip2' in selector && { caip2: true }),
 					namespace: true,
 					environment: true,
 				},

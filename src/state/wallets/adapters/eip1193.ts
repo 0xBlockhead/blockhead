@@ -1,34 +1,26 @@
+import type { JsonObject, JsonValue } from '$/typescript/JsonValue.ts'
+
 export type Eip1193RequestArguments = {
 	method: string
-	params?: unknown[] | object
+	params?: readonly JsonValue[] | JsonObject
 }
 
 export type Eip1193Provider = {
-	request(args: Eip1193RequestArguments): Promise<unknown>
-	on?: (event: string, listener: (payload: unknown) => void) => void
-	removeListener?: (event: string, listener: (payload: unknown) => void) => void
+	request(args: Eip1193RequestArguments): Promise<JsonValue>
+	on?: (event: string, listener: (payload: JsonValue) => void) => void
+	removeListener?: (event: string, listener: (payload: JsonValue) => void) => void
 }
 
-const isAddress = (value: unknown): value is `0x${string}` => (
+const isAddress = (value: JsonValue): value is `0x${string}` => (
 	typeof value === 'string'
 	&& value.startsWith('0x')
 )
 
-const parseHexChainId = (value: unknown) => (
+const parseHexChainId = (value: JsonValue) => (
 	typeof value === 'string' ?
 		Number.parseInt(value, 16)
 	:
 		NaN
-)
-
-const isRecord = (value: unknown): value is Record<string, unknown> => (
-	typeof value === 'object'
-	&& value != null
-)
-
-export const isEip1193Provider = (value: unknown): value is Eip1193Provider => (
-	isRecord(value)
-	&& typeof value.request === 'function'
 )
 
 export const requestAccounts = async (provider: Eip1193Provider) => {
@@ -61,7 +53,7 @@ export const onAccountsChanged = (
 ) => {
 	if (typeof provider.on !== 'function') return () => {}
 
-	const handler = (payload: unknown) => {
+	const handler = (payload: JsonValue) => {
 		if (!Array.isArray(payload)) return
 
 		listener(payload.filter(isAddress))
@@ -80,7 +72,7 @@ export const onChainChanged = (
 ) => {
 	if (typeof provider.on !== 'function') return () => {}
 
-	const handler = (payload: unknown) => {
+	const handler = (payload: JsonValue) => {
 		const chainId = parseHexChainId(payload)
 
 		if (Number.isFinite(chainId))

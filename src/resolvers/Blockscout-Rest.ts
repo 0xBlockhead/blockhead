@@ -187,6 +187,22 @@ const evmLogEntityFromIdAndWire = (
 	)
 	return {
 		[EntityMetaKey.Selector]: entitySelector,
+		$transaction: {
+			[EntityMetaKey.Selector]: {
+				$network: entitySelector.$network,
+				txHash: entitySelector.txHash,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+		...(blockHash != null && blockNumber != null && {
+			$block: {
+				[EntityMetaKey.Selector]: {
+					$network: entitySelector.$network,
+					hash: blockHash,
+				},
+				blockNumber,
+				number: blockNumber,
+			} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+		}),
 		topics,
 		...(data != null && { data }),
 		...(blockNumber != null && { blockNumber }),
@@ -889,6 +905,9 @@ export default {
 						:
 							undefined
 					)
+					if (blockHash == null)
+						throw new Error('Blockscout_Rest: block header missing hash for EvmBlock')
+
 					const parentBlockHash = (
 						header.parentHash != null ?
 							hexLowerOfByteSize(header.parentHash, 32)
@@ -981,7 +1000,8 @@ export default {
 							$network: evmNetworkIdFromChainId(chainId),
 							blockNumber,
 						},
-						...(blockHash != null && { hash: blockHash }),
+						hash: blockHash,
+						...(parentBlockHash != null && { parentHash: parentBlockHash }),
 						number: blockNumber,
 						timestamp: ((timestampSeconds) => (
 							Number.isFinite(timestampSeconds) ? timestampSeconds * 1000 : undefined
@@ -1018,6 +1038,7 @@ export default {
 		})({
 			fields: {
 				hash: (block) => block.hash,
+				parentHash: (block) => block.parentHash,
 				number: (block) => block.number,
 				$parent: (block) => block.$parent,
 				timestamp: (block) => block.timestamp,
@@ -1374,6 +1395,8 @@ export default {
 		})({
 			fields: {
 				topics: (log) => log.topics,
+				$transaction: (log) => log.$transaction,
+				$block: (log) => log.$block,
 				data: (log) => log.data,
 				blockNumber: (log) => log.blockNumber,
 				blockHash: (log) => log.blockHash,
@@ -1939,7 +1962,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
-				[Market_TimestampSelector.MarketTimestampMsFeedKey]: async ({ $market }) => {
+				[Market_TimestampSelector.MarketTimestampMsFeedKey]: async ({ $market, feedKey, timestampMs: timestampMsSelector }) => {
 					if ($market.marketKind !== MarketKind.Spot)
 						throw new Error('Blockscout_Rest: Market_Timestamp is spot-only')
 					const coinId = (
@@ -1950,6 +1973,8 @@ export default {
 					)
 					if (coinId == null)
 						throw new Error('Blockscout_Rest: market base is not a catalog coin')
+					if (feedKey !== coinId)
+						throw new Error('Blockscout_Rest: Market_Timestamp feedKey does not match catalog coin id')
 					const catalogMarketId = marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId])
 					if (stringify($market) !== stringify(catalogMarketId))
 						throw new Error('Blockscout_Rest: Market_Timestamp only supports catalog USD spot markets')
@@ -1957,6 +1982,11 @@ export default {
 					const price = usdPriceStringToPrice1e8(stats?.coin_price)
 					if (stats == null || price == null)
 						throw new Error(`Blockscout_Rest: Market_Timestamp unsupported for coin ${coinId}`)
+					const timestampMs = Date.parse(stats.gas_price_updated_at ?? '')
+					if (!Number.isFinite(timestampMs))
+						throw new Error(`Blockscout_Rest: Market_Timestamp price clock missing for coin ${coinId}`)
+					if (timestampMs !== timestampMsSelector)
+						throw new Error('Blockscout_Rest: Market_Timestamp id does not match stats clock')
 					return {
 						price,
 						transport: 'blockscout-stats-usd-1e8',
@@ -2006,10 +2036,15 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Coin_Timestamp,
 			resolve: {
-				[Coin_TimestampSelector.CoinTimestampMs]: async ({ $coin }) => {
+				[Coin_TimestampSelector.CoinTimestampMs]: async ({ $coin, timestampMs: timestampMsSelector }) => {
 					const stats = await blockscoutStatsForNativeCoinId($coin.coinId)
 					if (stats == null)
 						throw new Error(`Blockscout_Rest: Coin_Timestamp unsupported for coin ${$coin.coinId}`)
+					const timestampMs = Date.parse(stats.gas_price_updated_at ?? '')
+					if (!Number.isFinite(timestampMs))
+						throw new Error(`Blockscout_Rest: Coin_Timestamp clock missing for coin ${$coin.coinId}`)
+					if (timestampMs !== timestampMsSelector)
+						throw new Error(`Blockscout_Rest: Coin_Timestamp id does not match stats clock for coin ${$coin.coinId}`)
 					const marketCapUsd = (() => {
 						const raw = stats.market_cap
 						if (raw == null || raw === '') return undefined
@@ -2203,64 +2238,12 @@ export default {
 						)
 						if (blockNumber == null)
 							return []
-						const blockHash = (
-							wire.hash != null ?
-								hexLowerOfByteSize(wire.hash, 32)
-							:
-								undefined
-						)
-						const timestampSeconds = Number(evmRpcQuantityToBigInt(wire.timestamp) ?? -1n)
 						return [
 							{
 								[EntityMetaKey.Selector]: {
 									$network: evmNetworkIdFromChainId(chainIdFromEvmNetworkId(entitySelector)),
 									blockNumber,
 								},
-								...(blockHash != null && { hash: blockHash }),
-								number: blockNumber,
-								timestamp: ((timestampSeconds) => (
-									Number.isFinite(timestampSeconds) ? timestampSeconds * 1000 : undefined
-								))(timestampSeconds),
-								gasUsed: (
-									wire.gasUsed != null ? ((value) => (
-										value == null || value < 0n ? undefined : value
-									))((() => {
-										try {
-											return BigInt(wire.gasUsed)
-										} catch {
-											return undefined
-										}
-									})())
-									:
-										undefined
-								),
-								gasLimit: (
-									wire.gasLimit != null ? ((value) => (
-										value == null || value < 0n ? undefined : value
-									))((() => {
-										try {
-											return BigInt(wire.gasLimit)
-										} catch {
-											return undefined
-										}
-									})())
-									:
-										undefined
-								),
-								baseFeePerGas: (
-									wire.baseFeePerGas != null ? ((value) => (
-										value == null || value < 0n ? undefined : value
-									))((() => {
-										try {
-											return BigInt(wire.baseFeePerGas)
-										} catch {
-											return undefined
-										}
-									})())
-									:
-										undefined
-								),
-								transactionCount: wire.transactions?.length ?? 0,
 							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 						]
 						})
@@ -2923,17 +2906,13 @@ export default {
 						:
 							NaN
 					)
-					const timestampMs = (
-						Number.isFinite(updatedAtMs) ?
-							updatedAtMs
-						:
-							Date.now()
-					)
+					if (!Number.isFinite(updatedAtMs))
+						throw new Error(`Blockscout_Rest: Coin_Timestamp clock missing for coin ${coinId}`)
 					return [
 						{
 							[EntityMetaKey.Selector]: {
 								$coin: { coinId: coinId },
-								timestampMs,
+								timestampMs: updatedAtMs,
 							},
 						},
 					]
@@ -2972,17 +2951,13 @@ export default {
 						:
 							NaN
 					)
-					const timestampMs = (
-						Number.isFinite(updatedAtMs) ?
-							updatedAtMs
-						:
-							Date.now()
-					)
+					if (!Number.isFinite(updatedAtMs))
+						throw new Error(`Blockscout_Rest: no native USD quote stats clock for coin ${coinId}`)
 					return [
 						{
 							[EntityMetaKey.Selector]: {
 								$market: $market,
-								timestampMs,
+								timestampMs: updatedAtMs,
 								feedKey: coinId,
 							},
 						},

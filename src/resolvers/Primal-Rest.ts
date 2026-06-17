@@ -161,6 +161,7 @@ const articleRefFromAddressableCoordinate = (coordinate: string | undefined) => 
 					:
 						{
 							[EntityMetaKey.Selector]: {
+								kind: 30023,
 								pubkey,
 								identifier,
 							},
@@ -185,6 +186,7 @@ const articleRefFromEvent = (event: PrimalNostrEvent) => (
 					[
 						{
 							[EntityMetaKey.Selector]: {
+								kind: 30023,
 								pubkey,
 								identifier,
 							},
@@ -728,12 +730,12 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrArticle,
 			resolve: {
-				[NostrArticleSelector.CanonicalCoordinate]: async ({ identifier: identifierSelector, pubkey: pubkeySelector }, context) => {
+				[NostrArticleSelector.CanonicalCoordinate]: async ({ identifier: identifierSelector, kind, pubkey: pubkeySelector }, context) => {
 					const { getProfileArticles } = await import('$/sources/Primal/Rest/queries.ts')
 					const publicEnv = context.publicEnv
 					const pubkey = normalizePubkey(pubkeySelector)
 					const identifier = identifierSelector
-					if (pubkey == null || identifier === '')
+					if (pubkey == null || identifier === '' || kind !== 30023)
 						throw new Error('Primal_Rest: article id invalid')
 					const limit = resolverContextRowLimit(context)
 					const event = (
@@ -777,45 +779,6 @@ export default {
 		})({
 			fields: {
 				$$nostrProfiles: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Primal_Rest, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async () => {
-					throw new Error('Primal_Rest: $$nostrNotes is unsupported; use NostrProfile.$$notes')
-				}
-			},
-		})({
-			fields: {
-				$$nostrNotes: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Primal_Rest, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async () => {
-					throw new Error('Primal_Rest: $$nostrReposts is unsupported; use NostrProfile.$$reposts')
-				}
-			},
-		})({
-			fields: {
-				$$nostrReposts: (network) => network,
-			},
-		}),
-
-		defineResolver(Source.Primal_Rest, {
-			entityType: EntityType.NostrNetwork,
-			resolve: {
-				[NostrNetworkSelector.Scope]: async () => {
-					throw new Error('Primal_Rest: $$nostrArticles is unsupported; use NostrProfile.$$articles')
-				}
-			},
-		})({
-			fields: {
-				$$nostrArticles: (network) => network,
 			},
 		}),
 

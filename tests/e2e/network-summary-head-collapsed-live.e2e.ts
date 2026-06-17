@@ -23,10 +23,10 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 		const rpcUrlRaw = await publicJsonRpcHttpUrlForChainE2e(1)
 		expect(
 			rpcUrlRaw,
-			'no HTTP JSON-RPC for chain 1 (ExecutionEndpoints / Chainlist)'
+			'no HTTP JSON-RPC for chain 1 (Voltaire endpoints / Chainlist)'
 		).not.toBeNull()
 		if (rpcUrlRaw == null) {
-			throw new Error('no HTTP JSON-RPC for chain 1 (ExecutionEndpoints / Chainlist)')
+			throw new Error('no HTTP JSON-RPC for chain 1 (Voltaire endpoints / Chainlist)')
 		}
 		const preflight = await preflightChainHeadAdvancesWithRetries(
 			page,

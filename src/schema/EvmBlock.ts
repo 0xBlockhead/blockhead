@@ -12,6 +12,7 @@ import { Source } from '$/sources/Source.ts'
 
 export enum EvmBlockSelector {
 	EvmNetworkBlockNumber = 'evmNetworkBlockNumber',
+	EvmNetworkBlockHash = 'evmNetworkBlockHash',
 }
 
 export default {
@@ -26,6 +27,13 @@ export default {
 			fields: [
 				'$network',
 				'blockNumber',
+			],
+		},
+		{
+			name: EvmBlockSelector.EvmNetworkBlockHash,
+			fields: [
+				'$network',
+				'hash',
 			],
 		},
 	],
@@ -45,6 +53,12 @@ export default {
 		},
 		{
 			name: 'hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'parentHash',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -16,13 +16,15 @@
 	// State
 	let {
 		selector,
-		href = resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-			instanceOrigin: encodeURIComponent(selector.$actor.instanceOrigin),
-			localAccountId: 'localAccountId' in selector.$actor ?
-				selector.$actor.localAccountId
+		href = (
+			'localAccountId' in selector.$actor ?
+				resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+					instanceOrigin: encodeURIComponent(selector.$actor.instanceOrigin),
+					localAccountId: selector.$actor.localAccountId,
+				})
 			:
-				selector.$actor.acct,
-		}),
+				undefined
+		),
 		layout = EntityLayout.Summary,
 		open = $bindable(false),
 		...EntityViewProps
@@ -39,12 +41,21 @@
 		>
 	> = $props()
 
-	const activityPubActorTimestamp = subscribe(EntityType.ActivityPubActor_Timestamp,
-		selector,
-		({ sources: [
-				Source.Mastodon_Rest,
-				Source.Fedi_Rest,
-			], fields: { followersCount: true, followingCount: true, statusesCount: true } }),
+	const activityPubActorTimestamp = $derived(
+		subscribe(EntityType.ActivityPubActor_Timestamp,
+			selector,
+			({
+				sources: [
+					Source.Mastodon_Rest,
+					Source.Fedi_Rest,
+				],
+				fields: {
+					followersCount: true,
+					followingCount: true,
+					statusesCount: true,
+				},
+			}),
+		),
 	)
 
 

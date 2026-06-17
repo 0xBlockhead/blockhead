@@ -21,14 +21,12 @@ export enum ZcashShieldedActionKind {
 	Action = 'action',
 }
 
-const zcashShieldedActionDiscriminatorFields = [
-	{
-		name: 'actionKind',
-		type: EntityFieldType.Primitive,
-		primitiveType: type.valueOf(ZcashShieldedActionKind),
-		cardinality: EntityFieldCardinality.One,
-	},
-] as const satisfies readonly EntityFieldDefinition[]
+const zcashShieldedActionKindField = {
+	name: 'actionKind',
+	type: EntityFieldType.Primitive,
+	primitiveType: type.valueOf(ZcashShieldedActionKind),
+	cardinality: EntityFieldCardinality.One,
+} as const satisfies EntityFieldDefinition
 
 export default {
 	entityType: EntityType.ZcashShieldedAction,
@@ -61,12 +59,7 @@ export default {
 			primitiveType: type.valueOf(ZcashShieldedPoolKind),
 			cardinality: EntityFieldCardinality.One,
 		},
-		{
-			name: 'actionKind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(ZcashShieldedActionKind),
-			cardinality: EntityFieldCardinality.One,
-		},
+		zcashShieldedActionKindField,
 		{
 			name: 'actionIndex',
 			type: EntityFieldType.Primitive,
@@ -79,14 +72,13 @@ export default {
 			entityType: EntityType.ZcashShieldedPool,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-		...zcashShieldedActionDiscriminatorFields,
 		{
 			name: 'nullifier',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			when: conditionalOn(
-				zcashShieldedActionDiscriminatorFields,
+				[zcashShieldedActionKindField],
 				'actionKind',
 				[
 					ZcashShieldedActionKind.Spend,
@@ -100,7 +92,7 @@ export default {
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			when: conditionalOn(
-				zcashShieldedActionDiscriminatorFields,
+				[zcashShieldedActionKindField],
 				'actionKind',
 				[
 					ZcashShieldedActionKind.Output,

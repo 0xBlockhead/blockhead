@@ -59,7 +59,6 @@ export default {
 					assertZcashMainnet($network)
 					const {
 						getBlock,
-						getBlockHash,
 					} = await import('$/sources/Zebra/JsonRpc/queries.ts')
 					const block = await getBlock({
 						rpcUrl: bitcoinNetworkBySlug.zcash.zebraRpcUrl,
@@ -101,12 +100,6 @@ export default {
 										$network,
 										txId: transaction.txid,
 									},
-									version: transaction.version,
-									lockTime: transaction.locktime,
-									sizeBytes: transaction.size,
-									virtualSizeBytes: transaction.vsize,
-									weightUnits: transaction.weight,
-									isCoinbase: transaction.vin.some((input) => input.coinbase != null),
 								}
 						)),
 					}
@@ -145,27 +138,6 @@ export default {
 									$transaction: entitySelector,
 									inputIndex,
 								},
-								...(input.txid != null && input.vout != null && {
-									$spentOutput: {
-										[EntityMetaKey.Selector]: {
-											$transaction: {
-												$network: entitySelector.$network,
-												txId: input.txid,
-											},
-											outputIndex: input.vout,
-										},
-									},
-								}),
-								...(input.coinbase != null && {
-									coinbaseScript: input.coinbase,
-								}),
-								...(input.scriptSig != null && {
-									scriptSigAsm: input.scriptSig.asm,
-								}),
-								sequence: input.sequence,
-								...(input.txinwitness != null && {
-									witness: input.txinwitness,
-								}),
 							}
 						)),
 						$$outputs: transaction.vout.map((output, outputIndex) => (
@@ -174,18 +146,6 @@ export default {
 									$transaction: entitySelector,
 									outputIndex,
 								},
-								valueSats: valueSatsFromZec(output.value),
-								scriptPubKeyAsm: output.scriptPubKey.asm,
-								scriptPubKeyHex: output.scriptPubKey.hex,
-								scriptPubKeyType: output.scriptPubKey.type,
-								...(output.scriptPubKey.address != null && {
-									$address: {
-										[EntityMetaKey.Selector]: {
-											$network: entitySelector.$network,
-											address: output.scriptPubKey.address,
-										},
-									},
-								}),
 							}
 						)),
 					}

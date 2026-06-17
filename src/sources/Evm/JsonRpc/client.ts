@@ -1,8 +1,7 @@
-import { executionEndpointsByChainId } from '$/constants/ExecutionEndpoints.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import Voltaire from '$/sources/Voltaire/index.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
+import type { SourceOrigin } from '$/sources/SourceProvider.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 type JsonRpcError = {
@@ -20,15 +19,17 @@ type JsonRpcResponse<TResult> = {
 
 export const jsonRpc = async <_Result>({
 	rpcUrl,
+	origins,
 	method,
 	params,
 }: {
 	rpcUrl: string
+	origins: readonly SourceOrigin[]
 	method: string
 	params: JsonValue[]
 }): Promise<_Result> => {
 	const response = await corsFetch(rpcUrl, {
-		origins: Voltaire.origins,
+		origins,
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,
@@ -53,34 +54,3 @@ export const jsonRpc = async <_Result>({
 
 	return result
 }
-
-export const jsonRpcUrlWithTransportForChain = (
-	chainId: number
-): { rpcUrl: string; transportType: TransportType } | undefined => {
-	const executionEndpointList = executionEndpointsByChainId[chainId] ?? []
-	const defaultExecutionEndpoint = executionEndpointList.at(0)
-	if (defaultExecutionEndpoint != null) {
-		return {
-			rpcUrl: defaultExecutionEndpoint.url,
-			transportType: defaultExecutionEndpoint.transportType,
-		}
-	}
-	const httpExecutionEndpoint = executionEndpointList
-		.find((endpoint) => endpoint.transportType === TransportType.Http)
-	if (httpExecutionEndpoint != null) {
-		return {
-			rpcUrl: httpExecutionEndpoint.url,
-			transportType: TransportType.Http,
-		}
-	}
-}
-
-export const jsonRpcTransportCandidatesForChain = (
-	chainId: number
-): { rpcUrl: string; transportType: TransportType }[] => (
-	(executionEndpointsByChainId[chainId] ?? [])
-		.map((endpoint) => ({
-			rpcUrl: endpoint.url,
-			transportType: endpoint.transportType,
-		}))
-)

@@ -76,7 +76,7 @@
 			{@const panelTrees = derive(
 				global,
 				(global) => (
-					global['$$blockheadPanelTrees'] ?? []
+					global.fields.$$blockheadPanelTrees?.values ?? []
 				),
 			)}
 			<EntitiesList

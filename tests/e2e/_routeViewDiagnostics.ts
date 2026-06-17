@@ -30,6 +30,14 @@ const DEV_SERVER_TRANSIENT_SUBSTRINGS = [
 	'Failed to fetch dynamically imported module',
 ] as const
 
+const DEV_SERVER_CONTAMINATION_SUBSTRINGS = [
+	'[vite] hot updated',
+] as const
+
+const TANSTACK_DB_QUERY_WARNINGS = [
+	'requires an index',
+] as const
+
 
 const shouldIgnoreBrowserConsoleError = (text: string) => (
 	RESOURCE_LOAD_SKIP_SUBSTRINGS.some((s) => (
@@ -38,6 +46,17 @@ const shouldIgnoreBrowserConsoleError = (text: string) => (
 	|| DEV_SERVER_TRANSIENT_SUBSTRINGS.some((s) => (
 		text.includes(s)
 	))
+)
+
+export const routeViewSmokeDevServerContaminationError = (text: string) => (
+	DEV_SERVER_CONTAMINATION_SUBSTRINGS.some((s) => (
+		text.includes(s)
+	)) ?
+		new Error(
+			`route smoke test contaminated by Vite HMR during navigation: ${text}`
+		)
+	:
+		undefined
 )
 
 
@@ -77,6 +96,16 @@ export const setupRouteViewSmokePage = (page: Page) => {
 		seq++
 		const text = msg.text()
 		lines.push(`${seq}\t${msg.type()}\t${text}`)
+		const contamination = routeViewSmokeDevServerContaminationError(text)
+		if (contamination)
+			bump(contamination)
+
+		if (
+			text.includes('[TanStack DB]')
+			&& TANSTACK_DB_QUERY_WARNINGS.some((s) => text.includes(s))
+		)
+			bump(new Error(`tanstack db query warning: ${text}`))
+
 		if (
 			msg.type() === 'error'
 			&& !shouldIgnoreBrowserConsoleError(text)

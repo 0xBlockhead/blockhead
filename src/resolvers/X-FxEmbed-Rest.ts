@@ -288,15 +288,15 @@ export default {
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XPost,
 			resolve: {
-				[XPostSelector.Id]: async (entitySelector) => {
+				[XPostSelector.Id]: async ({ id }) => {
 					const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
-					const status = (await getStatus(entitySelector.id)).status
+					const status = (await getStatus(id)).status
 					if (status?.type !== 'status' || status.id == null)
 						throw new Error('X_FxEmbed_Rest: post not found')
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$post: entitySelector,
+								$post: { id },
 								timestampMs: Date.now(),
 							},
 							likeCount: status.likes,

@@ -1,5 +1,5 @@
 /**
- * Default execution endpoints by chain: url, serviceProvider, transportType.
+ * Voltaire default execution endpoints by chain.
  */
 
 // Types

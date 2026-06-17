@@ -9,11 +9,11 @@ import { MarketAssetKind, MarketTimeIntervalUnit, type MarketIdLabelInput } from
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
 import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationProposal.ts'
-import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
-import { cashuMintBySlug } from '$/constants/Cashu.ts'
 import {
-	liquidProbeAssetId,
-} from '$/constants/ElementsNetwork.ts'
+	atprotoNetworkSeedActors,
+	atprotoNetworkSeedPosts,
+} from '$/constants/Social/Atproto.ts'
+import { cashuMintBySlug } from '$/constants/Cashu.ts'
 import { ElementsPegDirection } from '$/schema/ElementsPeg.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -25,6 +25,7 @@ import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 import { Source } from '$/sources/Source.ts'
+import { SolanaInstructionKind } from '$/schema/SolanaInstruction.ts'
 
 
 /**
@@ -415,19 +416,15 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 
 	[EntityType.EvmNetworkAccount]: evmNetworkAccountMainnetUsdc,
 
-	[EntityType.AtprotoActor]: { did: atprotoProbeDid },
+	[EntityType.AtprotoActor]: atprotoNetworkSeedActors[0],
 	[EntityType.AtprotoActor_Timestamp]: {
-		$actor: { did: atprotoProbeDid },
+		$actor: atprotoNetworkSeedActors[0],
 		timestampMs: 0,
 	},
 	[EntityType.AtprotoNetwork]: { scope: 'AtprotoNetwork' },
-	[EntityType.AtprotoPost]: {
-		uri: atprotoProbePostUri,
-	},
+	[EntityType.AtprotoPost]: atprotoNetworkSeedPosts[0],
 	[EntityType.AtprotoPost_Timestamp]: {
-		$post: {
-			uri: atprotoProbePostUri,
-		},
+		$post: atprotoNetworkSeedPosts[0],
 		timestampMs: 0,
 	},
 
@@ -725,10 +722,9 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		$market: ethUsdCatalogMarket,
 		timeInterval: {
 			unit: MarketTimeIntervalUnit.Day,
-			value: 7,
+			value: 1,
 		},
 		timestampMs: 1_700_000_000_000,
-		feedKey: 'e2e-probe-market-ohlc',
 	},
 	[EntityType.MarketVenue]: { marketVenueId: MarketVenueId.Binance },
 	[EntityType.Currency]: { iso4217: Iso4217.USD },
@@ -916,7 +912,8 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 			$network: solana,
 			signature: 'e2eProbeSolanaSignature1111111111111111111111111111111',
 		},
-		instructionPath: [0],
+		instructionKind: SolanaInstructionKind.Instruction,
+		instructionIndex: 0,
 	},
 	[EntityType.SolanaAccount]: {
 		$network: solana,
@@ -1436,6 +1433,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 
 	[EntityType.NostrNetwork]: { scope: 'NostrNetwork' },
 	[EntityType.NostrArticle]: {
+		kind: 30023,
 		pubkey: NOSTR_PROBE_PUBKEY,
 		identifier: NOSTR_PROBE_ARTICLE_IDENTIFIER,
 	},
@@ -1525,7 +1523,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.ElementsNetwork]: liquid,
 	[EntityType.ElementsAsset]: {
 		$network: liquid,
-		assetId: liquidProbeAssetId,
+		assetId: 'eb5dc6b623d3d376c51f01a736e1447ec1c462bf4ca8461bb07a184abc7545ea',
 	},
 	[EntityType.ElementsIssuance]: {
 		$transaction: {
@@ -1764,7 +1762,7 @@ export const parentEntitySelectorForResolverValuePart = (
 				})
 			:
 				entityType === EntityType.AtprotoActor ?
-				{ did: atprotoProbeDid }
+				atprotoNetworkSeedActors[0]
 			:
 				entityType === EntityType.AtprotoPost ?
 				probeEntitySelectorForType(EntityType.AtprotoPost)

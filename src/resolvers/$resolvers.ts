@@ -3,7 +3,7 @@ import { extractSimpleComparisons, parseOrderByExpression } from '@tanstack/db'
 import type { LoadSubsetOptions } from '@tanstack/db'
 
 import { EntityFieldCardinality, EntityFieldType, EntityMetaKey, entityFieldConditionKey, entityFieldDefinitions } from '$/schema/$schema.ts'
-import type { EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValue, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
+import type { EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValue, EntityReferenceValue, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export type ResolverValue =
@@ -40,9 +40,7 @@ export type LoadSubsetKeyObject = { readonly [key: string]: LoadSubsetKeyValue }
 type ResolverEntityReferenceValue<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = ResolverObject & {
-	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
-}
+> = EntityReferenceValue<_Schema, _EntityType> & ResolverObject
 
 type ResolverFieldSingleValue<
 	_Schema extends Schema,
@@ -98,33 +96,6 @@ type ResolverSelect<
 }['select']
 
 type ResolverCount<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_Snapshot,
-	_Context extends ResolverContext,
-> = {
-	resolveCount(
-		snapshot: _Snapshot,
-		entitySelector: EntitySelector<_Schema, _EntityType>,
-		context: _Context
-	): number
-}['resolveCount']
-
-type ResolverSelectCandidate<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_FieldName extends EntityFieldName<_Schema, _EntityType>,
-	_Snapshot,
-	_Context extends ResolverContext,
-> = {
-	select(
-		snapshot: _Snapshot,
-		entitySelector: EntitySelector<_Schema, _EntityType>,
-		context: _Context
-	): ResolverFieldValue<_Schema, _EntityType, _FieldName>
-}['select']
-
-type ResolverCountCandidate<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_Snapshot,
@@ -533,7 +504,7 @@ export type SourceResolverDefinitionCandidate<
 				entitySelector: EntitySelector<_Schema, Extract<_EntityType, EntityType<_Schema>>>,
 				context: _Context
 			) => ResolverValue | Promise<ResolverValue>
-			readonly resolveCount?: ResolverCountCandidate<_Schema, Extract<_EntityType, EntityType<_Schema>>, _Snapshot, _Context>
+			readonly resolveCount?: ResolverCount<_Schema, Extract<_EntityType, EntityType<_Schema>>, _Snapshot, _Context>
 			readonly resolveLive?: {
 				readonly start: (
 					context: ResolveLivePublisherContext<_Schema, Extract<_EntityType, EntityType<_Schema>>> & {

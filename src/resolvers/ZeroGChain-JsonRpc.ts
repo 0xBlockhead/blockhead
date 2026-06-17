@@ -4,7 +4,6 @@ import {
 	EvmTransactionExecutionStatus,
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
-import { zeroGChainId } from '$/constants/ZeroGNetwork.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -18,6 +17,8 @@ import type { RpcBlockHeader } from '$/sources/Evm/JsonRpc/types.ts'
 import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
 import { EvmBlockSelector } from '$/schema/EvmBlock.ts'
 import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
+
+const zeroGChainId = 16661
 
 const assertZeroGMainnetChain = (network: { caip2: { namespace: string; reference: string } }) => {
 	if (network.caip2.namespace !== 'eip155' || network.caip2.reference !== String(zeroGChainId)) {

@@ -26,6 +26,7 @@
 		selector={{ scope: 'Explore' }}
 		title="Explore"
 		href={resolve('/explore')}
+		open={false}
 	>
 		{#snippet children({ open: hubOpen,
 		})}

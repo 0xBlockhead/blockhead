@@ -28,9 +28,10 @@ const authHeaders = (publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>): Recor
 export const mastodonGet = async <T>(
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	path: string,
-	search?: Record<string, string | undefined>
+	search?: Record<string, string | undefined>,
+	apiVersion = 'v1'
 ) => (
-	getJson<T>(`${mastodonInstanceByKey.mastodon_social.origin}/api/v1${path}${qs(search ?? {})}`, {
+	getJson<T>(`${mastodonInstanceByKey.mastodon_social.origin}/api/${apiVersion}${path}${qs(search ?? {})}`, {
 		origins: Mastodon.origins,
 		init: { headers: authHeaders(publicEnv) },
 	})

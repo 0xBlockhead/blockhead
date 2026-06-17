@@ -66,7 +66,7 @@
 			Candle marketTimeIntervalTimestamps sit on interval boundaries: open, high, low, close for each bucket start.
 		</p>
 		<p>
-			Candles load from every configured OHLC provider on the parent market row (Coingecko, Defillama, Coinpaprika, CoinMarketCap, …).
+			Candles load from every configured OHLC provider on the parent market row (Coingecko, Coinpaprika, CoinMarketCap, …).
 		</p>
 	{/snippet}
 

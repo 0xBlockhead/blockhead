@@ -16,7 +16,7 @@
 	// State
 	let {
 		selector,
-		href = resolve('/(social)/(atproto)/atproto/post/[uri]', {
+		href = resolve('/(social)/(atproto)/atproto/post/[...uri]', {
 			uri: encodeURIComponent(selector.$post.uri),
 		}),
 		layout = EntityLayout.Summary,

@@ -3,6 +3,7 @@ import {
 	actionTypeDefinitionByActionType,
 } from '$/constants/actions.ts'
 import type { WalletCandidate, WalletConnection } from '$/state/wallets/adapters/types.ts'
+import type { EntityCollectionsContext } from '$/client/$client.svelte.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -11,45 +12,12 @@ import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { stringify } from 'devalue'
 
-type LocalWriteCollection = {
-	readonly utils: {
-		writeUpsert(row: object): void
-	}
-}
-
-type LocalDeleteCollection = {
-	delete(key: string): void
-}
-
-export type LocalMutationContext = {
-	readonly entityCollections: {
-		readonly [EntityType.BlockheadSession]: LocalWriteCollection
-		readonly [EntityType.BlockheadSessionAction]: LocalWriteCollection & LocalDeleteCollection
-		readonly [EntityType.BlockheadWallet]: LocalWriteCollection
-		readonly [EntityType.BlockheadWalletAccount]: LocalWriteCollection
-		readonly [EntityType.BlockheadWalletConnection]: LocalWriteCollection & LocalDeleteCollection
-		readonly [EntityType.EvmAccount]: LocalWriteCollection
-	}
-	readonly entityFieldCollections: {
-		readonly [EntityType._Global]: {
-			readonly $$actors: LocalWriteCollection
-			readonly $$blockheadSessions: LocalWriteCollection
-			readonly $$blockheadWallets: LocalWriteCollection
-			readonly $$blockheadWalletAccounts: LocalWriteCollection
-			readonly $$blockheadWalletConnections: LocalWriteCollection
-		}
-		readonly [EntityType.BlockheadSession]: {
-			readonly $$actions: LocalWriteCollection & LocalDeleteCollection
-			readonly name: LocalWriteCollection
-			readonly status: LocalWriteCollection
-		}
-	}
-	readonly entityFieldCountCollections: {
-		readonly [EntityType.BlockheadWalletConnection]: {
-			readonly $$connectedAccounts?: LocalWriteCollection & LocalDeleteCollection
-		}
-	}
-}
+export type LocalMutationContext = Pick<
+	EntityCollectionsContext<typeof schema>,
+	| 'entityCollections'
+	| 'entityFieldCollections'
+	| 'entityFieldCountCollections'
+>
 
 export const writeLocalWatchedEvmAccount = (
 	context: LocalMutationContext,

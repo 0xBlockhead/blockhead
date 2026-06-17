@@ -5,19 +5,18 @@
 
 	import {
 		ensCoinTypeLabelByKey,
-		ensGracePeriodSeconds,
-		ensProfileTextRecordKeys,
 		ensRegistrationStatusByStatus,
+		ensTextRecords,
 		EnsRegistrationStatus,
 	} from '$/constants/Ens.ts'
 
+	import { ChainId } from '$/constants/ChainId.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { ensEthereumChainId } from '$/constants/Ens.ts'
 
 
 	// Context
@@ -58,12 +57,46 @@
 		'data-row': 'start align-start',
 	} as const
 
-	const ens = subscribe(EntityType.EnsName,
-		selector,
-		({ sources: [
+	const ens = $derived(
+		subscribe(EntityType.EnsName,
+			selector,
+			({ sources: [
 				Source.Voltaire_JsonRpc,
 				Source.TheGraph_Graphql,
-			], fields: { name: true, labelName: true, $resolvedActor: true, $subgraphResolvedActor: true, subdomainCount: true, textRecords: true, isMigrated: true, expiryDate: true, contentHash: true, ...(open ? ({ labelhash: true, subgraphId: true, $resolverContract: true, $ownerActor: true, $subgraphOwnerActor: true, $registrantActor: true, $wrappedOwnerActor: true, $parent: true, $$subdomains: true, coinAddresses: true, resolverAbi: true, resolverTextKeys: true, resolverCoinTypes: true, ttl: true, createdAt: true, wrappedExpiryDate: true, wrappedFuses: true, registrationDate: true, registrationCost: true, registrationExpiryDate: true }) : ({  })) } }),
+			], fields: {
+				name: true,
+				labelName: true,
+				$subgraphResolvedActor: true,
+				subdomainCount: true,
+				textRecords: true,
+				isMigrated: true,
+				expiryDate: true,
+				contentHash: true,
+				...(open && {
+					labelhash: true,
+					subgraphId: true,
+					$resolvedActor: true,
+					$resolverContract: true,
+					$ownerActor: true,
+					$subgraphOwnerActor: true,
+					$registrantActor: true,
+					$wrappedOwnerActor: true,
+					$parent: true,
+					$$subdomains: true,
+					coinAddresses: true,
+					resolverAbi: true,
+					resolverTextKeys: true,
+					resolverCoinTypes: true,
+					ttl: true,
+					createdAt: true,
+					wrappedExpiryDate: true,
+					wrappedFuses: true,
+					registrationDate: true,
+					registrationCost: true,
+					registrationExpiryDate: true,
+				}),
+			} }),
+		)
 	)
 
 
@@ -239,7 +272,7 @@
 									(
 										Date.now() < Number(ens.fields.expiryDate) ?
 											EnsRegistrationStatus.Active
-										: Date.now() < Number(ens.fields.expiryDate) + Number(ensGracePeriodSeconds) * 1000 ?
+										: Date.now() < Number(ens.fields.expiryDate) + Number(90n * 24n * 60n * 60n) * 1000 ?
 											EnsRegistrationStatus.GracePeriod
 										:
 											EnsRegistrationStatus.Expired
@@ -311,7 +344,7 @@
 								{#if ens.fields.$ownerActor !== undefined}
 									<EvmNetworkAccountView
 										selector={{
-											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
+											$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
 											$actor: ens.fields.$ownerActor[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
@@ -398,7 +431,9 @@
 							CollapsibleProps={{ canToggle: false }}
 							selector={selector}
 							id={`${id}-list`}
-							recordKeys={[...ensProfileTextRecordKeys]}
+							recordKeys={ensTextRecords
+								.filter((row) => row.profile)
+								.map((row) => row.key)}
 							title="ENSIP-18 profile records"
 						/>
 					{/snippet}
@@ -481,7 +516,7 @@
 								<dd>
 									<EvmNetworkAccountView
 										selector={{
-											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
+											$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
 											$actor: ens.fields.$ownerActor[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
@@ -497,7 +532,7 @@
 								<dd>
 									<EvmNetworkAccountView
 										selector={{
-											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
+											$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
 											$actor: ens.fields.$subgraphOwnerActor[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
@@ -513,7 +548,7 @@
 								<dd>
 									<EvmNetworkAccountView
 										selector={{
-											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
+											$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
 											$actor: ens.fields.$registrantActor[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
@@ -529,7 +564,7 @@
 								<dd>
 									<EvmNetworkAccountView
 										selector={{
-											$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
+											$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
 											$actor: ens.fields.$wrappedOwnerActor[EntityMetaKey.Selector],
 										}}
 										layout={EntityLayout.Value}
@@ -691,7 +726,9 @@
 					<EnsNameTextRecordsView
 						CollapsibleProps={{ canToggle: false }}
 						selector={selector}
-						excludeRecordKeys={[...ensProfileTextRecordKeys]}
+						excludeRecordKeys={ensTextRecords
+							.filter((row) => row.profile)
+							.map((row) => row.key)}
 						id={`${id}-list`}
 						title="General and social text records"
 					/>

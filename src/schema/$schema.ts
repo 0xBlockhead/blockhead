@@ -1,4 +1,4 @@
-import { type as arktype, type Type } from 'arktype'
+import { type as arktype } from 'arktype'
 import { stringify } from 'devalue'
 
 export enum EntityMetaKey {
@@ -19,8 +19,10 @@ export enum EntityFieldType {
 
 type SchemaType<
 	_Value = unknown,
-	_Scope = any,
-> = Type<_Value, _Scope>
+> = {
+	readonly infer: _Value
+	(value: unknown): unknown
+}
 
 export type EntityDefinition<
 	_EntityType extends string = string,
@@ -494,7 +496,7 @@ type IndexedPrimitiveFieldItemValue<
 	_Field extends {
 		readonly name: _FieldName
 		readonly type: EntityFieldType.Primitive
-		readonly primitiveType: SchemaType<infer _Value, infer _Scope>
+		readonly primitiveType: SchemaType<infer _Value>
 		readonly cardinality: EntityFieldCardinality.One
 	} ?
 		_Value extends readonly (infer _Item extends string | number)[] ?
@@ -543,6 +545,15 @@ export function conditionalOn(
 		itemIndex?: number
 	}
 ) {
+	if (
+		options?.itemIndex != null
+		&& (
+			!Number.isInteger(options.itemIndex)
+			|| options.itemIndex < 0
+		)
+	)
+		throw new Error(`Invalid conditional field index: ${options.itemIndex}`)
+
 	return {
 		fieldName,
 		...(options?.itemIndex != null && {

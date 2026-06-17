@@ -120,7 +120,7 @@
 						<dt>Signatures</dt>
 						<dd>
 							<ResourceBoundary
-								resource={selector}
+								resource={decodedSelector}
 								placeholderText="Loading decoded calldata prefixes…"
 							>
 								{#snippet children(selector)}

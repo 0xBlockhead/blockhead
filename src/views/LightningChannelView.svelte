@@ -1,9 +1,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { LightningChannelSelector } from '$/schema/LightningChannel.ts'
+	import { NetworkSelector } from '$/schema/Network.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -18,7 +20,9 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LightningChannel>
+			selector: EntitySelectorForSelectorName<typeof schema, EntityType.LightningChannel, LightningChannelSelector.NetworkChannelId> & {
+				$network: EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Slug>
+			}
 			open?: boolean
 		},
 		Pick<
@@ -28,13 +32,13 @@
 		>
 	> = $props()
 
-	const channel = subscribe(EntityType.LightningChannel,
+	const channel = $derived(subscribe(EntityType.LightningChannel,
 		selector,
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
 			], fields: { shortChannelId: true, status: true, capacitySats: true, localBalanceSats: true, remoteBalanceSats: true, $node0: true, $node1: true, fundingTransactionId: true, fundingOutputIndex: true, feeRatePpm: true, active: true, private: true } }),
-	)
+	))
 
 
 	// Components
@@ -49,12 +53,7 @@
 <EntityView
 	entityType={EntityType.LightningChannel}
 	entitySelector={selector}
-	href={
-		'networkSlug' in selector.$network ?
-			`/network/${selector.$network.networkSlug}/channels/${selector.channelId}`
-		:
-			`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/channels/${selector.channelId}`
-	}
+	href={`/network/${selector.$network.slug}/channels/${selector.channelId}`}
 	title={selector.channelId}
 	bind:open
 	{...EntityViewProps}

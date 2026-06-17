@@ -323,13 +323,13 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[RedditSubredditSelector.Name]: async (entitySelector, context) => {
+				[RedditSubredditSelector.Name]: async ({ name }, context) => {
 					const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
-					const data = (await getSubredditAbout(context.publicEnv, entitySelector.name)).data
+					const data = (await getSubredditAbout(context.publicEnv, name)).data
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$subreddit: entitySelector,
+								$subreddit: { name },
 								timestampMs: Date.now(),
 							},
 							...(data.subscribers != null && { subscriberCount: data.subscribers }),
@@ -375,16 +375,16 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: async (entitySelector, context) => {
+				[RedditLinkSelector.Fullname]: async ({ fullname }, context) => {
 					const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-					const redditThing = (await getInfo(context.publicEnv, entitySelector.fullname))
+					const redditThing = (await getInfo(context.publicEnv, fullname))
 						.data
 						.children[0]
 					if (redditThing.kind !== 't3') throw new Error('Reddit_Rest: link not found')
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$link: entitySelector,
+								$link: { fullname },
 								timestampMs: Date.now(),
 							},
 							...(redditThing.data.score != null && { score: redditThing.data.score }),
@@ -451,16 +451,16 @@ export default {
 		defineResolver(Source.Reddit_Rest, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[RedditCommentSelector.Fullname]: async (entitySelector, context) => {
+				[RedditCommentSelector.Fullname]: async ({ fullname }, context) => {
 					const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-					const redditThing = (await getInfo(context.publicEnv, entitySelector.fullname))
+					const redditThing = (await getInfo(context.publicEnv, fullname))
 						.data
 						.children[0]
 					if (redditThing.kind !== 't1') throw new Error('Reddit_Rest: comment not found')
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$comment: entitySelector,
+								$comment: { fullname },
 								timestampMs: Date.now(),
 							},
 							...(redditThing.data.score != null && { score: redditThing.data.score }),

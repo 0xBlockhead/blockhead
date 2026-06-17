@@ -34,32 +34,6 @@ export default {
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
-				[EvmCoinInstanceSelector.NetworkType]: async ({ $network, type }) => {
-					const { CoinId, coinById, coinBySymbol } = await import('$/constants/Coin.ts')
-
-					if (type !== CoinInstanceType.NativeCurrency) throw new Error('Allium_Rest: contract coin selector required')
-
-					const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
-					const chain = (await fetchRpcsJson())
-						.find((chain) => chain.chainId === Number($network.caip2.reference))
-					const nativeCurrency = chain?.nativeCurrency
-					if (chain == null || nativeCurrency == null) throw new Error('Allium_Rest: native coin chain not in chainlist')
-
-					const symbol = nativeCurrency.symbol.toUpperCase()
-					const coinId = Object.hasOwn(coinBySymbol, symbol) ? coinBySymbol[symbol].id : CoinId.Unknown
-					const nativeCurrencyName = nativeCurrency.name
-
-					return {
-						coinId,
-						...(nativeCurrencyName !== '' && { name: nativeCurrencyName }),
-						symbol,
-						decimals: nativeCurrency.decimals,
-						$icon: undefined,
-						...(chain.slip44 != null && {
-							caip19: `eip155:${Number($network.caip2.reference)}/slip44:${chain.slip44}`,
-						}),
-					}
-				},
 				[EvmCoinInstanceSelector.NetworkTypeContract]: async ({ $contract, $network, type }, context) => {
 					const { CoinId, coinById, coinBySymbol } = await import('$/constants/Coin.ts')
 					const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')

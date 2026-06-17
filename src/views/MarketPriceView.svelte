@@ -13,7 +13,9 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-	import { Source } from '$/sources/Source.ts'
+	import {
+		marketSpotPriceSources,
+	} from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -61,30 +63,23 @@
 	)
 
 
-	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
 	import { subscribe } from '$/routes/+layout.svelte'
 
 	const marketPrice = $derived(
 		subscribe(EntityType.MarketPrice,
 			selector,
-			({ sources: [
-					Source.Constants_Internal,
-					Source.Coingecko_Rest,
-					Source.Coingecko_OpenApi,
-					Source.CoinMarketCap_Rest,
-					Source.Coinpaprika_OpenApi,
-					Source.Defillama_OpenApi,
-					Source.TradingView_Rest,
-					Source.Blockscout_Rest,
-					], fields: { $parentMarket: true, ...(open && ({ $$quotes: ({ sources: [
-						Source.Blockscout_Rest,
-						Source.Coingecko_Rest,
-						Source.Coingecko_OpenApi,
-						Source.CoinMarketCap_Rest,
-						Source.Coinpaprika_OpenApi,
-						Source.Defillama_OpenApi,
-						Source.TradingView_Rest,
-					], limit: 32 }) })) } }),
+			({
+				sources: marketSpotPriceSources,
+				fields: {
+					$parentMarket: true,
+					...(open && ({
+						$$quotes: {
+							sources: marketSpotPriceSources,
+							limit: 32,
+						},
+					})),
+				},
+			}),
 		),
 	)
 
@@ -124,14 +119,7 @@
 		>
 			{#snippet Pending()}
 				<span>
-					{(
-						selector.feedKey != null && selector.feedKey !== '' ?
-							selector.feedKey
-						: selector.$network != null ?
-							`Chain ${String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}`
-						:
-							'Quote stream'
-					)}
+					Quote stream
 				</span>
 			{/snippet}
 
@@ -156,14 +144,7 @@
 					/>
 				{:else}
 					<span>
-						{(
-							selector.feedKey != null && selector.feedKey !== '' ?
-								selector.feedKey
-							: selector.$network != null ?
-								`Chain ${String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}`
-							:
-								'Quote stream'
-						)}
+						Quote stream
 					</span>
 				{/if}
 			{/snippet}

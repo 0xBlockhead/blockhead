@@ -54,7 +54,7 @@ const setupFailFast = (page: Page) => {
 }
 
 test.describe('/network/[caip2Namespace]:[caip2Reference]/tx/[transactionId]', () => {
-	test('transaction page shows hash, kind, status, and movements or events', async ({ page }, testInfo) => {
+	test('transaction page mounts the selector-owned execution shell', async ({ page }, testInfo) => {
 		testInfo.setTimeout(240_000)
 		const { step } = setupFailFast(page)
 
@@ -63,23 +63,21 @@ test.describe('/network/[caip2Namespace]:[caip2Reference]/tx/[transactionId]', (
 			{ waitUntil: 'load', timeout: 120_000 }
 		))
 
-		await step(expect(page.locator('[data-tx-hash]')).toBeAttached({
+		await step(expect(page.getByRole('heading', {
+			name: /Transaction 0x5e47/,
+		})).toBeAttached({
 			timeout: 120_000,
 		}))
 
-		await step(expect(page.getByText('Kind', { exact: true })).toBeAttached({
+		await step(expect(page.getByRole('link', {
+			name: 'Movements',
+		})).toBeAttached({
 			timeout: 120_000,
 		}))
 
-		await step(expect(page.getByText('Status', { exact: true })).toBeAttached({
-			timeout: 120_000,
-		}))
-
-		await step(expect(
-			page.locator('section[data-scroll-marker-label="Movements"]')
-				.or(page.locator('section[data-scroll-marker-label="Events"]'))
-				.first()
-		).toBeAttached({
+		await step(expect(page.getByRole('heading', {
+			name: 'Receipt logs',
+		})).toBeAttached({
 			timeout: 120_000,
 		}))
 	})

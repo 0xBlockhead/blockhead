@@ -47,7 +47,6 @@
 	} = $props()
 
 
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'

@@ -21,11 +21,6 @@ export enum EnsRegistrationStatus {
 
 
 // Constants
-export const ensEthereumChainId = 1
-
-export const ensGracePeriodSeconds = (
-	90n * 24n * 60n * 60n
-)
 
 const evmEnsCoinTypeId = (chainId: number) => (
 	0x80000000 | chainId
@@ -49,192 +44,177 @@ const ensRegistrationStatuses = [
 	label: string
 }[]
 
-const ensTextRecordLabels = [
-	{
-		key: 'alias',
-		label: 'Alias',
-	},
-	{
-		key: 'name',
-		label: 'Name',
-	},
-	{
-		key: 'display',
-		label: 'Display name',
-	},
+export const ensTextRecords = [
 	{
 		key: 'avatar',
 		label: 'Avatar',
+		profile: true,
+		displayRank: 0,
 	},
 	{
 		key: 'header',
 		label: 'Header',
+		profile: true,
+		displayRank: 1,
+	},
+	{
+		key: 'name',
+		label: 'Name',
+		profile: true,
+		displayRank: 3,
+	},
+	{
+		key: 'alias',
+		label: 'Alias',
+		profile: true,
+		displayRank: 2,
+	},
+	{
+		key: 'display',
+		label: 'Display name',
+		profile: true,
+		displayRank: 4,
 	},
 	{
 		key: 'description',
 		label: 'Description',
-	},
-	{
-		key: 'location',
-		label: 'Location',
-	},
-	{
-		key: 'keywords',
-		label: 'Keywords',
-	},
-	{
-		key: 'notice',
-		label: 'Notice',
+		profile: true,
+		displayRank: 5,
 	},
 	{
 		key: 'url',
 		label: 'Website',
+		profile: true,
+		displayRank: 6,
 	},
 	{
-		key: 'website',
-		label: 'Website',
+		key: 'location',
+		label: 'Location',
+		profile: false,
+		displayRank: 8,
 	},
 	{
-		key: 'email',
-		label: 'Email',
+		key: 'keywords',
+		label: 'Keywords',
+		profile: false,
+		displayRank: 20,
 	},
 	{
-		key: 'mail',
-		label: 'Mailing address',
-	},
-	{
-		key: 'phone',
-		label: 'Phone',
+		key: 'notice',
+		label: 'Notice',
+		profile: false,
+		displayRank: 21,
 	},
 	{
 		key: 'timezone',
 		label: 'Timezone',
+		profile: false,
+		displayRank: 9,
 	},
 	{
 		key: 'language',
 		label: 'Language',
+		profile: false,
+		displayRank: 10,
 	},
 	{
 		key: 'theme',
 		label: 'Theme',
+		profile: false,
+		displayRank: 24,
 	},
 	{
 		key: 'primary-contact',
 		label: 'Primary contact',
+		profile: false,
+		displayRank: 25,
 	},
 	{
-		key: 'com.discord',
-		label: 'Discord',
-	},
-	{
-		key: 'com.github',
-		label: 'GitHub',
-	},
-	{
-		key: 'io.keybase',
-		label: 'Keybase',
-	},
-	{
-		key: 'com.linkedin',
-		label: 'LinkedIn',
-	},
-	{
-		key: 'com.peepeth',
-		label: 'Peepeth',
-	},
-	{
-		key: 'com.reddit',
-		label: 'Reddit',
-	},
-	{
-		key: 'org.telegram',
-		label: 'Telegram',
+		key: 'email',
+		label: 'Email',
+		profile: true,
+		displayRank: 7,
 	},
 	{
 		key: 'com.twitter',
 		label: 'X (Twitter)',
+		profile: false,
+		displayRank: 11,
+	},
+	{
+		key: 'com.github',
+		label: 'GitHub',
+		profile: false,
+		displayRank: 12,
+	},
+	{
+		key: 'com.discord',
+		label: 'Discord',
+		profile: false,
+		displayRank: 13,
+	},
+	{
+		key: 'org.telegram',
+		label: 'Telegram',
+		profile: false,
+		displayRank: 14,
+	},
+	{
+		key: 'com.linkedin',
+		label: 'LinkedIn',
+		profile: false,
+		displayRank: 15,
+	},
+	{
+		key: 'com.reddit',
+		label: 'Reddit',
+		profile: false,
+		displayRank: 16,
+	},
+	{
+		key: 'io.keybase',
+		label: 'Keybase',
+		profile: false,
+		displayRank: 17,
+	},
+	{
+		key: 'com.peepeth',
+		label: 'Peepeth',
+		profile: false,
+		displayRank: 18,
 	},
 	{
 		key: 'eth.ens.delegate',
 		label: 'ENS delegate',
+		profile: false,
+		displayRank: 19,
+	},
+	{
+		key: 'mail',
+		label: 'Mailing address',
+		profile: false,
+		displayRank: 22,
+	},
+	{
+		key: 'phone',
+		label: 'Phone',
+		profile: false,
+		displayRank: 23,
+	},
+	{
+		key: 'website',
+		label: 'Website',
+		profile: false,
+		displayRank: null,
 	},
 ] as const satisfies readonly {
 	key: string
 	label: string
+	profile: boolean
+	displayRank: number | null
 }[]
 
-export const ensGeneralTextRecordKeys = [
-	'name',
-	'alias',
-	'display',
-	'description',
-	'url',
-	'location',
-	'keywords',
-	'notice',
-	'timezone',
-	'language',
-	'theme',
-	'primary-contact',
-] as const
-
-export const ensSocialTextRecordKeys = [
-	'email',
-	'com.twitter',
-	'com.github',
-	'com.discord',
-	'org.telegram',
-	'com.linkedin',
-	'com.reddit',
-	'io.keybase',
-	'com.peepeth',
-	'eth.ens.delegate',
-] as const
-
-export const ensMediaTextRecordKeys = [
-	'avatar',
-	'header',
-] as const
-
-export const ensTextRecordKeys = [
-	...ensMediaTextRecordKeys,
-	...ensGeneralTextRecordKeys,
-	...ensSocialTextRecordKeys,
-	'mail',
-	'phone',
-	'website',
-] as const
-
-export const ensTextRecordDisplayOrder = [
-	'avatar',
-	'header',
-	'alias',
-	'name',
-	'display',
-	'description',
-	'url',
-	'email',
-	'location',
-	'timezone',
-	'language',
-	'com.twitter',
-	'com.github',
-	'com.discord',
-	'org.telegram',
-	'com.linkedin',
-	'com.reddit',
-	'io.keybase',
-	'com.peepeth',
-	'eth.ens.delegate',
-	'keywords',
-	'notice',
-	'mail',
-	'phone',
-	'theme',
-	'primary-contact',
-] as const
-
-const ensCoinTypeLabels = [
+export const ensCoinTypes = [
 	{
 		key: '0',
 		label: 'BTC',
@@ -300,35 +280,6 @@ const ensCoinTypeLabels = [
 	label: string
 }[]
 
-export const ensCoinTypeIdsToResolve = [
-	0,
-	2,
-	3,
-	60,
-	118,
-	144,
-	145,
-	501,
-	evmEnsCoinTypeId(10),
-	evmEnsCoinTypeId(42161),
-	evmEnsCoinTypeId(8453),
-	evmEnsCoinTypeId(137),
-	evmEnsCoinTypeId(59144),
-	evmEnsCoinTypeId(534352),
-	evmEnsCoinTypeId(42220),
-].map(String)
-
-export const ensProfileTextRecordKeys = [
-	'avatar',
-	'header',
-	'alias',
-	'display',
-	'name',
-	'description',
-	'url',
-	'email',
-] as const
-
 export const ensTextRecordLinkRules = [
 	{ keys: ['url', 'website'], hrefMode: EnsTextRecordHrefMode.Value },
 	{ keys: ['email'], hrefMode: EnsTextRecordHrefMode.Mailto },
@@ -375,25 +326,30 @@ export const ensRegistrationStatusByStatus = Object.fromEntries(
 )
 
 export const ensTextRecordLabelByKey = Object.fromEntries(
-	ensTextRecordLabels.map((row) => [
+	ensTextRecords.map((row) => [
 		row.key,
 		row,
 	])
 )
 
 export const ensCoinTypeLabelByKey = Object.fromEntries(
-	ensCoinTypeLabels.map((row) => [
+	ensCoinTypes.map((row) => [
 		row.key,
 		row,
 	])
 )
 
 export const ensTextRecordDisplayRank = Object.fromEntries(
-	ensTextRecordDisplayOrder.map((key, rank) => [
-		key,
-		{
-			key,
-			rank,
-		},
-	])
+	ensTextRecords.flatMap((row) => (
+		row.displayRank === null ?
+			[]
+		:
+			[[
+				row.key,
+				{
+					key: row.key,
+					rank: row.displayRank,
+				},
+			]]
+	))
 )

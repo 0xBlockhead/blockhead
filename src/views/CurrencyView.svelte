@@ -22,9 +22,7 @@
 	// State
 	let {
 		selector,
-		href = resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
-			iso4217: selector.iso4217,
-			}),
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -42,16 +40,16 @@
 		>
 	> = $props()
 
-	const currency = subscribe(EntityType.Currency,
+	const currency = $derived(subscribe(EntityType.Currency,
 		selector,
 		({ sources: [
 				Source.Constants_Internal,
-			], fields: { name: true, symbol: true, $$timestamps: ({ sources: [
+			], fields: { name: true, symbol: true, ...(open && ({ $$timestamps: ({ sources: [
 					Source.Constants_Internal,
-				], limit: 1, fields: { marketCap: true } }), ...(open && ({ minorUnitExponent: true })) } }),
-	)
+				], limit: 1, fields: { marketCap: true } }), minorUnitExponent: true })) } }),
+	))
 
-	const idPrefix = selector.iso4217
+	const idPrefix = $derived(selector.iso4217)
 
 
 	// Components
@@ -69,7 +67,9 @@
 <EntityView
 	entityType={EntityType.Currency}
 	entitySelector={selector}
-	href={href}
+	href={href ?? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+		iso4217: selector.iso4217,
+	})}
 	title={selector.iso4217}
 	{layout}
 	bind:open

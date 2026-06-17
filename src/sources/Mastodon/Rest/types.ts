@@ -89,3 +89,8 @@ export type MastodonApiV1Instance = {
 	}
 	contact_account?: MastodonApiV1Account | null
 }
+
+export type MastodonApiV2Search = {
+	accounts?: MastodonApiV1Account[]
+	statuses?: MastodonApiV1Status[]
+}

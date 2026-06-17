@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntitySelector } from '$/schema/$schema.ts'
-	import { ensEthereumChainId } from '$/constants/Ens.ts'
+	import { ChainId } from '$/constants/ChainId.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -20,9 +20,11 @@
 		selector: EntitySelector<typeof schema, EntityType.EnsName>
 	} = $props()
 
-	const ens = subscribe(EntityType.EnsName,
-		selector,
-		({ sources: [Source.Voltaire_JsonRpc], fields: { $resolvedActor: true } }),
+	const ens = $derived(
+		subscribe(EntityType.EnsName,
+			selector,
+			({ sources: [Source.Voltaire_JsonRpc], fields: { $resolvedActor: true } }),
+		),
 	)
 
 
@@ -43,7 +45,7 @@
 		{#if resolvedActorId}
 			<section>
 				<EvmNetworkView
-					selector={{ chainId: ensEthereumChainId }}
+					selector={{ chainId: ChainId.Ethereum }}
 					layout={EntityLayout.Summary}
 					open={false}
 				/>

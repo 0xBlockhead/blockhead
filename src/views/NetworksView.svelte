@@ -21,7 +21,7 @@
 		title = 'Networks',
 		open = $bindable(true),
 		entityFieldReference,
-		networkIds,
+		networkSelectors,
 		id,
 		href = '',
 		...EntitiesListProps
@@ -30,7 +30,7 @@
 			title?: string
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Network>
-			networkIds?: readonly EntitySelector<typeof schema, EntityType.Network>[]
+			networkSelectors?: readonly EntitySelector<typeof schema, EntityType.Network>[]
 			id: string
 			href?: string
 		},
@@ -68,35 +68,30 @@
 	{#snippet body()}
 		{#if open}
 			{@const parent = subscribe(entityFieldReference.entityType,
-		entityFieldReference.selector,({ sources: [
-				Source.Constants_Internal,
-			], fields: { [entityFieldReference.fieldName]: {
-				limit: 4096,
-			},
-		} }),
-	)}
+				entityFieldReference.selector,
+				({ sources: [
+					Source.Constants_Internal,
+				], fields: { [entityFieldReference.fieldName]: {
+					limit: 4096,
+				},
+				} })
+			)}
 			{@const filteredNetworks = derive(
-		parent,
-		(parent) => {
-			const keys = new SvelteSet<string>()
-			const networks: readonly Entity<typeof schema, EntityType.Network>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
-			return (
-				networks
-					.filter((value) => (
-						networkIds == null
-						|| networkIds.some((networkId) => (
-							stringifyId(networkId) === stringifyId(value[EntityMetaKey.Selector])
-						))
-					))
-					.flatMap((value) => {
-						const key = stringifyId(value[EntityMetaKey.Selector])
-						if (keys.has(key)) return []
-						keys.add(key)
-						return [{ value }]
-					})
-			)
-		},
-	)}
+				parent,
+				(parent) => {
+					const networks: readonly Entity<typeof schema, EntityType.Network>[] = parent.fields[entityFieldReference.fieldName]?.values ?? []
+					return (
+						networks
+							.filter((value) => (
+								networkSelectors == null
+								|| networkSelectors.some((networkSelector) => (
+									stringifyId(networkSelector) === stringifyId(value[EntityMetaKey.Selector])
+								))
+							))
+							.map((value) => ({ value }))
+					)
+				}
+			)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}

@@ -1,8 +1,8 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
-	beaconRestBaseByExecutionChainId,
 	slotsPerEpoch,
 } from '$/constants/BeaconConsensus.ts'
+import { beaconRestEndpointByExecutionChainId } from '$/sources/Beacon/index.ts'
 import { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
@@ -30,7 +30,7 @@ import { EthereumBeaconFinality_TimestampSelector } from '$/schema/EthereumBeaco
 import { EthereumConsensusUpgradeSelector } from '$/schema/EthereumConsensusUpgrade.ts'
 
 const requireBeaconRestBaseUrl = (chainId: number) => {
-	const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+	const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
 	if (base == null) {
 		throw new Error(`Beacon_Rest: no beacon REST base for chain ${String(chainId)}`)
 	}
@@ -322,7 +322,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
 					if (base == null) {
 						throw new Error(`Beacon_Rest: $$beaconEpochs unsupported for chain ${String(chainId)}`)
 					}
@@ -360,7 +360,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
 					if (base == null) {
 						throw new Error(`Beacon_Rest: $$beaconSlots unsupported for chain ${String(chainId)}`)
 					}
@@ -399,7 +399,7 @@ export default {
 					const { getRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					const chainId = Number(caip2.reference)
-					const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
 					if (base == null) {
 						throw new Error(`Beacon_Rest: $$beaconValidators unsupported for chain ${String(chainId)}`)
 					}
@@ -539,7 +539,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
 					if (base == null) {
 						throw new Error(`Beacon_Rest: $$beaconCommittees unsupported for chain ${String(chainId)}`)
 					}
@@ -568,7 +568,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
 					if (base == null) {
 						throw new Error(`Beacon_Rest: $$beaconSyncCommittees unsupported for chain ${String(chainId)}`)
 					}
@@ -594,7 +594,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
 					if (base == null) {
 						throw new Error(`Beacon_Rest: $$beaconAttestations unsupported for chain ${String(chainId)}`)
 					}
@@ -624,7 +624,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
 					if (base == null) {
 						throw new Error(`Beacon_Rest: $$beaconWithdrawals unsupported for chain ${String(chainId)}`)
 					}
@@ -654,7 +654,7 @@ export default {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
-					const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+					const base = beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
 					if (base == null) {
 						throw new Error(`Beacon_Rest: $$beaconSlashings unsupported for chain ${String(chainId)}`)
 					}

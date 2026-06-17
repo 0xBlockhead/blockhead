@@ -265,7 +265,7 @@
 					{#if operation.fields.$bundledTransaction != null}
 						<EvmTransactionView
 							selector={operation.fields.$bundledTransaction[EntityMetaKey.Selector]}
-							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+							href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
 								...{ caip2Namespace: selector.$network.caip2.namespace, caip2Reference: selector.$network.caip2.reference },
 								transactionId: operation.fields.$bundledTransaction[EntityMetaKey.Selector].txHash,
 							})}

@@ -19,10 +19,7 @@
 	// State
 	let {
 		selector,
-		href = resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-			instanceOrigin: encodeURIComponent(selector.instanceOrigin),
-			localAccountId: 'localAccountId' in selector ? selector.localAccountId : selector.acct,
-		}),
+		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
@@ -55,7 +52,30 @@
 	const actor = $derived(
 		subscribe(EntityType.ActivityPubActor,
 			selector,
-			({ sources, fields: { localAccountId: true, username: true, acct: true, displayName: true, $icon: true, ...(open ? ({ note: true, profileUrl: true, activityStreamsUri: true, website: true, $$timestamps: ({ sources, limit: 1 }), createdAt: true, bot: true, locked: true, $headerImage: true }) : ({  })) } }),
+			({
+				sources,
+				fields: {
+					localAccountId: true,
+					username: true,
+					acct: true,
+					displayName: true,
+					$icon: true,
+					...(open && {
+						note: true,
+						profileUrl: true,
+						activityStreamsUri: true,
+						website: true,
+						$$timestamps: {
+							sources,
+							limit: 1,
+						},
+						createdAt: true,
+						bot: true,
+						locked: true,
+						$headerImage: true,
+					}),
+				},
+			}),
 		),
 	)
 
@@ -78,7 +98,13 @@
 <EntityView
 	entityType={EntityType.ActivityPubActor}
 	entitySelector={selector}
-	href={href}
+	href={href ?? ('localAccountId' in selector ?
+		resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+			instanceOrigin: encodeURIComponent(selector.instanceOrigin),
+			localAccountId: selector.localAccountId,
+		})
+	:
+		undefined)}
 	bind:open
 	{...EntityViewProps}
 >
@@ -100,7 +126,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={'localAccountId' in selector ? `@${selector.localAccountId}@${selector.instanceOrigin}` : `@${selector.acct}`}
+			value={'localAccountId' in selector ? selector.localAccountId : `@${selector.acct}`}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -140,7 +166,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			A federated ActivityPub Actor (Mastodon account) keyed by instance origin + local account id (acct or REST id).
+			A federated ActivityPub Actor (Mastodon account) keyed by instance origin + local REST account id or acct.
 		</p>
 		<p>
 			Profile fields and outbox statuses resolve from the configured instance REST API—not a live crawl of every federated server.

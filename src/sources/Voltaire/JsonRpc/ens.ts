@@ -3,8 +3,8 @@ import { namehash, normalize as ensNormalizeNode, toString as ensToString } from
 import { fromBytes as hexFromBytes, toBytes } from '@tevm/voltaire/Hex'
 
 import {
-	ensCoinTypeIdsToResolve,
-	ensTextRecordKeys,
+	ensCoinTypes,
+	ensTextRecords,
 } from '$/constants/Ens.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
@@ -427,14 +427,14 @@ export const resolveEnsForwardForRpcUrl = async ({
 	rpcUrl,
 	transportType,
 	name,
-	textKeys = [...ensTextRecordKeys],
-	coinTypeIds = ensCoinTypeIdsToResolve.map((value) => Number(value)),
+	textKeys = ensTextRecords.map((row) => row.key),
+	coinTypeIds = ensCoinTypes.map((row) => Number(row.key)),
 }: {
 	rpcUrl: string
 	transportType: TransportType
 	name: string
-	textKeys?: string[]
-	coinTypeIds?: number[]
+	textKeys?: readonly string[]
+	coinTypeIds?: readonly number[]
 }) => {
 	const node = bytes32FromNamehash(namehash(name))
 	const [owner, resolverAddress] = await Promise.all([

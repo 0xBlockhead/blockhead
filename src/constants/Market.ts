@@ -54,9 +54,7 @@ export enum MarketAssetKind {
 	Currency = 'Currency',
 }
 
-/**
-	* Unit for a rolling or bucketed time window. Extensible for 4h-style CEX series.
-	*/
+/** Unit for a candle bucket interval. Extensible for 4h-style CEX series. */
 export enum MarketTimeIntervalUnit {
 	Day = 'day',
 	Hour = 'hour',
@@ -64,25 +62,30 @@ export enum MarketTimeIntervalUnit {
 	Second = 'second',
 }
 
-/**
-	* Rolling (or provider-defined) window: `value` steps of `unit` (e.g. 7 × `day` for daily OHLC).
-	*/
+/** Candle bucket interval: `value` steps of `unit` (e.g. 1 x `day` for daily OHLC). */
 export type MarketTimeInterval = {
 	unit: MarketTimeIntervalUnit
 	value: number
 }
 
+export const marketOhlcDailyTimeInterval = {
+	unit: MarketTimeIntervalUnit.Day,
+	value: 1,
+} as const satisfies MarketTimeInterval
+
 /**
-	* `days` values accepted by CoinGecko `GET /coins/{id}/ohlc` for USD candles (numeric days).
+	* Provider lookback values used to fetch daily OHLC ranges. These are not candle identities.
 	* @see https://docs.coingecko.com/reference/coins-id-ohlc
 	*/
-export const coingeckoOhlcDayWindowLengths = [
+export const marketOhlcDayLookbackValues = [
 	1,
 	7,
 	14,
 	30,
 	90,
 ] as const
+
+export const marketOhlcDefaultLookbackDayCount = 90 satisfies typeof marketOhlcDayLookbackValues[number]
 
 const marketKinds = [
 	{

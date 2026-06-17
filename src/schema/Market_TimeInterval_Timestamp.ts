@@ -16,7 +16,7 @@ import {
 } from '$/sources/Source.ts'
 
 export enum Market_TimeInterval_TimestampSelector {
-	MarketTimeIntervalTimestampMsFeedKey = 'marketTimeIntervalTimestampMsFeedKey',
+	MarketTimeIntervalTimestampMs = 'marketTimeIntervalTimestampMs',
 }
 
 export default {
@@ -27,12 +27,11 @@ export default {
 
 	selectors: [
 		{
-			name: Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMsFeedKey,
+			name: Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs,
 			fields: [
 				'$market',
 				'timeInterval',
 				'timestampMs',
-				'feedKey',
 			],
 		},
 	],
@@ -57,12 +56,6 @@ export default {
 			name: 'timestampMs',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'feedKey',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
@@ -110,6 +103,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			// Quote-leg candle volume, scaled by 1e8 like quote prices.
 			name: 'quoteVolume',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),

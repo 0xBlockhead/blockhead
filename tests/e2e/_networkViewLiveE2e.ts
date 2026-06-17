@@ -36,10 +36,10 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 	const publicRpcUrlRaw = await publicJsonRpcHttpUrlForChainE2e(chainId)
 	expect(
 		publicRpcUrlRaw,
-		`no HTTP JSON-RPC for chain ${String(chainId)} (ExecutionEndpoints / Chainlist)`
+		`no HTTP JSON-RPC for chain ${String(chainId)} (Voltaire endpoints / Chainlist)`
 	).not.toBeNull()
 	if (publicRpcUrlRaw == null) {
-		throw new Error(`no HTTP JSON-RPC for chain ${String(chainId)} (ExecutionEndpoints / Chainlist)`)
+		throw new Error(`no HTTP JSON-RPC for chain ${String(chainId)} (Voltaire endpoints / Chainlist)`)
 	}
 	const publicRpcUrl = publicRpcUrlRaw
 	const preflight = await preflightChainHeadAdvancesWithRetries(

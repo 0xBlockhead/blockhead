@@ -8,6 +8,6 @@ export const bskySocialXrpcBase = `${bskySocialOrigin}/xrpc` as const
 export const atprotoBskySocialOrigins: readonly SourceOrigin[] = [
 	{
 		origin: bskySocialOrigin,
-		corsEnabled: true,
+		corsEnabled: false,
 	},
 ]

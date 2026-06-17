@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { ensEthereumChainId } from '$/constants/Ens.ts'
+	import { ChainId } from '$/constants/ChainId.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
@@ -109,7 +109,7 @@
 	data-column
 >
 	<p data-text="muted">
-		Resolve ENS names and reverse records on Ethereum mainnet (chain {String(ensEthereumChainId)}).
+		Resolve ENS names and reverse records on Ethereum mainnet (chain {String(ChainId.Ethereum)}).
 		<a
 			data-link
 			href="https://docs.ens.domains"
@@ -238,7 +238,7 @@
 					<dd>
 						<EvmNetworkAccountView
 							selector={{
-								$network: { caip2: { namespace: 'eip155' as const, reference: String(ensEthereumChainId) } },
+								$network: { caip2: { namespace: 'eip155' as const, reference: String(ChainId.Ethereum) } },
 								$actor: { address: reverseAddress },
 							}}
 							layout={EntityLayout.Title}

@@ -6,21 +6,21 @@ import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 export const activityPubNetworkSeedActors = [
 	{
 		instanceOrigin: mastodonInstanceByKey.mastodon_social.origin,
-		localAccountId: 'Gargron@mastodon.social',
+		acct: 'Gargron@mastodon.social',
 	},
 	{
 		instanceOrigin: mastodonInstanceByKey.mastodon_social.origin,
-		localAccountId: 'mastodon@mastodon.social',
+		acct: 'mastodon@mastodon.social',
 	},
 	{
 		instanceOrigin: fediInstanceBySlug.fosstodon.origin,
-		localAccountId: 'fosstodon@fosstodon.org',
+		acct: 'fosstodon@fosstodon.org',
 	},
 	{
 		instanceOrigin: fediInstanceBySlug.fosstodon.origin,
-		localAccountId: 'matt@fosstodon.org',
+		acct: 'matt@fosstodon.org',
 	},
 ] as const satisfies readonly {
 	instanceOrigin: string
-	localAccountId: string
+	acct: string
 }[]

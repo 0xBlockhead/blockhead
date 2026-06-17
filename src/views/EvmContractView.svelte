@@ -58,13 +58,11 @@
 					]
 				:
 					[]),
-			], fields: { precompileName: ({ sources: [
-					Source.Constants_Internal,
-				] }), $verification: ({ sources: [
-					Source.Sourcify_Rest,
-				], fields: { $compilation: ({ fields: { fullyQualifiedName: true, name: true } }) } }), ...(open && ({ $deployer: true, $creationTransaction: true, $implementation: true, codeHash: true, code: true, abi: true, storageSlotReads: true, $verification: ({ sources: [
-						Source.Sourcify_Rest,
-					], fields: { match: true, creationMatch: true, runtimeMatch: true, verifiedAtMs: true, $compilation: ({ fields: { fullyQualifiedName: true, name: true } }), $sourceBundle: true } }) })) } }),
+				], fields: { precompileName: ({ sources: [
+						Source.Constants_Internal,
+					] }), ...(open && ({ $deployer: true, $creationTransaction: true, $implementation: true, codeHash: true, code: true, abi: true, storageSlotReads: true, $verification: ({ sources: [
+							Source.Sourcify_Rest,
+						], fields: { match: true, creationMatch: true, runtimeMatch: true, verifiedAtMs: true, $compilation: ({ fields: { fullyQualifiedName: true, name: true } }), $sourceBundle: true } }) })) } }),
 	))
 
 
@@ -185,7 +183,7 @@
 								<dd>
 									<EvmTransactionView
 										selector={contract.fields.$creationTransaction[EntityMetaKey.Selector]}
-										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]', {
+										href={resolve('/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
 											caip2Namespace: selector.$network.caip2.namespace,
 											caip2Reference: selector.$network.caip2.reference,
 											transactionId: contract.fields.$creationTransaction[EntityMetaKey.Selector].txHash,

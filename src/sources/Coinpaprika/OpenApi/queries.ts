@@ -8,7 +8,7 @@ import { stringify } from 'devalue'
 
 import type { CoinId } from '$/constants/Coin.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
-import { MarketAssetKind, MarketKind, coingeckoOhlcDayWindowLengths } from '$/constants/Market.ts'
+import { MarketAssetKind, MarketKind, marketOhlcDayLookbackValues } from '$/constants/Market.ts'
 import type { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { optionalPublicEnvString } from '$/sources/$sources.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
@@ -207,7 +207,7 @@ export const getOhlcDayWindowValues = (
 	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
 ) => (
 	optionalPublicEnvString(publicEnv, 'PUBLIC_COINPAPRIKA_API_KEY') != null ?
-		[...coingeckoOhlcDayWindowLengths]
+		[...marketOhlcDayLookbackValues]
 	:
 		[1]
 )
@@ -317,20 +317,20 @@ export const getOhlcvTodayRows = async ({
 export const getOhlcvHistoricalRows = async ({
 	publicEnv,
 	coinpaprikaId,
-	days,
+	lookbackDayCount,
 }: {
 	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
 	coinpaprikaId: string
-	days: number
+	lookbackDayCount: number
 }): Promise<OhlcCandle[]> => {
 	const end = new Date()
 	const start = new Date(end)
-	start.setUTCDate(start.getUTCDate() - days)
+	start.setUTCDate(start.getUTCDate() - lookbackDayCount)
 	const startDate = start.toISOString().slice(0, 10)
 	const endDate = end.toISOString().slice(0, 10)
 	const rows = await getCoinpaprikaJson<CoinpaprikaOhlcv[]>(
 		publicEnv,
-		`/coins/${coinpaprikaId}/ohlcv/historical?start=${startDate}&end=${endDate}&limit=${days}&interval=24h&quote=usd`
+		`/coins/${coinpaprikaId}/ohlcv/historical?start=${startDate}&end=${endDate}&limit=${lookbackDayCount}&interval=24h&quote=usd`
 	)
 	return rows.flatMap((row) => (
 		row.time_open == null

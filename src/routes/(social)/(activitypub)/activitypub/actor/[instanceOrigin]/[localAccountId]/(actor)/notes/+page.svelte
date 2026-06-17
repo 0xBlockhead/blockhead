@@ -13,17 +13,9 @@
 
 <Page>
 	<ActivityPubActorView
-		selector={
-			decodeURIComponent(params.localAccountId).includes('@') ?
-				{
-					instanceOrigin: decodeURIComponent(params.instanceOrigin),
-					acct: decodeURIComponent(params.localAccountId),
-				}
-			:
-				{
-					instanceOrigin: decodeURIComponent(params.instanceOrigin),
-					localAccountId: decodeURIComponent(params.localAccountId),
-				}
-		}
+		selector={{
+			instanceOrigin: decodeURIComponent(params.instanceOrigin),
+			localAccountId: decodeURIComponent(params.localAccountId),
+		}}
 	/>
 </Page>

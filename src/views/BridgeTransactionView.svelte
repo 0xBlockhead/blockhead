@@ -96,7 +96,7 @@
 						<EvmTransactionView
 							selector={selector.$sourceTx}
 							href={resolve(
-								'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId]',
+								'/(explore)/(networks)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/(transactions)/tx/[transactionId=evmTxHash]',
 								{
 										...{ caip2Namespace: selector.$sourceTx.$network.caip2.namespace, caip2Reference: selector.$sourceTx.$network.caip2.reference },
 										transactionId: selector.$sourceTx.txHash,

@@ -60,15 +60,15 @@ export const getInfo = async ({
 export const getOhlcvHistoricalRows = async ({
 	publicEnv,
 	id,
-	days,
+	lookbackDayCount,
 }: {
 	publicEnv: SourcePublicEnvFor<Source.CoinMarketCap_Rest>
 	id: number
-	days: number
+	lookbackDayCount: number
 }): Promise<OhlcCandle[]> => {
 	const response = await coinMarketCapFetch<CoinMarketCapOhlcvHistoricalResponse>(
 		publicEnv,
-		`/v2/cryptocurrency/ohlcv/historical?id=${id}&time_period=daily&count=${days}&convert=USD`
+		`/v2/cryptocurrency/ohlcv/historical?id=${id}&time_period=daily&count=${lookbackDayCount}&convert=USD`
 	)
 	const coin = (
 		response.data == null ?

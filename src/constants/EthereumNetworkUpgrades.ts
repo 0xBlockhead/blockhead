@@ -126,13 +126,6 @@ const executionSpecsPinnedMarkdownFilenameFromLink = (
 	return /^[a-zA-Z0-9][a-zA-Z0-9._-]*\.md$/.test(lastSegment) ? lastSegment : undefined
 }
 
-/** L1 / public testnets where merge-era umbrella ids (Merge, Shapella, …) subsume separate execution and consensus fork names into one NetworkUpgrade row. */
-export const ethereumNetworkUpgradeUmbrellaChainIds = [
-	1,
-	11_155_111,
-	17_000,
-] as const satisfies readonly number[]
-
 export const ethereumNetworkMarketingUmbrellas = [
 	{
 		upgradeId: 'Merge',
@@ -172,7 +165,12 @@ export const ethereumNetworkMarketingUmbrellas = [
 ] as const satisfies readonly NetworkUpgradeMarketingUmbrellaTemplate[]
 
 
-const ETHEREUM_NETWORK_UPGRADE_UMBRELLA_CHAIN_IDS = new Set<number>(ethereumNetworkUpgradeUmbrellaChainIds)
+/** L1 / public testnets where merge-era umbrella ids (Merge, Shapella, …) subsume separate execution and consensus fork names into one NetworkUpgrade row. */
+const ETHEREUM_NETWORK_UPGRADE_UMBRELLA_CHAIN_IDS = new Set<number>([
+	1,
+	11_155_111,
+	17_000,
+])
 
 const activationFieldsFromActivation = (
 	activation: NetworkUpgradeActivation['activation']

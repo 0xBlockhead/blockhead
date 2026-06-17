@@ -114,18 +114,27 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
 		},
 		{
 			name: 's',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
 		},
 		{
 			name: 'v',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
 		},
 		{
 			name: 'gas',
@@ -275,7 +284,6 @@ export default {
 			defaultSources: [
 				Source.Blockscout_Rest,
 				Source.Etherscan_Rest,
-				Source.Voltaire_JsonRpc,
 			],
 		},
 		{

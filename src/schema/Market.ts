@@ -88,7 +88,6 @@ export default {
 			defaultSources: [
 				Source.Coingecko_Rest,
 				Source.Coingecko_OpenApi,
-				Source.Defillama_OpenApi,
 				Source.Coinpaprika_OpenApi,
 				Source.CoinMarketCap_Rest,
 			],

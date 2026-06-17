@@ -1,9 +1,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntitySelector } from '$/schema/$schema.ts'
+	import type { EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { LightningNodeSelector } from '$/schema/LightningNode.ts'
+	import { NetworkSelector } from '$/schema/Network.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -17,7 +19,9 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.LightningNode>
+			selector: EntitySelectorForSelectorName<typeof schema, EntityType.LightningNode, LightningNodeSelector.NetworkPublicKey> & {
+				$network: EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Slug>
+			}
 			open?: boolean
 		},
 		Pick<
@@ -27,13 +31,13 @@
 		>
 	> = $props()
 
-	const node = subscribe(EntityType.LightningNode,
+	const node = $derived(subscribe(EntityType.LightningNode,
 		selector,
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
 			], fields: { alias: true, capacitySats: true, channelCount: true, countryCode: true, city: true, ...(open && ({ networkAddresses: true })) } }),
-	)
+	))
 
 
 	// Components
@@ -47,12 +51,7 @@
 <EntityView
 	entityType={EntityType.LightningNode}
 	entitySelector={selector}
-	href={
-		'networkSlug' in selector.$network ?
-			`/network/${selector.$network.networkSlug}/nodes/${selector.publicKey}`
-		:
-			`/network/${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}/nodes/${selector.publicKey}`
-	}
+	href={`/network/${selector.$network.slug}/nodes/${selector.publicKey}`}
 	title={selector.publicKey}
 	bind:open
 	{...EntityViewProps}
@@ -113,7 +112,7 @@
 						</div>
 					{/if}
 
-					{#each open ? lightningNode.fields.networkAddresses?.values ?? [] : [] as address}
+					{#each open ? lightningNode.fields.networkAddresses?.values ?? [] : [] as address (address)}
 						<div>
 							<dt>Address</dt>
 							<dd><code>{address}</code></dd>

@@ -391,10 +391,10 @@
 							<span data-text="muted">—</span>
 						{/snippet}
 
-						{#snippet children(network)}
-							{@const headBlockHeight = network.fields.$$timestamps.values.at(0)?.blockHeight}
+						{#snippet children(networkCurrentUpgrade)}
+							{@const headBlockHeight = networkCurrentUpgrade.fields.$$timestamps?.values.at(0)?.blockHeight}
 							{@const upgradeSelector = (
-								network.fields.$$upgrades?.values
+								networkCurrentUpgrade.fields.$$upgrades?.values
 									.filter((upgrade) => (
 										upgrade.activationBlock !== undefined
 										&& (
@@ -407,7 +407,7 @@
 											- (leftUpgrade.activationBlock ?? 0)
 									))[0]
 									?.[EntityMetaKey.Selector]
-								?? network.fields.$$upgrades?.values
+								?? networkCurrentUpgrade.fields.$$upgrades?.values
 									.filter((upgrade) => (
 										upgrade.activationTimestampMs !== undefined
 										&& upgrade.activationTimestampMs <= Date.now()
@@ -446,20 +446,20 @@
 							<span data-text="muted">—</span>
 						{/snippet}
 
-						{#snippet children(network)}
-							{#if network.fields.$$blocks?.values[0] !== undefined}
+						{#snippet children(networkHeadBlock)}
+							{@const latestBlock = networkHeadBlock.fields.$$blocks?.values.toSorted((leftBlock, rightBlock) => (
+								rightBlock[EntityMetaKey.Selector].blockNumber
+								=== leftBlock[EntityMetaKey.Selector].blockNumber ?
+									0
+								: rightBlock[EntityMetaKey.Selector].blockNumber
+									> leftBlock[EntityMetaKey.Selector].blockNumber ?
+									1
+								:
+									-1
+							))[0]}
+							{#if latestBlock !== undefined}
 								<EvmBlockView
-									selector={network.fields.$$blocks.values
-										.toSorted((leftBlock, rightBlock) => (
-											rightBlock[EntityMetaKey.Selector].blockNumber
-											=== leftBlock[EntityMetaKey.Selector].blockNumber ?
-												0
-											: rightBlock[EntityMetaKey.Selector].blockNumber
-												> leftBlock[EntityMetaKey.Selector].blockNumber ?
-												1
-											:
-												-1
-										))[0][EntityMetaKey.Selector]}
+									selector={latestBlock[EntityMetaKey.Selector]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -483,9 +483,9 @@
 								<span data-text="muted">—</span>
 							{/snippet}
 
-							{#snippet children(network)}
+							{#snippet children(networkHeadSlot)}
 								{@const headSlot = (
-									network.fields.$$beaconSlots?.values
+									networkHeadSlot.fields.$$beaconSlots?.values
 										.toSorted((leftSlot, rightSlot) => (
 											rightSlot[EntityMetaKey.Selector].slot - leftSlot[EntityMetaKey.Selector].slot
 										))[0]
@@ -521,9 +521,9 @@
 								<span data-text="muted">—</span>
 							{/snippet}
 
-							{#snippet children(network)}
+							{#snippet children(networkHeadSlot)}
 								{@const headSlot = (
-									network.fields.$$beaconSlots?.values
+									networkHeadSlot.fields.$$beaconSlots?.values
 										.toSorted((leftSlot, rightSlot) => (
 											rightSlot[EntityMetaKey.Selector].slot - leftSlot[EntityMetaKey.Selector].slot
 										))[0]
@@ -559,9 +559,9 @@
 								<span data-text="muted">—</span>
 							{/snippet}
 
-							{#snippet children(network)}
+							{#snippet children(networkGasEstimate)}
 								{@const gasEstimateSelector = (
-									network.fields.$$gasEstimateTimestamps?.values
+									networkGasEstimate.fields.$$gasEstimateTimestamps?.values
 										.toSorted((leftTimestamp, rightTimestamp) => (
 											rightTimestamp[EntityMetaKey.Selector].timestampMs
 												- leftTimestamp[EntityMetaKey.Selector].timestampMs
@@ -714,8 +714,9 @@
 					<dd>
 						<ResourceBoundary resource={network}>
 							{#snippet children(network)}
-								{#if (network.fields.consensusProtocol ?? separateConsensusProtocol) !== undefined}
-									{consensusProtocolByProtocol[network.fields.consensusProtocol ?? separateConsensusProtocol].label}
+								{@const consensusProtocol = network.current?.fields.consensusProtocol ?? separateConsensusProtocol}
+								{#if consensusProtocol !== undefined}
+									{consensusProtocolByProtocol[consensusProtocol]?.label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

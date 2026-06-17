@@ -12,6 +12,7 @@ export type SourcifyContractMetadata = {
 	language?: string
 	sources?: Record<string, SourcifyContractSource>
 	fullyQualifiedName?: string
+	storageLayout?: JsonValue
 }
 
 export type SourcifyContractCompilation = {
@@ -21,6 +22,7 @@ export type SourcifyContractCompilation = {
 	name?: string
 	fullyQualifiedName?: string
 	compilerSettings?: JsonValue
+	storageLayout?: JsonValue
 }
 
 export type SourcifyContractDeployment = {

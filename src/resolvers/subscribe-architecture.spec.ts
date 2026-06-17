@@ -147,27 +147,28 @@ describe('client resolver architecture', () => {
 		const clientSource = scannedSourceByFilePath[join(srcPath, 'client', '$client.svelte.ts')]
 
 		expect(clientSource).not.toMatch(/\bas EntityFieldResolvedValue\b/)
+		expect(clientSource).not.toMatch(/\blet value: EntityFieldResolvedValue\b/)
+		expect(clientSource).not.toMatch(/\bfieldSelector\.select\?\.\(/)
+		expect(clientSource).not.toMatch(/\bparse\(String\([^)]*filterKey/)
 
 		for (const filePath of [
 			join(srcPath, 'schema', '$schema.ts'),
 			join(srcPath, 'sources', '$sources.ts'),
 			join(srcPath, 'resolvers', '$resolvers.ts'),
 			join(srcPath, 'client', '$client.svelte.ts'),
-			join(srcPath, 'components', 'ResourceBoundary.svelte'),
-			join(srcPath, 'lib', 'db', 'queryResource.svelte.ts'),
 		]) {
 			const source = scannedSourceByFilePath[filePath]
-			const publicTypeBoundarySource = (
-				filePath === join(srcPath, 'schema', '$schema.ts') ?
-					source.replace(/type SchemaType<[\s\S]*?> = Type<_Value, _Scope>/, '')
-				:
-					source
-			)
-
-			expect(publicTypeBoundarySource, filePath).not.toMatch(broadAnyPattern)
-			expect(publicTypeBoundarySource, filePath).not.toMatch(anyAnnotationPattern)
-			expect(publicTypeBoundarySource, filePath).not.toMatch(anyGenericDefaultPattern)
+			expect(source, filePath).not.toMatch(broadAnyPattern)
+			expect(source, filePath).not.toMatch(anyAnnotationPattern)
+			expect(source, filePath).not.toMatch(anyGenericDefaultPattern)
+			expect(source, filePath).not.toMatch(/\bas\s+(?:never|unknown|unknown\s+as)\b/)
 		}
+
+		expect(scannedSourceByFilePath[join(srcPath, 'schema', '$schema.ts')].match(/\b(?:value: unknown|Record<string, unknown>|Partial<Record<string, unknown>>|\[.+\]: unknown|\(value: unknown\) => unknown|_Value = unknown)\b/g)).toHaveLength(8)
+		expect(scannedSourceByFilePath[join(srcPath, 'schema', '$schema.ts')]).not.toMatch(/\bany\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', '$resolvers.ts')].match(/:\s*unknown\b/g)).toHaveLength(2)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', '$sources.ts')]).not.toMatch(/\b(?:unknown|any)\b/)
+		expect(clientSource.replace(/`[^`]*`/g, '')).not.toMatch(/:\s*(?:unknown|any)\b|Record<string,\s*unknown>|=\s*any\b/)
 	})
 
 	it('keeps product-schema runtime guards out of generic lib', () => {
@@ -176,6 +177,7 @@ describe('client resolver architecture', () => {
 		expect(scannedSourceFiles.map((filePath) => basename(filePath))).not.toContain('createAction.ts')
 		expect(scannedSourceFiles.map((filePath) => basename(filePath))).not.toContain('caip19.ts')
 		expect(scannedSourceByFilePath[join(srcPath, 'lib', 'eip6963.ts')]).toBeUndefined()
+		expect(scannedSourceByFilePath[join(srcPath, 'lib', 'eip1193.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'lib', 'evm-trace.ts')]).toBeUndefined()
 		expect(scannedSource).not.toMatch(/\bevmAbiEntrySignature\b/)
 		expect(scannedSourceByFilePath[join(srcPath, 'lib', 'calldata-decode.ts')]).not.toMatch(/as unknown as Parameters<typeof decodeParameters>\[0\]/)
@@ -193,6 +195,7 @@ describe('client resolver architecture', () => {
 		expect(scannedSource).not.toMatch(/\bmergeActionParams\b/)
 		expect(scannedSource).not.toMatch(/\$\/lib\/caip19\.ts/)
 		expect(scannedSource).not.toMatch(/\$\/lib\/eip6963\.ts/)
+		expect(scannedSource).not.toMatch(/\$\/lib\/eip1193\.ts/)
 		expect(scannedSource).not.toMatch(/\$\/lib\/evm-trace\.ts/)
 		expect(scannedSource).not.toMatch(/\bSlip44\b/)
 	})
@@ -217,6 +220,25 @@ describe('client resolver architecture', () => {
 			|| path.startsWith(join(srcPath, 'sources'))
 		)))
 			expect(scannedSourceByFilePath[filePath], filePath).not.toMatch(/\$\/lib\/marketOhlcCandles\.ts/)
+	})
+
+	it('keeps direct Coin_Timestamp resolvers tied to source clocks', () => {
+		for (const filePath of [
+			join(srcPath, 'resolvers', 'Blockscout-Rest.ts'),
+			join(srcPath, 'resolvers', 'Coingecko-Rest.ts'),
+		]) {
+			const source = scannedSourceByFilePath[filePath]
+			const resolverStart = source.indexOf('entityType: EntityType.Coin_Timestamp')
+			expect(resolverStart, filePath).toBeGreaterThanOrEqual(0)
+			const resolverSource = source.slice(
+				resolverStart,
+				source.indexOf('})({', resolverStart)
+			)
+
+			expect(resolverSource, filePath).toMatch(/\(\{[^}]*timestampMs:\s*timestampMsSelector/)
+			expect(resolverSource, filePath).toMatch(/timestampMs !== timestampMsSelector/)
+			expect(resolverSource, filePath).not.toMatch(/\btimestampMs:\s*Date\.now\(\)/)
+		}
 	})
 
 	it('keeps migrated social seed constants domain-shaped', () => {
@@ -248,6 +270,7 @@ describe('client resolver architecture', () => {
 		expect(source).not.toMatch(/\bEntity(?:MetaKey|Type)\b/)
 		expect(source).not.toMatch(/\bEntity<|typeof schema\b|satisfies Entity\b/)
 		expect(source).not.toMatch(/\[\s*EntityMetaKey\.Selector\s*\]/)
+		expect(source).not.toMatch(/^export const \w*ChainIds\b/m)
 		expect(source).not.toMatch(/\$\$(?:proposals|networkUpgrades)\b/)
 		expect(source).not.toMatch(/\$(?:networkExecutionUpgrade|networkConsensusUpgrade)\b/)
 	})
@@ -264,33 +287,54 @@ describe('client resolver architecture', () => {
 	it('keeps constants as checked-in domain rows and derived row lookups', () => {
 		expect(scannedSource).not.toMatch(/\b(?:liquidNetworkId|lightningNetworkId)\b/)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'AtprotoAppView.ts')]).not.toMatch(/^export const \w*(?:Origin|XrpcBase)\b/m)
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Social', 'Atproto.ts')]).not.toMatch(/^export const \w*(?:Did|Uri|Url|Id)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'BitcoinNetwork.ts')]).not.toMatch(/^export const \w*(?:Caip2|DefaultLocalRpcUrl|RestBaseUrl)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'CosmosNetwork.ts')]).not.toMatch(/^export const \w*(?:Caip2|RpcUrl|RestBaseUrl)\b/m)
-		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'ElementsNetwork.ts')]).not.toMatch(/^export const \w*(?:RestBaseUrl)\b/m)
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'ElementsNetwork.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'ExecutionRpcOrigins.ts')]).toBeUndefined()
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'EthereumSpecs.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'FilecoinNetwork.ts')]).not.toMatch(/^export const \w*(?:Caip2|RpcUrl|RestBaseUrl)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Fedi.ts')]).not.toMatch(/^export const \w*(?:Origin|ApiBase)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Mastodon.ts')]).not.toMatch(/^export const \w*(?:Default|Origin|ApiBase)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'MevRelayHosts.ts')]).not.toMatch(/^export const \w*(?:Origin|Origins)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Cashu.ts')]).not.toMatch(/^export const \w*(?:Url|Id)\b/m)
+		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'Beacon-Rest.ts')]).not.toMatch(/\bbeaconRestBaseByExecutionChainId\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Ens.ts')]).not.toMatch(/^export const ens(?:General|Social|Media)TextRecordKeys\b/m)
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Ens.ts')]).not.toMatch(/^export const ensTextRecordDisplayOrder\b/m)
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Ens.ts')]).not.toMatch(/^export const ens(?:TextRecordKeys|CoinTypeIdsToResolve|ProfileTextRecordKeys)\b/m)
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Ens.ts')]).toMatch(/export const ensTextRecords = \[/)
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Ens.ts')]).toMatch(/export const ensCoinTypes = \[/)
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Ens.ts')]).toMatch(/export const ensTextRecordDisplayRank = Object\.fromEntries\(\s*\n\s*ensTextRecords\.flatMap/)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'HyperliquidNetwork.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'LightningNetwork.ts')]).not.toMatch(/^export const \w*(?:RestBaseUrl|RpcUrl)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'MoneroNetwork.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'NearNetwork.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'PolkadotNetwork.ts')]).toBeUndefined()
+		expect(scannedSourceByFilePath[join(srcPath, 'data', 'precompiles', 'load.ts')]).toBeUndefined()
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'precompiles', 'index.ts')]).not.toMatch(/\$\/data\/precompiles\/load\.ts/)
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'SpecificationProposal.ts')]).not.toMatch(/^export const \w*Ids\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'SolanaNetwork.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'TronNetwork.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'QuilibriumNetwork.ts')]).not.toMatch(/\bquilibriumDocsEndpoints\b/)
-		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'ZeroGNetwork.ts')]).not.toMatch(/\bzeroG(?:MainnetRpcEndpoints|MainnetExplorerEndpoints|MainnetStorageEndpoints|StorageNodeRpcEndpoints)\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'ZeroGNetwork.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Network.ts')]).not.toMatch(/\bnetworkResourceUrlsByNetworkSlug\b/)
+		expect(scannedSource).not.toMatch(/\bcatalogSpotMarketsWithCurrencyAsQuote\b/)
 
 		for (const filePath of scannedSourceFiles.filter((path) => path.startsWith(join(srcPath, 'constants')))) {
 			const source = scannedSourceByFilePath[filePath]
 
-			if (filePath !== join(srcPath, 'constants', 'ExecutionEndpoints.ts'))
-				expect(source, filePath).not.toMatch(/^export const \w*Endpoints\b[\s\S]*?\burl:\s*string\b[\s\S]*?\btransportType:\s*TransportType\b/m)
+			expect(source, filePath).not.toMatch(/^export const \w*Endpoints\b[\s\S]*?\burl:\s*string\b[\s\S]*?\btransportType:\s*TransportType\b/m)
+			expect(source, filePath).not.toMatch(/^export const \w*Endpoints\b[\s\S]*?\b(?:url|restBaseUrl|rpcUrl):\s*string\b/m)
+			expect(source, filePath).not.toMatch(/\bimport\.meta\.glob\b/)
+			expect(source, filePath).not.toMatch(/\$\/data\/.*\/load\.ts/)
+			expect(source, filePath).not.toMatch(/\bserviceProvider:\s*ExecutionRpcProvider\b/)
+			expect(source, filePath).not.toMatch(/from ['"]\$\/constants\/ExecutionRpcProvider\.ts['"]/)
 			expect(source, filePath).not.toMatch(/^export\s+(?:async\s+)?function\b/m)
+			expect(source, filePath).not.toMatch(/^export const \w+\s*=\s*async\b/m)
+			expect(source, filePath).not.toMatch(/^export const (?!\w*By)\w*(?:ChainId|AssetId|BlockHeight)\b/m)
 			expect(source, filePath).not.toMatch(/^export\s+(?:class|let|var)\b/m)
+			expect(source, filePath).not.toMatch(/^export const \w+\s*=\s*new\s+(?:Map|Set|WeakMap|WeakSet)\b/m)
+			expect(source, filePath).not.toMatch(/\b(?:singleFlight|cache|cached|memoize|memoized)\b/i)
 			expect(source, filePath).not.toMatch(/\b(?:fetch|XMLHttpRequest|EventSource)\s*\(/)
 			expect(source, filePath).not.toMatch(/\bnew\s+WebSocket\s*\(/)
 			expect(source, filePath).not.toMatch(/\bimport\.meta\.env\b|\$env\//)
@@ -300,6 +344,13 @@ describe('client resolver architecture', () => {
 			expect(source, filePath).not.toMatch(/\bEntity<|typeof schema\b|satisfies Entity\b/)
 			expect(source, filePath).not.toMatch(/\[\s*EntityMetaKey\.Selector\s*\]/)
 		}
+
+		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'ExecutionEndpoints.ts')]).toBeUndefined()
+		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'Constants.ts')]).not.toMatch(/\bexecutionEndpoints(?:ByChainId)?\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Evm', 'JsonRpc', 'client.ts')]).not.toMatch(/\$\/constants\/ExecutionEndpoints\.ts/)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Evm', 'JsonRpc', 'client.ts')]).not.toMatch(/\$\/sources\/Voltaire\//)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Evm', 'JsonRpc', 'client.ts')]).toMatch(/\borigins:\s*readonly SourceOrigin\[\]/)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Voltaire', 'index.ts')]).toMatch(/\$\/sources\/Voltaire\/JsonRpc\/executionEndpoints\.ts/)
 	})
 
 	it('keeps generic lib out of Product Data and provider ownership', () => {
@@ -316,6 +367,8 @@ describe('client resolver architecture', () => {
 					expect([
 						'$/sources/SourceProvider.ts',
 					], `${relativePath}: ${match[1]}`).toContain(match[1])
+				if (relativePath !== 'lib/media.ts' || match[1] !== '$/constants/IpfsProtocol.ts')
+					expect(match[1], relativePath).not.toMatch(/\$\/constants\//)
 				expect(match[1], relativePath).not.toMatch(/\$\/resolvers\//)
 			}
 
@@ -323,11 +376,20 @@ describe('client resolver architecture', () => {
 			expect(source, filePath).not.toMatch(/\$\/schema\/(?:\$schema|EntityType|index)\.ts/)
 			expect(source, filePath).not.toMatch(/\bEntity<|typeof schema\b|satisfies Entity\b/)
 			expect(source, filePath).not.toMatch(/\[\s*EntityMetaKey\.Selector\s*\]/)
+			if (relativePath !== 'lib/virtualRows.ts')
+				expect(source, filePath).not.toMatch(/\b(?:singleFlight|cache|cached|memoize|memoized)\b/i)
 			if (relativePath !== 'lib/http.ts') {
 				expect(source, filePath).not.toMatch(/\b(?:fetch|XMLHttpRequest|EventSource)\s*\(/)
 				expect(source, filePath).not.toMatch(/\bnew\s+WebSocket\s*\(/)
 			}
 		}
+	})
+
+	it('keeps Cosmos resolver selector checks structural instead of serialized', () => {
+		const source = scannedSourceByFilePath[join(srcPath, 'resolvers', 'CosmosSdk-Rest.ts')]
+
+		expect(source).not.toMatch(/from ['"]devalue['"]/)
+		expect(source).not.toMatch(/\bstringify\s*\(\s*network\b/)
 	})
 
 	it('keeps ResourceBoundary a pure SvelteKit-shaped await consumer', () => {
@@ -468,10 +530,108 @@ describe('client resolver architecture', () => {
 		expect(source).not.toMatch(/networkBySlug\[entitySelector\.slug\]/)
 	})
 
+	it('keeps migrated social timestamp resolver branches explicit about selector fields', () => {
+		const source = [
+			join(srcPath, 'resolvers', 'Atproto-BskySocial-Xrpc.ts'),
+			join(srcPath, 'resolvers', 'Atproto-Xrpc.ts'),
+			join(srcPath, 'resolvers', 'Farcaster-Rest.ts'),
+			join(srcPath, 'resolvers', 'Reddit-PublicJson.ts'),
+			join(srcPath, 'resolvers', 'Reddit-Rest.ts'),
+			join(srcPath, 'resolvers', 'X-FxEmbed-Rest.ts'),
+			join(srcPath, 'resolvers', 'X-Rest.ts'),
+		]
+			.map((filePath) => scannedSourceByFilePath[filePath])
+			.join('\n')
+
+		expect(source).not.toMatch(/\[(?:AtprotoPost|Farcaster(?:Channel|User)|Reddit(?:Comment|Link|Subreddit)|XPost)Selector\.[^\]]+\]: async \(entitySelector/)
+		expect(source).not.toMatch(/\$[a-zA-Z]+:\s*entitySelector\b/)
+		expect(source).not.toMatch(/\bget(?:Posts?|Status|Tweet|Info|SubredditAbout|PrimaryAddress|Channel(?:FollowersCount|MembersCount)?)\([^)]*entitySelector\./)
+	})
+
 	it('does not register resolver facets that only represent unsupported product surfaces', () => {
-		const source = scannedSourceByFilePath[join(srcPath, 'resolvers', 'Constants.ts')]
+		const source = scannedSourceFiles
+			.filter((filePath) => (
+				filePath.startsWith(join(srcPath, 'resolvers'))
+				&& basename(filePath) !== '$resolvers.ts'
+				&& basename(filePath) !== 'index.ts'
+			))
+			.map((filePath) => scannedSourceByFilePath[filePath])
+			.join('\n')
 
 		expect(source).not.toMatch(/Constants_Internal: \$+\w+ is (?:unsupported|not implemented)/)
+		expect(source).not.toMatch(/throw new Error\('[^']+: \$+\w+ is unsupported;/)
+	})
+
+	it('keeps parent list resolvers from hiding child scalar payloads', () => {
+		const blockscoutSource = scannedSourceByFilePath[join(srcPath, 'resolvers', 'Blockscout-Rest.ts')]
+		const blockscoutBlockListResolver = blockscoutSource.slice(
+			blockscoutSource.indexOf('const wires = await getBlocks({'),
+			blockscoutSource.indexOf('$$blocks: (entity) => entity') + '$$blocks: (entity) => entity'.length
+		)
+		const blockchairSource = scannedSourceByFilePath[join(srcPath, 'resolvers', 'Blockchair-Rest.ts')]
+		const blockchairListResolvers = [
+			blockchairSource.slice(
+				blockchairSource.indexOf('const { getBlocks } = await import(\'$/sources/Blockchair/Rest/queries.ts\')'),
+				blockchairSource.indexOf('$$blocks: (blocks) => blocks') + '$$blocks: (blocks) => blocks'.length
+			),
+			blockchairSource.slice(
+				blockchairSource.indexOf('const { getTransactions } = await import(\'$/sources/Blockchair/Rest/queries.ts\')'),
+				blockchairSource.indexOf('$$transactions: (transactions) => transactions') + '$$transactions: (transactions) => transactions'.length
+			),
+			blockchairSource.slice(
+				blockchairSource.indexOf('return dashboard.transactions.map((transaction) => ({'),
+				blockchairSource.indexOf('$$transactions: (transactions) => transactions', blockchairSource.indexOf('return dashboard.transactions.map((transaction) => ({')) + '$$transactions: (transactions) => transactions'.length
+			),
+			blockchairSource.slice(
+				blockchairSource.indexOf('return transactionDashboard.inputs.map((input, inputIndex) => ('),
+				blockchairSource.indexOf('$$inputs: (inputs) => inputs') + '$$inputs: (inputs) => inputs'.length
+			),
+			blockchairSource.slice(
+				blockchairSource.indexOf('return transactionDashboard.outputs.map((output, outputIndex) => ('),
+				blockchairSource.indexOf('$$outputs: (outputs) => outputs') + '$$outputs: (outputs) => outputs'.length
+			),
+		].join('\n')
+		const mempoolSpaceSource = scannedSourceByFilePath[join(srcPath, 'resolvers', 'MempoolSpace-Rest.ts')]
+		const mempoolSpaceListResolvers = [
+			mempoolSpaceSource.slice(
+				mempoolSpaceSource.indexOf('const { getBlocks } = await import(\'$/sources/MempoolSpace/Rest/queries.ts\')'),
+				mempoolSpaceSource.indexOf('$$blocks: (blocks) => blocks') + '$$blocks: (blocks) => blocks'.length
+			),
+			mempoolSpaceSource.slice(
+				mempoolSpaceSource.indexOf('const { getMempoolTxids } = await import(\'$/sources/MempoolSpace/Rest/queries.ts\')'),
+				mempoolSpaceSource.indexOf('$$transactions: (transactions) => transactions') + '$$transactions: (transactions) => transactions'.length
+			),
+			mempoolSpaceSource.slice(
+				mempoolSpaceSource.indexOf('await getBlockTransactionIds({'),
+				mempoolSpaceSource.indexOf('$$transactions: (transactions) => transactions', mempoolSpaceSource.indexOf('await getBlockTransactionIds({')) + '$$transactions: (transactions) => transactions'.length
+			),
+			mempoolSpaceSource.slice(
+				mempoolSpaceSource.indexOf('(await getTransaction(entitySelector)).vin.map((input, inputIndex) => ('),
+				mempoolSpaceSource.indexOf('$$inputs: (inputs) => inputs') + '$$inputs: (inputs) => inputs'.length
+			),
+			mempoolSpaceSource.slice(
+				mempoolSpaceSource.indexOf('(await getTransaction(entitySelector)).vout.map((output, outputIndex) => ('),
+				mempoolSpaceSource.indexOf('$$outputs: (outputs) => outputs') + '$$outputs: (outputs) => outputs'.length
+			),
+		].join('\n')
+		const atprotoSource = [
+			scannedSourceByFilePath[join(srcPath, 'resolvers', 'Atproto-Xrpc.ts')],
+			scannedSourceByFilePath[join(srcPath, 'resolvers', 'Atproto-BskySocial-Xrpc.ts')],
+		]
+			.flatMap((source) => source.split('defineResolver('))
+			.filter((resolverBlock) => (
+				(
+					resolverBlock.includes('entityType: EntityType.AtprotoActor,')
+					|| resolverBlock.includes('entityType: EntityType.AtprotoPost,')
+				)
+				&& resolverBlock.includes('$$timestamps: (timestamps) => timestamps')
+			))
+			.join('\n')
+
+		expect(blockscoutBlockListResolver).not.toMatch(/\b(?:hash|number|timestamp|gasUsed|gasLimit|baseFeePerGas|transactionCount):/)
+		expect(blockchairListResolvers).not.toMatch(/\b(?:version|lockTime|sizeBytes|virtualSizeBytes|weightUnits|feeSats|isCoinbase|scriptSigAsm|sequence|witness|valueSats|scriptPubKeyHex|scriptPubKeyType|isSpent):/)
+		expect(mempoolSpaceListResolvers).not.toMatch(/\b(?:timestampMs|merkleRoot|nonce|difficulty|sizeBytes|weightUnits|transactionCount|\$spentOutput|coinbaseScript|scriptSigAsm|sequence|witness|valueSats|scriptPubKeyHex|scriptPubKeyType|\$address):/)
+		expect(atprotoSource).not.toMatch(/\$\$timestamps:[\s\S]*\b(?:followersCount|followsCount|postsCount|likeCount|repostCount|replyCount|quoteCount):/)
 	})
 
 	it('binds every resolver declaration to its module Source', () => {
@@ -525,9 +685,23 @@ describe('client resolver architecture', () => {
 		}
 	})
 
+	it('keeps resolver facets as synchronous snapshot projection only', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			&& basename(path) !== '$resolvers.ts'
+			&& basename(path) !== 'index.ts'
+		))) {
+			const source = scannedSourceByFilePath[filePath]
+
+			expect(source, filePath).not.toMatch(/\b(?:select|resolveCount|discriminate):\s*async\b/)
+			expect(source, filePath).not.toMatch(/\b(?:select|resolveCount|discriminate):\s*(?:\([^)]*\)|\w+)\s*=>[\s\S]*?\b(?:fetch|corsFetch|getJson|getText)\s*\(/)
+		}
+	})
+
 	it('keeps Constants_Internal resolvers as checked-in catalog projection only', () => {
 		const source = scannedSourceByFilePath[join(srcPath, 'resolvers', 'Constants.ts')]
 
+		expect(source).not.toMatch(/^import\s+(?!type\b)[\s\S]*?from ['"]\$\/sources\/(?!Source\.ts['"])/m)
 		expect(source).not.toMatch(/\$\/sources\/.*\/(?:client|queries|types)\.ts/)
 		expect(source).not.toMatch(/\$\/lib\/http\.ts/)
 		expect(source).not.toMatch(/\b(?:fetch|XMLHttpRequest|EventSource|corsFetch|getJson|getText)\s*\(/)
@@ -548,6 +722,18 @@ describe('client resolver architecture', () => {
 		expect(source).not.toMatch(/\$\/sources\/Chainlist\//)
 		expect(source).not.toMatch(/\bfetchRpcsJson\b/)
 		expect(source).not.toMatch(/\bchainlistRpcs\b/)
+	})
+
+	it('keeps Chainlist source reads owned by the Chainlist resolver', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			&& basename(path) !== 'Chainlist-Rest.ts'
+		))) {
+			const source = scannedSourceByFilePath[filePath]
+
+			expect(source, filePath).not.toMatch(/\$\/sources\/Chainlist\//)
+			expect(source, filePath).not.toMatch(/\bfetchRpcsJson\b/)
+		}
 	})
 
 	it('keeps provider instance caches out of generic lib modules', () => {
@@ -644,6 +830,16 @@ describe('client resolver architecture', () => {
 
 			expect(source, filePath).not.toMatch(/\bimport\.meta\.env\b/)
 			expect(source, filePath).not.toMatch(/\$env\/dynamic/)
+		}
+
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			&& basename(path) !== '$resolvers.ts'
+			&& basename(path) !== 'index.ts'
+		))) {
+			const source = scannedSourceByFilePath[filePath]
+
+			expect(source, filePath).not.toMatch(/\bcontext\.publicEnv\.PUBLIC_[A-Z0-9_]+\b/)
 		}
 	})
 
@@ -801,6 +997,88 @@ describe('client resolver architecture', () => {
 			expect(source, filePath).not.toMatch(/\bselector=\{selector\}/)
 			expect(source, filePath).not.toMatch(/\$network:\s*selector\b/)
 		}
+	})
+
+	it('keeps Market_Timestamp feedKey resolvers tied to the requested feed identity', () => {
+		for (const fileName of [
+			'Blockscout-Rest.ts',
+			'Coingecko-OpenApi.ts',
+			'Coingecko-Rest.ts',
+			'CoinMarketCap-Rest.ts',
+			'Coinpaprika-OpenApi.ts',
+			'Defillama-OpenApi.ts',
+			'Defillama-Rest.ts',
+		]) {
+			const source = scannedSourceByFilePath[join(srcPath, 'resolvers', fileName)]
+			const resolverStart = source.indexOf('[Market_TimestampSelector.MarketTimestampMsFeedKey]: async')
+			expect(resolverStart, fileName).toBeGreaterThanOrEqual(0)
+			const resolverSource = source.slice(
+				resolverStart,
+				source.indexOf('})({', resolverStart)
+			)
+
+			expect(resolverSource, fileName).toMatch(/\(\{[^}]*\bfeedKey\b/)
+			if (fileName.startsWith('Defillama-'))
+				expect(resolverSource, fileName).toMatch(/\bllamaId\s*!==\s*feedKey\b/)
+			else
+				expect(resolverSource, fileName).toMatch(/\bfeedKey\s*!==/)
+			expect(resolverSource, fileName).toMatch(/\(\{[^}]*timestampMs:\s*timestampMsSelector/)
+			expect(resolverSource, fileName).toMatch(/timestampMs !== timestampMsSelector/)
+		}
+
+		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'TradingView-Rest.ts')]).not.toMatch(/\b(?:Market_TimestampSelector|MarketPriceSelector|Date\.now\(\))\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'MarketPrice.ts')]).not.toMatch(/\b(?:name: 'feedKey'|name: '\$network'|Source\.TradingView_Rest)\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Source.ts')]).not.toMatch(/marketSpotPriceSources = \[[^\]]*Source\.TradingView_Rest/)
+	})
+
+	it('does not present DefiLlama close-price charts as OHLC candles', () => {
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Source.ts')]).not.toMatch(
+			/marketOhlcCandleSources = \[[^\]]*Source\.Defillama_OpenApi/
+		)
+		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'Market.ts')]).not.toMatch(
+			/name: '\$\$marketTimeIntervalTimestamps'[\s\S]*?defaultSources: \[[^\]]*Source\.Defillama_OpenApi/
+		)
+		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'Defillama-OpenApi.ts')]).not.toMatch(/\b(?:Market_TimeInterval_Timestamp|\$\$marketTimeIntervalTimestamps|getChartOhlcRows)\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Defillama', 'OpenApi', 'queries.ts')]).not.toMatch(/\b(?:OhlcCandle|getChartOhlcRows|Maps DefiLlama chart closes)\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')]).not.toMatch(/\bDefiLlama|Defillama\b/)
+	})
+
+	it('documents OHLC quote volume as quote-leg units scaled by price scale', () => {
+		const source = scannedSourceByFilePath[join(srcPath, 'schema', 'Market_TimeInterval_Timestamp.ts')]
+
+		expect(source).toMatch(/Quote-leg candle volume, scaled by 1e8 like quote prices\.[\s\S]*name: 'quoteVolume'/)
+	})
+
+	it('keeps OHLC candle interval identity separate from provider lookback windows', () => {
+		const marketConstants = scannedSourceByFilePath[join(srcPath, 'constants', 'Market.ts')]
+
+		expect(marketConstants).toMatch(/\bmarketOhlcDailyTimeInterval\b/)
+		expect(marketConstants).toMatch(/\bmarketOhlcDayLookbackValues\b/)
+		expect(marketConstants).not.toMatch(/\bcoingeckoOhlcDayWindowLengths\b/)
+
+		for (const fileName of [
+			'Coingecko-OpenApi.ts',
+			'Coingecko-Rest.ts',
+			'CoinMarketCap-Rest.ts',
+			'Coinpaprika-OpenApi.ts',
+		]) {
+			const source = scannedSourceByFilePath[join(srcPath, 'resolvers', fileName)]
+			const resolverBlocks = source.split('defineResolver(').filter((block) => block.includes('EntityType.Market_TimeInterval_Timestamp'))
+
+			expect(resolverBlocks.length, fileName).toBeGreaterThan(0)
+			for (const resolverSource of resolverBlocks.filter((block) => /\b(?:getCoinOhlc|getOhlcvHistoricalRows|getOhlcvTodayRows)\b/.test(block))) {
+				expect(resolverSource, fileName).not.toMatch(/\bdays:\s*timeInterval\.value\b/)
+				expect(resolverSource, fileName).not.toMatch(/\blookbackDayCount:\s*timeInterval\.value\b/)
+				expect(resolverSource, fileName).not.toMatch(/\bincludes\(timeInterval\.value\)/)
+				expect(resolverSource, fileName).not.toMatch(/\bsome\(\(value\) => value === timeInterval\.value\)/)
+				expect(resolverSource, fileName).toMatch(/\btimeInterval:\s*marketOhlcDailyTimeInterval\b/)
+			}
+		}
+
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'CoinMarketCap', 'Rest', 'queries.ts')]).toMatch(/count=\$\{lookbackDayCount\}/)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Coinpaprika', 'OpenApi', 'queries.ts')]).toMatch(/limit=\$\{lookbackDayCount\}[\s\S]*interval=24h/)
+		expect(scannedSourceByFilePath[join(srcPath, 'views', 'MarketOhlcHub.svelte')]).not.toMatch(/\btimeInterval = \$bindable/)
+		expect(scannedSourceByFilePath[join(srcPath, 'views', 'MarketOhlcHub.svelte')]).not.toMatch(/\blookbackDayCount\s*\*\s*24\b/)
 	})
 
 	it('does not export legacy raw Product Data collection aliases from app layout', () => {

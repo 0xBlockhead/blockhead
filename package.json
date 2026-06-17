@@ -24,6 +24,7 @@
 		"sources:openapi": "pnpm exec tsx scripts/openapi-source.ts",
 		"sources:openapi:check": "pnpm exec tsx scripts/openapi-source.ts check",
 		"sources:lifi:check-bridge-tools": "pnpm exec tsx scripts/lifi-bridge-tools-diff.ts",
+		"sources:precompiles:check": "pnpm exec tsx scripts/precompiles-source.ts check",
 		"sources:precompiles:sync": "pnpm exec tsx scripts/precompiles-source.ts sync",
 		"test:unit": "vitest",
 		"test": "pnpm run test:unit -- --run && pnpm run test:e2e",

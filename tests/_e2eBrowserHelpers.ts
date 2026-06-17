@@ -3,7 +3,7 @@ import { expect, type Locator, type Page } from '@playwright/test'
 import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { gatewayUrls as swarmGatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
-import { jsonRpcUrlWithTransportForChain } from '$/sources/Evm/JsonRpc/client.ts'
+import { voltaireJsonRpcUrlWithTransportForChain } from '$/sources/Voltaire/index.ts'
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
@@ -715,6 +715,10 @@ export const collectIssues = (page: Page) => {
 		const text = msg.text()
 		const loc = msg.location()
 		forwardBrowserConsoleLine(t, text, loc)
+		if (text.includes('[vite] hot updated')) {
+			issues.push(`dev-server-contamination: ${text}`)
+			return
+		}
 		if (t !== 'error')
 			return
 		// Legacy ignore: hydrate paths historically surfaced resolver “requires query limit”; capped by the resolver context row-limit fallback now.
@@ -1284,7 +1288,20 @@ export const assertMainSettled = async (
 		snapshot.loading.map((row) => `${row.key ?? 'unknown'}: ${row.message}`)
 		).toEqual([])
 	expect(
-		snapshot.empty ? `${snapshot.emptyReason ?? 'unknown'} (${snapshot.textLength} chars)` : ''
+		snapshot.empty ?
+			`${snapshot.emptyReason ?? 'unknown'} (${snapshot.textLength} chars): ${(
+				page.isClosed() ?
+					'page closed'
+				:
+					await page.evaluate(() => ({
+						finalUrl: location.href,
+						readyState: document.readyState,
+						mainCount: document.querySelectorAll('#main').length,
+						bodyText: document.body.textContent.replace(/\s+/g, ' ').trim().slice(0, 500),
+					})).then(jsonStringifyForExpectMessage)
+			)}`
+		:
+			''
 		).toBe('')
 }
 
@@ -1320,11 +1337,11 @@ export const blockStreamBlocksConsoleEvent = (page: Page, timeoutMs = 90_000) =>
 )
 
 /**
-	* HTTP JSON-RPC URL aligned with app `jsonRpcUrlWithTransportForChain`.
+	* HTTP JSON-RPC URL aligned with app `voltaireJsonRpcUrlWithTransportForChain`.
 	* Playwright preflight uses `fetch` only, so WebSocket-only chains cannot use this probe.
 	*/
 export const publicJsonRpcHttpUrlForChainE2e = async (chainId: number) => {
-	const t = await jsonRpcUrlWithTransportForChain(chainId)
+	const t = voltaireJsonRpcUrlWithTransportForChain(chainId)
 	if (t == null) return null
 	if (t.transportType === TransportType.Http) return t.rpcUrl
 	return null

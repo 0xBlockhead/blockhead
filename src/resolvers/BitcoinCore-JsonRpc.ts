@@ -36,7 +36,6 @@ export default {
 					assertBitcoinMainnet($network)
 					const {
 						getBlock,
-						getBlockHash,
 					} = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
 					const block = await getBlock({
 						rpcUrl: bitcoinNetworkBySlug.bitcoin.bitcoinCoreRpcUrl,
@@ -80,12 +79,6 @@ export default {
 										$network,
 										txId: transaction.txid,
 									},
-									version: transaction.version,
-									lockTime: transaction.locktime,
-									sizeBytes: transaction.size,
-									virtualSizeBytes: transaction.vsize,
-									weightUnits: transaction.weight,
-									isCoinbase: transaction.vin.some((input) => input.coinbase != null),
 								}
 						)),
 					}

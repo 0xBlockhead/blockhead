@@ -19,6 +19,7 @@ import {
 } from '../_e2eBrowserHelpers.ts'
 
 import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
+import { routeViewSmokeDevServerContaminationError } from './_routeViewDiagnostics.ts'
 
 
 const gotoLoadTimeoutMs = 120_000
@@ -40,10 +41,25 @@ const corsQuietMs = (() => {
 const probePath = process.env.E2E_PROBE_PATH?.trim()
 const startPath = process.env.E2E_START_PATH?.trim()
 
-/** After `#main` + alerts settle, wait for in-flight resolver HTTP to finish (CORS logs often lag paint). */
+const browserNetworkActivityCounter = (page: Page) => {
+	let count = 0
+	page.on('request', () => {
+		count += 1
+	})
+	page.on('requestfinished', () => {
+		count += 1
+	})
+	page.on('requestfailed', () => {
+		count += 1
+	})
+	return () => count
+}
+
+/** After `#main` + alerts settle, wait for a quiet browser-network window (CORS logs often lag paint). */
 const waitForPageFetchSettle = async (
 	page: Page,
-	violationCount: () => number
+	violationCount: () => number,
+	networkActivityCount: () => number
 ) => {
 	await assertMainSettled(page, settleTimeoutMs)
 
@@ -51,13 +67,19 @@ const waitForPageFetchSettle = async (
 
 	const deadline = Date.now() + settleTimeoutMs
 	let lastCount = violationCount()
+	let lastNetworkActivityCount = networkActivityCount()
 	let quietSince = Date.now()
 
 	while (Date.now() < deadline) {
 		await page.waitForTimeout(250)
 		const count = violationCount()
-		if (count !== lastCount) {
+		const networkCount = networkActivityCount()
+		if (
+			count !== lastCount
+			|| networkCount !== lastNetworkActivityCount
+		) {
 			lastCount = count
+			lastNetworkActivityCount = networkCount
 			quietSince = Date.now()
 			continue
 		}
@@ -86,6 +108,18 @@ const assertNoCorsViolations = async (
 	).toEqual([])
 }
 
+const routeViewSmokeDevServerContaminationGate = (page: Page) => (
+	page.waitForEvent('console', {
+		predicate: (message) => (
+			routeViewSmokeDevServerContaminationError(message.text()) != null
+		),
+		timeout: 0,
+	}).then((message) => {
+		const error = routeViewSmokeDevServerContaminationError(message.text())
+		if (error) throw error
+	})
+)
+
 test.describe('cors policy (no blocked cross-origin fetches)', () => {
 	test.describe.configure({ mode: 'serial' })
 
@@ -95,19 +129,24 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
 		await installChainlistRpcsJsonStub(page)
 		const violations = collectBrowserCorsPolicyViolations(page)
-		await page.goto(probePath!, {
-			waitUntil: 'load',
-			timeout: gotoLoadTimeoutMs,
-		})
-		await expect(page.locator('#main')).toBeVisible({ timeout: settleTimeoutMs })
-		await waitForPageFetchSettle(page, () => violations.length)
+		const networkActivityCount = browserNetworkActivityCounter(page)
+		const devServerContaminationGate = routeViewSmokeDevServerContaminationGate(page)
+		await Promise.race([
+			(async () => {
+				await page.goto(probePath!, {
+					waitUntil: 'load',
+					timeout: gotoLoadTimeoutMs,
+				})
+				await expect(page.locator('#main')).toBeVisible({ timeout: settleTimeoutMs })
+				await waitForPageFetchSettle(page, () => violations.length, networkActivityCount)
+			})(),
+			devServerContaminationGate,
+		])
 		await assertNoCorsViolations(page, violations, probePath!, testInfo)
 	})
 
-	test('every +page URL', async ({ page }, testInfo) => {
+	test('every +page URL', async ({ browser }, testInfo) => {
 		test.skip(probePath != null && probePath !== '', 'E2E_PROBE_PATH skips full matrix')
-		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
-		await installChainlistRpcsJsonStub(page)
 
 		const all = await discoverPathnamesFromRoutes()
 		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
@@ -128,17 +167,32 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 		for (const path of pageUrls) {
 			await test.step(path, async () => {
 				console.log(`[cors-policy] ${path}`)
+				const page = await browser.newPage()
 				const violations = collectBrowserCorsPolicyViolations(page)
-				await page.goto(path, {
-					waitUntil: 'load',
-					timeout: gotoLoadTimeoutMs,
-				})
-				await expect(
-					page.locator('#main'),
-					`#main missing after goto ${path} (final URL: ${page.url()})`
-				).toBeVisible({ timeout: settleTimeoutMs })
-				await waitForPageFetchSettle(page, () => violations.length)
-				await assertNoCorsViolations(page, violations, path, testInfo)
+				const networkActivityCount = browserNetworkActivityCounter(page)
+				try {
+					page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+					await installChainlistRpcsJsonStub(page)
+					const devServerContaminationGate = routeViewSmokeDevServerContaminationGate(page)
+					await Promise.race([
+						(async () => {
+							await page.goto(path, {
+								waitUntil: 'load',
+								timeout: gotoLoadTimeoutMs,
+							})
+							await expect(
+								page.locator('#main'),
+								`#main missing after goto ${path} (final URL: ${page.url()})`
+							).toBeVisible({ timeout: settleTimeoutMs })
+							await waitForPageFetchSettle(page, () => violations.length, networkActivityCount)
+						})(),
+						devServerContaminationGate,
+					])
+					await assertNoCorsViolations(page, violations, path, testInfo)
+				}
+				finally {
+					await page.close()
+				}
 			})
 		}
 	})

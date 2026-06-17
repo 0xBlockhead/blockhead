@@ -106,6 +106,27 @@ describe('HTTP error helpers', () => {
 		}
 	})
 
+	it('uses direct SSR fetch for registered non-CORS provider origins', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('ok'))
+		vi.stubGlobal('fetch', fetchMock)
+		try {
+			await corsFetch('https://registered.example/data', {
+				origins: [{
+					origin: 'https://registered.example',
+					corsEnabled: false,
+				}],
+			})
+			expect(fetchMock).toHaveBeenCalledWith(
+				'https://registered.example/data',
+				expect.objectContaining({
+					signal: expect.any(AbortSignal),
+				})
+			)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
 	it('uses direct browser fetch for registered CORS-enabled provider origins', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('ok'))
 		vi.stubGlobal('fetch', fetchMock)
@@ -167,6 +188,46 @@ describe('HTTP error helpers', () => {
 				},
 			})).resolves.toHaveProperty('ok', true)
 			expect(fetchMock).toHaveBeenCalledTimes(2)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('keeps browser proxy routing stable across retries', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(new Response('rate limited', {
+				status: 429,
+				headers: {
+					'retry-after': '0',
+				},
+			}))
+			.mockResolvedValueOnce(new Response('ok'))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+		try {
+			await expect(corsFetch('https://registered.example/data', {
+				origins: [{
+					origin: 'https://registered.example',
+					corsEnabled: false,
+				}],
+				retry: {
+					maxRetries: 1,
+				},
+			})).resolves.toHaveProperty('ok', true)
+			expect(fetchMock).toHaveBeenNthCalledWith(
+				1,
+				'/api-proxy/https://registered.example/data',
+				expect.objectContaining({
+					signal: expect.any(AbortSignal),
+				})
+			)
+			expect(fetchMock).toHaveBeenNthCalledWith(
+				2,
+				'/api-proxy/https://registered.example/data',
+				expect.objectContaining({
+					signal: expect.any(AbortSignal),
+				})
+			)
 		} finally {
 			vi.unstubAllGlobals()
 		}

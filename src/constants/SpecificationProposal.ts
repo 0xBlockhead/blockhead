@@ -279,7 +279,7 @@ export const proposalCategoryBySlug = Object.fromEntries(
 		])
 )
 
-export const proposalKindIds = specificationRealms
+export const proposalKinds = specificationRealms
 	.flatMap((realmRow) => (
 		proposalCategories
 			.filter((categoryRow) => (
@@ -357,8 +357,8 @@ export const proposalKindIds = specificationRealms
 	))
 
 export const proposalKindAllowedInRealmByKey = Object.fromEntries(
-	proposalKindIds.map((proposalKindId) => [
-		`${proposalKindId.realm}:${proposalKindId.category}`,
-		proposalKindId,
+	proposalKinds.map((proposalKind) => [
+		`${proposalKind.realm}:${proposalKind.category}`,
+		proposalKind,
 	])
 )

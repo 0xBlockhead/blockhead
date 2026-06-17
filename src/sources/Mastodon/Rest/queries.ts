@@ -7,17 +7,41 @@ import type {
 	MastodonApiV1Context,
 	MastodonApiV1Instance,
 	MastodonApiV1Status,
+	MastodonApiV2Search,
 } from '$/sources/Mastodon/Rest/types.ts'
 
-export const getAccount = async (
+export const getAccountByLocalAccountId = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	localAccountId: string
 ) => (
-	localAccountId.includes('@') ?
-		mastodonGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct: localAccountId })
-	:
-		mastodonGet<MastodonApiV1Account>(publicEnv, `/accounts/${encodeURIComponent(localAccountId)}`)
+	mastodonGet<MastodonApiV1Account>(publicEnv, `/accounts/${encodeURIComponent(localAccountId)}`)
 )
+
+export const getAccountByAcct = async (
+	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	acct: string
+) => (
+	mastodonGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct })
+)
+
+export const getAccountByActivityStreamsUri = async (
+	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	activityStreamsUri: string
+) => {
+	const account = (await mastodonGet<MastodonApiV2Search>(
+		publicEnv,
+		'/search',
+		{
+			q: activityStreamsUri,
+			resolve: 'true',
+			type: 'accounts',
+		},
+		'v2'
+	)).accounts?.find((account) => account.uri === activityStreamsUri)
+	if (account == null)
+		throw new Error('Mastodon_Rest: ActivityPub actor URI not found')
+	return account
+}
 
 export const getStatus = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
@@ -26,6 +50,25 @@ export const getStatus = async (
 	mastodonGet<MastodonApiV1Status>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}`)
 )
 
+export const getStatusByActivityStreamsUri = async (
+	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	activityStreamsUri: string
+) => {
+	const status = (await mastodonGet<MastodonApiV2Search>(
+		publicEnv,
+		'/search',
+		{
+			q: activityStreamsUri,
+			resolve: 'true',
+			type: 'statuses',
+		},
+		'v2'
+	)).statuses?.find((status) => status.uri === activityStreamsUri)
+	if (status == null)
+		throw new Error('Mastodon_Rest: ActivityPub note URI not found')
+	return status
+}
+
 export const getStatusContext = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	localStatusId: string
@@ -33,26 +76,17 @@ export const getStatusContext = async (
 	mastodonGet<MastodonApiV1Context>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}/context`)
 )
 
-export const listAccountStatuses = async (
+export const listAccountStatusesByLocalAccountId = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	localAccountId: string,
 	limit: number
-) => {
-	if (localAccountId.includes('@')) {
-		const a = await mastodonGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct: localAccountId })
-		if (a.id == null) return []
-		return mastodonGet<MastodonApiV1Status[]>(
-			publicEnv,
-			`/accounts/${encodeURIComponent(String(a.id))}/statuses`,
-			{ limit: String(Math.min(80, Math.max(1, limit))) }
-		)
-	}
-	return mastodonGet<MastodonApiV1Status[]>(
+) => (
+	mastodonGet<MastodonApiV1Status[]>(
 		publicEnv,
 		`/accounts/${encodeURIComponent(localAccountId)}/statuses`,
 		{ limit: String(Math.min(80, Math.max(1, limit))) }
 	)
-}
+)
 
 export const getInstance = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>

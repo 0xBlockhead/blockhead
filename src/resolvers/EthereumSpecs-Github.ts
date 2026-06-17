@@ -1,4 +1,3 @@
-import { ethereumReferenceForkMetadataChainIds } from '$/constants/EthereumSpecs.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -45,7 +44,11 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			resolve: {
 				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
-				if (!ethereumReferenceForkMetadataChainIds.some((chainId) => chainId === Number(caip2.reference))) {
+				if (
+					caip2.reference !== '1'
+					&& caip2.reference !== '11155111'
+					&& caip2.reference !== '17000'
+				) {
 					throw new Error(
 						`EthereumSpecs_Github: go-ethereum params unsupported for chain ${String(Number(caip2.reference))}`
 					)

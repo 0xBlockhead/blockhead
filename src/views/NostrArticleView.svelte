@@ -45,12 +45,26 @@
 		>
 	> = $props()
 
-	const article = subscribe(EntityType.NostrArticle,
-		selector,
-		({ sources: [
+	const article = $derived(
+		subscribe(EntityType.NostrArticle,
+			selector,
+			({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
-			], fields: { pubkey: true, identifier: true, title: true, summary: true, imageUrl: true, publishedAt: true, $author: true, ...(open ? ({ content: true }) : ({  })) } }),
+			], fields: {
+				kind: true,
+				pubkey: true,
+				identifier: true,
+				title: true,
+				summary: true,
+				imageUrl: true,
+				publishedAt: true,
+				$author: true,
+				...(open && {
+					content: true,
+				}),
+			} }),
+		),
 	)
 
 
@@ -180,6 +194,13 @@
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
+						</div>
+					{/if}
+
+					{#if open && article.fields.kind}
+						<div>
+							<dt>Kind</dt>
+							<dd>{article.fields.kind}</dd>
 						</div>
 					{/if}
 				</dl>

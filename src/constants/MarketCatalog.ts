@@ -28,10 +28,6 @@ export type CatalogCurrencyCurrencyMarket = {
 }
 
 
-/** Venue for catalog fiat-major / USD crosses (e.g. EUR/USD). */
-export const catalogFiatUsdCrossMarketVenueId = MarketVenueId.Coinbase
-
-
 // Constants
 export const catalogCoinSpotUsdMarkets = coins.map((coin) => (
 	{
@@ -56,12 +52,10 @@ export const catalogSpotMarketsWithCoinAsQuote = coins.flatMap((quoteCoin) => (
 	))
 )) satisfies readonly CatalogCoinCoinMarket[]
 
-export const catalogSpotMarketsWithCurrencyAsQuote = catalogCoinSpotUsdMarkets
-
 export const catalogSpotMarketsWithCurrencyAsBase = iso4217WithCatalogUsdCrossAsBase.map((iso4217) => ({
 	baseIso4217: iso4217,
 	quoteIso4217: Iso4217.USD,
-	marketVenueId: catalogFiatUsdCrossMarketVenueId,
+	marketVenueId: MarketVenueId.Coinbase,
 	marketKind: MarketKind.Spot,
 })) satisfies readonly CatalogCurrencyCurrencyMarket[]
 

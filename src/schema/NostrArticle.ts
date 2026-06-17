@@ -28,6 +28,7 @@ export default {
 		{
 			name: NostrArticleSelector.CanonicalCoordinate,
 			fields: [
+				'kind',
 				'pubkey',
 				'identifier',
 			],

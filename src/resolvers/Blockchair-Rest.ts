@@ -62,50 +62,6 @@ const bigintFromNumber = (value: number | undefined) => (
 	value == null ? undefined : BigInt(value)
 )
 
-const utxoBlockRow = (
-	network: NetworkId,
-	block: BlockchairBitcoinLikeBlock
-) => ({
-	[EntityMetaKey.Selector]: {
-		$network: network,
-		height: BigInt(block.id),
-		hash: block.hash,
-	},
-	hash: block.hash,
-	...(timestampMsFromBlockchairTime(block.time) != null && { timestampMs: timestampMsFromBlockchairTime(block.time) }),
-	...(block.merkle_root != null && { merkleRoot: block.merkle_root }),
-	...(block.nonce != null && { nonce: block.nonce }),
-	...(block.difficulty != null && { difficulty: block.difficulty }),
-	...(block.size != null && { sizeBytes: block.size }),
-	...(block.weight != null && { weightUnits: block.weight }),
-	...(block.transaction_count != null && { transactionCount: block.transaction_count }),
-})
-
-const utxoTransactionRow = (
-	network: NetworkId,
-	transaction: BlockchairBitcoinLikeTransaction
-) => ({
-	[EntityMetaKey.Selector]: {
-		$network: network,
-		txId: transaction.hash,
-	},
-	...(transaction.block_id != null && {
-		$block: {
-			[EntityMetaKey.Selector]: {
-				$network: network,
-				height: BigInt(transaction.block_id),
-			},
-		},
-	}),
-	version: transaction.version,
-	lockTime: transaction.lock_time,
-	sizeBytes: transaction.size,
-	virtualSizeBytes: transaction.size,
-	weightUnits: transaction.weight,
-	...(bigintFromNumber(transaction.fee) != null && { feeSats: bigintFromNumber(transaction.fee) }),
-	isCoinbase: transaction.is_coinbase,
-})
-
 const getTransactionDashboard = async ({ $network, txId }: {
 	$network: NetworkId
 	txId: string
@@ -213,6 +169,7 @@ export default {
 			},
 		})({
 			fields: {
+				$block: (transaction) => transaction.$block,
 				version: (transaction) => transaction.version,
 				lockTime: (transaction) => transaction.lockTime,
 				sizeBytes: (transaction) => transaction.sizeBytes,
@@ -383,10 +340,13 @@ export default {
 							sort: 'id(desc)',
 							limit: resolverContextRowLimit(context),
 						},
-					})).data.map((block) => utxoBlockRow(
-							entitySelector.$network,
-							block
-					))
+					})).data.map((block) => ({
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector.$network,
+							height: BigInt(block.id),
+							hash: block.hash,
+						},
+					}))
 				}
 			},
 		})({
@@ -406,10 +366,12 @@ export default {
 							sort: 'id(desc)',
 							limit: resolverContextRowLimit(context),
 						},
-					})).data.map((transaction) => utxoTransactionRow(
-							entitySelector.$network,
-							transaction
-					))
+					})).data.map((transaction) => ({
+						[EntityMetaKey.Selector]: {
+							$network: entitySelector.$network,
+							txId: transaction.hash,
+						},
+					}))
 				}
 			},
 		})({
@@ -437,15 +399,6 @@ export default {
 							$network,
 							txId: transaction.hash,
 						},
-						version: transaction.version,
-						lockTime: transaction.lock_time,
-						sizeBytes: transaction.size,
-						virtualSizeBytes: transaction.size,
-						weightUnits: transaction.weight,
-						...(transaction.fee != null && {
-							feeSats: BigInt(transaction.fee),
-						}),
-						isCoinbase: transaction.is_coinbase,
 					}))
 				}
 			},
@@ -466,28 +419,6 @@ export default {
 								$transaction: entitySelector,
 								inputIndex,
 							},
-							...(input.transaction_hash != null && input.index != null && {
-								$spentOutput: {
-									[EntityMetaKey.Selector]: {
-										$transaction: {
-											$network: entitySelector.$network,
-											txId: input.transaction_hash,
-										},
-										outputIndex: input.index,
-									},
-								},
-							}),
-							...(input.script_hex != null && {
-								scriptSigAsm: input.script_hex,
-							}),
-							...(input.spending_sequence != null && {
-								sequence: input.spending_sequence,
-							}),
-							...(input.spending_witness != null && {
-								witness: [
-									input.spending_witness,
-								],
-							}),
 						}
 					))
 				}
@@ -509,24 +440,6 @@ export default {
 								$transaction: entitySelector,
 								outputIndex,
 							},
-							...(output.value != null && {
-								valueSats: BigInt(output.value),
-							}),
-							...(output.script_hex != null && {
-								scriptPubKeyHex: output.script_hex,
-							}),
-							...(output.type != null && {
-								scriptPubKeyType: output.type,
-							}),
-							...(output.recipient != null && {
-								$address: {
-									[EntityMetaKey.Selector]: {
-										$network: entitySelector.$network,
-										address: output.recipient,
-									},
-								},
-							}),
-							isSpent: output.spending_transaction_hash != null,
 						}
 					))
 				}

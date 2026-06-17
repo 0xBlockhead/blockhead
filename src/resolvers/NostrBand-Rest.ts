@@ -178,6 +178,7 @@ const articleRefFromAddressableCoordinate = (coordinate: string | undefined) => 
 					:
 						{
 							[EntityMetaKey.Selector]: {
+								kind: 30023,
 								pubkey,
 								identifier,
 							},
@@ -202,6 +203,7 @@ const articleRefFromEvent = (event: NostrEvent) => (
 					[
 						{
 							[EntityMetaKey.Selector]: {
+								kind: 30023,
 								pubkey,
 								identifier,
 							},
@@ -761,11 +763,11 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrArticle,
 			resolve: {
-				[NostrArticleSelector.CanonicalCoordinate]: async ({ identifier: identifierSelector, pubkey: pubkeySelector }, context) => {
+				[NostrArticleSelector.CanonicalCoordinate]: async ({ identifier: identifierSelector, kind, pubkey: pubkeySelector }, context) => {
 					const { listAuthorArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 					const pubkey = normalizePubkey(pubkeySelector)
 					const identifier = identifierSelector
-					if (pubkey == null || identifier === '')
+					if (pubkey == null || identifier === '' || kind !== 30023)
 						throw new Error('NostrBand_Rest: article id invalid')
 					const limit = resolverContextRowLimit(context)
 					const event = (

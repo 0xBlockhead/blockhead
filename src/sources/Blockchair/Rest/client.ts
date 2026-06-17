@@ -6,8 +6,8 @@
  */
 
 import { getJson } from '$/lib/http.ts'
+import Blockchair from '$/sources/Blockchair/index.ts'
 import {
-	blockchairOrigins,
 	blockchairRestBaseUrl,
 } from '$/sources/Blockchair/Rest/constants.ts'
 
@@ -56,7 +56,7 @@ export const getBlockchairJson = <_Response>({
 			options,
 		}),
 		{
-			origins: blockchairOrigins,
+			origins: Blockchair.origins,
 		}
 	)
 )
