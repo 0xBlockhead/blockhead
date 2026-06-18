@@ -7,13 +7,13 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
 	} = $props()
 
-	const network = $derived(proxy(EntityType.Network,
+	const network = $derived(select(EntityType.Network,
 		{
 			slug: params.networkSlug,
 		},
@@ -44,36 +44,39 @@
 			})}
 			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
 				<UtxoTransactionsView
-					entityFieldReference={{
-						entityType: EntityType.UtxoNetwork,
-						selector: { $network: selector },
-						fieldName: '$$transactions',
-					}}
+					selection={select(
+						EntityType.UtxoNetwork,
+						{ $network: selector }
+					).$$transactions({
+						limit: 16,
+					})}
 					{href}
 					id="transactions"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.Solana && network.fields.caip2 != null}
 				<SolanaTransactionsView
-					entityFieldReference={{
-						entityType: EntityType.SolanaNetwork,
-						selector: {
+					selection={select(
+						EntityType.SolanaNetwork,
+						{
 							caip2: {
 								namespace: 'solana',
 								reference: network.fields.caip2.reference,
 							},
-						},
-						fieldName: '$$transactions',
-					}}
+						}
+					).$$transactions({
+						limit: 16,
+					})}
 					{href}
 					id="transactions"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.Hyperliquid}
 				<HyperliquidTransactionsView
-					entityFieldReference={{
-						entityType: EntityType.HyperliquidNetwork,
-						selector: { $network: selector },
-						fieldName: '$$transactions',
-					}}
+					selection={select(
+						EntityType.HyperliquidNetwork,
+						{ $network: selector }
+					).$$transactions({
+						limit: 16,
+					})}
 					{href}
 					id="transactions"
 				/>

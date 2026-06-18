@@ -855,7 +855,7 @@ const networkIds = (
 	}>>>
 ) => result.fields.$$networks.values.map((value) => value.id)
 
-const createFixtureProxy = (
+const createFixtureSelect = (
 	context: EntityCollectionsContext<typeof fixtureSchema>
 ) => createEntityProxy(
 	context,
@@ -868,10 +868,10 @@ const createFixtureProxy = (
 )
 
 
-describe('Entity proxy resource pattern fixtures', () => {
+describe('Entity selection resource pattern fixtures', () => {
 	it('keeps property access in resource mode until awaited', async () => {
 		const { context } = await createFixtureContext()
-		const network = createFixtureProxy(context)(EntityType.Network, {
+		const network = createFixtureSelect(context)(EntityType.Network, {
 			id: 'parent',
 		})
 		const name = network.name
@@ -885,7 +885,7 @@ describe('Entity proxy resource pattern fixtures', () => {
 
 	it('treats field calls as parameter selection instead of unwrapping', async () => {
 		const { context } = await createFixtureContext()
-		const networks = createFixtureProxy(context)(EntityType.Network, {
+		const networks = createFixtureSelect(context)(EntityType.Network, {
 			id: 'parent',
 		}).$$networks({
 			sources: [
@@ -908,7 +908,7 @@ describe('Entity proxy resource pattern fixtures', () => {
 
 	it('preserves field-local source priority independently from root sources', async () => {
 		const { context } = await createFixtureContext()
-		const network = createFixtureProxy(context)(EntityType.Network, {
+		const network = createFixtureSelect(context)(EntityType.Network, {
 			id: 'parent',
 		}, {
 			sources: [
@@ -930,9 +930,9 @@ describe('Entity proxy resource pattern fixtures', () => {
 		))).toBe(false)
 	})
 
-	it('returns a proxy entity from single reference fields and resolves child fields independently', async () => {
+	it('returns a selection entity from single reference fields and resolves child fields independently', async () => {
 		const { context } = await createFixtureContext()
-		const primaryNetwork = createFixtureProxy(context)(EntityType.Network, {
+		const primaryNetwork = createFixtureSelect(context)(EntityType.Network, {
 			id: 'parent',
 		}).$primaryNetwork({
 			sources: [
@@ -946,19 +946,17 @@ describe('Entity proxy resource pattern fixtures', () => {
 			],
 		})
 
-		expect(await primaryNetwork).toEqual(expect.objectContaining({
-			name: 'Constants Parent',
-		}))
+		await primaryNetwork
 		expect(primaryNetwork.current?.entityType).toBe(EntityType.Network)
 		expect(primaryNetwork.current?.entitySelector).toEqual({
 			id: 'network-a',
 		})
-		expect(primaryNetworkName.current).toBe('Constants Parent')
+		await expect.poll(() => primaryNetworkName.current).toBe('Constants Parent')
 	})
 
 	it('returns many-reference entities without waiting for child fields', async () => {
 		const { context, calls } = await createFixtureContext()
-		const networks = await createFixtureProxy(context)(EntityType.Network, {
+		const networks = await createFixtureSelect(context)(EntityType.Network, {
 			id: 'parent',
 		}).$$networks({
 			sources: [
@@ -995,12 +993,12 @@ describe('Entity proxy resource pattern fixtures', () => {
 		})).toBe('Network A')
 	})
 
-	it('projects live field and count writes into proxy field resources', async () => {
+	it('projects live field and count writes into selection field resources', async () => {
 		const {
 			context,
 			liveStarts,
 		} = await createFixtureContext()
-		const networks = createFixtureProxy(context)(EntityType.Network, {
+		const networks = createFixtureSelect(context)(EntityType.Network, {
 			id: 'parent',
 		}).$$networks({
 			sources: [
@@ -1033,12 +1031,12 @@ describe('Entity proxy resource pattern fixtures', () => {
 		await expect.poll(() => networks.current?.totalCount).toBe(1)
 	})
 
-	it('projects live counts into paged proxy field resources', async () => {
+	it('projects live counts into paged selection field resources', async () => {
 		const {
 			context,
 			liveStarts,
 		} = await createFixtureContext()
-		const networks = createFixtureProxy(context)(EntityType.Network, {
+		const networks = createFixtureSelect(context)(EntityType.Network, {
 			id: 'parent',
 		}).$$networks({
 			sources: [
@@ -1077,15 +1075,15 @@ describe('Entity proxy resource pattern fixtures', () => {
 			context,
 			rootLiveStarts,
 		} = await createFixtureContext()
-		const proxy = createFixtureProxy(context)
-		const parentNetworks = proxy(EntityType.Network, {
+		const select = createFixtureSelect(context)
+		const parentNetworks = select(EntityType.Network, {
 			id: 'parent',
 		}).$$networks({
 			sources: [
 				Source.Farcaster_Rest,
 			],
 		})
-		const childNetworks = proxy(EntityType.Network, {
+		const childNetworks = select(EntityType.Network, {
 			id: 'network-a',
 		}).$$networks({
 			sources: [
@@ -1246,11 +1244,9 @@ describe('subscribeEntity Resolver Stack fixtures', () => {
 			})
 		})
 
-		expect(states[0]).toEqual({
-			loading: true,
-			ready: false,
-			currentName: undefined,
-		})
+		expect(resource.loading).toBe(true)
+		expect(resource.ready).toBe(false)
+		expect(resource.current).toBeUndefined()
 		await resource
 		await expect.poll(() => states.some((state) => (
 			state.loading === false

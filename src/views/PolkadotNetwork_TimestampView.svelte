@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,7 +19,7 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = $derived(proxy(EntityType.PolkadotNetwork_Timestamp,
+	const snapshot = $derived(select(EntityType.PolkadotNetwork_Timestamp,
 		selector,
 		({ sources: [
 				Source.Polkadot_JsonRpc,

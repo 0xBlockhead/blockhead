@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -42,7 +42,7 @@
 	> = $props()
 
 
-	const peer = $derived(proxy(EntityType.BlockheadRoomPeer, selector, ({ sources: [
+	const peer = $derived(select(EntityType.BlockheadRoomPeer, selector, ({ sources: [
 				Source.Local_Internal,
 			], fields: { displayName: true, isConnected: true, ...(open ? ({ $room: true, peerId: true, joinedAt: true, lastSeenAt: true, connectedAt: true, disconnectedAt: true }) : ({  })) } })))
 

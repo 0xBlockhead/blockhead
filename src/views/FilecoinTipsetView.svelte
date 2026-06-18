@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -71,7 +71,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.FilecoinTipset, selector, ({ sources: [
+			resource={select(EntityType.FilecoinTipset, selector, ({ sources: [
 					Source.Filfox_Rest,
 				], fields: { timestampMs: true, $$blocks: true, ...(open && ({ $parent: true, parentWeight: true })) } }))}
 			placeholderText="Loading tipset…"
@@ -83,10 +83,10 @@
 						<dd>{selector.tipsetKey}</dd>
 					</div>
 
-						{#if (tipset.fields.$$blocks?.values.length ?? 0) > 0}
+						{#if (tipset.fields.$$blocks.values.length ) > 0}
 							<div>
 								<dt>Blocks</dt>
-								<dd><NumberValue value={tipset.fields.$$blocks?.values.length ?? 0} /></dd>
+								<dd><NumberValue value={tipset.fields.$$blocks.values.length } /></dd>
 							</div>
 						{/if}
 

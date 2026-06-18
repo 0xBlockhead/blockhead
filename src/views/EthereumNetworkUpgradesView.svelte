@@ -1,20 +1,26 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
+	type EthereumNetworkUpgradesResource = EntityProxyFieldResource<
+		typeof schema,
+		EntityType.EvmNetwork,
+		'$$upgrades'
+	> | EntityProxyFieldResource<
+		typeof schema,
+		EntityType._Global,
+		'$$networkUpgrades'
+	>
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Upgrades',
 		open = $bindable(true),
 		id,
@@ -22,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EthereumNetworkUpgrade>
+			selection: EthereumNetworkUpgradesResource
 			title?: string
 			open?: boolean
 			id: string
@@ -67,13 +73,7 @@
 	{#snippet body()}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-					).field(entityFieldReference.fieldName, {
-						sources: [Source.Constants_Internal],
-						limit: 512,
-					})}
+				resource={selection}
 				placeholderText="Loading upgrades…"
 			>
 				{#snippet children(upgrades)}

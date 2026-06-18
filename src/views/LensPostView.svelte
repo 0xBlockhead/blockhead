@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 		>
 	> = $props()
 
-	const lensPost = $derived(proxy(EntityType.LensPost,
+	const lensPost = $derived(select(EntityType.LensPost,
 		selector,
 		{
 			sources: [
@@ -336,11 +336,10 @@
 				<LensCommentsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/lens')}
-					entityFieldReference={{
-						entityType: EntityType.LensPost,
-						selector,
-						fieldName: '$$comments',
-					}}
+					selection={select(
+			EntityType.LensPost,
+			selector
+		).$$comments}
 					id={`${postDetailKey}:comments`}
 					open={true}
 					title="Comments"
@@ -349,11 +348,10 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<LensPost_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.LensPost,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.LensPost,
+			selector
+		).$$timestamps}
 					href={href}
 					id={`${postDetailKey}:metric-snapshots`}
 					title="Metric snapshots"

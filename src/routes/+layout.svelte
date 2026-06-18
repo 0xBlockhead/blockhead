@@ -29,33 +29,39 @@
 		}
 	}
 
-	export const appClient = client({
-		schema,
-		sourceProviders,
-	})({
-		resolvers,
-		env,
-	})({
-		queryClient: new QueryClient({
-			defaultOptions: {
-				queries: {
-					gcTime: 0,
+	export const appClient = client(
+		{
+			schema,
+			sourceProviders,
+		}
+	)(
+		{
+			resolvers,
+			env,
+		}
+	)(
+		{
+			queryClient: new QueryClient({
+				defaultOptions: {
+					queries: {
+						gcTime: 0,
+					},
 				},
-			},
-		}),
-		persistence: createBrowserWASQLitePersistence({
-			database: await openBrowserWASQLiteOPFSDatabase({
-				databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
 			}),
-			schemaMismatchPolicy: 'reset',
-		}),
-		schemaVersion: (
-			typeof window !== 'undefined' ?
-				window.__blockheadProductDataSchemaVersionOverride ?? BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION
-			:
-				BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION
-		),
-	})
+			persistence: createBrowserWASQLitePersistence({
+				database: await openBrowserWASQLiteOPFSDatabase({
+					databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
+				}),
+				schemaMismatchPolicy: 'reset',
+			}),
+			schemaVersion: (
+				typeof window !== 'undefined' ?
+					window.__blockheadProductDataSchemaVersionOverride ?? BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION
+				:
+					BLOCKHEAD_PRODUCT_DATA_SCHEMA_VERSION
+			),
+		}
+	)
 
 	if (typeof window !== 'undefined' && '__blockheadPersistenceProbe' in window)
 		Object.defineProperty(window, '__blockheadClientProbe', {
@@ -63,31 +69,52 @@
 				events: appClient.events,
 				collectionSizes: () => ({
 					loadedSubsets: appClient.loadedSubsets.size,
-					entities: Object.fromEntries(Object.entries(appClient.entityCollections).map(([entityType, collection]) => [
-						entityType,
-						collection.size,
-					])),
-					fields: Object.fromEntries(Object.entries(appClient.entityFieldCollections).map(([entityType, fieldCollections]) => [
-						entityType,
-						Object.fromEntries(Object.entries(fieldCollections).map(([fieldName, collection]) => [
-							fieldName,
-							collection.size,
-						])),
-					])),
-					counts: Object.fromEntries(Object.entries(appClient.entityFieldCountCollections).map(([entityType, fieldCollections]) => [
-						entityType,
-						Object.fromEntries(Object.entries(fieldCollections).map(([fieldName, collection]) => [
-							fieldName,
-							collection?.size ?? 0,
-						])),
-					])),
+					entities: Object.fromEntries(
+						Object.entries(appClient.entityCollections)
+							.map(([entityType, collection]) => [
+								entityType,
+								collection.size,
+							])
+					),
+					fields: Object.fromEntries(
+						Object.entries(appClient.entityFieldCollections)
+							.map(([entityType, fieldCollections]) => [
+								entityType,
+								Object.fromEntries(
+									Object.entries(fieldCollections)
+										.map(([fieldName, collection]) => [
+											fieldName,
+											collection.size,
+										])
+								),
+							])
+					),
+					counts: Object.fromEntries(
+						Object.entries(appClient.entityFieldCountCollections)
+							.map(([entityType, fieldCollections]) => [
+								entityType,
+								Object.fromEntries(
+									Object.entries(fieldCollections)
+										.map(([fieldName, collection]) => [
+											fieldName,
+											collection?.size ?? 0,
+										])
+								),
+							])
+					),
 				}),
-				queryStates: () => appClient.queryClient.getQueryCache().getAll().map((query) => ({
-					key: query.queryKey.map((segment) => String(segment)),
-					status: query.state.status,
-					fetchStatus: query.state.fetchStatus,
-					error: query.state.error == null ? undefined : String(query.state.error),
-				})),
+				queryStates: () => (
+					appClient
+						.queryClient
+						.getQueryCache()
+						.getAll()
+						.map((query) => ({
+							key: query.queryKey.map((segment) => String(segment)),
+							status: query.state.status,
+							fetchStatus: query.state.fetchStatus,
+							error: query.state.error == null ? undefined : String(query.state.error),
+						}))
+				),
 				read: <
 					const _EntityType extends EntityTypeName<typeof schema>,
 					const _Selection extends SubscribeSelection<typeof schema, _EntityType>,
@@ -105,8 +132,7 @@
 			configurable: true,
 		})
 
-	export const subscribe = appClient.subscribe
-	export const proxy = appClient.proxy
+	export const select = appClient.select
 </script>
 
 
@@ -134,7 +160,8 @@
 	} = $props()
 
 	$effect(() => (
-		mountWalletConnectionRuntime(appClient).destroy
+		mountWalletConnectionRuntime(appClient)
+			.destroy
 	))
 
 	// Components

@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -54,7 +54,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.FilecoinMessage, selector, ({ fields: { method: true, nonce: true, valueAttoFil: true, gasLimit: true } }))}
+			resource={select(EntityType.FilecoinMessage, selector, ({ fields: { method: true, nonce: true, valueAttoFil: true, gasLimit: true } }))}
 			placeholderText="Loading Filecoin message…"
 		>
 			{#snippet children(filecoinMessage)}

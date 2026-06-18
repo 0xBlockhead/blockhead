@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,7 +36,7 @@
 	> = $props()
 
 	const channel = $derived(
-		proxy(EntityType.FarcasterChannel,
+		select(EntityType.FarcasterChannel,
 			selector,
 			({ sources: [
 				Source.Farcaster_Rest,
@@ -137,11 +137,11 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: channel.fields.$$timestamps?.values.at(0)?.followerCount,
+								value: channel.fields.$$timestamps.values.at(0)?.followerCount,
 							},
 							{
 								label: 'Members',
-								value: channel.fields.$$timestamps?.values.at(0)?.memberCount,
+								value: channel.fields.$$timestamps.values.at(0)?.memberCount,
 							},
 						]}
 					/>
@@ -241,7 +241,7 @@
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
 							{#snippet children(channel)}
-								{#if channel.fields.$moderators?.values.length}
+								{#if channel.fields.$moderators.values.length}
 									<ul>
 										{#each channel.fields.$moderators.values as mod (String(mod[EntityMetaKey.Selector].fid))}
 											<li>
@@ -422,11 +422,10 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<FarcasterChannel_TimestampsView
-					entityFieldReference={{
-							entityType: EntityType.FarcasterChannel,
-							selector,
-							fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.FarcasterChannel,
+			selector
+		).$$timestamps}
 					href={href}
 					id={`${channelDetailKey}:metric-snapshots`}
 					title="Metric snapshots"

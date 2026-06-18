@@ -1,6 +1,7 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { schema } from '$/schema/index.ts'
@@ -14,13 +15,13 @@
 
 	// Context
 	import { writeLocalWatchedEvmAccount } from '$/collections/localMutations.ts'
-	import { appClient, proxy } from '$/routes/+layout.svelte'
+	import { appClient, select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Watched accounts',
 		id,
 		open = $bindable(true),
@@ -28,7 +29,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmAccount>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			id: string
 			title?: string
 			open?: boolean
@@ -131,10 +136,7 @@
 			</form>
 
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-					).field(entityFieldReference.fieldName, {
+				resource={selection({
 						sources: [
 							Source.Local_Internal,
 						],

@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -25,7 +25,7 @@
 	} = $props()
 
 	const network = $derived(
-		proxy(
+		select(
 			EntityType.Network,
 			selector.$network,
 			{
@@ -106,7 +106,7 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={proxy(
+					<ResourceBoundary resource={select(
 							EntityType.CosmosNetwork,
 							selector,
 							{
@@ -126,7 +126,7 @@
 							},
 						)}>
 						{#snippet children(cosmosNetwork)}
-							{@const block = cosmosNetwork.fields.$$blocks?.values.at(0)}
+							{@const block = cosmosNetwork.fields.$$blocks.values.at(0)}
 							{#if block != null}
 								<div>
 									<dt>Head block</dt>
@@ -146,10 +146,10 @@
 						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 					</div>
 
-					{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
+					{#if (network.fields.$$nativeAssets.values.length ) > 0}
 						<div>
 							<dt>Native asset</dt>
-							<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
+							<dd>{network.fields.$$nativeAssets.values.length }</dd>
 						</div>
 					{/if}
 				</dl>
@@ -178,11 +178,10 @@
 			{#snippet SectionCosmosBlocks({ id, label }: { id: string, label: string })}
 				<CosmosBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.CosmosNetwork,
-						selector,
-						fieldName: '$$blocks',
-					}}
+					selection={select(
+			EntityType.CosmosNetwork,
+			selector
+		).$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -192,11 +191,10 @@
 			{#snippet SectionCosmosSnapshots({ id, label }: { id: string, label: string })}
 				<CosmosNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.CosmosNetwork,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.CosmosNetwork,
+			selector
+		).$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -239,11 +237,10 @@
 			{#snippet SectionCosmosValidators({ id, label }: { id: string, label: string })}
 				<CosmosValidatorsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.CosmosNetwork,
-						selector,
-						fieldName: '$$validators',
-					}}
+					selection={select(
+			EntityType.CosmosNetwork,
+			selector
+		).$$validators}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -252,11 +249,10 @@
 			{#snippet SectionCosmosGovernance({ id, label }: { id: string, label: string })}
 				<CosmosGovernanceProposalsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.CosmosNetwork,
-						selector,
-						fieldName: '$$governanceProposals',
-					}}
+					selection={select(
+			EntityType.CosmosNetwork,
+			selector
+		).$$governanceProposals}
 					href={href == null ? '' : `${href}/governance`}
 					id={`${id}-list`}
 					title={label}
@@ -282,11 +278,10 @@
 			{#snippet SectionCosmosAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$nativeAssets',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -313,11 +308,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$faucetUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -331,11 +325,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$blockExplorerUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 						Source.CosmosChainRegistry_Github,

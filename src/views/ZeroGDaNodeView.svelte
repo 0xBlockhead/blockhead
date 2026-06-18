@@ -9,7 +9,7 @@
 
 
 	// State
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -51,7 +51,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.ZeroGDaNode, selector, ({ fields: { $quorum: true, $operator: true, endpoint: true } }))}
+			resource={select(EntityType.ZeroGDaNode, selector, ({ fields: { $quorum: true, $operator: true, endpoint: true } }))}
 			placeholderText={`Loading 0G DA node...`}
 		>
 			{#snippet children(zeroGDaNode)}

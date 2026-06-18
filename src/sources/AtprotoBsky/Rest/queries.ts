@@ -105,13 +105,6 @@ export const searchPosts = async ({
 				q,
 			}).toString()
 		)}`,
-		{
-			origins: [
-				{
-					origin: atprotoAppViewBySlug.bsky_public.origin,
-					corsEnabled: false,
-				},
-			],
-		}
+		{ origins: AtprotoBsky.origins }
 	)
 )

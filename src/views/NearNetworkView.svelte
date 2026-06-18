@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -24,7 +24,7 @@
 		open?: boolean
 	} = $props()
 
-	const network = $derived(proxy(EntityType.NearNetwork, selector, ({ sources: [
+	const network = $derived(select(EntityType.NearNetwork, selector, ({ sources: [
 				Source.Constants_Internal,
 			], fields: { slug: true, name: true, environment: true, rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$timestamps: ({ limit: 1 }) } })))
 
@@ -82,7 +82,7 @@
 	{#snippet Content({ open })}
 			<ResourceBoundary resource={network}>
 				{#snippet children(network)}
-					{@const block = network.fields.$$blocks?.values.at(0)}
+					{@const block = network.fields.$$blocks.values.at(0)}
 					<dl class="network-summary-head" data-column-item="center">
 						{#if block != null}
 							<div>
@@ -104,15 +104,15 @@
 					{#if open}
 						<div>
 							<dt>RPC endpoints</dt>
-							<dd>{network.fields.rpcEndpoints?.values.length ?? 0}</dd>
+							<dd>{network.fields.rpcEndpoints.values.length}</dd>
 						</div>
 					{/if}
 
-						<ResourceBoundary resource={proxy(EntityType.Network, selector, ({ sources: [
+						<ResourceBoundary resource={select(EntityType.Network, selector, ({ sources: [
 								Source.Constants_Internal,
 							], fields: { $$nativeAssets: true } }))}>
 							{#snippet children(baseNetwork)}
-								{@const nativeAssetCount = baseNetwork.fields.$$nativeAssets?.values.length ?? 0}
+								{@const nativeAssetCount = baseNetwork.fields.$$nativeAssets.values.length}
 								{#if nativeAssetCount > 0}
 									<div>
 										<dt>Native asset</dt>
@@ -151,11 +151,10 @@
 			{#snippet SectionNearBlocks({ id, label }: { id: string, label: string })}
 				<NearBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.NearNetwork,
-						selector,
-						fieldName: '$$blocks',
-					}}
+					selection={select(
+			EntityType.NearNetwork,
+			selector
+		).$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -165,11 +164,10 @@
 			{#snippet SectionNearSnapshots({ id, label }: { id: string, label: string })}
 				<NearNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.NearNetwork,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.NearNetwork,
+			selector
+		).$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -178,11 +176,10 @@
 			{#snippet SectionNearValidators({ id, label }: { id: string, label: string })}
 				<NearValidatorsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.NearNetwork,
-						selector,
-						fieldName: '$$validators',
-					}}
+					selection={select(
+			EntityType.NearNetwork,
+			selector
+		).$$validators}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -226,11 +223,10 @@
 			{#snippet SectionNearAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$nativeAssets',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector
+		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -260,11 +256,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$faucetUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector
+		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -278,11 +273,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$blockExplorerUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector
+		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -50,7 +50,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.BitcoinCashCashTokenCommitment, selector, ({ fields: { commitmentHex: true } }))}
+			resource={select(EntityType.BitcoinCashCashTokenCommitment, selector, ({ fields: { commitmentHex: true } }))}
 			placeholderText={`Loading Bitcoin Cash CashToken Commitment...`}
 		>
 			{#snippet children(bitcoinCashCashTokenCommitment)}

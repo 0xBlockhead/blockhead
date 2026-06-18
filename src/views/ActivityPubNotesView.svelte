@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,7 +17,6 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		id,
@@ -25,7 +25,7 @@
 		orderByCreatedAt,
 		placeholderText,
 		title,
-		entityFieldReference,
+		selection,
 		fieldOpen = true,
 		CollapsibleProps = {},
 		href,
@@ -40,7 +40,11 @@
 		orderByCreatedAt: 'asc' | 'desc'
 		placeholderText: string
 		title: string
-		entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActivityPubNote>
+		selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 		fieldOpen?: boolean
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 		href?: ComponentProps<typeof EntitiesList>['href']
@@ -79,10 +83,7 @@
 		{#if open}
 			{#if fieldOpen}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector
-					).field(entityFieldReference.fieldName, {
+				resource={selection({
 						sources,
 						orderBy: [
 							[

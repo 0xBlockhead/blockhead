@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -71,7 +71,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.FarcasterUser_Timestamp,
+			resource={select(EntityType.FarcasterUser_Timestamp,
 					selector,
 					({ sources: [
 							Source.Snapchain_Rest,

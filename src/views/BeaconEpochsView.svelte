@@ -1,20 +1,22 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
+	type BeaconEpochsResource = EntityProxyFieldResource<
+		typeof schema,
+		EntityType.EvmNetwork,
+		'$$beaconEpochs'
+	>
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Epochs',
 		open = $bindable(true),
 		id,
@@ -22,7 +24,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconEpoch>
+			selection: BeaconEpochsResource
 			title?: string
 			open?: boolean
 			id: string
@@ -63,12 +65,7 @@
 	{#snippet body()}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-					).field(entityFieldReference.fieldName, {
-						sources: [Source.Beacon_Rest],
-					})}
+				resource={selection}
 				placeholderText="Loading epochs…"
 			>
 				{#snippet children(epochs)}

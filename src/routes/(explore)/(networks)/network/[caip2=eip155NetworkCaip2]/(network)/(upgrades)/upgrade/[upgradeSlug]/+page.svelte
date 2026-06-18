@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
 	// Types/constants
 	import {
 		ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug,
@@ -24,7 +25,7 @@
 <Page>
 	<NetworkUpgradeView
 		selector={{
-			$network: { caip2: { namespace: 'eip155', reference: params.caip2.slice('eip155:'.length) } },
+			$network: eip155NetworkSelectorFromCaip2(params.caip2),
 			upgradeId: ((() => {
 				const segment = params.upgradeSlug
 				const direct = networkUpgrades.find((networkUpgrade) => {

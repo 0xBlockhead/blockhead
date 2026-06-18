@@ -47,7 +47,7 @@
 	> = $props()
 
 	import { htmlToPlainText } from '$/lib/html.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	const idKey = $derived(stringify(selector))
 
@@ -68,7 +68,7 @@
 	})
 
 	const note = $derived(
-		proxy(
+		select(
 			EntityType.ActivityPubNote,
 			selector,
 			({
@@ -331,9 +331,8 @@
 									</div>
 								</dd>
 							</div>
-						{:else if note.fields.content != null || (note.fields.$$media?.values.length ?? 0) > 0}
-							{#if (note.fields.$$media?.values.length ?? 0) > 0}
-								<div>
+								{#if (note.fields.$$media.values.length ) > 0}
+									<div>
 									<dt>Media</dt>
 									<dd>
 										<div data-column="gap-3">
@@ -429,15 +428,15 @@
 							metrics={[
 								{
 									label: 'Favourites',
-									value: note.fields.$$timestamps?.values.at(0)?.favouriteCount,
+									value: note.fields.$$timestamps.values.at(0)?.favouriteCount,
 								},
 								{
 									label: 'Reblogs',
-									value: note.fields.$$timestamps?.values.at(0)?.reblogCount,
+									value: note.fields.$$timestamps.values.at(0)?.reblogCount,
 								},
 								{
 									label: 'Replies',
-									value: note.fields.$$timestamps?.values.at(0)?.replyCount,
+									value: note.fields.$$timestamps.values.at(0)?.replyCount,
 								},
 							]}
 						/>
@@ -529,11 +528,10 @@
 			{#snippet SectionNoteThread()}
 				<ActivityPubNotesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.ActivityPubNote,
-						selector,
-						fieldName: '$$thread',
-					}}
+					selection={select(
+			EntityType.ActivityPubNote,
+			selector
+		).$$thread}
 					id={`${idKey}:note-thread-activityPubNotes`}
 					fieldOpen={_open}
 					orderByCreatedAt="asc"
@@ -545,11 +543,10 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<ActivityPubNote_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.ActivityPubNote,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.ActivityPubNote,
+			selector
+		).$$timestamps}
 					href={href ?? ''}
 					id={`${idKey}:metric-snapshots`}
 					{sources}

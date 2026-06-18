@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -19,14 +20,13 @@
 <Page>
 	<ActivityPubNotesView
 		href={resolve('/activitypub/notes')}
-		entityFieldReference={{
-			entityType: EntityType.ActivityPubNote,
-			selector: {
+		selection={select(
+			EntityType.ActivityPubNote,
+			{
 				instanceOrigin: decodeURIComponent(params.instanceOrigin),
 				localStatusId: decodeURIComponent(params.localStatusId),
-			},
-			fieldName: '$$thread',
-		}}
+			}
+		).$$thread}
 		id="activitypub-note-thread"
 		orderByCreatedAt="asc"
 		placeholderText="Loading thread…"

@@ -1,21 +1,16 @@
-import {
-	EntityFieldType,
-	entityFieldPrimitiveValueIsValid,
-} from '$/schema/$schema.ts'
-import Network from '$/schema/Network.ts'
+import { caip2ParamValueFromString } from '$/lib/caip2.ts'
+import { matchSchemaPrimitiveParam } from '$/schema/$params.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 
 export const match = (param: string): param is `${string}:${string}` => {
-	const separatorIndex = param.indexOf(':')
+	const caip2 = caip2ParamValueFromString(param)
 	return (
-		separatorIndex > 0
-		&& separatorIndex < param.length - 1
-		&& ((field) => (
-			field?.type === EntityFieldType.Primitive
-			&& entityFieldPrimitiveValueIsValid(field, {
-				namespace: param.slice(0, separatorIndex),
-				reference: param.slice(separatorIndex + 1),
-			})
-		))(Network.fields.find((field) => field.name === 'caip2'))
+		caip2 !== undefined
+		&& matchSchemaPrimitiveParam(
+			EntityType.Network,
+			'caip2',
+			caip2
+		)
 	)
 }

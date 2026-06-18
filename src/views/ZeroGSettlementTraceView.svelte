@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -64,7 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.ZeroGSettlementTrace, selector, ({ fields: { settlementTransactionHash: true, acknowledgementSignature: true, rewardAmount: true } }))}
+			resource={select(EntityType.ZeroGSettlementTrace, selector, ({ fields: { settlementTransactionHash: true, acknowledgementSignature: true, rewardAmount: true } }))}
 			placeholderText={`Loading 0G settlement trace...`}
 		>
 			{#snippet children(zeroGSettlementTrace)}

@@ -30,6 +30,7 @@ declare global {
 		__blockheadPersistenceProbe?: BlockheadPersistenceProbeEvent[]
 		__blockheadProductDataSchemaVersionOverride?: number
 		__blockheadBoundaryProbe?: BoundaryUpdateEvent[]
+		__blockheadBoundaryProbeActive?: BoundaryLoadingProbeRow[]
 	}
 }
 
@@ -42,6 +43,14 @@ export type BoundaryUpdateEvent = {
 		| 'dom-loading'
 		| 'dom-resolved'
 	)
+	id: string | null
+	key: string | null
+	message: string
+}
+
+export type BoundaryLoadingProbeRow = {
+	id: string
+	startedAt: number
 	key: string | null
 	message: string
 }
@@ -50,6 +59,14 @@ export type BoundaryDomRow = {
 	key: string | null
 	state: 'failed' | 'loading'
 	message: string
+}
+
+export type BoundarySlowRow = {
+	id: string | null
+	key: string | null
+	message: string
+	durationMs: number
+	resolved: boolean
 }
 
 export type BoundaryMainSnapshot = {
@@ -67,6 +84,7 @@ export type RouteBoundaryReport = {
 	mainVisible: boolean
 	updates: BoundaryUpdateEvent[]
 	snapshot: BoundaryMainSnapshot
+	slow: BoundarySlowRow[]
 	issues: string[]
 }
 
@@ -269,6 +287,19 @@ export const persistenceMarkLoadedEvent = (
 
 export const installBoundaryProbe = (page: Page) => (
 	page.addInitScript(() => {
+		const boundarySelector = '[data-error], [role="alert"], [data-tag].inline-placeholder, .loading, [aria-busy="true"]'
+		let nextBoundaryProbeId = 0
+		const boundaryProbeIdByElement = new WeakMap<Element, string>()
+		const activeLoadingById = new Map<string, BoundaryLoadingProbeRow>()
+
+		const boundaryProbeId = (element: Element) => {
+			const existing = boundaryProbeIdByElement.get(element)
+			if (existing != null) return existing
+			const id = String(++nextBoundaryProbeId)
+			boundaryProbeIdByElement.set(element, id)
+			return id
+		}
+
 		const rowMessage = (element: Element) => {
 			const ariaLabel = element.getAttribute('aria-label')?.trim()
 			if (ariaLabel)
@@ -278,6 +309,11 @@ export const installBoundaryProbe = (page: Page) => (
 
 			)
 		}
+
+		const rowKey = (element: Element) => (
+			element.getAttribute('data-error')
+			?? element.getAttribute('aria-label')
+		)
 
 		const domKindForElement = (element: Element) => (
 			element.matches('[data-error], [role="alert"]') ?
@@ -293,18 +329,76 @@ export const installBoundaryProbe = (page: Page) => (
 		)
 
 		window.__blockheadBoundaryProbe = []
+		window.__blockheadBoundaryProbeActive = []
+
+		const syncActiveRows = () => {
+			window.__blockheadBoundaryProbeActive = [...activeLoadingById.values()]
+		}
 
 		const pushBoundaryEvent = (
 			kind: BoundaryUpdateEvent['kind'],
+			id: string | null,
 			key: string | null,
 			message: string
 		) => {
 			(window.__blockheadBoundaryProbe ??= []).push({
 				at: Date.now(),
 				kind,
+				id,
 				key,
 				message,
 			})
+		}
+
+		const resolveLoading = (id: string, key: string | null, message: string) => {
+			if (!activeLoadingById.has(id)) return
+			activeLoadingById.delete(id)
+			syncActiveRows()
+			pushBoundaryEvent(
+				'dom-resolved',
+				id,
+				key,
+				message
+			)
+		}
+
+		const syncBoundaryElement = (element: Element) => {
+			const kind = domKindForElement(element)
+			const id = boundaryProbeId(element)
+			const key = rowKey(element)
+			const message = rowMessage(element)
+
+			if (kind === 'dom-loading') {
+				if (!activeLoadingById.has(id)) {
+					activeLoadingById.set(id, {
+						id,
+						startedAt: Date.now(),
+						key,
+						message,
+					})
+					syncActiveRows()
+					pushBoundaryEvent(
+						'dom-loading',
+						id,
+						key,
+						message
+					)
+				}
+				return
+			}
+
+			if (kind === 'dom-failed') {
+				resolveLoading(id, key, message)
+				pushBoundaryEvent(
+					'dom-failed',
+					id,
+					key,
+					message
+				)
+				return
+			}
+
+			resolveLoading(id, key, message)
 		}
 
 		const origConsoleError = console.error
@@ -314,6 +408,7 @@ export const installBoundaryProbe = (page: Page) => (
 				const keyMatch = text.match(/\[blockhead:boundary:uncaught\]\s+(\S+)/)
 				pushBoundaryEvent(
 					'console-uncaught',
+					null,
 					keyMatch?.[1] ?? null,
 					text
 				)
@@ -322,6 +417,7 @@ export const installBoundaryProbe = (page: Page) => (
 				const keyMatch = text.match(/\[blockhead:boundary\]\s+(\S+)/)
 				pushBoundaryEvent(
 					'console-failed',
+					null,
 					keyMatch?.[1] ?? null,
 					text
 				)
@@ -333,46 +429,46 @@ export const installBoundaryProbe = (page: Page) => (
 			if (!(node instanceof Element)) return
 
 			const candidates = (
-				node.matches('[data-error], [role="alert"], [data-tag].inline-placeholder, .loading, [aria-busy="true"]') ?
+				node.matches(boundarySelector) ?
 					[node]
 				:
-					[...node.querySelectorAll('[data-error], [role="alert"], [data-tag].inline-placeholder, .loading, [aria-busy="true"]')]
+					[...node.querySelectorAll(boundarySelector)]
 			)
 
-			for (const element of candidates) {
-				const kind = domKindForElement(element)
-				if (kind == null) continue
-				pushBoundaryEvent(
-					kind,
-					element.getAttribute('data-error'),
-					rowMessage(element)
-				)
-			}
+			for (const element of candidates)
+				syncBoundaryElement(element)
 		}
 
 		const observeResolvedNode = (node: Node) => {
 			if (!(node instanceof Element)) return
-			pushBoundaryEvent(
-				'dom-resolved',
-				node.getAttribute('data-error'),
-				rowMessage(node)
+
+			const candidates = (
+				node.matches(boundarySelector) ?
+					[node]
+				:
+					[...node.querySelectorAll(boundarySelector)]
 			)
+
+			for (const element of candidates)
+				resolveLoading(
+					boundaryProbeId(element),
+					rowKey(element),
+					rowMessage(element)
+				)
 		}
 
 		const attachMainObserver = (main: Element) => {
 			const observer = new MutationObserver((records) => {
 				for (const record of records) {
+					if (
+						record.type === 'attributes'
+						&& record.target instanceof Element
+					) syncBoundaryElement(record.target)
+
 					for (const node of record.addedNodes)
 						observeBoundaryNode(node)
-					for (const node of record.removedNodes) {
-						if (
-							node instanceof Element
-							&& (
-								node.matches('[data-error], [role="alert"], [data-tag].inline-placeholder, .loading, [aria-busy="true"]')
-								|| node.querySelector('[data-error], [role="alert"], [data-tag].inline-placeholder, .loading, [aria-busy="true"]')
-							)
-						) observeResolvedNode(node)
-					}
+					for (const node of record.removedNodes)
+						observeResolvedNode(node)
 				}
 			})
 			observer.observe(main, {
@@ -416,6 +512,7 @@ export const resetBoundaryProbe = (page: Page) => (
 	:
 		page.evaluate(() => {
 		window.__blockheadBoundaryProbe = []
+		window.__blockheadBoundaryProbeActive = []
 		}).catch(() => {})
 )
 
@@ -424,6 +521,12 @@ export const clearBoundaryProbe = resetBoundaryProbe
 export const getBoundaryProbeEvents = (page: Page) => (
 	page.evaluate(() => (
 		window.__blockheadBoundaryProbe ?? []
+	))
+)
+
+export const getBoundaryProbeActive = (page: Page) => (
+	page.evaluate(() => (
+		window.__blockheadBoundaryProbeActive ?? []
 	))
 )
 
@@ -561,9 +664,36 @@ export const summarizeRouteBoundaryReport = (
 	finalUrl: string,
 	mainVisible: boolean,
 	updates: BoundaryUpdateEvent[],
-	snapshot: BoundaryMainSnapshot
+	snapshot: BoundaryMainSnapshot,
+	slowThresholdMs = 30_000
 ) => {
 	const issues: string[] = []
+	const loadingStartedAtById = new Map<string, BoundaryUpdateEvent>()
+	const slow: BoundarySlowRow[] = []
+
+	for (const event of updates) {
+		if (event.kind === 'dom-loading' && event.id != null) {
+			loadingStartedAtById.set(event.id, event)
+			continue
+		}
+
+		if (event.id == null) continue
+
+		const loading = loadingStartedAtById.get(event.id)
+		if (loading == null) continue
+
+		const durationMs = event.at - loading.at
+		if (durationMs >= slowThresholdMs) {
+			slow.push({
+				id: event.id,
+				key: loading.key,
+				message: loading.message,
+				durationMs,
+				resolved: true,
+			})
+		}
+		loadingStartedAtById.delete(event.id)
+	}
 
 	if (!mainVisible)
 		issues.push('main-not-visible')
@@ -577,6 +707,12 @@ export const summarizeRouteBoundaryReport = (
 	for (const row of snapshot.loading) {
 		issues.push(
 			`still-loading:${row.key ?? 'unknown'}:${row.message || '(no message)'}`
+		)
+	}
+
+	for (const row of slow) {
+		issues.push(
+			`slow-loading:${row.key ?? 'unknown'}:${row.durationMs}ms:${row.message || '(no message)'}`
 		)
 	}
 
@@ -600,6 +736,7 @@ export const summarizeRouteBoundaryReport = (
 		mainVisible,
 		updates,
 		snapshot,
+		slow,
 		issues,
 	} satisfies RouteBoundaryReport
 }
@@ -617,6 +754,7 @@ export const formatBoundaryReportSummary = (
 	))
 	const emptyRoutes = reports.filter((report) => report.snapshot.empty)
 	const loadingRoutes = reports.filter((report) => report.snapshot.loading.length > 0)
+	const slowRoutes = reports.filter((report) => report.slow.length > 0)
 	const issueRoutes = reports.filter((report) => report.issues.length > 0)
 	const optionalIssueRoutes = issueRoutes.filter((report) => optionalPathnames.has(report.pathname))
 	const blockingIssueRoutes = issueRoutes.filter((report) => !optionalPathnames.has(report.pathname))
@@ -628,6 +766,7 @@ export const formatBoundaryReportSummary = (
 		`optional-live ${optionalIssueRoutes.length}`,
 		`failed ${failedRoutes.length}`,
 		`still loading ${loadingRoutes.length}`,
+		`slow loading ${slowRoutes.length}`,
 		`empty ${emptyRoutes.length}`,
 		'',
 	]
@@ -654,6 +793,17 @@ export const formatBoundaryReportSummary = (
 			lines.push(`  ${report.pathname}`)
 			for (const row of report.snapshot.loading)
 				lines.push(`    ${row.key ?? 'unknown'}: ${row.message}`)
+		}
+		lines.push('')
+	}
+
+	if (slowRoutes.length > 0) {
+		lines.push('Slow loading boundaries:')
+		for (const report of slowRoutes) {
+			const tag = optionalPathnames.has(report.pathname) ? ' (optional-live)' : ''
+			lines.push(`  ${report.pathname}${tag}`)
+			for (const row of report.slow)
+				lines.push(`    ${row.key ?? 'unknown'}: ${row.durationMs}ms: ${row.message}`)
 		}
 		lines.push('')
 	}

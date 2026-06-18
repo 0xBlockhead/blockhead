@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -9,11 +10,9 @@
 	import { stringify } from 'devalue'
 
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id = 'users',
 		title = 'Users',
 		open = $bindable(true),
@@ -21,10 +20,11 @@
 		CollapsibleProps = {},
 		href,
 	}: {
-		entityFieldReference: Extract<
-			EntityFieldReference<typeof schema, EntityType.FarcasterUser>,
-			{ entityType: EntityType.FarcasterNetwork }
-		>
+		selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 		id?: string
 		title?: string
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
@@ -66,24 +66,14 @@
 	{/snippet}
 
 	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			{@const parentNetwork = proxy(EntityType.FarcasterNetwork,
-				entityFieldReference.selector,
-				({
-					sources: [Source.Farcaster_Rest],
-					fields: {
-						protocolName: true,
-						[entityFieldReference.fieldName]: {
-							sources: [Source.Snapchain_Rest],
-						},
-					},
-				})
-			)}
-			<ResourceBoundary
-				resource={parentNetwork}
-				placeholderText="Loading Farcaster users…"
-			>
-				{#snippet children(parentNetwork)}
+			{#if open}
+				<ResourceBoundary
+					resource={selection({
+						sources: [Source.Snapchain_Rest],
+					})}
+					placeholderText="Loading Farcaster users…"
+				>
+					{#snippet children(users)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
@@ -91,7 +81,7 @@
 						id={`${id}-items`}
 						{title}
 						open={true}
-						items={parentNetwork.fields[entityFieldReference.fieldName]?.values ?? []}
+							items={users.values}
 						getKey={(farcasterUser) => stringify(farcasterUser[EntityMetaKey.Selector])}
 						getSortValue={(farcasterUser) => farcasterUser[EntityMetaKey.Selector].fid}
 						placeholderText="Loading Farcaster users…"

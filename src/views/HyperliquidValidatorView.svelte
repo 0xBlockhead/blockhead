@@ -9,7 +9,7 @@
 
 
 	// State
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -47,7 +47,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.HyperliquidValidator, selector, ({ fields: { name: true, $signer: true, commission: true, recentBlockCount: true, isActive: true, stake: true, isJailed: true } }))}
+			resource={select(EntityType.HyperliquidValidator, selector, ({ fields: { name: true, $signer: true, commission: true, recentBlockCount: true, isActive: true, stake: true, isJailed: true } }))}
 			placeholderText={`Loading Hyperliquid Validator...`}
 		>
 			{#snippet children(hyperliquidValidator)}

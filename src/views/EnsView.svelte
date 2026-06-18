@@ -51,14 +51,14 @@
 	} from '$/lib/ensContentHash.ts'
 
 	import { resolveMediaUrlTransport } from '$/lib/media.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
 	} as const
 
 	const ens = $derived(
-		proxy(EntityType.EnsName,
+		select(EntityType.EnsName,
 			selector,
 			({ sources: [
 				Source.Voltaire_JsonRpc,
@@ -443,7 +443,7 @@
 				id={`${ensNameSelectorKey}:carousel-registration`}
 				sectionIdPrefix={ensNameSelectorKey}
 				sections={[
-					...((ens.fields.$$subdomains?.values ?? []).length ? [{ id: 'registration-subdomains', label: 'Subdomains' }] : []),
+					...((ens.fields.$$subdomains.values ).length ? [{ id: 'registration-subdomains', label: 'Subdomains' }] : []),
 					...(ens.fields.$parent !== undefined ? [{ id: 'registration-parent', label: 'Parent' }] : []),
 					{ id: 'registration-metadata', label: 'Metadata' },
 					...(ens.fields.$registrantActor !== undefined || ens.fields.$wrappedOwnerActor !== undefined ? [{ id: 'registration-accounts', label: 'Accounts' }] : []),
@@ -459,7 +459,7 @@
 				{/snippet}
 
 				{#snippet SectionRegistrationSubdomains({ id, label })}
-					{#if (ens.fields.$$subdomains?.values ?? []).length}
+					{#if (ens.fields.$$subdomains.values ).length}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
@@ -469,7 +469,7 @@
 								ensName: selector.name,
 							})}
 							id={`${id}-list`}
-								items={(ens.fields.$$subdomains?.values ?? []).map((subdomain: Entity<typeof schema, EntityType.EnsName>) => subdomain[EntityMetaKey.Selector])}
+								items={(ens.fields.$$subdomains.values ).map((subdomain: Entity<typeof schema, EntityType.EnsName>) => subdomain[EntityMetaKey.Selector])}
 								title="Subdomains"
 							>
 							{#snippet Item({ item })}
@@ -710,7 +710,7 @@
 					...(ens.fields.contentHash != null && ens.fields.contentHash !== '' ? [{ id: 'records-content-hash', label: 'Content hash' }] : []),
 					...(ens.fields.resolverAbi?.length ? [{ id: 'records-abi', label: 'Resolver ABI' }] : []),
 					...(ens.fields.coinAddresses !== undefined && Object.keys(ens.fields.coinAddresses).length > 0 ? [{ id: 'records-coins', label: 'Coin addresses' }] : []),
-					...((ens.fields.resolverTextKeys?.values ?? []).length || (ens.fields.resolverCoinTypes?.values ?? []).length ? [{ id: 'records-indexer', label: 'Indexer' }] : []),
+					...(ens.fields.resolverTextKeys.values.length || ens.fields.resolverCoinTypes.values.length ? [{ id: 'records-indexer', label: 'Indexer' }] : []),
 				]}
 				data-card
 				class="ens-view-collapsible-records"
@@ -844,7 +844,7 @@
 			{/snippet}
 
 				{#snippet SectionRecordsIndexer({ id, label })}
-					{#if (ens.fields.resolverTextKeys?.values ?? []).length || (ens.fields.resolverCoinTypes?.values ?? []).length}
+						{#if ens.fields.resolverTextKeys.values.length || ens.fields.resolverCoinTypes.values.length}
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.EnsName}
@@ -856,17 +856,17 @@
 						>
 							{#snippet body({ open: _bodyOpen })}
 								<div data-column-item="center">
-									{#if (ens.fields.resolverTextKeys?.values ?? []).length}
+										{#if ens.fields.resolverTextKeys.values.length}
 										<div>
 											<dt>Text keys</dt>
-											<dd data-text="muted">{(ens.fields.resolverTextKeys?.values ?? []).join(', ')}</dd>
+											<dd data-text="muted">{ens.fields.resolverTextKeys.values.join(', ')}</dd>
 										</div>
 									{/if}
-									{#if (ens.fields.resolverCoinTypes?.values ?? []).length}
+										{#if ens.fields.resolverCoinTypes.values.length}
 										<div>
 											<dt>Coin types</dt>
 											<dd data-text="muted">
-												{(ens.fields.resolverCoinTypes?.values ?? []).map((coinType: string) => (
+												{ens.fields.resolverCoinTypes.values.map((coinType: string) => (
 													coinType in ensCoinTypeLabelByKey ?
 														ensCoinTypeLabelByKey[coinType].label
 													:

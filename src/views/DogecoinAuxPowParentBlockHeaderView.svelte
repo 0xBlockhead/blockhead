@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -51,7 +51,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.DogecoinAuxPowParentBlockHeader,
+			resource={select(EntityType.DogecoinAuxPowParentBlockHeader,
 					selector,
 					({ fields: { hash: true, merkleRoot: true, nonce: true } }),
 				)}

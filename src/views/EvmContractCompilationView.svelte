@@ -9,15 +9,15 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address]', {
-			caip2: ,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+			caip2: `${selector.$contract.$network.caip2.namespace}:${selector.$contract.$network.caip2.reference}`,
 			address: selector.$contract.address,
 		}),
 		layout = EntityLayout.SummaryDetails,
@@ -41,16 +41,12 @@
 		never
 	> = $props()
 
-	const compilation = $derived(proxy(EntityType.EvmContractCompilation, selector, {
+	const compilation = $derived(select(EntityType.EvmContractCompilation, selector, {
 		sources: [Source.Sourcify_Rest],
 	}))
 	const language = $derived(compilation.language)
-	
-	
-	
+	const name = $derived(compilation.name)
 	const fullyQualifiedName = $derived(compilation.fullyQualifiedName)
-	
-	
 
 
 	// Components
@@ -75,10 +71,29 @@
 			placeholderText="Loading compilation…"
 		>
 			{#snippet children(fullyQualifiedName)}
-				{fullyQualifiedName
-					?? (compilation.name).current
-					?? language.current
-					?? 'Compilation'}
+				{#if fullyQualifiedName}
+					{fullyQualifiedName}
+				{:else}
+					<ResourceBoundary
+						resource={name}
+						placeholderText="Loading compilation name…"
+					>
+						{#snippet children(name)}
+							{#if name}
+								{name}
+							{:else}
+								<ResourceBoundary
+									resource={language}
+									placeholderText="Loading compilation language…"
+								>
+									{#snippet children(language)}
+										{language ?? 'Compilation'}
+									{/snippet}
+								</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

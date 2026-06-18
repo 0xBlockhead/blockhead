@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -59,7 +59,7 @@
 		{#if open}
 				<ResourceBoundary
 					resource={
-		proxy(
+		select(
 			EntityType.EvmNetwork,
 			selector,
 			{

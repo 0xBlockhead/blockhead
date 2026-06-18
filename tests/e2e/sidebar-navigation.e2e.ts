@@ -30,7 +30,7 @@ test.describe('sidebar navigation', () => {
 		await clearOriginOpfs(page)
 		await page.reload({ waitUntil: 'load', timeout: 30_000 })
 		await page.waitForSelector('#nav-menu', { state: 'visible', timeout: 30_000 })
-		const networksLink = menu.getByRole('link', { name: 'Networks', exact: true })
+		const networksLink = menu.locator('a[href="/networks"]')
 		await expandClosedAncestors(networksLink)
 		await networksLink.click()
 		const coldRpcs = page.waitForResponse(
@@ -40,11 +40,7 @@ test.describe('sidebar navigation', () => {
 		await expect(page).toHaveURL((u) => u.pathname === '/networks')
 		await coldRpcs
 		const ethereumMainnetHref = page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()
-		const networksListPending = page.locator('#networks').getByText('Loading networks…')
-		await expect(
-			ethereumMainnetHref.or(networksListPending)
-		).toBeVisible({ timeout: 90_000 })
-		await expect(networksListPending).toHaveCount(0, { timeout: 60_000 })
+		await expect(ethereumMainnetHref).toBeVisible({ timeout: 90_000 })
 		await assertMainSettled(page)
 		expect(issues, issues.join('\n\n')).toEqual([])
 	})

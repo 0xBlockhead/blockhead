@@ -28,38 +28,17 @@
 		>
 	> = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { formatValue } from '$/lib/number.ts'
 
 	const actorCoinDetailAnchorKey = $derived(stringify(selector))
-	const actorCoin = $derived(proxy(EntityType.EvmNetworkActorCoinBalance, selector, {
+	const actorCoin = $derived(select(EntityType.EvmNetworkActorCoinBalance, selector, {
 		sources: [Source.Allium_Rest],
 	}))
 	const symbol = $derived(actorCoin.symbol)
 	const balance = $derived(actorCoin.balance)
 	const coinInstance = $derived(actorCoin.$coinInstance)
-	
 	const decimals = $derived(actorCoin.decimals)
-	
-	const formattedBalance = $derived.by(() => {
-		if (balance.current == null)
-			return undefined
-
-		if (decimals.current == null || decimals.current <= 0)
-			return formatValue(Number(balance.current))
-
-		const divisor = 10n ** BigInt(decimals.current)
-		const integerPart = balance.current / divisor
-		const fractionalPart = balance.current % divisor
-		const fractionalPartString = String(fractionalPart).padStart(decimals.current, '0').replace(/0+$/, '')
-
-		return (
-			fractionalPartString ?
-				`${formatValue(Number(integerPart))}.${fractionalPartString}`
-			:
-				formatValue(Number(integerPart))
-		)
-	})
 
 
 	// Components
@@ -85,8 +64,35 @@
 			resource={balance}
 			placeholderText="Loading balance…"
 		>
-			{formattedBalance ?? '—'}
-			{symbol.current ?? ''}
+			{#snippet children(balance)}
+				<ResourceBoundary
+					resource={decimals}
+					placeholderText="Loading balance decimals…"
+				>
+					{#snippet children(decimals)}
+						<ResourceBoundary
+							resource={symbol}
+							placeholderText="Loading balance symbol…"
+						>
+							{#snippet children(symbol)}
+								{#if balance !== undefined}
+									{#if decimals === undefined || decimals <= 0}
+										{formatValue(Number(balance))}
+									{:else}
+										{@const divisor = 10n ** BigInt(decimals)}
+										{@const integerPart = balance / divisor}
+										{@const fractionalPartString = String(balance % divisor).padStart(decimals, '0').replace(/0+$/, '')}
+										{fractionalPartString ? `${formatValue(Number(integerPart))}.${fractionalPartString}` : formatValue(Number(integerPart))}
+									{/if}
+								{:else}
+									—
+								{/if}
+								{symbol ?? ''}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
@@ -95,8 +101,35 @@
 			resource={balance}
 			placeholderText="Loading holding…"
 		>
-			{formattedBalance ?? '—'}
-			{symbol.current ?? ''}
+			{#snippet children(balance)}
+				<ResourceBoundary
+					resource={decimals}
+					placeholderText="Loading balance decimals…"
+				>
+					{#snippet children(decimals)}
+						<ResourceBoundary
+							resource={symbol}
+							placeholderText="Loading balance symbol…"
+						>
+							{#snippet children(symbol)}
+								{#if balance !== undefined}
+									{#if decimals === undefined || decimals <= 0}
+										{formatValue(Number(balance))}
+									{:else}
+										{@const divisor = 10n ** BigInt(decimals)}
+										{@const integerPart = balance / divisor}
+										{@const fractionalPartString = String(balance % divisor).padStart(decimals, '0').replace(/0+$/, '')}
+										{fractionalPartString ? `${formatValue(Number(integerPart))}.${fractionalPartString}` : formatValue(Number(integerPart))}
+									{/if}
+								{:else}
+									—
+								{/if}
+								{symbol ?? ''}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
@@ -172,8 +205,29 @@
 						>
 							{#snippet children(balance)}
 								{#if balance !== undefined}
-									{formattedBalance}
-									{symbol.current ?? ''}
+									<ResourceBoundary
+										resource={decimals}
+										placeholderText="Loading balance decimals…"
+									>
+										{#snippet children(decimals)}
+											<ResourceBoundary
+												resource={symbol}
+												placeholderText="Loading balance symbol…"
+											>
+												{#snippet children(symbol)}
+													{#if decimals === undefined || decimals <= 0}
+														{formatValue(Number(balance))}
+													{:else}
+														{@const divisor = 10n ** BigInt(decimals)}
+														{@const integerPart = balance / divisor}
+														{@const fractionalPartString = String(balance % divisor).padStart(decimals, '0').replace(/0+$/, '')}
+														{fractionalPartString ? `${formatValue(Number(integerPart))}.${fractionalPartString}` : formatValue(Number(integerPart))}
+													{/if}
+													{symbol ?? ''}
+												{/snippet}
+											</ResourceBoundary>
+										{/snippet}
+									</ResourceBoundary>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

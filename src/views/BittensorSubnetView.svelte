@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -20,7 +20,7 @@
 		open?: boolean
 	} = $props()
 
-	const subnet = $derived(proxy(EntityType.BittensorSubnet,
+	const subnet = $derived(select(EntityType.BittensorSubnet,
 		selector,
 		({ sources: [
 				Source.Constants_Internal,
@@ -106,11 +106,10 @@
 				{#if open}
 					<BittensorMetagraph_TimestampsView
 						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.BittensorSubnet,
-							selector,
-							fieldName: '$$metagraphTimestamps',
-						}}
+						selection={select(
+			EntityType.BittensorSubnet,
+			selector
+		).$$metagraphTimestamps}
 						id={`${stringify(selector)}:bittensor-metagraph-snapshots`}
 					/>
 				{/if}
@@ -118,11 +117,10 @@
 				{#if open}
 					<BittensorNeuronsView
 						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.BittensorSubnet,
-							selector,
-							fieldName: '$$neurons',
-						}}
+						selection={select(
+			EntityType.BittensorSubnet,
+			selector
+		).$$neurons}
 						id={`${stringify(selector)}:bittensor-neurons`}
 					/>
 				{/if}

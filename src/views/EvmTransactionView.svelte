@@ -25,7 +25,7 @@
 	let {
 		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-			.caip2: ,
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 			transactionId: selector.txHash,
 		}),
 		title = selector.txHash,
@@ -49,9 +49,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
-	const evmTransaction = $derived(proxy(EntityType.EvmTransaction, selector, {
+	const evmTransaction = $derived(select(EntityType.EvmTransaction, selector, {
 		sources: [
 			Source.Blockscout_Rest,
 			Source.Voltaire_JsonRpc,
@@ -62,7 +62,7 @@
 	const from = $derived(evmTransaction.$from)
 	const to = $derived(evmTransaction.$to)
 	const contract = $derived(evmTransaction.$contract)
-	const value = $derived(evmTransaction.value)
+	const value = $derived(evmTransaction.field('value'))
 	const kind = $derived(evmTransaction.kind)
 	const envelopeType = $derived(evmTransaction.envelopeType)
 	const executionStatus = $derived(evmTransaction.executionStatus)
@@ -85,13 +85,11 @@
 	const traceUnavailable = $derived(evmTransaction.traceUnavailable({
 		sources: [
 			Source.Blockscout_Rest,
-			Source.Voltaire_JsonRpc,
 		],
 	}))
 	const traceRoot = $derived(evmTransaction.traceRoot({
 		sources: [
 			Source.Blockscout_Rest,
-			Source.Voltaire_JsonRpc,
 		],
 	}))
 
@@ -171,9 +169,14 @@
 						<div>
 							<dt>Value</dt>
 							<dd>
-								{#if transaction.value !== undefined}
-									<NumberValue value={transaction.value} />
-								{/if}
+								<ResourceBoundary
+									resource={value}
+									placeholderText="Loading transaction value…"
+								>
+									{#snippet children(value)}
+										<NumberValue {value} />
+									{/snippet}
+								</ResourceBoundary>
 							</dd>
 						</div>
 
@@ -209,22 +212,27 @@
 							</dd>
 						</div>
 
-						<div>
-							<dt>From</dt>
-							<dd>
-								{#if transaction.$from?.entitySelector.address !== undefined}
-									<EvmNetworkAccountView
-										selector={{
-											$network: selector.$network,
-											$actor: transaction.$from.entitySelector,
-										}}
-										layout={EntityLayout.Value}
+							<div>
+								<dt>From</dt>
+								<dd>
+									<ResourceBoundary
+										resource={from}
+										placeholderText="Loading sender…"
+									>
+										{#snippet children(from)}
+											<EvmNetworkAccountView
+												selector={{
+													$network: selector.$network,
+													$actor: from.entitySelector,
+												}}
+												layout={EntityLayout.Value}
 
-										open={false}
-										/>
-								{/if}
-							</dd>
-						</div>
+												open={false}
+												/>
+										{/snippet}
+									</ResourceBoundary>
+								</dd>
+							</div>
 
 						<div>
 							<dt>To</dt>
@@ -306,9 +314,7 @@
 							<div>
 								<dt>Transaction envelope type</dt>
 								<dd>
-									{#if transaction.envelopeType !== undefined}
-										{evmTransactionEnvelopeTypeByEnvelopeType[transaction.envelopeType]?.label ?? String(transaction.envelopeType)}
-									{/if}
+									{evmTransactionEnvelopeTypeByEnvelopeType[transaction.envelopeType]?.label ?? String(transaction.envelopeType)}
 								</dd>
 							</div>
 						{/if}
@@ -492,14 +498,13 @@
 				<EvmLogsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-						.caip2: ,
+						caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 						transactionId: selector.txHash,
 					})}
-					entityFieldReference={{
-						entityType: EntityType.EvmTransaction,
-						selector,
-						fieldName: '$$logs',
-					}}
+					selection={select(
+						EntityType.EvmTransaction,
+						selector
+					).$$logs}
 					collapsible={false}
 					id={`${txSelectorKey}:events`}
 					open={true}
@@ -538,13 +543,13 @@
 							{#if transaction.envelopeType === EvmTransactionEnvelopeType.Blob}
 								<EvmBlobsView
 									CollapsibleProps={{ canToggle: false }}
-									entityFieldReference={{
-										entityType: EntityType.EvmTransaction,
-										selector,
-										fieldName: '$$blobs',
-									}}
+									selection={evmTransaction.$$blobs({
+										sources: [
+											Source.Voltaire_JsonRpc,
+										],
+									})}
 									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-											.caip2: ,
+											caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 											transactionId: selector.txHash,
 										})}
 									id={`${txSelectorKey}:blobs`}
@@ -559,11 +564,10 @@
 			{#snippet SectionUserOperations({ id: _userOpsId, label: _userOpsLabel })}
 				<EvmUserOperationsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.EvmTransaction,
-						selector,
-						fieldName: '$$userOperations',
-					}}
+					selection={select(
+						EntityType.EvmTransaction,
+						selector
+					).$$userOperations}
 					id={`${txSelectorKey}:user-operations`}
 
 					title="User operations"

@@ -27,7 +27,7 @@
 	} from '$/lib/calldata-decode.ts'
 
 	import { normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	const emptyTopicHex: `0x${string}` = '0x0000000000000000000000000000000000000000000000000000000000000000'
 
@@ -41,7 +41,7 @@
 	)
 
 	
-	const signatures = $derived(proxy(EntityType.EvmTopic,
+	const signatures = $derived(select(EntityType.EvmTopic,
 		(
 			topic0Hex != null ?
 				{ hex: topic0Hex }
@@ -56,7 +56,7 @@
 	).signatures)
 
 	
-	const abi = $derived(proxy(EntityType.EvmContract,
+	const abi = $derived(select(EntityType.EvmContract,
 		emitterContractId ?? {
 			$network: { caip2: { namespace: 'eip155' as const, reference: String(0) } },
 			address: '0x0000000000000000000000000000000000000000',
@@ -73,27 +73,6 @@
 			),
 		}
 	).abi)
-
-
-	const decodedLog = $derived.by(() => {
-		if (!open || topic0Hex == null || data == null)
-			return null
-
-		for (const signature of signatures.current?.values ?? []) {
-			const decoded = decodeLogWithSignature(signature, topics, data)
-			if (decoded)
-				return { signature, decoded, source: 'catalog' as const }
-		}
-
-		if (abi.current?.length) {
-			const fromAbi = decodeLogWithContractAbi(abi.current, topics, data)
-			if (fromAbi)
-				return { ...fromAbi, source: 'contract-abi' as const }
-		}
-
-		return null
-	})
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -123,26 +102,53 @@
 				resource={signatures}
 				placeholderText="Loading log topic signatures…"
 			>
-				{#if decodedLog}
-					<div data-column="gap-1">
-						<span data-text="annotation">
-							{decodedLog.source === 'contract-abi' ?
-								'Decoded from emitter ABI'
-							:
-								'Decoded from topic catalog'}
-						</span>
-						<code>{decodedLog.signature}</code>
-						{#if decodedLog.decoded.params.length}
-							<ul data-text="muted">
-								{#each decodedLog.decoded.params as param, index (index)}
-									<li>
-										{param.type}: {formatDecodedParamValue(param.type, param.value)}
-									</li>
-								{/each}
-							</ul>
-						{/if}
-					</div>
-				{/if}
+				{#snippet children(signatures)}
+					<ResourceBoundary
+						resource={abi}
+						placeholderText="Loading emitter ABI…"
+					>
+						{#snippet children(abi)}
+							{@const decodedLog = (
+								signatures.values
+									.map((signature) => ({
+										signature,
+										decoded: decodeLogWithSignature(signature, topics, data),
+										source: 'catalog' as const,
+									}))
+									.find(({ decoded }) => decoded)
+								?? (
+									abi?.length ?
+										{
+											...decodeLogWithContractAbi(abi, topics, data),
+											source: 'contract-abi' as const,
+										}
+									:
+										undefined
+								)
+							)}
+							{#if decodedLog?.decoded}
+								<div data-column="gap-1">
+									<span data-text="annotation">
+										{decodedLog.source === 'contract-abi' ?
+											'Decoded from emitter ABI'
+										:
+											'Decoded from topic catalog'}
+									</span>
+									<code>{decodedLog.signature}</code>
+									{#if decodedLog.decoded.params.length}
+										<ul data-text="muted">
+											{#each decodedLog.decoded.params as param, index (index)}
+												<li>
+													{param.type}: {formatDecodedParamValue(param.type, param.value)}
+												</li>
+											{/each}
+										</ul>
+									{/if}
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
 			</ResourceBoundary>
 		{/if}
 	</div>

@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -56,7 +56,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.LogosZone, selector, ({ sources: [
+			resource={select(EntityType.LogosZone, selector, ({ sources: [
 					Source.LogosDocs_Rest,
 				], fields: { zoneKind: true } }))}
 			placeholderText="Loading Logos zone…"

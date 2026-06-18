@@ -11,7 +11,7 @@
 	} from '$/lib/db/queryResource.svelte.ts'
 	import {
 		appClient,
-		subscribe,
+		select,
 	} from '$/routes/+layout.svelte'
 
 
@@ -36,7 +36,7 @@
 	} satisfies TanStackLiveQuerySnapshot<string>
 	let liveQuery = $state<TanStackLiveQuerySnapshot<string>>(initialLiveQuery)
 	const liveQueryListeners = new Set<() => void>()
-	const subscribedResource = new TanStackLiveQueryResource(
+	const selectedResource = new TanStackLiveQueryResource(
 		() => liveQuery,
 		(update) => {
 			liveQueryListeners.add(update)
@@ -70,9 +70,9 @@
 	let queryTaggedValue = $state('')
 	let queryTaggedReady = $state(false)
 	let showFailedResource = $state(false)
-	let showRealSubscribedScalarResource = $state(false)
-	let showRealSubscribedResource = $state(false)
-	let showRealSubscribedCountResource = $state(false)
+	let showRealSelectedScalarResource = $state(false)
+	let showRealSelectedResource = $state(false)
+	let showRealSelectedCountResource = $state(false)
 	let resolveRemotePromise: (value: string) => void = () => {}
 	let resolveQueryTaggedPromise: (value: string) => void = () => {}
 	const remotePromise = new Promise<string>((resolve) => {
@@ -141,7 +141,7 @@
 		},
 		[Symbol.toStringTag]: 'Query',
 	} satisfies SvelteKitResource<string>
-	const realSubscribedScalarResource = subscribe(
+	const realSelectedScalarResource = select(
 		EntityType.BlockheadSession,
 		{
 			id: 'e2e-probe-session',
@@ -156,7 +156,7 @@
 			},
 		},
 	)
-	const realSubscribedBoundaryOnlyResource = subscribe(
+	const realSelectedBoundaryOnlyResource = select(
 		EntityType.BlockheadSession,
 		{
 			id: 'e2e-probe-session',
@@ -171,7 +171,7 @@
 			},
 		},
 	)
-	const realSubscribedDirectOnlyResource = subscribe(
+	const realSelectedDirectOnlyResource = select(
 		EntityType.BlockheadSession,
 		{
 			id: 'e2e-probe-direct-session',
@@ -186,10 +186,10 @@
 			},
 		},
 	)
-	let realSubscribedDirectOnly = $derived(
-		realSubscribedDirectOnlyResource.current
+	let realSelectedDirectOnly = $derived(
+		realSelectedDirectOnlyResource.current
 	)
-	const applySubscribedValue = (
+	const applySelectedValue = (
 		value: string,
 	) => {
 		liveQuery.data = value
@@ -202,7 +202,7 @@
 			listener()
 	}
 
-	const applySubscribedLoading = () => {
+	const applySelectedLoading = () => {
 		liveQuery.isLoading = true
 		liveQuery.isError = false
 		liveQuery.isReady = false
@@ -252,7 +252,7 @@
 		resolveQueryTaggedPromise(value)
 	}
 
-	const applyRealSubscribedLabelValue = (
+	const applyRealSelectedLabelValue = (
 		value: string,
 	) => {
 		writeLocalBlockheadSessionName(appClient, {
@@ -260,7 +260,7 @@
 		}, value)
 	}
 
-	const applyRealSubscribedBoundaryOnlyLabelValue = (
+	const applyRealSelectedBoundaryOnlyLabelValue = (
 		value: string,
 	) => {
 		writeLocalBlockheadSessionName(appClient, {
@@ -268,7 +268,7 @@
 		}, value)
 	}
 
-	const applyRealSubscribedDirectOnlyLabelValue = (
+	const applyRealSelectedDirectOnlyLabelValue = (
 		value: string,
 	) => {
 		writeLocalBlockheadSessionName(appClient, {
@@ -296,67 +296,82 @@
 		placeholderText="Loading cached value"
 	>
 		{#snippet children(value)}
-			<p>{value}</p>
+			<p data-testid="cached-boundary-value">{value}</p>
 		{/snippet}
 	</ResourceBoundary>
 </Collapsible>
 
-<section>
-	<h2>Subscribed boundary</h2>
+<section data-testid="selected-boundary-section">
+	<h2>Selected boundary</h2>
 
-	<button onclick={() => applySubscribedValue('Subscribed value')}>
-		Resolve subscribed boundary
+	<button
+		data-testid="resolve-selected-boundary"
+		onclick={() => applySelectedValue('Selected value')}
+	>
+		Resolve selected boundary
 	</button>
 
-	<button onclick={applySubscribedLoading}>
-		Refresh subscribed boundary
+	<button
+		data-testid="refresh-selected-boundary"
+		onclick={applySelectedLoading}
+	>
+		Refresh selected boundary
 	</button>
 
-	<button onclick={() => applySubscribedValue('Updated subscribed value')}>
-		Update subscribed boundary
+	<button
+		data-testid="update-selected-boundary"
+		onclick={() => applySelectedValue('Updated selected value')}
+	>
+		Update selected boundary
 	</button>
 
-	<p data-testid="subscribed-direct-current">{subscribedResource.current ?? ''}</p>
+	<p data-testid="selected-direct-current">{selectedResource.current ?? ''}</p>
 
 	<ResourceBoundary
-		resource={subscribedResource}
-		placeholderText="Loading subscribed value"
+		resource={selectedResource}
+		placeholderText="Loading selected value"
 	>
 		{#snippet children(value)}
-			<p data-testid="subscribed-boundary-value">{value}</p>
+			<p data-testid="selected-boundary-value">{value}</p>
 		{/snippet}
 	</ResourceBoundary>
 
 	<ResourceBoundary
-		resource={subscribedResource}
-		placeholderText="Loading subscribed duplicate value"
+		resource={selectedResource}
+		placeholderText="Loading selected duplicate value"
 	>
 		{#snippet children(value)}
-			<p data-testid="subscribed-boundary-value-secondary">{value}</p>
+			<p data-testid="selected-boundary-value-secondary">{value}</p>
 		{/snippet}
 	</ResourceBoundary>
 
 	<svelte:boundary>
-		<p data-testid="subscribed-awaited-value">{await subscribedResource}</p>
+		<p data-testid="selected-awaited-value">{await selectedResource}</p>
 
 		{#snippet pending()}
-			<p data-testid="subscribed-awaited-value">pending</p>
+			<p data-testid="selected-awaited-value">pending</p>
 		{/snippet}
 	</svelte:boundary>
 </section>
 
-<section>
+<section data-testid="failable-boundary-section">
 	<h2>Failable TanStack resource boundary</h2>
 
 	<button onclick={() => applyFailableValue('Failable value')}>
 		Resolve failable boundary
 	</button>
 
-	<button onclick={applyFailableError}>
+	<button
+		data-testid="fail-failable-boundary"
+		onclick={applyFailableError}
+	>
 		Fail failable boundary
 	</button>
 
-	<button onclick={() => applyFailableValue('Recovered failable value')}>
+	<button
+		data-testid="recover-failable-boundary"
+		onclick={() => applyFailableValue('Recovered failable value')}
+	>
 		Recover failable boundary
 	</button>
 
@@ -381,50 +396,68 @@
 	</ResourceBoundary>
 </section>
 
-<section>
-	<h2>Real subscribeEntity boundary</h2>
+<section data-testid="real-selection-boundary-section">
+	<h2>Real selection boundary</h2>
 
-	<button onclick={() => showRealSubscribedScalarResource = true}>
-		Show real subscribeEntity scalar boundary
+	<button
+		data-testid="show-real-selection-scalar-boundary"
+		onclick={() => showRealSelectedScalarResource = true}
+	>
+		Show real selection scalar boundary
 	</button>
 
-	<button onclick={() => showRealSubscribedResource = true}>
-		Show real subscribeEntity rows boundary
+	<button
+		data-testid="show-real-selection-rows-boundary"
+		onclick={() => showRealSelectedResource = true}
+	>
+		Show real selection rows boundary
 	</button>
 
-	<button onclick={() => showRealSubscribedCountResource = true}>
-		Show real subscribeEntity count boundary
+	<button
+		data-testid="show-real-selection-count-boundary"
+		onclick={() => showRealSelectedCountResource = true}
+	>
+		Show real selection count boundary
 	</button>
 
-	<button onclick={() => applyRealSubscribedLabelValue('Boundary Session')}>
-		Seed real subscribeEntity scalar field
+	<button onclick={() => applyRealSelectedLabelValue('Boundary Session')}>
+		Seed real selection scalar field
 	</button>
 
-	<button onclick={() => applyRealSubscribedLabelValue('Updated Boundary Session')}>
-		Update real subscribeEntity scalar field
+	<button
+		data-testid="update-real-selection-scalar-field"
+		onclick={() => applyRealSelectedLabelValue('Updated Boundary Session')}
+	>
+		Update real selection scalar field
 	</button>
 
-	<button onclick={() => applyRealSubscribedBoundaryOnlyLabelValue('Boundary Only Session')}>
+	<button onclick={() => applyRealSelectedBoundaryOnlyLabelValue('Boundary Only Session')}>
 		Seed boundary-only live subscription field
 	</button>
 
-	<button onclick={() => applyRealSubscribedBoundaryOnlyLabelValue('Updated Boundary Only Session')}>
+	<button
+		data-testid="update-boundary-only-live-subscription-field"
+		onclick={() => applyRealSelectedBoundaryOnlyLabelValue('Updated Boundary Only Session')}
+	>
 		Update boundary-only live subscription field
 	</button>
 
-	<button onclick={() => applyRealSubscribedDirectOnlyLabelValue('Updated Direct Only Session')}>
+	<button
+		data-testid="update-direct-only-live-subscription-field"
+		onclick={() => applyRealSelectedDirectOnlyLabelValue('Updated Direct Only Session')}
+	>
 		Update direct-only live subscription field
 	</button>
 
-	{#if showRealSubscribedScalarResource}
-		{@const realSubscribedScalar = realSubscribedScalarResource.current}
+	{#if showRealSelectedScalarResource}
+		{@const realSelectedScalar = realSelectedScalarResource.current}
 
 		<p data-testid="real-resource-direct-scalars">
-			{realSubscribedScalar?.fields.name ?? ''}:{realSubscribedScalar?.fields.status ?? ''}
+			{realSelectedScalar?.fields.name ?? ''}:{realSelectedScalar?.fields.status ?? ''}
 		</p>
 
 		<svelte:boundary>
-			{@const value = await realSubscribedScalarResource}
+			{@const value = await realSelectedScalarResource}
 
 			<p data-testid="real-resource-awaited-scalars">{value.fields.name}:{value.fields.status}</p>
 
@@ -434,8 +467,8 @@
 		</svelte:boundary>
 
 		<ResourceBoundary
-			resource={realSubscribedScalarResource}
-			placeholderText="Loading real subscribeEntity scalar value"
+			resource={realSelectedScalarResource}
+			placeholderText="Loading real selection scalar value"
 		>
 			{#snippet children(value)}
 				<p data-testid="real-resource-boundary-scalars">{value.fields.name}:{value.fields.status}</p>
@@ -444,8 +477,8 @@
 	{/if}
 
 	<ResourceBoundary
-		resource={realSubscribedBoundaryOnlyResource}
-		placeholderText="Loading real subscribeEntity boundary-only live subscription"
+		resource={realSelectedBoundaryOnlyResource}
+		placeholderText="Loading real selection boundary-only resource"
 	>
 		{#snippet children(value)}
 			<p data-testid="real-resource-boundary-only-scalars">{value.fields.name}:{value.fields.status}</p>
@@ -453,24 +486,24 @@
 	</ResourceBoundary>
 
 	<p data-testid="real-resource-direct-only-current">
-		{realSubscribedDirectOnly?.fields.name ?? ''}:{realSubscribedDirectOnly?.fields.status ?? ''}
+		{realSelectedDirectOnly?.fields.name ?? ''}:{realSelectedDirectOnly?.fields.status ?? ''}
 	</p>
 
 	<p data-testid="real-resource-direct-only-loading">
-		{String(realSubscribedDirectOnlyResource.loading)}
+		{String(realSelectedDirectOnlyResource.loading)}
 	</p>
 
 	<p data-testid="real-resource-direct-only-ready">
-		{String(realSubscribedDirectOnlyResource.ready)}
+		{String(realSelectedDirectOnlyResource.ready)}
 	</p>
 
 	<p data-testid="real-resource-direct-only-error">
-		{realSubscribedDirectOnlyResource.error?.map((error) => error.message).join(', ') ?? ''}
+		{realSelectedDirectOnlyResource.error?.map((error) => error.message).join(', ') ?? ''}
 	</p>
 
-	{#if showRealSubscribedResource}
+	{#if showRealSelectedResource}
 		<ResourceBoundary
-			resource={subscribe(
+			resource={select(
 				EntityType.SpecificationRealm,
 				{
 					realm: SpecificationRealm.Ethereum,
@@ -482,9 +515,9 @@
 					fields: {
 						$$proposalKinds: true,
 					},
-				},
+				}
 			)}
-			placeholderText="Loading real subscribeEntity value"
+			placeholderText="Loading real selection value"
 		>
 			{#snippet children(value)}
 				<p data-testid="real-resource-boundary-rows">{value.fields.$$proposalKinds.values.length}</p>
@@ -492,9 +525,9 @@
 		</ResourceBoundary>
 	{/if}
 
-	{#if showRealSubscribedCountResource}
+	{#if showRealSelectedCountResource}
 		<ResourceBoundary
-			resource={subscribe(
+			resource={select(
 				EntityType.SpecificationRealm,
 				{
 					realm: SpecificationRealm.Ethereum,
@@ -508,9 +541,9 @@
 							count: true,
 						},
 					},
-				},
+				}
 			)}
-			placeholderText="Loading real subscribeEntity count"
+			placeholderText="Loading real selection count"
 		>
 			{#snippet children(value)}
 				<p data-testid="real-resource-boundary-count">
@@ -521,10 +554,13 @@
 	{/if}
 </section>
 
-<section>
+<section data-testid="query-resource-boundary-section">
 	<h2>SvelteKit query resource boundary</h2>
 
-	<button onclick={() => applyQueryTaggedValue('Query tagged value')}>
+	<button
+		data-testid="resolve-query-resource-boundary"
+		onclick={() => applyQueryTaggedValue('Query tagged value')}
+	>
 		Resolve query resource boundary
 	</button>
 
@@ -542,10 +578,13 @@
 	</ResourceBoundary>
 </section>
 
-<section>
+<section data-testid="failed-resource-boundary-section">
 	<h2>Failed resource boundary</h2>
 
-	<button onclick={() => showFailedResource = true}>
+	<button
+		data-testid="show-failed-resource"
+		onclick={() => showFailedResource = true}
+	>
 		Show failed resource
 	</button>
 
@@ -565,10 +604,13 @@
 	{/if}
 </section>
 
-<section>
+<section data-testid="remote-resource-boundary-section">
 	<h2>Remote resource boundary</h2>
 
-	<button onclick={() => applyRemoteValue('Remote subscribed value')}>
+	<button
+		data-testid="resolve-remote-boundary"
+		onclick={() => applyRemoteValue('Remote selected value')}
+	>
 		Resolve remote boundary
 	</button>
 

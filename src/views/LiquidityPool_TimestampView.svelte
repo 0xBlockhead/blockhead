@@ -38,9 +38,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
-	const poolTimestamp = $derived(proxy(EntityType.LiquidityPool_Timestamp, selector, ({ sources: [
+	const poolTimestamp = $derived(select(EntityType.LiquidityPool_Timestamp, selector, ({ sources: [
 				Source.Dexscreener_OpenApi,
 			], fields: { $parentLiquidityPool: true, priceUsd: true, priceNative: true, liquidityUsd: true, volumeUsd24h: true, priceChangePercent24h: true, transactionBuys24h: true, transactionSells24h: true, marketCapUsd: true, fdvUsd: true, transport: true } })))
 

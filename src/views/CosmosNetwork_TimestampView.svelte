@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,7 +19,7 @@
 		open?: boolean
 	} = $props()
 
-	const snapshot = $derived(proxy(EntityType.CosmosNetwork_Timestamp,
+	const snapshot = $derived(select(EntityType.CosmosNetwork_Timestamp,
 		selector,
 		({ sources: [
 				Source.CosmosSdk_Rest,

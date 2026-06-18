@@ -16,7 +16,7 @@
 	let {
 		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-			caip2: ,
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 		}),
 		layout,
 		open = $bindable(true),
@@ -35,9 +35,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
-	const networkTxpoolTimestamp = $derived(proxy(
+	const networkTxpoolTimestamp = $derived(select(
 		EntityType.EvmNetwork_Txpool_Timestamp,
 		selector,
 		{

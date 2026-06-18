@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -54,7 +54,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.PolkadotValidator, selector, ({ fields: { commissionPerBillion: true, totalStakePlancks: true } }))}
+			resource={select(EntityType.PolkadotValidator, selector, ({ fields: { commissionPerBillion: true, totalStakePlancks: true } }))}
 			placeholderText={`Loading Polkadot Validator...`}
 		>
 			{#snippet children(polkadotValidator)}

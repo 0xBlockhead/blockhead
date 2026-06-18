@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -56,7 +56,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.SolanaAccount,
+			resource={select(EntityType.SolanaAccount,
 					selector,
 					({ fields: { $ownerProgram: true, lamports: true, rentEpoch: true, executable: true, dataEncoding: true } }),
 				)}

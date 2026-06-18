@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -54,7 +54,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.NearExecutionOutcome, selector, ({ fields: { status: true, gasBurnt: true } }))}
+			resource={select(EntityType.NearExecutionOutcome, selector, ({ fields: { status: true, gasBurnt: true } }))}
 			placeholderText={`Loading NEAR Execution Outcome...`}
 		>
 			{#snippet children(nearExecutionOutcome)}

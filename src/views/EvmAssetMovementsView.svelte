@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -23,7 +23,7 @@
 		CollapsibleProps?: ComponentProps<typeof EvmInternalTransfersView>['CollapsibleProps']
 	} = $props()
 
-	const evmTransaction = $derived(proxy(
+	const evmTransaction = $derived(select(
 		EntityType.EvmTransaction,
 		selector,
 		{
@@ -51,11 +51,11 @@
 
 <section data-column="gap-2">
 	<ResourceBoundary
-		resource={evmTransaction.value}
+		resource={evmTransaction.field('value')}
 		placeholderText="Loading signed envelope value…"
 	>
 		{#snippet children(value)}
-			{#if value !== undefined && value > 0n}
+			{#if value > 0n}
 				<div data-row="wrap gap-2 align-baseline">
 					<span data-text="annotation">Signed envelope</span>
 					<ResourceBoundary
@@ -105,14 +105,13 @@
 	<EvmInternalTransfersView
 		{CollapsibleProps}
 		href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-			.caip2: ,
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 			transactionId: selector.txHash,
 		})}
-		entityFieldReference={{
-			entityType: EntityType.EvmTransaction,
-			selector,
-			fieldName: '$$internalTransfers',
-		}}
+		selection={select(
+			EntityType.EvmTransaction,
+			selector
+		).$$internalTransfers}
 		id={`${id}:internal-transfers`}
 		collapsible={false}
 		title="Internal native transfers"
@@ -120,14 +119,13 @@
 	<EvmTokenTransfersView
 		{CollapsibleProps}
 		href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-			.caip2: ,
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 			transactionId: selector.txHash,
 		})}
-		entityFieldReference={{
-			entityType: EntityType.EvmTransaction,
-			selector,
-			fieldName: '$$tokenTransfers',
-		}}
+		selection={select(
+			EntityType.EvmTransaction,
+			selector
+		).$$tokenTransfers}
 		id={`${id}:token-transfers`}
 		collapsible={false}
 	/>

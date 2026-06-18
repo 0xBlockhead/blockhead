@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -55,7 +55,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.TronTransaction,
+			resource={select(EntityType.TronTransaction,
 					selector,
 					({ fields: { blockHeight: true, timestampMs: true, contractType: true, result: true, feeSun: true, amountSun: true, assetName: true, ...(open && ({ expirationTimestampMs: true, rawDataHex: true, signatures: true })) } }),
 				)}

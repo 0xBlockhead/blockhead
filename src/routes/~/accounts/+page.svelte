@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -64,11 +65,10 @@
 				{#snippet SectionWatchedAccounts({ id, label })}
 					<EvmAccountsView
 						href={resolve('/~/accounts/watched-accounts')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							selector: { scope: '$$actors' },
-							fieldName: '$$actors',
-						}}
+						selection={select(
+			EntityType._Global,
+			{ scope: '$$actors' }
+		).$$actors}
 						id="accounts"
 						open={hubOpen}
 					/>
@@ -77,11 +77,10 @@
 				{#snippet SectionBalances({ id, label })}
 					<EvmNetworkActorCoinBalancesView
 						href={resolve('/~/accounts/balances')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							selector: { scope: '$$actorCoins' },
-							fieldName: '$$actorCoins',
-						}}
+						selection={select(
+			EntityType._Global,
+			{ scope: '$$actorCoins' }
+		).$$actorCoins}
 						id="balances"
 						open={hubOpen}
 					/>

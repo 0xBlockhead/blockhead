@@ -1,4 +1,14 @@
 <script lang="ts">
+	// Types/constants
+	import { networkSelectorFromCaip2 } from '$/lib/caip2.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		params,
@@ -13,11 +23,21 @@
 
 <Page>
 	<NetworkView
-		selector={{
-			caip2: {
-				namespace: params.caip2.slice(0, params.caip2.indexOf(':')),
-				reference: params.caip2.slice(params.caip2.indexOf(':') + 1),
-			},
-		}}
+		selection={select(
+			EntityType.Network,
+			networkSelectorFromCaip2(params.caip2),
+			{
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					name: true,
+					slug: true,
+					caip2: true,
+					namespace: true,
+					environment: true,
+				},
+			}
+		)}
 	/>
 </Page>

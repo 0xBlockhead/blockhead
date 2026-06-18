@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -55,7 +55,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.ZeroGDaQuorum, selector, ({ fields: { selectionMethod: true } }))}
+			resource={select(EntityType.ZeroGDaQuorum, selector, ({ fields: { selectionMethod: true } }))}
 			placeholderText="Loading 0G DA quorum…"
 		>
 			{#snippet children(daQuorum)}

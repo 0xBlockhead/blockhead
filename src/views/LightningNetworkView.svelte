@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -31,12 +31,12 @@
 		>
 	> = $props()
 
-	const lightningNetwork = $derived(proxy(EntityType.LightningNetwork, selector, ({ sources: [
+	const lightningNetwork = $derived(select(EntityType.LightningNetwork, selector, ({ sources: [
 				Source.LightningMempoolSpace_Rest,
 				Source.LightningLnd_Rest,
 			], fields: { name: true, $settlementNetwork: true, $$timestamps: ({ limit: 1 }) } })))
 
-	const settlementNetwork = $derived(proxy(EntityType.Network, selector.$network, ({ sources: [
+	const settlementNetwork = $derived(select(EntityType.Network, selector.$network, ({ sources: [
 				Source.Constants_Internal,
 			], fields: { $$nativeAssets: true, $$blockExplorerUrls: true, $$faucetUrls: true } })))
 
@@ -88,14 +88,14 @@
 			placeholderText="Loading Lightning Network…"
 			>
 				{#snippet children(row)}
-					{@const timestamp = row.fields.$$timestamps?.values.at(0)}
+					{@const timestamp = row.fields.$$timestamps.values.at(0)}
 					<dl>
 						{#if row.fields.$settlementNetwork != null}
 							<div>
 								<dt>Settlement network</dt>
 							<dd>
 								<NetworkView
-									selector={row.fields.$settlementNetwork[EntityMetaKey.Selector]}
+									selection={row.fields.$settlementNetwork}
 									layout={EntityLayout.Value}
 									open={false}
 									/>
@@ -144,11 +144,10 @@
 			{#snippet SectionLightningGraphNodes()}
 				<LightningNodesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.LightningNetwork,
-						selector,
-						fieldName: '$$nodes',
-					}}
+					selection={select(
+			EntityType.LightningNetwork,
+			selector
+		).$$nodes}
 					href={href == null ? '' : `${href}/nodes`}
 					id={`${stringify(selector)}:lightning-nodes-lightningNetworks`}
 				/>
@@ -157,11 +156,10 @@
 			{#snippet SectionLightningGraphChannels()}
 				<LightningChannelsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.LightningNetwork,
-						selector,
-						fieldName: '$$channels',
-					}}
+					selection={select(
+			EntityType.LightningNetwork,
+			selector
+		).$$channels}
 					href={href == null ? '' : `${href}/channels`}
 					id={`${stringify(selector)}:lightning-channels-lightningNetworks`}
 				/>
@@ -171,22 +169,20 @@
 				<div data-column="gap-3">
 					<LightningInvoicesView
 						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.LightningNetwork,
-							selector,
-							fieldName: '$$invoices',
-						}}
+						selection={select(
+			EntityType.LightningNetwork,
+			selector
+		).$$invoices}
 						href={href == null ? '' : `${href}/invoices`}
 						id={`${stringify(selector)}:lightning-invoices-lightningNetworks`}
 					/>
 
 					<LightningPaymentsView
 						CollapsibleProps={{ canToggle: false }}
-						entityFieldReference={{
-							entityType: EntityType.LightningNetwork,
-							selector,
-							fieldName: '$$payments',
-						}}
+						selection={select(
+			EntityType.LightningNetwork,
+			selector
+		).$$payments}
 						href={href == null ? '' : `${href}/payments`}
 						id={`${stringify(selector)}:lightning-payments-lightningNetworks`}
 					/>
@@ -216,11 +212,10 @@
 				<AssetInstancesView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No settlement asset mapped for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$nativeAssets',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -250,11 +245,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$faucetUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -268,11 +262,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$blockExplorerUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

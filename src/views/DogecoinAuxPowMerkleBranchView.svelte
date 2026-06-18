@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -51,7 +51,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.DogecoinAuxPowMerkleBranch,
+			resource={select(EntityType.DogecoinAuxPowMerkleBranch,
 					selector,
 					({ fields: { branchHashes: true, index: true } }),
 				)}
@@ -59,7 +59,7 @@
 		>
 			{#snippet children(dogecoinAuxPowMerkleBranch)}
 				<dl>
-					{#if dogecoinAuxPowMerkleBranch.fields.branchHashes?.values.length}
+					{#if dogecoinAuxPowMerkleBranch.fields.branchHashes.values.length}
 						<div>
 							<dt>Branch Hashes</dt>
 							<dd>

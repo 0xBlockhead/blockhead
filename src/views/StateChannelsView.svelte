@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,10 +12,9 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'State channels',
 		open = $bindable(true),
 		collapsible = true,
@@ -22,7 +22,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.StateChannel>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			id: string
 			open?: boolean
 			collapsible?: boolean
@@ -52,9 +56,9 @@
 	{...EntitiesListProps}
 	bind:open
 	{collapsible}
-	data-entity-field-name={entityFieldReference.fieldName}
-	data-entity-field-parent={stringify(entityFieldReference.selector)}
-	data-entity-field-type={entityFieldReference.entityType}
+	data-entity-field-name={selection.fieldName}
+	data-entity-field-parent={stringify(selection.entitySelector)}
+	data-entity-field-type={selection.entityType}
 	entityType={EntityType.StateChannel}
 	{id}
 	{title}
@@ -92,19 +96,16 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-				).field(entityFieldReference.fieldName, {
+			<ResourceBoundary resource={selection({
 					sources: [Source.Local_Internal],
 				})} placeholderText="Loading state channels…">
 				{#snippet children(stateChannels)}
 					<EntitiesList
 				collapsible={false}
 				showSummary={false}
-				data-entity-field-name={entityFieldReference.fieldName}
-				data-entity-field-parent={stringify(entityFieldReference.selector)}
-				data-entity-field-type={entityFieldReference.entityType}
+				data-entity-field-name={selection.fieldName}
+				data-entity-field-parent={stringify(selection.entitySelector)}
+				data-entity-field-type={selection.entityType}
 				entityType={EntityType.StateChannel}
 				getKey={(stateChannel) => stringify(stateChannel.entitySelector)}
 				getSortValue={(stateChannel) => stateChannel.entitySelector.id}

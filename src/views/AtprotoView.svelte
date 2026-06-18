@@ -14,7 +14,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,7 +41,7 @@
 	> = $props()
 
 	const atprotoNetwork = $derived(
-		proxy(EntityType.AtprotoNetwork,
+		select(EntityType.AtprotoNetwork,
 			selector,
 			{
 				sources: [Source.Constants_Internal],
@@ -140,7 +140,7 @@
 					{#if _contentOpen}
 						<div>
 							<dt>Accounts</dt>
-							<dd>{String(atprotoNetwork.fields.$$atprotoActors?.values.length ?? 0)}</dd>
+							<dd>{String(atprotoNetwork.fields.$$atprotoActors.values.length )}</dd>
 						</div>
 
 						{#if atprotoNetwork.fields.topology}
@@ -203,11 +203,10 @@
 				<AtprotoActorsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/atproto/actors')}
-					entityFieldReference={{
-						entityType: EntityType.AtprotoNetwork,
-						selector,
-						fieldName: '$$atprotoActors',
-					}}
+					selection={select(
+			EntityType.AtprotoNetwork,
+			selector
+		).$$atprotoActors}
 					id={`${networkSelectorKey}:actors`}
 					open={_open}
 				/>
@@ -217,11 +216,10 @@
 				<AtprotoPostsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/atproto/posts')}
-					entityFieldReference={{
-						entityType: EntityType.AtprotoNetwork,
-						selector,
-						fieldName: '$$atprotoPosts',
-					}}
+					selection={select(
+			EntityType.AtprotoNetwork,
+			selector
+		).$$atprotoPosts}
 					fieldOpen={_open}
 					id={`${networkSelectorKey}:posts`}
 					open={_open}

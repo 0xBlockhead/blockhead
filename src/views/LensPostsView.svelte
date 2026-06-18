@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -9,11 +10,9 @@
 	import { stringify } from 'devalue'
 
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id,
 		limit = 25,
 		open = $bindable(true),
@@ -22,7 +21,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LensPost>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			id: string
 			limit?: number
 			open?: boolean
@@ -66,31 +69,13 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-					...(entityFieldReference.entityType === EntityType.LensNetwork ?
-						[
-							{
-								sources: [Source.Constants_Internal],
+				<ResourceBoundary resource={selection({
+							sources: [Source.Lens_Graphql],
+							limit,
+							fields: {
+								timestamp: true,
 							},
-						]
-					:
-						[]
-					)
-				).field(
-					entityFieldReference.entityType === EntityType.LensNetwork ?
-						'$$lensPosts'
-					:
-						'$$posts',
-					{
-						sources: [Source.Lens_Graphql],
-						limit,
-						fields: {
-							timestamp: true,
-						},
-					}
-				)} placeholderText="Loading Lens network…">
+					})} placeholderText="Loading Lens network…">
 				{#snippet children(posts)}
 					<EntitiesList
 						collapsible={false}
@@ -101,7 +86,7 @@
 						open={true}
 						items={posts.entities}
 						getKey={(post) => post.entitySelector.id}
-						getSortValue={(post) => -(post.current?.timestamp ?? 0)}
+						getSortValue={(post) => post.entitySelector.id}
 					>
 						{#snippet Empty()}
 							<p data-text="muted">

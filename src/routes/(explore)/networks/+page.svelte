@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -62,11 +63,10 @@
 		{#snippet SectionEvm({ id: _id, label: _label })}
 			<EvmNetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$evmNetworks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$evmNetworks}
 				id="networks:evm"
 				open
 			/>
@@ -75,11 +75,10 @@
 		{#snippet SectionBitcoin({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:bitcoin"
 				networkSelectors={[{ slug: 'bitcoin' }]}
 				open
@@ -90,11 +89,10 @@
 		{#snippet SectionLightning({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:lightning"
 				networkSelectors={[{ slug: 'lightning' }]}
 				open
@@ -105,11 +103,10 @@
 		{#snippet SectionZcash({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:zcash"
 				networkSelectors={[{ slug: 'zcash' }]}
 				open
@@ -120,11 +117,10 @@
 		{#snippet SectionFilecoin({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:filecoin"
 				networkSelectors={[{ slug: 'filecoin' }]}
 				open
@@ -135,11 +131,10 @@
 		{#snippet SectionSolana({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:solana"
 				networkSelectors={[{ slug: 'solana' }]}
 				open
@@ -150,11 +145,10 @@
 		{#snippet SectionCosmosSdkCometBft({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:cosmos-sdk-comet-bft"
 				networkSelectors={[{ slug: 'cosmos' }]}
 				open
@@ -165,11 +159,10 @@
 		{#snippet SectionPolkadotSdk({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:polkadot-sdk"
 				networkSelectors={[{ slug: 'polkadot' }]}
 				open
@@ -180,11 +173,10 @@
 		{#snippet SectionHyperliquid({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:hyperliquid"
 				networkSelectors={[{ slug: 'hyperliquid' }]}
 				open
@@ -195,11 +187,10 @@
 		{#snippet SectionLogos({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:logos"
 				networkSelectors={[{ slug: 'logos' }]}
 				open
@@ -210,11 +201,10 @@
 		{#snippet SectionQuilibrium({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:quilibrium"
 				networkSelectors={[{ slug: 'quilibrium' }]}
 				open
@@ -225,11 +215,10 @@
 		{#snippet SectionNear({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:near"
 				networkSelectors={[{ slug: 'near' }]}
 				open
@@ -240,11 +229,10 @@
 		{#snippet SectionMonero({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:monero"
 				networkSelectors={[{ slug: 'monero' }]}
 				open
@@ -255,11 +243,10 @@
 		{#snippet SectionLitecoin({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:litecoin"
 				networkSelectors={[{ slug: 'litecoin' }]}
 				open
@@ -270,11 +257,10 @@
 		{#snippet SectionDogecoin({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:dogecoin"
 				networkSelectors={[{ slug: 'dogecoin' }]}
 				open
@@ -285,11 +271,10 @@
 		{#snippet SectionBitcoinCash({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:bitcoin-cash"
 				networkSelectors={[{ slug: 'bitcoin-cash' }]}
 				open
@@ -300,11 +285,10 @@
 		{#snippet SectionTron({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:tron"
 				networkSelectors={[{ slug: 'tron' }]}
 				open
@@ -315,11 +299,10 @@
 		{#snippet SectionZeroG({ id: _id, label: label })}
 			<NetworksView
 				href={resolve('/networks')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$networks' },
-					fieldName: '$$networks',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 				id="networks:zero-g"
 				networkSelectors={[{ slug: '0g' }]}
 				open

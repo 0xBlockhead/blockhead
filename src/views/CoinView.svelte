@@ -24,7 +24,7 @@
 
 	// Context
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -75,11 +75,15 @@
 
 
 	const coin = $derived(
-		proxy(
+		select(
 			EntityType.Coin,
 			selector,
 			{
-				sources: open ?
+				sources: (
+					open
+					|| layout == null
+					|| layout === EntityLayout.SummaryDetails
+				) ?
 					[...catalogCoinIdentitySources]
 				:
 					[
@@ -87,17 +91,14 @@
 					],
 				fields: {
 					symbol: true,
-					...(open && {
+					...((
+						open
+						|| layout == null
+						|| layout === EntityLayout.SummaryDetails
+					) && {
 						$logo: true,
 						decimals: true,
 						name: true,
-						$$timestamps: {
-							sources: [
-								Source.Coingecko_Rest,
-								Source.Blockscout_Rest,
-							],
-							limit: 8,
-						},
 						$$coinInstances: {
 							sources: [
 								Source.Constants_Internal,
@@ -220,74 +221,65 @@
 		href: _contentHref,
 	})}
 		<dl data-column-item="center">
-			<div>
-				<dt>Market cap rank</dt>
-				<dd>
+				<div>
+					<dt>Market cap rank</dt>
+					<dd>
 						<ResourceBoundary resource={coin}>
 							{#snippet children(coin)}
-								{#if (
-									coin.fields.$$timestamps?.values.at(0)?.marketCapRank != null
-									&& Number.isFinite(coin.fields.$$timestamps.values.at(0)?.marketCapRank)
-								)}
-									{String(coin.fields.$$timestamps.values.at(0)?.marketCapRank)}
-								{/if}
+									{#if (
+										coin.fields.$$timestamps?.values.at(0)?.marketCapRank != null
+										&& Number.isFinite(coin.fields.$$timestamps?.values.at(0)?.marketCapRank)
+									)}
+										{String(coin.fields.$$timestamps?.values.at(0)?.marketCapRank)}
+									{/if}
 							{/snippet}
 						</ResourceBoundary>
 				</dd>
 			</div>
 
-			<div>
-				<dt>Market cap</dt>
-				<dd>
+				<div>
+					<dt>Market cap</dt>
+					<dd>
 						<ResourceBoundary resource={coin}>
 							{#snippet children(coin)}
-								{#if (
-									coin.fields.$$timestamps?.values.at(0)?.marketCapUsd != null
-									&& Number.isFinite(coin.fields.$$timestamps.values.at(0)?.marketCapUsd)
-								)}
-									<CurrencyAmount
-										currency="USD"
-										scale={1}
-										value={coin.fields.$$timestamps.values.at(0)?.marketCapUsd}
-									/>
-								{/if}
+									{#if (
+										coin.fields.$$timestamps?.values.at(0)?.marketCapUsd != null
+										&& Number.isFinite(coin.fields.$$timestamps?.values.at(0)?.marketCapUsd)
+									)}
+										<CurrencyAmount
+											currency="USD"
+											scale={1}
+											value={coin.fields.$$timestamps?.values.at(0)?.marketCapUsd}
+										/>
+									{/if}
 							{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
-			{#if (
-				open
-				&& coin.current?.fields.$$timestamps?.values.length
-			)}
-				<div>
-					<dt>Latest snapshot</dt>
-						<dd>
-							<ResourceBoundary resource={coin}>
-								{#snippet children(coin)}
-									{#if (coin.fields.$$timestamps?.values ?? [])
-										.toSorted((leftRow, rightRow) => (
-											rightRow[EntityMetaKey.Selector].timestampMs
-												- leftRow[EntityMetaKey.Selector].timestampMs
-										))[0]
-										?.[EntityMetaKey.Selector]}
+				{#if open}
+					<ResourceBoundary resource={coin}>
+						{#snippet children(coin)}
+								{#if coin.fields.$$timestamps?.values.length}
+									<div>
+										<dt>Latest snapshot</dt>
+										<dd>
 										<Coin_TimestampView
-											selector={(coin.fields.$$timestamps?.values ?? [])
-												.toSorted((leftRow, rightRow) => (
-													rightRow[EntityMetaKey.Selector].timestampMs
-														- leftRow[EntityMetaKey.Selector].timestampMs
-												))[0][EntityMetaKey.Selector]}
-											href={resolve('/(assets)/(coins)/coin/[coinId]', {
-												coinId: selector.coinId,
-											})}
+											selector={coin.fields.$$timestamps.values
+											.toSorted((leftRow, rightRow) => (
+												rightRow[EntityMetaKey.Selector].timestampMs
+													- leftRow[EntityMetaKey.Selector].timestampMs
+											))[0][EntityMetaKey.Selector]}
+										href={resolve('/(assets)/(coins)/coin/[coinId]', {
+											coinId: selector.coinId,
+										})}
 										layout={EntityLayout.Title}
-
 									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 
 			{#if open}
@@ -318,10 +310,10 @@
 						sectionIdPrefix={idPrefix}
 						sections={collapsibleTabsSections([
 							{ id: 'coin-instances', label: 'Instances' },
-							...((coin.fields.$$coinInstances?.values ?? []).some((row) => (
+							...(coin.fields.$$coinInstances.values.some((row) => (
 								row.representation === CoinInstanceRepresentation.BridgeWrapped
 							)) ? [{ id: 'coin-wrapped', label: 'Wrapped' }] : []),
-							...((coin.fields.$$bridgeCapabilities?.values ?? []).length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' }] : []),
+							...(coin.fields.$$bridgeCapabilities.values.length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' }] : []),
 						])}
 						class="coin-view-collapsible-topology"
 						data-card
@@ -343,28 +335,26 @@
 							<EvmCoinInstancesView
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve('/coins')}
-								entityFieldReference={{
-									entityType: EntityType.Coin,
-									selector,
-									fieldName: '$$coinInstances',
-								}}
+								selection={select(
+									EntityType.Coin,
+									selector
+								).$$coinInstances}
 								{id}
 								title="Instances"
 							/>
 						{/snippet}
 
 						{#snippet SectionCoinWrapped({ id, label })}
-							{#if (coin.fields.$$coinInstances?.values ?? []).some((row) => (
+							{#if coin.fields.$$coinInstances.values.some((row) => (
 								row.representation === CoinInstanceRepresentation.BridgeWrapped
 							))}
 								<EvmCoinInstancesView
 									CollapsibleProps={{ canToggle: false }}
 									href={resolve('/coins')}
-									entityFieldReference={{
-										entityType: EntityType.Coin,
-										selector,
-										fieldName: '$$coinInstances',
-									}}
+									selection={select(
+										EntityType.Coin,
+										selector
+									).$$coinInstances}
 									{id}
 									representationFilter={CoinInstanceRepresentation.BridgeWrapped}
 									title="Wrapped"
@@ -373,15 +363,14 @@
 						{/snippet}
 
 						{#snippet SectionCoinBridgeCapabilities({ id, label })}
-							{#if (coin.fields.$$bridgeCapabilities?.values ?? []).length}
+							{#if coin.fields.$$bridgeCapabilities.values.length}
 								<CoinBridgeCapabilitiesView
 									CollapsibleProps={{ canToggle: false }}
 									href={resolve('/bridge')}
-									entityFieldReference={{
-										entityType: EntityType.Coin,
-										selector,
-										fieldName: '$$bridgeCapabilities',
-									}}
+									selection={select(
+										EntityType.Coin,
+										selector
+									).$$bridgeCapabilities}
 									{id}
 									title="Bridge capabilities"
 								/>
@@ -444,11 +433,10 @@
 							<MarketsView
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve('/markets')}
-								entityFieldReference={{
-									entityType: EntityType.Coin,
-									selector,
-									fieldName: '$$marketsWithCoinAsBase',
-								}}
+								selection={select(
+			EntityType.Coin,
+			selector
+		).$$marketsWithCoinAsBase}
 								{id}
 								title="Base"
 							/>
@@ -458,11 +446,10 @@
 							<MarketsView
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve('/markets')}
-								entityFieldReference={{
-									entityType: EntityType.Coin,
-									selector,
-									fieldName: '$$marketsWithCoinAsQuote',
-								}}
+								selection={select(
+			EntityType.Coin,
+			selector
+		).$$marketsWithCoinAsQuote}
 								{id}
 								title="Quote"
 							/>

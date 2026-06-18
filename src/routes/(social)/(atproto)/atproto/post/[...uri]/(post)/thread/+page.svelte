@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
@@ -14,13 +15,12 @@
 
 <Page>
 	<AtprotoPostThreadView
-		entityFieldReference={{
-			entityType: EntityType.AtprotoPost,
-			selector: {
+		selection={select(
+			EntityType.AtprotoPost,
+			{
 				uri: decodeURIComponent(params.uri),
-			},
-			fieldName: '$$thread',
-		}}
+			}
+		).$$thread}
 		id="atproto-post-thread"
 		title="Thread"
 	/>

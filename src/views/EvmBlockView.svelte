@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -41,7 +41,7 @@
 		>
 	> = $props()
 
-	const block = $derived(proxy(EntityType.EvmBlock, selector, {
+	const block = $derived(select(EntityType.EvmBlock, selector, {
 		sources: [Source.Voltaire_JsonRpc],
 	}))
 	const hash = $derived(block.hash)
@@ -372,7 +372,7 @@
 								})
 						:
 							undefined}
-						resource={block.field('$$transactions', {
+							selection={block.$$transactions({
 							sources: [
 								Source.Blockscout_Rest,
 								Source.Voltaire_JsonRpc,

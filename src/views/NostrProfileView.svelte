@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,7 +41,7 @@
 		>
 	> = $props()
 
-	const profile = $derived(proxy(EntityType.NostrProfile, selector, ({ sources: [
+	const profile = $derived(select(EntityType.NostrProfile, selector, ({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
 			], fields: { pubkey: true, displayName: true, about: true, nip05: true, lud16: true, lud06: true, website: true, metadataUpdatedAt: true, $icon: true, $banner: true, ...(open ? ({ $$notes: ({ sources: [
@@ -54,13 +54,6 @@
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
 						] }) }) : ({  })) } })))
-
-
-	// (Derived)
-	const profileRow = $derived(
-		profile.ready ? profile.current : undefined,
-	)
-
 
 	// Components
 	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
@@ -153,148 +146,89 @@
 			{/snippet}
 		</ResourceBoundary>
 
-		<dl data-column-item="center">
-			{#if profileRow?.nip05}
-				<div>
-					<dt>NIP-05</dt>
-					<dd>
-						<ResourceBoundary
-							resource={profile}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(profile)}
+		<ResourceBoundary
+			resource={profile}
+			placeholderText="Loading profile…"
+		>
+			{#snippet children(profile)}
+				<dl data-column-item="center">
+					{#if profile.fields.nip05}
+						<div>
+							<dt>NIP-05</dt>
+							<dd>
 								{profile.fields.nip05}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				open
-				&& profileRow?.pubkey
-			)}
-				<div>
-					<dt>Pubkey</dt>
-					<dd>
-						<ResourceBoundary
-							resource={profile}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(profile)}
+						{#if open}
+							<div>
+								<dt>Pubkey</dt>
+							<dd>
 								<TruncatedValue
 									value={profile.fields.pubkey}
 									format={TruncatedValueFormat.Visual}
 								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				open
-				&& profileRow?.$banner?.[EntityMetaKey.Selector].url
-			)}
-				<div>
-					<dt>Banner</dt>
-					<dd>
-						<ResourceBoundary
-							resource={profile}
-							placeholderText="Loading profile…"
-							>
-								{#snippet children(profile)}
-									{#if profile.fields.$banner !== undefined}
-										<img
-											src={profile.fields.$banner[EntityMetaKey.Selector].url}
-											alt=""
-										/>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+					{#if open && profile.fields.$banner?.[EntityMetaKey.Selector].url}
+						<div>
+							<dt>Banner</dt>
+							<dd>
+								<img
+									src={profile.fields.$banner[EntityMetaKey.Selector].url}
+									alt=""
+								/>
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				open
-				&& profileRow?.website
-			)}
-				<div>
-					<dt>Website</dt>
-					<dd>
-						<ResourceBoundary
-							resource={profile}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(profile)}
+					{#if open && profile.fields.website}
+						<div>
+							<dt>Website</dt>
+							<dd>
 								<a
 									href={profile.fields.website}
 									rel="noreferrer"
 									target="_blank"
 								>{profile.fields.website}</a>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-			{#if (
-				open
-				&& profileRow?.lud16
-			)}
-				<div>
-					<dt>Lightning address</dt>
-					<dd>
-						<ResourceBoundary
-							resource={profile}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(profile)}
+							</dd>
+						</div>
+					{/if}
+
+					{#if open && profile.fields.lud16}
+						<div>
+							<dt>Lightning address</dt>
+							<dd>
 								{profile.fields.lud16}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-			{#if (
-				open
-				&& profileRow?.lud06
-			)}
-				<div>
-					<dt>Lightning URI</dt>
-					<dd>
-						<ResourceBoundary
-							resource={profile}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(profile)}
+							</dd>
+						</div>
+					{/if}
+
+					{#if open && profile.fields.lud06}
+						<div>
+							<dt>Lightning URI</dt>
+							<dd>
 								{profile.fields.lud06}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-			{#if (
-				open
-				&& profileRow?.metadataUpdatedAt != null
-			)}
-				<div>
-					<dt>Metadata updated</dt>
-					<dd>
-						<ResourceBoundary
-							resource={profile}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(profile)}
+							</dd>
+						</div>
+					{/if}
+
+					{#if open && profile.fields.metadataUpdatedAt != null}
+						<div>
+							<dt>Metadata updated</dt>
+							<dd>
 								<Timestamp
 									timestamp={profile.fields.metadataUpdatedAt}
 								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -329,11 +263,10 @@
 						'/(social)/(nostr)/nostr/profile/[pubkey]/(profile)/notes',
 						{ pubkey: selector.pubkey },
 					)}
-					entityFieldReference={{
-						entityType: EntityType.NostrProfile,
-						selector,
-						fieldName: '$$notes',
-					}}
+					selection={select(
+			EntityType.NostrProfile,
+			selector
+		).$$notes}
 					id={`${idKey}:notes`}
 					open={true}
 					title="Notes"
@@ -343,11 +276,10 @@
 			{#snippet SectionArticles()}
 				<NostrArticlesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.NostrProfile,
-						selector,
-						fieldName: '$$articles',
-					}}
+					selection={select(
+			EntityType.NostrProfile,
+			selector
+		).$$articles}
 					id={`${idKey}:articles`}
 					open={true}
 					title="Articles"
@@ -357,11 +289,10 @@
 			{#snippet SectionReposts()}
 				<NostrRepostsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.NostrProfile,
-						selector,
-						fieldName: '$$reposts',
-					}}
+					selection={select(
+			EntityType.NostrProfile,
+			selector
+		).$$reposts}
 					id={`${idKey}:reposts`}
 					open={true}
 					title="Reposts"

@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -37,7 +37,7 @@
 	> = $props()
 
 	const user = $derived(
-		proxy(
+		select(
 			EntityType.XUser,
 			selector,
 			{
@@ -181,19 +181,19 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: user.fields.$$timestamps?.values.at(0)?.followerCount,
+									value: user.fields.$$timestamps.values.at(0)?.followerCount,
 								},
 								{
 									label: 'Following',
-									value: user.fields.$$timestamps?.values.at(0)?.followingCount,
+									value: user.fields.$$timestamps.values.at(0)?.followingCount,
 								},
 								{
 									label: 'Posts',
-									value: user.fields.$$timestamps?.values.at(0)?.tweetCount,
+									value: user.fields.$$timestamps.values.at(0)?.tweetCount,
 								},
 								{
 									label: 'Listed',
-									value: user.fields.$$timestamps?.values.at(0)?.listedCount,
+									value: user.fields.$$timestamps.values.at(0)?.listedCount,
 								},
 							]}
 						/>
@@ -350,20 +350,19 @@
 			{#snippet SectionPosts()}
 				<ResourceBoundary resource={user}>
 					{#snippet children(user)}
-						{#if (user.fields.$$posts?.values.length)}
+						{#if (user.fields.$$posts.values.length)}
 							<XPostsView
 								CollapsibleProps={{ canToggle: false }}
 								href={resolve(
 									'/(social)/(x)/x/user/[userId]',
 									{ userId: user.fields.id },
 								)}
-								entityFieldReference={{
-									entityType: EntityType.XUser,
-									selector: {
+								selection={select(
+			EntityType.XUser,
+			{
 										id: user.fields.id,
-									},
-									fieldName: '$$posts',
-								}}
+									}
+		).$$posts}
 								id={`${userSelectorKey}:posts`}
 								title="Posts"
 							/>
@@ -376,13 +375,12 @@
 				<ResourceBoundary resource={user}>
 					{#snippet children(user)}
 						<XUser_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.XUser,
-								selector: {
+							selection={select(
+			EntityType.XUser,
+			{
 									id: user.fields.id,
-								},
-								fieldName: '$$timestamps',
-							}}
+								}
+		).$$timestamps}
 							href={resolve('/(social)/(x)/x/user/[userId]', {
 								userId: user.fields.id,
 							})}

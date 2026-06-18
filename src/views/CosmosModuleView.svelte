@@ -9,7 +9,7 @@
 
 
 	// State
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -46,7 +46,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.CosmosModule, selector, ({ fields: { $authority: true } }))}
+			resource={select(EntityType.CosmosModule, selector, ({ fields: { $authority: true } }))}
 			placeholderText={`Loading Cosmos Module...`}
 		>
 			{#snippet children(cosmosModule)}

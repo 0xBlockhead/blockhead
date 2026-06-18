@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,13 +13,12 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		title = 'Proposals',
 
 		open = $bindable(true),
-		entityFieldReference,
+		selection,
 		filterCategory,
 		filterRealm,
 		id,
@@ -30,7 +30,11 @@
 		{
 			title?: string
 			open?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.SpecificationProposal>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			filterCategory?: ProposalCategory
 			filterRealm?: SpecificationRealm
 			id: string
@@ -66,8 +70,8 @@
 	// (Derived)
 	const effectiveFilterRealm = $derived(
 		filterRealm ?? (
-			entityFieldReference.entityType === EntityType.SpecificationProposalKind ?
-				entityFieldReference.selector.realm
+			selection.entityType === EntityType.SpecificationProposalKind ?
+				selection.entitySelector.realm
 			:
 				undefined
 		),
@@ -75,8 +79,8 @@
 
 	const effectiveFilterCategory = $derived(
 		filterCategory ?? (
-			entityFieldReference.entityType === EntityType.SpecificationProposalKind ?
-				entityFieldReference.selector.category
+			selection.entityType === EntityType.SpecificationProposalKind ?
+				selection.entitySelector.category
 			:
 				undefined
 		),
@@ -132,16 +136,7 @@
 	import ProposalView from '$/views/SpecificationProposalView.svelte'
 </script>
 
-<ResourceBoundary resource={proxy(
-		entityFieldReference.entityType,
-		entityFieldReference.selector,
-		{
-			sources: [
-				Source.Constants_Internal,
-				...selectedSpecificationProposalSources,
-			],
-		}
-	).field(entityFieldReference.fieldName, {
+<ResourceBoundary resource={selection({
 		sources: selectedSpecificationProposalSources,
 		limit: 2048,
 	})}>

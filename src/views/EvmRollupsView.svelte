@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -14,7 +15,7 @@
 	// Context
 		// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Rollups',
 		open = $bindable(true),
 		id,
@@ -22,7 +23,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmRollup>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			title?: string
 			open?: boolean
 			id: string
@@ -33,12 +38,6 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
-
-	import { proxy } from '$/routes/+layout.svelte'
-
-
-	
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -64,11 +63,8 @@
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary
-				resource={proxy(
-						EntityType.EvmNetwork,
-						entityFieldReference.selector,
-					).field('$$settledRollups', {
+				<ResourceBoundary
+					resource={selection({
 						sources: [
 							Source.L2Beat_Rest,
 						],

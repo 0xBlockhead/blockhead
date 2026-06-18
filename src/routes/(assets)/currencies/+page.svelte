@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -21,11 +22,10 @@
 <Page>
 	<CurrenciesView
 		href={resolve('/currencies')}
-		entityFieldReference={{
-			entityType: EntityType._Global,
-			selector: { scope: '$$currencies' },
-			fieldName: '$$currencies',
-		}}
+		selection={select(
+			EntityType._Global,
+			{ scope: '$$currencies' }
+		).$$currencies}
 		open
 	/>
 </Page>

@@ -34,7 +34,7 @@ import { resolve } from '$app/paths'
 
 	// State
 	let {
-		resource,
+		selection,
 		blockSelector,
 		title = 'Transactions',
 		open = $bindable(true),
@@ -42,7 +42,7 @@ import { resolve } from '$app/paths'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			resource: EvmTransactionsResource
+			selection: EvmTransactionsResource
 			blockSelector?: EvmBlockNumberSelector
 			title?: string
 			open?: boolean
@@ -90,7 +90,7 @@ import { resolve } from '$app/paths'
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary
-				{resource}
+				resource={selection}
 				placeholderText="Loading transactions…"
 			>
 				{#snippet children(transactions)}

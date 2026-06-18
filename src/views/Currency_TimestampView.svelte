@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -35,7 +35,7 @@
 		>
 	> = $props()
 
-	const currencyTimestamp = $derived(proxy(EntityType.Currency_Timestamp, selector, ({ sources: [
+	const currencyTimestamp = $derived(select(EntityType.Currency_Timestamp, selector, ({ sources: [
 				Source.Constants_Internal,
 			], fields: { marketCap: true } })))
 
@@ -141,7 +141,7 @@
 						<dt>Currency</dt>
 						<dd>
 							<ResourceBoundary
-								resource={proxy(EntityType.Currency, selector.$currency, ({ sources: [
+								resource={select(EntityType.Currency, selector.$currency, ({ sources: [
 										Source.Constants_Internal,
 									], fields: { name: true } }))}
 								placeholderText="Loading currency…"

@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,7 +41,7 @@
 		>
 	> = $props()
 
-	const note = $derived(proxy(EntityType.NostrNote, selector, ({ sources: [
+	const note = $derived(select(EntityType.NostrNote, selector, ({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
 			], fields: { eventId: true, pubkey: true, content: true, createdAt: true, replyToEventId: true, rootEventId: true, tags: true, $replyToNote: true, $author: true, ...(open ? ({ $$replies: ({ sources: [
@@ -313,11 +313,10 @@
 						'/(social)/(nostr)/nostr/note/[eventId]/(note)/replies',
 						{ eventId: selector.eventId },
 					)}
-					entityFieldReference={{
-						entityType: EntityType.NostrNote,
-						selector,
-						fieldName: '$$replies',
-					}}
+					selection={select(
+			EntityType.NostrNote,
+			selector
+		).$$replies}
 					id={`${idKey}:replies`}
 					open={true}
 					title="Reply thread"
@@ -328,11 +327,10 @@
 				<NostrReactionsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/nostr/reactions')}
-					entityFieldReference={{
-						entityType: EntityType.NostrNote,
-						selector,
-						fieldName: '$$reactions',
-					}}
+					selection={select(
+			EntityType.NostrNote,
+			selector
+		).$$reactions}
 					id={`${idKey}:reactions`}
 					open={true}
 				/>

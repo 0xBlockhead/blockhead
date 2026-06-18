@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -16,11 +17,10 @@
 <Page>
 	<RedditSubredditsView
 		href={resolve('/reddit/subreddits')}
-		entityFieldReference={{
-			entityType: EntityType.RedditNetwork,
-			selector: { scope: 'RedditNetwork' },
-			fieldName: '$$redditSubreddits',
-		}}
+		selection={select(
+			EntityType.RedditNetwork,
+			{ scope: 'RedditNetwork' }
+		).$$redditSubreddits}
 		id="subreddits"
 	/>
 </Page>

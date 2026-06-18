@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -62,7 +62,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.LightningHtlc,
+			resource={select(EntityType.LightningHtlc,
 		selector,
 		({ sources: [
 				Source.LightningLnd_Rest,

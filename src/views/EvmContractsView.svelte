@@ -1,24 +1,29 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
+	type EvmContractsResource = EntityProxyFieldResource<
+		typeof schema,
+		EntityType.EvmNetwork,
+		'$$contracts'
+	>
+
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
-		entityFieldReference,
+		selection,
 
 		title = 'Contracts',
 
@@ -30,7 +35,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmContract>
+			selection: EvmContractsResource
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -51,8 +56,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmContractView from '$/views/EvmContractView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -76,15 +80,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						EntityType.EvmNetwork,
-						entityFieldReference.selector,
-					).field('$$contracts', {
-						sources: [
-							Source.Blockscout_Rest,
-						],
-						limit: 16,
-					})}
+				resource={selection}
 				placeholderText="Loading contracts…"
 			>
 				{#snippet children(contracts)}
@@ -110,11 +106,17 @@
 					{/snippet}
 
 					{#snippet Item({ item })}
-						<EvmContractView
-							selector={item[EntityMetaKey.Selector]}
-							layout={EntityLayout.Summary}
-
-						/>
+						<a
+							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+								caip2: `${item[EntityMetaKey.Selector].$network.caip2.namespace}:${item[EntityMetaKey.Selector].$network.caip2.reference}`,
+								address: item[EntityMetaKey.Selector].address,
+							})}
+						>
+							<TruncatedValue
+								value={item[EntityMetaKey.Selector].address}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</a>
 					{/snippet}
 				</EntitiesList>
 			</div>

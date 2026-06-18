@@ -14,7 +14,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -35,13 +35,14 @@
 	> = $props()
 
 	const turn = $derived.by(() => (
-		proxy(EntityType.BlockheadAgentConversationTurn,
+		select(EntityType.BlockheadAgentConversationTurn,
 			selector,
 			({ sources: [
 				Source.Local_Internal,
 			], fields: { userPrompt: true, assistantText: true, status: true, createdAt: true, ...(open ? ({ providerId: true, promptVersion: true, parentId: true, error: true }) : ({  })) } }),
 		)
 	))
+	const turnError = $derived(turn.field('error'))
 
 
 	// Components
@@ -88,13 +89,11 @@
 			resource={turn}
 		>
 			{#snippet children(turn: ResourceFields)}
-				{#if turn.fields.createdAt !== undefined}
-					<span data-text="muted">
-						<Timestamp
-							timestamp={turn.fields.createdAt}
-						/>
-					</span>
-				{/if}
+				<span data-text="muted">
+					<Timestamp
+						timestamp={turn.fields.createdAt}
+					/>
+				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -124,18 +123,16 @@
 		</ResourceBoundary>
 
 		<dl data-column-item="center">
-			<div>
-				<dt>Status</dt>
-				<dd>
-					{#if true}
-						{#snippet TurnStatusRow(turn: ResourceFields)}
-							{#if turn.fields.status !== undefined}
-							{blockheadAgentConversationTurnStatusByStatus[turn.fields.status].label}
-							{/if}
-						{/snippet}
+				<div>
+					<dt>Status</dt>
+					<dd>
+						{#if true}
+							{#snippet TurnStatusRow(turn: ResourceFields)}
+								{blockheadAgentConversationTurnStatusByStatus[turn.fields.status].label}
+							{/snippet}
 
-						<ResourceBoundary
-							children={TurnStatusRow}
+							<ResourceBoundary
+								children={TurnStatusRow}
 							placeholderText="Loading turn…"
 							resource={turn}
 						/>
@@ -144,20 +141,18 @@
 			</div>
 
 			{#if open}
-				<div>
-					<dt>Created</dt>
-					<dd>
-						{#if true}
-							{#snippet TurnCreatedRow(turn: ResourceFields)}
-								{#if turn.fields.createdAt !== undefined}
-									<Timestamp
-										timestamp={turn.fields.createdAt}
-									/>
-								{/if}
+					<div>
+						<dt>Created</dt>
+						<dd>
+							{#if true}
+								{#snippet TurnCreatedRow(turn: ResourceFields)}
+								<Timestamp
+									timestamp={turn.fields.createdAt}
+								/>
 							{/snippet}
 
-							<ResourceBoundary
-								children={TurnCreatedRow}
+								<ResourceBoundary
+									children={TurnCreatedRow}
 								placeholderText="Loading turn…"
 								resource={turn}
 							/>
@@ -250,32 +245,32 @@
 						{/if}
 					</dd>
 				</div>
-			{/if}
+				{/if}
 
-			{#if open}
-				<div>
-					<dt>Error</dt>
-					<dd>
-						{#if true}
-							{#snippet TurnErrorRow(turn: ResourceFields)}
-								{#if turn.fields.error != null && turn.fields.error !== ''}
-									{turn.fields.error}
+				{#if open}
+					<div>
+						<dt>Error</dt>
+						<dd>
+							{#if true}
+								{#snippet TurnErrorRow(error)}
+								{#if error !== undefined && error !== ''}
+									{error}
 								{:else}
 									<span data-text="muted">
 										None.
 									</span>
 								{/if}
-							{/snippet}
+						{/snippet}
 
 							<ResourceBoundary
 								children={TurnErrorRow}
 								placeholderText="Loading turn…"
-								resource={turn}
+								resource={turnError}
 							/>
 						{/if}
 					</dd>
 				</div>
-			{/if}
+				{/if}
 		</dl>
 	{/snippet}
 </EntityView>

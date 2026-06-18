@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,12 +13,12 @@
 
 	// Context
 	import { writeLocalBlockheadSession } from '$/collections/localMutations.ts'
-	import { appClient, proxy } from '$/routes/+layout.svelte'
+	import { appClient, select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Simulator sessions',
 		open = $bindable(true),
 		collapsible = true,
@@ -25,9 +26,10 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<
+			selection: EntityProxyFieldResource<
 				typeof schema,
-				EntityType.BlockheadSession
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
 			>
 			title?: string
 			open?: boolean
@@ -48,7 +50,7 @@
 
 	// Actions
 	const createSession = () => {
-		writeLocalBlockheadSession(appClient, entityFieldReference.selector, sessionName)
+		writeLocalBlockheadSession(appClient, selection.entitySelector, sessionName)
 		sessionName = ''
 	}
 
@@ -109,13 +111,7 @@
 				</button>
 			</form>
 
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-					{
-						sources: [Source.Local_Internal],
-					}
-				).field(entityFieldReference.fieldName, {
+			<ResourceBoundary resource={selection({
 					sources: [Source.Local_Internal],
 				})} placeholderText="Loading sessions…">
 				{#snippet children(sessions)}

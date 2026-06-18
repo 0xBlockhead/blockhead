@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -25,7 +25,7 @@
 	} = $props()
 
 	const network = $derived(
-		proxy(
+		select(
 			EntityType.Network,
 			selector.$network,
 			{
@@ -45,7 +45,7 @@
 	)
 
 	const bittensorNetwork = $derived(
-		proxy(
+		select(
 			EntityType.BittensorNetwork,
 			selector,
 			{
@@ -119,8 +119,7 @@
 		<dl class="network-summary-head" data-column-item="center">
 			<ResourceBoundary resource={bittensorNetwork}>
 				{#snippet children(bittensorNetwork)}
-					{@const block = bittensorNetwork.fields.$$blocks?.values.at(0)}
-					{@const subnetCount = bittensorNetwork.fields.$$subnets?.values.length ?? 0}
+						{@const subnetCount = bittensorNetwork.fields.$$subnets.values.length }
 					{#if block != null}
 						<div>
 							<dt>Finalized block</dt>
@@ -144,7 +143,7 @@
 
 			<ResourceBoundary resource={network}>
 				{#snippet children(network)}
-					{@const nativeAssetCount = network.fields.$$nativeAssets?.values.length ?? 0}
+					{@const nativeAssetCount = network.fields.$$nativeAssets.values.length }
 					<div>
 						<dt>Environment</dt>
 						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
@@ -207,7 +206,7 @@
 			{#snippet SectionBittensorSubtensor()}
 				<ResourceBoundary resource={bittensorNetwork}>
 					{#snippet children(bittensorNetwork)}
-						{@const block = bittensorNetwork.fields.$$blocks?.values.at(0)}
+						{@const block = bittensorNetwork.fields.$$blocks.values.at(0)}
 						<div>
 							{#if block != null}
 								<BittensorBlockView
@@ -223,11 +222,10 @@
 			{#snippet SectionBittensorBlocks()}
 				<BittensorBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.BittensorNetwork,
-						selector,
-						fieldName: '$$blocks',
-					}}
+					selection={select(
+			EntityType.BittensorNetwork,
+			selector
+		).$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${networkSelectorKey}:bittensor-blocks-bittensorNetworks`}
 					title="Blocks"
@@ -237,11 +235,10 @@
 			{#snippet SectionBittensorSubnets()}
 				<BittensorSubnetsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.BittensorNetwork,
-						selector,
-						fieldName: '$$subnets',
-					}}
+					selection={select(
+			EntityType.BittensorNetwork,
+			selector
+		).$$subnets}
 					id={`${networkSelectorKey}:bittensor-subnets-bittensorNetworks`}
 				/>
 			{/snippet}
@@ -273,11 +270,10 @@
 			{#snippet SectionBittensorNeurons()}
 				<BittensorSubnetsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.BittensorNetwork,
-						selector,
-						fieldName: '$$subnets',
-					}}
+					selection={select(
+			EntityType.BittensorNetwork,
+			selector
+		).$$subnets}
 					id={`${networkSelectorKey}:bittensor-neuron-subnets-bittensorNetworks`}
 					title="Neuron subnets"
 				/>
@@ -286,7 +282,7 @@
 			{#snippet SectionBittensorConsensus()}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-						{@const consensusMechanismCount = network.fields.$$consensusMechanisms?.values.length ?? 0}
+						{@const consensusMechanismCount = network.fields.$$consensusMechanisms.values.length }
 						<div>
 							{#if consensusMechanismCount > 0}
 								<p><strong>Consensus:</strong> {consensusMechanismCount}</p>
@@ -294,11 +290,10 @@
 
 							<BittensorNetwork_TimestampsView
 								CollapsibleProps={{ canToggle: false }}
-								entityFieldReference={{
-									entityType: EntityType.BittensorNetwork,
-									selector,
-									fieldName: '$$timestamps',
-								}}
+								selection={select(
+			EntityType.BittensorNetwork,
+			selector
+		).$$timestamps}
 								id={`${networkSelectorKey}:bittensor-consensus-snapshots`}
 								title="Network snapshots"
 							/>
@@ -328,11 +323,10 @@
 			{#snippet SectionBittensorAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$nativeAssets',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -341,7 +335,7 @@
 			{#snippet SectionBittensorAssetsSubnets()}
 				<ResourceBoundary resource={bittensorNetwork}>
 					{#snippet children(bittensorNetwork)}
-						<p><strong>Subnet assets:</strong> {bittensorNetwork.fields.$$subnets?.values.length ?? 0} alpha-token markets are represented by subnet identities and DynamicInfo wire snapshots.</p>
+						<p><strong>Subnet assets:</strong> {bittensorNetwork.fields.$$subnets.values.length } alpha-token markets are represented by subnet identities and DynamicInfo wire snapshots.</p>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
@@ -374,11 +368,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$faucetUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -392,11 +385,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$blockExplorerUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

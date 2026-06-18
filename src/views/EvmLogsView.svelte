@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntitySelector } from '$/schema/$schema.ts'
@@ -11,23 +13,22 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Receipt logs',
 		open = $bindable(true),
 		collapsible = true,
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: {
-				entityType: EntityType.EvmTransaction
-				selector: EntitySelector<typeof schema, EntityType.EvmTransaction>
-				fieldName: '$$logs'
-			}
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -76,10 +77,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-					).field(entityFieldReference.fieldName, {
+				resource={selection({
 						sources: [
 							Source.Blockscout_Rest,
 							Source.Voltaire_JsonRpc,

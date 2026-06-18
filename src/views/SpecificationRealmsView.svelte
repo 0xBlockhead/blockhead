@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { entityDefinitionByType, schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,7 +12,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { goto } from '$app/navigation'
 	import { getIsInsidePage } from '$/context/isInsidePage.ts'
 
@@ -30,7 +31,7 @@
 		title = 'Specification realms',
 
 		open = $bindable(true),
-		entityFieldReference,
+		selection,
 		href = resolve('/proposals'),
 
 		collapsible = true,
@@ -47,7 +48,11 @@
 		...articleElementProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.SpecificationRealm>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -101,13 +106,7 @@
 	}
 
 
-	const specificationRealms = $derived(proxy(
-		entityFieldReference.entityType,
-		entityFieldReference.selector,
-		{
-			sources: [Source.Constants_Internal],
-		}
-	).field(entityFieldReference.fieldName, {
+	const specificationRealms = $derived(selection({
 		limit: 512,
 		fields: {
 			label: true,
@@ -115,24 +114,17 @@
 	}))
 
 	// Functions
-	const specificationRealmKey = (specificationRealm: NonNullable<typeof specificationRealms.current>['entities'][number]) => (
+	const specificationRealmKey = (specificationRealm: { entitySelector: EntitySelector<typeof schema, EntityType.SpecificationRealm> }) => (
 		stringify(specificationRealm.entitySelector)
 	)
 
-	const realmPanelDomId = (realm: NonNullable<typeof specificationRealms.current>['entities'][number]) => (
+	const realmPanelDomId = (realm: { entitySelector: EntitySelector<typeof schema, EntityType.SpecificationRealm> }) => (
 		`proposal-realm:${realm.entitySelector.realm}:proposal-kinds`
 	)
 
 
 
 	// (Derived)
-	const count = $derived(
-		specificationRealms.ready ?
-			specificationRealms.current!.entities.length
-		:
-			0,
-	)
-
 	const totalCount = $derived(
 		placeholderKeys.size > 0 ?
 			placeholderKeys.size
@@ -143,9 +135,7 @@
 	const showCounts = $derived(true)
 
 	const showTotalCount = $derived(
-		count !== undefined
-		&& totalCount !== undefined
-		&& totalCount !== count,
+		totalCount !== undefined,
 	)
 
 
@@ -193,21 +183,18 @@
 				{:else if !showSummary}
 					<div {...standaloneRealmPanelsProps}>
 						{#each specificationRealms.entities.toSorted((first, second) => (
-								(first.current?.label ?? stringify(first.entitySelector)).localeCompare(
-									second.current?.label ?? stringify(second.entitySelector),
-								)
+								String(first.entitySelector.realm).localeCompare(String(second.entitySelector.realm))
 							)) as specificationRealm (specificationRealmKey(specificationRealm))}
-							<section data-scroll-marker-label={specificationRealm.current?.label ?? String(specificationRealm.entitySelector.realm)}>
+							<section data-scroll-marker-label={String(specificationRealm.entitySelector.realm)}>
 								<ProposalKindsView
 									collapsible={false}
-									entityFieldReference={{
-										entityType: EntityType.SpecificationRealm,
-										selector: { realm: specificationRealm.entitySelector.realm },
-										fieldName: '$$proposalKinds',
-									}}
+									selection={select(
+										EntityType.SpecificationRealm,
+										{ realm: specificationRealm.entitySelector.realm }
+									).$$proposalKinds}
 									id={realmPanelDomId(specificationRealm)}
 									open
-									title={specificationRealm.current?.label ?? String(specificationRealm.entitySelector.realm)}
+									title={String(specificationRealm.entitySelector.realm)}
 								/>
 							</section>
 						{/each}
@@ -247,7 +234,7 @@
 									<HeadingComponent {...HeadingProps}>
 										<a {href}>{title}</a>
 										{#if showCounts}
-											<small>({#if count !== undefined}<NumberValue value={count} />{/if}{#if showTotalCount} / {/if}{#if showTotalCount}<NumberValue value={totalCount!} />{/if}{#if count === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
+											<small>({#if showTotalCount}<NumberValue value={totalCount!} />{/if})</small>
 										{/if}
 									</HeadingComponent>
 								</header>
@@ -270,21 +257,18 @@
 
 						{#snippet SectionRealms({ id: _sectionId, label: _sectionLabel })}
 							{#each specificationRealms.entities.toSorted((first, second) => (
-								(first.current?.label ?? stringify(first.entitySelector)).localeCompare(
-									second.current?.label ?? stringify(second.entitySelector),
-								)
+								String(first.entitySelector.realm).localeCompare(String(second.entitySelector.realm))
 							)) as specificationRealm (specificationRealmKey(specificationRealm))}
 								<section id={realmPanelDomId(specificationRealm)}>
 									<ProposalKindsView
 										CollapsibleProps={{ canToggle: false }}
-										entityFieldReference={{
-											entityType: EntityType.SpecificationRealm,
-											selector: { realm: specificationRealm.entitySelector.realm },
-											fieldName: '$$proposalKinds',
-										}}
+										selection={select(
+											EntityType.SpecificationRealm,
+											{ realm: specificationRealm.entitySelector.realm }
+										).$$proposalKinds}
 										id={realmPanelDomId(specificationRealm)}
 										open
-										title={specificationRealm.current?.label ?? String(specificationRealm.entitySelector.realm)}
+										title={String(specificationRealm.entitySelector.realm)}
 									/>
 								</section>
 							{/each}
@@ -306,7 +290,7 @@
 										<HeadingComponent {...HeadingProps}>
 											<a {href}>{title}</a>
 											{#if showCounts}
-												<small>({#if count !== undefined}<NumberValue value={count} />{/if}{#if showTotalCount} / {/if}{#if showTotalCount}<NumberValue value={totalCount!} />{/if}{#if count === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
+												<small>({#if showTotalCount}<NumberValue value={totalCount!} />{/if})</small>
 											{/if}
 										</HeadingComponent>
 									</header>
@@ -331,14 +315,12 @@
 									data-row-item="flexible"
 								>
 									{#each specificationRealms.entities.toSorted((first, second) => (
-								(first.current?.label ?? stringify(first.entitySelector)).localeCompare(
-									second.current?.label ?? stringify(second.entitySelector),
-								)
+								String(first.entitySelector.realm).localeCompare(String(second.entitySelector.realm))
 							)) as specificationRealm (specificationRealmKey(specificationRealm))}
 										<a
-											data-scroll-marker-label={specificationRealm.current?.label ?? String(specificationRealm.entitySelector.realm)}
+											data-scroll-marker-label={String(specificationRealm.entitySelector.realm)}
 											href={`#${realmPanelDomId(specificationRealm)}`}
-										>{specificationRealm.current?.label ?? String(specificationRealm.entitySelector.realm)}</a>
+										>{String(specificationRealm.entitySelector.realm)}</a>
 									{/each}
 								</div>
 
@@ -355,21 +337,18 @@
 						>
 							<div {...standaloneRealmPanelsProps}>
 								{#each specificationRealms.entities.toSorted((first, second) => (
-								(first.current?.label ?? stringify(first.entitySelector)).localeCompare(
-									second.current?.label ?? stringify(second.entitySelector),
-								)
+								String(first.entitySelector.realm).localeCompare(String(second.entitySelector.realm))
 							)) as specificationRealm (specificationRealmKey(specificationRealm))}
-									<section data-scroll-marker-label={specificationRealm.current?.label ?? String(specificationRealm.entitySelector.realm)}>
+									<section data-scroll-marker-label={String(specificationRealm.entitySelector.realm)}>
 										<ProposalKindsView
 											collapsible={false}
-											entityFieldReference={{
-												entityType: EntityType.SpecificationRealm,
-												selector: { realm: specificationRealm.entitySelector.realm },
-												fieldName: '$$proposalKinds',
-											}}
+											selection={select(
+												EntityType.SpecificationRealm,
+												{ realm: specificationRealm.entitySelector.realm }
+											).$$proposalKinds}
 											id={realmPanelDomId(specificationRealm)}
 											open
-											title={specificationRealm.current?.label ?? String(specificationRealm.entitySelector.realm)}
+											title={String(specificationRealm.entitySelector.realm)}
 										/>
 									</section>
 								{/each}

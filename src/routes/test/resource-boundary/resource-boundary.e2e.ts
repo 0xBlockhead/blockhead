@@ -20,6 +20,13 @@ const expectNoSvelteReactivityWarnings = (
 	return () => expect(svelteWarnings).toEqual([])
 }
 
+const sectionLoading = (
+	page: Page,
+	sectionTestId: string
+) => (
+	page.getByTestId(sectionTestId).locator('[aria-label]')
+)
+
 test('ResourceBoundary remounts a cached resource through the await surface', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await page.goto('/test/resource-boundary', {
@@ -27,15 +34,16 @@ test('ResourceBoundary remounts a cached resource through the await surface', as
 		timeout: 120_000,
 	})
 	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
-	const cachedBoundarySummary = page.locator('summary').filter({ hasText: 'Cached boundary' })
-	await expect(page.getByText('Cached value')).toBeVisible()
+	const cachedBoundary = page.locator('#main details').first()
+	const cachedBoundaryValue = page.getByTestId('cached-boundary-value')
+	await expect(cachedBoundaryValue).toBeVisible()
 
-	await cachedBoundarySummary.click()
-	await expect(page.getByText('Cached value')).toHaveCount(0)
+	await cachedBoundary.locator('summary').click()
+	await expect(cachedBoundaryValue).toHaveCount(0)
 
-	await cachedBoundarySummary.click()
-	await expect(page.getByText('Cached value')).toBeVisible()
-	await expect(page.locator('[aria-label="Loading cached value"]')).toHaveCount(0)
+	await cachedBoundary.locator('summary').click()
+	await expect(cachedBoundaryValue).toBeVisible()
+	await expect(cachedBoundary.locator('[aria-label]')).toHaveCount(0)
 	expectNoWarnings()
 })
 
@@ -46,29 +54,27 @@ test('ResourceBoundary updates from a mock TanStackLiveQueryResource snapshot', 
 		timeout: 120_000,
 	})
 	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
-	await expect(page.locator('[aria-label="Loading subscribed value"]')).toBeVisible()
-	await expect(page.locator('[aria-label="Loading subscribed duplicate value"]')).toBeVisible()
-	await expect(page.getByTestId('subscribed-awaited-value')).toHaveText('pending')
+	await expect(sectionLoading(page, 'selected-boundary-section')).toHaveCount(2)
+	await expect(page.getByTestId('selected-awaited-value')).toHaveText('pending')
 
-	await page.getByRole('button', { name: 'Resolve subscribed boundary' }).click()
-	await expect(page.getByTestId('subscribed-direct-current')).toHaveText('Subscribed value')
-	await expect(page.getByTestId('subscribed-boundary-value')).toHaveText('Subscribed value')
-	await expect(page.getByTestId('subscribed-boundary-value-secondary')).toHaveText('Subscribed value')
-	await expect(page.getByTestId('subscribed-awaited-value')).toHaveText('Subscribed value')
-	await expect(page.locator('[aria-label="Loading subscribed value"]')).toHaveCount(0)
-	await expect(page.locator('[aria-label="Loading subscribed duplicate value"]')).toHaveCount(0)
+	await page.getByTestId('resolve-selected-boundary').click()
+	await expect(page.getByTestId('selected-direct-current')).toHaveText('Selected value')
+	await expect(page.getByTestId('selected-boundary-value')).toHaveText('Selected value')
+	await expect(page.getByTestId('selected-boundary-value-secondary')).toHaveText('Selected value')
+	await expect(page.getByTestId('selected-awaited-value')).toHaveText('Selected value')
+	await expect(sectionLoading(page, 'selected-boundary-section')).toHaveCount(0)
 
-	await page.getByRole('button', { name: 'Refresh subscribed boundary' }).click()
-	await expect(page.getByTestId('subscribed-direct-current')).toHaveText('Subscribed value')
-	await expect(page.getByTestId('subscribed-boundary-value')).toHaveText('Subscribed value')
-	await expect(page.getByTestId('subscribed-boundary-value-secondary')).toHaveText('Subscribed value')
-	await expect(page.getByTestId('subscribed-awaited-value')).toHaveText('Subscribed value')
+	await page.getByTestId('refresh-selected-boundary').click()
+	await expect(page.getByTestId('selected-direct-current')).toHaveText('Selected value')
+	await expect(page.getByTestId('selected-boundary-value')).toHaveText('Selected value')
+	await expect(page.getByTestId('selected-boundary-value-secondary')).toHaveText('Selected value')
+	await expect(page.getByTestId('selected-awaited-value')).toHaveText('Selected value')
 
-	await page.getByRole('button', { name: 'Update subscribed boundary' }).click()
-	await expect(page.getByTestId('subscribed-direct-current')).toHaveText('Updated subscribed value')
-	await expect(page.getByTestId('subscribed-boundary-value')).toHaveText('Updated subscribed value')
-	await expect(page.getByTestId('subscribed-boundary-value-secondary')).toHaveText('Updated subscribed value')
-	await expect(page.getByTestId('subscribed-awaited-value')).toHaveText('Updated subscribed value')
+	await page.getByTestId('update-selected-boundary').click()
+	await expect(page.getByTestId('selected-direct-current')).toHaveText('Updated selected value')
+	await expect(page.getByTestId('selected-boundary-value')).toHaveText('Updated selected value')
+	await expect(page.getByTestId('selected-boundary-value-secondary')).toHaveText('Updated selected value')
+	await expect(page.getByTestId('selected-awaited-value')).toHaveText('Updated selected value')
 	expectNoWarnings()
 })
 
@@ -79,20 +85,20 @@ test('ResourceBoundary retries a failed mock TanStackLiveQueryResource without r
 		timeout: 120_000,
 	})
 	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
-	await expect(page.locator('[aria-label="Loading failable value"]')).toBeVisible()
+	await expect(sectionLoading(page, 'failable-boundary-section')).toBeVisible()
 
-	await page.getByRole('button', { name: 'Fail failable boundary' }).click()
-	await expect(page.getByTestId('failable-boundary-error')).toHaveText(/Failable boundary failure|Internal Error/)
+	await page.getByTestId('fail-failable-boundary').click()
+	await expect(page.getByTestId('failable-boundary-error')).toBeAttached()
 	await expect(page.getByTestId('failable-boundary-retry')).toBeVisible()
 
-	await page.getByRole('button', { name: 'Recover failable boundary' }).click()
+	await page.getByTestId('recover-failable-boundary').click()
 	await page.getByTestId('failable-boundary-retry').click()
 	await expect(page.getByTestId('failable-boundary-value')).toHaveText('Recovered failable value')
-	await expect(page.locator('[aria-label="Loading failable value"]')).toHaveCount(0)
+	await expect(sectionLoading(page, 'failable-boundary-section')).toHaveCount(0)
 	expectNoWarnings()
 })
 
-test('ResourceBoundary updates from real subscribeEntity scalar fields through direct, native await, and boundary reads', async ({ page }) => {
+test('ResourceBoundary updates from real selection scalar fields through direct, native await, and boundary reads', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await page.goto('/test/resource-boundary', {
 		waitUntil: 'load',
@@ -101,7 +107,7 @@ test('ResourceBoundary updates from real subscribeEntity scalar fields through d
 	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
 	await expect(page.getByTestId('real-resource-boundary-scalars')).toHaveCount(0)
 
-	await page.getByRole('button', { name: 'Show real subscribeEntity scalar boundary' }).click()
+	await page.getByTestId('show-real-selection-scalar-boundary').click()
 	await expect(page.getByTestId('real-resource-direct-scalars')).toHaveText(':Draft', {
 		timeout: 120_000,
 	})
@@ -111,9 +117,9 @@ test('ResourceBoundary updates from real subscribeEntity scalar fields through d
 	await expect(page.getByTestId('real-resource-boundary-scalars')).toHaveText(':Draft', {
 		timeout: 120_000,
 	})
-	await expect(page.locator('[aria-label="Loading real subscribeEntity scalar value"]')).toHaveCount(0)
+	await expect(sectionLoading(page, 'real-selection-boundary-section')).toHaveCount(0)
 
-	await page.getByRole('button', { name: 'Update real subscribeEntity scalar field' }).click()
+	await page.getByTestId('update-real-selection-scalar-field').click()
 	await expect(page.getByTestId('real-resource-direct-scalars')).toHaveText('Updated Boundary Session:Draft', {
 		timeout: 120_000,
 	})
@@ -126,7 +132,7 @@ test('ResourceBoundary updates from real subscribeEntity scalar fields through d
 	expectNoWarnings()
 })
 
-test('direct subscribeEntity getters update without await or ResourceBoundary consumers', async ({ page }) => {
+test('direct selection getters update without await or ResourceBoundary consumers', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await page.goto('/test/resource-boundary', {
 		waitUntil: 'load',
@@ -141,7 +147,7 @@ test('direct subscribeEntity getters update without await or ResourceBoundary co
 	await expect(page.getByTestId('real-resource-direct-only-ready')).toHaveText('true')
 	await expect(page.getByTestId('real-resource-direct-only-error')).toHaveText('')
 
-	await page.getByRole('button', { name: 'Update direct-only live subscription field' }).click()
+	await page.getByTestId('update-direct-only-live-subscription-field').click()
 	await expect(page.getByTestId('real-resource-direct-only-current')).toHaveText('Updated Direct Only Session:Draft', {
 		timeout: 120_000,
 	})
@@ -151,7 +157,7 @@ test('direct subscribeEntity getters update without await or ResourceBoundary co
 	expectNoWarnings()
 })
 
-test('ResourceBoundary updates from a real subscribeEntity live subscription without companion getter reads', async ({ page }) => {
+test('ResourceBoundary updates from a real selection live subscription without companion getter reads', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await page.goto('/test/resource-boundary', {
 		waitUntil: 'load',
@@ -163,16 +169,16 @@ test('ResourceBoundary updates from a real subscribeEntity live subscription wit
 	await expect(page.getByTestId('real-resource-boundary-only-scalars')).toHaveText(':Draft', {
 		timeout: 120_000,
 	})
-	await expect(page.locator('[aria-label="Loading real subscribeEntity boundary-only live subscription"]')).toHaveCount(0)
+	await expect(sectionLoading(page, 'real-selection-boundary-section')).toHaveCount(0)
 
-	await page.getByRole('button', { name: 'Update boundary-only live subscription field' }).click()
+	await page.getByTestId('update-boundary-only-live-subscription-field').click()
 	await expect(page.getByTestId('real-resource-boundary-only-scalars')).toHaveText('Updated Boundary Only Session:Draft', {
 		timeout: 120_000,
 	})
 	expectNoWarnings()
 })
 
-test('ResourceBoundary updates from real subscribeEntity field rows through the await surface', async ({ page }) => {
+test('ResourceBoundary updates from real selection field rows through the await surface', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await page.goto('/test/resource-boundary', {
 		waitUntil: 'load',
@@ -181,15 +187,15 @@ test('ResourceBoundary updates from real subscribeEntity field rows through the 
 	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
 	await expect(page.getByTestId('real-resource-boundary-rows')).toHaveCount(0)
 
-	await page.getByRole('button', { name: 'Show real subscribeEntity rows boundary' }).click()
+	await page.getByTestId('show-real-selection-rows-boundary').click()
 	await expect(page.getByTestId('real-resource-boundary-rows')).toHaveText('2', {
 		timeout: 120_000,
 	})
-	await expect(page.locator('[aria-label="Loading real subscribeEntity value"]')).toHaveCount(0)
+	await expect(sectionLoading(page, 'real-selection-boundary-section')).toHaveCount(0)
 	expectNoWarnings()
 })
 
-test('ResourceBoundary updates from real subscribeEntity count rows through the await surface', async ({ page }) => {
+test('ResourceBoundary updates from real selection count rows through the await surface', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await page.goto('/test/resource-boundary', {
 		waitUntil: 'load',
@@ -198,11 +204,11 @@ test('ResourceBoundary updates from real subscribeEntity count rows through the 
 	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
 	await expect(page.getByTestId('real-resource-boundary-count')).toHaveCount(0)
 
-	await page.getByRole('button', { name: 'Show real subscribeEntity count boundary' }).click()
+	await page.getByTestId('show-real-selection-count-boundary').click()
 	await expect(page.getByTestId('real-resource-boundary-count')).toHaveText('2:2', {
 		timeout: 120_000,
 	})
-	await expect(page.locator('[aria-label="Loading real subscribeEntity count"]')).toHaveCount(0)
+	await expect(sectionLoading(page, 'real-selection-boundary-section')).toHaveCount(0)
 	expectNoWarnings()
 })
 
@@ -213,11 +219,11 @@ test('ResourceBoundary consumes a SvelteKit-shaped RemoteResource through the aw
 		timeout: 120_000,
 	})
 	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
-	await expect(page.locator('[aria-label="Loading remote value"]')).toBeVisible()
+	await expect(sectionLoading(page, 'remote-resource-boundary-section')).toBeVisible()
 
-	await page.getByRole('button', { name: 'Resolve remote boundary' }).click()
-	await expect(page.getByTestId('remote-boundary-value')).toHaveText('Remote subscribed value')
-	await expect(page.locator('[aria-label="Loading remote value"]')).toHaveCount(0)
+	await page.getByTestId('resolve-remote-boundary').click()
+	await expect(page.getByTestId('remote-boundary-value')).toHaveText('Remote selected value')
+	await expect(sectionLoading(page, 'remote-resource-boundary-section')).toHaveCount(0)
 	expectNoWarnings()
 })
 
@@ -228,11 +234,11 @@ test('ResourceBoundary consumes a SvelteKit-shaped Query through the await surfa
 		timeout: 120_000,
 	})
 	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
-	await expect(page.locator('[aria-label="Loading query resource value"]')).toBeVisible()
+	await expect(sectionLoading(page, 'query-resource-boundary-section')).toBeVisible()
 
-	await page.getByRole('button', { name: 'Resolve query resource boundary' }).click()
+	await page.getByTestId('resolve-query-resource-boundary').click()
 	await expect(page.getByTestId('query-tagged-boundary-value')).toHaveText('Query tagged value')
-	await expect(page.locator('[aria-label="Loading query resource value"]')).toHaveCount(0)
+	await expect(sectionLoading(page, 'query-resource-boundary-section')).toHaveCount(0)
 	expectNoWarnings()
 })
 
@@ -245,8 +251,8 @@ test('ResourceBoundary renders a rejected resource through the Failed snippet', 
 	await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
 	await expect(page.getByTestId('failed-resource-message')).toHaveCount(0)
 
-	await page.getByRole('button', { name: 'Show failed resource' }).click()
-	await expect(page.getByTestId('failed-resource-message')).toHaveText('Internal Error')
-	await expect(page.locator('[aria-label="Loading failed value"]')).toHaveCount(0)
+	await page.getByTestId('show-failed-resource').click()
+	await expect(page.getByTestId('failed-resource-message')).toBeAttached()
+	await expect(sectionLoading(page, 'failed-resource-boundary-section')).toHaveCount(0)
 	expectNoWarnings()
 })

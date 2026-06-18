@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -24,11 +24,11 @@
 		open?: boolean
 	} = $props()
 
-	const network = $derived(proxy(EntityType.Network, selector, ({ sources: [
+	const network = $derived(select(EntityType.Network, selector, ({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } })))
 
-	const zeroGNetwork = $derived(proxy(EntityType.ZeroGNetwork, {
+	const zeroGNetwork = $derived(select(EntityType.ZeroGNetwork, {
 			slug: '0g',
 		}, ({ sources: [
 				Source.Constants_Internal,
@@ -102,7 +102,7 @@
 				<dl class="network-summary-head" data-column-item="center">
 						<ResourceBoundary resource={zeroGNetwork}>
 							{#snippet children(zeroGNetwork)}
-								{@const block = zeroGNetwork.fields.$$blocks?.values.at(0)}
+								{@const block = zeroGNetwork.fields.$$blocks.values.at(0)}
 								{#if block != null}
 									<div>
 										<dt>Head block</dt>
@@ -123,10 +123,10 @@
 						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 					</div>
 
-						{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
+						{#if (network.fields.$$nativeAssets.values.length ) > 0}
 							<div>
 								<dt>Native asset</dt>
-								<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
+								<dd>{network.fields.$$nativeAssets.values.length }</dd>
 							</div>
 						{/if}
 					</dl>
@@ -158,13 +158,12 @@
 			{#snippet Section0gBlocks({ id, label }: { id: string, label: string })}
 				<ZeroGBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.ZeroGNetwork,
-						selector: {
+					selection={select(
+			EntityType.ZeroGNetwork,
+			{
 							slug: '0g',
-						},
-						fieldName: '$$blocks',
-					}}
+						}
+		).$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -174,13 +173,12 @@
 			{#snippet Section0gSnapshots({ id, label }: { id: string, label: string })}
 				<ZeroGNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.ZeroGNetwork,
-						selector: {
+					selection={select(
+			EntityType.ZeroGNetwork,
+			{
 							slug: '0g',
-						},
-						fieldName: '$$timestamps',
-					}}
+						}
+		).$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -243,13 +241,12 @@
 			{#snippet Section0gDataBlobs({ id, label }: { id: string, label: string })}
 				<ZeroGDataBlobsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.ZeroGNetwork,
-						selector: {
+					selection={select(
+			EntityType.ZeroGNetwork,
+			{
 							slug: '0g',
-						},
-						fieldName: '$$dataBlobs',
-					}}
+						}
+		).$$dataBlobs}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -258,95 +255,12 @@
 			{#snippet Section0gStorageNodes({ id, label }: { id: string, label: string })}
 				<ZeroGStorageNodesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.ZeroGNetwork,
-						selector: {
+					selection={select(
+			EntityType.ZeroGNetwork,
+			{
 							slug: '0g',
-						},
-						fieldName: '$$storageNodes',
-					}}
-					id={`${id}-list`}
-					title={label}
-				/>
-			{/snippet}
-		</CollapsibleTabs>
-
-		<CollapsibleTabs
-			id={`${networkSelectorKey}:carousel-0g-assets`}
-			sectionIdPrefix={networkSelectorKey}
-			sections={[
-				{ id: '0g-assets-native', label: 'Native coin' },
-			]}
-			data-card
-			class="network-view-collapsible-assets"
-			scrollContainerProps={{ 'data-row': 'start align-start' }}
-				>
-				{#snippet Summary()}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Assets</HeadingComponent>
-				</header>
-				{/snippet}
-
-				{#snippet Section0gAssetsNative({ id, label }: { id: string, label: string })}
-				<AssetInstancesView
-			CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$nativeAssets',
-					}}
-					id={`${id}-list`}
-					title={label}
-				/>
-			{/snippet}
-		</CollapsibleTabs>
-
-		<CollapsibleTabs
-			id={`${networkSelectorKey}:carousel-0g-resources`}
-			sectionIdPrefix={networkSelectorKey}
-			sections={[
-				{ id: '0g-resources-faucets', label: 'Faucets' },
-				{ id: '0g-resources-block-explorers', label: 'Block explorers' },
-			]}
-			data-card
-			class="network-view-collapsible-resources"
-			scrollContainerProps={{
-				'data-row': 'start align-start',
-			}}
-		>
-			{#snippet Summary()}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Resources</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet Section0gResourcesFaucets({ id, label }: { id: string, label: string })}
-				<UrlsView
-					CollapsibleProps={{ canToggle: false }}
-					emptyText="No faucets listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$faucetUrls',
-					}}
-					fieldSources={[
-						Source.Constants_Internal,
-					]}
-					href={href ?? ''}
-					id={`${id}-list`}
-					title={label}
-				/>
-			{/snippet}
-
-			{#snippet Section0gResourcesBlockExplorers({ id, label }: { id: string, label: string })}
-				<UrlsView
-					CollapsibleProps={{ canToggle: false }}
-					emptyText="No block explorers listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$blockExplorerUrls',
-					}}
+						}
+		).$$storageNodes}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

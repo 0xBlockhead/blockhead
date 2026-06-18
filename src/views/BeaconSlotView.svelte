@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -17,7 +17,7 @@
 	let {
 		selector,
 			href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(beacon-slots)/slot/[slotNumber]', {
-				caip2: ,
+				caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 				slotNumber: String(selector.slot),
 			}),
 		layout = EntityLayout.Summary,
@@ -38,7 +38,7 @@
 		>
 	> = $props()
 
-	const slot = $derived(proxy(EntityType.BeaconSlot,
+	const slot = $derived(select(EntityType.BeaconSlot,
 		selector,
 		({ sources: [
 				Source.Beacon_Rest,
@@ -276,11 +276,10 @@
 			{#snippet SectionSlotCommittees({ id, label })}
 				<BeaconCommitteesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.BeaconSlot,
-						selector,
-						fieldName: '$$beaconCommittees',
-					}}
+					selection={select(
+			EntityType.BeaconSlot,
+			selector
+		).$$beaconCommittees}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -289,11 +288,10 @@
 			{#snippet SectionSlotAttestations({ id, label })}
 				<BeaconAttestationsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.BeaconSlot,
-						selector,
-						fieldName: '$$beaconAttestations',
-					}}
+					selection={select(
+			EntityType.BeaconSlot,
+			selector
+		).$$beaconAttestations}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -302,11 +300,10 @@
 			{#snippet SectionSlotWithdrawals({ id, label })}
 				<BeaconWithdrawalsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.BeaconSlot,
-						selector,
-						fieldName: '$$beaconWithdrawals',
-					}}
+					selection={select(
+			EntityType.BeaconSlot,
+			selector
+		).$$beaconWithdrawals}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -315,11 +312,10 @@
 			{#snippet SectionSlotSlashings({ id, label })}
 				<BeaconSlashingsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.BeaconSlot,
-						selector,
-						fieldName: '$$beaconSlashings',
-					}}
+					selection={select(
+			EntityType.BeaconSlot,
+			selector
+		).$$beaconSlashings}
 					id={`${id}-list`}
 					title={label}
 				/>

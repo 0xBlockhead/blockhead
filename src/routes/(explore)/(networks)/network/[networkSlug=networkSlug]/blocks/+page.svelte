@@ -7,13 +7,13 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
 	} = $props()
 
-	const network = $derived(proxy(EntityType.Network,
+	const network = $derived(select(EntityType.Network,
 		{
 			slug: params.networkSlug,
 		},
@@ -48,157 +48,168 @@
 			})}
 			{#if network.fields.namespace === NetworkNamespace.Bitcoin || network.fields.namespace === NetworkNamespace.BitcoinCash || network.fields.namespace === NetworkNamespace.Litecoin || network.fields.namespace === NetworkNamespace.Dogecoin || network.fields.namespace === NetworkNamespace.Zcash}
 				<UtxoBlocksView
-					entityFieldReference={{
-						entityType: EntityType.UtxoNetwork,
-						selector: {
+					selection={select(
+						EntityType.UtxoNetwork,
+						{
 							$network: network.fields.caip2 == null ?
 								{ slug: network.fields.slug }
 							:
 								{ caip2: network.fields.caip2 },
-						},
-						fieldName: '$$blocks',
-					}}
+						}
+					).$$blocks({
+						limit: 16,
+					})}
 					{href}
 					id="blocks"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.Solana && network.fields.caip2 != null}
 				<SolanaBlocksView
-					entityFieldReference={{
-						entityType: EntityType.SolanaNetwork,
-						selector: {
+					selection={select(
+						EntityType.SolanaNetwork,
+						{
 							caip2: {
 								namespace: 'solana',
 								reference: network.fields.caip2.reference,
 							},
-						},
-						fieldName: '$$blocks',
-					}}
+						}
+					).$$blocks({
+						limit: 16,
+					})}
 					{href}
 					id="blocks"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.Cosmos}
 				<CosmosBlocksView
-					entityFieldReference={{
-						entityType: EntityType.CosmosNetwork,
-						selector: {
+					selection={select(
+						EntityType.CosmosNetwork,
+						{
 							$network: network.fields.caip2 == null ?
 								{ slug: network.fields.slug }
 							:
 								{ caip2: network.fields.caip2 },
-						},
-						fieldName: '$$blocks',
-					}}
+						}
+					).$$blocks({
+						limit: 16,
+					})}
 					{href}
 					id="blocks"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.Filecoin}
 				<FilecoinTipsetsView
-					entityFieldReference={{
-						entityType: EntityType.FilecoinNetwork,
-						selector: {
+					selection={select(
+						EntityType.FilecoinNetwork,
+						{
 							$network: network.fields.caip2 == null ?
 								{ slug: network.fields.slug }
 							:
 								{ caip2: network.fields.caip2 },
-						},
-						fieldName: '$$tipsets',
-					}}
+						}
+					).$$tipsets({
+						limit: 16,
+					})}
 					{href}
 					id="blocks"
 					title="Tipsets"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.Polkadot}
 				<PolkadotBlocksView
-					entityFieldReference={{
-						entityType: EntityType.PolkadotNetwork,
-						selector: {
+					selection={select(
+						EntityType.PolkadotNetwork,
+						{
 							$network: network.fields.caip2 == null ?
 								{ slug: network.fields.slug }
 							:
 								{ caip2: network.fields.caip2 },
-						},
-						fieldName: '$$blocks',
-					}}
+						}
+					).$$blocks({
+						limit: 16,
+					})}
 					{href}
 					id="blocks"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.Near}
 				<NearBlocksView
-					entityFieldReference={{
-						entityType: EntityType.NearNetwork,
-						selector: { slug: 'near' },
-						fieldName: '$$blocks',
-					}}
+					selection={select(
+						EntityType.NearNetwork,
+						{ slug: 'near' }
+					).$$blocks({
+						limit: 16,
+					})}
 					{href}
 					id="blocks"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.Tron}
 				<TronBlocksView
-					entityFieldReference={{
-						entityType: EntityType.TronNetwork,
-						selector: {
+					selection={select(
+						EntityType.TronNetwork,
+						{
 							$network: network.fields.caip2 == null ?
 								{ slug: network.fields.slug }
 							:
 								{ caip2: network.fields.caip2 },
-						},
-						fieldName: '$$blocks',
-					}}
+						}
+					).$$blocks({
+						limit: 16,
+					})}
 					{href}
 					id="blocks"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.Monero}
 				<MoneroBlocksView
-					entityFieldReference={{
-						entityType: EntityType.MoneroNetwork,
-						selector: {
+					selection={select(
+						EntityType.MoneroNetwork,
+						{
 							$network: network.fields.caip2 == null ?
 								{ slug: network.fields.slug }
 							:
 								{ caip2: network.fields.caip2 },
-						},
-						fieldName: '$$blocks',
-					}}
+						}
+					).$$blocks({
+						limit: 16,
+					})}
 					{href}
 					id="blocks"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.Hyperliquid}
 				<HyperliquidBlocksView
-					entityFieldReference={{
-						entityType: EntityType.HyperliquidNetwork,
-						selector: {
+					selection={select(
+						EntityType.HyperliquidNetwork,
+						{
 							$network: network.fields.caip2 == null ?
 								{ slug: network.fields.slug }
 							:
 								{ caip2: network.fields.caip2 },
-						},
-						fieldName: '$$blocks',
-					}}
+						}
+					).$$blocks({
+						limit: 16,
+					})}
 					{href}
 					id="blocks"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.Bittensor}
 				<BittensorBlocksView
-					entityFieldReference={{
-						entityType: EntityType.BittensorNetwork,
-						selector: {
+					selection={select(
+						EntityType.BittensorNetwork,
+						{
 							$network: network.fields.caip2 == null ?
 								{ slug: network.fields.slug }
 							:
 								{ caip2: network.fields.caip2 },
-						},
-						fieldName: '$$blocks',
-					}}
+						}
+					).$$blocks({
+						limit: 16,
+					})}
 					{href}
 					id="blocks"
 				/>
 			{:else if network.fields.namespace === NetworkNamespace.ZeroG}
 				<ZeroGBlocksView
-					entityFieldReference={{
-						entityType: EntityType.ZeroGNetwork,
-						selector: { slug: '0g' },
-						fieldName: '$$blocks',
-					}}
+					selection={select(
+						EntityType.ZeroGNetwork,
+						{ slug: '0g' }
+					).$$blocks({
+						limit: 16,
+					})}
 					{href}
 					id="blocks"
 				/>

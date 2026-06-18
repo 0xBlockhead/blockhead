@@ -36,7 +36,7 @@
 	> = $props()
 
 	import { htmlToPlainText } from '$/lib/html.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	const idKey = $derived(stringify(selector))
 
@@ -50,7 +50,7 @@
 	)
 
 	const actor = $derived(
-		proxy(EntityType.ActivityPubActor,
+		select(EntityType.ActivityPubActor,
 			selector,
 			({
 				sources,
@@ -234,15 +234,15 @@
 							metrics={[
 								{
 									label: 'Followers',
-									value: actor.fields.$$timestamps?.values.at(0)?.followersCount,
+									value: actor.fields.$$timestamps.values.at(0)?.followersCount,
 								},
 								{
 									label: 'Following',
-									value: actor.fields.$$timestamps?.values.at(0)?.followingCount,
+									value: actor.fields.$$timestamps.values.at(0)?.followingCount,
 								},
 								{
 									label: 'Statuses',
-									value: actor.fields.$$timestamps?.values.at(0)?.statusesCount,
+									value: actor.fields.$$timestamps.values.at(0)?.statusesCount,
 								},
 							]}
 						/>
@@ -384,14 +384,13 @@
 							{#if 'instanceOrigin' in selector && localAccountId != null}
 								<ActivityPubNotesView
 									CollapsibleProps={{ canToggle: false }}
-									entityFieldReference={{
-										entityType: EntityType.ActivityPubActor,
-										selector: {
+									selection={select(
+			EntityType.ActivityPubActor,
+			{
 											instanceOrigin: selector.instanceOrigin,
 											localAccountId,
-										},
-										fieldName: '$$notes',
-									}}
+										}
+		).$$notes}
 									fieldOpen={_open}
 									id={`${idKey}:activity-notes-activityPubActors`}
 									orderByCreatedAt="desc"
@@ -413,14 +412,13 @@
 							{@const localAccountId = 'localAccountId' in selector ? selector.localAccountId : actor.fields.localAccountId}
 							{#if 'instanceOrigin' in selector && localAccountId != null}
 								<ActivityPubActor_TimestampsView
-									entityFieldReference={{
-										entityType: EntityType.ActivityPubActor,
-										selector: {
+									selection={select(
+			EntityType.ActivityPubActor,
+			{
 											instanceOrigin: selector.instanceOrigin,
 											localAccountId,
-										},
-										fieldName: '$$timestamps',
-									}}
+										}
+		).$$timestamps}
 									href={resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
 										instanceOrigin: encodeURIComponent(selector.instanceOrigin),
 										localAccountId,

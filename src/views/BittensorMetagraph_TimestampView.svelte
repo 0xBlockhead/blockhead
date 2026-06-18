@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -19,7 +19,7 @@
 		open?: boolean
 	} = $props()
 
-	const metagraph = $derived(proxy(EntityType.BittensorMetagraph_Timestamp,
+	const metagraph = $derived(select(EntityType.BittensorMetagraph_Timestamp,
 		selector,
 		({ sources: [
 				Source.Bittensor_JsonRpc,

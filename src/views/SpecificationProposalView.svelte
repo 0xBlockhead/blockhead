@@ -17,7 +17,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -72,7 +72,7 @@
 	}
 
 
-	const proposal = $derived(proxy(EntityType.SpecificationProposal,
+	const proposal = $derived(select(EntityType.SpecificationProposal,
 		selector,
 		({ sources: [
 				selector.realm === SpecificationRealm.Bitcoin && selector.category === ProposalCategory.Bip ?
@@ -115,7 +115,7 @@
 			], fields: { documentBody: true, documentCategory: true, documentStatus: true, documentTitle: true } }),
 	))
 
-	const specificationRealm = $derived(proxy(EntityType.SpecificationRealm,
+	const specificationRealm = $derived(select(EntityType.SpecificationRealm,
 		{
 			realm: selector.realm,
 		},
@@ -124,7 +124,7 @@
 			], fields: { label: true, slug: true } }),
 	))
 
-	const proposalKind = $derived(proxy(EntityType.SpecificationProposalKind,
+	const proposalKind = $derived(select(EntityType.SpecificationProposalKind,
 		{
 			realm: selector.realm,
 			category: selector.category,

@@ -30,11 +30,7 @@ test.describe('/network/[networkSlug]/governance', () => {
 			await step(expect(page.locator('#main')).toBeAttached({
 				timeout: routeViewSmokeTimeoutsMs.mainSelector,
 			}))
-			await step(expect(page.getByRole('heading', { name: 'Governance' }).first()).toBeAttached({
-				timeout: routeViewSmokeTimeoutsMs.mainSelector,
-			}))
-			await step(expect(page.getByText('Internal Error')).toHaveCount(0))
-			await step(expect(page.locator('#main').locator('[data-error]')).toHaveCount(0))
+			await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
 			await step(assertMainSettled(page, routeViewSmokeTimeoutsMs.mainSelector))
 		}
 		catch (error) {

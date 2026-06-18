@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -9,11 +10,9 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id = 'accounts',
 		title = 'Accounts',
 		open = $bindable(true),
@@ -21,9 +20,10 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<
+			selection: EntityProxyFieldResource<
 				typeof schema,
-				EntityType.BlockheadFarcasterAccountConnection
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
 			>
 			id?: string
 			title?: string
@@ -69,21 +69,14 @@
 	{/snippet}
 
 	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			{@const global = proxy(EntityType._Global,
-				entityFieldReference.selector,
-				({
-					sources: [Source.Local_Internal],
-					fields: {
-						[entityFieldReference.fieldName]: true,
-					},
-				})
-			)}
-			<ResourceBoundary
-				resource={global}
-				placeholderText="Loading connected Farcaster accounts…"
-			>
-				{#snippet children(global)}
+			{#if open}
+				<ResourceBoundary
+					resource={selection({
+						sources: [Source.Local_Internal],
+					})}
+					placeholderText="Loading connected Farcaster accounts…"
+				>
+					{#snippet children(connections)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
@@ -91,7 +84,7 @@
 						id={`${id}-items`}
 						{title}
 						open={true}
-						items={global.fields[entityFieldReference.fieldName]?.values ?? []}
+							items={connections.values}
 						getKey={(connection) => connection[EntityMetaKey.Selector].fid}
 						getSortValue={(connection) => connection[EntityMetaKey.Selector].fid}
 						placeholderText="Loading connected Farcaster accounts…"

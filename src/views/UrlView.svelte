@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,7 +32,7 @@
 		>
 	> = $props()
 
-	const url = $derived(proxy(EntityType.Url,
+	const url = $derived(select(EntityType.Url,
 		selector,
 		({ sources: [
 				Source.Constants_Internal,

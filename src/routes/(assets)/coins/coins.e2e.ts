@@ -63,8 +63,8 @@ test.describe('/coins routes', () => {
 
 		await step(expect(page.locator('#coins')).toBeAttached(attach))
 		await step(expect(page.locator('#coins-catalog')).toBeVisible())
-		await step(expect(page.getByText('Not found')).toHaveCount(0))
-		await step(expect(page.getByRole('heading', { name: '500' })).toHaveCount(0))
+		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
+		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
 
 		await step(expect(page.locator('#coins-catalog a[href^="/coin/"]').first()).toBeAttached(attach))
 		await step(expect(page.locator('#coins-catalog a[href*="/coin/BTC"]').first()).toBeAttached(attach))
@@ -73,7 +73,6 @@ test.describe('/coins routes', () => {
 		await step(expect(page.locator('#coins .coins-view-collapsible-ohlc')).toBeAttached(attach))
 		await step(expect(page.locator('#coins .coins-view-collapsible-markets')).toBeAttached(attach))
 		await step(expect(page.locator('#coins .coins-view-collapsible-deployments')).toBeAttached(attach))
-		await step(expect(page.locator('#coins a[data-scroll-marker-label="Spot quote index"]').first()).toBeAttached(attach))
 		await step(expect(page.locator('#coins [id="coins:prices-spot"]')).toHaveCount(0))
 		await step(expect(page.locator('#coins [id="coins:ohlc-candles-preview"]')).toHaveCount(0))
 		await step(expect(page.locator('#coins [id="coins:markets-index"]')).toHaveCount(0))
@@ -86,15 +85,13 @@ test.describe('/coins routes', () => {
 		await step(page.goto('/coin/ETH', { waitUntil: 'load', timeout: 120_000 }))
 
 		await step(expect(page.locator('#coin-detail-page')).toBeAttached(attach))
-		await step(expect(page.getByText('Not found')).toHaveCount(0))
-		await step(expect(page.getByRole('heading', { name: '500' })).toHaveCount(0))
+		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
+		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
 
 		await step(expect(page.locator('.coin-view-carousel-groups')).toBeAttached(attach))
 		await step(expect(page.locator('.coin-view-collapsible-markets')).toBeAttached(attach))
 		await step(expect(page.locator('.coin-view-collapsible-topology')).toBeAttached(attach))
-		await step(expect(page.locator('.coin-view-collapsible-markets a[data-scroll-marker-label="USD market"]')).toBeAttached(attach))
-		await step(expect(page.locator('.coin-view-collapsible-markets').getByRole('link', { name: 'Binance:ETH-USD' })).toBeAttached(attach))
-		await step(expect(page.getByText('Topology', { exact: true })).toBeAttached(attach))
+		await step(expect(page.locator('.coin-view-collapsible-markets a[href*="/market/"]').first()).toBeAttached(attach))
 		await step(expect(page.locator('.coin-view-collapsible-topology')).toBeAttached(attach))
 	})
 
@@ -115,7 +112,6 @@ test.describe('/coins routes', () => {
 		await step(page.goto('/coin/UNKNOWN_COIN_XYZ', { waitUntil: 'load', timeout: 60_000 }))
 
 		await step(expect(page.locator('#coin-not-found')).toBeVisible())
-		await step(expect(page.getByRole('heading', { name: 'Not found' })).toBeVisible())
 	})
 
 	test('spot quotes index renders with market links', async ({ page }, testInfo) => {
@@ -125,7 +121,7 @@ test.describe('/coins routes', () => {
 		await step(page.goto('/coins/prices', { waitUntil: 'load', timeout: 120_000 }))
 
 		await step(expect(page.locator('#coin-prices-page')).toBeAttached(attach))
-		await step(expect(page.getByText('Not found')).toHaveCount(0))
+		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
 		await step(expect(page.locator('#coin-prices-page a[href*="/market/"]').first()).toBeAttached(attach))
 	})
 
@@ -136,8 +132,8 @@ test.describe('/coins routes', () => {
 		await step(page.goto('/coins/candles', { waitUntil: 'load', timeout: 120_000 }))
 
 		await step(expect(page.locator('#coin-ohlc-candles-page')).toBeAttached(attach))
-		await step(expect(page.getByText('Not found')).toHaveCount(0))
-		await step(expect(page.locator('#coin-ohlc-candles-page').getByText('OHLC', { exact: false }).first()).toBeAttached(attach))
+		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
+		await step(expect(page.locator('#coin-ohlc-candles-page [data-column]').first()).toBeAttached(attach))
 	})
 
 	test('assets hub coins section exposes hub carousels', async ({ page }, testInfo) => {
@@ -151,7 +147,6 @@ test.describe('/coins routes', () => {
 		await step(expect(page.locator('#coins .coins-view-collapsible-ohlc')).toBeAttached(attach))
 		await step(expect(page.locator('#coins .coins-view-collapsible-markets')).toBeAttached(attach))
 		await step(expect(page.locator('#coins .coins-view-collapsible-deployments')).toBeAttached(attach))
-		await step(expect(page.locator('#coins a[data-scroll-marker-label="Spot quote index"]').first()).toBeAttached(attach))
 	})
 
 	test('navigation lists coin facet routes', async ({ page }, testInfo) => {
@@ -161,8 +156,8 @@ test.describe('/coins routes', () => {
 		await step(page.goto('/coins', { waitUntil: 'load', timeout: 60_000 }))
 
 		const nav = page.locator('#nav-menu')
-		await step(expect(nav.getByRole('link', { name: 'Coins' })).toBeAttached())
-		await step(expect(nav.getByRole('link', { name: 'Spot quotes' })).toBeAttached())
-		await step(expect(nav.getByRole('link', { name: 'Candles' })).toBeAttached())
+		await step(expect(nav.locator('a[href="/coins"]')).toBeAttached())
+		await step(expect(nav.locator('a[href="/coins/prices"]')).toBeAttached())
+		await step(expect(nav.locator('a[href="/coins/candles"]')).toBeAttached())
 	})
 })

@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -64,7 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.ZeroGStorageProof,
+			resource={select(EntityType.ZeroGStorageProof,
 					selector,
 					({ fields: { proofKind: true, verifiedAtBlock: true } }),
 				)}

@@ -1,6 +1,7 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,17 +13,20 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Balances',
 		open = $bindable(true),
 		collapsible = true,
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -50,9 +54,9 @@
 	{title}
 	bind:open
 	{collapsible}
-	data-entity-field-name={entityFieldReference.fieldName}
-	data-entity-field-type={entityFieldReference.entityType}
-	data-entity-field-parent={stringify(entityFieldReference.selector)}
+	data-entity-field-name={selection.fieldName}
+	data-entity-field-type={selection.entityType}
+	data-entity-field-parent={stringify(selection.entitySelector)}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -73,13 +77,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-						{
-							sources: [Source.Allium_Rest],
-						}
-					).field(entityFieldReference.fieldName, {
+				resource={selection({
 						sources: [Source.Allium_Rest],
 					})}
 				placeholderText={`Loading ${title.toLowerCase()}…`}
@@ -91,9 +89,9 @@
 						entityType={EntityType.EvmNetworkActorCoinBalance}
 						{title}
 						open={true}
-						data-entity-field-name={entityFieldReference.fieldName}
-						data-entity-field-type={entityFieldReference.entityType}
-						data-entity-field-parent={stringify(entityFieldReference.selector)}
+						data-entity-field-name={selection.fieldName}
+						data-entity-field-type={selection.entityType}
+						data-entity-field-parent={stringify(selection.entitySelector)}
 						getKey={(evmNetworkActorCoinBalance) => stringify(evmNetworkActorCoinBalance.entitySelector)}
 						placeholderKeys={new SvelteSet<string>()}
 						placeholderText={`Loading ${title.toLowerCase()}…`}

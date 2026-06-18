@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -88,7 +88,7 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={proxy(EntityType.RssNetwork, selector, ({ sources: [
+				resource={select(EntityType.RssNetwork, selector, ({ sources: [
 						Source.Constants_Internal,
 					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$rssFeeds: ({ sources: [
 									Source.Constants_Internal,
@@ -114,14 +114,14 @@
 					{#if open}
 						<div>
 							<dt>Feeds</dt>
-							<dd>{String(rssNetwork.fields.$$rssFeeds?.values.length)}</dd>
+							<dd>{String(rssNetwork.fields.$$rssFeeds.values.length)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Items</dt>
-							<dd>{String(rssNetwork.fields.$$rssItems?.values.length)}</dd>
+							<dd>{String(rssNetwork.fields.$$rssItems.values.length)}</dd>
 						</div>
 					{/if}
 
@@ -182,11 +182,10 @@
 				<RssFeedsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/rss/feeds')}
-					entityFieldReference={{
-						entityType: EntityType.RssNetwork,
-						selector,
-						fieldName: '$$rssFeeds',
-					}}
+					selection={select(
+			EntityType.RssNetwork,
+			selector
+		).$$rssFeeds}
 					id={`${networkSelectorKey}:feeds`}
 					open={_open}
 				/>
@@ -196,11 +195,10 @@
 				<RssItemsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/rss/items')}
-					entityFieldReference={{
-						entityType: EntityType.RssNetwork,
-						selector,
-						fieldName: '$$rssItems',
-					}}
+					selection={select(
+			EntityType.RssNetwork,
+			selector
+		).$$rssItems}
 					id={`${networkSelectorKey}:items`}
 					limit={25}
 					open={_open}

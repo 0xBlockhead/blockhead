@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -21,7 +21,7 @@
 		title?: string
 	} = $props()
 
-	const rollup = $derived(proxy(
+	const rollup = $derived(select(
 		EntityType.EvmRollup,
 		selector,
 		{

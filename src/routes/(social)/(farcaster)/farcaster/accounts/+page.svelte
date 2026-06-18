@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -16,11 +17,10 @@
 <Page>
 	<BlockheadFarcasterAccountConnectionsView
 		href={resolve('/farcaster/accounts')}
-		entityFieldReference={{
-			entityType: EntityType._Global,
-			selector: { scope: '$$blockheadFarcasterAccountConnections' },
-			fieldName: '$$blockheadFarcasterAccountConnections',
-		}}
+		selection={select(
+			EntityType._Global,
+			{ scope: '$$blockheadFarcasterAccountConnections' }
+		).$$blockheadFarcasterAccountConnections}
 		id="accounts"
 	/>
 </Page>

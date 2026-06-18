@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -64,7 +64,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.NearChunk, selector, ({ fields: { shardId: true, gasUsed: true } }))}
+			resource={select(EntityType.NearChunk, selector, ({ fields: { shardId: true, gasUsed: true } }))}
 			placeholderText={`Loading NEAR Chunk...`}
 		>
 			{#snippet children(nearChunk)}

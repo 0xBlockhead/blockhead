@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -60,9 +60,9 @@
 		>
 			{#snippet body()}
 				{#if open}
-					{@const moneroRingMembers = proxy(EntityType.MoneroRing,
+					{@const moneroRingMembers = select(EntityType.MoneroRing,
 						selector,
-					).field('$$members')}
+					).$$members}
 					<ResourceBoundary resource={moneroRingMembers} placeholderText="Loading Monero ring members...">
 						{#snippet children(moneroRingMembers)}
 							<EntitiesList

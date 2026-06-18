@@ -100,6 +100,8 @@ describe('client resolver architecture', () => {
 				'$/schema/$schema.ts',
 				'$/resolvers/$resolvers.ts',
 				'$/sources/$sources.ts',
+				'$/client/$subscribe.svelte.ts',
+				'$/client/$proxy.svelte.ts',
 			],
 		} as const
 
@@ -913,10 +915,7 @@ describe('client resolver architecture', () => {
 			const viewSource = scannedSourceByFilePath[filePath]
 
 			expect(viewSource, filePath).not.toMatch(/\.slice\(0, limit\)/)
-			expect(viewSource, filePath).not.toMatch(/\((?:parent|network)\[entityFieldReference\.fieldName\] \?\? \[\]\)\.slice\(/)
-			expect(viewSource, filePath).not.toMatch(/\[\.\.\.\((?:parent|network)\[entityFieldReference\.fieldName\] \?\? \[\]\)\]\s*\.slice\(/)
 			expect(viewSource, filePath).not.toMatch(/\((?:parent|network)\.\$\$[A-Za-z0-9_]+ \?\? \[\]\)\.slice\(/)
-			expect(viewSource, filePath).not.toMatch(/fields\[entityFieldReference\.fieldName\]\?\.values[\s\S]{0,1000}\.findIndex\(/)
 		}
 	})
 

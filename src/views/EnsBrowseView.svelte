@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -56,12 +56,12 @@
 		searchTerm == null ?
 			undefined
 		:
-			proxy(
+			select(
 				EntityType.EnsSearch,
 				{
 					query: searchTerm,
 				}
-			).field('$$ensNames', {
+			).$$ensNames({
 				sources: [
 					Source.TheGraph_Graphql,
 				],
@@ -73,7 +73,7 @@
 		reverseAddress == null ?
 			undefined
 		:
-			proxy(EntityType.EvmAccount,
+			select(EntityType.EvmAccount,
 				{
 					address: reverseAddress,
 				},
@@ -208,19 +208,31 @@
 			<p data-text="muted">{reverseError}</p>
 		{/if}
 
-		{#if reverseAddress != null && reverseAccount?.current?.fields.$primaryName != null}
+		{#if reverseAddress != null && reverseAccount != null}
+			<ResourceBoundary
+				resource={reverseAccount}
+				placeholderText="Loading reverse ENS…"
+			>
+				{#snippet children(reverseAccount)}
+					{#if reverseAccount.fields.$primaryName != null}
+						<dl data-column-item="center">
+							<div>
+								<dt>Primary name</dt>
+								<dd>
+									<a
+										data-link
+										href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
+											ensName: reverseAccount.fields.$primaryName[EntityMetaKey.Selector].name,
+										})}
+									>{reverseAccount.fields.$primaryName[EntityMetaKey.Selector].name}</a>
+								</dd>
+							</div>
+						</dl>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<dl data-column-item="center">
-				<div>
-					<dt>Primary name</dt>
-					<dd>
-						<a
-							data-link
-							href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-								ensName: reverseAccount.current.fields.$primaryName[EntityMetaKey.Selector].name,
-							})}
-						>{reverseAccount.current.fields.$primaryName[EntityMetaKey.Selector].name}</a>
-					</dd>
-				</div>
 				<div>
 					<dt>Address</dt>
 					<dd>

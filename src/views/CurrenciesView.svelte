@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -13,14 +14,18 @@
 		title = 'Currencies',
 		open = $bindable(true),
 		collapsible = true,
-		entityFieldReference,
+		selection,
 				...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
 			collapsible?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Currency>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -32,7 +37,6 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { proxy } from '$/routes/+layout.svelte'
 
 
 	
@@ -68,25 +72,11 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-					{
-						sources: [Source.Constants_Internal],
-					}
-				).field(entityFieldReference.fieldName, {
-					fields: {
-						$$timestamps: {
-							sources: [
-								Source.Constants_Internal,
-							],
-							limit: 1,
-							fields: {
-								marketCap: true,
-							},
-						},
-					},
-				})} placeholderText="Loading currencies…">
+				<ResourceBoundary resource={selection({
+						sources: [
+							Source.Constants_Internal,
+						],
+					})} placeholderText="Loading currencies…">
 				{#snippet children(currencies)}
 					<EntitiesList
 						collapsible={false}
@@ -94,7 +84,7 @@
 						{...EntitiesListProps}
 						entityType={EntityType.Currency}
 						getKey={(currency) => currency.entitySelector.iso4217}
-						getSortValue={(currency) => -Number(currency.current?.$$timestamps.entities[0]?.current?.marketCap ?? 0)}
+						getSortValue={(currency) => currency.entitySelector.iso4217}
 						items={currencies.entities}
 						{title}
 						open={true}

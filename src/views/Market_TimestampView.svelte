@@ -12,7 +12,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -41,7 +41,7 @@
 		>
 	> = $props()
 
-	const marketTimestamp = $derived(proxy(EntityType.Market_Timestamp, selector, ({ sources: [
+	const marketTimestamp = $derived(select(EntityType.Market_Timestamp, selector, ({ sources: [
 				Source.Blockscout_Rest,
 				Source.Coingecko_Rest,
 				Source.Coingecko_OpenApi,

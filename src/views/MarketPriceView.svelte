@@ -63,10 +63,10 @@
 	)
 
 
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	const marketPrice = $derived(
-		proxy(EntityType.MarketPrice,
+		select(EntityType.MarketPrice,
 			selector,
 			({
 				sources: marketSpotPriceSources,
@@ -125,7 +125,7 @@
 
 			{#snippet children(marketPrice)}
 				{@const headQuoteId = (
-					(marketPrice.fields.$$quotes?.values ?? [])
+					(marketPrice.fields.$$quotes.values )
 						.toSorted((
 							leftQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
 							rightQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
@@ -167,7 +167,7 @@
 					>
 							{#snippet children(marketPrice)}
 								{@const headQuoteId = (
-								(marketPrice.fields.$$quotes?.values ?? [])
+								(marketPrice.fields.$$quotes.values )
 									.toSorted((
 										leftQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
 										rightQuote: Entity<typeof schema, EntityType.Market_Timestamp>,
@@ -237,11 +237,10 @@
 		<Market_TimestampsView
 			href={resolve('/markets')}
 			collapsible={false}
-			entityFieldReference={{
-				entityType: EntityType.MarketPrice,
-				selector,
-				fieldName: '$$quotes',
-			}}
+			selection={select(
+			EntityType.MarketPrice,
+			selector
+		).$$quotes}
 
 			title="Quotes"
 		/>

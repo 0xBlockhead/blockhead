@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 		import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,11 +12,9 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'ERC-4337 account factories',
 		open = $bindable(true),
 		id,
@@ -23,7 +22,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Erc4337AccountFactory>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			title?: string
 			open?: boolean
 			id: string
@@ -34,11 +37,6 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
-
-	
-
-	
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -64,11 +62,8 @@
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary
-				resource={proxy(
-						EntityType.EvmNetwork,
-						entityFieldReference.selector,
-					).field('$$erc4337AccountFactories', {
+				<ResourceBoundary
+					resource={selection({
 						sources: [
 							Source.Blockscout_Rest,
 						],
@@ -98,7 +93,7 @@
 				{#snippet Item({ item: accountFactory })}
 					<Erc4337AccountFactoryView
 						selector={accountFactory.entitySelector}
-						resource={accountFactory}
+						selection={accountFactory}
 						layout={EntityLayout.Summary}
 
 					/>

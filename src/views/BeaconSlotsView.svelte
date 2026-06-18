@@ -1,20 +1,26 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
+	type BeaconSlotsResource = EntityProxyFieldResource<
+		typeof schema,
+		EntityType.EvmNetwork,
+		'$$beaconSlots'
+	> | EntityProxyFieldResource<
+		typeof schema,
+		EntityType.BeaconEpoch,
+		'$$beaconSlots'
+	>
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Slots',
 		open = $bindable(true),
 		id,
@@ -22,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconSlot>
+			selection: BeaconSlotsResource
 			title?: string
 			open?: boolean
 			id: string
@@ -62,14 +68,7 @@
 	{#snippet body()}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-					).field(entityFieldReference.fieldName, {
-						sources: [
-							Source.Beacon_Rest,
-						],
-					})}
+				resource={selection}
 				placeholderText="Loading slots…"
 			>
 				{#snippet children(slots)}

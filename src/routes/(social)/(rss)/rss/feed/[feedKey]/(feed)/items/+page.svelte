@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -20,13 +21,12 @@
 <Page>
 	<RssItemsView
 		href={resolve('/rss/items')}
-		entityFieldReference={{
-			entityType: EntityType.RssFeed,
-			selector: {
+		selection={select(
+			EntityType.RssFeed,
+			{
 				feedUrl: decodeURIComponent(page.params.feedKey ?? '').trim(),
-			},
-			fieldName: '$$items',
-		}}
+			}
+		).$$items}
 		id="rss-feed-items"
 	/>
 </Page>

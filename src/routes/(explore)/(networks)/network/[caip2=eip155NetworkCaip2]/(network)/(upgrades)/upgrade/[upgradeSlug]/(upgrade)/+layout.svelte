@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
 	// Types/constants
 	import {
 		ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug,
@@ -94,14 +95,14 @@
 		},
 	)}
 	id={stringify({
-		$network: { caip2: { namespace: 'eip155', reference: params.caip2.slice('eip155:'.length) } },
+		$network: eip155NetworkSelectorFromCaip2(params.caip2),
 		upgradeId: resolvedUpgradeId,
 	})}
 >
 	{#snippet Summary({ open: _open })}
 		<NetworkUpgradeView
 			selector={{
-				$network: { caip2: { namespace: 'eip155', reference: params.caip2.slice('eip155:'.length) } },
+				$network: eip155NetworkSelectorFromCaip2(params.caip2),
 				upgradeId: resolvedUpgradeId,
 			}}
 			layout={EntityLayout.SummaryInline}

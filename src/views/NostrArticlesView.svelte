@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -9,14 +10,12 @@
 	import { stringify } from 'devalue'
 
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id,
 		limit = 25,
 		open = $bindable(
@@ -28,7 +27,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.NostrArticle>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			id: string
 			limit?: number
 			open?: boolean
@@ -71,81 +74,24 @@
 	{/snippet}
 
 	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			{@const parent = proxy(entityFieldReference.entityType,
-				entityFieldReference.selector,
-				(
-					entityFieldReference.entityType === EntityType.NostrNetwork ?
-						(
-							fieldOpen ?
-								{
-									sources: [Source.Constants_Internal],
-									fields: {
-										$$nostrArticles: {
-											sources: [Source.NostrBand_Rest],
-											limit: limit,
-										},
-										$$nostrProfiles: {
-											sources: [
-												Source.Constants_Internal,
-												Source.NostrBand_Rest,
-												Source.Primal_Rest,
-											],
-											fields: {
-												$$articles: {
-													sources: [
-														Source.NostrBand_Rest,
-														Source.Primal_Rest,
-													],
-													limit: limit,
-												},
-											},
-										},
-									},
-								}
-							:
-								{
-									sources: [Source.Constants_Internal],
-								}
-						)
+			{#if open}
+				<ResourceBoundary resource={selection({
+					sources: selection.entityType === EntityType.NostrNetwork ?
+						[Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest]
 					:
-						{
-							sources: [
-								Source.NostrBand_Rest,
-								Source.Primal_Rest,
-							],
-							fields: {
-								$$articles: {
-									sources: [
-										Source.NostrBand_Rest,
-										Source.Primal_Rest,
-									],
-									limit: limit,
-								},
-							},
-						}
-				),
-			)}
-			<ResourceBoundary resource={parent} placeholderText={`Loading ${title.toLowerCase()}…`}>
-				{#snippet children(parent)}
+						[Source.NostrBand_Rest, Source.Primal_Rest],
+					limit,
+				})} placeholderText={`Loading ${title.toLowerCase()}…`}>
+					{#snippet children(articles)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
 						entityType={EntityType.NostrArticle}
 						id={`${id}-items`}
 						{title}
-						items={entityFieldReference.entityType === EntityType.NostrNetwork ?
-							[
-								...(parent?.['$$nostrArticles'].entities ?? []),
-								...(parent?.['$$nostrProfiles'].entities ?? [])
-									.flatMap((profile) => profile.current?.['$$articles'].entities ?? []),
-							]
-						:
-							parent.fields[entityFieldReference.fieldName]?.entities ?? []}
+							items={articles.entities}
 						getKey={(row) => stringify(row.entitySelector)}
-						getSortValue={(row) => (
-							`${String(-(row.current?.publishedAt ?? 0)).padStart(20, '0')}\0${row.entitySelector.identifier}`
-						)}
+						getSortValue={(row) => stringify(row.entitySelector)}
 						placeholderText={`Loading ${title.toLowerCase()}…`}
 					>
 						{#snippet Empty()}

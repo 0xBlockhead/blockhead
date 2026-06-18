@@ -9,7 +9,7 @@
 
 
 	// State
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -50,7 +50,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.HyperliquidAccount, selector, ({ fields: { accountRole: true, $masterAccount: true, $agentAccount: true } }))}
+			resource={select(EntityType.HyperliquidAccount, selector, ({ fields: { accountRole: true, $masterAccount: true, $agentAccount: true } }))}
 			placeholderText={`Loading Hyperliquid Account...`}
 		>
 			{#snippet children(hyperliquidAccount)}

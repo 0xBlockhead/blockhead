@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,10 +18,9 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id,
 		limit = 25,
 		open = $bindable(true),
@@ -30,7 +30,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.AtprotoPost>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			id: string
 			limit?: number
 			open?: boolean
@@ -92,40 +96,16 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{#if fieldOpen}
-				<ResourceBoundary
-					resource={proxy(
-							entityFieldReference.entityType,
-							entityFieldReference.selector,
-							...(entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-								[
-									{
-										sources: [Source.Constants_Internal],
-									},
-								]
-							:
-								[]
-							)
-						).field(
-							entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-								'$$atprotoPosts'
-							:
-								'$$posts',
-							{
-								sources: (
-									entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-										[
-											Source.Constants_Internal,
-											Source.Atproto_Xrpc,
-										]
-									:
-										[
-											Source.Atproto_Xrpc,					]
-								),
-								limit,
-							}
-						)}
-					placeholderText={`Loading ${title.toLowerCase()}…`}
-				>
+					<ResourceBoundary
+						resource={selection({
+							sources: [
+								Source.Constants_Internal,
+								Source.Atproto_Xrpc,
+							],
+							limit,
+						})}
+						placeholderText={`Loading ${title.toLowerCase()}…`}
+					>
 					{#snippet children(posts)}
 						<EntitiesList
 							collapsible={false}

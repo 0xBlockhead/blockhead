@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -76,7 +76,7 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={proxy(EntityType.RedditNetwork, selector, ({ sources: [
+				resource={select(EntityType.RedditNetwork, selector, ({ sources: [
 						Source.Constants_Internal,
 					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ docsUrl: true, homeUrl: true, topology: true, $$redditLinks: ({ sources: [
 									Source.Reddit_Rest,
@@ -103,14 +103,14 @@
 						{#if open}
 							<div>
 								<dt>Communities</dt>
-								<dd>{String(redditNetwork.fields.$$redditSubreddits?.values.length ?? 0)}</dd>
+								<dd>{String(redditNetwork.fields.$$redditSubreddits.values.length )}</dd>
 							</div>
 						{/if}
 
 						{#if open}
 							<div>
 								<dt>Submissions</dt>
-								<dd>{String(redditNetwork.fields.$$redditLinks?.values.length ?? 0)}</dd>
+								<dd>{String(redditNetwork.fields.$$redditLinks.values.length )}</dd>
 							</div>
 						{/if}
 
@@ -176,11 +176,10 @@
 				<RedditSubredditsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/reddit/subreddits')}
-					entityFieldReference={{
-						entityType: EntityType.RedditNetwork,
-						selector,
-						fieldName: '$$redditSubreddits',
-					}}
+					selection={select(
+			EntityType.RedditNetwork,
+			selector
+		).$$redditSubreddits}
 					id={`${networkSelectorKey}:subreddits-redditNetworks`}
 					open={_open}
 				/>
@@ -190,11 +189,10 @@
 				<RedditLinksView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/reddit/links')}
-					entityFieldReference={{
-						entityType: EntityType.RedditNetwork,
-						selector,
-						fieldName: '$$redditLinks',
-					}}
+					selection={select(
+			EntityType.RedditNetwork,
+			selector
+		).$$redditLinks}
 					id={`${networkSelectorKey}:links-redditNetworks`}
 					open={_open}
 					title="Popular submissions"

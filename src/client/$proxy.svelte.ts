@@ -429,7 +429,7 @@ class EntityProxyController<
 	): EntityProxyFieldResource<_Schema, _EntityType, _FieldName> {
 		const fieldDefinition = this.#context.entityFieldDefinitionByEntityTypeAndName[this.entityType][fieldName]
 		if (fieldDefinition == null)
-			throw new Error(`${this.entityType}.${fieldName}: unknown proxy field`)
+			throw new Error(`${this.entityType}.${fieldName}: unknown selection field`)
 
 		const key = `${fieldName}:${cacheKey(selection ?? {})}`
 		const cached = this.#fieldResources.get(key)
@@ -857,6 +857,9 @@ const createEntityProxyResource = <
 
 			if (typeof property !== 'string')
 				return undefined
+
+			if (property in target.entitySelector)
+				return target.entitySelector[property as keyof typeof target.entitySelector]
 
 			return target.field(property as EntityFieldName<_Schema, _EntityType>)
 		},

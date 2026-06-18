@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -54,7 +54,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.NearContract,
+			resource={select(EntityType.NearContract,
 					selector,
 					({ fields: { codeHash: true, codeSizeBytes: true } }),
 				)}

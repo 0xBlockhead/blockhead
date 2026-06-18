@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -17,11 +18,10 @@
 	<FarcasterFeedsView
 		href={resolve('/farcaster/feed')}
 		collapsible={false}
-		entityFieldReference={{
-			entityType: EntityType.FarcasterNetwork,
-			selector: { scope: 'FarcasterNetwork' },
-			fieldName: '$$feeds',
-		}}
+		selection={select(
+			EntityType.FarcasterNetwork,
+			{ scope: 'FarcasterNetwork' }
+		).$$feeds}
 		id="feed-index"
 		limit={36}
 		title="Feeds"

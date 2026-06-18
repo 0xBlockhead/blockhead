@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
@@ -17,14 +18,13 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		title = 'EVM networks',
 		open = $bindable(true),
-		entityFieldReference,
+		selection,
 		id,
 		href = '',
 		...EntitiesListProps
@@ -32,7 +32,11 @@
 		{
 			title?: string
 			open?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmNetwork>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			id: string
 			href?: string
 		},
@@ -71,10 +75,7 @@
 	{#snippet body()}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-				).field(entityFieldReference.fieldName, {
+				resource={selection({
 					limit: 4096,
 				})}
 				placeholderText="Loading EVM networks…"

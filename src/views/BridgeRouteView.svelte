@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,7 +32,7 @@
 		never
 	> = $props()
 
-	const bridgeRoute = $derived(proxy(EntityType.BridgeRoute, selector, ({ sources: [
+	const bridgeRoute = $derived(select(EntityType.BridgeRoute, selector, ({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			], fields: { $fromNetwork: true, $toNetwork: true, ...(open && ({ fromAmount: true, toAmount: true, toAmountMin: true, estimatedCostUsd: true, estimatedDurationSeconds: true, $$steps: ({ sources: [
@@ -284,11 +284,10 @@
 		{#if open}
 			<BridgeRouteStepsView
 				href={resolve('/bridge')}
-				entityFieldReference={{
-					entityType: EntityType.BridgeRoute,
-					selector,
-					fieldName: '$$steps',
-				}}
+				selection={select(
+			EntityType.BridgeRoute,
+			selector
+		).$$steps}
 				id={`${stringify(selector)}:steps`}
 			/>
 		{/if}

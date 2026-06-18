@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -54,7 +54,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.SolanaValidator,
+			resource={select(EntityType.SolanaValidator,
 					selector,
 					({ fields: { nodePubkey: true, activatedStakeLamports: true, commission: true, delinquent: true } }),
 				)}

@@ -13,7 +13,7 @@
 
 	// State
 	import { normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -44,14 +44,14 @@
 		>
 	> = $props()
 
-	const log = $derived(proxy(
+	const log = $derived(select(
 		EntityType.EvmLog,
 		selector,
 	))
 	const topics = $derived(log.topics)
 	const data = $derived(log.data)
 	const emitter = $derived(log.$emitter)
-	const tokenTransfers = $derived(log.field('$$tokenTransfers'))
+	const tokenTransfers = $derived(log.$$tokenTransfers)
 
 
 
@@ -70,7 +70,7 @@
 	entityType={EntityType.EvmLog}
 	entitySelector={selector}
 	href={href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/log/[logIndex=nonNegativeInteger]', {
-		caip2: ,
+		caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 		transactionId: selector.txHash,
 		logIndex: String(selector.logIndex),
 	})}
@@ -132,7 +132,7 @@
 							<a
 								data-text="font-monospace"
 								href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-									caip2: ,
+									caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 									transactionId: selector.txHash,
 								})}
 							>
@@ -212,11 +212,10 @@
 								<dt>Token transfers</dt>
 								<dd>
 									<EvmTokenTransfersView
-										entityFieldReference={{
-											entityType: EntityType.EvmLog,
-											selector,
-											fieldName: '$$tokenTransfers',
-										}}
+										selection={select(
+			EntityType.EvmLog,
+			selector
+		).$$tokenTransfers}
 										open={true}
 									/>
 								</dd>

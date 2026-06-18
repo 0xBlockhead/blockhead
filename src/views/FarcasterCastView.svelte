@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,7 +36,7 @@
 	> = $props()
 
 	const cast = $derived(
-		proxy(EntityType.FarcasterCast,
+		select(EntityType.FarcasterCast,
 			selector,
 			({ sources: [
 				Source.Neynar_Rest,
@@ -228,15 +228,15 @@
 						metrics={[
 							{
 								label: 'Likes',
-								value: cast.fields.$$timestamps?.values.at(0)?.likeCount,
+								value: cast.fields.$$timestamps.values.at(0)?.likeCount,
 							},
 							{
 								label: 'Recasts',
-								value: cast.fields.$$timestamps?.values.at(0)?.recastCount,
+								value: cast.fields.$$timestamps.values.at(0)?.recastCount,
 							},
 							{
 								label: 'Replies',
-								value: cast.fields.$$timestamps?.values.at(0)?.replyCount,
+								value: cast.fields.$$timestamps.values.at(0)?.replyCount,
 							},
 						]}
 					/>
@@ -621,7 +621,7 @@
 								</section>
 							{/if}
 
-							{#if cast.fields.$$embeds?.values.length}
+							{#if cast.fields.$$embeds.values.length}
 								<section data-column>
 									<h3>Embeds</h3>
 									<ul data-column>
@@ -708,7 +708,7 @@
 							{#if (
 								!(cast.fields.mentionedProfileFids?.length)
 								&& !(cast.fields.mentionedChannelIds?.length)
-								&& !cast.fields.$$embeds?.values.length
+								&& !cast.fields.$$embeds.values.length
 							)}
 								<div data-row="wrap align-center gap-2">
 									<p data-text="muted">
@@ -735,11 +735,10 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<FarcasterCast_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.FarcasterCast,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.FarcasterCast,
+			selector
+		).$$timestamps}
 					href={href ?? '#'}
 					id={`${castDetailKey}:metric-snapshots`}
 					title="Metric snapshots"

@@ -10,16 +10,16 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		resource,
-		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address]', {
-				.caip2: ,
+		selection,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address=evmAddress]', {
+				caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 				address: selector.address,
 		}),
 		layout = EntityLayout.Summary,
@@ -30,7 +30,7 @@
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.Erc4337Bundler>
-			resource?: EntityProxyResource<typeof schema, EntityType.Erc4337Bundler>
+			selection?: EntityProxyResource<typeof schema, EntityType.Erc4337Bundler>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -47,7 +47,7 @@
 
 	
 	const userOperationsCount = $derived(
-		(resource ?? proxy(
+		(selection ?? select(
 			EntityType.Erc4337Bundler,
 			selector,
 			{

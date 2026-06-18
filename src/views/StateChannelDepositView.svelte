@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 		>
 	> = $props()
 
-	const deposit = $derived(proxy(EntityType.StateChannelDeposit,
+	const deposit = $derived(select(EntityType.StateChannelDeposit,
 		selector,
 		({ sources: [Source.Local_Internal], fields: { availableBalance: true, lockedBalance: true, lastUpdated: true, $account: true, $network: true } }),
 	))

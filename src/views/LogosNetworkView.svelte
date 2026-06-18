@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -23,7 +23,7 @@
 		open?: boolean
 	} = $props()
 
-	const network = $derived(proxy(EntityType.Network, selector, ({ sources: [
+	const network = $derived(select(EntityType.Network, selector, ({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true } })))
 
@@ -120,11 +120,11 @@
 			{/snippet}
 
 			{#snippet SectionLogosExecution()}
-					<ResourceBoundary resource={network}>
-						{#snippet children(network)}
-							{#if (network.fields.$$executionEnvironments?.values.length ?? 0) > 0}
-								<p><strong>Execution environments:</strong> {network.fields.$$executionEnvironments?.values.length ?? 0}</p>
-							{/if}
+						<ResourceBoundary resource={network}>
+							{#snippet children(network)}
+								{#if network.fields.$$executionEnvironments.values.length > 0}
+									<p><strong>Execution environments:</strong> {network.fields.$$executionEnvironments.values.length }</p>
+								{/if}
 
 							<p><strong>Environment:</strong> {networkEnvironmentByEnvironment[network.fields.environment].label}</p>
 					{/snippet}
@@ -132,11 +132,11 @@
 			{/snippet}
 
 			{#snippet SectionLogosConsensus()}
-					<ResourceBoundary resource={network}>
-						{#snippet children(network)}
-							{#if (network.fields.$$consensusMechanisms?.values.length ?? 0) > 0}
-								<p><strong>Consensus mechanisms:</strong> {network.fields.$$consensusMechanisms?.values.length ?? 0}</p>
-							{:else}
+						<ResourceBoundary resource={network}>
+							{#snippet children(network)}
+								{#if network.fields.$$consensusMechanisms.values.length > 0}
+									<p><strong>Consensus mechanisms:</strong> {network.fields.$$consensusMechanisms.values.length }</p>
+								{:else}
 								<p data-text="muted">No consensus mechanisms mapped for this network yet.</p>
 							{/if}
 					{/snippet}
@@ -167,11 +167,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$faucetUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector
+		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -185,11 +184,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$blockExplorerUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector
+		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

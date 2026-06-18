@@ -2,19 +2,21 @@
 import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
+	type CosmosGovernanceProposalsResource = EntityProxyFieldResource<
+		typeof schema,
+		EntityType.CosmosNetwork,
+		'$$governanceProposals'
+	>
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Governance proposals',
 		open = $bindable(true),
 		id,
@@ -22,7 +24,7 @@ import { stringify } from 'devalue'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.CosmosGovernanceProposal>
+			selection: CosmosGovernanceProposalsResource
 			title?: string
 			open?: boolean
 			id: string
@@ -59,15 +61,7 @@ import { stringify } from 'devalue'
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-				).field(entityFieldReference.fieldName, {
-					sources: [
-						Source.CosmosSdk_Rest,
-					],
-					limit: 32,
-				})} placeholderText="Loading proposals…">
+			<ResourceBoundary {resource} placeholderText="Loading proposals…">
 				{#snippet children(proposals)}
 					<EntitiesList
 				collapsible={false}

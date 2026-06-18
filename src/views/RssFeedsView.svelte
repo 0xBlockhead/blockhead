@@ -1,23 +1,27 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
+
+	type RssFeedsResource = EntityProxyFieldResource<
+		typeof schema,
+		EntityType.RssNetwork,
+		'$$rssFeeds'
+	>
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id = 'rss-feeds',
 		title = 'Feeds',
 		open = $bindable(
@@ -27,7 +31,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.RssFeed>
+			selection: RssFeedsResource
 			id?: string
 			title?: string
 			open?: boolean
@@ -78,15 +82,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-					{
-						sources: [Source.Constants_Internal],
-					}
-				).field(entityFieldReference.fieldName, {
-					sources: [Source.Constants_Internal],
-				})} placeholderText="Loading feeds…">
+			<ResourceBoundary {resource} placeholderText="Loading feeds…">
 				{#snippet children(feeds)}
 					<EntitiesList
 				collapsible={false}

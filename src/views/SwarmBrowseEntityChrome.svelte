@@ -13,7 +13,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -28,7 +28,7 @@
 	} = $props()
 
 	const swarm = $derived(
-		proxy(EntityType.SwarmResource,
+		select(EntityType.SwarmResource,
 			selector,
 			({ sources: [Source.Swarm_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, text: true, ...(open && ({ $media: true })) } }),
 		),

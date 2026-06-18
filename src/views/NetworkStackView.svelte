@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -37,7 +37,7 @@
 
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={proxy(EntityType.NetworkStack, selector, ({ sources: [
+			resource={select(EntityType.NetworkStack, selector, ({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true } }))}
 		>

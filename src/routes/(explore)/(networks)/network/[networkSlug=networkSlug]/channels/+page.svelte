@@ -7,13 +7,13 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
 	} = $props()
 
-	const network = $derived(proxy(EntityType.Network,
+	const network = $derived(select(EntityType.Network,
 		{
 			slug: params.networkSlug,
 		},
@@ -35,18 +35,23 @@
 		{#snippet children(network)}
 			{#if network.fields.namespace === NetworkNamespace.Lightning}
 				<LightningChannelsView
-					entityFieldReference={{
-						entityType: EntityType.LightningNetwork,
-						selector: {
+					selection={select(
+						EntityType.LightningNetwork,
+						{
 							$network: {
 								slug: network.fields.slug,
 							},
-						},
-						fieldName: '$$channels',
-					}}
-						href={resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels', {
-							networkSlug: params.networkSlug,
-						})}
+						}
+					).$$channels({
+						sources: [
+							Source.LightningMempoolSpace_Rest,
+							Source.LightningLnd_Rest,
+						],
+						limit: 32,
+					})}
+					href={resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels', {
+						networkSlug: params.networkSlug,
+					})}
 					id="channels"
 				/>
 			{:else}

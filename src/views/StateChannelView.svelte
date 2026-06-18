@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 		>
 	> = $props()
 
-	const stateChannel = $derived(proxy(EntityType.StateChannel,
+	const stateChannel = $derived(select(EntityType.StateChannel,
 		selector,
 		({ sources: [Source.Local_Internal], fields: { status: true, createdAt: true, updatedAt: true, turnNum: true, totalDeposited: true, $network: true, $participant0: true, $participant1: true, ...(open ? ({ balance0: true, balance1: true, $asset: true, $room: true }) : ({  })) } }),
 	))

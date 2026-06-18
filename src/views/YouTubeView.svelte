@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -84,7 +84,7 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={proxy(EntityType.YouTubeNetwork, selector, ({ sources: [
+				resource={select(EntityType.YouTubeNetwork, selector, ({ sources: [
 						Source.Constants_Internal,
 					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$youtubeChannels: ({ sources: [
 									Source.Youtube_Rest,
@@ -114,21 +114,21 @@
 					{#if open}
 						<div>
 							<dt>Channels</dt>
-							<dd>{String(network.fields.$$youtubeChannels?.values.length)}</dd>
+							<dd>{String(network.fields.$$youtubeChannels.values.length)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Videos</dt>
-							<dd>{String(network.fields.$$youtubeVideos?.values.length)}</dd>
+							<dd>{String(network.fields.$$youtubeVideos.values.length)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Playlists</dt>
-							<dd>{String(network.fields.$$youtubePlaylists?.values.length)}</dd>
+							<dd>{String(network.fields.$$youtubePlaylists.values.length)}</dd>
 						</div>
 					{/if}
 
@@ -191,11 +191,10 @@
 				<YouTubeChannelsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/youtube/channels')}
-					entityFieldReference={{
-						entityType: EntityType.YouTubeNetwork,
-						selector,
-						fieldName: '$$youtubeChannels',
-					}}
+					selection={select(
+			EntityType.YouTubeNetwork,
+			selector
+		).$$youtubeChannels}
 					id="channels"
 					open={_open}
 				/>
@@ -205,11 +204,10 @@
 				<YouTubeVideosView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/youtube/videos')}
-					entityFieldReference={{
-						entityType: EntityType.YouTubeNetwork,
-						selector,
-						fieldName: '$$youtubeVideos',
-					}}
+					selection={select(
+			EntityType.YouTubeNetwork,
+			selector
+		).$$youtubeVideos}
 					id="videos"
 					limit={25}
 					open={_open}
@@ -221,11 +219,10 @@
 				<YouTubePlaylistsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/youtube/playlists')}
-					entityFieldReference={{
-						entityType: EntityType.YouTubeNetwork,
-						selector,
-						fieldName: '$$youtubePlaylists',
-					}}
+					selection={select(
+			EntityType.YouTubeNetwork,
+			selector
+		).$$youtubePlaylists}
 					id="playlists"
 					open={_open}
 					title="Playlists"

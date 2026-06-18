@@ -21,7 +21,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -45,7 +45,7 @@
 		>
 	> = $props()
 
-	const step = $derived(proxy(EntityType.BridgeRouteStep, selector, ({ sources: [
+	const step = $derived(select(EntityType.BridgeRouteStep, selector, ({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			], fields: { $fromNetwork: true, $toNetwork: true, $fromToken: true, $toToken: true, ...(open && ({ stepType: true, tool: true, railId: true, settlementModel: true, verificationModel: true, assetOutcome: true })) } })))

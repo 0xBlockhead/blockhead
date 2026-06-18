@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -37,7 +37,7 @@
 		>
 	> = $props()
 
-	const conversation = $derived(proxy(EntityType.XmtpConversation, selector, ({ sources: [
+	const conversation = $derived(select(EntityType.XmtpConversation, selector, ({ sources: [
 				Source.Local_Internal,
 			], fields: { peerInboxId: true, topic: true, createdAtMs: true, consentState: true } })))
 

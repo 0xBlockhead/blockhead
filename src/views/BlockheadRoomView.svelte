@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -37,7 +37,7 @@
 		>
 	> = $props()
 
-	const room = $derived(proxy(EntityType.BlockheadRoom, selector, ({ sources: [
+	const room = $derived(select(EntityType.BlockheadRoom, selector, ({ sources: [
 				Source.Local_Internal,
 			], fields: { name: true, ...(open ? ({ createdAt: true, createdBy: true, $$peers: true }) : ({  })) } })))
 
@@ -139,11 +139,10 @@
 	})}
 		{#if open}
 			<BlockheadRoomPeersView
-				entityFieldReference={{
-					entityType: EntityType.BlockheadRoom,
-					selector,
-					fieldName: '$$peers',
-				}}
+				selection={select(
+			EntityType.BlockheadRoom,
+			selector
+		).$$peers}
 				id={`${selector.id}:peers`}
 			/>
 		{/if}

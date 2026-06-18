@@ -1,4 +1,14 @@
 <script lang="ts">
+	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
+	// Types/constants
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		params,
@@ -8,17 +18,20 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import EvmPrecompilesView from '$/views/EvmPrecompilesView.svelte'
-	import { EntityType } from '$/schema/EntityType.ts'
 </script>
 
 
 <Page>
 	<EvmPrecompilesView
-		entityFieldReference={{
-			entityType: EntityType.EvmNetwork,
-			selector: { caip2: { namespace: 'eip155', reference: params.caip2.slice('eip155:'.length) } },
-			fieldName: '$$precompiles',
-		}}
+		selection={select(
+			EntityType.EvmNetwork,
+			eip155NetworkSelectorFromCaip2(params.caip2)
+		).$$precompiles({
+			sources: [
+				Source.Constants_Internal,
+			],
+			limit: 64,
+		})}
 		id="precompiles"
 	/>
 </Page>

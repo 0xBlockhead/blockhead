@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const comment = $derived(
-		proxy(
+		select(
 			EntityType.RedditComment,
 			selector,
 			({ sources: [
@@ -250,11 +250,10 @@
 				{#snippet SectionCommentReplies()}
 				<RedditCommentsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.RedditComment,
-						selector,
-						fieldName: '$$replies',
-					}}
+					selection={select(
+			EntityType.RedditComment,
+			selector
+		).$$replies}
 					id={`${idKey}:reddit-replies`}
 					sortMode="createdAtAsc"
 					title="Replies"
@@ -263,11 +262,10 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<RedditComment_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.RedditComment,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.RedditComment,
+			selector
+		).$$timestamps}
 					href={href}
 					id={`${idKey}:metric-snapshots`}
 					title="Metric snapshots"

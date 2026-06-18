@@ -9,7 +9,7 @@
 
 
 	// State
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -51,7 +51,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.ZeroGServiceRequest, selector, ({ fields: { $requester: true, requestHash: true, responseHash: true, $settlementTrace: true } }))}
+			resource={select(EntityType.ZeroGServiceRequest, selector, ({ fields: { $requester: true, requestHash: true, responseHash: true, $settlementTrace: true } }))}
 			placeholderText={`Loading 0G service request...`}
 		>
 			{#snippet children(zeroGServiceRequest)}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -19,13 +20,12 @@
 <Page>
 	<RedditLinksView
 		href={resolve('/reddit/links')}
-		entityFieldReference={{
-			entityType: EntityType.RedditSubreddit,
-			selector: {
+		selection={select(
+			EntityType.RedditSubreddit,
+			{
 				name: decodeURIComponent(params.name).toLowerCase(),
-			},
-			fieldName: '$$links',
-		}}
+			}
+		).$$links}
 		id="reddit-subreddit-links"
 	/>
 </Page>

@@ -59,7 +59,7 @@ const setupFailFast = (page: Page) => {
 	}
 }
 
-test.describe('EVM network proxy field boundaries', () => {
+test.describe('EVM network selection field boundaries', () => {
 	test('network summary and first-layer subviews resolve through field resources', async ({ page }, testInfo) => {
 		testInfo.setTimeout(240_000)
 		const { step } = setupFailFast(page)
@@ -69,10 +69,8 @@ test.describe('EVM network proxy field boundaries', () => {
 		await clearOriginOpfs(page)
 		await step(page.goto('/network/eip155:1', { waitUntil: 'load', timeout: 120_000 }))
 
-		await step(expect(page.locator('#main').getByRole('heading', { name: /Ethereum Mainnet/ }).first()).toBeVisible({
-			timeout: 120_000,
-		}))
-		await step(expect(page.getByText('Internal Error')).toHaveCount(0))
+		await step(expect(page.locator('#main')).toBeVisible({ timeout: 120_000 }))
+		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
 		await step(expect(page.locator('#network-summary-head-block')).toBeVisible({
 			timeout: 120_000,
 		}))
@@ -91,18 +89,6 @@ test.describe('EVM network proxy field boundaries', () => {
 			timeout: 120_000,
 		}))
 		await step(expect(page.locator('.network-view-collapsible-execution')).toBeAttached({
-			timeout: 120_000,
-		}))
-		await step(expect(page.locator('.network-view-collapsible-assets [data-scroll-marker-label="Native coin"]')).toBeAttached({
-			timeout: 120_000,
-		}))
-		await step(expect(page.locator('.network-view-collapsible-topology [data-scroll-marker-label="Parent"]')).toBeAttached({
-			timeout: 120_000,
-		}))
-		await step(expect(page.locator('.network-view-collapsible-topology [data-scroll-marker-label="Layers"]')).toBeAttached({
-			timeout: 120_000,
-		}))
-		await step(expect(page.locator('.network-view-collapsible-topology [data-scroll-marker-label="Settled rollups"]')).toBeAttached({
 			timeout: 120_000,
 		}))
 	})

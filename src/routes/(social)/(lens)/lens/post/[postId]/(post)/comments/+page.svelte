@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -19,13 +20,12 @@
 <Page>
 	<LensCommentsView
 		href={resolve('/lens')}
-		entityFieldReference={{
-			entityType: EntityType.LensPost,
-			selector: {
+		selection={select(
+			EntityType.LensPost,
+			{
 				id: decodeURIComponent(params.postId),
-			},
-			fieldName: '$$comments',
-		}}
+			}
+		).$$comments}
 		id="lens-post-comments"
 	/>
 </Page>

@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -13,7 +14,7 @@ import { stringify } from 'devalue'
 	// Context
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Linked Farcaster accounts',
 		open = $bindable(true),
 		collapsible = true,
@@ -21,9 +22,10 @@ import { stringify } from 'devalue'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<
+			selection: EntityProxyFieldResource<
 				typeof schema,
-				EntityType.BlockheadFarcasterAccountConnection
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
 			>
 			title?: string
 			open?: boolean
@@ -37,7 +39,7 @@ import { stringify } from 'devalue'
 		>
 	> = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	
@@ -75,13 +77,13 @@ import { stringify } from 'devalue'
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={proxy(
+			<ResourceBoundary resource={select(
 					EntityType._Global,
-					entityFieldReference.selector,
+					selection.entitySelector,
 					{
 						sources: [Source.Local_Internal],
 					}
-				).field('$$blockheadFarcasterAccountConnections', {
+				).$$blockheadFarcasterAccountConnections({
 					sources: [Source.Local_Internal],
 				})} placeholderText="Loading linked accounts…">
 				{#snippet children(connections)}

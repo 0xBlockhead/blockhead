@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const session = $derived(
-		proxy(EntityType.BlockheadSession,
+		select(EntityType.BlockheadSession,
 			selector,
 			({ sources: [
 					Source.Local_Internal,
@@ -219,11 +219,10 @@
 	})}
 		<BlockheadSessionActionsView
 			href={href}
-			entityFieldReference={{
-				entityType: EntityType.BlockheadSession,
-				selector,
-				fieldName: '$$actions',
-			}}
+			selection={select(
+			EntityType.BlockheadSession,
+			selector
+		).$$actions}
 			id={`${selector.id}:actions`}
 			open={_open}
 		/>

@@ -12,7 +12,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -52,7 +52,7 @@
 	> = $props()
 
 	const comment = $derived(
-		proxy(
+		select(
 			EntityType.YouTubeComment,
 			selector,
 			({ sources: [
@@ -297,7 +297,7 @@
 		open: _open,
 	})}
 		{#if _open}
-			{@const repliesParent = proxy(EntityType.YouTubeComment,
+			{@const repliesParent = select(EntityType.YouTubeComment,
 				selector,
 				({ sources: [
 					Source.Youtube_Rest,
@@ -306,7 +306,7 @@
 					Source.Youtube_Rest,
 				], limit: 50 }) } }),
 			)}
-			{@const replies = proxy(EntityType.YouTubeComment,
+			{@const replies = select(EntityType.YouTubeComment,
 				selector,
 				{
 					sources: [
@@ -314,91 +314,82 @@
 						Source.Piped_Rest,
 					],
 				},
-			).field('$$replies', {
+			).$$replies({
 				sources: [
 					Source.Youtube_Rest,
 				],
 				limit: 50,
 			})}
-			{@const repliesParentFields = repliesParent.current?.fields}
-			{#if repliesParentFields?.$parentComment === undefined}
-				<EntitiesList
-					entityType={EntityType.YouTubeComment}
-					href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
-						videoId: encodeURIComponent(selector.videoId),
-						commentId: encodeURIComponent(selector.commentId),
-					})}
-					id={`${idKey}:replies`}
-					title={
-						repliesParentFields?.$$replies != null ?
-							`Replies (${String(repliesParentFields.$$replies.values.length)})`
-						:
-							'Replies'
-					}
-					collapsible={false}
-				>
-					{#snippet body()}
-						<EntitiesList
-							collapsible={false}
-							showSummary={false}
-							entityType={EntityType.YouTubeComment}
-							href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
-								videoId: encodeURIComponent(selector.videoId),
-								commentId: encodeURIComponent(selector.commentId),
-							})}
-							id={`${idKey}:replies-items`}
-							title={
-								repliesParentFields?.$$replies != null ?
-									`Replies (${String(repliesParentFields.$$replies.values.length)})`
-								:
-									'Replies'
-							}
-							items={replies.entities}
-							placeholderText="Loading replies…"
-							getKey={(comment) => stringify(comment.entitySelector)}
-							getSortValue={(comment) => comment.entitySelector.commentId}
-							placeholderKeys={new SvelteSet<string>()}
-							open={true}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">
-									{
-										repliesParentFields?.$$replies.values.length === 0 ?
-											'No replies yet.'
-										:
-											'Replies could not be loaded.'
-									}
-								</p>
-							{/snippet}
-
-							{#snippet Item({
-								item: comment,
-							})}
-								<YouTubeCommentView
-									selector={comment.entitySelector}
+			<ResourceBoundary
+				resource={repliesParent}
+				placeholderText="Loading replies…"
+			>
+				{#snippet children(repliesParent)}
+					{#if repliesParent.fields.$parentComment === undefined}
+							<EntitiesList
+								entityType={EntityType.YouTubeComment}
+								href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
+									videoId: encodeURIComponent(selector.videoId),
+									commentId: encodeURIComponent(selector.commentId),
+								})}
+								id={`${idKey}:replies`}
+								title={`Replies (${String(repliesParent.fields.$$replies.values.length)})`}
+								collapsible={false}
+							>
+							{#snippet body()}
+								<EntitiesList
+									collapsible={false}
+									showSummary={false}
+									entityType={EntityType.YouTubeComment}
 									href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
-										videoId: encodeURIComponent(comment.entitySelector.videoId),
-										commentId: encodeURIComponent(comment.entitySelector.commentId),
+										videoId: encodeURIComponent(selector.videoId),
+										commentId: encodeURIComponent(selector.commentId),
 									})}
-									layout={EntityLayout.SummaryDetails}
+									id={`${idKey}:replies-items`}
+									title={`Replies (${String(repliesParent.fields.$$replies.values.length)})`}
+									items={replies.entities}
+									placeholderText="Loading replies…"
+									getKey={(comment) => stringify(comment.entitySelector)}
+									getSortValue={(comment) => comment.entitySelector.commentId}
+									placeholderKeys={new SvelteSet<string>()}
+									open={true}
+								>
+									{#snippet Empty()}
+										<p data-text="muted">
+											{
+												repliesParent.fields.$$replies.values.length === 0 ?
+													'No replies yet.'
+												:
+													'Replies could not be loaded.'
+											}
+										</p>
+									{/snippet}
 
-								
-									open={false}
-
-								
-									/>
+									{#snippet Item({
+										item: comment,
+									})}
+										<YouTubeCommentView
+											selector={comment.entitySelector}
+											href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
+												videoId: encodeURIComponent(comment.entitySelector.videoId),
+												commentId: encodeURIComponent(comment.entitySelector.commentId),
+											})}
+											layout={EntityLayout.SummaryDetails}
+											open={false}
+										/>
+									{/snippet}
+								</EntitiesList>
 							{/snippet}
 						</EntitiesList>
-					{/snippet}
-				</EntitiesList>
-			{/if}
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<YouTubeComment_TimestampsView
-				entityFieldReference={{
-					entityType: EntityType.YouTubeComment,
-					selector,
-					fieldName: '$$timestamps',
-				}}
+				selection={select(
+					EntityType.YouTubeComment,
+					selector
+				).$$timestamps}
 				href={href}
 				id={`${idKey}:metric-snapshots`}
 				title="Metric snapshots"

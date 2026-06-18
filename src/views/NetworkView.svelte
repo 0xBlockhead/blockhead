@@ -6,29 +6,29 @@
 		networkEnvironmentByEnvironment,
 	} from '$/constants/Network.ts'
 
+	import type { EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
+	type NetworkResource = EntityProxyResource<typeof schema, EntityType.Network>
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
-		selector,
+		selection,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		selector: EntitySelector<typeof schema, EntityType.Network>
+		selection: NetworkResource
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
 	} = $props()
+
+	const selector = $derived(selection.entitySelector)
 
 	
 
@@ -59,22 +59,7 @@
 
 
 <ResourceBoundary
-	resource={proxy(
-			EntityType.Network,
-			selector,
-			{
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-					slug: true,
-					caip2: true,
-					namespace: true,
-					environment: true,
-				},
-			},
-	)}
+	resource={selection}
 >
 	{#snippet children(row)}
 		{@const networkCaip2 = row.caip2 ?? (
@@ -99,7 +84,7 @@
 					})
 				:
 					resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-						caip2: ,
+						caip2: `${networkCaip2.namespace}:${networkCaip2.reference}`,
 					})
 		)}
 		{@const networkSelector = (

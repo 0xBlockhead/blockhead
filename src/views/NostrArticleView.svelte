@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -46,7 +46,7 @@
 	> = $props()
 
 	const article = $derived(
-		proxy(EntityType.NostrArticle,
+		select(EntityType.NostrArticle,
 			selector,
 			({ sources: [
 				Source.NostrBand_Rest,

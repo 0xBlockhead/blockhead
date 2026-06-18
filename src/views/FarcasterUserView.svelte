@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -43,7 +43,7 @@
 	> = $props()
 
 	const farcasterUserResource = $derived(
-		proxy(EntityType.FarcasterUser,
+		select(EntityType.FarcasterUser,
 			selector,
 			({ sources: [
 				Source.Neynar_Rest,
@@ -200,11 +200,11 @@
 						metrics={[
 							{
 								label: 'Followers',
-								value: farcasterUser.fields.$$timestamps?.values.at(0)?.followerCount,
+								value: farcasterUser.fields.$$timestamps.values.at(0)?.followerCount,
 							},
 							{
 								label: 'Following',
-								value: farcasterUser.fields.$$timestamps?.values.at(0)?.followingCount,
+								value: farcasterUser.fields.$$timestamps.values.at(0)?.followingCount,
 							},
 						]}
 					/>
@@ -243,7 +243,7 @@
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
 							{#snippet children(farcasterUser)}
-									{#if farcasterUser.fields.$$verifiedAddresses?.values.length}
+									{#if farcasterUser.fields.$$verifiedAddresses.values.length}
 										<ul data-column="gap-2">
 											{#each farcasterUser.fields.$$verifiedAddresses.values as verification (stringify(verification[EntityMetaKey.Selector]))}
 												<li>
@@ -347,9 +347,9 @@
 				>
 					{#snippet body()}
 						{#if open}
-							{@const casts = proxy(EntityType.FarcasterUser,
+							{@const casts = select(EntityType.FarcasterUser,
 								selector,
-							).field('$$casts')}
+							).$$casts}
 							<ResourceBoundary resource={casts} placeholderText="Loading casts (Farcaster FID + cast hash)…">
 								{#snippet children(casts)}
 									<EntitiesList
@@ -392,11 +392,10 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<FarcasterUser_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.FarcasterUser,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.FarcasterUser,
+			selector
+		).$$timestamps}
 					href={href}
 					id={`farcaster-user:${String(selector.fid)}:metric-snapshots`}
 					title="Metric snapshots"

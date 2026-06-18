@@ -240,6 +240,7 @@ type SelectedFieldQuery<
 	readonly selection: SubscribeFieldSelection<_Schema, _EntityType>
 	readonly sources: readonly string[]
 	readonly loadOptions: LoadSubsetOptions
+	readonly isPaged: boolean
 	readonly rows: readonly {
 		readonly [EntityMetaKey.ParentSelectorKey]: string
 		readonly [EntityMetaKey.Source]: string
@@ -521,6 +522,14 @@ const projectSubscribeEntity = <
 							countRow[EntityMetaKey.Source] === source
 							&& countRow[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
 							&& countRow.filterKey === selectedFieldCountFilterKey
+							&& (
+								!fieldQuery.isPaged
+								|| context.entityFieldCountCollections[entityType][fieldName]?.toArray.some((collectionRow) => (
+									collectionRow[EntityMetaKey.Source] === countRow[EntityMetaKey.Source]
+									&& collectionRow[EntityMetaKey.ParentSelectorKey] === countRow[EntityMetaKey.ParentSelectorKey]
+									&& collectionRow.filterKey === countRow.filterKey
+								)) === true
+							)
 						))
 						if (row != null) {
 							totalCount = row[EntityMetaKey.Value]
@@ -723,6 +732,11 @@ export const subscribeEntity = <
 			selection: selectedFieldSelection,
 			sources,
 			loadOptions,
+			isPaged: (
+				selectedFieldSelection.limit != null
+				|| selectedFieldSelection.offset != null
+				|| selectedFieldSelection.cursor != null
+			),
 		}]
 	})
 	let fieldQueryParentSelectorKey = ''
@@ -731,6 +745,7 @@ export const subscribeEntity = <
 		readonly selection: SubscribeFieldSelection<_Schema, _EntityType>
 		readonly sources: readonly string[]
 		readonly loadOptions: LoadSubsetOptions
+		readonly isPaged: boolean
 		readonly rows: LiveQueryRows<FieldLiveQueryRow>
 		readonly counts?: LiveQueryRows<SelectedFieldQuery<_Schema, _EntityType>['counts'][number]>
 	}[] = []
@@ -1032,6 +1047,7 @@ export const subscribeEntity = <
 				const countCollection = context.entityFieldCountCollections[entityType][fieldQuery.fieldDefinition.name]
 				const counts = (
 					fieldQuery.selection.count === true
+					&& !fieldQuery.isPaged
 					&& countCollection != null ?
 						createLiveQueryCollection({
 							query: (query) => query
@@ -1045,7 +1061,11 @@ export const subscribeEntity = <
 									[EntityMetaKey.Value]: count[EntityMetaKey.Value],
 									filterKey: count.filterKey,
 								})),
-							startSync: true,
+							startSync: (
+								fieldQuery.selection.limit == null
+								&& fieldQuery.selection.offset == null
+								&& fieldQuery.selection.cursor == null
+							),
 						})
 					:
 						undefined
@@ -1060,6 +1080,13 @@ export const subscribeEntity = <
 						includeInitialState: true,
 						onStatusChange: refresh,
 					})
+					fieldQuerySubscriptions.push(() => countSubscription.unsubscribe())
+				} else if (
+					fieldQuery.selection.count === true
+					&& fieldQuery.isPaged
+					&& countCollection != null
+				) {
+					const countSubscription = countCollection.subscribeChanges(refresh)
 					fieldQuerySubscriptions.push(() => countSubscription.unsubscribe())
 				}
 				return {
@@ -1156,6 +1183,7 @@ export const subscribeEntity = <
 					selection: fieldQuery.selection,
 					sources: fieldQuery.sources,
 					loadOptions: fieldQuery.loadOptions,
+					isPaged: fieldQuery.isPaged,
 					rows: fieldQuery.rows.toArray.flatMap((row) => (
 						context.entityFieldCollections[entityType][fieldQuery.fieldDefinition.name].toArray.filter((fieldRow) => (
 							fieldRow[EntityMetaKey.ParentSelectorKey] === row[EntityMetaKey.ParentSelectorKey]
@@ -1163,7 +1191,16 @@ export const subscribeEntity = <
 							&& fieldRow.valueKey === row.valueKey
 						))
 					)),
-					counts: fieldQuery.counts?.toArray ?? [],
+					counts: (
+						fieldQuery.isPaged ?
+							context.entityFieldCountCollections[entityType][fieldQuery.fieldDefinition.name]?.toArray.filter((row) => (
+								parentSelectorKeys.includes(row[EntityMetaKey.ParentSelectorKey])
+								&& fieldQuery.sources.includes(row[EntityMetaKey.Source])
+								&& row.filterKey === countFilterKey(fieldQuery.loadOptions)
+							)) ?? []
+						:
+							fieldQuery.counts?.toArray ?? []
+					),
 				})),
 				(nestedEntityType, nestedEntitySelector, nestedSelection) => {
 					const nestedEntityDefinition = context.entityDefinitionByType[nestedEntityType]

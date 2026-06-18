@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,11 +11,9 @@
 	import { stringify } from 'devalue'
 
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id = 'channels',
 		title = 'Channels',
 		open = $bindable(true),
@@ -22,9 +21,10 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<
+			selection: EntityProxyFieldResource<
 				typeof schema,
-				EntityType.FarcasterChannel
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
 			>
 			id?: string
 			title?: string
@@ -70,22 +70,14 @@
 	{/snippet}
 
 	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			{@const parentNetwork = proxy(EntityType.FarcasterNetwork,
-				entityFieldReference.selector,
-				({
-					fields: {
-						[entityFieldReference.fieldName]: {
-							sources: [Source.Farcaster_Rest],
-						},
-					},
-				})
-			)}
-			<ResourceBoundary
-				resource={parentNetwork}
-				placeholderText="Loading Farcaster channels (channel id / slug)…"
-			>
-				{#snippet children(parentNetwork)}
+			{#if open}
+				<ResourceBoundary
+					resource={selection({
+						sources: [Source.Farcaster_Rest],
+					})}
+					placeholderText="Loading Farcaster channels (channel id / slug)…"
+				>
+					{#snippet children(channels)}
 					<EntitiesList
 						collapsible={false}
 						showSummary={false}
@@ -93,7 +85,7 @@
 						id={`${id}-items`}
 						{title}
 						open={true}
-						items={parentNetwork.fields[entityFieldReference.fieldName]?.values ?? []}
+							items={channels.values}
 						getKey={(channel) => stringify(channel[EntityMetaKey.Selector])}
 						getSortValue={(channel) => channel[EntityMetaKey.Selector].id}
 						placeholderText="Loading Farcaster channels (channel id / slug)…"

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
 	// Types/constants
 	import { stringify } from 'devalue'
 
@@ -24,16 +25,11 @@
 {#key params.caip2}
 	<ParentPageCollapsible
 		href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', params)}
-		id={stringify({ caip2: { namespace: 'eip155', reference: params.caip2.slice('eip155:'.length) } })}
+		id={stringify(eip155NetworkSelectorFromCaip2(params.caip2))}
 	>
 		{#snippet Summary({ open: _open })}
 			<EvmNetworkView
-				selector={{
-					caip2: {
-						namespace: 'eip155',
-						reference: params.caip2.slice('eip155:'.length),
-					},
-				}}
+				selector={eip155NetworkSelectorFromCaip2(params.caip2)}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -68,7 +68,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.BittensorBlock,
+			resource={select(EntityType.BittensorBlock,
 					selector,
 					({ sources: [
 							Source.Bittensor_JsonRpc,

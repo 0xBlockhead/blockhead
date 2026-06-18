@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -35,7 +35,7 @@
 	> = $props()
 
 	const post = $derived(
-		proxy(
+		select(
 			EntityType.XPost,
 			selector,
 			({
@@ -191,19 +191,19 @@
 							metrics={[
 								{
 									label: 'Likes',
-									value: post.fields.$$timestamps?.values.at(0)?.likeCount,
+									value: post.fields.$$timestamps.values.at(0)?.likeCount,
 								},
 								{
 									label: 'Reposts',
-									value: post.fields.$$timestamps?.values.at(0)?.retweetCount,
+									value: post.fields.$$timestamps.values.at(0)?.retweetCount,
 								},
 								{
 									label: 'Replies',
-									value: post.fields.$$timestamps?.values.at(0)?.replyCount,
+									value: post.fields.$$timestamps.values.at(0)?.replyCount,
 								},
 								{
 									label: 'Quotes',
-									value: post.fields.$$timestamps?.values.at(0)?.quoteCount,
+									value: post.fields.$$timestamps.values.at(0)?.quoteCount,
 								},
 							]}
 						/>
@@ -388,7 +388,7 @@
 						placeholderText="Loading X post…"
 					>
 						{#snippet children(post)}
-							{#if (post.fields.$$media?.values.length ?? 0) > 0}
+							{#if (post.fields.$$media.values.length ) > 0}
 								<div data-column="gap-3">
 									{#each post.fields.$$media.values as media (media[EntityMetaKey.Selector].url)}
 										<Media
@@ -409,11 +409,10 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<XPost_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.XPost,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.XPost,
+			selector
+		).$$timestamps}
 					href={href}
 					id={`x-post:${selector.id}:metric-snapshots`}
 					title="Metric snapshots"

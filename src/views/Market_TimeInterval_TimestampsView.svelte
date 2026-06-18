@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { MarketTimeInterval } from '$/constants/Market.ts'
 	import { marketOhlcCandleSources } from '$/sources/Source.ts'
@@ -19,7 +20,7 @@
 		collapsible = true,
 		limit = 4096,
 		timeInterval,
-		entityFieldReference,
+		selection,
 		...EntitiesListProps
 	}: WithRest<
 		{
@@ -28,9 +29,10 @@
 			collapsible?: boolean
 			limit?: number
 			timeInterval?: MarketTimeInterval
-			entityFieldReference: EntityFieldReference<
+			selection: EntityProxyFieldResource<
 				typeof schema,
-				EntityType.Market_TimeInterval_Timestamp
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
 			>
 		},
 		Pick<
@@ -41,7 +43,6 @@
 		>
 	> = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
 
 
 	
@@ -80,10 +81,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-					).field(entityFieldReference.fieldName, {
+				resource={selection({
 						sources: [...marketOhlcCandleSources],
 						limit,
 					})}

@@ -12,7 +12,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,13 +40,7 @@
 		>
 	> = $props()
 
-	const connection = $derived(proxy(EntityType.BlockheadFarcasterAccountConnection, selector, ({ sources: [Source.Neynar_Rest], fields: { displayName: true, username: true, $icon: true, ...(open ? ({ bio: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } })))
-
-
-	// (Derived)
-	const connectionRow = $derived(
-		connection.ready ? connection.current : undefined,
-	)
+	const connection = $derived(select(EntityType.BlockheadFarcasterAccountConnection, selector, ({ sources: [Source.Neynar_Rest], fields: { displayName: true, username: true, $icon: true, ...(open ? ({ bio: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } })))
 
 	const connectionSelectorKey = $derived(
 		stringify(selector),
@@ -167,74 +161,49 @@
 			</ResourceBoundary>
 		{/if}
 
-		<dl data-column-item="center">
-			{#if (
-				open
-				&& connectionRow?.custody
-			)}
-				<div>
-					<dt>Custody</dt>
-					<dd>
-						<ResourceBoundary
-							resource={connection}
-							placeholderText="Loading profile…"
-						>
-							{#snippet Pending()}{/snippet}
-							{#snippet children(connection)}
+		<ResourceBoundary
+			resource={connection}
+			placeholderText="Loading profile…"
+		>
+			{#snippet Pending()}{/snippet}
+			{#snippet children(connection)}
+				<dl data-column-item="center">
+					{#if open && connection.fields.custody}
+						<div>
+							<dt>Custody</dt>
+							<dd>
 								<TruncatedValue
 									value={connection.fields.custody}
 									format={TruncatedValueFormat.Visual}
 								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				open
-				&& connectionRow?.authMethod
-			)}
-				<div>
-					<dt>Auth method</dt>
-					<dd>
-						<ResourceBoundary
-							resource={connection}
-							placeholderText="Loading profile…"
-						>
-							{#snippet Pending()}{/snippet}
-							{#snippet children(connection)}
+					{#if open && connection.fields.authMethod}
+						<div>
+							<dt>Auth method</dt>
+							<dd>
 								{#if connection.fields.authMethod !== undefined}
 									{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.fields.authMethod].label}
 								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				open
-				&& connectionRow?.signedAt !== undefined
-			)}
-				<div>
-						<dt>Signed at</dt>
-					<dd>
-						<ResourceBoundary
-							resource={connection}
-							placeholderText="Loading profile…"
-						>
-							{#snippet Pending()}{/snippet}
-							{#snippet children(connection)}
+					{#if open && connection.fields.signedAt !== undefined}
+						<div>
+							<dt>Signed at</dt>
+							<dd>
 								<Timestamp
 									timestamp={connection.fields.signedAt}
 								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -260,19 +229,18 @@
 					href={resolve('/(social)/(farcaster)/farcaster/feed/user/[userId]', {
 						userId: String(selector.fid),
 					})}
-					entityFieldReference={{
-						entityType: EntityType.FarcasterFeed,
-						selector: {
+					selection={select(
+						EntityType.FarcasterFeed,
+						{
 							variant: 'byUser',
 							fid: selector.fid,
-						},
-						fieldName: '$$entries',
-					}}
+						}
+					).$$entries}
 					id={`${connectionSelectorKey}:feed-blockheadFarcasterAccountConnections`}
 					title="Farcaster feed"
 				/>
 			{/snippet}
-	</CollapsibleTabs>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

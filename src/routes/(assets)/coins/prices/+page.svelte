@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -27,11 +28,10 @@
 	<MarketPricesView
 		href={resolve('/markets')}
 		collapsible={false}
-		entityFieldReference={{
-			entityType: EntityType._Global,
-			selector: { scope: '$$marketPrices' },
-			fieldName: '$$marketPrices',
-		}}
+		selection={select(
+			EntityType._Global,
+			{ scope: '$$marketPrices' }
+		).$$marketPrices}
 		id="coin-prices-page"
 		limit={96}
 		title="Spot quote index"

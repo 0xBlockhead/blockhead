@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 import { stringify } from 'devalue'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -11,10 +12,9 @@ import { stringify } from 'devalue'
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Validators',
 		open = $bindable(true),
 		id,
@@ -22,7 +22,11 @@ import { stringify } from 'devalue'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.PolkadotValidator>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			title?: string
 			open?: boolean
 			id: string
@@ -57,10 +61,7 @@ import { stringify } from 'devalue'
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-				).field(entityFieldReference.fieldName, {
+			<ResourceBoundary resource={selection({
 					sources: [
 						Source.SubstrateSidecar_Rest,
 					],

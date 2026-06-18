@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,31 +32,12 @@
 		never
 	> = $props()
 
-	const realm = $derived(proxy(EntityType.SpecificationRealm, selector, ({ sources: [
+	const realm = $derived(select(EntityType.SpecificationRealm, selector, ({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true, slug: true } })))
 
-
-	// (Derived)
-	const realmRow = $derived(
-		realm.ready ?
-			realm.current
-			:
-			undefined,
-	)
-
 	const href = $derived(
-		hrefProp ?? (
-			realmRow?.fields.slug != null ?
-				resolve(
-					'/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
-					{
-						specificationRealmSlug: realmRow.fields.slug,
-					},
-				)
-			:
-				resolve('/proposals')
-		),
+		hrefProp ?? resolve('/proposals'),
 	)
 
 
@@ -71,7 +52,7 @@
 	entityType={EntityType.SpecificationRealm}
 	entitySelector={selector}
 	{href}
-	title={realmRow?.fields.label ?? String(selector.realm)}
+	title={String(selector.realm)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -109,11 +90,10 @@
 	{#snippet Details({ open })}
 		<ProposalKindsView
 			{href}
-			entityFieldReference={{
-				entityType: EntityType.SpecificationRealm,
-				selector,
-				fieldName: '$$proposalKinds',
-			}}
+			selection={select(
+				EntityType.SpecificationRealm,
+				selector
+			).$$proposalKinds}
 			id={`${stringify(selector)}:proposalKinds`}
 
 			title="Proposal kinds"

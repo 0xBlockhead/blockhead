@@ -1,10 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -16,11 +18,15 @@
 <Page>
 	<RssFeedsView
 		href={resolve('/rss/feeds')}
-		entityFieldReference={{
-			entityType: EntityType.RssNetwork,
-			selector: { scope: 'RssNetwork' },
-			fieldName: '$$rssFeeds',
-		}}
+		selection={select(
+			EntityType.RssNetwork,
+			{ scope: 'RssNetwork' },
+			{
+				sources: [Source.Constants_Internal],
+			}
+		).$$rssFeeds({
+			sources: [Source.Constants_Internal],
+		})}
 		id="rss-feeds"
 	/>
 </Page>

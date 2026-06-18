@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,7 +17,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id = 'rss-items',
 				limit = 25,
 		open = $bindable(
@@ -27,7 +28,11 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.RssItem>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			id?: string
 			limit?: number
 			open?: boolean
@@ -41,7 +46,6 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		>
 	> = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
 
 
 	
@@ -80,17 +84,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-					{
-						sources: [
-						Source.Constants_Internal,
-						Source.Rss_Rest,
-						Source.Rss2Json_Rest,
-					],
-					}
-				).field(entityFieldReference.fieldName, {
+			<ResourceBoundary resource={selection({
 					sources: [
 						Source.Rss_Rest,
 						Source.Rss2Json_Rest,

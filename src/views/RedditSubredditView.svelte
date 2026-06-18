@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const subreddit = $derived(
-		proxy(
+		select(
 			EntityType.RedditSubreddit,
 			selector,
 			({ sources: [
@@ -205,22 +205,20 @@
 			{#snippet SectionLinks()}
 				<RedditLinksView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.RedditSubreddit,
-						selector,
-						fieldName: '$$links',
-					}}
+					selection={select(
+			EntityType.RedditSubreddit,
+			selector
+		).$$links}
 					id={`${idKey}:reddit-links`}
 				/>
 			{/snippet}
 
 			{#snippet SectionMetricSnapshots()}
 				<RedditSubreddit_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.RedditSubreddit,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.RedditSubreddit,
+			selector
+		).$$timestamps}
 					href={href}
 					id={`${idKey}:metric-snapshots`}
 					title="Metric snapshots"

@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,7 +40,7 @@
 		>
 	> = $props()
 
-	const state = $derived(proxy(EntityType.StateChannelState,
+	const state = $derived(select(EntityType.StateChannelState,
 		selector,
 		({ sources: [Source.Local_Internal], fields: { intent: true, version: true, isFinal: true, timestamp: true, stateData: true, $channel: true, ...(open && ({ allocations: true, signatures: true })) } }),
 	))

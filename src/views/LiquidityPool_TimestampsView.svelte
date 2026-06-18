@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,18 +13,21 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		title = 'Pool observations',
 		open = $bindable(true),
-		entityFieldReference,
+		selection,
 		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LiquidityPool_Timestamp>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -66,10 +70,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-				).field(entityFieldReference.fieldName, {
+			<ResourceBoundary resource={selection({
 					sources: [Source.Dexscreener_OpenApi],
 					limit: 64,
 				})} placeholderText="Loading pool observations…">

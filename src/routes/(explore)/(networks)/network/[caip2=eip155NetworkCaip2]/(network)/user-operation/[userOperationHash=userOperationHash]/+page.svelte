@@ -1,9 +1,9 @@
 <script lang="ts">
-	// Types/constants
-	import type { PageProps } from './$types.ts'
-
-
-	let { data }: PageProps = $props()
+	import { eip155NetworkSelectorFromCaip2 } from '$/lib/caip2.ts'
+	// State
+	let {
+		params,
+	} = $props()
 
 
 	// Components
@@ -14,6 +14,9 @@
 
 <Page>
 	<EvmUserOperationView
-		selector={data.selector}
+		selector={{
+			$network: eip155NetworkSelectorFromCaip2(params.caip2),
+			hash: params.userOperationHash.toLowerCase(),
+		}}
 	/>
 </Page>

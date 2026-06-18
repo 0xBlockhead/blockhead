@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -62,7 +62,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.MoneroStealthOutput, selector, ({ fields: { publicKey: true, commitment: true } }))}
+			resource={select(EntityType.MoneroStealthOutput, selector, ({ fields: { publicKey: true, commitment: true } }))}
 			placeholderText={`Loading Monero Stealth Output...`}
 		>
 			{#snippet children(moneroStealthOutput)}

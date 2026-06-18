@@ -1095,6 +1095,26 @@ const loadCollectionSubset = async <_Schema extends Schema>(
 						part.publisher.publishes[collection.fieldName] === true
 						&& (resolverSubset.sources == null || resolverSubset.sources.includes(part.source))
 					))) {
+						const equivalentParentSelectorKeys = new Set([
+							parentSelectorKey,
+						])
+						for (const row of loadedEntities) {
+							const rowParentSelectorKeys = [
+								row[EntityMetaKey.SelectorKey],
+								...entitySelectorsFromFields(
+									context.schema,
+									entityDefinition,
+									row[EntityMetaKey.Selector],
+									row[EntityMetaKey.Fields]
+								).map((selector) => entitySelectorKey(context.schema, entityDefinition, selector)),
+							]
+							if (
+								row[EntityMetaKey.SelectorKey] === parentSelectorKey
+								|| rowParentSelectorKeys.includes(parentSelectorKey)
+							)
+								for (const rowParentSelectorKey of rowParentSelectorKeys)
+									equivalentParentSelectorKeys.add(rowParentSelectorKey)
+						}
 						const scope = stringify({
 							kind: 'Root ResolveLive',
 							source: part.source,
@@ -1105,9 +1125,28 @@ const loadCollectionSubset = async <_Schema extends Schema>(
 						})
 						if (context.activeResourceSubscriptions.size === 0)
 							continue
+						if ([...equivalentParentSelectorKeys].some((equivalentParentSelectorKey) => context.startedLiveScopes.has(stringify({
+							kind: 'Root ResolveLive',
+							source: part.source,
+							definitionIndex: part.resolver.definitionIndex,
+							publisherName: part.publisherName,
+							entityType: collection.entityType,
+							parentSelectorKey: equivalentParentSelectorKey,
+						}))))
+							continue
+
 						if (context.startedLiveScopes.has(scope))
 						continue
 						context.startedLiveScopes.add(scope)
+						for (const equivalentParentSelectorKey of equivalentParentSelectorKeys)
+							context.startedLiveScopes.add(stringify({
+								kind: 'Root ResolveLive',
+								source: part.source,
+								definitionIndex: part.resolver.definitionIndex,
+								publisherName: part.publisherName,
+								entityType: collection.entityType,
+								parentSelectorKey: equivalentParentSelectorKey,
+							}))
 						const abortController = new AbortController()
 						context.liveSubscriptions.set(scope, {
 							abortController,
@@ -1530,7 +1569,7 @@ const loadCollectionSubset = async <_Schema extends Schema>(
 					}
 				}),
 				`${collection.entityType}.${collection.fieldName}: all compatible Count Facets failed`
-			).catch(() => [])
+			)
 			const countCollection = context.entityFieldCountCollections[collection.entityType][collection.fieldName]
 			if (countCollection == null)
 				throw new Error(`${collection.entityType}.${collection.fieldName}: missing count collection`)
@@ -1539,9 +1578,9 @@ const loadCollectionSubset = async <_Schema extends Schema>(
 				...countRows,
 				...(countRows.length > 0
 				|| parts.length === 0
-				|| fieldLoadSubsetOptions.limit != null
-				|| fieldLoadSubsetOptions.offset != null
-				|| fieldLoadSubsetOptions.cursor != null
+				|| resolverSubset.pagination.limit != null
+				|| resolverSubset.pagination.offset != null
+				|| resolverSubset.pagination.cursor != null
 				|| settledRowGroups.some((result) => result.status === 'rejected')
 				|| parts.some((part) => part.partial === true)
 				|| (resolverSubset.sources?.length ?? parts.length) !== 1 ?
@@ -2322,7 +2361,7 @@ export const createClient = <
 						selection
 					)
 				),
-				proxy: createEntityProxy(
+				select: createEntityProxy(
 					context,
 					(entityType, entitySelector, selection) => subscribeEntity(
 						context,

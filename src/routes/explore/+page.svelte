@@ -1,9 +1,11 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -60,11 +62,10 @@
 				{#snippet SectionNetworks({ id, label })}
 					<NetworksView
 						href={resolve('/networks')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							selector: { scope: '$$networks' },
-							fieldName: '$$networks',
-						}}
+						selection={select(
+			EntityType._Global,
+			{ scope: '$$networks' }
+		).$$networks}
 						id="networks"
 						open={hubOpen}
 					/>
@@ -72,11 +73,15 @@
 
 				{#snippet SectionUpgrades({ id, label })}
 					<EthereumNetworkUpgradesView
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							selector: { scope: '$$networkUpgrades' },
-							fieldName: '$$networkUpgrades',
-						}}
+						selection={select(
+							EntityType._Global,
+							{ scope: '$$networkUpgrades' }
+						).$$networkUpgrades({
+							sources: [
+								Source.Constants_Internal,
+							],
+							limit: 512,
+						})}
 						id="upgrades"
 						open={hubOpen}
 					/>
@@ -104,11 +109,10 @@
 
 			{#snippet SectionProposals({ id, label })}
 				<SpecificationRealmsView
-					entityFieldReference={{
-						entityType: EntityType._Global,
-						selector: { scope: '$$specificationRealms' },
-						fieldName: '$$specificationRealms',
-					}}
+					selection={select(
+			EntityType._Global,
+			{ scope: '$$specificationRealms' }
+		).$$specificationRealms}
 					id="proposal-realms"
 					open={hubOpen}
 					title="Proposals"

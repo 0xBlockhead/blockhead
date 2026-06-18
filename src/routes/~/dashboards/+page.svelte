@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -16,11 +17,10 @@
 <Page>
 	<BlockheadPanelTreesView
 		href={resolve('/~/manage/data')}
-		entityFieldReference={{
-			entityType: EntityType._Global,
-			selector: { scope: '$$blockheadPanelTrees' },
-			fieldName: '$$blockheadPanelTrees',
-		}}
+		selection={select(
+			EntityType._Global,
+			{ scope: '$$blockheadPanelTrees' }
+		).$$blockheadPanelTrees}
 		id="dashboards"
 	/>
 </Page>

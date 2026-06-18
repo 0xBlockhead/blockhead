@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -13,7 +14,7 @@
 	// Context
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		open = $bindable(true),
 		title = 'Conversations',
 		id,
@@ -21,7 +22,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.XmtpConversation>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			open?: boolean
 			title?: string
 			id: string
@@ -33,7 +38,6 @@
 		>
 	> = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
 
 
 	
@@ -46,13 +50,7 @@
 	import XmtpConversationView from '$/views/XmtpConversationView.svelte'
 </script>
 
-<ResourceBoundary resource={proxy(
-		entityFieldReference.entityType,
-		entityFieldReference.selector,
-		{
-			sources: [Source.Local_Internal],
-		}
-	).field(entityFieldReference.fieldName, {
+<ResourceBoundary resource={selection({
 
 	})}>
 	{#snippet children(conversations)}

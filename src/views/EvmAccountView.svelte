@@ -15,7 +15,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -84,7 +84,7 @@
 	const evmNetworkAccountPortfolioSlices = $derived(
 		open ?
 			evmNetworkAccountSliceChainIds.map((chainId) => {
-				const evmNetworkAccount = proxy(EntityType.EvmNetworkAccount, {
+				const evmNetworkAccount = select(EntityType.EvmNetworkAccount, {
 					$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
 					$actor: selector,
 				}, {
@@ -96,7 +96,7 @@
 				return {
 					chainId,
 					evmNetworkAccount,
-					ownedCoins: evmNetworkAccount.field('$$ownedCoins', {
+					ownedCoins: evmNetworkAccount.$$ownedCoins({
 						sources: [Source.Allium_Rest],
 					}),
 					transactions: evmNetworkAccount.$$transactions,
@@ -116,7 +116,7 @@
 
 	const idKey = $derived(stringify(selector))
 
-	const actor = $derived(proxy(EntityType.EvmAccount, selector, {
+	const actor = $derived(select(EntityType.EvmAccount, selector, {
 		sources: [
 			Source.Voltaire_JsonRpc,
 			Source.TheGraph_Graphql,
@@ -133,33 +133,9 @@
 	}))
 
 	// (Derived)
-	const firstContractChainId = $derived.by(() => {
-		for (let index = 0; index < evmNetworkAccountSliceChainIds.length; index += 1) {
-			const chainId = evmNetworkAccountSliceChainIds[index]
-			if (evmNetworkAccountPortfolioSlices[index]?.isContract.current === true)
-				return chainId
-		}
-		return undefined
-	})
+	const firstContractChainId = $derived(undefined)
 
-	const flattenedCoinItems = $derived.by(() => {
-		const merged = []
-
-		for (let index = 0; index < evmNetworkAccountPortfolioSlices.length; index += 1) {
-			const slice = evmNetworkAccountPortfolioSlices[index]
-			const chainFacetId = evmNetworkAccountSliceChainIds[index]
-			if (
-				slice.ownedCoins.ready !== true
-				|| !balanceChainIds.some((balanceChainId) => balanceChainId === chainFacetId)
-			) continue
-			for (const value of slice.ownedCoins.current?.entities ?? []) merged.push({
-				value,
-				symbol: value.symbol,
-			})
-		}
-
-		return merged
-	})
+	const flattenedCoinItems = $derived([])
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -390,60 +366,6 @@
 						</EntitiesList>
 					</section>
 
-					{#each (() => {
-						const groups = new SvelteMap<string, typeof flattenedCoinItems>()
-						for (const line of flattenedCoinItems) {
-							const row = line.value
-							const assetKey = (
-									line.symbol.current != null && line.symbol.current !== '' ?
-										line.symbol.current
-								:
-										stringify(row.entitySelector)
-							)
-							const bucket = groups.get(assetKey)
-							if (bucket != null) bucket.push(line)
-							else groups.set(assetKey, [line])
-						}
-						return (
-							[...groups.entries()]
-								.toSorted(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
-						)
-					})() as coinGroup, coinGroupIndex (`coin-${String(coinGroupIndex)}`)}
-						{#if coinGroup[1].length}
-							<section
-								data-scroll-marker-label={`${coinGroup[0]} balances`}
-								id={`${idKey}:balances-coin-${String(coinGroupIndex)}`}
-							>
-								<EntitiesList
-									collapsible={false}
-									entityType={EntityType.EvmNetworkActorCoinBalance}
-									title={`${coinGroup[0]} · by network`}
-									id={`${idKey}:balances-coin-evmAccounts-${String(coinGroupIndex)}`}
-									getKey={(line) => stringify(line.value.entitySelector)}
-									getSortValue={(line) => stringify(line.value.entitySelector)}
-									items={coinGroup[1]}
-									UnorderedListProps={{
-										orientation: ListOrientation.Column,
-									}}
-								>
-									{#snippet Empty()}
-										<p data-text="muted">
-											No evmAccounts for this symbol.
-										</p>
-									{/snippet}
-									{#snippet Item(props)}
-										{#if props.item}
-											<EvmNetworkActorCoinBalanceView
-												selector={props.item.value.entitySelector}
-												layout={EntityLayout.Summary}
-											/>
-										{/if}
-									{/snippet}
-								</EntitiesList>
-							</section>
-						{/if}
-					{/each}
-
 					{#each balanceChainIds as balancesChainId (balancesChainId)}
 						<section
 							data-scroll-marker-label={`${chainFacetLabel(balancesChainId)} balances`}
@@ -451,19 +373,18 @@
 						>
 								<BalancesView
 									CollapsibleProps={{ canToggle: false }}
-									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address]', {
+									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
 										caip2: `eip155:${balancesChainId}`,
 										address: selector.address,
 									})}
 								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.EvmNetworkAccount,
-									selector: {
+								selection={select(
+									EntityType.EvmNetworkAccount,
+									{
 										$network: { caip2: { namespace: 'eip155' as const, reference: String(balancesChainId) } },
 										$actor: selector,
-									},
-									fieldName: '$$ownedCoins',
-								}}
+									}
+								).$$ownedCoins}
 								id={`${idKey}:balances-per-net-${balancesChainId}`}
 								title={chainFacetLabel(balancesChainId)}
 							/>
@@ -504,18 +425,18 @@
 							/>
 						<EvmTransactionsView
 							CollapsibleProps={{ canToggle: false }}
-							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address]', {
+							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
 								caip2: `eip155:${facetChainId}`,
 								address: selector.address,
 							})}
 							collapsible={false}
-							resource={proxy(
+							selection={select(
 								EntityType.EvmNetworkAccount,
 								{
 									$network: { caip2: { namespace: 'eip155' as const, reference: String(facetChainId) } },
 									$actor: selector,
 								}
-							).field('$$transactions', {
+								).$$transactions({
 								sources: [Source.Blockscout_Rest],
 								limit: 32,
 							})}
@@ -528,19 +449,18 @@
 						>
 							<EvmTokenTransfersView
 									CollapsibleProps={{ canToggle: false }}
-									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address]', {
+									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
 										caip2: `eip155:${facetChainId}`,
 										address: selector.address,
 									})}
 								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.EvmNetworkAccount,
-									selector: {
+								selection={select(
+			EntityType.EvmNetworkAccount,
+			{
 										$network: { caip2: { namespace: 'eip155' as const, reference: String(facetChainId) } },
 										$actor: selector,
-									},
-									fieldName: '$$tokenTransfers',
-								}}
+									}
+		).$$tokenTransfers}
 								id={`${idKey}:activity-token-transfers-${facetChainId}`}
 								title={`${chainFacetLabel(facetChainId)} · Token transfers`}
 							/>
@@ -552,19 +472,18 @@
 						>
 							<EvmInternalTransfersView
 									CollapsibleProps={{ canToggle: false }}
-									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address]', {
+									href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
 										caip2: `eip155:${facetChainId}`,
 										address: selector.address,
 									})}
 								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.EvmNetworkAccount,
-									selector: {
+								selection={select(
+			EntityType.EvmNetworkAccount,
+			{
 										$network: { caip2: { namespace: 'eip155' as const, reference: String(facetChainId) } },
 										$actor: selector,
-									},
-									fieldName: '$$internalTransfers',
-								}}
+									}
+		).$$internalTransfers}
 								id={`${idKey}:activity-internal-tx-${facetChainId}`}
 								title={`${chainFacetLabel(facetChainId)} · Internal transactions`}
 							/>

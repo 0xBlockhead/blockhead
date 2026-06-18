@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -63,7 +63,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.PolkadotReferendum,
+			resource={select(EntityType.PolkadotReferendum,
 					selector,
 					({ fields: { track: true, status: true } }),
 				)}

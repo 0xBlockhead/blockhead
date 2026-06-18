@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -51,11 +52,10 @@
 		<Eip8004RegistrationsView
 			CollapsibleProps={{ canToggle: false }}
 			href={resolve('/services')}
-			entityFieldReference={{
-				entityType: EntityType._Global,
-				selector: { scope: '$$eip8004Services' },
-				fieldName: '$$eip8004Services',
-			}}
+			selection={select(
+			EntityType._Global,
+			{ scope: '$$eip8004Services' }
+		).$$eip8004Services}
 			id="agents"
 			open={hubOpen}
 		/>

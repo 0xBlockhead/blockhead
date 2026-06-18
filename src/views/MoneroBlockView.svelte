@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -71,7 +71,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.MoneroBlock,
+			resource={select(EntityType.MoneroBlock,
 					selector,
 					({ sources: [
 							Source.MoneroDaemonRpc_JsonRpc,
@@ -93,10 +93,10 @@
 						</div>
 					{/if}
 
-						{#if (block.fields.$$transactions?.values.length ?? 0) > 0}
+						{#if (block.fields.$$transactions.values.length ) > 0}
 							<div>
 								<dt>Transactions</dt>
-								<dd><NumberValue value={block.fields.$$transactions?.values.length ?? 0} /></dd>
+								<dd><NumberValue value={block.fields.$$transactions.values.length } /></dd>
 							</div>
 						{/if}
 

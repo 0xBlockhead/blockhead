@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,13 +17,12 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { proxy } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 
 
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id,
 		href = '',
 		limit = 50,
@@ -34,7 +34,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.AtprotoPost>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			id: string
 			href?: string
 			limit?: number
@@ -79,14 +83,7 @@
 	{#snippet body()}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-						{
-							sources: [
-							Source.Atproto_Xrpc,						],
-						}
-					).field(entityFieldReference.fieldName, {
+				resource={selection({
 						sources: [
 							Source.Atproto_Xrpc,						],
 						limit,
@@ -103,7 +100,7 @@
 						{title}
 						open={true}
 						getKey={(atprotoPost) => atprotoPost.entitySelector.uri}
-						getSortValue={(atprotoPost) => `${String(atprotoPost.current?.createdAt ?? 0).padStart(20, '0')}\0${atprotoPost.entitySelector.uri}`}
+						getSortValue={(atprotoPost) => atprotoPost.entitySelector.uri}
 						placeholderText={`Loading ${title.toLowerCase()}…`}
 						items={thread.entities}
 					>
@@ -119,10 +116,17 @@
 									uri: encodeURIComponent(item.entitySelector.uri),
 								})}
 							>
-								<TruncatedValue
-									value={item.current?.text ?? item.entitySelector.uri}
-									format={TruncatedValueFormat.Visual}
-								/>
+								<ResourceBoundary
+									resource={item.text}
+									placeholderText="Loading post…"
+								>
+									{#snippet children(text)}
+										<TruncatedValue
+											value={text ?? item.entitySelector.uri}
+											format={TruncatedValueFormat.Visual}
+										/>
+									{/snippet}
+								</ResourceBoundary>
 							</a>
 						{/snippet}
 					</EntitiesList>

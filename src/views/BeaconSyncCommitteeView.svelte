@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -75,7 +75,7 @@
 					<dt>Validators</dt>
 					<dd>
 						<ResourceBoundary
-							resource={proxy(
+							resource={select(
 									EntityType.BeaconSyncCommittee,
 									selector,
 									{

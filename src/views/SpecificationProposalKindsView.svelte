@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { entityDefinitionByType, schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,7 +12,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { goto } from '$app/navigation'
 	import { getIsInsidePage } from '$/context/isInsidePage.ts'
 
@@ -30,7 +31,7 @@
 		title = 'Proposal kinds',
 
 		open = $bindable(true),
-		entityFieldReference,
+		selection,
 		href = resolve('/proposals'),
 
 		collapsible = true,
@@ -47,7 +48,11 @@
 		...articleElementProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.SpecificationProposalKind>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -101,13 +106,7 @@
 	}
 
 
-	const proposalKinds = $derived(proxy(
-		entityFieldReference.entityType,
-		entityFieldReference.selector,
-		{
-			sources: [Source.Constants_Internal],
-		}
-	).field(entityFieldReference.fieldName, {
+	const proposalKinds = $derived(selection({
 		limit: 512,
 		fields: {
 			label: true,
@@ -116,24 +115,17 @@
 	}))
 
 	// Functions
-	const proposalKindKey = (specificationProposalKind: NonNullable<typeof proposalKinds.current>['entities'][number]) => (
+	const proposalKindKey = (specificationProposalKind: { entitySelector: EntitySelector<typeof schema, EntityType.SpecificationProposalKind> }) => (
 		stringify(specificationProposalKind.entitySelector)
 	)
 
-	const kindPanelDomId = (kind: NonNullable<typeof proposalKinds.current>['entities'][number]) => (
+	const kindPanelDomId = (kind: { entitySelector: EntitySelector<typeof schema, EntityType.SpecificationProposalKind> }) => (
 		`proposal-kind:${kind.entitySelector.realm}:${kind.entitySelector.category}:proposals`
 	)
 
 
 
 	// (Derived)
-	const count = $derived(
-		proposalKinds.ready ?
-			proposalKinds.current!.entities.length
-		:
-			0,
-	)
-
 	const totalCount = $derived(
 		placeholderKeys.size > 0 ?
 			placeholderKeys.size
@@ -144,9 +136,7 @@
 	const showCounts = $derived(true)
 
 	const showTotalCount = $derived(
-		count !== undefined
-		&& totalCount !== undefined
-		&& totalCount !== count,
+		totalCount !== undefined,
 	)
 
 
@@ -194,25 +184,22 @@
 				{:else if !showSummary}
 					<div {...standaloneKindPanelsProps}>
 						{#each proposalKinds.entities.toSorted((first, second) => (
-								(first.current?.labelPlural ?? first.current?.label ?? stringify(first.entitySelector)).localeCompare(
-									second.current?.labelPlural ?? second.current?.label ?? stringify(second.entitySelector),
-								)
+								String(first.entitySelector.category).localeCompare(String(second.entitySelector.category))
 							)) as specificationProposalKind (proposalKindKey(specificationProposalKind))}
-							<section data-scroll-marker-label={specificationProposalKind.current?.labelPlural ?? specificationProposalKind.current?.label ?? String(specificationProposalKind.entitySelector.category)}>
+							<section data-scroll-marker-label={String(specificationProposalKind.entitySelector.category)}>
 								<ProposalsView
 									href={resolve('/proposals')}
 									collapsible={false}
-									entityFieldReference={{
-										entityType: EntityType.SpecificationProposalKind,
-										selector: {
+									selection={select(
+										EntityType.SpecificationProposalKind,
+										{
 											realm: specificationProposalKind.entitySelector.realm,
 											category: specificationProposalKind.entitySelector.category,
-										},
-										fieldName: '$$proposals',
-									}}
+										}
+									).$$proposals}
 									id={kindPanelDomId(specificationProposalKind)}
 									open
-									title={specificationProposalKind.current?.labelPlural ?? specificationProposalKind.current?.label ?? String(specificationProposalKind.entitySelector.category)}
+									title={String(specificationProposalKind.entitySelector.category)}
 								/>
 							</section>
 						{/each}
@@ -252,7 +239,7 @@
 									<HeadingComponent {...HeadingProps}>
 										<a {href}>{title}</a>
 										{#if showCounts}
-											<small>({#if count !== undefined}<NumberValue value={count} />{/if}{#if showTotalCount} / {/if}{#if showTotalCount}<NumberValue value={totalCount!} />{/if}{#if count === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
+											<small>({#if showTotalCount}<NumberValue value={totalCount!} />{/if})</small>
 										{/if}
 									</HeadingComponent>
 								</header>
@@ -275,25 +262,22 @@
 
 						{#snippet SectionKinds({ id: _sectionId, label: _sectionLabel })}
 							{#each proposalKinds.entities.toSorted((first, second) => (
-								(first.current?.labelPlural ?? first.current?.label ?? stringify(first.entitySelector)).localeCompare(
-									second.current?.labelPlural ?? second.current?.label ?? stringify(second.entitySelector),
-								)
+								String(first.entitySelector.category).localeCompare(String(second.entitySelector.category))
 							)) as specificationProposalKind (proposalKindKey(specificationProposalKind))}
 								<section id={kindPanelDomId(specificationProposalKind)}>
 									<ProposalsView
 										CollapsibleProps={{ canToggle: false }}
 										href={resolve('/proposals')}
-										entityFieldReference={{
-											entityType: EntityType.SpecificationProposalKind,
-											selector: {
+										selection={select(
+											EntityType.SpecificationProposalKind,
+											{
 												realm: specificationProposalKind.entitySelector.realm,
 												category: specificationProposalKind.entitySelector.category,
-											},
-											fieldName: '$$proposals',
-										}}
+											}
+										).$$proposals}
 										id={kindPanelDomId(specificationProposalKind)}
 										open
-										title={specificationProposalKind.current?.labelPlural ?? specificationProposalKind.current?.label ?? String(specificationProposalKind.entitySelector.category)}
+										title={String(specificationProposalKind.entitySelector.category)}
 									/>
 								</section>
 							{/each}
@@ -315,7 +299,7 @@
 										<HeadingComponent {...HeadingProps}>
 											<a {href}>{title}</a>
 											{#if showCounts}
-												<small>({#if count !== undefined}<NumberValue value={count} />{/if}{#if showTotalCount} / {/if}{#if showTotalCount}<NumberValue value={totalCount!} />{/if}{#if count === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
+												<small>({#if showTotalCount}<NumberValue value={totalCount!} />{/if})</small>
 											{/if}
 										</HeadingComponent>
 									</header>
@@ -340,14 +324,12 @@
 									data-row-item="flexible"
 								>
 									{#each proposalKinds.entities.toSorted((first, second) => (
-								(first.current?.labelPlural ?? first.current?.label ?? stringify(first.entitySelector)).localeCompare(
-									second.current?.labelPlural ?? second.current?.label ?? stringify(second.entitySelector),
-								)
+								String(first.entitySelector.category).localeCompare(String(second.entitySelector.category))
 							)) as specificationProposalKind (proposalKindKey(specificationProposalKind))}
 										<a
-											data-scroll-marker-label={specificationProposalKind.current?.labelPlural ?? specificationProposalKind.current?.label ?? String(specificationProposalKind.entitySelector.category)}
+											data-scroll-marker-label={String(specificationProposalKind.entitySelector.category)}
 											href={`#${kindPanelDomId(specificationProposalKind)}`}
-										>{specificationProposalKind.current?.labelPlural ?? specificationProposalKind.current?.label ?? String(specificationProposalKind.entitySelector.category)}</a>
+										>{String(specificationProposalKind.entitySelector.category)}</a>
 									{/each}
 								</div>
 
@@ -364,25 +346,22 @@
 						>
 							<div {...standaloneKindPanelsProps}>
 								{#each proposalKinds.entities.toSorted((first, second) => (
-								(first.current?.labelPlural ?? first.current?.label ?? stringify(first.entitySelector)).localeCompare(
-									second.current?.labelPlural ?? second.current?.label ?? stringify(second.entitySelector),
-								)
+								String(first.entitySelector.category).localeCompare(String(second.entitySelector.category))
 							)) as specificationProposalKind (proposalKindKey(specificationProposalKind))}
-									<section data-scroll-marker-label={specificationProposalKind.current?.labelPlural ?? specificationProposalKind.current?.label ?? String(specificationProposalKind.entitySelector.category)}>
+									<section data-scroll-marker-label={String(specificationProposalKind.entitySelector.category)}>
 										<ProposalsView
 											href={resolve('/proposals')}
 											collapsible={false}
-											entityFieldReference={{
-												entityType: EntityType.SpecificationProposalKind,
-												selector: {
+											selection={select(
+												EntityType.SpecificationProposalKind,
+												{
 													realm: specificationProposalKind.entitySelector.realm,
 													category: specificationProposalKind.entitySelector.category,
-												},
-												fieldName: '$$proposals',
-											}}
+												}
+											).$$proposals}
 											id={kindPanelDomId(specificationProposalKind)}
 											open
-											title={specificationProposalKind.current?.labelPlural ?? specificationProposalKind.current?.label ?? String(specificationProposalKind.entitySelector.category)}
+											title={String(specificationProposalKind.entitySelector.category)}
 										/>
 									</section>
 								{/each}

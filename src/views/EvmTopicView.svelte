@@ -37,7 +37,7 @@
 		>
 	> = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	
 	const href = $derived(
@@ -46,7 +46,7 @@
 		})
 	)
 
-	const signatures = $derived(proxy(
+	const signatures = $derived(select(
 		EntityType.EvmTopic,
 		selector,
 		{

@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -35,7 +35,7 @@
 		>
 	> = $props()
 
-	const marketVenue = $derived(proxy(EntityType.MarketVenue, selector, ({ sources: [
+	const marketVenue = $derived(select(EntityType.MarketVenue, selector, ({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true } })))
 
@@ -98,11 +98,10 @@
 	})}
 		<MarketsView
 			href={resolve('/markets')}
-			entityFieldReference={{
-				entityType: EntityType.MarketVenue,
-				selector,
-				fieldName: '$$markets',
-			}}
+			selection={select(
+			EntityType.MarketVenue,
+			selector
+		).$$markets}
 
 			title="Markets"
 		/>

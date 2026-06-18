@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -53,7 +53,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.QuilibriumPendingTransaction, selector, ({ fields: { transactionType: true } }))}
+			resource={select(EntityType.QuilibriumPendingTransaction, selector, ({ fields: { transactionType: true } }))}
 			placeholderText={`Loading Quilibrium Pending Transaction...`}
 		>
 			{#snippet children(quilibriumPendingTransaction)}

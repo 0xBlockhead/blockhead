@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -29,7 +29,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'showTypeAnnotation'>
 	> = $props()
 
-	const withdrawal = $derived(proxy(
+	const withdrawal = $derived(select(
 		EntityType.BeaconWithdrawal,
 		selector,
 		{

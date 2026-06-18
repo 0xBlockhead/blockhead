@@ -2,6 +2,7 @@ import { type } from 'arktype'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
+	NonNegativeInteger,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
@@ -39,13 +40,13 @@ export default {
 		{
 			name: 'slot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: NonNegativeInteger,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: 'epoch',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: NonNegativeInteger,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Beacon_Rest,

@@ -36,7 +36,7 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	
 
@@ -83,7 +83,7 @@
 
 	{#snippet Content({})}
 		<ResourceBoundary
-			resource={proxy(EntityType.LiquidityPool,
+			resource={select(EntityType.LiquidityPool,
 					selector,
 					({ fields: { $baseToken: true, $quoteToken: true, $hooks: true, baseTokenSymbol: true, quoteTokenSymbol: true, baseTokenDecimals: true, quoteTokenDecimals: true, fee: true, tickSpacing: true, v4PoolId: true, $$timestamps: ({ sources: [
 								Source.Dexscreener_OpenApi,
@@ -211,12 +211,12 @@
 						</div>
 					{/if}
 					{#if (
-						open
-						&& (pool.fields.dexscreenerLabels?.values.length ?? 0) > 0
-					)}
+							open
+							&& pool.fields.dexscreenerLabels.values.length > 0
+						)}
 						<div>
 							<dt>Labels</dt>
-							<dd>{pool.fields.dexscreenerLabels?.values.join(', ')}</dd>
+								<dd>{pool.fields.dexscreenerLabels.values.join(', ')}</dd>
 						</div>
 					{/if}
 					{#if (
@@ -252,11 +252,10 @@
 		open: _open,
 	})}
 		<LiquidityPool_TimestampsView
-			entityFieldReference={{
-				entityType: EntityType.LiquidityPool,
-				selector,
-				fieldName: '$$timestamps',
-			}}
+			selection={select(
+			EntityType.LiquidityPool,
+			selector
+		).$$timestamps}
 			open={true}
 		/>
 	{/snippet}

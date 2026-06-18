@@ -5,7 +5,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selectorHex,
@@ -22,7 +22,7 @@
 
 
 <ResourceBoundary
-	resource={proxy(
+	resource={select(
 			EntityType.EvmSelector,
 			{ hex: selectorHex },
 			{

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -16,11 +17,10 @@
 <Page>
 	<EvmAccountsView
 		href={resolve('/~/accounts/watched-accounts')}
-		entityFieldReference={{
-			entityType: EntityType._Global,
-			selector: { scope: '$$actors' },
-			fieldName: '$$actors',
-		}}
+		selection={select(
+			EntityType._Global,
+			{ scope: '$$actors' }
+		).$$actors}
 		id="accounts"
 	/>
 </Page>

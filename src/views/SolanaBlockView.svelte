@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -82,7 +82,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.SolanaBlock,
+			resource={select(EntityType.SolanaBlock,
 					selector,
 					({ sources: [
 							Source.Solana_JsonRpc,

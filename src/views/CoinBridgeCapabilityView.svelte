@@ -17,28 +17,28 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		selector,
-		href,
-		open = $bindable(true),
-		collapsible = true,
-		...EntityViewProps
+			selector,
+			href,
+			open = $bindable(true),
+			collapsible = true,
+			...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.CoinBridgeCapability>
-			href?: string
-			open?: boolean
-			collapsible?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'layout'
-		>
-	> = $props()
+				selector: EntitySelector<typeof schema, EntityType.CoinBridgeCapability>
+				href?: string
+				open?: boolean
+				collapsible?: boolean
+			},
+			Pick<
+				ComponentProps<typeof EntityView>,
+				| 'layout'
+			>
+		> = $props()
 
-	const capability = $derived(proxy(EntityType.CoinBridgeCapability, selector, ({ sources: [
+	const capability = $derived(select(EntityType.CoinBridgeCapability, selector, ({ sources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			], fields: { ...(open && ({ railId: true, settlementModel: true, verificationModel: true, assetOutcome: true })) } })))
@@ -52,10 +52,10 @@
 
 
 <EntityView
-	entityType={EntityType.CoinBridgeCapability}
-	entitySelector={selector}
-	href={href}
-	bind:open
+		entityType={EntityType.CoinBridgeCapability}
+		entitySelector={selector}
+		href={href}
+		bind:open
 	{collapsible}
 	{...EntityViewProps}
 >

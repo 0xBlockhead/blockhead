@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -55,11 +56,10 @@
 				{#snippet SectionRooms({ id, label })}
 					<BlockheadRoomsView
 						href={resolve('/~/multiplayer/rooms')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							selector: { scope: '$$blockheadRooms' },
-							fieldName: '$$blockheadRooms',
-						}}
+						selection={select(
+			EntityType._Global,
+			{ scope: '$$blockheadRooms' }
+		).$$blockheadRooms}
 						id="rooms"
 						open={hubOpen}
 					/>
@@ -68,11 +68,10 @@
 				{#snippet SectionContacts({ id, label })}
 					<BlockheadRoomPeersView
 						href={resolve('/~/multiplayer/contacts')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							selector: { scope: '$$blockheadRoomPeers' },
-							fieldName: '$$blockheadRoomPeers',
-						}}
+						selection={select(
+			EntityType._Global,
+			{ scope: '$$blockheadRoomPeers' }
+		).$$blockheadRoomPeers}
 						id="contacts"
 						open={hubOpen}
 					/>

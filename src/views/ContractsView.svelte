@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,10 +12,10 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Contracts',
 		open = $bindable(true),
 		id,
@@ -22,7 +23,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmContract>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			title?: string
 			open?: boolean
 			id: string
@@ -65,10 +70,10 @@
 
 	{#snippet body()}
 		{#if open}
-			{#key stringify(entityFieldReference.selector)}
+			{#key stringify(selection.entitySelector)}
 				<ResourceBoundary
-					resource={proxy(EntityType.EvmNetwork, entityFieldReference.selector)
-						.field('$$contracts', {
+					resource={select(EntityType.EvmNetwork, selection.entitySelector)
+						.$$contracts({
 							sources: [Source.Blockscout_Rest],
 						})}
 					placeholderText="Loading contracts…"

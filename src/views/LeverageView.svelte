@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -78,7 +78,7 @@
 
 	{#snippet Content({})}
 		<ResourceBoundary
-			resource={proxy(EntityType.Leverage, selector, ({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }))}
+			resource={select(EntityType.Leverage, selector, ({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }))}
 			placeholderText="Loading leverage row…"
 		>
 			{#snippet children(leverage)}

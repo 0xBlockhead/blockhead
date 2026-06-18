@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -41,7 +41,7 @@
 		>
 	> = $props()
 
-	const feed = $derived(proxy(EntityType.RssFeed, selector, ({ sources: [
+	const feed = $derived(select(EntityType.RssFeed, selector, ({ sources: [
 				Source.Rss_Rest,
 				Source.Rss2Json_Rest,
 			], fields: { title: true, description: true, link: true, siteUrl: true, language: true, lastBuildDate: true, imageUrl: true, ...(open ? ({ $$items: ({ sources: [
@@ -235,11 +235,10 @@
 				<RssItemsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/rss/items')}
-					entityFieldReference={{
-						entityType: EntityType.RssFeed,
-						selector,
-						fieldName: '$$items',
-					}}
+					selection={select(
+			EntityType.RssFeed,
+			selector
+		).$$items}
 					id={`${idKey}:feed-items-rssFeeds`}
 					{limit}
 					open={_open}

@@ -15,7 +15,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,7 +40,7 @@
 		>
 	> = $props()
 
-	const currency = $derived(proxy(EntityType.Currency,
+	const currency = $derived(select(EntityType.Currency,
 		selector,
 		({ sources: [
 				Source.Constants_Internal,
@@ -108,7 +108,7 @@
 						placeholderText="Loading currency…"
 					>
 						{#snippet children(currency)}
-							{#if currency.fields.$$timestamps?.values[0]?.marketCap !== undefined}
+							{#if currency.fields.$$timestamps.values[0]?.marketCap !== undefined}
 								<CurrencyAmount
 									currency="USD"
 									value={currency.fields.$$timestamps.values[0].marketCap}
@@ -210,11 +210,10 @@
 					<MarketsView
 						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/markets')}
-						entityFieldReference={{
-							entityType: EntityType.Currency,
-							selector,
-							fieldName: '$$marketsWithCurrencyAsBase',
-						}}
+						selection={select(
+			EntityType.Currency,
+			selector
+		).$$marketsWithCurrencyAsBase}
 						{id}
 						title="Base"
 					/>
@@ -225,11 +224,10 @@
 				<MarketsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/markets')}
-					entityFieldReference={{
-						entityType: EntityType.Currency,
-						selector,
-						fieldName: '$$marketsWithCurrencyAsQuote',
-					}}
+					selection={select(
+			EntityType.Currency,
+			selector
+		).$$marketsWithCurrencyAsQuote}
 					{id}
 					title="Quote"
 				/>

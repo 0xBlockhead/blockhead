@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -17,7 +17,7 @@
 	let {
 		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-			caip2: ,
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 		}),
 		layout = EntityLayout.Summary,
 		title: titleProp,
@@ -39,7 +39,7 @@
 		>
 	> = $props()
 
-	const validator = $derived(proxy(
+	const validator = $derived(select(
 		EntityType.BeaconValidator,
 		selector,
 		{

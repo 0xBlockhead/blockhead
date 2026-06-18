@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 		import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,7 +17,7 @@
 	let {
 		title = 'Gas estimates',
 		open = $bindable(true),
-		entityFieldReference,
+		selection,
 		id,
 		href = '',
 		...EntitiesListProps
@@ -24,7 +25,11 @@
 		{
 			title?: string
 			open?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmNetwork_GasEstimate_Timestamp>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			id: string
 			href?: string
 		},
@@ -35,7 +40,6 @@
 		>
 	> = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
 
 
 	
@@ -69,10 +73,7 @@
 	{#snippet body()}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-					).field(entityFieldReference.fieldName, {
+				resource={selection({
 						sources: [Source.Blockscout_Rest, Source.Etherscan_Rest],
 						limit: 64,
 					})}
@@ -94,7 +95,7 @@
 					<EvmNetwork_GasEstimate_TimestampView
 						selector={rowId}
 						href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-							caip2: ,
+							caip2: `${rowId.$network.caip2.namespace}:${rowId.$network.caip2.reference}`,
 						})}
 						layout={EntityLayout.Summary}
 

@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -25,7 +25,7 @@
 	} = $props()
 
 	const network = $derived(
-		proxy(
+		select(
 			EntityType.Network,
 			selector.$network,
 			{
@@ -105,7 +105,7 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={proxy(
+					<ResourceBoundary resource={select(
 							EntityType.TronNetwork,
 							selector,
 							{
@@ -124,7 +124,7 @@
 							},
 						)}>
 						{#snippet children(tronNetwork)}
-							{@const block = tronNetwork.fields.$$blocks?.values.at(0)}
+							{@const block = tronNetwork.fields.$$blocks.values.at(0)}
 							{#if block != null}
 								<div>
 									<dt>Head block</dt>
@@ -144,10 +144,10 @@
 						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 					</div>
 
-					{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
+					{#if (network.fields.$$nativeAssets.values.length ) > 0}
 						<div>
 							<dt>Native asset</dt>
-							<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
+							<dd>{network.fields.$$nativeAssets.values.length }</dd>
 						</div>
 					{/if}
 				</dl>
@@ -180,11 +180,10 @@
 			{#snippet SectionTronBlocks({ id, label }: { id: string, label: string })}
 				<TronBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.TronNetwork,
-						selector,
-						fieldName: '$$blocks',
-					}}
+					selection={select(
+			EntityType.TronNetwork,
+			selector
+		).$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -194,11 +193,10 @@
 			{#snippet SectionTronSnapshots({ id, label }: { id: string, label: string })}
 				<TronNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.TronNetwork,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.TronNetwork,
+			selector
+		).$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -207,11 +205,10 @@
 			{#snippet SectionTronWitnesses({ id, label }: { id: string, label: string })}
 				<TronWitnessesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.TronNetwork,
-						selector,
-						fieldName: '$$witnesses',
-					}}
+					selection={select(
+			EntityType.TronNetwork,
+			selector
+		).$$witnesses}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -253,11 +250,10 @@
 			{#snippet SectionTronAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$nativeAssets',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -287,11 +283,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$faucetUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -305,11 +300,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$blockExplorerUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

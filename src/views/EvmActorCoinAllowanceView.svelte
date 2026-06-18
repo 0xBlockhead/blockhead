@@ -42,10 +42,10 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	const allowanceAnchorKey = $derived(stringify(selector))
-	const allowance = $derived(proxy(EntityType.EvmActorCoinAllowance, selector, {
+	const allowance = $derived(select(EntityType.EvmActorCoinAllowance, selector, {
 		sources: [Source.Voltaire_JsonRpc],
 	}))
 	const allowanceAmount = $derived(allowance.allowance)

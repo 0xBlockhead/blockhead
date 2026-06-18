@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -17,11 +18,10 @@
 	<Market_TimeInterval_TimestampsView
 		href={resolve('/markets')}
 		collapsible={false}
-		entityFieldReference={{
-			entityType: EntityType._Global,
-			selector: { scope: '$$marketTimeIntervalTimestamps' },
-			fieldName: '$$marketTimeIntervalTimestamps',
-		}}
+		selection={select(
+			EntityType._Global,
+			{ scope: '$$marketTimeIntervalTimestamps' }
+		).$$marketTimeIntervalTimestamps}
 		id="coin-ohlc-candles-page"
 		limit={256}
 		title="All OHLC candles"

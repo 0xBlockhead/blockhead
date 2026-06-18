@@ -41,9 +41,9 @@
 	> = $props()
 
 	import { syndicationHtmlToSafeHtml } from '$/lib/markdown.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
-	const item = $derived(proxy(EntityType.RssItem, selector, ({ sources: [
+	const item = $derived(select(EntityType.RssItem, selector, ({ sources: [
 				Source.Rss_Rest,
 				Source.Rss2Json_Rest,
 			], fields: { title: true, link: true, publishedAt: true, $feed: true, ...(open ? ({ description: true, content: true, author: true, updatedAt: true, categories: true, enclosureUrl: true, commentsUrl: true }) : ({  })) } })))

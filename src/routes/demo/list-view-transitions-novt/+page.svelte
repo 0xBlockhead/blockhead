@@ -30,7 +30,7 @@
 
 
 <main
-	data-e2e="list-vt-demo"
+	data-testid="list-vt-demo"
 	data-column
 >
 	<h1>List view transitions (demo, disabled)</h1>
@@ -49,7 +49,7 @@
 		{/snippet}
 
 		{#snippet Item({ item })}
-			<span data-e2e="row-label">{item.label}</span>
+			<span data-testid="row-label">{item.label}</span>
 		{/snippet}
 	</RefinableList>
 </main>

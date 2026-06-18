@@ -9,7 +9,7 @@
 
 
 	// State
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -61,7 +61,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.ZeroGKvEntry, selector, ({ fields: { $logEntry: true, $owner: true, valueHash: true } }))}
+			resource={select(EntityType.ZeroGKvEntry, selector, ({ fields: { $logEntry: true, $owner: true, valueHash: true } }))}
 			placeholderText={`Loading 0G KV entry...`}
 		>
 			{#snippet children(zeroGKvEntry)}

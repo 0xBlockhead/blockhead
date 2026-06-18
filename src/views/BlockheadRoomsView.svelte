@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -13,7 +14,7 @@
 	// Context
 		// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Collaboration rooms',
 		open = $bindable(true),
 		collapsible = true,
@@ -21,9 +22,10 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<
+			selection: EntityProxyFieldResource<
 				typeof schema,
-				EntityType.BlockheadRoom
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
 			>
 			title?: string
 			open?: boolean
@@ -37,7 +39,7 @@
 		>
 	> = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components
@@ -73,10 +75,10 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const rooms = proxy(EntityType._Global,
-				entityFieldReference.selector,
+			{@const rooms = select(EntityType._Global,
+				selection.entitySelector,
 				{ sources: [Source.Local_Internal] },
-			).field('$$blockheadRooms', {
+			).$$blockheadRooms({
 				sources: [Source.Local_Internal],
 			})}
 

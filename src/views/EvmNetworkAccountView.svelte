@@ -18,7 +18,7 @@
 	let {
 		pageContent,
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address]', {
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
 			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 			address: selector.$actor.address,
 		}),
@@ -42,11 +42,11 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	const evmNetworkAccountDetailAnchorKey = $derived(stringify(selector))
 
-	const network = $derived(proxy(EntityType.EvmNetwork, selector.$network, {
+	const network = $derived(select(EntityType.EvmNetwork, selector.$network, {
 		sources: [
 			Source.Constants_Internal,
 			Source.Chainlist_Rest,
@@ -62,16 +62,16 @@
 		],
 	}))
 
-	const actor = $derived(proxy(EntityType.EvmAccount, selector.$actor, {
+	const actor = $derived(select(EntityType.EvmAccount, selector.$actor, {
 		sources: [Source.Voltaire_JsonRpc],
 	}))
 	const primaryName = $derived(actor.$primaryName)
 	const actorIcon = $derived(actor.$icon)
 
-	const evmNetworkAccount = $derived(proxy(EntityType.EvmNetworkAccount, selector, {
+	const evmNetworkAccount = $derived(select(EntityType.EvmNetworkAccount, selector, {
 		sources: [Source.Blockscout_Rest],
 	}))
-	const ownedCoins = $derived(evmNetworkAccount.field('$$ownedCoins', {
+	const ownedCoins = $derived(evmNetworkAccount.$$ownedCoins({
 		sources: [Source.Allium_Rest],
 	}))
 	const isContract = $derived(evmNetworkAccount.isContract)
@@ -363,11 +363,10 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={href}
 					collapsible={false}
-					entityFieldReference={{
-						entityType: EntityType.EvmNetworkAccount,
-						selector,
-						fieldName: '$$ownedCoins',
-					}}
+					selection={select(
+			EntityType.EvmNetworkAccount,
+			selector
+		).$$ownedCoins}
 					id={`${evmNetworkAccountDetailAnchorKey}:actor-owned-coins`}
 					title="Tokens"
 				/>
@@ -379,9 +378,9 @@
 					placeholderText="Loading positions…"
 				>
 					{#snippet children(evmNetworkAccount)}
-						{#if (evmNetworkAccount.contractPositions?.values ?? []).length}
+						{#if evmNetworkAccount.contractPositions.values.length}
 							<ul data-evmNetworkAccounts="unstyled">
-								{#each evmNetworkAccount.contractPositions?.values ?? [] as contractPosition (`${contractPosition.protocol.key}:${contractPosition.name}`)}
+								{#each evmNetworkAccount.contractPositions.values as contractPosition (`${contractPosition.protocol.key}:${contractPosition.name}`)}
 									<li data-column="gap-1">
 										<div data-row="wrap align-baseline gap-2">
 											<strong>{contractPosition.name}</strong>
@@ -423,21 +422,8 @@
 			sectionIdPrefix={evmNetworkAccountDetailAnchorKey}
 			sections={[
 				{ id: 'activity-transactions', label: 'Transactions' },
-				...(
-					!evmNetworkAccount.ready
-					|| evmNetworkAccount.current?.tokenTransferCount !== undefined
-					|| (evmNetworkAccount.current?.$$tokenTransfers?.values.length ?? 0) > 0
-				) ?
-					([{ id: 'activity-token-transfers', label: 'Token transfers' }] as const)
-				:
-					[],
-				...(
-					!evmNetworkAccount.ready
-					|| (evmNetworkAccount.current?.$$internalTransfers?.values.length ?? 0) > 0
-				) ?
-					([{ id: 'activity-internal-transfers', label: 'Internal transfers' }] as const)
-				:
-					[],
+				{ id: 'activity-token-transfers', label: 'Token transfers' },
+				{ id: 'activity-internal-transfers', label: 'Internal transfers' },
 			]}
 			data-card
 			class="actor-network-view-collapsible-activity"
@@ -453,7 +439,7 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={href}
 					collapsible={false}
-					resource={evmNetworkAccount.field('$$transactions', {
+						selection={evmNetworkAccount.$$transactions({
 						sources: [Source.Blockscout_Rest],
 						limit: 32,
 					})}
@@ -466,11 +452,10 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={href}
 					collapsible={false}
-					entityFieldReference={{
-						entityType: EntityType.EvmNetworkAccount,
-						selector,
-						fieldName: '$$tokenTransfers',
-					}}
+					selection={select(
+			EntityType.EvmNetworkAccount,
+			selector
+		).$$tokenTransfers}
 					id={`${evmNetworkAccountDetailAnchorKey}:activity-token-tx-transfers`}
 					title="Token transfers"
 				/>
@@ -481,11 +466,10 @@
 					CollapsibleProps={{ canToggle: false }}
 					href={href}
 					collapsible={false}
-					entityFieldReference={{
-						entityType: EntityType.EvmNetworkAccount,
-						selector,
-						fieldName: '$$internalTransfers',
-					}}
+					selection={select(
+			EntityType.EvmNetworkAccount,
+			selector
+		).$$internalTransfers}
 					id={`${evmNetworkAccountDetailAnchorKey}:activity-internal-tx`}
 					title="Internal transfers"
 				/>

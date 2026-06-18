@@ -17,32 +17,32 @@
 
 	// State
 	let {
-		RouteContent,
-		selector,
-		href,
-		open = $bindable(true),
-		collapsible = true,
-		...EntityViewProps
+			RouteContent,
+			selector,
+			href,
+			open = $bindable(true),
+			collapsible = true,
+			...EntityViewProps
 	}: WithRest<
 		{
-			RouteContent?: Snippet
-			selector: EntitySelector<typeof schema, EntityType.EvmCoinInstance>
-			href?: string
-			open?: boolean
-			collapsible?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'layout'
-			| 'showTypeAnnotation'
-			| 'title'
-		>
+				RouteContent?: Snippet
+				selector: EntitySelector<typeof schema, EntityType.EvmCoinInstance>
+				href?: string
+				open?: boolean
+				collapsible?: boolean
+			},
+			Pick<
+				ComponentProps<typeof EntityView>,
+				| 'layout'
+				| 'showTypeAnnotation'
+				| 'title'
+			>
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
-	const coinInstance = $derived(proxy(EntityType.EvmCoinInstance, selector, {
+	const coinInstance = $derived(select(EntityType.EvmCoinInstance, selector, {
 		sources: [
 			Source.Coingecko_Rest,
 			Source.Constants_Internal,
@@ -102,8 +102,8 @@
 			:
 				undefined
 		)
-	}
-	{collapsible}
+		}
+		{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Icon()}
@@ -290,35 +290,29 @@
 					{/snippet}
 
 					{#snippet SectionBridgeOutbound({ id, label })}
-						{#if (coinInstance.$$outboundBridgeCapabilities?.values ?? []).length}
-							<CoinBridgeCapabilitiesView
-								CollapsibleProps={{ canToggle: false }}
-								href={resolve('/bridge')}
-								entityFieldReference={{
-									entityType: EntityType.EvmCoinInstance,
-									selector,
-									fieldName: '$$outboundBridgeCapabilities',
-								}}
-								{id}
-								title="Outbound"
-							/>
-						{/if}
+						<CoinBridgeCapabilitiesView
+							CollapsibleProps={{ canToggle: false }}
+							href={resolve('/bridge')}
+							selection={select(
+			EntityType.EvmCoinInstance,
+			selector
+		).$$outboundBridgeCapabilities}
+							{id}
+							title="Outbound"
+						/>
 					{/snippet}
 
 					{#snippet SectionBridgeInbound({ id, label })}
-						{#if (coinInstance.$$inboundBridgeCapabilities?.values ?? []).length}
-							<CoinBridgeCapabilitiesView
-								CollapsibleProps={{ canToggle: false }}
-								href={resolve('/bridge')}
-								entityFieldReference={{
-									entityType: EntityType.EvmCoinInstance,
-									selector,
-									fieldName: '$$inboundBridgeCapabilities',
-								}}
-								{id}
-								title="Inbound"
-							/>
-						{/if}
+						<CoinBridgeCapabilitiesView
+							CollapsibleProps={{ canToggle: false }}
+							href={resolve('/bridge')}
+							selection={select(
+			EntityType.EvmCoinInstance,
+			selector
+		).$$inboundBridgeCapabilities}
+							{id}
+							title="Inbound"
+						/>
 					{/snippet}
 				</CollapsibleTabs>
 			{/snippet}

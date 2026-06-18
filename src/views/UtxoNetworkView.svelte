@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -25,7 +25,7 @@
 	} = $props()
 
 	const network = $derived(
-		proxy(
+		select(
 			EntityType.Network,
 			selector.$network,
 			{
@@ -37,7 +37,7 @@
 	)
 
 	const utxoNetwork = $derived(
-		proxy(
+		select(
 			EntityType.UtxoNetwork,
 			selector,
 			{
@@ -127,7 +127,7 @@
 	{#snippet Content()}
 		<dl class="network-summary-head" data-column-item="center">
 			<ResourceBoundary resource={
-		utxoNetwork.field('$$blocks', {
+		utxoNetwork.$$blocks({
 			limit: 1,
 		})
 	}>
@@ -147,7 +147,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary resource={
-		utxoNetwork.field('$$timestamps', {
+		utxoNetwork.$$timestamps({
 			limit: 1,
 			fields: {
 				suggestedTransactionFeePerByteSats: true,
@@ -175,7 +175,7 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={network.field('$$nativeAssets')}>
+			<ResourceBoundary resource={network.$$nativeAssets}>
 				{#snippet children(nativeAssets)}
 					{#if nativeAssets.values.length > 0}
 						<div>
@@ -212,11 +212,10 @@
 			{#snippet SectionUtxoBlocks({ id, label }: { id: string, label: string })}
 				<UtxoBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.UtxoNetwork,
-						selector,
-						fieldName: '$$blocks',
-					}}
+					selection={select(
+			EntityType.UtxoNetwork,
+			selector
+		).$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -226,11 +225,10 @@
 			{#snippet SectionUtxoTransactions({ id, label }: { id: string, label: string })}
 				<UtxoTransactionsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.UtxoNetwork,
-						selector,
-						fieldName: '$$transactions',
-					}}
+					selection={select(
+			EntityType.UtxoNetwork,
+			selector
+		).$$transactions}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -239,11 +237,10 @@
 			{#snippet SectionUtxoMempoolFees({ id, label }: { id: string, label: string })}
 				<UtxoNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.UtxoNetwork,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.UtxoNetwork,
+			selector
+		).$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -271,11 +268,10 @@
 			{#snippet SectionUtxoAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$nativeAssets',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -305,11 +301,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$faucetUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -323,11 +318,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$blockExplorerUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

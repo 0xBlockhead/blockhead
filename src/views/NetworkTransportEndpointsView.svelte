@@ -35,7 +35,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		parentEntityType,
@@ -87,7 +87,7 @@
 
 	{#snippet body()}
 		{#if open}
-			{@const parent = proxy(parentEntityType,
+			{@const parent = select(parentEntityType,
 				parentEntitySelector,
 				{
 					sources: [...fieldSources],
@@ -107,11 +107,11 @@
 						entityType={listEntityType}
 						id={`${id}-items`}
 						href={href}
-						getKey={(endpoint) => endpoint.url}
-						open={true}
-						items={endpointFieldNames.flatMap((fieldName) => (
-							parent.fields[fieldName]?.values ?? []
-						))}
+							getKey={(endpoint) => endpoint.url}
+							open={true}
+							items={endpointFieldNames.flatMap((fieldName) => (
+								parent.fields[fieldName].values
+							))}
 						{title}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>

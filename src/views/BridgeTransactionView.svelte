@@ -98,7 +98,7 @@
 							href={resolve(
 								'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]',
 								{
-										.caip2: ,
+										caip2: `${selector.$sourceTx.$network.caip2.namespace}:${selector.$sourceTx.$network.caip2.reference}`,
 										transactionId: selector.$sourceTx.txHash,
 								},
 							)}

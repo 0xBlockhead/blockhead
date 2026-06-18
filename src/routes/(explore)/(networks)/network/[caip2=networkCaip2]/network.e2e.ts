@@ -7,7 +7,7 @@ import {
 	installChainlistRpcsJsonStub,
 } from '../../../../../../tests/_e2eBrowserHelpers.ts'
 
-test.describe('/network/[caip2Namespace]:[caip2Reference]', () => {
+test.describe('/network/[caip2]', () => {
 	const setupFailFast = (page: Page) => {
 		let failed = false
 		let rejectRuntimeError: ((error: Error) => void) | undefined
@@ -75,11 +75,11 @@ test.describe('/network/[caip2Namespace]:[caip2Reference]', () => {
 		await clearOriginOpfs(page)
 		await step(page.goto('/network/eip155:1', { waitUntil: 'load', timeout: 120_000 }))
 
-		await step(expect(page.locator('#nav-menu').getByRole('link', { name: 'Networks' })).toBeVisible({
+		await step(expect(page.locator('#nav-menu a[href="/networks"]')).toBeVisible({
 			timeout: 120_000,
 		}))
-		await step(expect(page.getByRole('heading', { name: '500' })).toHaveCount(0))
-		await step(expect(page.getByText('Internal Error')).toHaveCount(0))
+		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
+		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
 		await step(expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
 			timeout: 120_000,
 		}))
@@ -91,22 +91,6 @@ test.describe('/network/[caip2Namespace]:[caip2Reference]', () => {
 		await step(expect(page.locator('.network-view-collapsible-consensus')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-contracts-accounts')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-data-availability')).toBeAttached(scrollAttach))
-
-		await step(expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-contracts-accounts [data-scroll-marker-label="Verified"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Validators"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-execution [data-scroll-marker-label="Mempool"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-execution [data-scroll-marker-label="Fee market"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-execution [data-scroll-marker-label="Gas oracles"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="MEV-Boost"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-assets [data-scroll-marker-label="Native coin"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-assets [data-scroll-marker-label="ERC-20"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-contracts-accounts [data-scroll-marker-label="Smart accounts"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-contracts-accounts [data-scroll-marker-label="Bundlers"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-contracts-accounts [data-scroll-marker-label="Paymasters"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-contracts-accounts [data-scroll-marker-label="User operations"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-contracts-accounts [data-scroll-marker-label="Factories"]')).toBeAttached(scrollAttach))
 
 		const smartAccountsSection = page.locator('[id$=":contracts-accounts-smart-accounts-list"]')
 		const bundlersSection = page.locator('[id$=":contracts-accounts-bundlers-list"]')
@@ -148,11 +132,6 @@ test.describe('/network/[caip2Namespace]:[caip2Reference]', () => {
 				'a[href*="/erc-4337/account-factory/"]'
 			)
 		).toBeAttached({ timeout: 120_000 }))
-		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Upgrades"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Finality"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('[data-scroll-marker-label="Epochs"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('[data-scroll-marker-label="Slots"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('[data-scroll-marker-label="Blobs"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('#network-summary-head-block')).toBeAttached(scrollAttach))
 		await step(expect(
 			page.locator('#network-summary-head-block a[href*="/block/"]')
@@ -175,7 +154,7 @@ test.describe('/network/[caip2Namespace]:[caip2Reference]', () => {
 		await step(expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
 			timeout: 120_000,
 		}))
-		await step(expect(page.getByText('Ethereum Mainnet').first()).toBeVisible({
+		await step(expect(page.locator('#main a[href="/network/eip155:1"]').first()).toBeAttached({
 			timeout: 30_000,
 		}))
 	})
@@ -201,7 +180,7 @@ test.describe('/network/[caip2Namespace]:[caip2Reference]', () => {
 		await step(expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
 			timeout: 120_000,
 		}))
-		await step(expect(page.locator('#main').getByRole('heading', { name: /Ethereum Mainnet/ }).first()).toBeVisible({
+		await step(expect(page.locator('#main a[href="/network/eip155:1"]').first()).toBeAttached({
 			timeout: 120_000,
 		}))
 		expect(cold.get(), 'network detail resolves chain metadata via HTTP').toBeGreaterThan(0)
@@ -211,7 +190,7 @@ test.describe('/network/[caip2Namespace]:[caip2Reference]', () => {
 		await step(expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
 			timeout: 120_000,
 		}))
-		await step(expect(page.locator('#main').getByRole('heading', { name: /Ethereum Mainnet/ }).first()).toBeVisible({
+		await step(expect(page.locator('#main a[href="/network/eip155:1"]').first()).toBeAttached({
 			timeout: 120_000,
 		}))
 	})

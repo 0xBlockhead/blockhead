@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -14,7 +15,7 @@
 
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id,
 		limit = 25,
 		open = $bindable(
@@ -25,7 +26,11 @@
 		href,
 		title = 'Videos',
 	}: {
-		entityFieldReference: EntityFieldReference<typeof schema, EntityType.YouTubeVideo>
+		selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 		id: string
 		limit?: number
 		open?: boolean
@@ -35,7 +40,6 @@
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
 
 
 	
@@ -101,17 +105,7 @@
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				<ResourceBoundary
-					resource={proxy(
-							entityFieldReference.entityType,
-							entityFieldReference.selector,
-							{
-								sources: [
-									Source.Constants_Internal,
-									Source.Youtube_Rest,
-									Source.Piped_Rest,
-								],
-							}
-						).field(entityFieldReference.fieldName, {
+					resource={selection({
 							sources: [
 								Source.Youtube_Rest,
 								Source.Piped_Rest,

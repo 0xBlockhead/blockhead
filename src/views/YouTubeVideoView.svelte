@@ -12,7 +12,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -41,7 +41,7 @@
 	> = $props()
 
 	const video = $derived(
-		proxy(
+		select(
 			EntityType.YouTubeVideo,
 			selector,
 			({ sources: [
@@ -363,11 +363,10 @@
 						'/(social)/(youtube)/youtube/video/[videoId]/(video)/comments',
 						{ videoId: encodeURIComponent(selector.videoId) },
 					)}
-					entityFieldReference={{
-						entityType: EntityType.YouTubeVideo,
-						selector,
-						fieldName: '$$comments',
-					}}
+					selection={select(
+			EntityType.YouTubeVideo,
+			selector
+		).$$comments}
 					id={`${idKey}:youtube-comments`}
 					open={_open}
 				/>
@@ -375,11 +374,10 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<YouTubeVideo_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.YouTubeVideo,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.YouTubeVideo,
+			selector
+		).$$timestamps}
 					href={href}
 					id={`${idKey}:metric-snapshots`}
 					title="Metric snapshots"

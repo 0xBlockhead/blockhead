@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -33,7 +33,7 @@
 
 <ResourceBoundary
 	placeholderText="Loading forward resolution…"
-	resource={proxy(EntityType.EnsName,
+	resource={select(EntityType.EnsName,
 			selector,
 			({ sources: [Source.Voltaire_JsonRpc], fields: { $resolvedActor: true } }),
 		)}

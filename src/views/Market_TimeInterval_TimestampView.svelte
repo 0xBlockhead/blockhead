@@ -21,7 +21,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -33,10 +33,10 @@
 			{
 				marketKey: encodeURIComponent(stringify(selector.$market)),
 			},
-		),
-		layout,
-		open = $bindable(true),
-		collapsible = true,
+			),
+			layout,
+			open = $bindable(true),
+			collapsible = true,
 		...EntityViewProps
 	}: WithRest<
 		{
@@ -53,7 +53,7 @@
 		>
 	> = $props()
 
-	const marketTimeIntervalTimestamp = $derived(proxy(EntityType.Market_TimeInterval_Timestamp, selector, ({ sources: [
+	const marketTimeIntervalTimestamp = $derived(select(EntityType.Market_TimeInterval_Timestamp, selector, ({ sources: [
 				Source.Constants_Internal,
 				...marketOhlcCandleSources,
 			], fields: { $parentMarket: true, close: true, ...(open && ({ open: true, high: true, low: true, volume: true, quoteVolume: true, tradeCount: true, vwap: true })) } })))

@@ -11,14 +11,14 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-			caip2: ,
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 		}),
 		layout,
 		open = $bindable(true),
@@ -38,7 +38,7 @@
 		>
 	> = $props()
 
-	const mevRelayProposerPayloadDelivered = $derived(proxy(
+	const mevRelayProposerPayloadDelivered = $derived(select(
 		EntityType.MevRelay_ProposerPayloadDelivered,
 		selector,
 		{
@@ -103,7 +103,7 @@
 
 	{#snippet Content({})}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={mevRelayProposerPayloadDelivered.value} placeholderText="Loading builder bid value…">
+			<ResourceBoundary resource={mevRelayProposerPayloadDelivered.field('value')} placeholderText="Loading builder bid value…">
 				{#snippet children(value)}
 					{#if value !== undefined}
 						<div>

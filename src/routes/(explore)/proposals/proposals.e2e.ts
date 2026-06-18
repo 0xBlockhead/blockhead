@@ -5,7 +5,7 @@ test.describe('/proposals', () => {
 		testInfo.setTimeout(180_000)
 		await page.goto('/proposals', { waitUntil: 'domcontentloaded' })
 
-		await expect(page.locator('#nav-menu').getByRole('link', { name: 'Proposals' })).toBeVisible()
+		await expect(page.locator('#nav-menu a[href="/proposals"]')).toBeVisible()
 
 		const proposals = page.locator('#proposal-realms')
 		await expect(proposals).toBeVisible()

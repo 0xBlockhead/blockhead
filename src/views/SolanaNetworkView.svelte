@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -24,7 +24,7 @@
 		open?: boolean
 	} = $props()
 
-	const network = $derived(proxy(EntityType.SolanaNetwork, selector, ({ sources: [
+	const network = $derived(select(EntityType.SolanaNetwork, selector, ({ sources: [
 				Source.Constants_Internal,
 			], fields: { slug: true, name: true, environment: true, rpcEndpoints: true, $$blocks: ({ limit: 1 }), $$accounts: ({ limit: 16 }), $$timestamps: ({ limit: 1 }) } })))
 
@@ -90,7 +90,7 @@
 				<dd id="network-summary-head-block">
 						<ResourceBoundary resource={network} placeholderText="Loading head slot…">
 							{#snippet children(network)}
-								{@const block = network.fields.$$blocks?.values.at(0)}
+								{@const block = network.fields.$$blocks.values.at(0)}
 								{#if block != null}
 									<SolanaBlockView
 										selector={block[EntityMetaKey.Selector]}
@@ -114,24 +114,24 @@
 					{#if open}
 						<div>
 							<dt>RPC endpoints</dt>
-							<dd>{network.fields.rpcEndpoints?.values.length ?? 0}</dd>
+							<dd>{network.fields.rpcEndpoints.values.length}</dd>
 						</div>
 
-						{#if network.fields.$$accounts != null}
-							<div>
-								<dt>Recent accounts</dt>
-								<dd>{network.fields.$$accounts?.values.length}</dd>
-							</div>
-						{/if}
+							{#if network.fields.$$accounts.values.length}
+								<div>
+									<dt>Recent accounts</dt>
+									<dd>{network.fields.$$accounts.values.length}</dd>
+								</div>
+							{/if}
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-				<ResourceBoundary resource={proxy(EntityType.Network, selector, ({ sources: [
+				<ResourceBoundary resource={select(EntityType.Network, selector, ({ sources: [
 						Source.Constants_Internal,
 					], fields: { $$nativeAssets: true } }))}>
 					{#snippet children(baseNetwork)}
-						{@const nativeAssetCount = baseNetwork.fields.$$nativeAssets?.values.length ?? 0}
+								{@const nativeAssetCount = baseNetwork.fields.$$nativeAssets.values.length}
 						{#if nativeAssetCount > 0}
 							<div>
 								<dt>Native asset</dt>
@@ -170,11 +170,10 @@
 			{#snippet SectionSolanaBlocks({ id, label }: { id: string, label: string })}
 				<SolanaBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.SolanaNetwork,
-						selector,
-						fieldName: '$$blocks',
-					}}
+					selection={select(
+			EntityType.SolanaNetwork,
+			selector
+		).$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -184,11 +183,10 @@
 			{#snippet SectionSolanaTransactions({ id, label }: { id: string, label: string })}
 				<SolanaTransactionsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.SolanaNetwork,
-						selector,
-						fieldName: '$$transactions',
-					}}
+					selection={select(
+			EntityType.SolanaNetwork,
+			selector
+		).$$transactions}
 					href={href == null ? '' : `${href}/transactions`}
 					id={`${id}-list`}
 					title={label}
@@ -198,11 +196,10 @@
 			{#snippet SectionSolanaAccounts({ id, label }: { id: string, label: string })}
 				<SolanaAccountsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.SolanaNetwork,
-						selector,
-						fieldName: '$$accounts',
-					}}
+					selection={select(
+			EntityType.SolanaNetwork,
+			selector
+		).$$accounts}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -211,11 +208,10 @@
 			{#snippet SectionSolanaNetworkSnapshots({ id, label }: { id: string, label: string })}
 				<SolanaNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.SolanaNetwork,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.SolanaNetwork,
+			selector
+		).$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -259,11 +255,10 @@
 			{#snippet SectionSolanaValidators({ id, label }: { id: string, label: string })}
 				<SolanaValidatorsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.SolanaNetwork,
-						selector,
-						fieldName: '$$validators',
-					}}
+					selection={select(
+			EntityType.SolanaNetwork,
+			selector
+		).$$validators}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -291,11 +286,10 @@
 			{#snippet SectionSolanaAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$nativeAssets',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector
+		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -325,11 +319,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$faucetUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector
+		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -343,11 +336,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$blockExplorerUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector
+		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

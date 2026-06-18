@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -55,7 +55,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.NearReceipt, selector, ({ fields: { $predecessor: true, $receiver: true } }))}
+			resource={select(EntityType.NearReceipt, selector, ({ fields: { $predecessor: true, $receiver: true } }))}
 			placeholderText="Loading NEAR Receipt..."
 		>
 			{#snippet children(nearReceipt)}

@@ -2,6 +2,14 @@ import { describe, expect, it } from 'vitest'
 
 import { match as matchEvmTxHash } from '$/params/evmTxHash.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
+import { match as matchEip155ChainId } from '$/params/eip155ChainId.ts'
+import { match as matchEvmBlockNumber } from '$/params/evmBlockNumber.ts'
+import { match as matchBeaconSlotNumber } from '$/params/beaconSlotNumber.ts'
+import { match as matchBeaconEpochNumber } from '$/params/beaconEpochNumber.ts'
+import { match as matchFarcasterFid } from '$/params/farcasterFid.ts'
+import { match as matchBridgeRouteStepIndex } from '$/params/bridgeRouteStepIndex.ts'
+import { schemaMeta } from '$/schema/index.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 
 describe('EVM route params', () => {
@@ -15,5 +23,33 @@ describe('EVM route params', () => {
 		expect(matchNonNegativeInteger('1e2')).toBe(false)
 		expect(matchNonNegativeInteger('0x10')).toBe(false)
 		expect(matchNonNegativeInteger('-1')).toBe(false)
+	})
+
+	it('validates route params through schema field artifacts', () => {
+		expect(matchEip155ChainId('1')).toBe(true)
+		expect(matchEip155ChainId('1e2')).toBe(false)
+		expect(matchEip155ChainId('-1')).toBe(false)
+
+		expect(matchEvmBlockNumber('19000000')).toBe(true)
+		expect(matchEvmBlockNumber('1.5')).toBe(false)
+
+		expect(matchBeaconSlotNumber('0')).toBe(true)
+		expect(matchBeaconSlotNumber('-1')).toBe(false)
+
+		expect(matchBeaconEpochNumber('1')).toBe(true)
+		expect(matchBeaconEpochNumber('1e2')).toBe(false)
+
+		expect(matchFarcasterFid('1')).toBe(true)
+		expect(matchFarcasterFid('-1')).toBe(false)
+
+		expect(matchBridgeRouteStepIndex('0')).toBe(true)
+		expect(matchBridgeRouteStepIndex('01')).toBe(false)
+	})
+
+	it('indexes selector definitions by entity type and selector name', () => {
+		expect(schemaMeta.entitySelectorDefinitionByEntityTypeAndName[EntityType.EvmBlock].evmNetworkBlockNumber.fields).toEqual([
+			'$network',
+			'blockNumber',
+		])
 	})
 })

@@ -1,23 +1,21 @@
+import { caip2ParamValueFromString } from '$/lib/caip2.ts'
 import {
-	EntityFieldType,
-	entityFieldPrimitiveValueIsValid,
-} from '$/schema/$schema.ts'
-import Network from '$/schema/Network.ts'
+	matchDecimalNonNegativeIntegerParam,
+	matchSchemaPrimitiveParam,
+} from '$/schema/$params.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 
 export const match = (param: string): param is `eip155:${string}` => {
-	const separatorIndex = param.indexOf(':')
+	const caip2 = caip2ParamValueFromString(param)
 	return (
-		separatorIndex === 'eip155'.length
-		&& param.slice(0, separatorIndex) === 'eip155'
-		&& Number.isSafeInteger(Number(param.slice(separatorIndex + 1)))
-		&& Number(param.slice(separatorIndex + 1)) >= 0
-		&& ((field) => (
-			field?.type === EntityFieldType.Primitive
-			&& entityFieldPrimitiveValueIsValid(field, {
-				namespace: param.slice(0, separatorIndex),
-				reference: param.slice(separatorIndex + 1),
-			})
-		))(Network.fields.find((field) => field.name === 'caip2'))
+		caip2 !== undefined
+		&& caip2.namespace === 'eip155'
+		&& matchDecimalNonNegativeIntegerParam(caip2.reference)
+		&& matchSchemaPrimitiveParam(
+			EntityType.Network,
+			'caip2',
+			caip2
+		)
 	)
 }

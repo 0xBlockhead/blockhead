@@ -1,21 +1,25 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		href,
 		id,
 		title = 'Metric snapshots',
 		open = $bindable(false),
 	}: {
-		entityFieldReference: EntityFieldReference<typeof schema, EntityType.XPost_Timestamp>
+		selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 		href: string
 		id: string
 		title?: string
@@ -49,10 +53,7 @@
 	{#snippet body()}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector
-					).field(entityFieldReference.fieldName, {
+				resource={selection({
 						limit: 64,
 					})}
 				placeholderText="Loading metric snapshots…"

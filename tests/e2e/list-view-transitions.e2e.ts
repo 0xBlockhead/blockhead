@@ -11,7 +11,11 @@ const isBenignResourceError = (i: string) => (
 )
 
 const rowLabels = (page: Page) => (
-	page.locator('ul.list li[data-list-item]:not([hidden]) [data-e2e=row-label]')
+	page.locator('ul.list li[data-list-item]:not([hidden])').getByTestId('row-label')
+)
+
+const demo = (page: Page) => (
+	page.getByTestId('list-vt-demo')
 )
 
 const assertNoViewTransitionPulse = async (
@@ -61,7 +65,7 @@ test.describe('list view transitions (RefinableList demo)', () => {
 	const firstDataRowVtn = (page: Page) => (
 		page.evaluate(() => {
 			const li = document.querySelector<HTMLLIElement>(
-				'[data-e2e=list-vt-demo] ul.list li[data-list-item]:not([hidden])'
+				'[data-testid=list-vt-demo] ul.list li[data-list-item]:not([hidden])'
 			)
 			if (!li) return ''
 			return getComputedStyle(li).getPropertyValue('view-transition-name').trim() || li.style.viewTransitionName
@@ -87,11 +91,11 @@ test.describe('list view transitions (RefinableList demo)', () => {
 		})
 
 		const beforeSort = await getViewTransitionSpy(page)
-		await page.getByLabel('Sort by').selectOption({ label: 'Z–A' })
+		await demo(page).locator('select').selectOption('desc')
 		await assertSingleViewTransitionPulse(page, beforeSort)
 		await expect(rowLabels(page)).toHaveText([ 'Candle', 'Bravo', 'Alpha' ])
 
-		const search = page.getByRole('searchbox', { name: 'Filter list' })
+		const search = demo(page).locator('input[type="search"]')
 		const beforeSearch = await getViewTransitionSpy(page)
 		await search.click()
 		await search.pressSequentially('B', { delay: 25 })
@@ -126,11 +130,11 @@ test.describe('list view transitions (RefinableList demo)', () => {
 		})
 
 		const beforeSort = await getViewTransitionSpy(page)
-		await page.getByLabel('Sort by').selectOption({ label: 'Z–A' })
+		await demo(page).locator('select').selectOption('desc')
 		await assertNoViewTransitionPulse(page, beforeSort)
 		await expect(rowLabels(page)).toHaveText([ 'Candle', 'Bravo', 'Alpha' ])
 
-		const search = page.getByRole('searchbox', { name: 'Filter list' })
+		const search = demo(page).locator('input[type="search"]')
 		const beforeSearch = await getViewTransitionSpy(page)
 		await search.click()
 		await search.pressSequentially('B', { delay: 25 })

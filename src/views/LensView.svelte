@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -36,7 +36,7 @@
 
 	const networkSelectorKey = stringify(selector)
 
-	const lensNetwork = $derived(proxy(EntityType.LensNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$lensAccounts: ({ sources: [
+	const lensNetwork = $derived(select(EntityType.LensNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$lensAccounts: ({ sources: [
 							Source.Constants_Internal,
 							Source.Lens_Graphql,
 						] }), $$lensPosts: ({ sources: [
@@ -114,11 +114,11 @@
 					{#if contentOpen}
 						<div>
 							<dt>Profiles</dt>
-							<dd>{String(lensNetwork.fields.$$lensAccounts?.values.length ?? 0)}</dd>
+							<dd>{String(lensNetwork.fields.$$lensAccounts.values.length )}</dd>
 						</div>
 						<div>
 							<dt>Publications</dt>
-							<dd>{String(lensNetwork.fields.$$lensPosts?.values.length ?? 0)}</dd>
+							<dd>{String(lensNetwork.fields.$$lensPosts.values.length )}</dd>
 						</div>
 
 						{#if lensNetwork.fields.topology}
@@ -181,11 +181,10 @@
 				<LensAccountsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/lens/accounts')}
-					entityFieldReference={{
-						entityType: EntityType.LensNetwork,
-						selector,
-						fieldName: '$$lensAccounts',
-					}}
+					selection={select(
+			EntityType.LensNetwork,
+			selector
+		).$$lensAccounts}
 					id={`${networkSelectorKey}:accounts`}
 					open={_open}
 				/>
@@ -195,11 +194,10 @@
 				<LensPostsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/lens/posts')}
-					entityFieldReference={{
-						entityType: EntityType.LensNetwork,
-						selector,
-						fieldName: '$$lensPosts',
-					}}
+					selection={select(
+			EntityType.LensNetwork,
+			selector
+		).$$lensPosts}
 					id={`${networkSelectorKey}:posts`}
 					open={_open}
 					title="Recent Lens v3 publications"

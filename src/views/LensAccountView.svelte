@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,7 +36,7 @@
 
 	const idKey = $derived(stringify(selector))
 
-	const lensAccount = $derived(proxy(EntityType.LensAccount,
+	const lensAccount = $derived(select(EntityType.LensAccount,
 		selector,
 		{
 			sources: [
@@ -245,13 +245,12 @@
 								'/(social)/(lens)/lens/account/[address]/(account)/posts',
 								{ address: lensAccount.fields.address },
 							)}
-							entityFieldReference={{
-								entityType: EntityType.LensAccount,
-								selector: {
+							selection={select(
+			EntityType.LensAccount,
+			{
 									address: lensAccount.fields.address,
-								},
-								fieldName: '$$posts',
-							}}
+								}
+		).$$posts}
 							id={`${idKey}:posts-lensAccounts`}
 						/>
 					{/snippet}
@@ -265,13 +264,12 @@
 				>
 					{#snippet children(lensAccount)}
 						<LensAccount_TimestampsView
-							entityFieldReference={{
-								entityType: EntityType.LensAccount,
-								selector: {
+							selection={select(
+			EntityType.LensAccount,
+			{
 									address: lensAccount.fields.address,
-								},
-								fieldName: '$$timestamps',
-							}}
+								}
+		).$$timestamps}
 							href={resolve('/(social)/(lens)/lens/account/[address]', {
 								address: lensAccount.fields.address,
 							})}

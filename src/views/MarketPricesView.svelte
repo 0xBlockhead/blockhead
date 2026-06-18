@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
@@ -20,7 +21,6 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-	import { proxy } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -29,7 +29,7 @@
 		open = $bindable(true),
 		collapsible = true,
 		limit = 400,
-		entityFieldReference,
+		selection,
 		...EntitiesListProps
 	}: WithRest<
 		{
@@ -37,7 +37,11 @@
 			open?: boolean
 			collapsible?: boolean
 			limit?: number
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.MarketPrice>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -81,15 +85,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-					{
-						sources: [
-							...marketCatalogFieldSources,
-						],
-					}
-				).field(entityFieldReference.fieldName, {
+			<ResourceBoundary resource={selection({
 					sources: marketSpotPriceSources,
 					limit,
 				})}>

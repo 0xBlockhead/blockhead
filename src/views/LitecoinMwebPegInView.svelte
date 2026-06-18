@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -62,7 +62,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.LitecoinMwebPegIn, selector, ({ fields: { amountLitoshis: true } }))}
+			resource={select(EntityType.LitecoinMwebPegIn, selector, ({ fields: { amountLitoshis: true } }))}
 			placeholderText={`Loading Litecoin MWEB Peg-in...`}
 		>
 			{#snippet children(litecoinMwebPegIn)}

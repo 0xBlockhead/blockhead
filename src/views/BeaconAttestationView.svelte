@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -30,7 +30,7 @@
 		>
 	> = $props()
 
-	const attestation = $derived(proxy(
+	const attestation = $derived(select(
 		EntityType.BeaconAttestation,
 		selector,
 		{

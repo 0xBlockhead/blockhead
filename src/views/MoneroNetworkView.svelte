@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -25,7 +25,7 @@
 	} = $props()
 
 	const network = $derived(
-		proxy(
+		select(
 			EntityType.Network,
 			selector.$network,
 			{
@@ -104,7 +104,7 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={proxy(
+					<ResourceBoundary resource={select(
 							EntityType.MoneroNetwork,
 							selector,
 							{
@@ -123,7 +123,7 @@
 							},
 						)}>
 						{#snippet children(moneroNetwork)}
-							{@const block = moneroNetwork.fields.$$blocks?.values.at(0)}
+							{@const block = moneroNetwork.fields.$$blocks.values.at(0)}
 							{#if block != null}
 								<div>
 									<dt>Head block</dt>
@@ -143,10 +143,10 @@
 						<dd>{networkEnvironmentByEnvironment[network.fields.environment].label}</dd>
 					</div>
 
-					{#if (network.fields.$$nativeAssets?.values.length ?? 0) > 0}
+					{#if (network.fields.$$nativeAssets.values.length ) > 0}
 						<div>
 							<dt>Native asset</dt>
-							<dd>{network.fields.$$nativeAssets?.values.length ?? 0}</dd>
+							<dd>{network.fields.$$nativeAssets.values.length }</dd>
 						</div>
 					{/if}
 				</dl>
@@ -177,11 +177,10 @@
 			{#snippet SectionMoneroBlocks({ id, label }: { id: string, label: string })}
 				<MoneroBlocksView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.MoneroNetwork,
-						selector,
-						fieldName: '$$blocks',
-					}}
+					selection={select(
+			EntityType.MoneroNetwork,
+			selector
+		).$$blocks}
 					href={href == null ? '' : `${href}/blocks`}
 					id={`${id}-list`}
 					title={label}
@@ -191,11 +190,10 @@
 			{#snippet SectionMoneroSnapshots({ id, label }: { id: string, label: string })}
 				<MoneroNetwork_TimestampsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.MoneroNetwork,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.MoneroNetwork,
+			selector
+		).$$timestamps}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -237,11 +235,10 @@
 			{#snippet SectionMoneroAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$nativeAssets',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -271,11 +268,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$faucetUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -289,11 +285,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector: selector.$network,
-						fieldName: '$$blockExplorerUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector.$network
+		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

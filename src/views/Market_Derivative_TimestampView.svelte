@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -37,7 +37,7 @@
 		>
 	> = $props()
 
-	const derivativeTimestamp = $derived(proxy(EntityType.Market_Derivative_Timestamp, selector, ({ sources: [
+	const derivativeTimestamp = $derived(select(EntityType.Market_Derivative_Timestamp, selector, ({ sources: [
 				Source.Coingecko_OpenApi,
 			], fields: { fundingRate: true, openInterestUsd: true, indexBasisPercent: true, markPrice: true, indexPrice: true, expiredAtMs: true, lastTradedAtMs: true, providerAssetId: true, transport: true } })))
 

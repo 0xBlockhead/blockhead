@@ -1,20 +1,21 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	type MoneroBlocksResource = EntityProxyFieldResource<
+		typeof schema,
+		EntityType.MoneroNetwork,
+		'$$blocks'
+	>
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Blocks',
 		open = $bindable(true),
 		id,
@@ -22,7 +23,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.MoneroBlock>
+			selection: MoneroBlocksResource
 			title?: string
 			open?: boolean
 			id: string
@@ -50,13 +51,7 @@
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-				).field(entityFieldReference.fieldName, {
-					sources: [Source.MoneroDaemon_Rpc],
-					limit: 16,
-				})} placeholderText="Loading blocks…">
+			<ResourceBoundary {resource} placeholderText="Loading blocks…">
 				{#snippet children(blocks)}
 					<EntitiesList
 						collapsible={false}

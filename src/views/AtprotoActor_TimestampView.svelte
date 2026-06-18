@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -74,7 +74,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.AtprotoActor_Timestamp, selector, ({ sources: [
+			resource={select(EntityType.AtprotoActor_Timestamp, selector, ({ sources: [
 				Source.Atproto_Xrpc,			], fields: { followersCount: true, followsCount: true, postsCount: true } }))}
 			placeholderText="Loading AT Protocol actor snapshot..."
 		>

@@ -1,6 +1,7 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { MarketTimeInterval } from '$/constants/Market.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -13,7 +14,7 @@
 	// State
 	let {
 		title = 'OHLC',
-		entityFieldReference,
+		resource,
 		timeInterval,
 		limit = 4096,
 		priceDecimals = 8,
@@ -21,10 +22,11 @@
 		height = '22rem',
 	}: {
 		title?: string
-		entityFieldReference: EntityFieldReference<
-			typeof schema,
-			EntityType.Market_TimeInterval_Timestamp
-		>
+		resource: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 		timeInterval: MarketTimeInterval
 		limit?: number
 		priceDecimals?: number
@@ -32,7 +34,6 @@
 		height?: string
 	} = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
 
 	
 
@@ -44,16 +45,7 @@
 
 
 <ResourceBoundary
-	resource={proxy(
-			entityFieldReference.entityType,
-			entityFieldReference.selector,
-			{
-				sources: [
-					Source.Constants_Internal,
-					...marketOhlcCandleSources,
-				],
-			}
-		).field(entityFieldReference.fieldName, {
+	resource={resource({
 			sources: [...marketOhlcCandleSources],
 			limit,
 		})}
@@ -72,19 +64,7 @@
 			.flatMap((group) => group == null ? [] : [group[0]])
 			.toSorted((left, right) => left.entitySelector.timestampMs - right.entitySelector.timestampMs)}
 		{#if points.length}
-			{@const chartMin = Math.min(
-				...points.map((point) => (
-					Number(point.current?.low ?? point.current?.close ?? point.current?.open ?? 0n) / (10 ** priceDecimals)
-				)),
-			)}
-			{@const chartMax = Math.max(
-				...points.map((point) => (
-					Number(point.current?.high ?? point.current?.close ?? point.current?.open ?? 1n) / (10 ** priceDecimals)
-				)),
-			)}
 			<MarketTimeIntervalTimestampChartCanvas
-				max={chartMax}
-				min={chartMin}
 				points={points}
 				{priceDecimals}
 				{stepInlineSize}

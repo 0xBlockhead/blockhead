@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -32,7 +32,7 @@
 
 <ResourceBoundary
 	placeholderText="Loading resolver…"
-	resource={proxy(EntityType.EnsName,
+	resource={select(EntityType.EnsName,
 			selector,
 			({ sources: [Source.Voltaire_JsonRpc], fields: { $resolverContract: true } }),
 		)}

@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -71,7 +71,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.RedditSubreddit_Timestamp,
+			resource={select(EntityType.RedditSubreddit_Timestamp,
 					selector,
 					({ sources: [
 							Source.Reddit_Rest,

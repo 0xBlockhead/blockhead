@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -39,7 +39,7 @@
 	const idKey = $derived(stringify(selector))
 
 	const actor = $derived(
-		proxy(EntityType.AtprotoActor,
+		select(EntityType.AtprotoActor,
 			selector,
 				({
 					sources: [
@@ -291,13 +291,12 @@
 								'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
 									{ did: encodeURIComponent(actor.fields.did) },
 							)}
-								entityFieldReference={{
-									entityType: EntityType.AtprotoActor,
-									selector: {
+								selection={select(
+			EntityType.AtprotoActor,
+			{
 										did: actor.fields.did,
-									},
-									fieldName: '$$posts',
-								}}
+									}
+		).$$posts}
 								id={`${idKey}:posts`}
 								fieldOpen={_open}
 								title="Posts"

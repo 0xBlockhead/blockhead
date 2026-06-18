@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -71,7 +71,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.YouTubePlaylist_Timestamp,
+			resource={select(EntityType.YouTubePlaylist_Timestamp,
 					selector,
 					({ sources: [
 							Source.Youtube_Rest,

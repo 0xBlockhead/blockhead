@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -46,7 +46,7 @@
 		>
 	> = $props()
 
-	const feed = $derived(proxy(EntityType.FarcasterFeed, selector, ({ sources: [
+	const feed = $derived(select(EntityType.FarcasterFeed, selector, ({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
 				Source.Farcaster_Rest,
@@ -175,11 +175,10 @@
 				<FarcasterCastsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/farcaster/feed')}
-					entityFieldReference={{
-						entityType: EntityType.FarcasterFeed,
-						selector,
-						fieldName: '$$entries',
-					}}
+					selection={select(
+			EntityType.FarcasterFeed,
+			selector
+		).$$entries}
 					id={`${feedDetailKey}:entries`}
 					{limit}
 					title="Feed"

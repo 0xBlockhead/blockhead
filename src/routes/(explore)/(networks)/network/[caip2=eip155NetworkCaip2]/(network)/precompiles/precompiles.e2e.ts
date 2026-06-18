@@ -51,7 +51,7 @@ const setupFailFast = (page: Page) => {
 }
 
 test.describe('network precompiles list', () => {
-	test('mainnet lists ecrecover', async ({ page }, testInfo) => {
+	test('mainnet lists precompile contract links', async ({ page }, testInfo) => {
 		testInfo.setTimeout(240_000)
 		const { step } = setupFailFast(page)
 
@@ -60,6 +60,6 @@ test.describe('network precompiles list', () => {
 			timeout: 120_000,
 		}))
 
-		await step(expect(page.getByText('ecrecover')).toBeAttached({ timeout: 120_000 }))
+		await step(expect(page.locator('#main a[href*="/contract/0x"]').first()).toBeAttached({ timeout: 120_000 }))
 	})
 })

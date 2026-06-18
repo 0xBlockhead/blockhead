@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -54,7 +54,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.SolanaTransaction, selector, ({ fields: { slot: true, feeLamports: true, computeUnitsConsumed: true, status: true } }))}
+			resource={select(EntityType.SolanaTransaction, selector, ({ fields: { slot: true, feeLamports: true, computeUnitsConsumed: true, status: true } }))}
 			placeholderText={`Loading Solana Transaction...`}
 		>
 			{#snippet children(solanaTransaction)}

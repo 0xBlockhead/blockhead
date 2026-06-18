@@ -10,7 +10,7 @@
 
 
 	// State
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -68,7 +68,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.SolanaInstruction, selector, ({ fields: { $program: true, parsedType: true, data: true, stackHeight: true, $$accounts: true } }))}
+			resource={select(EntityType.SolanaInstruction, selector, ({ fields: { $program: true, parsedType: true, data: true, stackHeight: true, $$accounts: true } }))}
 			placeholderText="Loading Solana Instruction..."
 		>
 			{#snippet children(solanaInstruction)}

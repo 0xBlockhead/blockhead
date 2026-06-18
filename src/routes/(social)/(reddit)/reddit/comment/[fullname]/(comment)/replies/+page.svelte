@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -19,13 +20,12 @@
 <Page>
 	<RedditCommentsView
 		href={resolve('/reddit/comments')}
-		entityFieldReference={{
-			entityType: EntityType.RedditComment,
-			selector: {
+		selection={select(
+			EntityType.RedditComment,
+			{
 				fullname: decodeURIComponent(params.fullname),
-			},
-			fieldName: '$$replies',
-		}}
+			}
+		).$$replies}
 		id="reddit-comment-replies"
 		sortMode="createdAtAsc"
 		title="Replies"

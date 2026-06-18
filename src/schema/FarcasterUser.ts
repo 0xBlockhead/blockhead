@@ -3,6 +3,7 @@ import { type } from 'arktype'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
+	NonNegativeInteger,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$schema.ts'
@@ -33,7 +34,7 @@ export default {
 		{
 			name: 'fid',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: NonNegativeInteger,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

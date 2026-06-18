@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -77,7 +77,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.PolkadotBlock,
+			resource={select(EntityType.PolkadotBlock,
 					selector,
 					({ sources: [
 							Source.SubstrateSidecar_Rest,
@@ -99,17 +99,17 @@
 						</div>
 					{/if}
 
-						{#if (block.fields.$$extrinsics?.values.length ?? 0) > 0}
+						{#if (block.fields.$$extrinsics.values.length ) > 0}
 							<div>
 								<dt>Extrinsics</dt>
-								<dd><NumberValue value={block.fields.$$extrinsics?.values.length ?? 0} /></dd>
+								<dd><NumberValue value={block.fields.$$extrinsics.values.length } /></dd>
 							</div>
 						{/if}
 
-						{#if (block.fields.$$events?.values.length ?? 0) > 0}
+						{#if (block.fields.$$events.values.length ) > 0}
 							<div>
 								<dt>Events</dt>
-								<dd><NumberValue value={block.fields.$$events?.values.length ?? 0} /></dd>
+								<dd><NumberValue value={block.fields.$$events.values.length } /></dd>
 							</div>
 						{/if}
 

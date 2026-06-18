@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -19,7 +19,7 @@
 	let {
 		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
-			caip2: ,
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 				upgradeSlug: selector.upgradeId,
 			}),
 		open = $bindable(true),
@@ -39,7 +39,7 @@
 		>
 	> = $props()
 
-	const networkExecutionUpgrade = $derived(proxy(
+	const networkExecutionUpgrade = $derived(select(
 		EntityType.EthereumExecutionUpgrade,
 		selector,
 		{
@@ -155,11 +155,10 @@
 	{#snippet Details({ open })}
 		<ProposalsView
 			href={resolve('/proposals')}
-			entityFieldReference={{
-				entityType: EntityType.EthereumExecutionUpgrade,
-				selector,
-				fieldName: '$$proposals',
-			}}
+			selection={select(
+			EntityType.EthereumExecutionUpgrade,
+			selector
+		).$$proposals}
 			id={`${stringify(selector)}:proposals`}
 
 			title="Specification proposals"

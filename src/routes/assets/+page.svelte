@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -58,11 +59,10 @@
 				{#snippet SectionCoins({ id, label })}
 					<CoinsView
 						href={resolve('/coins')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							selector: { scope: '$$coins' },
-							fieldName: '$$coins',
-						}}
+						selection={select(
+			EntityType._Global,
+			{ scope: '$$coins' }
+		).$$coins}
 						id="coins"
 						limit={120}
 						open={hubOpen}
@@ -72,11 +72,10 @@
 				{#snippet SectionCurrencies({ id, label })}
 					<CurrenciesView
 						href={resolve('/currencies')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							selector: { scope: '$$currencies' },
-							fieldName: '$$currencies',
-						}}
+						selection={select(
+			EntityType._Global,
+			{ scope: '$$currencies' }
+		).$$currencies}
 						open={hubOpen}
 					/>
 				{/snippet}
@@ -84,11 +83,10 @@
 				{#snippet SectionPools({ id, label })}
 					<LiquidityPoolsView
 						href={resolve('/pools')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							selector: { scope: '$$liquidityPools' },
-							fieldName: '$$liquidityPools',
-						}}
+						selection={select(
+			EntityType._Global,
+			{ scope: '$$liquidityPools' }
+		).$$liquidityPools}
 						id="pools"
 						open={false}
 					/>

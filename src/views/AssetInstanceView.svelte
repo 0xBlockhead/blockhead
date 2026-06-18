@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -27,7 +27,7 @@
 		>
 	> = $props()
 
-	const asset = $derived(proxy(EntityType.AssetInstance, selector, ({ sources: [
+	const asset = $derived(select(EntityType.AssetInstance, selector, ({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, symbol: true, coinId: true, decimals: true } })))
 

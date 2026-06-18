@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -40,7 +40,7 @@
 	> = $props()
 
 	const channel = $derived(
-		proxy(
+		select(
 			EntityType.YouTubeChannel,
 			selector,
 			({ sources: [
@@ -250,11 +250,10 @@
 			{#snippet SectionVideos()}
 				<YouTubeVideosView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.YouTubeChannel,
-						selector,
-						fieldName: '$$videos',
-					}}
+					selection={select(
+			EntityType.YouTubeChannel,
+			selector
+		).$$videos}
 					id={`${idKey}:youtube-videos`}
 					open={_open}
 				/>
@@ -263,11 +262,10 @@
 			{#snippet SectionPlaylists()}
 				<YouTubePlaylistsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.YouTubeChannel,
-						selector,
-						fieldName: '$$playlists',
-					}}
+					selection={select(
+			EntityType.YouTubeChannel,
+			selector
+		).$$playlists}
 					id={`${idKey}:youtube-playlists`}
 					open={_open}
 				/>
@@ -275,11 +273,10 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<YouTubeChannel_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.YouTubeChannel,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.YouTubeChannel,
+			selector
+		).$$timestamps}
 					href={href}
 					id={`${idKey}:metric-snapshots`}
 					title="Metric snapshots"

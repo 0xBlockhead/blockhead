@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -63,7 +63,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.ZcashShieldedAction, selector, ({ fields: { actionKind: true, ...(open && ({ valueCommitment: true })) } }))}
+			resource={select(EntityType.ZcashShieldedAction, selector, ({ fields: { actionKind: true, ...(open && ({ valueCommitment: true })) } }))}
 			placeholderText="Loading Zcash shielded action…"
 		>
 			{#snippet children(zcashShieldedAction)}

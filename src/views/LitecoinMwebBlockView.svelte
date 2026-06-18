@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -62,7 +62,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.LitecoinMwebBlock, selector, ({ fields: { hogExTransactionId: true, kernelRoot: true } }))}
+			resource={select(EntityType.LitecoinMwebBlock, selector, ({ fields: { hogExTransactionId: true, kernelRoot: true } }))}
 			placeholderText={`Loading Litecoin MWEB Block...`}
 		>
 			{#snippet children(litecoinMwebBlock)}

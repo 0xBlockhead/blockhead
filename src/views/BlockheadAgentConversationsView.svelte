@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,19 +13,29 @@
 
 
 	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
-	let {
-		entityFieldReference,
+let {
+		selection = select(
+			EntityType._Global,
+			{ scope: '$$blockheadAgentConversations' },
+			{
+				sources: [Source.Local_Internal],
+			}
+		).$$blockheadAgentConversations,
 		title = 'Agent conversations',
 		open = $bindable(true),
 		collapsible = true,
-				id = 'agents',
+		id = 'agents',
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference?: EntityFieldReference<
+			selection?: EntityProxyFieldResource<
 				typeof schema,
-				EntityType.BlockheadAgentConversation
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
 			>
 			title?: string
 			open?: boolean
@@ -40,15 +51,6 @@
 
 
 	// Functions
-	const globalId = (
-		{ scope: '$$blockheadAgentConversations' } satisfies EntitySelector<typeof schema, EntityType._Global>
-	)
-
-
-	import { proxy } from '$/routes/+layout.svelte'
-
-
-	
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -83,13 +85,7 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					EntityType._Global,
-					entityFieldReference?.selector ?? globalId,
-					{
-						sources: [Source.Local_Internal],
-					}
-				).field('$$blockheadAgentConversations', {
+			<ResourceBoundary resource={selection({
 					sources: [Source.Local_Internal],
 				})} placeholderText="Loading conversations…">
 				{#snippet children(conversations)}

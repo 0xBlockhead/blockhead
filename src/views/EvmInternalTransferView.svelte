@@ -15,7 +15,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -23,7 +23,7 @@
 	let {
 		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-			caip2: ,
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 			transactionId: selector.txHash,
 		}),
 		layout = EntityLayout.SummaryDetails,
@@ -48,7 +48,7 @@
 		>
 	> = $props()
 
-	const transfer = $derived(proxy(EntityType.EvmInternalTransfer, selector, {
+	const transfer = $derived(select(EntityType.EvmInternalTransfer, selector, {
 		sources: [Source.Blockscout_Rest],
 	}))
 	const callType = $derived(transfer.callType)
@@ -102,7 +102,7 @@
 					<dd>
 						<a
 							href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								caip2: ,
+								caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 								transactionId: selector.txHash,
 							})}
 						>

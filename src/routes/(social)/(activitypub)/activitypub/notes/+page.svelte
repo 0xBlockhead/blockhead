@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -16,11 +17,10 @@
 <Page>
 	<ActivityPubNotesView
 		href={resolve('/(social)/(activitypub)/activitypub/notes')}
-		entityFieldReference={{
-			entityType: EntityType.ActivityPubNetwork,
-			selector: { scope: 'ActivityPubNetwork' },
-			fieldName: '$$activityPubNotes',
-		}}
+		selection={select(
+			EntityType.ActivityPubNetwork,
+			{ scope: 'ActivityPubNetwork' }
+		).$$activityPubNotes}
 		id="activitypub-notes"
 		orderByCreatedAt="desc"
 		placeholderText="Loading Mastodon public timeline…"

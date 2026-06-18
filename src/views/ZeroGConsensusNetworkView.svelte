@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -53,7 +53,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.ZeroGConsensusNetwork, selector, ({ fields: { sharedStakingStatusSource: true } }))}
+			resource={select(EntityType.ZeroGConsensusNetwork, selector, ({ fields: { sharedStakingStatusSource: true } }))}
 			placeholderText={`Loading 0G consensus network...`}
 		>
 			{#snippet children(zeroGConsensusNetwork)}

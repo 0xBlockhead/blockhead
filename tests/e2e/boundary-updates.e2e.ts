@@ -8,6 +8,7 @@
  * E2E_PATH_LIMIT=20 pnpm run test:e2e:boundaries
  * E2E_PATH_PATTERN='^/(activitypub|atproto|farcaster|lens|nostr|reddit|rss|x|xmtp|youtube)(/|$)' pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts
  * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts -g probe
+ * E2E_BOUNDARY_SLOW_MS=30000 pnpm run test:e2e:boundaries
  * E2E_BOUNDARY_REPORT_ONLY=1 pnpm run test:e2e:boundaries
  * ```
  */
@@ -43,6 +44,13 @@ const quietMs = (() => {
 	if (!raw) return 4_000
 	const parsed = Number(raw)
 	return Number.isFinite(parsed) ? parsed : 4_000
+})()
+
+const slowThresholdMs = (() => {
+	const raw = process.env.E2E_BOUNDARY_SLOW_MS?.trim()
+	if (!raw) return 30_000
+	const parsed = Number(raw)
+	return Number.isFinite(parsed) ? parsed : 30_000
 })()
 
 const reportOnly = process.env.E2E_BOUNDARY_REPORT_ONLY === '1'
@@ -95,7 +103,8 @@ const collectRouteBoundaryReport = async (
 		page.url(),
 		mainVisible,
 		updates,
-		snapshot
+		snapshot,
+		slowThresholdMs
 	)
 }
 
@@ -129,27 +138,31 @@ const assertBoundaryReports = (reports: RouteBoundaryReport[]) => {
 	).toEqual([])
 }
 
-const withRouteTimeout = async (
-	pathname: string,
-	index: number,
-	total: number,
-	collect: Promise<RouteBoundaryReport>
-) => {
-	const timeoutMs = settleTimeoutMs + gotoLoadTimeoutMs + 60_000
-	return Promise.race([
-		collect,
-		new Promise<never>((_, reject) => {
-			setTimeout(() => {
-				reject(new Error(
-					`boundary route timeout after ${timeoutMs}ms at ${pathname} (${index + 1}/${total})`
-				))
-			}, timeoutMs)
-		}),
-	])
-}
+const routePathnames = await (async () => {
+	if (probePath != null && probePath !== '')
+		return []
+
+	const all = (
+		(await discoverPathnamesFromRoutes())
+			.filter((pathname) => pathPattern?.test(pathname) ?? true)
+	)
+	const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
+	const limit = Number(limitRaw)
+	let pathnames = (
+		limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
+			all.slice(0, limit)
+		:
+			all
+	)
+	if (startPath) {
+		const index = pathnames.indexOf(startPath)
+		pathnames = index === -1 ? pathnames : pathnames.slice(index)
+	}
+	return pathnames
+})()
 
 test.describe('boundary updates (every +page route)', () => {
-	test.describe.configure({ mode: 'serial' })
+	test.describe.configure({ mode: 'parallel' })
 
 	test('probe route', async ({ page }, testInfo) => {
 		test.skip(probePath == null || probePath === '', 'set E2E_PROBE_PATH')
@@ -164,48 +177,24 @@ test.describe('boundary updates (every +page route)', () => {
 			assertBoundaryReports([report])
 	})
 
-	test('every +page URL', async ({ page }, testInfo) => {
+	for (const [index, pathname] of routePathnames.entries()) {
+		test(`${index + 1}/${routePathnames.length} ${pathname}`, async ({ page }, testInfo) => {
+			test.skip(probePath != null && probePath !== '', 'E2E_PROBE_PATH skips full matrix')
+			testInfo.setTimeout(settleTimeoutMs + gotoLoadTimeoutMs + 60_000)
+			page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+			await installBoundaryProbe(page)
+			await installChainlistRpcsJsonStub(page)
+
+			console.log(`[boundary route] ${index + 1}/${routePathnames.length} ${pathname}`)
+			const report = await collectRouteBoundaryReport(page, pathname)
+			await attachBoundaryArtifacts(testInfo, [report])
+			if (!reportOnly)
+				assertBoundaryReports([report])
+		})
+	}
+
+	test('route discovery produced boundary cases', () => {
 		test.skip(probePath != null && probePath !== '', 'E2E_PROBE_PATH skips full matrix')
-		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
-		await installBoundaryProbe(page)
-		await installChainlistRpcsJsonStub(page)
-
-		const all = (
-			(await discoverPathnamesFromRoutes())
-				.filter((pathname) => pathPattern?.test(pathname) ?? true)
-		)
-		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
-		const limit = Number(limitRaw)
-		let pageUrls = (
-			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-				all.slice(0, limit)
-			:
-				all
-		)
-		if (startPath) {
-			const index = pageUrls.indexOf(startPath)
-			pageUrls = index === -1 ? pageUrls : pageUrls.slice(index)
-		}
-
-		const perRouteBudgetMs = settleTimeoutMs + gotoLoadTimeoutMs + 60_000
-		testInfo.setTimeout(pageUrls.length * perRouteBudgetMs + 60_000)
-
-		const reports: RouteBoundaryReport[] = []
-
-		for (const [index, pathname] of pageUrls.entries()) {
-			await test.step(pathname, async () => {
-				console.log(`[boundary route] ${index + 1}/${pageUrls.length} ${pathname}`)
-				reports.push(await withRouteTimeout(
-					pathname,
-					index,
-					pageUrls.length,
-					collectRouteBoundaryReport(page, pathname)
-				))
-			})
-		}
-
-		await attachBoundaryArtifacts(testInfo, reports)
-		if (!reportOnly)
-			assertBoundaryReports(reports)
+		expect(routePathnames.length).toBeGreaterThan(0)
 	})
 })

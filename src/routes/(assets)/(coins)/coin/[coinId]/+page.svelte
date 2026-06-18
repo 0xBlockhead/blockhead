@@ -54,6 +54,7 @@
 				selector={{
 					coinId: route.coinId,
 				}}
+				open
 			/>
 		</div>
 	{/if}

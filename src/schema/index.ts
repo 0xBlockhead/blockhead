@@ -1,5 +1,8 @@
-import type { EntityFieldDefinitions } from '$/schema/$schema.ts'
-import type { Schema } from '$/schema/$schema.ts'
+import {
+	indexSchema,
+	type EntityFieldDefinitions,
+	type Schema,
+} from '$/schema/$schema.ts'
 
 import _GlobalSchema from '$/schema/_Global.ts'
 import ActivityPubActorSchema from '$/schema/ActivityPubActor.ts'
@@ -645,3 +648,5 @@ export const entityDefinitionByType = Object.fromEntries(
 		definition,
 	])
 )
+
+export const schemaMeta = indexSchema(schema)

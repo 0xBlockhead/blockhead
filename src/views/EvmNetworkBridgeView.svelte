@@ -10,11 +10,11 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
-		resource,
+		selection,
 		href = selector.url,
 		open = $bindable(true),
 		collapsible = true,
@@ -22,7 +22,7 @@
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.EvmNetworkBridge>
-			resource?: EntityProxyResource<typeof schema, EntityType.EvmNetworkBridge>
+			selection?: EntityProxyResource<typeof schema, EntityType.EvmNetworkBridge>
 			href?: string
 			open?: boolean
 			collapsible?: boolean
@@ -34,7 +34,7 @@
 	> = $props()
 
 	
-	const relationshipType = $derived(((resource ?? proxy(
+	const relationshipType = $derived(((selection ?? select(
 		EntityType.EvmNetworkBridge,
 		selector,
 		{

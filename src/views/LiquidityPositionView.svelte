@@ -34,7 +34,7 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	
 
@@ -84,7 +84,7 @@
 
 	{#snippet Content({})}
 		<ResourceBoundary
-			resource={proxy(EntityType.LiquidityPosition, selector, ({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }))}
+			resource={select(EntityType.LiquidityPosition, selector, ({ fields: { $pool: true, $owner: true, createdAtTimestamp: true, liquidity: true, origin: true, tickLower: true, tickUpper: true, token0Owed: true, token1Owed: true, tokenId: true } }))}
 			placeholderText="Loading position…"
 		>
 			{#snippet children(liquidityPosition)}

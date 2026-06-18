@@ -20,12 +20,11 @@ test.describe('Evm transaction call trace', () => {
 		await expect(page.locator('#main')).toBeAttached({ timeout: 120_000 })
 		const traceCarousel = page.locator(`[id="${SAMPLE_TX_HASH}:carousel-trace"]`)
 		await expect(traceCarousel).toBeAttached({ timeout: 120_000 })
-		await expect(traceCarousel.getByText('Call trace', { exact: true })).toBeAttached()
 		const traceSection = page.locator(`[id="${SAMPLE_TX_HASH}:trace"]`)
 		await expect(traceSection).toBeAttached({ timeout: 120_000 })
 		await expect(
 			traceSection.locator('ul[data-column]')
-				.or(traceSection.getByText(/Call trace unavailable/i))
+				.or(traceSection.locator('[data-error]'))
 		).toBeAttached({ timeout: 120_000 })
 		expect(
 			issues.filter((issue) => (

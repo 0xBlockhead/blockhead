@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -16,13 +17,12 @@
 <Page>
 	<EvmErrorsView
 		href={resolve('/evm/errors')}
-		entityFieldReference={{
-			entityType: EntityType.EvmProtocol,
-			selector: {
+		selection={select(
+			EntityType.EvmProtocol,
+			{
 				scope: 'EvmProtocol',
-			},
-			fieldName: '$$evmErrors',
-		}}
+			}
+		).$$evmErrors}
 		id="errors"
 	/>
 </Page>

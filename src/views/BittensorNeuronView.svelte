@@ -7,7 +7,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -54,7 +54,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.BittensorNeuron, selector, ({ sources: [
+			resource={select(EntityType.BittensorNeuron, selector, ({ sources: [
 					Source.Bittensor_JsonRpc,
 				], fields: { uid: true } }))}
 			placeholderText="Loading Bittensor neuron…"

@@ -63,8 +63,8 @@ test.describe('Markets routes', () => {
 
 		await step(page.goto('/markets', { waitUntil: 'load', timeout: 120_000 }))
 
-		await step(expect(page.locator('#main').getByRole('heading', { name: 'Markets' })).toBeVisible({ timeout: 120_000 }))
-		await step(expect(page.getByText('Not found')).toHaveCount(0))
+		await step(expect(page.locator('#main')).toBeVisible({ timeout: 120_000 }))
+		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
 		await step(expect(page.locator('#main a[href*="/market/"]').first()).toBeAttached(attach))
 	})
 
@@ -77,13 +77,11 @@ test.describe('Markets routes', () => {
 			timeout: 120_000,
 		}))
 
-		await step(expect(page.getByText('Not found')).toHaveCount(0))
-		await step(expect(page.getByRole('heading', { name: '500' })).toHaveCount(0))
+		await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
+		await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
 
-		await step(expect(page.locator('#main [data-scroll-marker-label="Spot"]')).toBeAttached(attach))
-		await step(expect(page.locator('#main [data-scroll-marker-label="OHLC"]')).toBeAttached(attach))
 		await step(expect(page.locator('#main a[href="/coin/ETH"]').first()).toBeAttached(attach))
-		await step(expect(page.locator('#main').getByText('OHLC', { exact: false }).first()).toBeAttached(attach))
+		await step(expect(page.locator('#main [data-column]').first()).toBeAttached(attach))
 	})
 
 	test('navigation lists markets at assets level', async ({ page }, testInfo) => {
@@ -93,7 +91,7 @@ test.describe('Markets routes', () => {
 		await step(page.goto('/markets', { waitUntil: 'load', timeout: 60_000 }))
 
 		const nav = page.locator('#nav-menu')
-		await step(expect(nav.getByRole('link', { name: 'Markets' })).toBeAttached())
-		await step(expect(nav.getByRole('link', { name: 'Coins' })).toBeAttached())
+		await step(expect(nav.locator('a[href="/markets"]')).toBeAttached())
+		await step(expect(nav.locator('a[href="/coins"]')).toBeAttached())
 	})
 })

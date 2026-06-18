@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ActionType, actionTypeDefinitions } from '$/constants/actions.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,12 +17,12 @@
 		deleteLocalBlockheadSessionAction,
 		writeLocalBlockheadSessionAction,
 	} from '$/collections/localMutations.ts'
-		import { appClient, proxy } from '$/routes/+layout.svelte'
+		import { appClient, select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Actions',
 		open = $bindable(true),
 		collapsible = true,
@@ -29,9 +30,10 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<
+			selection: EntityProxyFieldResource<
 				typeof schema,
-				EntityType.BlockheadSessionAction
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
 			>
 			title?: string
 			open?: boolean
@@ -56,7 +58,7 @@
 	const writeSessionAction = (indexInSequence: number) => {
 		writeLocalBlockheadSessionAction(
 			appClient,
-			entityFieldReference.selector,
+			selection.entitySelector,
 			indexInSequence,
 			actionType,
 		)
@@ -114,13 +116,7 @@
 				</button>
 			</form>
 
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-					{
-						sources: [Source.Local_Internal],
-					}
-				).field(entityFieldReference.fieldName, {
+			<ResourceBoundary resource={selection({
 					sources: [Source.Local_Internal],
 					fields: {
 						indexInSequence: true,
@@ -135,7 +131,7 @@
 						{title}
 						open={true}
 						getKey={(action) => stringify(action.entitySelector)}
-						getSortValue={(action) => String(action.current?.indexInSequence ?? 0)}
+						getSortValue={(action) => stringify(action.entitySelector)}
 						items={actions.entities}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
@@ -156,7 +152,7 @@
 								type="button"
 								onclick={() => deleteLocalBlockheadSessionAction(
 									appClient,
-									entityFieldReference.selector,
+									selection.entitySelector,
 									item.entitySelector,
 								)}
 							>

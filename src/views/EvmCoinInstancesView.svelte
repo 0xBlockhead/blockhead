@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,14 +13,13 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
 		title = 'Deployments',
 		open = $bindable(true),
 		collapsible = true,
 		id,
-		entityFieldReference,
+		selection,
 		representationFilter,
 		...EntitiesListProps
 	}: WithRest<
@@ -29,9 +29,10 @@
 			collapsible?: boolean
 			id: string
 			representationFilter?: CoinInstanceRepresentation
-			entityFieldReference: EntityFieldReference<
+			selection: EntityProxyFieldResource<
 				typeof schema,
-				EntityType.EvmCoinInstance
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
 			>
 		},
 		Pick<
@@ -82,19 +83,7 @@
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				<ResourceBoundary
-					resource={proxy(
-							entityFieldReference.entityType,
-							entityFieldReference.selector,
-							{
-								sources: [
-									Source.Coingecko_Rest,
-									Source.CoinMarketCap_Rest,
-									Source.Coinpaprika_OpenApi,
-									Source.Defillama_OpenApi,
-									Source.Constants_Internal,
-								],
-							},
-						).field(entityFieldReference.fieldName, {
+					resource={selection({
 							sources: [
 								Source.Constants_Internal,
 								Source.Coingecko_Rest,

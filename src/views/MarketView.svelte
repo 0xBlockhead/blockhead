@@ -19,36 +19,36 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		href = resolve(
-			'/(assets)/(markets)/market/[marketKey]',
-			{
-				marketKey: encodeURIComponent(stringify(selector)),
-			},
-		),
-		open = $bindable(true),
-		collapsible = true,
-		...EntityViewProps
+			href = resolve(
+				'/(assets)/(markets)/market/[marketKey]',
+				{
+					marketKey: encodeURIComponent(stringify(selector)),
+				},
+			),
+			open = $bindable(true),
+			collapsible = true,
+			...EntityViewProps
 	}: WithRest<
 		{
-			selector: EntitySelector<typeof schema, EntityType.Market>
-			href?: string
-			open?: boolean
-			collapsible?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'id'
-			| 'layout'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+				selector: EntitySelector<typeof schema, EntityType.Market>
+				href?: string
+				open?: boolean
+				collapsible?: boolean
+			},
+			Pick<
+				ComponentProps<typeof EntityView>,
+				| 'id'
+				| 'layout'
+				| 'showTypeAnnotation'
+			>
+		> = $props()
 
 
 	// Functions
@@ -86,10 +86,10 @@
 
 <EntityView
 	entityType={EntityType.Market}
-	entitySelector={selector}
-	href={href}
-	{open}
-	{collapsible}
+		entitySelector={selector}
+		href={href}
+		{open}
+		{collapsible}
 	{...EntityViewProps}
 	title={
 		selector.marketKind === MarketKind.Spot ?
@@ -116,13 +116,13 @@
 				</dd>
 			</div>
 				{#if selector.marketKind !== MarketKind.Spot}
-					<ResourceBoundary resource={proxy(EntityType.Market, selector, ({ sources: (
+					<ResourceBoundary resource={select(EntityType.Market, selector, ({ sources: (
 							[...marketDerivativeObservationSources]
 						), fields: { ...(open && ({ $$derivativeTimestamps: ({ sources: [
 										...marketDerivativeObservationSources,
 									], limit: 64 }) })) } }))}>
 						{#snippet children(market)}
-							{@const derivativeTimestamp = market.fields.$$derivativeTimestamps?.values.at(0)}
+							{@const derivativeTimestamp = market.fields.$$derivativeTimestamps.values.at(0)}
 							{#if derivativeTimestamp != null}
 								<div>
 									<dt>Latest derivative observation</dt>
@@ -213,11 +213,10 @@
 				<MarketPricesView
 					href={resolve('/markets')}
 					collapsible={false}
-					entityFieldReference={{
-						entityType: EntityType.Market,
-						selector,
-						fieldName: '$$marketPrices',
-					}}
+					selection={select(
+			EntityType.Market,
+			selector
+		).$$marketPrices}
 					id={`${marketSelectorKey}:market-prices`}
 					title="Spot"
 				/>
@@ -233,11 +232,10 @@
 		{:else}
 			<section data-scroll-marker-label="Derivative observations">
 				<Market_Derivative_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.Market,
-						selector,
-						fieldName: '$$derivativeTimestamps',
-					}}
+					selection={select(
+			EntityType.Market,
+			selector
+		).$$derivativeTimestamps}
 					id={`${marketSelectorKey}:market-derivative-timestamps`}
 					open={true}
 				/>

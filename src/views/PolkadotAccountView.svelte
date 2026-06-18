@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -54,7 +54,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.PolkadotAccount,
+			resource={select(EntityType.PolkadotAccount,
 					selector,
 					({ fields: { nonce: true, freeBalancePlancks: true } }),
 				)}

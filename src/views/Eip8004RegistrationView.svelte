@@ -40,9 +40,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
-	const registration = $derived(proxy(EntityType.EvmNft, selector, ({ sources: [
+	const registration = $derived(select(EntityType.EvmNft, selector, ({ sources: [
 				Source.Eip8004Scan_Rest,
 			], fields: { format: true, name: true, description: true, image: true, fetchedAt: true, $agentWallet: true } })))
 

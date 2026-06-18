@@ -53,7 +53,7 @@ const setupFailFast = (page: Page) => {
 	}
 }
 
-test.describe('/network/[caip2Namespace]:[caip2Reference]/tx/[transactionId]', () => {
+test.describe('/network/[caip2]/tx/[transactionId]', () => {
 	test('transaction page mounts the selector-owned execution shell', async ({ page }, testInfo) => {
 		testInfo.setTimeout(240_000)
 		const { step } = setupFailFast(page)

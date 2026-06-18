@@ -1,17 +1,20 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	// State
-	let { entityFieldReference, title = 'Channels', open = $bindable(true), id, href = '', ...EntitiesListProps }: WithRest<{ entityFieldReference: EntityFieldReference<typeof schema, EntityType.LightningChannel>, title?: string, open?: boolean, id: string, href?: string }, Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>> = $props()
+	type LightningChannelsResource = EntityProxyFieldResource<
+		typeof schema,
+		EntityType.LightningNetwork,
+		'$$channels'
+	>
 
-	import { proxy } from '$/routes/+layout.svelte'
+	// State
+	let { resource, title = 'Channels', open = $bindable(true), id, href = '', ...EntitiesListProps }: WithRest<{ selection: LightningChannelsResource, title?: string, open?: boolean, id: string, href?: string }, Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>> = $props()
 
 	
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -24,13 +27,7 @@
 <EntitiesList entityType={EntityType.LightningChannel} {title} bind:open {id} href={href} {...EntitiesListProps}>
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-				).field(entityFieldReference.fieldName, {
-					sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest],
-					limit: 32,
-				})} placeholderText="Loading channels…">
+			<ResourceBoundary {resource} placeholderText="Loading channels…">
 				{#snippet children(channels)}
 					<EntitiesList
 						collapsible={false}

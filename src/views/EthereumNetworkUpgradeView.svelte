@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -18,7 +18,7 @@
 	let {
 		selector,
 		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
-			caip2: ,
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 				upgradeSlug: selector.upgradeId,
 		}),
 		open = $bindable(true),
@@ -37,7 +37,7 @@
 		>
 	> = $props()
 
-	const networkUpgrade = $derived(proxy(
+	const networkUpgrade = $derived(select(
 		EntityType.EthereumNetworkUpgrade,
 		selector,
 		{
@@ -82,9 +82,14 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{
-			name.current ?? selector.upgradeId
-		}
+		<ResourceBoundary
+			resource={name}
+			placeholderText="Loading network upgrade…"
+		>
+			{#snippet children(name)}
+				{name ?? selector.upgradeId}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -101,29 +106,37 @@
 		href: _href,
 		open: contentOpen,
 	})}
-		<ResourceBoundary
-			resource={name}
-			placeholderText="Loading network upgrade…"
-		>
-			{#snippet children(name)}
-				<dl data-column-item="center">
-					{#if contentOpen && activationBlock !== undefined}
-						<div>
-							<dt>Activation block</dt>
-							<dd>
+		<dl data-column-item="center">
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={activationBlock}
+					placeholderText="Loading activation block…"
+				>
+					{#snippet children(activationBlock)}
+						{#if activationBlock !== undefined}
+							<div>
+								<dt>Activation block</dt>
+								<dd>
 									<EvmBlockView
 										selector={{
 											$network: selector.$network,
 											blockNumber: BigInt(activationBlock),
 										}}
 										layout={EntityLayout.Value}
-
 										open={false}
-										/>
-							</dd>
-						</div>
-					{/if}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 
+			<ResourceBoundary
+				resource={activationEpoch}
+				placeholderText="Loading activation epoch…"
+			>
+				{#snippet children(activationEpoch)}
 					{#if activationEpoch !== undefined}
 						<div>
 							<dt>Activation epoch</dt>
@@ -132,7 +145,14 @@
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
+			<ResourceBoundary
+				resource={activationTimestampMs}
+				placeholderText="Loading activation time…"
+			>
+				{#snippet children(activationTimestampMs)}
 					{#if activationTimestampMs !== undefined}
 						<div>
 							<dt>Activation time</dt>
@@ -143,51 +163,62 @@
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-						{#if open && networkExecutionUpgrade.current?.entitySelector !== undefined}
+			{#if open}
+				<ResourceBoundary
+					resource={networkExecutionUpgrade}
+					placeholderText="Loading execution upgrade…"
+				>
+					{#snippet children(networkExecutionUpgrade)}
+						{#if networkExecutionUpgrade !== undefined}
 							<div>
 								<dt>Execution layer</dt>
 								<dd>
-								<EthereumExecutionUpgradeView
-									selector={networkExecutionUpgrade.current.entitySelector}
-									layout={EntityLayout.Value}
-
-									showTypeAnnotation={false}
-									open={false}
+									<EthereumExecutionUpgradeView
+										selector={networkExecutionUpgrade.entitySelector}
+										layout={EntityLayout.Value}
+										showTypeAnnotation={false}
+										open={false}
 									/>
 								</dd>
 							</div>
 						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-						{#if open}
-							{#if networkConsensusUpgrade.current?.entitySelector !== undefined}
-								<div>
+				<ResourceBoundary
+					resource={networkConsensusUpgrade}
+					placeholderText="Loading consensus upgrade…"
+				>
+					{#snippet children(networkConsensusUpgrade)}
+						{#if networkConsensusUpgrade !== undefined}
+							<div>
 								<dt>Consensus layer</dt>
 								<dd>
 									<EthereumConsensusUpgradeView
-										selector={networkConsensusUpgrade.current.entitySelector}
-									layout={EntityLayout.Value}
-
+										selector={networkConsensusUpgrade.entitySelector}
+										layout={EntityLayout.Value}
 										showTypeAnnotation={false}
 										open={false}
-										/>
+									/>
 								</dd>
 							</div>
 						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({ open })}
 		<ProposalsView
 			href={resolve('/proposals')}
-			entityFieldReference={{
-				entityType: EntityType.EthereumNetworkUpgrade,
-				selector,
-				fieldName: '$$proposals',
-			}}
+			selection={select(
+				EntityType.EthereumNetworkUpgrade,
+				selector
+			).$$proposals}
 			id={`${stringify(selector)}:proposals`}
 
 			title="Specification proposals"

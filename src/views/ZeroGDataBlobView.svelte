@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -69,7 +69,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.ZeroGDataBlob, selector, ({ fields: { sizeBytes: true, erasureCodingScheme: true, aggregatedSignature: true } }))}
+			resource={select(EntityType.ZeroGDataBlob, selector, ({ fields: { sizeBytes: true, erasureCodingScheme: true, aggregatedSignature: true } }))}
 			placeholderText="Loading 0G data blob…"
 		>
 			{#snippet children(dataBlob)}

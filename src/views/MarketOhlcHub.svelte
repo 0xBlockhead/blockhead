@@ -1,6 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 
 	import {
@@ -15,6 +14,7 @@
 
 	// Context
 	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -39,15 +39,11 @@
 		`${String(lookbackDayCount)}d`
 	)
 
-	const entityFieldReference = $derived(
-		({
-			entityType: EntityType.Market,
-			selector: market,
-			fieldName: '$$marketTimeIntervalTimestamps',
-		}) satisfies EntityFieldReference<
-			typeof schema,
-			EntityType.Market_TimeInterval_Timestamp
-		>,
+	const resource = $derived(
+		select(
+			EntityType.Market,
+			market
+		).$$marketTimeIntervalTimestamps,
 	)
 
 
@@ -83,7 +79,7 @@
 	</nav>
 
 	<MarketTimeIntervalTimestampChart
-		entityFieldReference={entityFieldReference}
+		{resource}
 		timeInterval={marketOhlcDailyTimeInterval}
 		limit={lookbackDayCount}
 		title={
@@ -101,7 +97,7 @@
 	<Market_TimeInterval_TimestampsView
 		href={resolve('/markets')}
 		collapsible
-		entityFieldReference={entityFieldReference}
+		{resource}
 		id={`${id}:candles`}
 		open={listOpen}
 		timeInterval={marketOhlcDailyTimeInterval}

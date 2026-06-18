@@ -14,7 +14,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -93,7 +93,7 @@
 	{#snippet Content()}
 		<ResourceBoundary
 			placeholderText="Loading text record…"
-			resource={proxy(EntityType.EnsName,
+			resource={select(EntityType.EnsName,
 					selector,
 					({ sources: [
 						Source.Voltaire_JsonRpc,

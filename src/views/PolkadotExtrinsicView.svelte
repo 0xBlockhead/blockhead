@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -62,7 +62,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.PolkadotExtrinsic, selector, ({ fields: { hash: true, callName: true, success: true } }))}
+			resource={select(EntityType.PolkadotExtrinsic, selector, ({ fields: { hash: true, callName: true, success: true } }))}
 			placeholderText={`Loading Polkadot Extrinsic...`}
 		>
 			{#snippet children(polkadotExtrinsic)}

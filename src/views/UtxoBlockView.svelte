@@ -10,17 +10,17 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
-		resource,
+		selection,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.UtxoBlock>
-			resource?: EntityProxyResource<typeof schema, EntityType.UtxoBlock>
+			selection?: EntityProxyResource<typeof schema, EntityType.UtxoBlock>
 			open?: boolean
 		},
 		Pick<
@@ -30,7 +30,7 @@
 		>
 	> = $props()
 
-	const block = $derived(resource ?? proxy(
+	const block = $derived(selection ?? select(
 		EntityType.UtxoBlock,
 		selector,
 		{

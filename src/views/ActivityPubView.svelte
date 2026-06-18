@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -83,7 +83,7 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={proxy(EntityType.ActivityPubNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, instanceTitle: ({ sources: [Source.Mastodon_Rest] }), instanceVersion: ({ sources: [Source.Mastodon_Rest] }), fediInstanceTitle: ({ sources: [Source.Fedi_Rest] }), fediInstanceVersion: ({ sources: [Source.Fedi_Rest] }), $$activityPubActors: ({ sources: [
+				resource={select(EntityType.ActivityPubNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, instanceTitle: ({ sources: [Source.Mastodon_Rest] }), instanceVersion: ({ sources: [Source.Mastodon_Rest] }), fediInstanceTitle: ({ sources: [Source.Fedi_Rest] }), fediInstanceVersion: ({ sources: [Source.Fedi_Rest] }), $$activityPubActors: ({ sources: [
 						Source.Constants_Internal,
 						Source.Mastodon_Rest,
 						Source.Fedi_Rest,
@@ -109,14 +109,14 @@
 					{#if open}
 						<div>
 							<dt>Actors</dt>
-							<dd>{String(activityPubNetwork.fields.$$activityPubActors?.values.length ?? 0)}</dd>
+							<dd>{String(activityPubNetwork.fields.$$activityPubActors.values.length )}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Statuses</dt>
-							<dd>{String(activityPubNetwork.fields.$$activityPubNotes?.values.length ?? 0)}</dd>
+							<dd>{String(activityPubNetwork.fields.$$activityPubNotes.values.length )}</dd>
 						</div>
 					{/if}
 
@@ -207,11 +207,10 @@
 				<ActivityPubActorsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/activitypub/actors')}
-					entityFieldReference={{
-						entityType: EntityType.ActivityPubNetwork,
-						selector,
-						fieldName: '$$activityPubActors',
-					}}
+					selection={select(
+			EntityType.ActivityPubNetwork,
+			selector
+		).$$activityPubActors}
 					id={`${networkSelectorKey}:actors`}
 					open={_open}
 				/>
@@ -221,11 +220,10 @@
 				<ActivityPubNotesView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/activitypub/notes')}
-					entityFieldReference={{
-						entityType: EntityType.ActivityPubNetwork,
-						selector,
-						fieldName: '$$activityPubNotes',
-					}}
+					selection={select(
+			EntityType.ActivityPubNetwork,
+			selector
+		).$$activityPubNotes}
 					fieldOpen={_open}
 					id={`${networkSelectorKey}:notes`}
 					orderByCreatedAt="desc"

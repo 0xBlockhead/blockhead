@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -24,11 +24,11 @@
 		open?: boolean
 	} = $props()
 
-	const network = $derived(proxy(EntityType.Network, selector, ({ sources: [
+	const network = $derived(select(EntityType.Network, selector, ({ sources: [
 				Source.Constants_Internal,
 			], fields: { name: true, environment: true, $$executionEnvironments: true, $$consensusMechanisms: true, $$nativeAssets: true } })))
 
-	const quilibriumNetwork = $derived(proxy(EntityType.QuilibriumNetwork, {
+	const quilibriumNetwork = $derived(select(EntityType.QuilibriumNetwork, {
 			slug: 'quilibrium',
 		}, ({ sources: [
 				Source.QuilibriumDocs_Rest,
@@ -149,7 +149,7 @@
 							</p>
 						{/if}
 
-						{#each quilibriumNetwork.fields.protocolFacts?.values ?? [] as fact}
+						{#each quilibriumNetwork.fields.protocolFacts.values as fact (fact.label)}
 							<p><strong>{fact.label}:</strong> {fact.value}</p>
 						{/each}
 					{/snippet}
@@ -159,7 +159,7 @@
 			{#snippet SectionQuilibriumServices()}
 				<ResourceBoundary resource={quilibriumNetwork}>
 					{#snippet children(quilibriumNetwork)}
-						{#each quilibriumNetwork.fields.serviceLayers?.values ?? [] as serviceLayer}
+						{#each quilibriumNetwork.fields.serviceLayers.values as serviceLayer (serviceLayer.label)}
 							<p><strong>{serviceLayer.label}:</strong> {serviceLayer.description}</p>
 						{:else}
 							<p data-text="muted">No service layers listed for this network yet.</p>
@@ -171,7 +171,7 @@
 			{#snippet SectionQuilibriumInterfaces()}
 				<ResourceBoundary resource={quilibriumNetwork}>
 					{#snippet children(quilibriumNetwork)}
-						{#each quilibriumNetwork.fields.nodeInterfaces?.values ?? [] as nodeInterface}
+						{#each quilibriumNetwork.fields.nodeInterfaces.values as nodeInterface (nodeInterface.label)}
 							<p><strong>{nodeInterface.label}:</strong> {nodeInterface.transportType} on port {nodeInterface.port}</p>
 						{:else}
 							<p data-text="muted">No node interfaces listed for this network yet.</p>
@@ -183,8 +183,8 @@
 			{#snippet SectionQuilibriumConsensus()}
 					<ResourceBoundary resource={network}>
 						{#snippet children(network)}
-							{#if (network.fields.$$consensusMechanisms?.values.length ?? 0) > 0}
-								<p><strong>Consensus mechanisms:</strong> {network.fields.$$consensusMechanisms?.values.length ?? 0}</p>
+							{#if network.fields.$$consensusMechanisms.values.length > 0}
+								<p><strong>Consensus mechanisms:</strong> {network.fields.$$consensusMechanisms.values.length}</p>
 							{:else}
 								<p data-text="muted">No consensus mechanisms mapped for this network yet.</p>
 							{/if}
@@ -212,11 +212,10 @@
 				{#snippet SectionQuilibriumAssetsNative({ id, label }: { id: string, label: string })}
 				<AssetInstancesView
 			CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$nativeAssets',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector
+		).$$nativeAssets}
 					id={`${id}-list`}
 					title={label}
 				/>
@@ -246,11 +245,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No faucets listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$faucetUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector
+		).$$faucetUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
@@ -264,11 +262,10 @@
 				<UrlsView
 					CollapsibleProps={{ canToggle: false }}
 					emptyText="No block explorers listed for this network yet."
-					entityFieldReference={{
-						entityType: EntityType.Network,
-						selector,
-						fieldName: '$$blockExplorerUrls',
-					}}
+					selection={select(
+			EntityType.Network,
+			selector
+		).$$blockExplorerUrls}
 					fieldSources={[
 						Source.Constants_Internal,
 					]}

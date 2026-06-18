@@ -25,9 +25,9 @@
 		ipfsResourceHref,
 	} from '$/lib/ipfs.ts'
 
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
-	const ipfs = $derived(proxy(EntityType.IpfsResource, selector, ({ sources: [Source.Ipfs_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, ...(open && ({ text: true, cidVersion: true, cidMultibase: true, cidMulticodecCode: true, cidMultihashCode: true, cidMultihashDigestHex: true, isCidSubdomainSafe: true, $media: true })) } })))
+	const ipfs = $derived(select(EntityType.IpfsResource, selector, ({ sources: [Source.Ipfs_Rest], fields: { canonicalUri: true, gatewayOrigin: true, gatewayUrl: true, fileName: true, extension: true, contentType: true, contentLength: true, displayType: true, isContentTypeInferred: true, ...(open && ({ text: true, cidVersion: true, cidMultibase: true, cidMulticodecCode: true, cidMultihashCode: true, cidMultihashDigestHex: true, isCidSubdomainSafe: true, $media: true })) } })))
 
 
 	// (Derived)

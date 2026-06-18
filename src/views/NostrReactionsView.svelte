@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 import { ListOrientation } from '$/components/ListOrientation.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,7 +16,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id,
 		limit = 50,
 		open = $bindable(
@@ -26,7 +27,11 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.NostrReaction>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			id: string
 			limit?: number
 			open?: boolean
@@ -40,7 +45,6 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 		>
 	> = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
 
 
 	
@@ -78,16 +82,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-					{
-						sources: [
-						Source.NostrBand_Rest,
-						Source.Primal_Rest,
-					],
-					}
-				).field(entityFieldReference.fieldName, {
+			<ResourceBoundary resource={selection({
 					sources: [
 						Source.NostrBand_Rest,
 						Source.Primal_Rest,
@@ -107,7 +102,7 @@ import { ListOrientation } from '$/components/ListOrientation.ts'
 						open={true}
 						items={reactions.entities}
 						getKey={(reaction) => reaction.entitySelector.eventId}
-						getSortValue={(reaction) => `${String(-(reaction.current?.createdAt ?? 0)).padStart(20, '0')}\0${reaction.entitySelector.eventId}`}
+						getSortValue={(reaction) => reaction.entitySelector.eventId}
 						UnorderedListProps={{ orientation: ListOrientation.Column }}
 					>
 						{#snippet Empty()}

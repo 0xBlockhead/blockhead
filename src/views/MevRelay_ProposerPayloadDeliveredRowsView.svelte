@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,16 +18,17 @@
 		title = 'MEV-Boost deliveries',
 		open = $bindable(true),
 		collapsible = true,
-		entityFieldReference,
+		selection,
 		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
 			collapsible?: boolean
-			entityFieldReference: EntityFieldReference<
+			selection: EntityProxyFieldResource<
 				typeof schema,
-				EntityType.MevRelay_ProposerPayloadDelivered
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
 			>
 		},
 		Pick<
@@ -37,7 +39,6 @@
 		>
 	> = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
 
 	
 
@@ -69,16 +70,7 @@
 	{#snippet body()}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-						{
-							sources: [
-								Source.Constants_Internal,
-								Source.MevRelay_Rest,
-							],
-						},
-					).field(entityFieldReference.fieldName, {
+				resource={selection({
 						sources: [
 							Source.MevRelay_Rest,
 						],
@@ -100,7 +92,7 @@
 					<MevRelay_ProposerPayloadDeliveredView
 						selector={rowId}
 							href={resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: ,
+								caip2: `${rowId.$network.caip2.namespace}:${rowId.$network.caip2.reference}`,
 							})}
 							layout={EntityLayout.Summary}
 

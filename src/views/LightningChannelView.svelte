@@ -12,7 +12,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -67,7 +67,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.LightningChannel,
+			resource={select(EntityType.LightningChannel,
 		selector,
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,

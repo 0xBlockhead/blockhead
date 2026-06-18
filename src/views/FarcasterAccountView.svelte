@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -35,7 +35,7 @@
 		never
 	> = $props()
 
-	const connection = $derived(proxy(EntityType.BlockheadFarcasterAccountConnection, selector, ({ sources: [
+	const connection = $derived(select(EntityType.BlockheadFarcasterAccountConnection, selector, ({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
 			], fields: { username: true, displayName: true, $icon: true, bio: true, ...(open ? ({ verifications: true, custody: true, authMethod: true, signedAt: true }) : ({  })) } })))

@@ -16,8 +16,8 @@
 	let {
 		selector,
 		title = 'Contract',
-		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address]', {
-			caip2: ,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 			address: selector.address,
 		}),
 		open = $bindable(true),
@@ -40,9 +40,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
-	const contract = $derived(proxy(EntityType.EvmContract, selector, {
+	const contract = $derived(select(EntityType.EvmContract, selector, {
 		sources: [
 			Source.Local_Internal,
 			Source.Constants_Internal,
@@ -52,15 +52,9 @@
 			Source.Voltaire_JsonRpc,
 		],
 	}))
-	const precompileName = $derived(contract.field('precompileName', {
+	const precompileName = $derived(contract.precompileName({
 		sources: [Source.Constants_Internal],
 	}))
-	
-	
-	
-	
-	
-	
 	
 	const compilationName = $derived(contract.$verification.$compilation.name)
 
@@ -119,18 +113,26 @@
 											.split('/')
 											.at(-1)}
 									</code>
-								{:else if compilationName.current}
-									{compilationName.current}
 								{:else}
-									<EvmNetworkAccountView
-										selector={{
-											$network: selector.$network,
-											$actor: { address: selector.address },
-										}}
-										layout={EntityLayout.Value}
-
-										open={false}
-										/>
+									<ResourceBoundary
+										placeholderText="Loading compilation name…"
+										resource={compilationName}
+									>
+										{#snippet children(compilationName)}
+											{#if compilationName}
+												{compilationName}
+											{:else}
+												<EvmNetworkAccountView
+													selector={{
+														$network: selector.$network,
+														$actor: { address: selector.address },
+													}}
+													layout={EntityLayout.Value}
+													open={false}
+												/>
+											{/if}
+										{/snippet}
+									</ResourceBoundary>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -183,11 +185,16 @@
 
 				{#if open}
 					<ResourceBoundary
+						placeholderText="Loading contract…"
+						resource={precompileName}
+					>
+						{#snippet children(precompileName)}
+					<ResourceBoundary
 						placeholderText="Loading deployer…"
 						resource={contract.$deployer}
 					>
 						{#snippet children(deployer)}
-							{#if !precompileName.current && deployer}
+							{#if !precompileName && deployer}
 							<div>
 								<dt>Deployer</dt>
 								<dd>
@@ -196,8 +203,8 @@
 											$network: selector.$network,
 											$actor: deployer.entitySelector,
 										}}
-										href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address]', {
-											caip2: ,
+										href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
+											caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 											address: deployer.entitySelector.address,
 										})}
 										layout={EntityLayout.Title}
@@ -215,14 +222,14 @@
 						resource={contract.$creationTransaction}
 					>
 						{#snippet children(creationTransaction)}
-							{#if !precompileName.current && creationTransaction}
+							{#if !precompileName && creationTransaction}
 							<div>
 								<dt>Creation transaction</dt>
 								<dd>
 									<EvmTransactionView
 										selector={creationTransaction.entitySelector}
 										href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-											caip2: ,
+											caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 											transactionId: creationTransaction.entitySelector.txHash,
 										})}
 										layout={EntityLayout.Title}
@@ -240,7 +247,7 @@
 						resource={contract.$implementation}
 					>
 						{#snippet children(implementation)}
-							{#if !precompileName.current && implementation}
+							{#if !precompileName && implementation}
 							<div>
 								<dt>Implementation</dt>
 								<dd>
@@ -252,6 +259,33 @@
 								</dd>
 							</div>
 						{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					{#if !precompileName}
+						<ResourceBoundary
+							placeholderText="Loading ABI…"
+							resource={contract.abi}
+						>
+							{#snippet children(abi)}
+							{#if abi !== undefined}
+								<div>
+									<dt>ABI</dt>
+									<dd>
+										<EvmAbiView
+											abi={abi}
+										/>
+									</dd>
+								</div>
+							{:else}
+								<div>
+									<dt>ABI</dt>
+									<dd>No ABI JSON yet.</dd>
+								</div>
+							{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
 						{/snippet}
 					</ResourceBoundary>
 
@@ -293,30 +327,6 @@
 						{/snippet}
 					</ResourceBoundary>
 
-					{#if !precompileName.current}
-						<ResourceBoundary
-							placeholderText="Loading ABI…"
-							resource={contract.abi}
-						>
-							{#snippet children(abi)}
-							{#if abi !== undefined}
-								<div>
-									<dt>ABI</dt>
-									<dd>
-										<EvmAbiView
-											abi={abi}
-										/>
-									</dd>
-								</div>
-							{:else}
-								<div>
-									<dt>ABI</dt>
-									<dd>No ABI JSON yet.</dd>
-								</div>
-							{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/if}
 				{/if}
 			</dl>
 		</div>

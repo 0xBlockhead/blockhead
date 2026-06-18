@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -90,7 +90,7 @@
 			data-column="gap-2"
 			id={`${stringify(selector)}:metadata`}
 		>
-			<ResourceBoundary resource={proxy(EntityType.BlockheadPanelTree, selector, {
+			<ResourceBoundary resource={select(EntityType.BlockheadPanelTree, selector, {
 					sources: [
 						Source.Local_Internal,
 					],

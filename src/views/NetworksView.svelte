@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { EntitySelector } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,7 +17,7 @@
 	let {
 		title = 'Networks',
 		open = $bindable(true),
-		entityFieldReference,
+		selection,
 		networkSelectors,
 		id,
 		href = '',
@@ -25,7 +26,11 @@
 		{
 			title?: string
 			open?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Network>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			networkSelectors?: readonly EntitySelector<typeof schema, EntityType.Network>[]
 			id: string
 			href?: string
@@ -37,7 +42,6 @@
 		>
 	> = $props()
 
-	import { proxy } from '$/routes/+layout.svelte'
 
 
 	
@@ -66,13 +70,7 @@
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-					{
-						sources: [Source.Constants_Internal],
-					}
-				).field(entityFieldReference.fieldName, {
+			<ResourceBoundary resource={selection({
 					limit: 4096,
 				})} placeholderText="Loading networks…">
 				{#snippet children(networks)}
@@ -102,7 +100,7 @@
 
 						{#snippet Item({ item })}
 							<NetworkView
-								selector={item.entitySelector}
+								selection={item}
 								layout={EntityLayout.Summary}
 
 							/>

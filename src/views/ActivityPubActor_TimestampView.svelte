@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -77,7 +77,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.ActivityPubActor_Timestamp,
+			resource={select(EntityType.ActivityPubActor_Timestamp,
 					selector,
 					({
 						sources: [

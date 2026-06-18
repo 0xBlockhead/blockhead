@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,7 +32,7 @@
 		never
 	> = $props()
 
-	const global = $derived(proxy(EntityType._Global, selector, ({ sources: [
+	const global = $derived(select(EntityType._Global, selector, ({ sources: [
 				Source.Local_Internal,
 				...(
 					open ?

@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -9,11 +10,9 @@
 	import { stringify } from 'devalue'
 
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		id = 'farcaster-feeds',
 		title = 'Feeds',
 		open = $bindable(true),
@@ -22,7 +21,11 @@
 		CollapsibleProps = {},
 		href,
 	}: {
-		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterFeed>
+		selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 		id?: string
 		title?: string
 		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
@@ -65,31 +68,23 @@
 	{/snippet}
 
 	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			{@const parentNetwork = proxy(EntityType.FarcasterNetwork,
-				entityFieldReference.selector,
-				({
-					fields: {
-						[entityFieldReference.fieldName]: {
-							sources: [Source.Farcaster_Rest],
-							limit,
-						},
-					},
-				})
-			)}
-			<ResourceBoundary
-				resource={parentNetwork}
-				placeholderText="Loading Farcaster feeds (trending, FID, channel)…"
-			>
-				{#snippet children(parentNetwork)}
-					<EntitiesList
+			{#if open}
+				<ResourceBoundary
+					resource={selection({
+						sources: [Source.Farcaster_Rest],
+						limit,
+					})}
+					placeholderText="Loading Farcaster feeds (trending, FID, channel)…"
+				>
+					{#snippet children(feeds)}
+						<EntitiesList
 						collapsible={false}
 						showSummary={false}
 						entityType={EntityType.FarcasterFeed}
 						{id}
 						{title}
 						open={true}
-						items={parentNetwork.fields[entityFieldReference.fieldName]?.values ?? []}
+							items={feeds.values}
 						getKey={(feed) => stringify(feed[EntityMetaKey.Selector])}
 						getSortValue={(feed) => stringify(feed[EntityMetaKey.Selector])}
 						placeholderText="Loading Farcaster feeds (trending, FID, channel)…"

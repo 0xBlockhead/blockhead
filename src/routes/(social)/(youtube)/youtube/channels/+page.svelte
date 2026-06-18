@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -16,11 +17,10 @@
 <Page>
 	<YouTubeChannelsView
 		href={resolve('/youtube/channels')}
-		entityFieldReference={{
-			entityType: EntityType.YouTubeNetwork,
-			selector: { scope: 'YouTubeNetwork' },
-			fieldName: '$$youtubeChannels',
-		}}
+		selection={select(
+			EntityType.YouTubeNetwork,
+			{ scope: 'YouTubeNetwork' }
+		).$$youtubeChannels}
 		id="youtube-channels"
 	/>
 </Page>

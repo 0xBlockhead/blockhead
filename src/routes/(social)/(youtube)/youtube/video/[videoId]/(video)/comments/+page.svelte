@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -29,11 +30,10 @@
 			'/(social)/(youtube)/youtube/video/[videoId]/(video)/comments',
 			{ videoId: encodeURIComponent(selector.videoId) },
 		)}
-		entityFieldReference={{
-			entityType: EntityType.YouTubeVideo,
-			selector,
-			fieldName: '$$comments',
-		}}
+		selection={select(
+			EntityType.YouTubeVideo,
+			selector
+		).$$comments}
 		id="youtube-video-comments"
 	/>
 </Page>

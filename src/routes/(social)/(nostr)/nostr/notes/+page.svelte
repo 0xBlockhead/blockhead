@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -16,11 +17,10 @@
 <Page>
 	<NostrNotesView
 		href={resolve('/nostr/notes')}
-		entityFieldReference={{
-			entityType: EntityType.NostrNetwork,
-			selector: { scope: 'NostrNetwork' },
-			fieldName: '$$nostrNotes',
-		}}
+		selection={select(
+			EntityType.NostrNetwork,
+			{ scope: 'NostrNetwork' }
+		).$$nostrNotes}
 		id="nostr-notes"
 		title="Notes"
 	/>

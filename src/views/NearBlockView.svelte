@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -71,7 +71,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.NearBlock,
+			resource={select(EntityType.NearBlock,
 					selector,
 					({ sources: [
 							Source.NearRpc_JsonRpc,
@@ -93,10 +93,10 @@
 						</div>
 					{/if}
 
-						{#if (block.fields.$$chunks?.values.length ?? 0) > 0}
+						{#if (block.fields.$$chunks.values.length ) > 0}
 							<div>
 								<dt>Chunks</dt>
-								<dd><NumberValue value={block.fields.$$chunks?.values.length ?? 0} /></dd>
+								<dd><NumberValue value={block.fields.$$chunks.values.length } /></dd>
 							</div>
 						{/if}
 

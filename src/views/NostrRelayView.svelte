@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -39,16 +39,9 @@
 		>
 	> = $props()
 
-	const relay = $derived(proxy(EntityType.NostrRelay, selector, ({ sources: [
+	const relay = $derived(select(EntityType.NostrRelay, selector, ({ sources: [
 				Source.NostrBand_Rest,
 			], fields: { name: true, description: true, software: true, version: true, supportedNipCount: true, isPaid: true } })))
-
-
-	// (Derived)
-	const relayRow = $derived(
-		relay.ready ? relay.current : undefined,
-	)
-
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
@@ -115,105 +108,58 @@
 		</ResourceBoundary>
 
 		<dl data-column-item="center">
-				{#if (
-				open
-				&& relayRow?.software
-			)}
-				<div>
-					<dt>Software</dt>
-					<dd>
-						<ResourceBoundary
-							resource={relay}
-							placeholderText="Loading relay…"
-						>
-							{#snippet children(relay)}
+			<ResourceBoundary
+				resource={relay}
+				placeholderText="Loading relay…"
+			>
+				{#snippet children(relay)}
+					{#if open && relay.fields.software}
+						<div>
+							<dt>Software</dt>
+							<dd>
 								{relay.fields.software}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				open
-				&& relayRow?.version
-			)}
-				<div>
-					<dt>Version</dt>
-					<dd>
-						<ResourceBoundary
-							resource={relay}
-							placeholderText="Loading relay…"
-						>
-							{#snippet children(relay)}
+					{#if open && relay.fields.version}
+						<div>
+							<dt>Version</dt>
+							<dd>
 								{relay.fields.version}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				open
-				&& relayRow?.supportedNipCount != null
-			)}
-				<div>
-					<dt>Supported NIPs</dt>
-					<dd>
-						<ResourceBoundary
-							resource={relay}
-							placeholderText="Loading relay…"
-						>
-							{#snippet children(relay)}
+					{#if open && relay.fields.supportedNipCount != null}
+						<div>
+							<dt>Supported NIPs</dt>
+							<dd>
 								{String(relay.fields.supportedNipCount)}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				open
-				&& relayRow?.isPaid != null
-			)}
-				<div>
-					<dt>Paid relay</dt>
-					<dd>
-						<ResourceBoundary
-							resource={relay}
-							placeholderText="Loading relay…"
-						>
-							{#snippet children(relay)}
+					{#if open && relay.fields.isPaid != null}
+						<div>
+							<dt>Paid relay</dt>
+							<dd>
 								{relay.fields.isPaid ? 'Yes' : 'No'}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				open
-				&& relayRow?.limit != null
-			)}
-				<div>
-					<dt>Event limit</dt>
-					<dd>
-						<ResourceBoundary
-							resource={relay}
-							placeholderText="Loading relay…"
-						>
-							{#snippet children(relay)}
+					{#if open && relay.fields.limit != null}
+						<div>
+							<dt>Event limit</dt>
+							<dd>
 								{String(relay.fields.limit)}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
-	{/snippet}
 </EntityView>

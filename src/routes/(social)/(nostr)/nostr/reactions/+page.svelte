@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -21,11 +22,10 @@
 	{#if data.noteEntitySelector}
 		<NostrReactionsView
 			href={resolve('/nostr/reactions')}
-			entityFieldReference={{
-				entityType: EntityType.NostrNote,
-				selector: data.noteEntitySelector,
-				fieldName: '$$reactions',
-			}}
+			selection={select(
+			EntityType.NostrNote,
+			data.noteEntitySelector
+		).$$reactions}
 			id="nostr-reactions"
 			title="Reactions"
 		/>

@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { subscribe } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { afterNavigate, goto } from '$app/navigation'
 	import { page } from '$app/state'
 
@@ -122,27 +122,29 @@
 	)
 
 
-	const selectorEntity = subscribe(EntityType.EvmSelector,
+	const selectorEntity = $derived(select(
+		EntityType.EvmSelector,
 		(selector ?
 			{ hex: normalizedSelector ?? selector }
 		:
 			{ hex: IDLE_SELECTOR_HEX }
 		),
-		({ sources: [
+		{ sources: [
 				Source.Openchain_Rest,
-			], fields: { signatures: true } }),
-	)
+			], fields: { signatures: true } }
+	))
 
-	const topicEntity = subscribe(EntityType.EvmTopic,
+	const topicEntity = $derived(select(
+		EntityType.EvmTopic,
 		(topic ?
 			{ hex: normalizedTopic ?? topic }
 		:
 			{ hex: IDLE_TOPIC_HEX }
 		),
-		({ sources: [
+		{ sources: [
 				Source.Openchain_Rest,
-			], fields: { signatures: true } }),
-	)
+			], fields: { signatures: true } }
+	))
 
 
 	const functionSignatures = $derived(

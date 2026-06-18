@@ -17,7 +17,7 @@
 		selector,
 		href = resolve(
 			'/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]',
-			{ .caip2:  },
+			{ caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}` },
 		),
 		layout,
 		open = $bindable(true),
@@ -36,9 +36,9 @@
 	> = $props()
 
 	import { evmChainIdFromCaip2 } from '$/lib/caip.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
-	const networkGasEstimateTimestamp = $derived(proxy(
+	const networkGasEstimateTimestamp = $derived(select(
 		EntityType.EvmNetwork_GasEstimate_Timestamp,
 		selector,
 		{
@@ -84,22 +84,40 @@
 						options={{ maximumFractionDigits: 4 }}
 					/>
 					gwei
-				{:else if fastGwei != null}
-					<NumberValue
-						value={fastGwei}
-						options={{ maximumFractionDigits: 4 }}
-					/>
-					gwei fast
-				{:else if slowGwei != null}
-					<NumberValue
-						value={slowGwei}
-						options={{ maximumFractionDigits: 4 }}
-					/>
-					gwei slow
 				{:else}
-					<span>
-						chain {String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}
-					</span>
+					<ResourceBoundary
+						resource={fastGwei}
+						placeholderText="Loading fast gas estimate…"
+					>
+						{#snippet children(fastGwei)}
+							{#if fastGwei != null}
+								<NumberValue
+									value={fastGwei}
+									options={{ maximumFractionDigits: 4 }}
+								/>
+								gwei fast
+							{:else}
+								<ResourceBoundary
+									resource={slowGwei}
+									placeholderText="Loading slow gas estimate…"
+								>
+									{#snippet children(slowGwei)}
+										{#if slowGwei != null}
+											<NumberValue
+												value={slowGwei}
+												options={{ maximumFractionDigits: 4 }}
+											/>
+											gwei slow
+										{:else}
+											<span>
+												chain {String(evmChainIdFromCaip2(`${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`))}
+											</span>
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -128,99 +146,81 @@
 				</dd>
 			</div>
 
-			{#if (
-				!slowGwei.ready
-				|| slowGwei.current != null
-			)}
-				<div>
-					<dt>Slow</dt>
-					<dd>
-						<ResourceBoundary
-							resource={slowGwei}
-							placeholderText="Loading gas estimate…"
-							>
-								{#snippet children(slowGwei)}
-									{#if slowGwei !== undefined}
+			<ResourceBoundary
+				resource={slowGwei}
+				placeholderText="Loading gas estimate…"
+			>
+				{#snippet children(slowGwei)}
+					{#if slowGwei !== undefined}
+						<div>
+							<dt>Slow</dt>
+							<dd>
 										<NumberValue
 											value={slowGwei}
 											options={{ maximumFractionDigits: 4 }}
 										/>
 										gwei
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			{#if (
-				!averageGwei.ready
-				|| averageGwei.current != null
-			)}
-				<div>
-					<dt>Average</dt>
-					<dd>
-						<ResourceBoundary
-							resource={averageGwei}
-							placeholderText="Loading gas estimate…"
-							>
-								{#snippet children(averageGwei)}
-									{#if averageGwei !== undefined}
+			<ResourceBoundary
+				resource={averageGwei}
+				placeholderText="Loading gas estimate…"
+			>
+				{#snippet children(averageGwei)}
+					{#if averageGwei !== undefined}
+						<div>
+							<dt>Average</dt>
+							<dd>
 										<NumberValue
 											value={averageGwei}
 											options={{ maximumFractionDigits: 4 }}
 										/>
 										gwei
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			{#if (
-				!fastGwei.ready
-				|| fastGwei.current != null
-			)}
-				<div>
-					<dt>Fast</dt>
-					<dd>
-						<ResourceBoundary
-							resource={averageGwei}
-							placeholderText="Loading gas estimate…"
-							>
-								{#snippet children(averageGwei)}
-									{#if fastGwei !== undefined}
+			<ResourceBoundary
+				resource={fastGwei}
+				placeholderText="Loading gas estimate…"
+			>
+				{#snippet children(fastGwei)}
+					{#if fastGwei !== undefined}
+						<div>
+							<dt>Fast</dt>
+							<dd>
 										<NumberValue
 											value={fastGwei}
 											options={{ maximumFractionDigits: 4 }}
 										/>
 										gwei
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			{#if (
-				!transport.ready
-				|| transport.current !== undefined
-			)}
-				<div>
-					<dt>Transport</dt>
-					<dd>
-						<ResourceBoundary
-							resource={transport}
-							placeholderText="Loading gas estimate…"
-						>
-							{#snippet children(transport)}
+			<ResourceBoundary
+				resource={transport}
+				placeholderText="Loading gas estimate…"
+			>
+				{#snippet children(transport)}
+					{#if transport !== undefined}
+						<div>
+							<dt>Transport</dt>
+							<dd>
 								<code>{transport}</code>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 </EntityView>

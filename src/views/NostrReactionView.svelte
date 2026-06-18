@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -40,7 +40,7 @@
 		>
 	> = $props()
 
-	const reaction = $derived(proxy(EntityType.NostrReaction, selector, ({ sources: [
+	const reaction = $derived(select(EntityType.NostrReaction, selector, ({ sources: [
 				Source.NostrBand_Rest,
 				Source.Primal_Rest,
 			], fields: { eventId: true, pubkey: true, createdAt: true, $author: true, $targetNote: true, $targetArticle: true, content: true } })))

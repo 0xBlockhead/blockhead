@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -68,7 +68,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.LensAccount_Timestamp,
+			resource={select(EntityType.LensAccount_Timestamp,
 					selector,
 					({ sources: [
 							Source.Lens_Graphql,

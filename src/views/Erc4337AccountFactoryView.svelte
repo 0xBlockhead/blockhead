@@ -11,16 +11,16 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		selector,
-		resource,
-		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address]', {
-				.caip2: ,
+		selection,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]', {
+				caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 				address: selector.address,
 		}),
 		layout = EntityLayout.Summary,
@@ -31,7 +31,7 @@
 	}: WithRest<
 		{
 			selector: EntitySelector<typeof schema, EntityType.Erc4337AccountFactory>
-			resource?: EntityProxyResource<typeof schema, EntityType.Erc4337AccountFactory>
+			selection?: EntityProxyResource<typeof schema, EntityType.Erc4337AccountFactory>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -45,7 +45,7 @@
 	> = $props()
 
 	const accountFactory = $derived(
-		resource ?? proxy(
+		selection ?? select(
 			EntityType.Erc4337AccountFactory,
 			selector,
 			{
@@ -58,7 +58,7 @@
 
 	
 
-	const contract = $derived(accountFactory.field('$contract'))
+	const contract = $derived(accountFactory.$contract)
 
 
 	// Components

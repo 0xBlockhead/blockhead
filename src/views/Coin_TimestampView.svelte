@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -36,7 +36,7 @@
 		>
 	> = $props()
 
-	const coinTimestamp = $derived(proxy(EntityType.Coin_Timestamp,
+	const coinTimestamp = $derived(select(EntityType.Coin_Timestamp,
 		selector,
 		{
 			sources: [

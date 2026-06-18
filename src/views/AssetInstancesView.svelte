@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -10,10 +11,9 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Native assets',
 		emptyText = 'No native assets mapped for this network yet.',
 		open = $bindable(true),
@@ -22,7 +22,11 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.AssetInstance>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			title?: string
 			emptyText?: string
 			open?: boolean
@@ -60,13 +64,7 @@
 
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-					{
-						sources: [Source.Constants_Internal],
-					}
-				).field(entityFieldReference.fieldName)} placeholderText={`Loading ${title.toLowerCase()}…`}>
+			<ResourceBoundary resource={selection} placeholderText={`Loading ${title.toLowerCase()}…`}>
 				{#snippet children(assets)}
 					<EntitiesList
 						collapsible={false}

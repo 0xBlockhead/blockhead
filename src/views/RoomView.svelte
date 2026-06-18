@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -33,7 +33,7 @@
 		never
 	> = $props()
 
-	const room = $derived(proxy(EntityType.BlockheadRoom, selector, ({ sources: [
+	const room = $derived(select(EntityType.BlockheadRoom, selector, ({ sources: [
 				Source.Local_Internal,
 			], fields: { name: true, createdAt: true, createdBy: true } })))
 

@@ -1,18 +1,21 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	// State
-	let { entityFieldReference, title = 'Payments', open = $bindable(true), id, href = '', ...EntitiesListProps }: WithRest<{ entityFieldReference: EntityFieldReference<typeof schema, EntityType.LightningPayment>, title?: string, open?: boolean, id: string, href?: string }, Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>> = $props()
+	type LightningPaymentsResource = EntityProxyFieldResource<
+		typeof schema,
+		EntityType.LightningNetwork,
+		'$$payments'
+	>
 
-	import { proxy } from '$/routes/+layout.svelte'
+	// State
+	let { resource, title = 'Payments', open = $bindable(true), id, href = '', ...EntitiesListProps }: WithRest<{ selection: LightningPaymentsResource, title?: string, open?: boolean, id: string, href?: string }, Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>> = $props()
 
 	
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -25,13 +28,7 @@
 <EntitiesList entityType={EntityType.LightningPayment} {title} bind:open {id} href={href} {...EntitiesListProps}>
 	{#snippet body()}
 		{#if open}
-			<ResourceBoundary resource={proxy(
-					entityFieldReference.entityType,
-					entityFieldReference.selector,
-				).field(entityFieldReference.fieldName, {
-					sources: [Source.LightningLnd_Rest],
-					limit: 32,
-				})} placeholderText="Loading payments…">
+			<ResourceBoundary {resource} placeholderText="Loading payments…">
 				{#snippet children(payments)}
 					<EntitiesList
 						collapsible={false}

@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -18,8 +18,8 @@
 	let {
 		routeChildren,
 		selector,
-		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blobs)/blob/[transactionId]/[blobIndex]', {
-			.caip2: ,
+		href = resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blobs)/blob/[transactionId=evmTxHash]/[blobIndex=nonNegativeInteger]', {
+			caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 			transactionId: selector.txHash,
 			blobIndex: selector.blobIndex.toString(),
 		}),
@@ -38,11 +38,11 @@
 		>
 	> = $props()
 
-	const blob = $derived(proxy(EntityType.EvmBlob, selector))
-	const kzgCommitment = $derived(blob.field('kzgCommitment', {
+	const blob = $derived(select(EntityType.EvmBlob, selector))
+	const kzgCommitment = $derived(blob.kzgCommitment({
 		sources: [Source.Blobscan_Rest],
 	}))
-	const blobDataStorageReferences = $derived(blob.field('blobDataStorageReferences', {
+	const blobDataStorageReferences = $derived(blob.blobDataStorageReferences({
 		sources: [Source.Blobscan_Rest],
 	}))
 	const blobSelectorKey = $derived(
@@ -190,7 +190,7 @@
 					<dt>Transaction</dt>
 					<dd>
 						<a href={resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								.caip2: ,
+								caip2: `${selector.$network.caip2.namespace}:${selector.$network.caip2.reference}`,
 								transactionId: selector.txHash,
 							})}>
 							<TruncatedValue

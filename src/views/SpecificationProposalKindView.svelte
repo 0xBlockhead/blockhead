@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -32,14 +32,14 @@
 		never
 	> = $props()
 
-	const kind = $derived(proxy(EntityType.SpecificationProposalKind,
+	const kind = $derived(select(EntityType.SpecificationProposalKind,
 		selector,
 		({ sources: [
 				Source.Constants_Internal,
 			], fields: { label: true, labelPlural: true, slug: true } }),
 	))
 
-	const specificationRealm = $derived(proxy(EntityType.SpecificationRealm,
+	const specificationRealm = $derived(select(EntityType.SpecificationRealm,
 		{
 			realm: selector.realm,
 		},
@@ -48,42 +48,8 @@
 			], fields: { slug: true } }),
 	))
 
-
-	// (Derived)
-	const kindRow = $derived(
-		kind.ready ?
-			kind.current
-			:
-			undefined,
-	)
-
-	const specificationRealmRow = $derived(
-		specificationRealm.ready ?
-			specificationRealm.current
-			:
-			undefined,
-	)
-
 	const href = $derived(
-		hrefProp ?? (
-			kindRow?.fields.slug != null && specificationRealmRow?.fields.slug != null ?
-				resolve(
-					'/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
-					{
-						specificationRealmSlug: specificationRealmRow.fields.slug,
-						proposalKindSlug: kindRow.fields.slug,
-					},
-				)
-			: specificationRealmRow?.fields.slug != null ?
-				resolve(
-					'/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
-					{
-						specificationRealmSlug: specificationRealmRow.fields.slug,
-					},
-				)
-			:
-				resolve('/proposals')
-		),
+		hrefProp ?? resolve('/proposals'),
 	)
 
 
@@ -99,7 +65,7 @@
 	entityType={EntityType.SpecificationProposalKind}
 	entitySelector={selector}
 	{href}
-	title={kindRow?.fields.labelPlural ?? kindRow?.fields.label ?? `${selector.category}`}
+	title={`${selector.category}`}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -161,11 +127,10 @@
 			{#snippet children(kind)}
 				<ProposalsView
 					href={resolve('/proposals')}
-					entityFieldReference={{
-						entityType: EntityType.SpecificationProposalKind,
-						selector,
-						fieldName: '$$proposals',
-					}}
+					selection={select(
+			EntityType.SpecificationProposalKind,
+			selector
+		).$$proposals}
 					filterCategory={selector.category}
 					filterRealm={selector.realm}
 					id={`${stringify(selector)}:proposals`}

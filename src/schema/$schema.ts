@@ -93,6 +93,8 @@ export const entityFieldPrimitiveValueIsValid = (
 	value: unknown
 ) => !(fieldDefinition.primitiveType(value) instanceof arktype.errors)
 
+export const NonNegativeInteger = arktype('number.integer >= 0')
+
 export type EntityFieldDefinition<_Source extends string = string> = (
 	& {
 		defaultSources?: readonly _Source[]
@@ -854,6 +856,22 @@ export type EntityFieldDefinitionByEntityTypeAndName<_Schema extends Schema> = {
 		)
 	}
 
+export type EntitySelectorDefinitionByEntityTypeAndName<_Schema extends Schema> = {
+	readonly [_EntityType in EntityType<_Schema>]: (
+		& {
+			readonly [selectorName: string]: EntityDefinitionForEntityType<_Schema, _EntityType>['selectors'][number] | undefined
+		}
+		& {
+			readonly [
+				_SelectorName in EntityDefinitionForEntityType<_Schema, _EntityType>['selectors'][number]['name']
+			]: Extract<
+				EntityDefinitionForEntityType<_Schema, _EntityType>['selectors'][number],
+				{ readonly name: _SelectorName }
+			>
+		}
+	)
+}
+
 export const indexSchema = <const _Schema extends Schema>(
 	schema: _Schema
 ) => ({
@@ -868,4 +886,11 @@ export const indexSchema = <const _Schema extends Schema>(
 			fieldDefinition,
 		])),
 	])) as EntityFieldDefinitionByEntityTypeAndName<_Schema>,
+	entitySelectorDefinitionByEntityTypeAndName: Object.fromEntries(schema.map((entityDefinition) => [
+		entityDefinition.entityType,
+		Object.fromEntries(entityDefinition.selectors.map((selectorDefinition) => [
+			selectorDefinition.name,
+			selectorDefinition,
+		])),
+	])) as EntitySelectorDefinitionByEntityTypeAndName<_Schema>,
 })

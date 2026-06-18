@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -77,7 +77,7 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={proxy(EntityType.IpfsProtocol,
+				resource={select(EntityType.IpfsProtocol,
 						selector,
 						({ sources: [Source.Constants_Internal], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true }) : ({  })) } }),
 					)}

@@ -19,8 +19,8 @@ test.describe('Evm transaction logs', () => {
 
 		await page.goto(`/network/eip155:1/tx/${transactionWithReceiptLogs}`, { waitUntil: 'load' })
 		await assertMainSettled(page, 120_000)
-		await expect(page.getByText('Receipt log #981')).toBeVisible({ timeout: 120_000 })
-		await expect(page.getByText('Receipt log #982')).toBeVisible({ timeout: 120_000 })
+		await expect(page.locator(`#main a[href$="/tx/${transactionWithReceiptLogs}/log/981"]`)).toBeVisible({ timeout: 120_000 })
+		await expect(page.locator(`#main a[href$="/tx/${transactionWithReceiptLogs}/log/982"]`)).toBeVisible({ timeout: 120_000 })
 
 		expect(issues, issues.join('\n')).toEqual([])
 	})
@@ -32,14 +32,11 @@ test.describe('Evm transaction logs', () => {
 
 		await page.goto(`/network/eip155:1/tx/${transactionWithReceiptLogs}/log/981`, { waitUntil: 'load' })
 		await assertMainSettled(page, 120_000)
-		await expect(page.getByRole('heading', { name: 'Receipt log #981' })).toBeVisible({ timeout: 120_000 })
-		await expect(page.getByRole('link', { name: 'Receipt log #981' })).toHaveAttribute(
-			'href',
-			`/network/eip155:1/tx/${transactionWithReceiptLogs}/log/981`
-		)
-		await expect(page.getByText('Emitter contract')).toBeAttached({ timeout: 120_000 })
-		await expect(page.getByText('Topics', { exact: true })).toBeAttached({ timeout: 120_000 })
-		await expect(page.getByText('Data', { exact: true })).toBeAttached({ timeout: 120_000 })
+		await expect(page).toHaveURL((url) => (
+			url.pathname === `/network/eip155:1/tx/${transactionWithReceiptLogs}/log/981`
+		))
+		await expect(page.locator(`#main a[href$="/tx/${transactionWithReceiptLogs}/log/981"]`).first()).toBeAttached({ timeout: 120_000 })
+		await expect(page.locator('#main [data-column]').first()).toBeAttached({ timeout: 120_000 })
 
 		expect(issues, issues.join('\n')).toEqual([])
 	})

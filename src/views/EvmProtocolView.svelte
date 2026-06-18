@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -31,7 +31,7 @@
 		never
 	> = $props()
 
-	const protocol = $derived(proxy(
+	const protocol = $derived(select(
 		EntityType.EvmProtocol,
 		selector,
 		{
@@ -46,9 +46,9 @@
 	
 	
 	
-	const evmTopics = $derived(protocol.field('$$evmTopics', { limit: 4096 }))
-	const evmSelectors = $derived(protocol.field('$$evmSelectors'))
-	const evmErrors = $derived(protocol.field('$$evmErrors'))
+	const evmTopics = $derived(protocol.$$evmTopics({ limit: 4096 }))
+	const evmSelectors = $derived(protocol.$$evmSelectors)
+	const evmErrors = $derived(protocol.$$evmErrors)
 
 
 	const entityViewDetailCarouselScrollProps = {
@@ -188,11 +188,10 @@
 				<EvmTopicsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/evm/topics')}
-					entityFieldReference={{
-						entityType: EntityType.EvmProtocol,
-						selector,
-						fieldName: '$$evmTopics',
-					}}
+					selection={select(
+			EntityType.EvmProtocol,
+			selector
+		).$$evmTopics}
 					id={`${protocolSelectorKey}:topics`}
 					open={true}
 				/>
@@ -202,11 +201,10 @@
 				<EvmSelectorsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/evm/selectors')}
-					entityFieldReference={{
-						entityType: EntityType.EvmProtocol,
-						selector,
-						fieldName: '$$evmSelectors',
-					}}
+					selection={select(
+			EntityType.EvmProtocol,
+			selector
+		).$$evmSelectors}
 					id={`${protocolSelectorKey}:selectors`}
 					open={true}
 				/>
@@ -216,11 +214,10 @@
 				<EvmErrorsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/evm/errors')}
-					entityFieldReference={{
-						entityType: EntityType.EvmProtocol,
-						selector,
-						fieldName: '$$evmErrors',
-					}}
+					selection={select(
+			EntityType.EvmProtocol,
+			selector
+		).$$evmErrors}
 					id={`${protocolSelectorKey}:errors`}
 					open={true}
 				/>

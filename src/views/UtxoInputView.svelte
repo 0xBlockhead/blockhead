@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -26,7 +26,7 @@
 		>
 	> = $props()
 
-	const utxoInput = $derived(proxy(
+	const utxoInput = $derived(select(
 		EntityType.UtxoInput,
 		selector,
 	))
@@ -128,7 +128,7 @@
 				placeholderText="Loading witness..."
 			>
 				{#snippet children(witness)}
-					{#if witness?.values.length}
+					{#if witness.values.length}
 						<div>
 							<dt>Witness</dt>
 							<dd>

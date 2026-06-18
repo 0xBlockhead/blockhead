@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 
 	const idKey = $derived(stringify(selector))
 
-	const post = $derived(proxy(EntityType.AtprotoPost,
+	const post = $derived(select(EntityType.AtprotoPost,
 		selector,
 			{
 				sources: [
@@ -312,11 +312,10 @@
 				</header>
 
 				<AtprotoPostThreadView
-					entityFieldReference={{
-						entityType: EntityType.AtprotoPost,
-						selector,
-						fieldName: '$$thread',
-					}}
+					selection={select(
+			EntityType.AtprotoPost,
+			selector
+		).$$thread}
 					id={`${idKey}:thread-atprotoPosts`}
 					open={true}
 					title="Thread"
@@ -337,11 +336,10 @@
 
 			{#snippet SectionMetricSnapshots()}
 				<AtprotoPost_TimestampsView
-					entityFieldReference={{
-						entityType: EntityType.AtprotoPost,
-						selector,
-						fieldName: '$$timestamps',
-					}}
+					selection={select(
+			EntityType.AtprotoPost,
+			selector
+		).$$timestamps}
 					href={href}
 					id={`${idKey}:metric-snapshots`}
 					title="Metric snapshots"

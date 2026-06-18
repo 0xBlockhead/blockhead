@@ -1,22 +1,24 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
+	type EvmPrecompilesResource = EntityProxyFieldResource<
+		typeof schema,
+		EntityType.EvmNetwork,
+		'$$precompiles'
+	>
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 
 		title = 'Precompiles',
 
@@ -30,7 +32,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmContract>
+			selection: EvmPrecompilesResource
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -76,15 +78,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						EntityType.EvmNetwork,
-						entityFieldReference.selector,
-					).field('$$precompiles', {
-						sources: [
-							Source.Constants_Internal,
-						],
-						limit: 64,
-					})}
+				resource={selection}
 				placeholderText="Loading precompiles…"
 			>
 				{#snippet children(precompiles)}

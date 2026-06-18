@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -23,11 +24,10 @@
 			'/(social)/(nostr)/nostr/note/[eventId]/(note)/replies',
 			{ eventId: data.selector.eventId },
 		)}
-		entityFieldReference={{
-			entityType: EntityType.NostrNote,
-			selector: data.selector,
-			fieldName: '$$replies',
-		}}
+		selection={select(
+			EntityType.NostrNote,
+			data.selector
+		).$$replies}
 		id="nostr-note-replies"
 		title="Replies"
 	/>

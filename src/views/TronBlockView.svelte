@@ -9,7 +9,7 @@
 
 
 	// State
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -65,7 +65,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.TronBlock, selector, ({ fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } }))}
+			resource={select(EntityType.TronBlock, selector, ({ fields: { hash: true, timestampMs: true, transactionCount: true, ...(open && ({ parentHash: true, $witness: true, txTrieRoot: true, version: true })) } }))}
 			placeholderText="Loading TRON block..."
 		>
 			{#snippet children(block)}

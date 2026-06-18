@@ -11,7 +11,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -31,7 +31,7 @@
 		>
 	> = $props()
 
-	const node = $derived(proxy(EntityType.LightningNode,
+	const node = $derived(select(EntityType.LightningNode,
 		selector,
 		({ sources: [
 				Source.LightningMempoolSpace_Rest,
@@ -112,7 +112,7 @@
 						</div>
 					{/if}
 
-					{#each open ? lightningNode.fields.networkAddresses?.values ?? [] : [] as address (address)}
+					{#each open ? lightningNode.fields.networkAddresses.values : [] as address (address)}
 						<div>
 							<dt>Address</dt>
 							<dd><code>{address}</code></dd>

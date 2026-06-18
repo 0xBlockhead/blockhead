@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -31,17 +31,10 @@
 		never
 	> = $props()
 
-	const farcasterUser = $derived(proxy(EntityType.FarcasterUser, farcasterUserId, ({ sources: [
+	const farcasterUser = $derived(select(EntityType.FarcasterUser, farcasterUserId, ({ sources: [
 				Source.Neynar_Rest,
 				Source.Snapchain_Rest,
 			], fields: { username: true, displayName: true, $icon: true, bio: true, url: true, $primaryEvmAccount: true, $$verifiedAddresses: true } })))
-
-
-	// (Derived)
-	const farcasterUserRow = $derived(
-		farcasterUser.ready ? farcasterUser.current : undefined,
-	)
-
 
 	// Components
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
@@ -138,35 +131,34 @@
 
 		<dl data-column-item="center">
 
-			{#if farcasterUserRow?.fields.url != null}
-				<div>
-					<dt>URL</dt>
-					<dd>
-						<ResourceBoundary
-							resource={farcasterUser}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(farcasterUser)}
+			<ResourceBoundary
+				resource={farcasterUser}
+				placeholderText="Loading profile…"
+			>
+				{#snippet children(farcasterUser)}
+					{#if farcasterUser.fields.url != null}
+						<div>
+							<dt>URL</dt>
+							<dd>
 								<a
 									href={farcasterUser.fields.url}
 									data-text="muted"
 								>{farcasterUser.fields.url}</a>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			{#if farcasterUserRow?.fields.$primaryEvmAccount != null}
-				<div>
-					<dt>Primary EVM account</dt>
-					<dd>
-						<ResourceBoundary
-							resource={farcasterUser}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(farcasterUser)}
-								{#if farcasterUser.fields.$primaryEvmAccount != null}
+			<ResourceBoundary
+				resource={farcasterUser}
+				placeholderText="Loading profile…"
+			>
+				{#snippet children(farcasterUser)}
+					{#if farcasterUser.fields.$primaryEvmAccount != null}
+						<div>
+							<dt>Primary EVM account</dt>
+							<dd>
 									<EvmAccountView
 										selector={farcasterUser.fields.$primaryEvmAccount[EntityMetaKey.Selector]}
 										href={resolve('/account/[address]', {
@@ -175,12 +167,11 @@
 										layout={EntityLayout.Title}
 
 									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<div>
 				<dt>Verified addresses</dt>
@@ -190,7 +181,7 @@
 						placeholderText="Loading profile…"
 					>
 						{#snippet children(farcasterUser)}
-							{#if farcasterUser.fields.$$verifiedAddresses?.values.length}
+							{#if farcasterUser.fields.$$verifiedAddresses.values.length}
 									<ul data-column="gap-2">
 										{#each farcasterUser.fields.$$verifiedAddresses.values as verification (String(verification[EntityMetaKey.Selector].protocol) + ':' + verification[EntityMetaKey.Selector].address)}
 											<li>
@@ -223,50 +214,39 @@
 				</dd>
 			</div>
 
-			{#if (
-				open
-				&& farcasterUserRow?.fields.displayName != null
-			)}
-				<div>
-					<dt>Display name</dt>
-					<dd>
-						<ResourceBoundary
-							resource={farcasterUser}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(farcasterUser)}
+			<ResourceBoundary
+				resource={farcasterUser}
+				placeholderText="Loading profile…"
+			>
+				{#snippet children(farcasterUser)}
+					{#if open && farcasterUser.fields.displayName != null}
+						<div>
+							<dt>Display name</dt>
+							<dd>
 								{farcasterUser.fields.displayName}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			{#if (
-				open
-				&& farcasterUserRow?.fields.username != null
-			)}
-				<div>
-					<dt>Username</dt>
-					<dd>
-						<ResourceBoundary
-							resource={farcasterUser}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(farcasterUser)}
+			<ResourceBoundary
+				resource={farcasterUser}
+				placeholderText="Loading profile…"
+			>
+				{#snippet children(farcasterUser)}
+					{#if open && farcasterUser.fields.username != null}
+						<div>
+							<dt>Username</dt>
+							<dd>
 								{farcasterUser.fields.username}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 		</dl>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
-
-	{/snippet}
 </EntityView>

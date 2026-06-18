@@ -16,7 +16,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -57,7 +57,7 @@
 
 
 	const ens = $derived(
-		proxy(
+		select(
 			EntityType.EnsName,
 			selector,
 			{
@@ -96,85 +96,82 @@
 
 
 <div data-column="gap-3">
-	<EntitiesList
-		{...EntitiesListProps}
-		bind:open
-		entityType={EntityType.EnsName}
-		getKey={(key) => key}
-		getSortValue={(key) => (
-			`${String(rank(key)).padStart(4, '0')}:${key}`
-		)}
-		{id}
-		items={
-		(
-			recordKeysProp !== undefined ?
-				[...recordKeysProp]
-			:
-				[...new Set([
-					...(
-						ens.current?.fields.textRecords === undefined ?
+	<ResourceBoundary
+		resource={ens}
+		placeholderText="Loading ENS text records…"
+	>
+		{#snippet children(ens)}
+			<EntitiesList
+				{...EntitiesListProps}
+				bind:open
+				entityType={EntityType.EnsName}
+				getKey={(key) => key}
+				getSortValue={(key) => (
+					`${String(rank(key)).padStart(4, '0')}:${key}`
+				)}
+				{id}
+				items={(recordKeysProp !== undefined ?
+					[...recordKeysProp]
+				:
+					[...new Set([
+						...(ens.fields.textRecords === undefined ?
 							[]
 						:
-							Object.keys(ens.current.fields.textRecords)
-					),
-					...(ens.current?.fields.resolverTextKeys?.values ?? []),
-				])]
-		).filter((key) => (
-			excludeRecordKeys == null
-			|| !excludeRecordKeys.has(key)
-		))
-	}
-		{title}
-	>
-		{#snippet TypeAnnotationTooltip()}
-			<p>
-				ENS text records are resolver-stored profile fields (avatar, URL, etc.) keyed by the name’s on-chain node hash.
-			</p>
-			<p>
-				They are not the same as calldata method ids or log event topics—those belong to contract execution and receipts.
-			</p>
-		{/snippet}
-		{#snippet Empty()}
-			<p data-text="muted">
-				No text record keys yet.
-			</p>
-		{/snippet}
-
-		{#snippet Item({ item })}
-			{@const recordLabel = (
-				item in ensTextRecordLabelByKey ?
-					ensTextRecordLabelByKey[item].label
-				:
-					item
-			)}
-			{@const recordValue = (
-				ens.ready ?
-					ens.current?.fields.textRecords?.[item]
-				:
-					undefined
-			)}
-			<a
-				data-link
-				href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/(records)/record/[recordId]', {
-					ensName: selector.name,
-					recordId: item,
-				})}
+							Object.keys(ens.fields.textRecords)),
+							...ens.fields.resolverTextKeys.values,
+					])]
+				).filter((key) => (
+					excludeRecordKeys == null
+					|| !excludeRecordKeys.has(key)
+				))}
+				{title}
 			>
-				<span data-column>
-					<span>
-						{recordLabel}
-						{#if recordLabel !== item}
-							<small data-text="muted"> ({item})</small>
-						{/if}
-					</span>
-					{#if recordValue != null && recordValue !== ''}
-						<TruncatedValue
-							value={recordValue}
-							format={TruncatedValueFormat.Visual}
-						/>
-					{/if}
-				</span>
-			</a>
+				{#snippet TypeAnnotationTooltip()}
+					<p>
+						ENS text records are resolver-stored profile fields (avatar, URL, etc.) keyed by the name’s on-chain node hash.
+					</p>
+					<p>
+						They are not the same as calldata method ids or log event topics—those belong to contract execution and receipts.
+					</p>
+				{/snippet}
+				{#snippet Empty()}
+					<p data-text="muted">
+						No text record keys yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({ item })}
+					{@const recordLabel = (
+						item in ensTextRecordLabelByKey ?
+							ensTextRecordLabelByKey[item].label
+						:
+							item
+					)}
+					{@const recordValue = ens.fields.textRecords?.[item]}
+					<a
+						data-link
+						href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/(records)/record/[recordId]', {
+							ensName: selector.name,
+							recordId: item,
+						})}
+					>
+						<span data-column>
+							<span>
+								{recordLabel}
+								{#if recordLabel !== item}
+									<small data-text="muted"> ({item})</small>
+								{/if}
+							</span>
+							{#if recordValue != null && recordValue !== ''}
+								<TruncatedValue
+									value={recordValue}
+									format={TruncatedValueFormat.Visual}
+								/>
+							{/if}
+						</span>
+					</a>
+				{/snippet}
+			</EntitiesList>
 		{/snippet}
-	</EntitiesList>
+	</ResourceBoundary>
 </div>

@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -60,7 +60,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.LightningPayment,
+			resource={select(EntityType.LightningPayment,
 		selector,
 		({ sources: [
 				Source.LightningLnd_Rest,

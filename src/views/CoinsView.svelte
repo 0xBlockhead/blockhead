@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { CoinId } from '$/constants/Coin.ts'
 	import { catalogCoinIdentitySources } from '$/sources/Source.ts'
@@ -32,7 +33,7 @@
 		deploymentsOpen = false,
 		open = $bindable(true),
 		collapsible = true,
-		entityFieldReference,
+		selection,
 		...EntitiesListProps
 	}: WithRest<
 		{
@@ -45,7 +46,11 @@
 			title?: string
 			open?: boolean
 			collapsible?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Coin>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -82,7 +87,7 @@
 			],
 		] as const
 	)
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	
@@ -122,13 +127,7 @@
 		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				<ResourceBoundary
-					resource={proxy(
-							entityFieldReference.entityType,
-							entityFieldReference.selector,
-							{
-								sources: catalogCoinIdentitySources,
-							}
-						).field(entityFieldReference.fieldName, {
+					resource={selection({
 							sources: catalogCoinIdentitySources,
 							orderBy: [...globalCoinsFieldOrderBy],
 							limit,
@@ -196,11 +195,10 @@
 			<MarketPricesView
 				CollapsibleProps={{ canToggle: false }}
 				href={resolve('/markets')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$marketPrices' },
-					fieldName: '$$marketPrices',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$marketPrices' }
+		).$$marketPrices}
 				id={`${id}:prices-spot`}
 				open
 				title="Spot quote index"
@@ -256,11 +254,10 @@
 			</div>
 			<Market_TimeInterval_TimestampsView
 				CollapsibleProps={{ canToggle: false }}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$marketTimeIntervalTimestamps' },
-					fieldName: '$$marketTimeIntervalTimestamps',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$marketTimeIntervalTimestamps' }
+		).$$marketTimeIntervalTimestamps}
 				href={resolve('/coins/candles')}
 				id={`${id}:ohlc-candles-preview`}
 				limit={48}
@@ -327,11 +324,10 @@
 			<MarketsView
 				CollapsibleProps={{ canToggle: false }}
 				href={resolve('/markets')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					selector: { scope: '$$markets' },
-					fieldName: '$$markets',
-				}}
+				selection={select(
+			EntityType._Global,
+			{ scope: '$$markets' }
+		).$$markets}
 				id={`${id}:markets-index`}
 				open
 				title="Market index"
@@ -376,11 +372,10 @@
 			<EvmCoinInstancesView
 				CollapsibleProps={{ canToggle: false }}
 				href={resolve('/coins')}
-				entityFieldReference={{
-					entityType: EntityType.Coin,
-					selector: { coinId: CoinId.ETH },
-					fieldName: '$$coinInstances',
-				}}
+				selection={select(
+			EntityType.Coin,
+			{ coinId: CoinId.ETH }
+		).$$coinInstances}
 				id={`${id}:deployments-eth`}
 				open={deploymentsOpen}
 				title="Ethereum (ETH)"

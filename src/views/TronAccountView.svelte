@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		selector,
@@ -55,7 +55,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.TronAccount,
+			resource={select(EntityType.TronAccount,
 					selector,
 					({ fields: { name: true, balanceSun: true, totalTransactionCount: true, isContract: true, ...(open && ({ createdTimestampMs: true, latestOperationTimestampMs: true, bandwidthRemaining: true, energyRemaining: true })) } }),
 				)}

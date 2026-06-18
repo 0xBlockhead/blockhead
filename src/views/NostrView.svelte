@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
@@ -83,7 +83,7 @@
 	{#snippet Content({})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={proxy(EntityType.NostrNetwork, selector, ({ sources: [
+				resource={select(EntityType.NostrNetwork, selector, ({ sources: [
 						Source.Constants_Internal,
 					], fields: { protocolName: true, registryLabel: true, ...(open ? ({ homeUrl: true, docsUrl: true, topology: true, $$nostrProfiles: ({ sources: [
 									Source.Constants_Internal,
@@ -108,35 +108,35 @@
 				{#if open}
 					<div>
 						<dt>Profiles</dt>
-						<dd>{String(network.fields.$$nostrProfiles?.values.length)}</dd>
+						<dd>{String(network.fields.$$nostrProfiles.values.length)}</dd>
 					</div>
 				{/if}
 
 				{#if open}
 					<div>
 						<dt>Notes</dt>
-						<dd>{String(network.fields.$$nostrNotes?.values.length)}</dd>
+						<dd>{String(network.fields.$$nostrNotes.values.length)}</dd>
 					</div>
 				{/if}
 
 				{#if open}
 					<div>
 						<dt>Relays</dt>
-						<dd>{String(network.fields.$$nostrRelays?.values.length)}</dd>
+						<dd>{String(network.fields.$$nostrRelays.values.length)}</dd>
 					</div>
 				{/if}
 
 				{#if open}
 					<div>
 						<dt>Reposts</dt>
-						<dd>{String(network.fields.$$nostrReposts?.values.length)}</dd>
+						<dd>{String(network.fields.$$nostrReposts.values.length)}</dd>
 					</div>
 				{/if}
 
 				{#if open}
 					<div>
 						<dt>Articles</dt>
-						<dd>{String(network.fields.$$nostrArticles?.values.length)}</dd>
+						<dd>{String(network.fields.$$nostrArticles.values.length)}</dd>
 					</div>
 				{/if}
 
@@ -198,11 +198,10 @@
 				<NostrNotesView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/nostr/notes')}
-					entityFieldReference={{
-						entityType: EntityType.NostrNetwork,
-						selector,
-						fieldName: '$$nostrNotes',
-					}}
+					selection={select(
+			EntityType.NostrNetwork,
+			selector
+		).$$nostrNotes}
 					fieldOpen={_open}
 					id={`${networkSelectorKey}:notes`}
 					limit={25}
@@ -214,11 +213,10 @@
 			{#snippet SectionReposts()}
 				<NostrRepostsView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.NostrNetwork,
-						selector,
-						fieldName: '$$nostrReposts',
-					}}
+					selection={select(
+			EntityType.NostrNetwork,
+			selector
+		).$$nostrReposts}
 					fieldOpen={_open}
 					id={`${networkSelectorKey}:reposts`}
 					limit={25}
@@ -230,11 +228,10 @@
 			{#snippet SectionArticles()}
 				<NostrArticlesView
 					CollapsibleProps={{ canToggle: false }}
-					entityFieldReference={{
-						entityType: EntityType.NostrNetwork,
-						selector,
-						fieldName: '$$nostrArticles',
-					}}
+					selection={select(
+			EntityType.NostrNetwork,
+			selector
+		).$$nostrArticles}
 					fieldOpen={_open}
 					id={`${networkSelectorKey}:articles`}
 					limit={25}
@@ -269,11 +266,10 @@
 				<NostrProfilesView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/nostr/profiles')}
-					entityFieldReference={{
-						entityType: EntityType.NostrNetwork,
-						selector,
-						fieldName: '$$nostrProfiles',
-					}}
+					selection={select(
+			EntityType.NostrNetwork,
+			selector
+		).$$nostrProfiles}
 					id={`${networkSelectorKey}:profiles`}
 					open={true}
 				/>
@@ -283,11 +279,10 @@
 				<NostrRelaysView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/nostr/relays')}
-					entityFieldReference={{
-						entityType: EntityType.NostrNetwork,
-						selector,
-						fieldName: '$$nostrRelays',
-					}}
+					selection={select(
+			EntityType.NostrNetwork,
+			selector
+		).$$nostrRelays}
 					id={`${networkSelectorKey}:relays`}
 					open={true}
 				/>

@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -24,7 +24,7 @@
 		Pick<ComponentProps<typeof EntityView>, 'layout' | 'showTypeAnnotation'>
 	> = $props()
 
-	const utxoOutput = $derived(proxy(
+	const utxoOutput = $derived(select(
 		EntityType.UtxoOutput,
 		selector,
 	))

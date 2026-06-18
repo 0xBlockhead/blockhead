@@ -9,7 +9,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -71,7 +71,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.AtprotoPost_Timestamp,
+			resource={select(EntityType.AtprotoPost_Timestamp,
 					selector,
 					({ sources: [
 							Source.Atproto_Xrpc,						], fields: { likeCount: true, repostCount: true, replyCount: true, quoteCount: true } }),

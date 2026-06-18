@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { EntityFieldName, EntityType as EntityTypeName } from '$/schema/$schema.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,10 +13,9 @@ import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Metagraph snapshots',
 		open = $bindable(true),
 		id,
@@ -23,7 +23,11 @@ import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BittensorMetagraph_Timestamp>
+			selection: EntityProxyFieldResource<
+				typeof schema,
+				EntityTypeName<typeof schema>,
+				EntityFieldName<typeof schema, EntityTypeName<typeof schema>>
+			>
 			title?: string
 			open?: boolean
 			id: string
@@ -62,13 +66,7 @@ import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	{#snippet body()}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-						{
-							sources: [Source.Bittensor_JsonRpc],
-						}
-					).field(entityFieldReference.fieldName, {
+				resource={selection({
 						sources: [Source.Bittensor_JsonRpc],
 						limit: 16,
 					})}

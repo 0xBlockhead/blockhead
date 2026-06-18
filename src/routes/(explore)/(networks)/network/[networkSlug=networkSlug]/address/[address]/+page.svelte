@@ -6,13 +6,13 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	// State
 	let {
 		params,
 	} = $props()
 
-	const network = $derived(proxy(EntityType.Network,
+	const network = $derived(select(EntityType.Network,
 		{ slug: params.networkSlug },
 		({ sources: [Source.Constants_Internal], fields: { namespace: true, slug: true } }),
 	))

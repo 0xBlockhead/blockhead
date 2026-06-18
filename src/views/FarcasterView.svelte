@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 		variant: 'trending',
 	}
 
-	const network = $derived(proxy(EntityType.FarcasterNetwork, selector, ({ sources: [Source.Farcaster_Rest], fields: { ...(open ? ({ protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$channels: true, $$users: ({ sources: [Source.Snapchain_Rest] }) }) : ({  })) } })))
+	const network = $derived(select(EntityType.FarcasterNetwork, selector, ({ sources: [Source.Farcaster_Rest], fields: { ...(open ? ({ protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$channels: true, $$users: ({ sources: [Source.Snapchain_Rest] }) }) : ({  })) } })))
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
@@ -101,14 +101,14 @@
 					{#if open}
 						<div>
 							<dt>Channels</dt>
-							<dd>{String(network.fields.$$channels?.values.length)}</dd>
+							<dd>{String(network.fields.$$channels.values.length)}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Users</dt>
-							<dd>{String(network.fields.$$users?.values.length)}</dd>
+							<dd>{String(network.fields.$$users.values.length)}</dd>
 						</div>
 					{/if}
 
@@ -183,11 +183,10 @@
 				<FarcasterFeedsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/farcaster/feed')}
-					entityFieldReference={{
-						entityType: EntityType.FarcasterNetwork,
-						selector: { scope: 'FarcasterNetwork' },
-						fieldName: '$$feeds',
-					}}
+					selection={select(
+			EntityType.FarcasterNetwork,
+			{ scope: 'FarcasterNetwork' }
+		).$$feeds}
 					id="feed-index"
 					limit={36}
 					open={_open}
@@ -198,63 +197,10 @@
 				<FarcasterCastsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/farcaster/feed/trending')}
-					entityFieldReference={{
-						entityType: EntityType.FarcasterFeed,
-						selector: trendingFeed,
-						fieldName: '$$entries',
-					}}
-					id="casts"
-					limit={25}
-					open={_open}
-					title="Trending casts"
-				/>
-			{/snippet}
-		</CollapsibleTabs>
-
-		<CollapsibleTabs
-			id={`${networkSelectorKey}:carousel-community`}
-			sectionIdPrefix={networkSelectorKey}
-			sections={collapsibleTabsSections([
-				{ id: 'channels', label: 'Channels' },
-				{ id: 'users', label: 'Users' },
-			])}
-			data-card
-			scrollContainerProps={entityViewDetailCarouselScrollProps}
-		>
-			{#snippet Summary({ open: _open })}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Community
-					</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionChannels({ id, label })}
-				<FarcasterChannelsView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/farcaster/channels')}
-					entityFieldReference={{
-						entityType: EntityType.FarcasterNetwork,
-						selector,
-						fieldName: '$$channels',
-					}}
-					id="channels"
-					open={_open}
-				/>
-			{/snippet}
-
-			{#snippet SectionUsers({ id, label })}
-				<FarcasterUsersView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/farcaster/users')}
-					entityFieldReference={{
-						entityType: EntityType.FarcasterNetwork,
-						selector,
-						fieldName: '$$users',
-					}}
+					selection={select(
+			EntityType.FarcasterFeed,
+			trendingFeed
+		).$$entries}
 					id="users"
 					open={_open}
 				/>
@@ -285,11 +231,10 @@
 				<BlockheadFarcasterAccountConnectionsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/farcaster/accounts')}
-					entityFieldReference={{
-						entityType: EntityType._Global,
-						selector: { scope: '$$blockheadFarcasterAccountConnections' },
-						fieldName: '$$blockheadFarcasterAccountConnections',
-					}}
+					selection={select(
+			EntityType._Global,
+			{ scope: '$$blockheadFarcasterAccountConnections' }
+		).$$blockheadFarcasterAccountConnections}
 					id="accounts"
 					open={_open}
 				/>

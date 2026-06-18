@@ -12,7 +12,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,12 +38,13 @@
 		>
 	> = $props()
 
-	const walletConnection = $derived(proxy(EntityType.BlockheadWalletConnection,
+	const walletConnection = $derived(select(EntityType.BlockheadWalletConnection,
 		selector,
 		({ sources: [
 				Source.Local_Internal,
 			], fields: { status: true, protocol: true, transportKind: true, scopes: true, $$connectedAccounts: true, $activeAccount: true, selected: true, connectedAt: true, disconnectedAt: true, sessionId: true, sessionTopic: true, error: true } }),
 	))
+	const walletConnectionError = $derived(walletConnection.field('error'))
 
 
 	// (Derived)
@@ -183,11 +184,18 @@
 			placeholderText="Loading wallet connection…"
 		>
 			{#snippet children(walletConnection)}
-				{#if walletConnection.fields.error}
-					<p role="alert">
-						{walletConnection.fields.error}
-					</p>
-				{/if}
+				<ResourceBoundary
+					resource={walletConnectionError}
+					placeholderText="Loading wallet connection error…"
+				>
+					{#snippet children(error)}
+						{#if error !== undefined && error !== ''}
+							<p role="alert">
+								{error}
+							</p>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
 				<CollapsibleTabs
 					id={`${walletConnectionKey}:carousel-wallet`}

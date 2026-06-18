@@ -1,20 +1,26 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityFieldReference } from '$/schema/EntityFieldReference.ts'
+	import type { EntityProxyFieldResource } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
+	type EvmBlobsResource = EntityProxyFieldResource<
+		typeof schema,
+		EntityType.EvmNetwork,
+		'$$blobs'
+	> | EntityProxyFieldResource<
+		typeof schema,
+		EntityType.EvmTransaction,
+		'$$blobs'
+	>
 
-	// Context
-	import { proxy } from '$/routes/+layout.svelte'
 	// State
 	let {
-		entityFieldReference,
+		selection,
 		title = 'Blobs',
 		open = $bindable(true),
 		collapsible = true,
@@ -22,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmBlob>
+			selection: EvmBlobsResource
 			title?: string
 			open?: boolean
 			collapsible?: boolean
@@ -71,13 +77,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			<ResourceBoundary
-				resource={proxy(
-						entityFieldReference.entityType,
-						entityFieldReference.selector,
-					).field(entityFieldReference.fieldName, {
-						sources: [Source.Voltaire_JsonRpc],
-						limit: entityFieldReference.entityType === EntityType.EvmNetwork ? 8 : undefined,
-					})}
+				resource={selection}
 				placeholderText="Loading blobs…"
 			>
 				{#snippet children(blobs)}

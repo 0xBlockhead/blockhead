@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { select } from '$/routes/+layout.svelte'
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -11,11 +12,10 @@
 
 <Page>
 	<SpecificationRealmsView
-		entityFieldReference={{
-			entityType: EntityType._Global,
-			selector: { scope: '$$specificationRealms' },
-			fieldName: '$$specificationRealms',
-		}}
+		selection={select(
+			EntityType._Global,
+			{ scope: '$$specificationRealms' }
+		).$$specificationRealms}
 		id="proposal-realms"
 		title="Proposals"
 	/>

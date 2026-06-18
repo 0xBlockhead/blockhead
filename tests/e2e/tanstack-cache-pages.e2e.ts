@@ -53,11 +53,9 @@ test.describe('TanStack query lifecycle + cache', () => {
 		await page.goto('/networks', { waitUntil: 'load' })
 		await coldRpc
 		await expect(page.locator('#networks')).toBeVisible()
-		await expect(page.locator('#networks').getByText('Loading networks…')).toHaveCount(
-			0,
-			{ timeout: 120_000 }
-		)
-		await expect(page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()).toBeVisible()
+		await expect(page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()).toBeVisible({
+			timeout: 120_000,
+		})
 
 		expect(networkListSources.get(), 'cold load should call network list resolvers').toBeGreaterThan(0)
 		networkListSources.detach()

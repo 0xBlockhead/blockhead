@@ -10,7 +10,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -83,13 +83,13 @@
 		<dl data-column-item="center">
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={proxy(EntityType.XmtpNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xmtpConversations: ({ sources: [Source.Local_Internal] }) } }))}
+					resource={select(EntityType.XmtpNetwork, selector, ({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xmtpConversations: ({ sources: [Source.Local_Internal] }) } }))}
 					placeholderText="Loading XMTP network…"
 				>
 					{#snippet children(network)}
 							<div>
 								<dt>Conversations</dt>
-								<dd>{String(network.fields.$$xmtpConversations?.values.length ?? 0)}</dd>
+								<dd>{String(network.fields.$$xmtpConversations.values.length )}</dd>
 							</div>
 
 						<div>
@@ -155,26 +155,10 @@
 				<EvmAccountsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/~/accounts')}
-					entityFieldReference={{
-						entityType: EntityType._Global,
-						selector: { scope: '$$actors' },
-						fieldName: '$$actors',
-					}}
-					id="accounts"
-					open={_open}
-					title="Demo accounts"
-				/>
-			{/snippet}
-
-			{#snippet SectionConversations({ id: _id, label: _label })}
-				<XmtpConversationsView
-					CollapsibleProps={{ canToggle: false }}
-					href={resolve('/xmtp')}
-					entityFieldReference={{
-						entityType: EntityType.XmtpNetwork,
-						selector,
-						fieldName: '$$xmtpConversations',
-					}}
+					selection={select(
+			EntityType._Global,
+			{ scope: '$$actors' }
+		).$$actors}
 					id="conversations"
 					open={_open}
 				/>

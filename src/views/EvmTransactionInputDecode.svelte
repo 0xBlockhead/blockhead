@@ -22,7 +22,7 @@
 	} from '$/lib/calldata-decode.ts'
 
 	import { normalizeEvmSelectorHex } from '$/lib/signature-paths.ts'
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	const emptySelectorHex: `0x${string}` = '0x00000000'
 
@@ -35,7 +35,7 @@
 			null,
 	)
 
-	const selector = $derived(proxy(
+	const selector = $derived(select(
 		EntityType.EvmSelector,
 		(
 			selectorHex != null ?
@@ -50,25 +50,6 @@
 		},
 	))
 	const signatures = $derived(selector.signatures)
-
-
-	const decodedCall = $derived.by(() => {
-		if (!open)
-			return null
-
-		const signatures = selector.current?.fields.signatures
-		if (!signatures?.length)
-			return null
-
-		for (const signature of signatures) {
-			const decoded = decodeCalldataWithSignature(signature, input)
-			if (decoded)
-				return { signature, decoded }
-		}
-
-		return null
-	})
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -98,11 +79,17 @@
 				resource={signatures}
 				placeholderText="Loading function signatures…"
 			>
-				{#snippet children()}
+				{#snippet children(signatures)}
+					{@const decodedCall = signatures
+						?.map((signature) => ({
+							signature,
+							decoded: decodeCalldataWithSignature(signature, input),
+						}))
+						.find(({ decoded }) => decoded)}
 					{#if decodedCall}
 						<div data-column="gap-1">
 							<code>{decodedCall.signature}</code>
-							{#if decodedCall.decoded.params.length}
+							{#if decodedCall.decoded?.params.length}
 								<ul data-text="muted">
 									{#each decodedCall.decoded.params as param, index (index)}
 										<li>

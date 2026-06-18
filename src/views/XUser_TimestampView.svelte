@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -67,7 +67,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.XUser_Timestamp, selector, ({ fields: { followerCount: true, followingCount: true, tweetCount: true, listedCount: true } }))}
+			resource={select(EntityType.XUser_Timestamp, selector, ({ fields: { followerCount: true, followingCount: true, tweetCount: true, listedCount: true } }))}
 			placeholderText="Loading X user snapshot..."
 		>
 			{#snippet children(xUserTimestamp)}

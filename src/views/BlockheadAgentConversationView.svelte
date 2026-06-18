@@ -12,7 +12,7 @@
 	type Conversation = EntityProxyCurrent<typeof schema, EntityType.BlockheadAgentConversation>
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -38,7 +38,7 @@
 	> = $props()
 
 	const conversation = $derived.by(() => (
-		proxy(EntityType.BlockheadAgentConversation,
+		select(EntityType.BlockheadAgentConversation,
 			selector,
 			({ sources: [
 				Source.Local_Internal,

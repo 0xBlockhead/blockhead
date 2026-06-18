@@ -18,7 +18,7 @@
 
 	import { stringify } from 'devalue'
 
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	const selector: EntitySelector<typeof schema, EntityType.XNetwork> = {
 		scope: 'XNetwork',
@@ -74,7 +74,7 @@
 	})}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={proxy(EntityType.XNetwork,
+				resource={select(EntityType.XNetwork,
 						selector,
 						({ sources: [Source.Constants_Internal], fields: { protocolName: true, homeUrl: true, docsUrl: true, registryLabel: true, topology: true, $$xUsers: ({ sources: [
 								Source.X_Rest,
@@ -89,11 +89,11 @@
 				{#snippet children(network)}
 						<div>
 							<dt>Profiles</dt>
-							<dd>{String(network.fields.$$xUsers?.values.length ?? 0)}</dd>
+							<dd>{String(network.fields.$$xUsers.values.length )}</dd>
 						</div>
 						<div>
 							<dt>Posts</dt>
-							<dd>{String(network.fields.$$xPosts?.values.length ?? 0)}</dd>
+							<dd>{String(network.fields.$$xPosts.values.length )}</dd>
 						</div>
 					{#if contentOpen}
 						<div>
@@ -178,11 +178,10 @@
 				<XUsersView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/x/users')}
-					entityFieldReference={{
-						entityType: EntityType.XNetwork,
-						selector,
-						fieldName: '$$xUsers',
-					}}
+					selection={select(
+			EntityType.XNetwork,
+			selector
+		).$$xUsers}
 					id={`${networkSelectorKey}:users`}
 					open={_open}
 					title="Profiles"
@@ -193,11 +192,10 @@
 				<XPostsView
 					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/x/posts')}
-					entityFieldReference={{
-						entityType: EntityType.XNetwork,
-						selector,
-						fieldName: '$$xPosts',
-					}}
+					selection={select(
+			EntityType.XNetwork,
+			selector
+		).$$xPosts}
 					id={`${networkSelectorKey}:posts`}
 					open={_open}
 					title="Recent posts"

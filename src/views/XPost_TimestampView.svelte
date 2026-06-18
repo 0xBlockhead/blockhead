@@ -8,7 +8,7 @@
 
 
 	// Context
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 	import { resolve } from '$app/paths'
 
 
@@ -70,7 +70,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.XPost_Timestamp, selector, ({ fields: { likeCount: true, retweetCount: true, replyCount: true, quoteCount: true } }))}
+			resource={select(EntityType.XPost_Timestamp, selector, ({ fields: { likeCount: true, retweetCount: true, replyCount: true, quoteCount: true } }))}
 			placeholderText="Loading X post snapshot..."
 		>
 			{#snippet children(xPostTimestamp)}

@@ -9,7 +9,7 @@
 
 
 	// State
-	import { proxy } from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 	let {
 		selector,
@@ -55,7 +55,7 @@
 
 	{#snippet Content()}
 		<ResourceBoundary
-			resource={proxy(EntityType.ZeroGStorageNode, selector, ({ fields: { $operator: true, endpoint: true, balance: true, totalReward: true, winCount: true, miningAttempts: true } }))}
+			resource={select(EntityType.ZeroGStorageNode, selector, ({ fields: { $operator: true, endpoint: true, balance: true, totalReward: true, winCount: true, miningAttempts: true } }))}
 			placeholderText="Loading 0G storage node…"
 		>
 			{#snippet children(storageNode)}
